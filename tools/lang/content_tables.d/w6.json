@@ -1,0 +1,8 @@
+{
+ "_why": "W6 content tables: every player-text field of these tables is shown through langDesc at its display sites.",
+ "tables": [
+  { "expr": "HERO_LORE", "fields": ["title", "text"], "area": "lore" },
+  { "expr": "GLOSSARY_INFO", "fields": ["lore"], "area": "glossary" },
+  { "expr": "KITS", "fields": ["desc"], "area": "skill" }
+ ]
+}

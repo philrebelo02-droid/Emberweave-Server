@@ -1,0 +1,38 @@
+{
+ "_why": "LANGUAGES step 2 finish check 2 (tools/lang/scan.js): code that holds English on purpose. Every entry says why. A table listed as content is shown through langDesc()/t() at its display sites (lang/<code>.content.json); a names table holds in-game proper names (Phil's rule: never translated); dev functions are Phil's own tools (dev role only).",
+ "tables": {
+  "EW_LANG_EN": "the English dictionary itself",
+  "EW_LANGS": "each language's own name, written in that language",
+  "KIT_DESC": "content: skill text, shown through langDesc (skillDesc, battle tooltip)",
+  "KIT_DESC_LV": "content: skill text, shown through langDesc (skillDesc)",
+  "HERO_ULT_DESC": "content: ultimate text, shown through langDesc",
+  "ULT_DESC": "content: ultimate text, shown through langDesc",
+  "ULT_DESC_LV": "content: ultimate text, shown through langDesc",
+  "PASS_DESC": "content: passive text, shown through langDesc",
+  "PASS_DESC_LV": "content: passive text, shown through langDesc",
+  "NPC_NAMES": "names: arena NPC player names",
+  "ARENA_SURNAMES": "names: generated player names",
+  "MUSIC_LISTS": "names: music track titles",
+  "CHAPTER_NAMES": "names: campaign chapter place names",
+  "SFX_DATA": "audio data",
+  "LORE_AUDIO": "audio file table"
+ },
+ "functions": {
+  "runBalanceBots": "dev tool (Phil): balance bots",
+  "devAction": "dev tool (Phil): dev panel actions",
+  "openPlayerAdmin": "dev/admin tool: player admin popup",
+  "adminBanMenu": "dev/admin tool: ban menu",
+  "openDevCreateAccount": "dev tool: create test accounts",
+  "devShowReports": "dev tool: player report queue",
+  "ewDiag": "dev diagnostics overlay",
+  "_intAuditHTML": "dev integrity audit panel",
+  "skillDesc": "content: every sentence goes through langDesc/langMeta",
+  "abilityMeta": "content: the meta line goes through langMeta (skillDesc)",
+  "passDescAt": "content: shown through langDesc"
+ },
+ "text": {
+  "brand": ["Emberweave", "Emberweave Heroes", "Xanthyr Games", "Google", "Google Play", "Facebook", "Discord", "PvP", "EGP", "HP", "ATK", "AP", "DPS", "XP", "EXP", "Lv", "VIP", "NPC", "ID", "OK"]
+ },
+ "patterns": [],
+ "lines": []
+}

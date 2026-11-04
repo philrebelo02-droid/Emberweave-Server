@@ -1,0 +1,194 @@
+{
+ "keys": {
+  "bat2.no_enemy_within": "no enemy within {n} m",
+  "fx2.stun": "STUN",
+  "fx2.silenced": "SILENCED",
+  "fx2.resist": "RESIST",
+  "fx2.marked": "MARKED",
+  "fx2.frozen": "FROZEN",
+  "fx2.block": "BLOCK",
+  "fx2.asleep": "ASLEEP",
+  "fx2.miss": "MISS",
+  "fx2.dodge": "DODGE",
+  "fx2.evade": "EVADE",
+  "fx2.evading": "EVADING",
+  "fx2.wax": "WAX",
+  "fx2.venom": "VENOM",
+  "fx2.stung": "STUNG",
+  "fx2.sealed": "SEALED",
+  "fx2.encased": "ENCASED",
+  "fx2.statue": "STATUE",
+  "fx2.rupture": "RUPTURE",
+  "fx2.weightless": "WEIGHTLESS",
+  "fx2.rewritten": "REWRITTEN",
+  "fx2.uninterruptible": "UNINTERRUPTIBLE",
+  "fx2.unseen": "UNSEEN",
+  "fx2.unbroken": "UNBROKEN",
+  "fx2.terminated": "TERMINATED",
+  "fx2.executed": "EXECUTED",
+  "fx2.interrupt": "INTERRUPT",
+  "fx2.hooked": "HOOKED",
+  "fx2.linked": "LINKED",
+  "fx2.plated": "PLATED",
+  "fx2.reinforced": "REINFORCED",
+  "fx2.rallied": "RALLIED",
+  "fx2.risen": "RISEN",
+  "fx2.returned": "RETURNED",
+  "fx2.burrowed": "BURROWED",
+  "fx2.charged": "CHARGED",
+  "fx2.collected": "COLLECTED",
+  "fx2.absorb": "ABSORB",
+  "fx2.puncture": "PUNCTURE",
+  "fx2.gone": "GONE",
+  "fx2.ready": "READY",
+  "fx2.rooted": "ROOTED",
+  "fx2.rooted_silenced": "ROOTED + SILENCED",
+  "fx2.debt_called_in": "DEBT CALLED IN",
+  "fx2.poison_spreads": "POISON SPREADS",
+  "fx2.not_there": "NOT THERE",
+  "fx2.minus_speed": "−SPEED",
+  "fx2.plus_speed": "+SPEED",
+  "fx2.long_shot": "LONG SHOT",
+  "fx2.in_debt": "IN DEBT",
+  "fx2.will_not_fall": "WILL NOT FALL",
+  "fx2.veins_burst": "VEINS BURST",
+  "fx2.behind_you": "BEHIND YOU",
+  "fx2.up_the_lot": "UP, THE LOT OF YOU",
+  "fx2.raise_attack": "Raise Attack",
+  "fx2.frenzy": "Frenzy",
+  "fx2.vigor": "Vigor",
+  "fx2.roar": "ROAR!",
+  "fx2.fear": "FEAR!",
+  "fx2.rally": "Rally!",
+  "fx2.mirage_holds": "MIRAGE HOLDS",
+  "fx2.the_wall": "THE WALL",
+  "fx2.pressure_released": "PRESSURE RELEASED",
+  "fx2.five_keys": "5 KEYS",
+  "fx2.wrath_up": "Wrath +",
+  "fx2.dark_font": "DARK FONT",
+  "fx2.light_font": "LIGHT FONT",
+  "fx2.minus_heal": "-heal",
+  "fx2.minus_resist": "−resist",
+  "fx2.minus_energy": "−energy",
+  "fx2.minus_attack": "−attack",
+  "fx2.minus_armour": "−armour",
+  "fx2.fed_pct": "FED +{n}%",
+  "fx2.bleed_x": "bleed x{n}",
+  "fx2.wax_x": "wax x{n}",
+  "res2.plus_n_item": "+{n} {item}",
+  "res2.lost_msg": "Connection lost before the server answered - this result is not confirmed.",
+  "res2.server_down": "The server is down - your fight is kept and will be saved when it is back.",
+  "res2.back_online": "Back online - your fight was saved.",
+  "res2.not_saved": "The server could not save it - this result is not confirmed.",
+  "res2.signed_out": "You were signed out - this result is not confirmed.",
+  "res2.not_confirmed": "The server did not confirm this result.",
+  "well2.training_province": "Training Province"
+ },
+ "edits": [
+  {
+   "line": 5985,
+   "find": "  return ((d==='Magic'||d==='Healer')&&typeof r==='string')?r.replace(/\\{i:s:attack\\}(?= \\d)/g,'{i:t:apow}'):r; }",
+   "replace": "  const o=((d==='Magic'||d==='Healer')&&typeof r==='string')?r.replace(/\\{i:s:attack\\}(?= \\d)/g,'{i:t:apow}'):r;\n  return (typeof o==='string'&&o)?langDesc(o):o; }   /* v1271 LANGUAGES: the effect line in the player's language (lang/<code>.content.json; display only) */"
+  },
+  {
+   "line": 5515,
+   "find": "return 'no enemy within '+Math.round(D.range/METER)+' m';",
+   "replace": "return ewT('bat2.no_enemy_within',{n:Math.round(D.range/METER)});"
+  },
+  {
+   "line": 5757,
+   "find": "r.error==='offline'?'Connection lost.':r.error",
+   "replace": "r.error==='offline'?ewT('net.connection_lost'):r.error"
+  },
+  {
+   "line": 6801,
+   "find": "function ftIsDebuff(f){ if(!f||typeof f.txt!=='string'||f.label) return false; if(f._deb==null) f._deb=FT_DEBUFF_RE.test(f.txt); return f._deb; }",
+   "replace": "function ftIsDebuff(f){ if(!f||typeof f.txt!=='string'||f.label) return false; if(f._deb==null) f._deb=FT_DEBUFF_RE.test(f.txt); return f._deb; }\n/* v1271 LANGUAGES: a status word stays English in floatTexts (ftIsStatus / FT_DEBUFF_RE sort it by its English capitals; the fight never\n   reads it) and is drawn in the player's language: FT_I18N = English word -> key. Ability names (f.label) and other names stay as written. */\nconst FT_I18N={'STUN':'fx2.stun','SILENCED':'fx2.silenced','RESIST':'fx2.resist','MARKED':'fx2.marked','FROZEN':'fx2.frozen','BLOCK':'fx2.block','ASLEEP':'fx2.asleep','MISS':'fx2.miss','DODGE':'fx2.dodge','EVADE':'fx2.evade','EVADING':'fx2.evading','WAX':'fx2.wax','VENOM':'fx2.venom','STUNG':'fx2.stung','SEALED':'fx2.sealed','ENCASED':'fx2.encased','STATUE':'fx2.statue','RUPTURE':'fx2.rupture','WEIGHTLESS':'fx2.weightless','REWRITTEN':'fx2.rewritten','UNINTERRUPTIBLE':'fx2.uninterruptible','UNSEEN':'fx2.unseen','UNBROKEN':'fx2.unbroken','TERMINATED':'fx2.terminated','EXECUTED':'fx2.executed','INTERRUPT':'fx2.interrupt','HOOKED':'fx2.hooked','LINKED':'fx2.linked','PLATED':'fx2.plated','REINFORCED':'fx2.reinforced','RALLIED':'fx2.rallied','RISEN':'fx2.risen','RETURNED':'fx2.returned','BURROWED':'fx2.burrowed','CHARGED':'fx2.charged','COLLECTED':'fx2.collected','ABSORB':'fx2.absorb','PUNCTURE':'fx2.puncture','GONE':'fx2.gone','READY':'fx2.ready','ROOTED':'fx2.rooted','ROOTED + SILENCED':'fx2.rooted_silenced','DEBT CALLED IN':'fx2.debt_called_in','POISON SPREADS':'fx2.poison_spreads','NOT THERE':'fx2.not_there','−SPEED':'fx2.minus_speed','+SPEED':'fx2.plus_speed','LONG SHOT':'fx2.long_shot','IN DEBT':'fx2.in_debt','WILL NOT FALL':'fx2.will_not_fall','VEINS BURST':'fx2.veins_burst','BEHIND YOU':'fx2.behind_you','UP, THE LOT OF YOU':'fx2.up_the_lot','Raise Attack':'fx2.raise_attack','Frenzy':'fx2.frenzy','Haste':'gear.stat_haste','Vigor':'fx2.vigor','ROAR!':'fx2.roar','FEAR!':'fx2.fear','Rally!':'fx2.rally','MIRAGE HOLDS':'fx2.mirage_holds','THE WALL':'fx2.the_wall','PRESSURE RELEASED':'fx2.pressure_released','5 KEYS':'fx2.five_keys','Wrath +':'fx2.wrath_up','DARK FONT':'fx2.dark_font','LIGHT FONT':'fx2.light_font','-heal':'fx2.minus_heal','−resist':'fx2.minus_resist','−energy':'fx2.minus_energy','−attack':'fx2.minus_attack','−armour':'fx2.minus_armour'};\nfunction ftShow(f){ const s=f.txt; if(typeof s!=='string'||f.label) return s; if(f._txE===s&&f._txL===LANG.cur) return f._tx;\n  let o=s, m; const k=FT_I18N[s]; if(k) o=ewT(k)||s; else if((m=/^FED \\+(\\d+)%$/.exec(s))) o=ewT('fx2.fed_pct',{n:m[1]})||s;\n  else if((m=/^bleed x(\\d+)$/.exec(s))) o=ewT('fx2.bleed_x',{n:m[1]})||s; else if((m=/^wax x(\\d+)$/.exec(s))) o=ewT('fx2.wax_x',{n:m[1]})||s;\n  f._txE=s; f._txL=LANG.cur; f._tx=o; return o; }"
+  },
+  {
+   "line": 16975,
+   "find": "octx.strokeText(f.txt,p.x,p.y);",
+   "replace": "octx.strokeText(ftShow(f),p.x,p.y);"
+  },
+  {
+   "line": 16976,
+   "find": "octx.fillText(f.txt,p.x,p.y); });",
+   "replace": "octx.fillText(ftShow(f),p.x,p.y); });"
+  },
+  {
+   "line": 15289,
+   "find": "bannerMsg('STAGE '+CUR.node+'\\nWAVE 1');",
+   "replace": "bannerMsg(ewT('battle.stage_caps',{n:CUR.node})+'\\n'+ewT('battle.wave_n',{n:1}));"
+  },
+  {
+   "line": 15850,
+   "find": "${rw.potions?` · +${rw.potions} Superior XP Potion${rw.potions>1?'s':''}`:''}",
+   "replace": "${rw.potions?` · ${ewT('res2.plus_n_item',{n:rw.potions,item:'Superior XP Potion'+(rw.potions>1?'s':'')})}`:''}"
+  },
+  {
+   "line": 15928,
+   "find": " +${n} ${escapeHTML(tier[0].toUpperCase()+tier.slice(1))} Hero XP Potion${n===1?'':'s'}</div>",
+   "replace": " ${ewT('res2.plus_n_item',{n,item:escapeHTML(tier[0].toUpperCase()+tier.slice(1))+' Hero XP Potion'+(n===1?'':'s')})}</div>"
+  },
+  {
+   "line": 24213,
+   "find": "bannerMsg('The server is down - your fight is kept and will be saved when it is back.');",
+   "replace": "bannerMsg(ewT('res2.server_down'));"
+  },
+  {
+   "line": 24217,
+   "find": "bannerMsg('Back online - your fight was saved.');",
+   "replace": "bannerMsg(ewT('res2.back_online'));"
+  },
+  {
+   "line": 24221,
+   "find": "return 'The server could not save it - this result is not confirmed.';",
+   "replace": "return ewT('res2.not_saved');"
+  },
+  {
+   "line": 24222,
+   "find": "if(resultReplyLost(r)) return RESULT_LOST_MSG; if(r&&r.error==='auth') return 'You were signed out - this result is not confirmed.';",
+   "replace": "if(resultReplyLost(r)) return ewT('res2.lost_msg')||RESULT_LOST_MSG; if(r&&r.error==='auth') return ewT('res2.signed_out');"
+  },
+  {
+   "line": 24223,
+   "find": "'The server did not confirm this result.'",
+   "replace": "ewT('res2.not_confirmed')"
+  },
+  {
+   "line": 28930,
+   "find": "bannerMsg('The game just updated — restarting…');",
+   "replace": "bannerMsg(ewT('battle.game_updated'));"
+  },
+  {
+   "line": 28959,
+   "find": "<div class=\"provTtl\">Training Province</div><button class=\"isleX\" id=\"ipX\" aria-label=\"Close\">",
+   "replace": "<div class=\"provTtl\">${ewT('well2.training_province')}</div><button class=\"isleX\" id=\"ipX\" aria-label=\"${ewT('common.close')}\">"
+  },
+  {
+   "line": 15409,
+   "find": "'Irix rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish'];",
+   "replace": "'Irix rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish'];\n/* v1271 LANGUAGES: the cue in the player's language (bosscue.ch<n>, {boss} = the boss's in-game name); the table above is the English fallback */\nconst CHAPTER_BOSS_NAME=['Brukk','Miregor','Wintercrag','Nerissa','Sable Vesper','Vharok','Maelvara','Orryx','The Admiral','Barrowmaw','Asterion','Nymira','Kharos','Thorneveil','Magmourn','Irix'];\nfunction chapterBossCueText(i){ const c=CHAPTER_BOSS_CUE[i]; return c?(ewT(('bosscue.ch'+(i+1)),{boss:CHAPTER_BOSS_NAME[i]})||c):null; }"
+  },
+  {
+   "line": 28951,
+   "find": "if(ch[k]!=null && typeof CHAPTER_BOSS_CUE!=='undefined') return CHAPTER_BOSS_CUE[ch[k]]||null;",
+   "replace": "if(ch[k]!=null && typeof CHAPTER_BOSS_CUE!=='undefined') return chapterBossCueText(ch[k]);"
+  },
+  {
+   "line": 21589,
+   "find": "(CHAPTER_BOSS_CUE[Math.ceil(node/10)-1]||null)",
+   "replace": "(chapterBossCueText(Math.ceil(node/10)-1)||null)"
+  },
+  {
+   "line": 21590,
+   "find": "BOSS_CUES[bossKey]:null",
+   "replace": "(BOSS_CUES[bossKey]?(ewT(('bosscue.'+bossKey))||BOSS_CUES[bossKey]):null):null"
+  },
+  {
+   "line": 29216,
+   "find": "name:T.abilityName||'Ultimate'",
+   "replace": "name:T.abilityName||ewT('skdesc.ultimate')"
+  }
+ ]
+}

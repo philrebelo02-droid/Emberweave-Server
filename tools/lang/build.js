@@ -73,6 +73,8 @@ for(const c of CODES.slice(1)){ const d={}; const dir=path.join(CDIR,c);
   cmissing[c]=Object.keys(CEN).filter(k=>!(k in d));
   if(Object.keys(d).length){ ctext[c]=JSON.stringify(sorted(d)); CV[c]=crypto.createHash('sha1').update(ctext[c]).digest('hex').slice(0,8); } }
 if(problems.length) die(problems.length+' problem(s):\n  '+problems.slice(0,80).join('\n  '));
+// the dev pseudo-language qps (/play?lang=qps) marks every content template the game knows: lang/en-XA.content.json = {template: template}
+if(Object.keys(CEN).length){ const q={}; for(const k of Object.keys(CEN)) q[k]=k; ctext['en-XA']=JSON.stringify(sorted(q)); CV.qps=crypto.createHash('sha1').update(ctext['en-XA']).digest('hex').slice(0,8); }
 page=page.replace(/\nconst EW_LANG_CV=\{.*?\};/,()=>'\nconst EW_LANG_CV='+JSON.stringify(CV)+';');
 const text={}; for(const c of CODES) text[c]=JSON.stringify(out[c]);
 const V={}; for(const c of CODES) V[c]=crypto.createHash('sha1').update(text[c]).digest('hex').slice(0,8);
@@ -87,10 +89,11 @@ const mc=Object.entries(missing).filter(([c,l])=>l.length).map(([c,l])=>c+' '+l.
 console.log('lang build: '+specFiles.length+' specs, '+edits.length+' edits, '+Object.keys(EN).length+' keys ('+(Object.keys(EN).length-Object.keys(enBase).length)+' new)'+(mc.length?'; untranslated: '+mc.join(', '):'; every language complete'));
 const cmc=Object.entries(cmissing).filter(([c,l])=>l.length).map(([c,l])=>c+' '+l.length);
 console.log('lang content: '+Object.keys(CEN).length+' templates'+(cmc.length?'; untranslated: '+cmc.join(', '):'; every language complete'));
+const OUT=arg('--out'); if(OUT&&OUT!==true){ fs.writeFileSync(OUT,page); console.log('lang build: page written to '+OUT+' (nothing else)'); return; }   // a private copy for a worker's own checks
 if(CHECK) return;
 fs.writeFileSync(path.join(ROOT,'emberweave-heroes.html'),page);
 for(const c of CODES) fs.writeFileSync(path.join(ROOT,'lang',c+'.json'),text[c]);
-for(const c of CODES.slice(1)){ const f=path.join(ROOT,'lang',c+'.content.json'); if(ctext[c]) fs.writeFileSync(f,ctext[c]); else if(fs.existsSync(f)) fs.unlinkSync(f); }
+for(const c of CODES.slice(1).concat(['en-XA'])){ const f=path.join(ROOT,'lang',c+'.content.json'); if(ctext[c]) fs.writeFileSync(f,ctext[c]); else if(fs.existsSync(f)) fs.unlinkSync(f); }
 fs.writeFileSync(path.join(__dirname,'content_missing.json'),JSON.stringify(cmissing,null,0));
 if(bid&&bid!==true){ fs.writeFileSync(path.join(ROOT,'version.json'),'{"build":"'+bid+'"}');
   const sw=path.join(ROOT,'sw.js'); fs.writeFileSync(sw,fs.readFileSync(sw,'utf8').replace(/const BUILD='\d+';/,"const BUILD='"+bid+"';")); }

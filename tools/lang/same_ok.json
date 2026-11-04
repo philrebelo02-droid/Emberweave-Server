@@ -20,7 +20,16 @@
   "set.audio",
   "set.tab_dev",
   "set.tab_general",
-  "siege.oasis"
+  "siege.oasis",
+  "fx2.vigor",
+  "set2.dev_one_min",
+  "areport.vs",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "pt-BR": [
   "arena.league_bronze",
@@ -55,7 +64,16 @@
   "stage.drops",
   "stage.status",
   "svr.offline",
-  "svr.online"
+  "svr.online",
+  "fx2.vigor",
+  "gear2.item",
+  "set2.dev_one_min",
+  "areport.vs",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "fr": [
   "arena.league_bronze",
@@ -135,7 +153,16 @@
   "temple.max",
   "temple.max_val",
   "temple.temple_n",
-  "skdesc.passive_tag"
+  "skdesc.passive_tag",
+  "fx2.rupture",
+  "fx2.statue",
+  "set2.dev_one_min",
+  "set2.dev_progression",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "de": [
   "arena.league_bronze",
@@ -226,7 +253,21 @@
   "tech.max_lv",
   "temple.max",
   "wall.region",
-  "wover.teleport"
+  "wover.teleport",
+  "acct2.name_ph",
+  "fx2.block",
+  "fx2.statue",
+  "hero2.dmg_hybrid",
+  "set2.dev_arena1",
+  "set2.dev_gold",
+  "signin2.n_gold",
+  "areport.vs",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "it": [
   "battle.boss",
@@ -277,7 +318,16 @@
   "tech.max_lv",
   "temple.max",
   "temple.max_val",
-  "title.account"
+  "title.account",
+  "set2.dev_arena1",
+  "set2.dev_one_min",
+  "areport.vs",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "nl": [
   "arena.npc",
@@ -358,12 +408,29 @@
   "tech.max_lv",
   "temple.max",
   "temple.max_val",
-  "title.account"
+  "title.account",
+  "set2.dev_arena1",
+  "set2.dev_one_min",
+  "areport.vs",
+  "draft.vs",
+  "graid.hp_line",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "ru": [
   "arena.npc",
   "castle.npc",
-  "set.tab_dev"
+  "set.tab_dev",
+  "graid.hp_line",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "tr": [
   "arena.npc",
@@ -385,28 +452,59 @@
   "reward.bonus",
   "roster.class_tank",
   "set.tab_dev",
-  "stage.bonus"
+  "stage.bonus",
+  "areport.vs",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "ja": [
   "arena.npc",
-  "castle.npc"
+  "castle.npc",
+  "areport.vs",
+  "draft.vs",
+  "graid.hp_line",
+  "roster.vs"
  ],
  "ko": [
   "arena.npc",
-  "castle.npc"
+  "castle.npc",
+  "areport.vs",
+  "draft.vs",
+  "graid.hp_line",
+  "roster.vs"
  ],
  "zh-Hans": [
   "arena.npc",
-  "castle.npc"
+  "castle.npc",
+  "draft.vs",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "zh-Hant": [
   "arena.npc",
-  "castle.npc"
+  "castle.npc",
+  "draft.vs",
+  "graid.hp_line",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "th": [
   "arena.npc",
   "castle.npc",
-  "gloss.dmg"
+  "gloss.dmg",
+  "graid.hp_line",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "signin.month_year",
+  "tech.amount"
  ],
  "id": [
   "arena.league_master",
@@ -484,11 +582,28 @@
   "svr.offline",
   "svr.online",
   "svr.server_n",
-  "wish.stamina_paren"
+  "wish.stamina_paren",
+  "quest2.n_stamina",
+  "set2.dev_stam30",
+  "areport.vs",
+  "draft.vs",
+  "graid.hp_line",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "roster.vs",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ],
  "hi": [
   "arena.npc",
   "castle.npc",
-  "guild.exp_progress"
+  "guild.exp_progress",
+  "graid.hp_line",
+  "isle.n_item",
+  "res2.plus_n_item",
+  "signin.month_year",
+  "tech.amount",
+  "tut.r_potion"
  ]
 }

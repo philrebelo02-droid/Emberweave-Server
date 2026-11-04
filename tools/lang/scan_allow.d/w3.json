@@ -1,0 +1,47 @@
+{
+ "tables": {
+  "CHAPTER_MAP_BOSS_KEYS": "monster keys (data lookups), never shown",
+  "SCENE_SCRIM": "CSS gradient",
+  "ULT_SCALE": "scale label per ultimate, also compared as data in scaleLabelFor; shown only via abilityMeta -> skillDesc, which runs langMeta/langDesc over the meta line",
+  "KIT_SCALE": "scale label per kit skill, same path as ULT_SCALE (abilityMeta -> langMeta in skillDesc)",
+  "GSPLIT_ROAD_NAME": "English road data (L.name); the screen shows gsplitRoadName()/gsplitRoadShort() keys",
+  "GSPLIT_ROAD_SHORT": "English road data; the screen shows gsplitRoadShort() keys",
+  "BOSS_CUES": "English fallback; every display reads ewT('bosscue.'+key) first (bossCueFor, stage preview)",
+  "CHAPTER_BOSS_CUE": "English fallback; every display goes through chapterBossCueText / bossCueFor (bosscue.ch<n> keys)",
+  "CHAPTER_BOSS_NAME": "boss in-game names (proper names) for the {boss} var",
+  "INTRO_LINES": "English fallback + speaker names; introSay shows INTRO_KEYS (intro11.*) text",
+  "RESULT_LOST_MSG": "English fallback; resultNotCountedText returns ewT('res2.lost_msg')",
+  "FT_I18N": "lookup table: English float word -> key (the English is the floatTexts data, drawn translated by ftShow)"
+ },
+ "functions": {
+  "_skillEffectStrRaw": "builds the skill effect line from numbers; its only callers go through skillEffectStr, which returns langDesc(line) (templates gathered by content_tables.d/w3.json)",
+  "summonShareStr": "a fragment composed only into skill text that goes through langDesc (_skillEffectStrRaw via skillEffectStr, skillDesc level text)",
+  "ccMetaSegs": "control chips of abilityMeta; its only display is skillDesc, which runs langMeta (langDesc per ' · ' segment)",
+  "scaleLabelFor": "returns a scale label used as data (compared to 'Attack') and shown only through abilityMeta -> langMeta",
+  "starRow": "CSS filter strings only",
+  "heroFormationDepth": "role data ('Warrior') used as a lookup default, never shown",
+  "heroScaleMode": "damageProfile data compare ('Attack'), never shown",
+  "dealDamage": "damageProfile data compares ('Magic','Healer'); its float words (NOT THERE, MISS) are drawn translated by ftShow",
+  "sfxGo": "sound debug log reason (sfxNote), never shown",
+  "sfxTailsOut": "sound debug log reason (sfxFade), never shown",
+  "_fxCheck": "console.warn FX miss debugging, never shown",
+  "perfHUD": "developer performance overlay (FPS / frame ms), dev only"
+ },
+ "text": {
+  "w3_names": ["Emberdraft","Brukk","Miregor","Wintercrag","Nerissa","Sable Vesper","Vharok","Maelvara","Orryx","The Admiral","Barrowmaw","Asterion","Nymira","Kharos","Thorneveil","Magmourn","Irix",
+   "boar warrior","boar shaman","zahri mirage","ink horror",
+   "THE STARLESS WELL","THE VAULT","Aether Vault","Starless Well ·","Superior XP Potion","Hero XP Potion"],
+  "w3_skill_names_shouted": ["CHOIR OF THE DEEP SKY","Phantom Step","FINAL EXPEDITION","RAZOR TEMPEST","Vein Burst","BONE CHANT","FEED THEM","LAST STAND","RESONANT STAR","SEALING WAX",
+   "REWRITE THE PATTERN","IMPERIAL PLUMAGE","QUEEN OF QUIET WINGS","OPEN EVERY DOOR","TOXIC BREATH","PLAGUE SOVEREIGN","GRAND SYMPHONY","STORM SURGE","CHAIN LIGHTNING","THUNDER SHOWER","DEEP ROOTS","OVERDUE x"],
+  "w3_float_words_drawn_by_ftShow": ["ROOTED + SILENCED","DEBT CALLED IN","POISON SPREADS","NOT THERE","−SPEED","+SPEED","LONG SHOT","IN DEBT","WILL NOT FALL","VEINS BURST","BEHIND YOU",
+   "UP, THE LOT OF YOU","FED +","Raise Attack","Frenzy","Haste","Vigor","ROAR!","FEAR!","Rally!","MIRAGE HOLDS","THE WALL","PRESSURE RELEASED","5 KEYS","Wrath +","DARK FONT","LIGHT FONT"],
+  "w3_dev": ["(DEV)"]
+ },
+ "patterns": [
+  {"re":"^\\d+px \\d+px$","why":"CSS padding"},
+  {"re":"^0 0 0 \\d+px #[0-9a-f]{3,6}$","why":"CSS box-shadow"},
+  {"re":"^color:#[0-9a-f]{3,6}$","why":"CSS color"},
+  {"re":"^wlMap wl_$","why":"CSS class prefix"},
+  {"re":"^tower:(floor|tribute):$","why":"requestId prefix sent to the server"}
+ ]
+}

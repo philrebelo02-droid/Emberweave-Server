@@ -1,0 +1,1520 @@
+{
+ "keys": {
+  "svr2.the_server": "the server",
+  "svr2.is_down": "{name} is down right now.",
+  "svr2.lost_reconnecting": "Lost {name} — reconnecting…",
+  "svr2.signing_you_in": "Signing you in…",
+  "svr2.sign_in_to_play": "Sign in to play.",
+  "svr2.other_server": "Or play on another server",
+  "svr2.still_down_retry": "Still down — Retry",
+  "auth2.sign_in": "Sign in",
+  "auth2.create_account": "Create account",
+  "auth2.create_your_account": "Create your account",
+  "auth2.password_8": "Password (8+ characters)",
+  "auth2.sign_in_to_your_account": "Sign in to your account",
+  "auth2.leaves_guest": "Signing in leaves guest {name} on this device.",
+  "auth2.forgot_password": "Forgot password",
+  "auth2.send_reset_code": "Send reset code",
+  "auth2.back_to_sign_in": "Back to sign in",
+  "auth2.enter_your_code": "Enter your code",
+  "auth2.for_name_if_email": "For {name}, if it has a linked email.",
+  "auth2.code6": "6-digit code",
+  "auth2.new_pw": "New password",
+  "auth2.confirm_new_pw": "Confirm new password",
+  "auth2.set_pw_sign_in": "Set password & sign in",
+  "auth2.pw_was_reset": "Your password has been reset",
+  "auth2.set_new_pw_for": "Set a new password for {name}.",
+  "auth2.keep_progress_title": "Create your account to keep your progress",
+  "auth2.guest_tag": "GUEST",
+  "auth2.other_device_acct": "This device was signed in to {last}. You are on guest {name} now, not that account.",
+  "auth2.sign_in_to_name": "Sign in to {name}",
+  "auth2.sign_in_to_an_account": "Sign in to an account",
+  "auth2.ew_sign_in": "Emberweave sign in",
+  "auth2.google_sign_in": "Google sign in",
+  "auth2.sign_in_google": "Sign in with Google",
+  "auth2.err_name_short": "Username needs at least 2 characters.",
+  "auth2.err_enter_pw": "Enter a password.",
+  "auth2.err_pw_short": "Password needs at least 8 characters.",
+  "auth2.err_pw_mismatch": "Passwords do not match.",
+  "auth2.err_terms_continue": "You must accept the Terms to continue.",
+  "auth2.creating": "Creating account…",
+  "auth2.signing_in": "Signing in…",
+  "auth2.err_conn_lost": "Connection lost - try again.",
+  "auth2.err_no_server_retry": "Could not reach the server - try again.",
+  "auth2.err_enter_name": "Enter your username.",
+  "auth2.err_code_email": "Enter the 6-digit code from your email.",
+  "auth2.err_enter_new_pw": "Enter a new password.",
+  "auth2.setting_pw": "Setting password…",
+  "auth2.err_reset_pw": "Could not reset password.",
+  "auth2.err_set_pw": "Could not set password.",
+  "acct2.del_cancelled": "Welcome back - your account deletion has been cancelled.",
+  "acct2.created_kept": "Account created. Your progress is kept.",
+  "acct2.guest_mark": "GUEST - progress not saved to an account",
+  "acct2.guest_mark_not": "GUEST - progress not saved to an account · not {name}",
+  "acct2.kicked_title": "You've been logged out",
+  "acct2.kicked_body1": "Someone just logged into your account on another device, so this device has been signed out.",
+  "acct2.kicked_body2": "If that wasn't you, change your password right away — and contact a developer if you think your account was taken.",
+  "acct2.google_linked": "Google account linked",
+  "acct2.google_unlink": "Unlink Google account",
+  "acct2.err_unlink_code": "Could not send unlink code.",
+  "acct2.send_another_code": "Send another code",
+  "acct2.code_recovery_ph": "Code from your recovery email",
+  "acct2.confirm_unlink": "Confirm unlink",
+  "acct2.google_unlinked": "Google account unlinked.",
+  "acct2.err_unlink": "Could not unlink.",
+  "acct2.enter_recovery_code": "Enter the code sent to your recovery email.",
+  "acct2.google_link": "Link Google account",
+  "acct2.err_google": "Google sign-in failed.",
+  "acct2.accept_terms_sign_in": "Accept the Terms to sign in.",
+  "acct2.need_host_file": "Online accounts need the game opened through the host server (not the local file). See the README.",
+  "acct2.guest_note": "{bs}Playing as a guest{be} ({name}). Your progress is being saved. {bs}Create an account{be} below to keep it safe across devices, or {bs}Sign in{be} to your main account.",
+  "acct2.name_ph": "Name",
+  "acct2.log_in": "Log in",
+  "acct2.register": "Register",
+  "acct2.err_name_pw": "Enter a name (2+) and password.",
+  "acct2.err_terms_sign_in": "You must accept the Terms to sign in.",
+  "acct2.type_new_pw_for": "Please type and confirm a new password for {name} to regain access.",
+  "acct2.set_pw_log_in": "Set password & log in",
+  "acct2.loading_heroes": "Loading your heroes",
+  "acct2.switching": "Switching account…",
+  "acct2.reloading_for_acct": "Reloading Emberweave for this account",
+  "acct2.need_host_what": "{what} needs the game opened through the host server. See the README.",
+  "acct2.sign_in_to_enter": "Sign in to enter {what}.",
+  "acct2.banned_perm": "Banned permanently",
+  "acct2.banned_until": "Banned until {date}",
+  "set2.send_code": "Send code",
+  "set2.confirm_email_change": "Confirm email change",
+  "set2.em_code_sent": "Enter the 6-digit code sent to {to}. Changing to: {email}",
+  "set2.em_code_sent_current": "Enter the 6-digit code sent to {to} (your current recovery email). Changing to: {email}",
+  "set2.resend": "Resend",
+  "set2.reset_your_pw": "Reset your password",
+  "set2.pw_code_sent": "We sent a 6-digit code to {email}. Enter it below with your new password. The code expires in {n} minutes.",
+  "set2.change_password": "Change password",
+  "set2.resend_code": "Resend code",
+  "set2.del_guest_body": "This permanently deletes guest {name} at once: progress, heroes, items and city. It cannot be undone.",
+  "set2.del_acct_body": "This deletes {name}: progress, heroes, items, city, guild place and personal details. The account is locked and hidden for {days} - sign in again within {n} days to cancel. After that it is wiped from our database and cannot be restored (backups age out on their own schedule).",
+  "set2.type_delete": "Type DELETE",
+  "set2.delete_permanently": "Delete permanently",
+  "set2.forgot_hint": "Enter your username. If it has a recovery email linked, we'll send a one-time 6-digit code to reset your password.",
+  "set2.fg_code_hint": "If {name} has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in {n} minutes.",
+  "set2.sending_new_code": "Sending a new code…",
+  "set2.new_code_if_email": "If an email is linked, a new code is on its way.",
+  "set2.err_unexpected": "Unexpected server response.",
+  "set2.pw_reset_signed_in": "Password reset — you're signed in.",
+  "set2.err_terms_create": "You must accept the Terms to create an account.",
+  "set2.err_delete": "Could not delete the account.",
+  "set2.del_requested": "Deletion requested. Your account is locked and will be wiped on {date} - sign in before then to cancel.",
+  "set2.deleted": "Your account has been deleted.",
+  "set2.err_unblock": "Could not unblock.",
+  "set2.sending_code": "Sending code…",
+  "set2.err_send_code": "Could not send code.",
+  "set2.new_code_sent": "A new code was sent.",
+  "set2.err_resend": "Could not resend.",
+  "set2.err_code6": "Enter the 6-digit code.",
+  "set2.confirming": "Confirming…",
+  "set2.email_updated": "Recovery email updated.",
+  "set2.err_confirm": "Could not confirm.",
+  "set2.new_code_on_way": "A new code is on its way.",
+  "set2.changing_pw": "Changing password…",
+  "set2.err_change_pw": "Could not change password.",
+  "set2.pw_changed": "Password changed. Other devices have been signed out.",
+  "set2.reset_q": "Reset {bs}your own{be} progress back to a fresh start?",
+  "set2.reset_body": "This wipes EVERYTHING on this account — heroes, levels, glyph boards, Forge gear, Dust and Vault floors. No other players are touched. Your one-time name change is restored.",
+  "set2.dev_god": "God Mode",
+  "set2.dev_god_sub": "no damage + all buildings open",
+  "set2.dev_bots": "Run test bots",
+  "set2.dev_backup": "Download backup",
+  "set2.dev_update": "Check for update (reload newest)",
+  "set2.dev_perf": "Performance HUD on/off",
+  "set2.dev_fxmiss": "FX misses",
+  "set2.dev_cachelog": "Cache log",
+  "set2.dev_orbs": "Temple orbs preview ({n}/5)",
+  "set2.dev_filter": "Filter…",
+  "set2.dev_currency": "Currency",
+  "set2.dev_gold": "+100k Gold",
+  "set2.dev_gems": "+2000 Diamonds",
+  "set2.dev_shards": "+500 hero fragments each",
+  "set2.dev_pieces": "+200 each piece",
+  "set2.dev_arenacoin": "+5000 arena coins",
+  "set2.dev_guildcoins": "+5000 guild coins",
+  "set2.dev_progression": "Progression",
+  "set2.dev_stam": "Refill stamina",
+  "set2.dev_stam30": "+30 stamina",
+  "set2.dev_level": "Player +5 levels",
+  "set2.dev_squadlvl": "Squad +5 levels",
+  "set2.dev_campstage": "Campaign +5 stages",
+  "set2.dev_arena1": "Arena → #1",
+  "set2.dev_shields": "+3 shields",
+  "set2.dev_roster": "Roster",
+  "set2.dev_heroes": "Unlock all heroes",
+  "set2.dev_lvmax": "ALL heroes → level {n}",
+  "set2.dev_maxteam": "Max ALL heroes glyph+star",
+  "set2.dev_givefrags": "Give 100 fragments…",
+  "set2.dev_online": "Players online",
+  "set2.dev_accounts": "All accounts",
+  "set2.dev_reports": "Reports",
+  "set2.dev_bugreports": "Bug reports",
+  "set2.dev_refresh": "Refresh log",
+  "set2.dev_clearlog": "Clear resolved",
+  "set2.dev_integrity": "Integrity",
+  "set2.dev_one_min": "1 min",
+  "set2.dev_intrefresh": "Refresh reports",
+  "set2.dev_intall": "Show resolved too",
+  "set2.dev_panel": "Developer Panel",
+  "html2.click_to_play": "Click to Play",
+  "html2.buy_food": "Buy food",
+  "html2.buy_gold": "Buy gold",
+  "html2.open_shop": "Open shop",
+  "html2.guest_create": "Guest account - create an account",
+  "html2.pool_odds": "Pool contents and odds",
+  "html2.prev_hero": "Previous hero",
+  "html2.next_hero": "Next hero"
+ },
+ "edits": [
+  {
+   "line": 23977,
+   "find": "let _svN='the server';",
+   "replace": "let _svN=t('svr2.the_server');"
+  },
+  {
+   "line": 23977,
+   "find": "if(_s) _svN=_s.name;",
+   "replace": "if(_s) _svN=t('svr.server_n',{n:_s.id});"
+  },
+  {
+   "line": 23979,
+   "find": "msg=_svN+' is down right now.';",
+   "replace": "msg=t('svr2.is_down',{name:_svN});"
+  },
+  {
+   "line": 23980,
+   "find": "msg='Lost '+_svN+' — reconnecting…';",
+   "replace": "msg=t('svr2.lost_reconnecting',{name:_svN});"
+  },
+  {
+   "line": 23981,
+   "find": "msg='Signing you in…';",
+   "replace": "msg=t('svr2.signing_you_in');"
+  },
+  {
+   "line": 23988,
+   "find": "msg='Sign in to play.';",
+   "replace": "msg=t('svr2.sign_in_to_play');"
+  },
+  {
+   "line": 23990,
+   "find": "id=\"netGateBtn\">Sign in</button>'",
+   "replace": "id=\"netGateBtn\">'+t('auth2.sign_in')+'</button>'"
+  },
+  {
+   "line": 23990,
+   "find": "id=\"netGateBtn\">Retry</button>'",
+   "replace": "id=\"netGateBtn\">'+t('common.retry')+'</button>'"
+  },
+  {
+   "line": 23996,
+   "find": ">Or play on another server</div>",
+   "replace": ">'+t('svr2.other_server')+'</div>"
+  },
+  {
+   "line": 23997,
+   "find": "escapeHTML(x.name)",
+   "replace": "escapeHTML(t('svr.server_n',{n:x.id}))"
+  },
+  {
+   "line": 24001,
+   "find": "b.textContent='Checking…';",
+   "replace": "b.textContent=t('boot.checking');"
+  },
+  {
+   "line": 24002,
+   "find": "b2.textContent='Still down — Retry';",
+   "replace": "b2.textContent=t('svr2.still_down_retry');"
+  },
+  {
+   "line": 24066,
+   "find": "id=\"agTabNew\">Create account</button>",
+   "replace": "id=\"agTabNew\">${t('auth2.create_account')}</button>"
+  },
+  {
+   "line": 24066,
+   "find": "id=\"agTabIn\">Sign in</button>",
+   "replace": "id=\"agTabIn\">${t('auth2.sign_in')}</button>"
+  },
+  {
+   "line": 24068,
+   "find": "<div class=\"agTitle\">Create your account</div>",
+   "replace": "<div class=\"agTitle\">${t('auth2.create_your_account')}</div>"
+  },
+  {
+   "line": 24069,
+   "find": "inp('agName','text','Username','off'",
+   "replace": "inp('agName','text',t('set.username'),'off'"
+  },
+  {
+   "line": 24069,
+   "find": "'Password (8+ characters)'",
+   "replace": "t('auth2.password_8')"
+  },
+  {
+   "line": 24069,
+   "find": "'Confirm password'",
+   "replace": "t('set.confirm_password')"
+  },
+  {
+   "line": 24070,
+   "find": "id=\"agGo\">Create account</button>",
+   "replace": "id=\"agGo\">${t('auth2.create_account')}</button>"
+  },
+  {
+   "line": 24071,
+   "find": "?'Sign in to your account':'Sign in'}",
+   "replace": "?t('auth2.sign_in_to_your_account'):t('auth2.sign_in')}"
+  },
+  {
+   "line": 24072,
+   "find": "<div class=\"agNote\">Signing in leaves guest <b>${escapeHTML(ACC.name||'')}</b> on this device.</div>",
+   "replace": "<div class=\"agNote\">${t('auth2.leaves_guest',{name:'<b>'+escapeHTML(ACC.name||'')+'</b>'})}</div>"
+  },
+  {
+   "line": 24073,
+   "find": "inp('agName','text','Username','username'",
+   "replace": "inp('agName','text',t('set.username'),'username'"
+  },
+  {
+   "line": 24073,
+   "find": "inp('agPass','password','Password','current-password')",
+   "replace": "inp('agPass','password',t('set.password'),'current-password')"
+  },
+  {
+   "line": 24074,
+   "find": "id=\"agGo\">Sign in</button>",
+   "replace": "id=\"agGo\">${t('auth2.sign_in')}</button>"
+  },
+  {
+   "line": 24075,
+   "find": "class=\"agLink\">Forgot your password?</a>'",
+   "replace": "class=\"agLink\">'+t('set.forgot')+'</a>'"
+  },
+  {
+   "line": 24075,
+   "find": "id=\"agBack\">Back</button>'",
+   "replace": "id=\"agBack\">'+t('common.back')+'</button>'"
+  },
+  {
+   "line": 24077,
+   "find": "<div class=\"agTitle\">Forgot password</div>",
+   "replace": "<div class=\"agTitle\">${t('auth2.forgot_password')}</div>"
+  },
+  {
+   "line": 24077,
+   "find": "inp('agFgName','text','Username','username'",
+   "replace": "inp('agFgName','text',t('set.username'),'username'"
+  },
+  {
+   "line": 24078,
+   "find": "id=\"agFgSend\">Send reset code</button>",
+   "replace": "id=\"agFgSend\">${t('auth2.send_reset_code')}</button>"
+  },
+  {
+   "line": 24078,
+   "find": "id=\"agBack\">Back to sign in</button>",
+   "replace": "id=\"agBack\">${t('auth2.back_to_sign_in')}</button>"
+  },
+  {
+   "line": 24079,
+   "find": "<div class=\"agTitle\">Enter your code</div>",
+   "replace": "<div class=\"agTitle\">${t('auth2.enter_your_code')}</div>"
+  },
+  {
+   "line": 24079,
+   "find": "<div class=\"agNote\">For <b>${escapeHTML(AUTHG.fgName)}</b>, if it has a linked email.</div>",
+   "replace": "<div class=\"agNote\">${t('auth2.for_name_if_email',{name:'<b>'+escapeHTML(AUTHG.fgName)+'</b>'})}</div>"
+  },
+  {
+   "line": 24080,
+   "find": "'6-digit code'",
+   "replace": "t('auth2.code6')"
+  },
+  {
+   "line": 24080,
+   "find": "'New password'",
+   "replace": "t('auth2.new_pw')"
+  },
+  {
+   "line": 24080,
+   "find": "'Confirm new password'",
+   "replace": "t('auth2.confirm_new_pw')"
+  },
+  {
+   "line": 24081,
+   "find": "id=\"agFgSubmit\">Set password &amp; sign in</button>",
+   "replace": "id=\"agFgSubmit\">${t('auth2.set_pw_sign_in')}</button>"
+  },
+  {
+   "line": 24081,
+   "find": "id=\"agBack\">Back to sign in</button>",
+   "replace": "id=\"agBack\">${t('auth2.back_to_sign_in')}</button>"
+  },
+  {
+   "line": 24082,
+   "find": "<div class=\"agTitle\">Your password has been reset</div>",
+   "replace": "<div class=\"agTitle\">${t('auth2.pw_was_reset')}</div>"
+  },
+  {
+   "line": 24082,
+   "find": "<div class=\"agNote\">Set a new password for <b>${escapeHTML(AUTHG.resetName)}</b>.</div>",
+   "replace": "<div class=\"agNote\">${t('auth2.set_new_pw_for',{name:'<b>'+escapeHTML(AUTHG.resetName)+'</b>'})}</div>"
+  },
+  {
+   "line": 24083,
+   "find": "'New password'",
+   "replace": "t('auth2.new_pw')"
+  },
+  {
+   "line": 24083,
+   "find": "'Confirm new password'",
+   "replace": "t('auth2.confirm_new_pw')"
+  },
+  {
+   "line": 24084,
+   "find": "id=\"agSetPass\">Set password &amp; sign in</button>",
+   "replace": "id=\"agSetPass\">${t('auth2.set_pw_sign_in')}</button>"
+  },
+  {
+   "line": 24084,
+   "find": "id=\"agBack\">Back</button>",
+   "replace": "id=\"agBack\">${t('common.back')}</button>"
+  },
+  {
+   "line": 24085,
+   "find": "<div class=\"agTitle\">Create your account to keep your progress</div>",
+   "replace": "<div class=\"agTitle\">${t('auth2.keep_progress_title')}</div>"
+  },
+  {
+   "line": 24086,
+   "find": "${uiIcon('guest')} GUEST <b>",
+   "replace": "${uiIcon('guest')} ${t('auth2.guest_tag')} <b>"
+  },
+  {
+   "line": 24087,
+   "find": "This device was signed in to <b>${escapeHTML(last.name)}</b>. You are on guest <b>${escapeHTML(ACC.name||'')}</b> now, not that account.",
+   "replace": "${t('auth2.other_device_acct',{last:'<b>'+escapeHTML(last.name)+'</b>',name:'<b>'+escapeHTML(ACC.name||'')+'</b>'})}"
+  },
+  {
+   "line": 24088,
+   "find": "inp('agName','text','Username','off'",
+   "replace": "inp('agName','text',t('set.username'),'off'"
+  },
+  {
+   "line": 24088,
+   "find": "'Password (8+ characters)'",
+   "replace": "t('auth2.password_8')"
+  },
+  {
+   "line": 24088,
+   "find": "'Confirm password'",
+   "replace": "t('set.confirm_password')"
+  },
+  {
+   "line": 24089,
+   "find": "id=\"agGo\">Create account</button>",
+   "replace": "id=\"agGo\">${t('auth2.create_account')}</button>"
+  },
+  {
+   "line": 24090,
+   "find": "?'Sign in to '+escapeHTML(last.name):'Sign in to an account'}",
+   "replace": "?t('auth2.sign_in_to_name',{name:escapeHTML(last.name)}):t('auth2.sign_in_to_an_account')}"
+  },
+  {
+   "line": 24094,
+   "find": "<span>Emberweave sign in</span>",
+   "replace": "<span>${t('auth2.ew_sign_in')}</span>"
+  },
+  {
+   "line": 24094,
+   "find": "<span>Google sign in</span>",
+   "replace": "<span>${t('auth2.google_sign_in')}</span>"
+  },
+  {
+   "line": 24096,
+   "find": "'<div class=\"agTitle\">Sign in with Google</div>",
+   "replace": "'<div class=\"agTitle\">'+t('auth2.sign_in_google')+'</div>"
+  },
+  {
+   "line": 24111,
+   "find": "msg('Username needs at least 2 characters.')",
+   "replace": "msg(t('auth2.err_name_short'))"
+  },
+  {
+   "line": 24113,
+   "find": "msg('Enter a password.')",
+   "replace": "msg(t('auth2.err_enter_pw'))"
+  },
+  {
+   "line": 24114,
+   "find": "msg('Password needs at least 8 characters.')",
+   "replace": "msg(t('auth2.err_pw_short'))"
+  },
+  {
+   "line": 24115,
+   "find": "msg('Passwords do not match.')",
+   "replace": "msg(t('auth2.err_pw_mismatch'))"
+  },
+  {
+   "line": 24116,
+   "find": "msg('You must accept the Terms to continue.')",
+   "replace": "msg(t('auth2.err_terms_continue'))"
+  },
+  {
+   "line": 24117,
+   "find": "msg(isNew?'Creating account…':'Signing in…',true)",
+   "replace": "msg(isNew?t('auth2.creating'):t('auth2.signing_in'),true)"
+  },
+  {
+   "line": 24121,
+   "find": "'Connection lost - try again.'",
+   "replace": "t('auth2.err_conn_lost')"
+  },
+  {
+   "line": 24121,
+   "find": "'Could not reach the server - try again.'",
+   "replace": "t('auth2.err_no_server_retry')"
+  },
+  {
+   "line": 24124,
+   "find": "msg('Enter your username.')",
+   "replace": "msg(t('auth2.err_enter_name'))"
+  },
+  {
+   "line": 24125,
+   "find": "msg('Sending…',true)",
+   "replace": "msg(t('set.sending'),true)"
+  },
+  {
+   "line": 24128,
+   "find": "msg('Enter the 6-digit code from your email.')",
+   "replace": "msg(t('auth2.err_code_email'))"
+  },
+  {
+   "line": 24129,
+   "find": "msg('Enter a new password.')",
+   "replace": "msg(t('auth2.err_enter_new_pw'))"
+  },
+  {
+   "line": 24129,
+   "find": "msg('Passwords do not match.')",
+   "replace": "msg(t('auth2.err_pw_mismatch'))"
+  },
+  {
+   "line": 24130,
+   "find": "msg('Setting password…',true)",
+   "replace": "msg(t('auth2.setting_pw'),true)"
+  },
+  {
+   "line": 24132,
+   "find": "'Could not reset password.'",
+   "replace": "t('auth2.err_reset_pw')"
+  },
+  {
+   "line": 24136,
+   "find": "msg('Enter a new password.')",
+   "replace": "msg(t('auth2.err_enter_new_pw'))"
+  },
+  {
+   "line": 24136,
+   "find": "msg('Passwords do not match.')",
+   "replace": "msg(t('auth2.err_pw_mismatch'))"
+  },
+  {
+   "line": 24137,
+   "find": "msg('Setting password…',true)",
+   "replace": "msg(t('auth2.setting_pw'),true)"
+  },
+  {
+   "line": 24139,
+   "find": "'Could not set password.'",
+   "replace": "t('auth2.err_set_pw')"
+  },
+  {
+   "line": 24150,
+   "find": "bannerMsg('Welcome back - your account deletion has been cancelled.')",
+   "replace": "bannerMsg(t('acct2.del_cancelled'))"
+  },
+  {
+   "line": 24164,
+   "find": "bannerMsg('Account created. Your progress is kept.')",
+   "replace": "bannerMsg(t('acct2.created_kept'))"
+  },
+  {
+   "line": 24167,
+   "find": "('GUEST - progress not saved to an account'+(other?' · not '+last.name:''))",
+   "replace": "(other?t('acct2.guest_mark_not',{name:last.name}):t('acct2.guest_mark'))"
+  },
+  {
+   "line": 24266,
+   "find": ">You've been logged out</div>",
+   "replace": ">${t('acct2.kicked_title')}</div>"
+  },
+  {
+   "line": 24267,
+   "find": ">Someone just logged into your account on another device, so this device has been signed out.<br><br>If that wasn't you, change your password right away — and contact a developer if you think your account was taken.</div>",
+   "replace": ">${t('acct2.kicked_body1')}<br><br>${t('acct2.kicked_body2')}</div>"
+  },
+  {
+   "line": 24334,
+   "find": "label.textContent='Google account linked'+",
+   "replace": "label.textContent=t('acct2.google_linked')+"
+  },
+  {
+   "line": 24335,
+   "find": "unlink.textContent='Unlink Google account';",
+   "replace": "unlink.textContent=t('acct2.google_unlink');"
+  },
+  {
+   "line": 24338,
+   "find": "'Could not send unlink code.'",
+   "replace": "t('acct2.err_unlink_code')"
+  },
+  {
+   "line": 24339,
+   "find": "unlink.textContent='Send another code';",
+   "replace": "unlink.textContent=t('acct2.send_another_code');"
+  },
+  {
+   "line": 24340,
+   "find": "code.placeholder='Code from your recovery email';",
+   "replace": "code.placeholder=t('acct2.code_recovery_ph');"
+  },
+  {
+   "line": 24341,
+   "find": "confirm.textContent='Confirm unlink';",
+   "replace": "confirm.textContent=t('acct2.confirm_unlink');"
+  },
+  {
+   "line": 24342,
+   "find": "bannerMsg(r?.ok?'Google account unlinked.':r?.error||'Could not unlink.')",
+   "replace": "bannerMsg(r?.ok?t('acct2.google_unlinked'):r?.error||t('acct2.err_unlink'))"
+  },
+  {
+   "line": 24343,
+   "find": "bannerMsg('Enter the code sent to your recovery email.')",
+   "replace": "bannerMsg(t('acct2.enter_recovery_code'))"
+  },
+  {
+   "line": 24346,
+   "find": "label.textContent='Link Google account';",
+   "replace": "label.textContent=t('acct2.google_link');"
+  },
+  {
+   "line": 24353,
+   "find": "'Google sign-in failed.'",
+   "replace": "t('acct2.err_google')"
+  },
+  {
+   "line": 24360,
+   "find": "bannerMsg('Accept the Terms to sign in.')",
+   "replace": "bannerMsg(t('acct2.accept_terms_sign_in'))"
+  },
+  {
+   "line": 24366,
+   "find": "+' Online accounts need the game opened through the host server (not the local file). See the README.</div>'",
+   "replace": "+' '+t('acct2.need_host_file')+'</div>'"
+  },
+  {
+   "line": 24367,
+   "find": "<div style=\"font-size:15px\">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div>",
+   "replace": "<div style=\"font-size:15px\">${t('set.signed_in_as',{name:'<b>'+escapeHTML(ACC.name||'')+'</b>'})}</div>"
+  },
+  {
+   "line": 24367,
+   "find": "Arena rank #${ACC.rank||'—'} · ",
+   "replace": "${t('set.arena_rank',{n:ACC.rank||'—'})} · "
+  },
+  {
+   "line": 24367,
+   "find": "id=\"logout\">Log out</button>",
+   "replace": "id=\"logout\">${t('set.log_out')}</button>"
+  },
+  {
+   "line": 24369,
+   "find": "<b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.",
+   "replace": "${t('acct2.guest_note',{bs:'<b>',be:'</b>',name:escapeHTML(ACC.name||'')})}"
+  },
+  {
+   "line": 24369,
+   "find": "placeholder=\"Name\"",
+   "replace": "placeholder=\"${t('acct2.name_ph')}\""
+  },
+  {
+   "line": 24370,
+   "find": "placeholder=\"Password\"",
+   "replace": "placeholder=\"${t('set.password')}\""
+  },
+  {
+   "line": 24371,
+   "find": "id=\"loginBtn\" style=\"flex:1\">Log in</button>",
+   "replace": "id=\"loginBtn\" style=\"flex:1\">${t('acct2.log_in')}</button>"
+  },
+  {
+   "line": 24371,
+   "find": "id=\"regBtn\" style=\"flex:1\">Register</button>",
+   "replace": "id=\"regBtn\" style=\"flex:1\">${t('acct2.register')}</button>"
+  },
+  {
+   "line": 24377,
+   "find": "textContent='Enter a name (2+) and password.';",
+   "replace": "textContent=t('acct2.err_name_pw');"
+  },
+  {
+   "line": 24378,
+   "find": "m.textContent='You must accept the Terms to sign in.';",
+   "replace": "m.textContent=t('acct2.err_terms_sign_in');"
+  },
+  {
+   "line": 24391,
+   "find": ">Your password has been reset</div>",
+   "replace": ">${t('auth2.pw_was_reset')}</div>"
+  },
+  {
+   "line": 24392,
+   "find": ">Please type and confirm a new password for <b>${escapeHTML(name)}</b> to regain access.</div>",
+   "replace": ">${t('acct2.type_new_pw_for',{name:'<b>'+escapeHTML(name)+'</b>'})}</div>"
+  },
+  {
+   "line": 24393,
+   "find": "placeholder=\"New password\"",
+   "replace": "placeholder=\"${t('auth2.new_pw')}\""
+  },
+  {
+   "line": 24394,
+   "find": "placeholder=\"Confirm new password\"",
+   "replace": "placeholder=\"${t('auth2.confirm_new_pw')}\""
+  },
+  {
+   "line": 24395,
+   "find": "id=\"npSet\" style=\"flex:1\">Set password &amp; log in</button>",
+   "replace": "id=\"npSet\" style=\"flex:1\">${t('acct2.set_pw_log_in')}</button>"
+  },
+  {
+   "line": 24395,
+   "find": "style=\"flex:0 0 auto\">Back</button>",
+   "replace": "style=\"flex:0 0 auto\">${t('common.back')}</button>"
+  },
+  {
+   "line": 24399,
+   "find": "m.textContent='Enter a new password.';",
+   "replace": "m.textContent=t('auth2.err_enter_new_pw');"
+  },
+  {
+   "line": 24400,
+   "find": "m.textContent='Passwords do not match.';",
+   "replace": "m.textContent=t('auth2.err_pw_mismatch');"
+  },
+  {
+   "line": 24402,
+   "find": "m.textContent='Could not set password.';",
+   "replace": "m.textContent=t('auth2.err_set_pw');"
+  },
+  {
+   "line": 24421,
+   "find": "<div style=\"font-weight:800\">Signing in…</div>'",
+   "replace": "<div style=\"font-weight:800\">'+t('auth2.signing_in')+'</div>'"
+  },
+  {
+   "line": 24422,
+   "find": ">Loading your heroes</div>",
+   "replace": ">'+t('acct2.loading_heroes')+'</div>"
+  },
+  {
+   "line": 24429,
+   "find": "<div style=\"font-weight:800\">Switching account\\u2026</div>'",
+   "replace": "<div style=\"font-weight:800\">'+t('acct2.switching')+'</div>'"
+  },
+  {
+   "line": 24430,
+   "find": ">Reloading Emberweave for this account</div>",
+   "replace": ">'+t('acct2.reloading_for_acct')+'</div>"
+  },
+  {
+   "line": 24434,
+   "find": "' '+what+' needs the game opened through the host server. See the README.</div>'",
+   "replace": "' '+t('acct2.need_host_what',{what})+'</div>'"
+  },
+  {
+   "line": 24435,
+   "find": "text-align:center\">Sign in to enter '+what+'.<br><br>",
+   "replace": "text-align:center\">'+t('acct2.sign_in_to_enter',{what})+'<br><br>"
+  },
+  {
+   "line": 24435,
+   "find": "data-nav=\"account\">Sign in / Register</button>",
+   "replace": "data-nav=\"account\">'+t('hut.sign_in_register')+'</button>"
+  },
+  {
+   "line": 29428,
+   "find": "id=\"acEmailSend\" style=\"flex:1\">Send code</button>",
+   "replace": "id=\"acEmailSend\" style=\"flex:1\">${t('set2.send_code')}</button>"
+  },
+  {
+   "line": 29431,
+   "find": "${uiIcon('mail')} Confirm email change</div>",
+   "replace": "${uiIcon('mail')} ${t('set2.confirm_email_change')}</div>"
+  },
+  {
+   "line": 29432,
+   "find": ">Enter the 6-digit code sent to <b>${escapeHTML(_emSentTo)}</b>${_emToCurrent?' (your current recovery email)':''}. Changing to: <b>${escapeHTML(_emPending)}</b></div>",
+   "replace": ">${_emToCurrent?t('set2.em_code_sent_current',{to:'<b>'+escapeHTML(_emSentTo)+'</b>',email:'<b>'+escapeHTML(_emPending)+'</b>'}):t('set2.em_code_sent',{to:'<b>'+escapeHTML(_emSentTo)+'</b>',email:'<b>'+escapeHTML(_emPending)+'</b>'})}</div>"
+  },
+  {
+   "line": 29433,
+   "find": "placeholder=\"6-digit code\"",
+   "replace": "placeholder=\"${t('auth2.code6')}\""
+  },
+  {
+   "line": 29434,
+   "find": "id=\"acEmailResend\">Resend</button>",
+   "replace": "id=\"acEmailResend\">${t('set2.resend')}</button>"
+  },
+  {
+   "line": 29439,
+   "find": "${uiIcon('key')} Reset your password</div>",
+   "replace": "${uiIcon('key')} ${t('set2.reset_your_pw')}</div>"
+  },
+  {
+   "line": 29440,
+   "find": ">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes.</div>",
+   "replace": ">${t('set2.pw_code_sent',{email:'<b>'+escapeHTML(em)+'</b>',n:15})}</div>"
+  },
+  {
+   "line": 29442,
+   "find": "placeholder=\"6-digit code\"",
+   "replace": "placeholder=\"${t('auth2.code6')}\""
+  },
+  {
+   "line": 29443,
+   "find": "placeholder=\"New password\"",
+   "replace": "placeholder=\"${t('auth2.new_pw')}\""
+  },
+  {
+   "line": 29444,
+   "find": "placeholder=\"Confirm new password\"",
+   "replace": "placeholder=\"${t('auth2.confirm_new_pw')}\""
+  },
+  {
+   "line": 29445,
+   "find": "id=\"acRSubmit\">Change password</button>",
+   "replace": "id=\"acRSubmit\">${t('set2.change_password')}</button>"
+  },
+  {
+   "line": 29446,
+   "find": "id=\"acRResend\" style=\"flex:1\">Resend code</button>",
+   "replace": "id=\"acRResend\" style=\"flex:1\">${t('set2.resend_code')}</button>"
+  },
+  {
+   "line": 29452,
+   "find": "margin-bottom:6px\">Create account</div>",
+   "replace": "margin-bottom:6px\">${t('auth2.create_account')}</div>"
+  },
+  {
+   "line": 29455,
+   "find": "placeholder=\"Password (8+ characters)\"",
+   "replace": "placeholder=\"${t('auth2.password_8')}\""
+  },
+  {
+   "line": 29457,
+   "find": "id=\"acgGo\">Create account</button>",
+   "replace": "id=\"acgGo\">${t('auth2.create_account')}</button>"
+  },
+  {
+   "line": 29463,
+   "find": "margin-bottom:4px\">Delete account</div>",
+   "replace": "margin-bottom:4px\">${t('set.delete_account')}</div>"
+  },
+  {
+   "line": 29464,
+   "find": "`This permanently deletes guest <b>${escapeHTML(ACC.name||'')}</b> at once: progress, heroes, items and city. It cannot be undone.`",
+   "replace": "t('set2.del_guest_body',{name:'<b>'+escapeHTML(ACC.name||'')+'</b>'})"
+  },
+  {
+   "line": 29464,
+   "find": "This deletes <b>${escapeHTML(ACC.name||'')}</b>: progress, heroes, items, city, guild place and personal details. The account is locked and hidden for <b>7 days</b> - sign in again within 7 days to cancel. After that it is wiped from our database and cannot be restored (backups age out on their own schedule). <a",
+   "replace": "${t('set2.del_acct_body',{name:'<b>'+escapeHTML(ACC.name||'')+'</b>',days:'<b>'+t('setx.tos_n_days',{n:7})+'</b>',n:7})} <a"
+  },
+  {
+   "line": 29464,
+   "find": "style=\"color:#9ab0d6\">Privacy Policy</a>",
+   "replace": "style=\"color:#9ab0d6\">${t('setx.tos_privacy')}</a>"
+  },
+  {
+   "line": 29466,
+   "find": "placeholder=\"Type DELETE\"",
+   "replace": "placeholder=\"${t('set2.type_delete')}\""
+  },
+  {
+   "line": 29467,
+   "find": "placeholder=\"Password\"",
+   "replace": "placeholder=\"${t('set.password')}\""
+  },
+  {
+   "line": 29468,
+   "find": "${ACC.guest?'Delete permanently':'Delete account'}",
+   "replace": "${ACC.guest?t('set2.delete_permanently'):t('set.delete_account')}"
+  },
+  {
+   "line": 29479,
+   "find": "Your password has been reset</div>",
+   "replace": "${t('auth2.pw_was_reset')}</div>"
+  },
+  {
+   "line": 29480,
+   "find": ">Please type and confirm a new password for <b>${escapeHTML(_resetName||'')}</b> to regain access.</div>",
+   "replace": ">${t('acct2.type_new_pw_for',{name:'<b>'+escapeHTML(_resetName||'')+'</b>'})}</div>"
+  },
+  {
+   "line": 29482,
+   "find": "placeholder=\"New password\"",
+   "replace": "placeholder=\"${t('auth2.new_pw')}\""
+  },
+  {
+   "line": 29483,
+   "find": "placeholder=\"Confirm new password\"",
+   "replace": "placeholder=\"${t('auth2.confirm_new_pw')}\""
+  },
+  {
+   "line": 29484,
+   "find": "id=\"acSetPass\">Set password &amp; sign in</button>",
+   "replace": "id=\"acSetPass\">${t('auth2.set_pw_sign_in')}</button>"
+  },
+  {
+   "line": 29491,
+   "find": "Forgot password</div>",
+   "replace": "${t('auth2.forgot_password')}</div>"
+  },
+  {
+   "line": 29492,
+   "find": ">Enter your username. If it has a recovery email linked, we'll send a one-time 6-digit code to reset your password.</div>",
+   "replace": ">${t('set2.forgot_hint')}</div>"
+  },
+  {
+   "line": 29494,
+   "find": "placeholder=\"Username\"",
+   "replace": "placeholder=\"${t('set.username')}\""
+  },
+  {
+   "line": 29495,
+   "find": "id=\"fgSend\">Send reset code</button>",
+   "replace": "id=\"fgSend\">${t('auth2.send_reset_code')}</button>"
+  },
+  {
+   "line": 29496,
+   "find": "id=\"fgBack\">Back to sign in</button>",
+   "replace": "id=\"fgBack\">${t('auth2.back_to_sign_in')}</button>"
+  },
+  {
+   "line": 29500,
+   "find": "Enter your code</div>",
+   "replace": "${t('auth2.enter_your_code')}</div>"
+  },
+  {
+   "line": 29501,
+   "find": ">If <b>${escapeHTML(_forgotName)}</b> has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in 15 minutes.</div>",
+   "replace": ">${t('set2.fg_code_hint',{name:'<b>'+escapeHTML(_forgotName)+'</b>',n:15})}</div>"
+  },
+  {
+   "line": 29503,
+   "find": "placeholder=\"6-digit code\"",
+   "replace": "placeholder=\"${t('auth2.code6')}\""
+  },
+  {
+   "line": 29504,
+   "find": "placeholder=\"New password\"",
+   "replace": "placeholder=\"${t('auth2.new_pw')}\""
+  },
+  {
+   "line": 29505,
+   "find": "placeholder=\"Confirm new password\"",
+   "replace": "placeholder=\"${t('auth2.confirm_new_pw')}\""
+  },
+  {
+   "line": 29506,
+   "find": "id=\"fgSubmit\">Set password &amp; sign in</button>",
+   "replace": "id=\"fgSubmit\">${t('auth2.set_pw_sign_in')}</button>"
+  },
+  {
+   "line": 29507,
+   "find": "id=\"fgResend\" style=\"flex:1\">Resend code</button>",
+   "replace": "id=\"fgResend\" style=\"flex:1\">${t('set2.resend_code')}</button>"
+  },
+  {
+   "line": 29507,
+   "find": "id=\"fgBack\" style=\"flex:1\">Back to sign in</button>",
+   "replace": "id=\"fgBack\" style=\"flex:1\">${t('auth2.back_to_sign_in')}</button>"
+  },
+  {
+   "line": 29537,
+   "find": "<b>\\u2694 God Mode <span class=\"sub\">\\u2014 no damage + all buildings open</span></b>",
+   "replace": "<b>\\u2694 ${t('set2.dev_god')} <span class=\"sub\">\\u2014 ${t('set2.dev_god_sub')}</span></b>"
+  },
+  {
+   "line": 29538,
+   "find": "'Run test bots')",
+   "replace": "t('set2.dev_bots'))"
+  },
+  {
+   "line": 29540,
+   "find": "'Download backup')",
+   "replace": "t('set2.dev_backup'))"
+  },
+  {
+   "line": 29541,
+   "find": "\\ud83d\\udd04 Check for update (reload newest)</button>",
+   "replace": "\\ud83d\\udd04 ${t('set2.dev_update')}</button>"
+  },
+  {
+   "line": 29543,
+   "find": "'Performance HUD on/off')",
+   "replace": "t('set2.dev_perf'))"
+  },
+  {
+   "line": 29543,
+   "find": "'FX misses')",
+   "replace": "t('set2.dev_fxmiss'))"
+  },
+  {
+   "line": 29543,
+   "find": "'Cache log')",
+   "replace": "t('set2.dev_cachelog'))"
+  },
+  {
+   "line": 29543,
+   "find": "'Temple orbs preview ('+(DEV.orbPreview|0)+'/5)')",
+   "replace": "t('set2.dev_orbs',{n:DEV.orbPreview|0}))"
+  },
+  {
+   "line": 29543,
+   "find": "'Update all features')",
+   "replace": "t('set.update_all'))"
+  },
+  {
+   "line": 29543,
+   "find": "'Clear cache')",
+   "replace": "t('set.clear_cache'))"
+  },
+  {
+   "line": 29544,
+   "find": "<div class=\"dvp-sec\">Save</div>",
+   "replace": "<div class=\"dvp-sec\">${t('common.save')}</div>"
+  },
+  {
+   "line": 29548,
+   "find": "placeholder=\"Filter\\u2026\"",
+   "replace": "placeholder=\"${t('set2.dev_filter')}\""
+  },
+  {
+   "line": 29549,
+   "find": "<div class=\"dvp-sec\">Currency</div>",
+   "replace": "<div class=\"dvp-sec\">${t('set2.dev_currency')}</div>"
+  },
+  {
+   "line": 29550,
+   "find": "'+100k Gold')",
+   "replace": "t('set2.dev_gold'))"
+  },
+  {
+   "line": 29550,
+   "find": "'+2000 Diamonds')",
+   "replace": "t('set2.dev_gems'))"
+  },
+  {
+   "line": 29550,
+   "find": "'+500 hero fragments each')",
+   "replace": "t('set2.dev_shards'))"
+  },
+  {
+   "line": 29550,
+   "find": "'+200 each piece')",
+   "replace": "t('set2.dev_pieces'))"
+  },
+  {
+   "line": 29550,
+   "find": "'+5000 arena coins')",
+   "replace": "t('set2.dev_arenacoin'))"
+  },
+  {
+   "line": 29550,
+   "find": "'+5000 guild coins')",
+   "replace": "t('set2.dev_guildcoins'))"
+  },
+  {
+   "line": 29551,
+   "find": "<div class=\"dvp-sec\">Progression</div>",
+   "replace": "<div class=\"dvp-sec\">${t('set2.dev_progression')}</div>"
+  },
+  {
+   "line": 29552,
+   "find": "'Refill stamina')",
+   "replace": "t('set2.dev_stam'))"
+  },
+  {
+   "line": 29552,
+   "find": "'+30 stamina')",
+   "replace": "t('set2.dev_stam30'))"
+  },
+  {
+   "line": 29552,
+   "find": "'Player +5 levels')",
+   "replace": "t('set2.dev_level'))"
+  },
+  {
+   "line": 29552,
+   "find": "'Squad +5 levels')",
+   "replace": "t('set2.dev_squadlvl'))"
+  },
+  {
+   "line": 29552,
+   "find": "'Campaign +5 stages')",
+   "replace": "t('set2.dev_campstage'))"
+  },
+  {
+   "line": 29552,
+   "find": "'Arena \\u2192 #1')",
+   "replace": "t('set2.dev_arena1'))"
+  },
+  {
+   "line": 29552,
+   "find": "'+3 shields')",
+   "replace": "t('set2.dev_shields'))"
+  },
+  {
+   "line": 29553,
+   "find": "<div class=\"dvp-sec\">Roster</div>",
+   "replace": "<div class=\"dvp-sec\">${t('set2.dev_roster')}</div>"
+  },
+  {
+   "line": 29554,
+   "find": "'Unlock all heroes')",
+   "replace": "t('set2.dev_heroes'))"
+  },
+  {
+   "line": 29554,
+   "find": "'ALL heroes \\u2192 level '+MAX_LEVEL)",
+   "replace": "t('set2.dev_lvmax',{n:MAX_LEVEL}))"
+  },
+  {
+   "line": 29554,
+   "find": "'Max ALL heroes glyph+star')",
+   "replace": "t('set2.dev_maxteam'))"
+  },
+  {
+   "line": 29554,
+   "find": "'Give 100 fragments\\u2026')",
+   "replace": "t('set2.dev_givefrags'))"
+  },
+  {
+   "line": 29556,
+   "find": "'Players online')",
+   "replace": "t('set2.dev_online'))"
+  },
+  {
+   "line": 29556,
+   "find": "'All accounts')",
+   "replace": "t('set2.dev_accounts'))"
+  },
+  {
+   "line": 29556,
+   "find": "'Create account')",
+   "replace": "t('auth2.create_account'))"
+  },
+  {
+   "line": 29557,
+   "find": "<div class=\"dvp-sec\">Reports</div>",
+   "replace": "<div class=\"dvp-sec\">${t('set2.dev_reports')}</div>"
+  },
+  {
+   "line": 29558,
+   "find": "'Bug reports')",
+   "replace": "t('set2.dev_bugreports'))"
+  },
+  {
+   "line": 29558,
+   "find": "'Refresh log')",
+   "replace": "t('set2.dev_refresh'))"
+  },
+  {
+   "line": 29558,
+   "find": "'Clear resolved')",
+   "replace": "t('set2.dev_clearlog'))"
+  },
+  {
+   "line": 29559,
+   "find": "<div class=\"dvp-sec\">Integrity \\u00b7 +2,000 \\ud83d\\udc8e &lt; 1 min</div>",
+   "replace": "<div class=\"dvp-sec\">${t('set2.dev_integrity')} \\u00b7 +2,000 \\ud83d\\udc8e &lt; ${t('set2.dev_one_min')}</div>"
+  },
+  {
+   "line": 29560,
+   "find": "'Refresh reports')",
+   "replace": "t('set2.dev_intrefresh'))"
+  },
+  {
+   "line": 29560,
+   "find": "'Show resolved too')",
+   "replace": "t('set2.dev_intall'))"
+  },
+  {
+   "line": 29563,
+   "find": "<span class=\"dvp-title\">Developer Panel</span>",
+   "replace": "<span class=\"dvp-title\">${t('set2.dev_panel')}</span>"
+  },
+  {
+   "line": 29681,
+   "find": "msg.textContent='Enter your username.';",
+   "replace": "msg.textContent=t('auth2.err_enter_name');"
+  },
+  {
+   "line": 29682,
+   "find": "msg.textContent='Sending…';",
+   "replace": "msg.textContent=t('set.sending');"
+  },
+  {
+   "line": 29685,
+   "find": "msg.textContent='Sending a new code…';",
+   "replace": "msg.textContent=t('set2.sending_new_code');"
+  },
+  {
+   "line": 29686,
+   "find": "msg.textContent='If an email is linked, a new code is on its way.';",
+   "replace": "msg.textContent=t('set2.new_code_if_email');"
+  },
+  {
+   "line": 29689,
+   "find": "msg.textContent='Enter the 6-digit code from your email.';",
+   "replace": "msg.textContent=t('auth2.err_code_email');"
+  },
+  {
+   "line": 29690,
+   "find": "msg.textContent='Enter a new password.';",
+   "replace": "msg.textContent=t('auth2.err_enter_new_pw');"
+  },
+  {
+   "line": 29691,
+   "find": "msg.textContent='Passwords do not match.';",
+   "replace": "msg.textContent=t('auth2.err_pw_mismatch');"
+  },
+  {
+   "line": 29692,
+   "find": "msg.textContent='Setting password…';",
+   "replace": "msg.textContent=t('auth2.setting_pw');"
+  },
+  {
+   "line": 29694,
+   "find": "'Could not reset password.'",
+   "replace": "t('auth2.err_reset_pw')"
+  },
+  {
+   "line": 29695,
+   "find": "msg.textContent='Unexpected server response.';",
+   "replace": "msg.textContent=t('set2.err_unexpected');"
+  },
+  {
+   "line": 29700,
+   "find": "bannerMsg(uiIcon('key')+' Password reset — you\\'re signed in.')",
+   "replace": "bannerMsg(uiIcon('key')+' '+t('set2.pw_reset_signed_in'))"
+  },
+  {
+   "line": 29707,
+   "find": "msg.textContent='Username needs at least 2 characters.';",
+   "replace": "msg.textContent=t('auth2.err_name_short');"
+  },
+  {
+   "line": 29709,
+   "find": "msg.textContent='Enter a password.';",
+   "replace": "msg.textContent=t('auth2.err_enter_pw');"
+  },
+  {
+   "line": 29710,
+   "find": "msg.textContent='Passwords do not match.';",
+   "replace": "msg.textContent=t('auth2.err_pw_mismatch');"
+  },
+  {
+   "line": 29711,
+   "find": "msg.textContent='You must accept the Terms to sign in.';",
+   "replace": "msg.textContent=t('acct2.err_terms_sign_in');"
+  },
+  {
+   "line": 29712,
+   "find": "msg.textContent=acctMode==='create'?'Creating account…':'Signing in…';",
+   "replace": "msg.textContent=acctMode==='create'?t('auth2.creating'):t('auth2.signing_in');"
+  },
+  {
+   "line": 29718,
+   "find": "'Could not reach the server — try again.'",
+   "replace": "t('auth2.err_no_server_retry')"
+  },
+  {
+   "line": 29719,
+   "find": "msg.textContent='Unexpected server response.';",
+   "replace": "msg.textContent=t('set2.err_unexpected');"
+  },
+  {
+   "line": 29737,
+   "find": "msg.textContent='Enter a new password.';",
+   "replace": "msg.textContent=t('auth2.err_enter_new_pw');"
+  },
+  {
+   "line": 29738,
+   "find": "msg.textContent='Passwords do not match.';",
+   "replace": "msg.textContent=t('auth2.err_pw_mismatch');"
+  },
+  {
+   "line": 29739,
+   "find": "msg.textContent='Setting password…';",
+   "replace": "msg.textContent=t('auth2.setting_pw');"
+  },
+  {
+   "line": 29741,
+   "find": "'Could not reach the server.'",
+   "replace": "t('draft.err_server')"
+  },
+  {
+   "line": 29742,
+   "find": "msg.textContent='Could not set password.';",
+   "replace": "msg.textContent=t('auth2.err_set_pw');"
+  },
+  {
+   "line": 29757,
+   "find": "msg.textContent='Username needs at least 2 characters.';",
+   "replace": "msg.textContent=t('auth2.err_name_short');"
+  },
+  {
+   "line": 29759,
+   "find": "msg.textContent='Password needs at least 8 characters.';",
+   "replace": "msg.textContent=t('auth2.err_pw_short');"
+  },
+  {
+   "line": 29760,
+   "find": "msg.textContent='Passwords do not match.';",
+   "replace": "msg.textContent=t('auth2.err_pw_mismatch');"
+  },
+  {
+   "line": 29761,
+   "find": "msg.textContent='You must accept the Terms to create an account.';",
+   "replace": "msg.textContent=t('set2.err_terms_create');"
+  },
+  {
+   "line": 29763,
+   "find": "msg.textContent='Creating account...';",
+   "replace": "msg.textContent=t('auth2.creating');"
+  },
+  {
+   "line": 29766,
+   "find": "'Connection lost - try again.'",
+   "replace": "t('auth2.err_conn_lost')"
+  },
+  {
+   "line": 29766,
+   "find": "'Could not create the account.'",
+   "replace": "t('err.could_not_create_the_account')"
+  },
+  {
+   "line": 29771,
+   "find": "bannerMsg('Account created. Your progress is kept.')",
+   "replace": "bannerMsg(t('acct2.created_kept'))"
+  },
+  {
+   "line": 29778,
+   "find": "msg.textContent='Type DELETE to confirm.';",
+   "replace": "msg.textContent=t('err.type_delete_to_confirm');"
+  },
+  {
+   "line": 29779,
+   "find": "msg.textContent='Enter your password.';",
+   "replace": "msg.textContent=t('err.enter_your_password');"
+  },
+  {
+   "line": 29781,
+   "find": "msg.textContent='Sending...';",
+   "replace": "msg.textContent=t('set.sending');"
+  },
+  {
+   "line": 29783,
+   "find": "'Connection lost - try again.'",
+   "replace": "t('auth2.err_conn_lost')"
+  },
+  {
+   "line": 29783,
+   "find": "'Could not delete the account.'",
+   "replace": "t('set2.err_delete')"
+  },
+  {
+   "line": 29790,
+   "find": "('Deletion requested. Your account is locked and will be wiped on '+new Date(d.wipeAt).toLocaleDateString()+' - sign in before then to cancel.'):'Your account has been deleted.'",
+   "replace": "t('set2.del_requested',{date:new Date(d.wipeAt).toLocaleDateString()}):t('set2.deleted')"
+  },
+  {
+   "line": 29794,
+   "find": "'Could not unblock.'",
+   "replace": "t('set2.err_unblock')"
+  },
+  {
+   "line": 29804,
+   "find": "msg.textContent='Enter a valid email address.';",
+   "replace": "msg.textContent=t('err.enter_a_valid_email_address');"
+  },
+  {
+   "line": 29805,
+   "find": "msg.textContent='Sending code…';",
+   "replace": "msg.textContent=t('set2.sending_code');"
+  },
+  {
+   "line": 29807,
+   "find": "'Could not send code.'",
+   "replace": "t('set2.err_send_code')"
+  },
+  {
+   "line": 29809,
+   "find": "msg.textContent='Sending a new code…';",
+   "replace": "msg.textContent=t('set2.sending_new_code');"
+  },
+  {
+   "line": 29810,
+   "find": "msg.textContent='A new code was sent.';",
+   "replace": "msg.textContent=t('set2.new_code_sent');"
+  },
+  {
+   "line": 29810,
+   "find": "'Could not resend.'",
+   "replace": "t('set2.err_resend')"
+  },
+  {
+   "line": 29812,
+   "find": "msg.textContent='Enter the 6-digit code.';",
+   "replace": "msg.textContent=t('set2.err_code6');"
+  },
+  {
+   "line": 29813,
+   "find": "msg.textContent='Confirming…';",
+   "replace": "msg.textContent=t('set2.confirming');"
+  },
+  {
+   "line": 29814,
+   "find": "bannerMsg(uiIcon('mail')+' Recovery email updated.')",
+   "replace": "bannerMsg(uiIcon('mail')+' '+t('set2.email_updated'))"
+  },
+  {
+   "line": 29815,
+   "find": "'Could not confirm.'",
+   "replace": "t('set2.err_confirm')"
+  },
+  {
+   "line": 29821,
+   "find": "msg.textContent='Sending a new code…';",
+   "replace": "msg.textContent=t('set2.sending_new_code');"
+  },
+  {
+   "line": 29822,
+   "find": "msg.textContent='A new code is on its way.';",
+   "replace": "msg.textContent=t('set2.new_code_on_way');"
+  },
+  {
+   "line": 29826,
+   "find": "msg.textContent='Enter the 6-digit code from your email.';",
+   "replace": "msg.textContent=t('auth2.err_code_email');"
+  },
+  {
+   "line": 29827,
+   "find": "msg.textContent='Enter a new password.';",
+   "replace": "msg.textContent=t('auth2.err_enter_new_pw');"
+  },
+  {
+   "line": 29828,
+   "find": "msg.textContent='Passwords do not match.';",
+   "replace": "msg.textContent=t('auth2.err_pw_mismatch');"
+  },
+  {
+   "line": 29829,
+   "find": "msg.textContent='Changing password…';",
+   "replace": "msg.textContent=t('set2.changing_pw');"
+  },
+  {
+   "line": 29831,
+   "find": "'Could not change password.'",
+   "replace": "t('set2.err_change_pw')"
+  },
+  {
+   "line": 29833,
+   "find": "bannerMsg(uiIcon('key')+' Password changed. Other devices have been signed out.')",
+   "replace": "bannerMsg(uiIcon('key')+' '+t('set2.pw_changed'))"
+  },
+  {
+   "line": 29839,
+   "find": "gameConfirm('Reset <b>your own</b> progress back to a fresh start?<br><span style=\"font-size:11px;color:#8b98a9\">This wipes EVERYTHING on this account — heroes, levels, glyph boards, Forge gear, Dust and Vault floors. No other players are touched. Your one-time name change is restored.</span>',",
+   "replace": "gameConfirm(t('set2.reset_q',{bs:'<b>',be:'</b>'})+'<br><span style=\"font-size:11px;color:#8b98a9\">'+t('set2.reset_body')+'</span>',"
+  },
+  {
+   "line": 30238,
+   "find": "'Banned permanently':'Banned until '+new Date(b.until).toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});",
+   "replace": "t('acct2.banned_perm'):t('acct2.banned_until',{date:new Date(b.until).toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})});"
+  },
+  {
+   "line": 30473,
+   "find": "<button class=\"svrX\" aria-label=\"Close\">'",
+   "replace": "<button class=\"svrX\" aria-label=\"'+t('common.close')+'\">'"
+  },
+  {
+   "line": 2497,
+   "find": "aria-label=\"Click to Play\"",
+   "replace": "aria-label=\"Click to Play\" data-i18n-aria=\"html2.click_to_play\""
+  },
+  {
+   "line": 2515,
+   "find": "aria-label=\"Buy food\"",
+   "replace": "aria-label=\"Buy food\" data-i18n-aria=\"html2.buy_food\""
+  },
+  {
+   "line": 2520,
+   "find": "aria-label=\"Buy gold\"",
+   "replace": "aria-label=\"Buy gold\" data-i18n-aria=\"html2.buy_gold\""
+  },
+  {
+   "line": 2525,
+   "find": "aria-label=\"Open shop\"",
+   "replace": "aria-label=\"Open shop\" data-i18n-aria=\"html2.open_shop\""
+  },
+  {
+   "line": 2534,
+   "find": "aria-label=\"Patron\"",
+   "replace": "aria-label=\"Patron\" data-i18n-aria=\"patron.title\""
+  },
+  {
+   "line": 2535,
+   "find": "aria-label=\"Guest account - create an account\"",
+   "replace": "aria-label=\"Guest account - create an account\" data-i18n-aria=\"html2.guest_create\""
+  },
+  {
+   "line": 2726,
+   "find": "aria-label=\"Pool contents and odds\"",
+   "replace": "aria-label=\"Pool contents and odds\" data-i18n-aria=\"html2.pool_odds\""
+  },
+  {
+   "line": 2748,
+   "find": "aria-label=\"Previous hero\"",
+   "replace": "aria-label=\"Previous hero\" data-i18n-aria=\"html2.prev_hero\""
+  },
+  {
+   "line": 2749,
+   "find": "aria-label=\"Next hero\"",
+   "replace": "aria-label=\"Next hero\" data-i18n-aria=\"html2.next_hero\""
+  },
+  {
+   "line": 2801,
+   "find": "aria-label=\"Guest account - create an account\"",
+   "replace": "aria-label=\"Guest account - create an account\" data-i18n-aria=\"html2.guest_create\""
+  }
+ ],
+ "notes": [
+  "W1 (sign-in gate, Settings > Account, account notices, net gate, server list, ban label). authGateRender / Settings account: labels moved into t() only, code untouched.",
+  "Server names: SVR_LIST keeps its data names (tests/test_servers_1051.js evals it); every display site shows t('svr.server_n',{n:id}).",
+  "Static aria-labels (Click to Play, Buy food/gold, Open shop, Patron, Guest x2, Pool odds, Previous/Next hero) need data-i18n-aria support in langApply (00_infra) - not added here."
+ ]
+}

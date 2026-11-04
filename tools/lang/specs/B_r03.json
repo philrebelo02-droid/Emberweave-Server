@@ -550,7 +550,7 @@
   {
    "line": 15735,
    "find": "Boss floor — package and Dust paid twice, once only.",
-   "replace": "'+ewT('result.boss_floor_twice',{dust:'Dust'})+'"
+   "replace": "'+ewT('result.boss_floor_twice',{dust:ewT('gear.dust')})+'"
   },
   {
    "line": 15737,

@@ -1,0 +1,12 @@
+{
+ "_why": "W6 game content: HERO_LORE / GLOSSARY_INFO lore through langDesc at every display site; HERO_TYPES/MONSTER_TYPES role words through rosterClassName (roster.class_* keys). Names stay English.",
+ "keys": {},
+ "edits": [
+  { "line": 19612, "find": "escapeHTML((t.role||'').toUpperCase())", "replace": "escapeHTML((t.role?rosterClassName(t.role):'').toUpperCase())" },
+  { "line": 23573, "find": "'+L.title+'", "replace": "'+langDesc(L.title)+'" },
+  { "line": 23573, "find": "String(L.text)", "replace": "String(langDesc(L.text))" },
+  { "line": 23575, "find": "const _raw=(gi&&gi.lore)?gi.lore:(e.lore||'');", "replace": "const _raw=langDesc((gi&&gi.lore)?gi.lore:(e.lore||''));" },
+  { "line": 27923, "find": "const paras=L.text.split(", "replace": "const paras=langDesc(L.text).split(" },
+  { "line": 27926, "find": "escapeHTML(L.title)", "replace": "escapeHTML(langDesc(L.title))" }
+ ]
+}

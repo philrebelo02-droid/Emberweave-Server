@@ -1,0 +1,766 @@
+[
+ {
+  "text": "(English)",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "[aria-label] Buy food",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "[aria-label] Buy gold",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "[aria-label] Guest account - create an account",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "[aria-label] Next hero",
+  "where": [
+   "heroDetail"
+  ]
+ },
+ {
+  "text": "[aria-label] North-east Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "[aria-label] North-west Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "[aria-label] Open shop",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "[aria-label] Patron",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "[aria-label] Pool contents and odds",
+  "where": [
+   "wishing"
+  ]
+ },
+ {
+  "text": "[aria-label] Previous hero",
+  "where": [
+   "heroDetail"
+  ]
+ },
+ {
+  "text": "[aria-label] South-east Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "[aria-label] South-west Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "[placeholder] Name",
+  "where": [
+   "account"
+  ]
+ },
+ {
+  "text": "[placeholder] Password",
+  "where": [
+   "account"
+  ]
+ },
+ {
+  "text": "[title] Crown Spire",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "[title] Iron Gate",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "[title] Rift Tower",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "[title] Storm Watch",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "[title] Verdant Sanctuary",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "#10 Goldcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#11 Thorncaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#12 Mistcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#13 Greycaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#14 Suncaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#15 Blackcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#16 Oakcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#17 Redcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#18 Silvercaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#19 Wintercaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#20 Stonecaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#4 Frostcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#5 Duskcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#6 Dawncaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#7 Grimcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#8 Ravencaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "#9 Wolfcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "+60 Stamina",
+  "where": [
+   "signin"
+  ]
+ },
+ {
+  "text": "×2 fragments",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "×5 random hero fragments",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "🗡️ joins your company",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "10:31:46 AM",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "20 diamonds",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "20 Diamonds",
+  "where": [
+   "signin"
+  ]
+ },
+ {
+  "text": "30 Diamonds",
+  "where": [
+   "signin"
+  ]
+ },
+ {
+  "text": "300 Gold",
+  "where": [
+   "signin"
+  ]
+ },
+ {
+  "text": "400 Gold",
+  "where": [
+   "signin"
+  ]
+ },
+ {
+  "text": "50 gold",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "600 Gold",
+  "where": [
+   "signin"
+  ]
+ },
+ {
+  "text": "Ashcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "Attack an opponent in the Arena.",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Bahasa Indonesia",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Blackholt 4655",
+  "where": [
+   "arena",
+   "arena tab 0"
+  ]
+ },
+ {
+  "text": "Blade in the Dark",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Cinderwood",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "Clear 6 campaign stages — someone has been following your company.",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Clear Stage 1-1 of the campaign. (0/56 steps done)",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Collect 5 heroes in total.",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Commander",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "Commander ·",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "Deutsch",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Emberdraft",
+  "where": [
+   "skyisland"
+  ]
+ },
+ {
+  "text": "Emberite",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "English",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Español",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Event schedule pending",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "First Blood",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Français",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Gather Your Champions",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Grey",
+  "where": [
+   "dungeon"
+  ]
+ },
+ {
+  "text": "GUEST - progress not saved to an account",
+  "where": [
+   "home",
+   "campaign",
+   "building 0",
+   "building 1",
+   "building 2",
+   "building 3"
+  ]
+ },
+ {
+  "text": "Ironcaller",
+  "where": [
+   "rankings"
+  ]
+ },
+ {
+  "text": "Italiano",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Log in",
+  "where": [
+   "account"
+  ]
+ },
+ {
+  "text": "Make a Name",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Make a Wish",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Nederlands",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "North-east Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "North-west Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "Other quests",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Playing as a guest ( ). Your progress is being saved. Create an account below to keep it safe across devices, or Sign in to your main accoun",
+  "where": [
+   "account"
+  ]
+ },
+ {
+  "text": "Português (Brasil)",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "PREP",
+  "where": [
+   "skyfall"
+  ]
+ },
+ {
+  "text": "Quests in progress",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Recruit",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Register",
+  "where": [
+   "account"
+  ]
+ },
+ {
+  "text": "Rewards ready",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Rough Ore Fragment ·",
+  "where": [
+   "dungeon"
+  ]
+ },
+ {
+  "text": "Rough Vitality Gem ·",
+  "where": [
+   "dungeon"
+  ]
+ },
+ {
+  "text": "Set your commander name in your profile.",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Shadowveil 4543",
+  "where": [
+   "arena",
+   "arena tab 0"
+  ]
+ },
+ {
+  "text": "South-east Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "South-west Oasis",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "Stage — / 1-1 cleared",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Starsilver",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "Starter fragments",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Stoneheart 4940",
+  "where": [
+   "arena",
+   "arena tab 0"
+  ]
+ },
+ {
+  "text": "Swiftborn 5000",
+  "where": [
+   "arena",
+   "arena tab 0"
+  ]
+ },
+ {
+  "text": "Swifthand 4880",
+  "where": [
+   "arena",
+   "arena tab 0"
+  ]
+ },
+ {
+  "text": "The Swarm Spire",
+  "where": [
+   "skyisland"
+  ]
+ },
+ {
+  "text": "Toss a coin at any Wishing Pool 3 times.",
+  "where": [
+   "quest"
+  ]
+ },
+ {
+  "text": "Training Province",
+  "where": [
+   "skyisland"
+  ]
+ },
+ {
+  "text": "Türkçe",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "Voidglass",
+  "where": [
+   "world"
+  ]
+ },
+ {
+  "text": "Русский",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "ไทย",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "한국어",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "日本語",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "简体中文",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ },
+ {
+  "text": "繁體中文",
+  "where": [
+   "settings",
+   "settings tab 0",
+   "settings tab 1",
+   "settings tab 2",
+   "settings tab 3"
+  ]
+ }
+]

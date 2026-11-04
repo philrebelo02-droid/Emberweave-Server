@@ -1,0 +1,6 @@
+{ "keys": {},
+  "edits": [
+  { "line": 2896, "find": "  return s.indexOf('{')<0?s:s.replace(/\\{(\\w+)\\}/g,(m,k)=>vars&&vars[k]!=null?String(vars[k]):''); }", "replace": "  s=s.indexOf('{')<0?s:s.replace(/\\{(\\w+)\\}/g,(m,k)=>vars&&vars[k]!=null?String(vars[k]):'');\n  return LANG.cur==='qps'?'\\u27e6'+s+'\\u27e7':s; }   // v1271 pseudo-language (dev only, /play?lang=qps): every t() text is marked so tests/test_lang_coverage.js can see what is not" },
+  { "line": 2922, "find": "function langLoad(code,rerender){ if(!EW_LANG_V[code]) code='en';", "replace": "function langLoad(code,rerender){ if(code==='qps'){ LANG.cur='qps'; LANG.dict=null; langContentLoad('qps'); langRefresh(rerender); return Promise.resolve(true); }   // v1271 dev pseudo-language, never listed\n  if(!EW_LANG_V[code]) code='en';" },
+  { "line": 2942, "find": "try{ LANG.pref=langSavedPref(); langLoad(LANG.pref||langDetect(langNavList())); }catch(e){}", "replace": "try{ LANG.pref=langSavedPref(); langLoad((typeof location!=='undefined'&&/[?&]lang=qps(?:&|$)/.test(location.search||''))?'qps':(LANG.pref||langDetect(langNavList()))); }catch(e){}" }
+  ] }

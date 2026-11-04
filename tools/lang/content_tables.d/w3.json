@@ -1,0 +1,3 @@
+{"tables":[
+ {"expr":"(()=>{ const out=[], real=window.skillLevel, LVS=[1,2,3,4,5,6,8,10,12,15,20,25,30,40,50,60,70,80,90,100]; try{ for(const lv of LVS){ window.skillLevel=()=>lv; for(const k of Object.keys(HERO_TYPES).filter(k=>KITS[k])){ const t=HERO_TYPES[k]; for(const [a,h] of [[t.dmg||100,t.hp||1000],[(t.dmg||100)*12,(t.hp||1000)*12]]) for(let i=0;i<4;i++){ try{ const s=skillEffectStr(k,i,Math.round(a),Math.round(h)); if(typeof s==='string'&&s) out.push(s); }catch(e){} } } } } finally{ window.skillLevel=real; } return out; })()","area":"skill"}
+]}
