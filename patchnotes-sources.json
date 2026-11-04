@@ -1,7 +1,8 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
-    {"ver": "1.1.5", "releases": "v1263", "status": "Prepared for review; not deployed", "items": [{"text": "A new Mythical Support hero joins the Mythical Pool, healing allies with dark-purple energy and protecting an ally with a dark-purple shield.", "sources": ["docs/hero61-03nov.md"]}]},
+    {"ver": "1.1.6", "releases": "v1265", "items": [{"text": "Choose your language (16): Language card in Settings or the phone's language; menus, town, screen titles, Settings and common buttons first.", "sources": ["SHIPPED-v1265-languages-step1-04-11-2026.md"]}]},
+    {"ver": "1.1.5", "releases": "v1263", "items": [{"text": "A new Mythical Support hero joins the Mythical Pool, healing allies with dark-purple energy and protecting an ally with a dark-purple shield.", "sources": ["docs/hero61-03nov.md"]}]},
  {"ver": "1.1.4", "releases": "v1262", "items": [{"text": "Website v2: featured heroes, framed cards, dividers, finale, embers canvas restored.", "sources": ["Mechanics blueprints/16 - Mail, Quests, Sign-in, Tutorial.md"]}]},
  {"ver": "1.1.3", "releases": "v1261", "items": [{"text": "Portrait energy bars drop their cache on every rebuild; 1-1 Vireo / Sylthaine energy ramps to the scripted ult.", "sources": ["Mechanics blueprints/18 - Battle Engine.md"]}]},
  {"ver": "1.1.2", "releases": "v1260", "items": [{"text": "Everyone stands on their spot 0.7 s before each wave; the 1-1 bubble tail on the head, above the HUD.", "sources": ["Mechanics blueprints/18 - Battle Engine.md"]}]},
