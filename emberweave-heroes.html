@@ -13009,7 +13009,7 @@ function hero61Cast(u,slot,target){
   castCancel(u,''); u._castT=0; u._ultRootT=0;
   const ct=HERO61.CAST[slot],lv=Math.max(1,(u.skillLv&&u.skillLv[slot==='ult'?0:slot==='blue'?2:1])|0);
   u._castSlot=slot;startAbilityClip(u,slot==='ult'?'noneShallFall':slot==='blue'?'crownShelter':'kingsMercy');u._castSlot=null;
-  u._pend={t:ct,sm:1,lv,hero61Slot:slot,fire:()=>{
+  u._pend={t:ct,sm:1,lv,hero61Slot:slot,spell:slot!=='ult',fire:()=>{
     if(slot==='ult'){
       if(target.alive&&target.team===u.team){target._openGateImmuneUntil=battleTime+4;try{hero61Effect(u,target,'ult');}catch(_e){}}
     }else{
@@ -13024,6 +13024,10 @@ function hero61Cast(u,slot,target){
 }
 function hero61Schedule(u,dt){
   u.blueCd=Math.max(0,(u.blueCd||0)-dt);
+  /* v1283 (Phil 5 Nov: "Hes sliding more than ever now"): measured in the 844x390 rig on a campaign stage - he started casting on the
+     first tick while the wave's run-in (waveXfer 'enter') was still carrying him 626 units onto the field, so he slid the whole way in
+     his cast pose. While the game moves him (wave run-in/out, regroup, gauntlet crossing) he does not cast, and a cast in hand stops. */
+  if(waveXfer||u._rgX!=null||u._gauntCrossing){ if(u._pend&&u._pend.hero61Slot!=='ult')castCancel(u,''); return; }
   if(hero61Controlled(u))return;
   if(!u._pend&&(u._ultRootT||0)>0)return;
   const start=(slot,target)=>{if(hero61Cast(u,slot,target)){
@@ -13082,7 +13086,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
   u._castSlot=slot; startAbilityClip(u,ab.type); u._clipStarted=true; u._castSlot=null;
   /* v796 - and the effect releases at the END of the cast time. `_castSM` / `_castLv` are captured
      because the CALLER resets them one statement after this function returns. */
-  u._pend={ t:ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
+  u._pend={ t:ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY, spell:true,
     fire:()=>{ u._castSlot=slot; doEffect(u,ab.type,ab);
       if(u._gearRepeatSpell){ const rp=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rp; doEffect(u,ab.type,ab); u._castSM=prev; } } };
   /* v1125 Ember Cleave: the chop rides his axe swing from the press (it shows from his downswing frame 24). Display only; an interrupted cast fades it. */
@@ -13108,6 +13112,7 @@ function castCancel(u, why){
   try{ floatTexts.push({x:u.x,y:u.y-16,txt:why||'INTERRUPTED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }catch(e){}
   return true;
 }
+const SPELL_ENERGY=11;   // v1283: energy per released Green/Blue cast = one auto-attack's
 function castTick(u, dt){
   const p=u&&u._pend; if(!p) return;
   if(!u.alive || (u.stunned||0)>0 || (u.fearT||0)>0 || (u.silencedT||0)>0 || (u._sleepT||0)>0){
@@ -13121,6 +13126,9 @@ function castTick(u, dt){
   u._castSM=p.sm; u._castLv=p.lv; u._aimWX=p.ax; u._aimWY=p.ay;
   if(typeof SFX!=='undefined'&&SFX.log) sfxNote('fire',{hero:u.key,slot:(SFX.pend.get(u)||{}).slot});   /* v1138 rig log only */
   try{ p.fire(); }catch(e){}
+  /* v1283 (Phil 5 Nov: "Heroes should receive energy when casting spells also not only autos"): a Green/Blue cast that
+     releases gives the same energy as an auto-attack (+11, slowed by the same energy-slow). Ults never (they spend it). */
+  if(p.spell&&u.alive) u.energy=Math.min(100,(u.energy||0)+SPELL_ENERGY*(((u._nrgSlowT||0)>0)?(1-(u._nrgSlowPct||0.4)):1));
   u._castSlot=null; u._aimWX=null; u._aimWY=null;
   u._castSM=sm; u._castLv=lv;
   if(ax!=null){ u._aimWX=ax; u._aimWY=ay; }
@@ -31958,7 +31966,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793903552521';
+const BUILD_ID = '1793911033211';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
