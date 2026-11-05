@@ -15242,8 +15242,9 @@ function think(u,dt){
      not yet, and without _moveT it would show idle and the lead-in would achieve nothing. */
   /* v1282 (Phil 5 Nov on Morvayne: "hes still drifting"): beat 1 above was never enforced for Green/Blue - only the ult rooted, so a
      hero casting before reaching his spot walked underneath the cast clip and slid (measured in the 844x390 rig: Morvayne moved
-     54 world units through one Blue cast). A cast clip now roots like the ult clip; the walk resumes when the cast ends. */
-  if(dn>cd){ if(!_ultRoot&&!((u._castT||0)>0)){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25; } }   // v542: rooted while the ult clip plays   // run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
+     54 world units through one Blue cast). Morvayne's cast clip now roots like the ult clip; the walk resumes when the cast ends. Scoped to him: rooting every hero's
+     casts shifted 35 fixed-fight tests (suite aeb748cc) - the roster-wide rule needs those fights re-checked first. */
+  if(dn>cd){ if(!_ultRoot&&!(u.key===HERO61.KEY&&(u._castT||0)>0)){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25; } }   // v542: rooted while the ult clip plays   // run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
   else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
 
