@@ -81,7 +81,7 @@
       "contact": 53
     },
     "ult": {
-      "u": "/assets/anim/hero61/hero61_ult_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_ult_1280.webp?v=1280-spill1",
       "n": 72,
       "fw": 227,
       "fh": 235,
@@ -162,7 +162,7 @@
       "lazy": true
     },
     "death4": {
-      "u": "/assets/anim/hero61/hero61_death4_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death4_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -178,7 +178,7 @@
       "lazy": true
     },
     "death5": {
-      "u": "/assets/anim/hero61/hero61_death5_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death5_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -194,7 +194,7 @@
       "lazy": true
     },
     "death6": {
-      "u": "/assets/anim/hero61/hero61_death6_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death6_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -210,7 +210,7 @@
       "lazy": true
     },
     "death7": {
-      "u": "/assets/anim/hero61/hero61_death7_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death7_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -226,7 +226,7 @@
       "lazy": true
     },
     "death8": {
-      "u": "/assets/anim/hero61/hero61_death8_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death8_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -242,7 +242,7 @@
       "lazy": true
     },
     "death9": {
-      "u": "/assets/anim/hero61/hero61_death9_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death9_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -258,7 +258,7 @@
       "lazy": true
     },
     "death10": {
-      "u": "/assets/anim/hero61/hero61_death10_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death10_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -274,7 +274,7 @@
       "lazy": true
     },
     "death11": {
-      "u": "/assets/anim/hero61/hero61_death11_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death11_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -290,7 +290,7 @@
       "lazy": true
     },
     "death12": {
-      "u": "/assets/anim/hero61/hero61_death12_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death12_1280.webp?v=1280-spill1",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -338,7 +338,7 @@
       "lazy": true
     },
     "blue": {
-      "u": "/assets/anim/hero61/hero61_blue_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_blue_1280.webp?v=1280-spill1",
       "n": 116,
       "fw": 191,
       "fh": 170,
@@ -359,20 +359,20 @@
     "assets/anim/hero61/hero61_attack_1280.webp": "44d1e4407124477cc4ed6a3fbc39432a136b233274bf605294666842b0d012d6",
     "assets/anim/hero61/hero61_hit_1280.webp": "785740213c51c52c98bbe871b1b0fb1220506b7303732593bcdef36bce5ed61c",
     "assets/anim/hero61/hero61_green_1280.webp": "5cd9a788766ab916db3dc39c2dd17aea117a9dd3f7ac942e796e52b66825ed2e",
-    "assets/anim/hero61/hero61_blue_1280.webp": "0f9ed80f01686aeb44430ee833b99e1a0703793abfe772e6466a45fd8822e76e",
-    "assets/anim/hero61/hero61_ult_1280.webp": "79cf85b12c602e247b98479a279ace968fc10392e97db94a7d82e496c48e3555",
+    "assets/anim/hero61/hero61_blue_1280.webp": "791a31d48e2b4570a2d4e58ddb56e4fd60c90b7b7ef3a0249a979b8e80f59eb1",
+    "assets/anim/hero61/hero61_ult_1280.webp": "5393b5b3b12de0a1e3cbf8213d33a8c82b45321b0fb076b3f22499600390610d",
     "assets/anim/hero61/hero61_death_1280.webp": "03c85a1d65ee8c54b2784dacf4fdf27721748ea0a6d6a5de5a054e1a5b4bb4f3",
     "assets/anim/hero61/hero61_death2_1280.webp": "6116ba272c058ae73757558dada37021b9ce45a14e9a89df034d96c1b356576c",
     "assets/anim/hero61/hero61_death3_1280.webp": "d237facec2502a05ff9dcfa6840a7ceb29e1d1b5c6de636bdb9e462c75985412",
-    "assets/anim/hero61/hero61_death4_1280.webp": "f17e4534088f7c52c22f4e572bf2281980abb69a10484918c14857c06549a7aa",
-    "assets/anim/hero61/hero61_death5_1280.webp": "a084de21e3516e26e6b689c598bd4bebc0a8f98f5f15c296d5906ddbc69086bf",
-    "assets/anim/hero61/hero61_death6_1280.webp": "7575c8afe9565ab078fbf663674cf7744656ec948694af838b0ce5871c7ab238",
-    "assets/anim/hero61/hero61_death7_1280.webp": "a2649d5af9123c5a1097527efbe38e977934b3ef2067e70c8ed4e7c5ff7c1021",
-    "assets/anim/hero61/hero61_death8_1280.webp": "4f372c53bf0905ea9e41507258e1d1a57ad027bb790aac74fa565c87807c2694",
-    "assets/anim/hero61/hero61_death9_1280.webp": "84a1ff6fe456feb25d73c7a99a82bdcf32dea1fb26a0708aa98a51b9132c272f",
-    "assets/anim/hero61/hero61_death10_1280.webp": "dca39c0321c843da0f633785b3a2e214a022224f7330ab19524ad4eb8df00a4a",
-    "assets/anim/hero61/hero61_death11_1280.webp": "a76f8eba43413db1ab9c3a9386d6f3b22995fd068134f697c15c19aec44e8014",
-    "assets/anim/hero61/hero61_death12_1280.webp": "da2e53af944044c63240b534860ffd48547810cebabd3d1d14cfb13050ba4d66",
+    "assets/anim/hero61/hero61_death4_1280.webp": "860aba15baded68e977fe95f3b35a5f1b65e39d86df2add297522b78ef3152a4",
+    "assets/anim/hero61/hero61_death5_1280.webp": "b0a4e8956858d0bcfd0e6883843077be9480938a41e88ed13112a314a70ccdac",
+    "assets/anim/hero61/hero61_death6_1280.webp": "14573d289edbce8acfe56cb5647b44ecb6bcba63b0872e6477a93762b905c301",
+    "assets/anim/hero61/hero61_death7_1280.webp": "eeb2eb7616aa398a995cb5ab08ef4332b8b408c5523ea91467a0f614ad2cb848",
+    "assets/anim/hero61/hero61_death8_1280.webp": "4d7d3c1974f017d3845237bef749252acc56ac5e6c37cebdcb0271a728884fe9",
+    "assets/anim/hero61/hero61_death9_1280.webp": "5bf1c8190219c146f1b9c5e55e79c9070d33de89426ba07035d284cfdaf39b20",
+    "assets/anim/hero61/hero61_death10_1280.webp": "4a69743099c5cf24ee1cc4cb00592ebd47482c00eef3528f5ba93e87be4e72ae",
+    "assets/anim/hero61/hero61_death11_1280.webp": "941010929b7cbf29abb7097c5bdf2759879907b78f839c7d336b883920b96c34",
+    "assets/anim/hero61/hero61_death12_1280.webp": "204ad091f6b907854aa9ab56a12aa0b590737d88582ba2f281f04726bb1debfb",
     "assets/anim/hero61/hero61_death13_1280.webp": "a87ab805843f940b0f92922ebb4fc65ad00f507f82bf9e6b9d21f2b3e822b8c5",
     "assets/anim/hero61/hero61_death14_1280.webp": "bd169fdecfeab58073fa7723d1009ceb498a425074fb99197b9d952e79619986",
     "assets/img/hero-cards/card-hero61.webp": "4d6fc74db3e3ae7901457cf706721c139925c007bb4df253265bcb62147df2f4"
