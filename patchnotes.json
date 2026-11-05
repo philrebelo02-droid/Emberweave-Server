@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.3.3", "date": "5 November 2026", "title": "Morvayne stays on the ground", "items": ["Morvayne no longer floats up off the ground while he casts - his feet stay in the same spot in every animation."]},
     {"ver": "1.3.2", "date": "5 November 2026", "title": "Spells charge the ultimate", "items": ["Every hero now gains energy from casting a skill, the same as from an attack - ultimates come round faster, most of all for spellcasters.", "Morvayne no longer slides onto the field casting - he walks in with the team, then starts healing."]},
     {"ver": "1.3.1", "date": "5 November 2026", "title": "Morvayne casts without stopping", "items": ["Morvayne stands one head lower on the battlefield.", "Morvayne casts King's Mercy and Shelter of the Crown non-stop instead of waiting for an ally to be hurt.", "Morvayne no longer slides across the ground while casting - he finishes the cast, then walks."]},
     {"ver": "1.3.0", "date": "5 November 2026", "title": "Morvayne holds his ground", "items": ["Morvayne no longer slides when he is hit or sinks into the ground when he dies - he stays planted in every animation.", "Morvayne's card uses the close-up portrait.", "Cleaner shield dome on Morvayne's ultimate over bright backgrounds."]},

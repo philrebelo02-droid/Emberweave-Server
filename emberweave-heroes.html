@@ -16376,7 +16376,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            whole body on top of it, which is the wobble. Animated attackers now move only as their
            clip moves — unless the clip is authored with an explicit `lunge`, handled above. */
         else if(u.attackAnim>0&&u.target&&!(u.anim&&u.anim.attack)){const k=u.attackAnim/.18;g.position.x+=(Math.sign(wx(u.target.x)-wx(u.x))||0)*.28*k;g.position.z+=(Math.sign(wz(u.target.y)-wz(u.y))||0)*.28*k;} }
-      spr.position.y=.05+bob+(u.castAnim>0?.4*(u.castAnim/.5):0)+((u._abilAnim==='drop'&&u.anim&&u.anim.drop&&u.anim.drop.ownFall)?0:(u._fallH||0))+liftH(u);   /* v1126: Hollow's entrance clip draws the fall out of the portal itself - the 0.5 s sprite lift (render only) would drop him twice */
+      spr.position.y=.05+bob+((u.castAnim>0&&u.key!==HERO61.KEY)?.4*(u.castAnim/.5):0)+((u._abilAnim==='drop'&&u.anim&&u.anim.drop&&u.anim.drop.ownFall)?0:(u._fallH||0))+liftH(u);   /* v1126: Hollow's entrance clip draws the fall out of the portal itself - the 0.5 s sprite lift (render only) would drop him twice */
       /* v276: the ability tell for a hero whose green/blue/ult art does not exist yet — a warm flare
          over the cast, so the attack clip standing in for the ability does not read as an ordinary
          swing. Heroes WITH real ability art never take this path. */
@@ -16827,7 +16827,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // flyers hover — a slow float layered over the bob; grounded monsters stay planted
         const hover=u.t.fly?(Math.sin(u.bob*0.8+1.3)*0.12+0.16):0;
         spr.position.x=Math.sin(u.bob*0.45+u.r)*0.012;   // gentle idle sway
-        spr.position.y=.05+bob+hover+(u.castAnim>0?.4*(u.castAnim/.5):0)+liftH(u);
+        spr.position.y=.05+bob+hover+((u.castAnim>0&&u.key!==HERO61.KEY)?.4*(u.castAnim/.5):0)+liftH(u);   /* v1284 (Phil 5 Nov: "hes literally not anchored"): measured in the live build (CPU render) - his sprite rose 1.18 (Green) / 2.03 (Blue) / 0.99 (ult) above the ground: this cast hop scales with castAnim, which hero61Cast sets to his whole 1.5-2.5 s cast. He has no hop; his feet stay on the ground in every clip. */
         spr.scale.set(fsign*u.sprH*u.sprA*sx, u.sprH*sy, 1);
       }
       if(u.ring)u.ring.material.opacity=.85;
@@ -31966,7 +31966,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793911033211';
+const BUILD_ID = '1793914937750';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
