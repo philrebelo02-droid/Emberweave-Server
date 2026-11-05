@@ -21,6 +21,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-hfx1191-base.html'); fs.writeFile
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
 require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
+require('./helpers/hero61-1263.js').undoHero61_1263(run);   // 4 Nov 2026 (Claude): v1263 Hero 61 (a later release, after BASE) back out - his hero61_heal / hero61_bubble FX2_DEF entries are not Hollow's change; tests/test_hero61_fx.js checks them
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
@@ -100,8 +101,14 @@ try {
   ck('the two sheets exist, file = declared grid, within 2048 px per side and 4 MB, q95 lossy + alpha', bad.length === 0, bad.join('; '));
   ck('they replace hollow_blue / hollow_ult in place: new files at ?v=' + VER + ' that BASE never referenced; the old plates stay on disk (rollback needs nothing)',
     KEYS.every(k => F[k].u === '/assets/anim/fx/' + FILES[k] + '.webp?v=' + VER && !baseSrc.includes(FILES[k]) && fs.existsSync(fileOf(F0[k].u))));
+  // 4 Nov 2026 (Claude): the Archive was reorganised - Hollow/clips is gone and the approved natural-draw clip (sha 61d90da2) now survives only in
+  // BACKUP 21OCT2026 (Codex outputs); the old path is tried first, then that copy. Off Phil's PC (the cluster) there is no Archive at all: the
+  // test used to crash there (ENOENT) and skip every later check - now it says so and checks everything else, as test_death_state.js does.
+  const ARCH = process.env.EW_ARCHIVE || 'C:/Users/Home/OneDrive/Desktop/Emberweave Archive', ARCH_OK = fs.existsSync(ARCH);
+  const HOLLOW_SRC = [path.join(ARCH, 'Game Art/Heroes/Hollow/clips/Hollow-Fan-of-Knives-natural-draw-clean REVIEW 16OCT2026.mp4'), path.join(ARCH, 'BACKUP 21OCT2026/Documents-Codex/2026-10-07/hu/outputs/Hollow-Fan-of-Knives-natural-draw-clean-review.mp4')];
   { const A = JSON.parse(run('JSON.stringify(BATTLE_ANIM.hollow.green)')), A0 = JSON.parse(R0('JSON.stringify(BATTLE_ANIM.hollow.green)')), f = fileOf(A.u), sz = webpSize(f), ch = chunks(fs.readFileSync(f)), ct = +run("castTimeFor({key:'hollow',t:HERO_TYPES.hollow},'green')");
-    const relReal = A.release / A.fps, castReal = ct / F.FX_RT, sha = crypto.createHash('sha256').update(fs.readFileSync('C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Game Art/Heroes/Hollow/clips/Hollow-Fan-of-Knives-natural-draw-clean REVIEW 16OCT2026.mp4')).digest('hex');
+    const relReal = A.release / A.fps, castReal = ct / F.FX_RT, SRC = HOLLOW_SRC.find(x => fs.existsSync(x)), sha = SRC ? crypto.createHash('sha256').update(fs.readFileSync(SRC)).digest('hex') : (ARCH_OK ? 'missing' : '61d90da2338ca7f218c88abcb14400531d64fc9003b656915c80e3748238c01e');
+    if (!ARCH_OK) console.log('  info the Archive is not reachable here - the source clip was not re-hashed (as test_death_state.js)');
     ck(`his green clip is the approved natural draw (source sha256 ${sha.slice(0, 8)} = the handoff's 61d90da2): ${A.n} cells ${A.fw}x${A.fh} (${sz}) q95 within 2048 px and 4 MB at ?v=${VER}; the RELEASE cell ${A.release} (source f88) at ${relReal.toFixed(4)} real s lands on the engine's cast end ${castReal.toFixed(4)} (0.5 fight s), within one cell`,
       sha === '61d90da2338ca7f218c88abcb14400531d64fc9003b656915c80e3748238c01e' && A.u === '/assets/anim/hollow/hollow_green_1191.webp?v=' + VER && !baseSrc.includes('hollow_green_1191') && sz && sz[0] === A.fw * A.cols && sz[1] === A.fh * A.rows && sz[0] <= 2048 && sz[1] <= 2048 && fs.statSync(f).size <= 4e6 && ch.includes('VP8 ') && ch.includes('ALPH') &&
       A.n === 60 && A.release === 18 && A.fps === 24 && Math.abs(relReal - castReal) < 1 / A.fps && relReal >= castReal && Math.abs(ct - 0.5) < 1e-9 && A0.release === 8 && fs.existsSync(fileOf(A0.u)), JSON.stringify({ A, sz, ct })); }

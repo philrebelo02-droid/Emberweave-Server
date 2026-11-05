@@ -88,7 +88,10 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     assert(/Free prayer/.test(await page.locator('[data-tp2-tier="free"]').innerText())&&await page.locator('[data-tp2-tier="bonus"]').count()===0&&await page.locator('[data-tp2-tier="free"]').isEnabled(),'v1101: a banked free prayer stacks on the one Free prayer row (no separate Bonus row)');
     for(const vp of [{width:844,height:390},{width:390,height:844},{width:320,height:700}]){
       await page.setViewportSize(vp); await page.evaluate(()=>renderTemple()); await page.waitForTimeout(100);
-      const box=await page.evaluate(()=>{const s=document.getElementById('tp2Stage').getBoundingClientRect();return {w:s.width,h:s.height,r:s.right,b:s.bottom,vw:innerWidth,vh:innerHeight};});
+      // 4 Nov 2026 (Claude): since 19 Oct (ba4f9c95, assets/ui/fold-viewport.js) a tall portrait screen turns the whole game 90 degrees (body.ew-rotated), so the
+      // stage is measured in game space (ewGameRect / ewGameView, the page's own adapters) - in raw screen pixels a correct rotated 16:9 stage reads 9:16.
+      const box=await page.evaluate(()=>{const s=document.getElementById('tp2Stage').ewGameRect(),v=ewGameView();return {w:s.width,h:s.height,r:s.right,b:s.bottom,vw:v.width,vh:v.height,rot:document.body.classList.contains('ew-rotated')};});
+      assert.strictEqual(box.rot,vp.width/vp.height<.8,'portrait turns the game, landscape does not '+JSON.stringify(vp));
       assert(Math.abs(box.w/box.h-16/9)<0.02&&box.r<=box.vw+1&&box.b<=box.vh+1,'the 16:9 stage fits '+JSON.stringify(vp)+' '+JSON.stringify(box));
     }
     if(process.env.TEMPLE_SCREENSHOT_PATH)await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH});

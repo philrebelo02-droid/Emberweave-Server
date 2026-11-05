@@ -89,7 +89,11 @@ try {
     probs.length === 0 && nP > 50 && nH > 5, probs.slice(0, 6).join('; '));
 
   // ------------------------------------------------------------------ 2. TRIM CORRECTNESS
-  const V = JSON.parse(cp.execFileSync(PY, ['-I', path.join(ROOT, 'tools/condense_verify.py'), ROOT, '--regen', '8', '--q95', path.join(__dirname, 'fixtures/q95_1158.json')], { maxBuffer: 16 << 20 }).toString());
+  // 4 Nov 2026 (Claude): v1218 gave Grosk's Gravemaw Pull a new plate, so the v1141 tier table's old grosk_green.webp (drawn into the seeded --regen
+  // sample) is declared nowhere on the live page; the verifier now reads the clip tables of THIS run (the later re-art undone, as section 1 uses).
+  const CLIPS = path.join(os.tmpdir(), 'condense-clips-' + process.pid + '.json'); process.on('exit', () => { try { fs.unlinkSync(CLIPS); } catch (e) {} });
+  fs.writeFileSync(CLIPS, run(`JSON.stringify({clips:[].concat(...Object.keys(BATTLE_ANIM).map(k=>Object.keys(BATTLE_ANIM[k]).filter(st=>{ const c=BATTLE_ANIM[k][st]; return c&&c.u&&c.fw; }).map(st=>Object.assign({key:k,st},JSON.parse(JSON.stringify(BATTLE_ANIM[k][st])))))), fx2:Object.keys(FX2_DEF).map(n=>Object.assign({key:n,kind:'fx2'},JSON.parse(JSON.stringify(FX2_DEF[n]))))})`));
+  const V = JSON.parse(cp.execFileSync(PY, ['-I', path.join(ROOT, 'tools/condense_verify.py'), ROOT, '--regen', '8', '--q95', path.join(__dirname, 'fixtures/q95_1158.json'), '--clips', CLIPS], { maxBuffer: 16 << 20 }).toString());
   ck('every cell of every tier file is pixel-identical to the untrimmed cell at its tier (' + V.checked + ' files)', V.nbad === 0 && V.checked === nP + nH, JSON.stringify(V.bad.slice(0, 3)));
   ck('trimmed HIGH files match their original file cell for cell (' + V.high_src_checked + ' sheets)', V.high_src_checked === nH && V.high_src_bad.length === 0, V.high_src_bad.join(','));
   ck('8 phone sheets re-resampled from the original reproduce the manifest exactly', V.regen.length === 8 && V.regen_bad.length === 0, V.regen_bad.join(','));
@@ -100,7 +104,9 @@ try {
   const BASEF = path.join(ROOT, '.test-condense-base.html'); fs.writeFileSync(BASEF, baseHtml); process.on('exit', () => { try { fs.unlinkSync(BASEF); } catch (e) {} });
   /* v1157: the v1155 animation slim (tests/fixtures/anim_slim_1155.json, checked entry by entry in tests/test_anim_slim_1155.js) is the only
      clip-data change since BASE - with its entries put back, every table must be BASE byte for byte; the condense itself changes none */
-  const runU = load(Q95.page(HTML)); require('./helpers/anim-slim-1155.js').undoSlim1155(runU);
+  // 4 Nov 2026 (Claude): two later releases are not clip-data changes of the condense: v1258 writes FX distances x UNIT_SIZE (toxcone thick = 2.8*METER)
+  // and v1263 added Hero 61's own entries - both undone here (helpers/global-1254-1260.js, helpers/hero61-1263.js) so every other entry is still BASE.
+  const runU = load(Q95.page(require('./helpers/global-1254-1260.js').page(HTML))); require('./helpers/anim-slim-1155.js').undoSlim1155(runU); require('./helpers/hero61-1263.js').undoHero61_1263(runU);
   const a = runU(DUMP), b = load(BASEF)(DUMP);
   ck('every BATTLE_ANIM / FX2_DEF entry (cells, fps, anchors, ax, contact/relFrac) is identical to BASE ' + BASE_SHA + ' once the v1155 slim entries are put back', a === b && a.length > 100000, a.length + ' vs ' + b.length);
 

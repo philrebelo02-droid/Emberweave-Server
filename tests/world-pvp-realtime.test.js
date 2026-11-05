@@ -2,7 +2,10 @@
 // Candidate real-time world-PvP engine contract; no live route is changed here.
 const assert=require('node:assert/strict');
 const path=require('node:path');
-const host=require('../server/sim-host.js').load(path.join(__dirname,'..','emberweave-heroes.html'));
+// 4 Nov 2026 (Claude): v1258 (UNIT_SIZE 1.15, bisected) turned this seed-17 fight into an enemy win in which Aureth falls, and the digest drops a fallen
+// enemy row - so the "only the LOSING side may be missing rows" contract no longer met the fight it was written for. The fight runs on the page with
+// the 2 Nov global changes undone (tests/helpers/global-1254-1260.js, as the other pre-v1258 fight checks; test_size_1258 checks the resize).
+const host=require('../server/sim-host.js').load(require('./helpers/global-1254-1260.js').page(path.join(__dirname,'..','emberweave-heroes.html')));
 const a=host.snapFromSpecs(['vael','sylthaine','vireo'].map(key=>({key,level:30,stars:1,pips:0,rank:0})));
 const d=host.snapFromSpecs(['grosk','aureth','umbris'].map(key=>({key,level:30,stars:1,pips:0,rank:0})));
 const wound=snaps=>snaps.map(s=>{

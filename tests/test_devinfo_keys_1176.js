@@ -95,7 +95,9 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     if (SHOTS) { await pg.screenshot({ path: path.join(SHOTS, 'devinfo-popup-844x390.png') });
       await pg.evaluate(() => { const b = document.querySelector('.pai-body'); if (b) b.scrollTop = b.scrollHeight; }); await delay(300); await pg.screenshot({ path: path.join(SHOTS, 'devinfo-popup-844x390-scrolled.png') });
       await pg.setViewportSize({ width: 1600, height: 900 }); await delay(700); try { await pg.evaluate(() => muteBtnPlace(true)); } catch (e) {} await delay(300); await pg.screenshot({ path: path.join(SHOTS, 'devinfo-popup-desktop.png') });
-      await pg.setViewportSize({ width: 844, height: 390 }); await delay(500); }
+      // 4 Nov 2026 (Claude): v1243 (fold-viewport.js) keeps the full game size for 4 s when the full-screen app's window shrinks (system bars on a
+      // swipe) - the game is full screen here after the first tap, so the 1600x900 -> 844x390 step is held 4 s; wait it out so section B runs on the phone size.
+      await pg.setViewportSize({ width: 844, height: 390 }); await delay(4600); }
 
     /* ===== B) keyboard ===== */
     const S = () => pg.evaluate(() => ({ st: state, pop: (typeof _popout !== 'undefined' && _popout) || '', prof: !!document.getElementById('_gcNo'), pa: !!document.getElementById('paX'), hist: history.length, url: location.href }));

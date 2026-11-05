@@ -167,11 +167,14 @@ try {
   /* v1160: Veyr and Deepcleft got their first crit clips, so by the v532 crit-clip rule their crit is rolled at the wind-up (same chance, earlier in
      the RNG stream); the comparison file's Veyr / Deepcleft get a crit clip with their OLD attack timing (render data only, tests/helpers/anim-1160.js) */
   require('./helpers/anim-1160.js').critRule1160(runB5);
+  // 4 Nov 2026 (Claude): since v1162 (31e692b9, bisected) Korvux has a crit clip, so by the same v532 rule his crit rolls at the wind-up and seed 31
+  // (Korvux) moved; the comparison files get his crit clip with his OLD attack timing (render data only, tests/helpers/anim-korvux-1162.js), as test_combat_sfx_1138 does.
+  require('./helpers/anim-korvux-1162.js').critRuleKorvux1162(runB5);
   const res = FIGHTS.map(F => ({ F, n: fight(runN, ...F), b: fight(runB5, ...F) }));
   const same = res.filter(x => x.n.h === x.b.h && x.n.n > 100);
   ck('5 whole fights without Aureth are tick-identical to v1149 + the v1150 summon-level fix (hp/x/y/alive/energy/atkCd + RNG draws, ' + res.reduce((s, x) => s + x.n.n, 0) + ' ticks)',
     same.length === FIGHTS.length, res.filter(x => !same.includes(x)).map(x => x.F[2] + ':' + x.n.h + '/' + x.b.h).join(' '));
-  { const runBR = load(OLD); runBR(HASH); require('./helpers/anim-1160.js').critRule1160(runBR);   // plain v1149 (+ the same v1160 crit-clip rule)
+  { const runBR = load(OLD); runBR(HASH); require('./helpers/anim-1160.js').critRule1160(runBR); require('./helpers/anim-korvux-1162.js').critRuleKorvux1162(runBR);   // plain v1149 (+ the same v1160 / v1162 crit-clip rules)
     const moved = res.filter(x => x.b.h !== fight(runBR, ...x.F).h).map(x => x.F[2]);
     ck('5 CONTROL: plain v1149 differs in exactly the summoner fights the summon-level fix moves (seeds ' + moved.join(',') + ')', moved.join() === '5,29', moved.join()); }
 

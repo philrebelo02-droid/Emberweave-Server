@@ -171,7 +171,9 @@ else {
         if (src) { const st = src.stop.bind(src), rec = window.__plays[window.__plays.length - 1]; src.stop = function () { rec.stopped = true; try { st(); } catch (e) {} }; } return src; };
       SFX.log = []; });
     const open = hk => pg.evaluate(hk => { G.unlocked[hk] = true; detailHero = hk; heroTab = 'skills'; skClipIdx = 0; popoutScreen('heroDetail'); renderHeroDetail(); return !!document.getElementById('skStage'); }, hk);
-    const tapRow = async sl => { const el = await pg.$(`.skrow[data-skill="${sl}"]`); await el.scrollIntoViewIfNeeded(); await delay(150); const b = await el.boundingBox(); await pg.touchscreen.tap(b.x + 30, b.y + b.height / 2); };
+    // 4 Nov 2026 (Claude): the hero panel's "Heroes" back button now floats over the top of the scrolled list, so a row scrolled only "into view" (Attack at y -14)
+    // put the tap on the back button and left the panel; the row is scrolled to the middle of its list first (the tap still lands on the row itself).
+    const tapRow = async sl => { const el = await pg.$(`.skrow[data-skill="${sl}"]`); await el.evaluate(e => e.scrollIntoView({ block: 'center' })); await el.scrollIntoViewIfNeeded(); await delay(150); const b = await el.boundingBox(); await pg.touchscreen.tap(b.x + 30, b.y + b.height / 2); };
     // the first tap anywhere unlocks audio (a phone's rule); opening the tab must stay silent
     await pg.touchscreen.tap(420, 380); await delay(300);
     ck('5. the Skills tab opens with a stage', await open('korvux')); await delay(1500);

@@ -28,6 +28,10 @@ const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
   const outs=[]; for(let i=0;i<6;i++) outs.push((await call('/api/reset-verify',{name:'resetOwner',code:'000000',newPass:'newpassword1'},'10.0.0.66')).data.error||'');
   ok(/from this network/.test(outs[5]),'a 6th wrong guess from the same network is refused for that network ('+outs[5]+')');
   await call('/api/reset-request',{name:'resetOwner'},'10.0.0.9');
+  // 4 Nov 2026 (Claude): since v1184 the reset request answers at once and hashes the new code on the thread pool, so on a slow node the verify
+  // below raced the old (used-up) code: wait until the owner's new code is stored (resetLog.codes 4 and a fresh reset entry), as the earlier steps wait for theirs.
+  const fresh=()=>{ const u=disk().users[id]; return ((u.resetLog||{}).codes|0)>=4&&!!u.reset&&(u.reset.tries|0)===0; };   /* codes counted AND the new code itself stored */
+  for(let i=0;i<100&&!fresh();i++) await delay(100);
   const own=(await call('/api/reset-verify',{name:'resetOwner',code:'000000',newPass:'newpassword1'},'10.0.0.9')).data.error||'';
   ok(/Incorrect code/.test(own),'the owner\'s network still has its own guesses ('+own+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }

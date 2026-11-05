@@ -69,7 +69,10 @@ try {
 
   // ------------------------------------------------------------------ 2. the entries, the parts and the sheets
   const ALLD = J(`Object.keys(BATTLE_ANIM).filter(k=>BATTLE_ANIM[k]&&BATTLE_ANIM[k].death)`);
-  if (HEADLESS) ck('the heroes with a death state are exactly the fixture\'s ' + ALL.length + ' (the rest are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(ALL.slice().sort()));
+  // 4 Nov 2026 (Claude): v1263 added Hero 61 (Morvayne) with his own streamed ash death (14 parts, 53 cells - tests/test_hero61_art.js checks it), so the
+  // set with a death is exactly the fixture's heroes plus hero61; the 48-cell checks below still walk the fixture's heroes.
+  const DEATH_EXTRA = ['hero61'];
+  if (HEADLESS) ck('the heroes with a death state are exactly the fixture\'s ' + ALL.length + ' + v1263 ' + DEATH_EXTRA.join(',') + ' (the rest are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(ALL.concat(DEATH_EXTRA).sort()));
   const D = {}, I = {}, PT = {}; ALL.forEach(k => { D[k] = J('BATTLE_ANIM.' + k + '.death'); I[k] = J('BATTLE_ANIM.' + k + '.idle'); PT[k] = D[k].parts.map(s => Object.assign({ st: s }, J('BATTLE_ANIM.' + k + '.' + s))); });
   if (HEADLESS) {
   ck('each death is 48 cells over exactly 6.0 s (8 fps), lazy, ends as its clip does (ash -> hide, a fallen body -> hold), its own states (death, death2 ..; never hit / attack / an ability / a passive)',
@@ -136,9 +139,13 @@ try {
   const uses = [...src.matchAll(/^.*\.death\d*\b(?![_T]).*$/gm)].map(m => m[0].trim().slice(0, 70));
   ck('nothing in the fight reads a death state: every .death access is the table, deathClip, deathRelease, or the render\'s load trigger (' + uses.length + ' lines)',
     uses.every(l => /^BATTLE_ANIM\.\w+\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death/.test(l)) && uses.length === ALL.reduce((s, k) => s + PT[k].length, 0) + 3, uses.join(' | '));
-  const ub = run('String(updateBattle)');
+  // 4 Nov 2026 (Claude): since v1255 the tick body is _updateBattleCore and updateBattle only wraps it (+ the 1-1 intro tick); v1258 wrote the pull-speed
+  // default as 22*UNIT_SIZE (UNIT_SIZE is 1 on this page, helpers/global-1254-1260.js) and the names sweep reworded three comments in the body. So the core
+  // body (comments stripped on both sides) is compared with BASE updateBattle, and updateBattle must be exactly that wrapper.
+  const ub = run('String(typeof _updateBattleCore==="function"?_updateBattleCore:updateBattle)').replace(/^function _updateBattleCore\(/, 'function updateBattle(');
+  const wrapOk = run('typeof _updateBattleCore!=="function"||String(updateBattle).replace(/\\s+/g,"")==="functionupdateBattle(dt){_updateBattleCore(dt);if(CUR&&CUR._intro)introTick(dt);}"');
   ck('updateBattle matches BASE except the death mesh hand-over and Joss approved passive display hook',
-    !!R0 && (() => { const norm = x => x.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace('if(u.anim&&u.anim.passive) firePassiveClip(u,clipDur(u.anim.passive)); else firePassiveFx(u);', 'firePassiveFx(u);').replace(/   \/\* v\d{4}: a body mid death clip moves to _corpses \(display\) \*\//, '').split('\r').join(''); return norm(ub) === norm(R0('String(updateBattle)')); })() && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
+    !!R0 && wrapOk === true && (() => { const norm = x => x.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace('if(u.anim&&u.anim.passive) firePassiveClip(u,clipDur(u.anim.passive)); else firePassiveFx(u);', 'firePassiveFx(u);').replace(/   \/\* v\d{4}: a body mid death clip moves to _corpses \(display\) \*\//, '').split('\r').join('').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '').replace('(u.pullSpeed||22*UNIT_SIZE)', '(u.pullSpeed||22)'); return norm(ub) === norm(R0('String(updateBattle)')); })() && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
   ck('not a skill preview: no slot of the four ever previews a death state; none is in a load tier (loading screen / warm-up) and loadAnimSet skips lazy clips',
     J(`(()=>{ const o=[]; for(const k of ${JSON.stringify(ALL)}) for(const sl of ['attack','crit',0,1,2,3]) o.push(...skillPreviewStates(k,sl)); return o.filter(s=>/^death/.test(s)); })()`).length === 0 &&
     J(`ANIM_TIERS.every(t=>!t||!t.some(s=>/^death/.test(s)))`) && /if\(set\[st\]&&set\[st\]\.lazy\)continue;/.test(run('String(loadAnimSet)')));

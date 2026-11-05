@@ -54,6 +54,14 @@ def check(root, path, tier, e, man, poke=False):
     return None
 
 
+def load_tables(root):
+    # 4 Nov 2026 (Claude): --clips <json> takes the clip / FX tables from the caller (tests/test_condense_1141.js passes the page with the later
+    # re-art undone, e.g. v1218 replaced FX2_DEF.grosk_green, whose v1141 tier files are still listed); default: the page itself via dump_clips.js
+    if '--clips' in sys.argv:
+        return json.load(open(sys.argv[sys.argv.index('--clips') + 1], encoding='utf8'))
+    return json.loads(__import__('subprocess').run(['node', os.path.join(here, 'dump_clips.js'), root, '-'], capture_output=True, text=True, check=True).stdout)
+
+
 def main():
     global Q95
     if '--q95' in sys.argv:
@@ -74,7 +82,7 @@ def main():
     for p, e in sorted(tiers.items()):
         if 'h' not in e: continue
         if tables is None:
-            tables = json.loads(__import__('subprocess').run(['node', os.path.join(here, 'dump_clips.js'), root, '-'], capture_output=True, text=True, check=True).stdout)
+            tables = load_tables(root)
             decl = {}
             for c in tables['clips'] + tables['fx2']:
                 if c.get('u'): decl.setdefault(c['u'].split('?')[0], c)
@@ -83,7 +91,7 @@ def main():
         cells, cw, ch = C.cells_of(a, cols, rows, min(c['n'], cols * rows), c['fw'], c['fh'])
         if [C.cell_hash(x) for x in cells] != man[p]['h']['cells']: src_bad.append(p)
     if regen:
-        tables = json.loads(__import__('subprocess').run(['node', os.path.join(here, 'dump_clips.js'), root, '-'], capture_output=True, text=True, check=True).stdout)
+        tables = load_tables(root)
         decl = {}
         for c in tables['clips'] + tables['fx2']:
             if c.get('u'): decl.setdefault(c['u'].split('?')[0], c)
