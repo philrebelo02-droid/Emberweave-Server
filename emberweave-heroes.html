@@ -18013,6 +18013,8 @@ async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=
    every quality IS a slot (Grey = Weapon … Orange = Relic), and an item
    needs two fresh previous-tier items + its same-tier sub-component (fragments → sub). */
 const GEAR_LOADOUTS=Object.freeze(Object.fromEntries(Object.entries(HERO_PATHS).map(([id,p])=>[id,p.equipment])));
+/* smoke 4 Nov: the loadout title showed the path id (tank_attack_front); show its label, class + row words translated */
+function gearPathLabel(id){ const p=HERO_PATHS[id]; if(!p||!p.label) return id; const cls={Tank:1,Bruiser:1,Assassin:1,Mage:1,Support:1,Marksman:1}; return p.label.split(' / ').map(w=>cls[w]?ewT('roster.class_'+w.toLowerCase()):heroProfWord(w)).join(' / '); }
 function gearLoadoutFor(key){ const p=HERO_PROFILES[key]; if(!p||!GEAR_LOADOUTS[p.equipmentPath]) throw new Error('Missing canonical equipment path: '+key); return p.equipmentPath; }
 function gearFreshCount(st,quality){ let n=0; for(const id in st.items){ const it=st.items[id], d=forgeDef(it.d); if(d&&d.quality===quality&&!it.bound&&!forgeEquippedBy(id)) n++; } return n; }
 /* can this item be crafted RIGHT NOW from what is in stock (direct ingredients only)? */
@@ -18190,7 +18192,7 @@ function heroGearTabHTML(key){
         <div style="font-size:10px;color:#8fe3ff;margin-top:2px">${uiIcon('sparkle-new')} ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===iid?' <b style="color:#5ee89b">· '+t('gear.active_upper')+'</b>':''}</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:4px"><span style="color:#ffd45e">${t('gear.temper_of',{n:it.temper||0,m:T.max})}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">${t('gear.raise_in_forge')}</span></div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'{i:u:sparkle-new} '+t('gear.active_set',{name:r.active}))">${t('gear.set_active')}</button>`}<span style="font-size:9px;color:#8b98a9;align-self:center">${uiIcon('link')} ${t('gear.bound_to',{hero:escapeHTML((HERO_TYPES[key]||{}).name||key)})}</span></div></div></div></div>`; }
-  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${t('gear.loadout_built',{role:escapeHTML(role),n:'<b style="color:#e6edf3">'+nEq+'/9</b>'})}</span><span style="font-size:11px;color:#8b98a9">${t('gear.resonance')} <b style="color:#ffd45e">${res.rank||0}</b> · ${uiIcon('res-forge-dust')} ${t('gear.dust')} <b style="color:#e6edf3">${st.dust||0}</b></span></div>
+  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${t('gear.loadout_built',{role:escapeHTML(gearPathLabel(role)),n:'<b style="color:#e6edf3">'+nEq+'/9</b>'})}</span><span style="font-size:11px;color:#8b98a9">${t('gear.resonance')} <b style="color:#ffd45e">${res.rank||0}</b> · ${uiIcon('res-forge-dust')} ${t('gear.dust')} <b style="color:#e6edf3">${st.dust||0}</b></span></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0">${cells}</div>
     ${detail}
     `;   /* v767 - the how-to paragraph is gone (Phil: "these little notes all around are useless") */
@@ -28029,7 +28031,7 @@ function renderHeroDetail(){
         <span style="width:10px;height:10px;border-radius:50%;background:#c3ccd8;flex:none"></span>
         <div style="flex:1;min-width:0"><div style="font-size:13px"><b>${nm}</b> <span style="font-size:9px;color:#6ea8ff">${uiIcon('play')} ${ewT('hero.clip')}</span></div>
           <div style="font-size:11px;color:#c3ccd8;font-weight:600">${line}</div></div></div>`).join('');
-    const rows=swingRows+skills.map(s=>{ const on=skillUnlocked(key,s.idx), lv=skillLevel(key,s.idx), atMax=lv>=SKILL_MAX, cost=skillUpCost(s.idx,lv), can=on&&!atMax&&(G.gold||0)>=cost;
+    const rows=swingRows+skills.map(s=>{ const on=skillUnlocked(key,s.idx), lv=skillLevel(key,s.idx), atMax=lv>=SKILL_MAX, cost=skillUpCost(s.idx,lv), can=on&&!atMax&&lv<heroLevel(key)&&(G.gold||0)>=cost;   /* smoke 4 Nov: a skill at its hero's level can't be raised (skillUpgrade refuses) - show the button disabled, not a dead tap */
       const tip=(skillDesc(key,s.idx)+(on?'':' ('+ewT('hero.unlocks_at_quality',{q:s.tier})+')')).replace(/"/g,'&quot;'); const hasClip=pv(s.idx);
       return `<div class="skrow${hasClip&&s.idx===skClipIdx?' sksel':''}" data-skill="${s.idx}" title="${tip}" style="display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #1c2434;opacity:${on?1:.5};cursor:${hasClip?'pointer':'help'}">
         <span style="width:10px;height:10px;border-radius:50%;background:${s.col};flex:none"></span>
