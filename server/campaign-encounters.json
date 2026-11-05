@@ -20176,78 +20176,78 @@
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "blackquill",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "blackquill",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         }
       ],
       [
         {
           "key": "crucible acolyte",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "crucible acolyte",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         },
         {
           "key": "blackquill",
           "lvl": 91,
-          "hpMul": 106.4148,
-          "dmgMul": 43.0435
+          "hpMul": 90.4526,
+          "dmgMul": 36.587
         }
       ]
     ],
@@ -20256,7 +20256,7 @@
     "recommendedQuality": "Gold +3",
     "qualityMinHeroLevel": 86,
     "bossLevelGate": 0,
-    "difficultyTune": 8.761,
+    "difficultyTune": 7.4468,
     "baselineHp": 397.9381,
     "baselineDmg": 107.6187,
     "portalMode": "normal",
@@ -20278,8 +20278,7 @@
         "scale": 0.85,
         "dmgScale": 0.8286,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
-      }
-    ]
+      }, {"v": "v1276", "date": "2026-11-04", "scale": 0.85, "why": "Phil 4 Nov: \"go ahead with normal 14-7\". 31 Oct-4 Nov sims: Normal 14-7 held a median 23 game days (max 73, 5 of 33 never cleared); Elite 14-7 1 of 22 cleared (level-86 whales held). One x0.85 step; Elite (1.5x) and Veteran (2x) follow."}]
   },
   {
     "id": "14-8",

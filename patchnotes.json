@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.2.6", "date": "4 November 2026", "title": "Stage 14-7 eased", "items": ["Campaign stage 14-7 is a little easier on Normal, Elite and Veteran: enemy health and damage lowered by 15%."]},
     {"ver": "1.2.5", "date": "4 November 2026", "title": "Facebook sign in", "items": ["Sign in with Facebook is now available next to Emberweave and Google sign in.", "Settings > Account: link Google and Facebook side by side."]},
     {"ver": "1.2.4", "date": "4 November 2026", "title": "Facebook sign in (coming soon)", "items": ["Facebook sign in and account linking are built and will switch on once the Facebook app is approved, next to Emberweave and Google sign in."]},
     {"ver": "1.2.3", "date": "4 November 2026", "title": "The whole game in your language", "items": ["Every screen, tab, popup and battle panel now follows your language setting, not only the first screens.", "Skill descriptions, passives, ultimates, hero lore and the bestiary are translated into all 15 languages.", "Server messages (errors and warnings) now appear in your language. Hero, skill, item and place names stay in English."]},
