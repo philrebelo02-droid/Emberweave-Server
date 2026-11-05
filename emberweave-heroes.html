@@ -3069,7 +3069,7 @@ const HERO_TYPES = {
    sorrel:{name:'Sorrel',emoji:'🃏',role:'Assassin',swing:1.9,stars:2,hp:230,dmg:40,apow:0,range:190,speed:77,atkSpeed:0.95,color:0x6a5a8a,abilityName:'Grand Reveal',ability:'volley',locked:true,start:2},
    yenna:{name:'Yenna Cacklefang',emoji:'🐺',role:'Marksman',swing:1.8,stars:2,hp:245,dmg:36,range:215,speed:75,atkSpeed:1.0,color:0x8a7a4a,abilityName:'Crescent Stampede',ability:'multiShot',locked:true,start:2},
    kharos:{name:'Kharos Bloomknife',emoji:'🌸',role:'Assassin',swing:1.8,autoAlt:['attack','attackB'],stars:3,hp:275,dmg:46,range:28,speed:94,atkSpeed:1.25,color:0xe8a0c0,abilityName:'Orchid Execution',ability:'execute',locked:true,start:2},
-   zahri:{name:'Zahri Sunhorn',emoji:'☀️',role:'Bruiser',swing:1.8,stars:3,hp:320,dmg:44,range:30,speed:74,atkSpeed:1.05,color:0xe0a83a,abilityName:'Noonday Stampede',ability:'stampede',reach:198,locked:true,start:2,source:'arena'}   /* v1287 (Phil 5 Nov): Arena only, like Grosk. v534 reach 99 px = 3.5 m; v536 (Phil, in game: "twice the range she currently has") = 198 px = 7 m. METER is defined further down */,
+   zahri:{name:'Zahri Sunhorn',emoji:'☀️',role:'Bruiser',swing:1.8,stars:3,hp:320,dmg:44,range:30,speed:74,atkSpeed:1.05,color:0xe0a83a,abilityName:'Noonday Stampede',ability:'stampede',reach:198,locked:true,start:2,source:'arena',signinSlot:true}   /* v1287 (Phil 5 Nov): Arena only, like Grosk. v534 reach 99 px = 3.5 m; v536 (Phil, in game: "twice the range she currently has") = 198 px = 7 m. METER is defined further down */,
    vaelora:{name:'Vaelora Velvetclaw',emoji:'🐱',role:'Mage',swing:1.8,stars:3,hp:230,dmg:16,apow:32,range:195,speed:70,atkSpeed:1.0,color:0xd8d0e0,abilityName:'Winter Plumage',ability:'blizzard',locked:true,start:2},
    seyla:{name:'Seyla Silkcoil',emoji:'🐍',role:'Assassin',swing:1.8,stars:2,hp:255,dmg:39,range:28,speed:89,atkSpeed:1.15,color:0x3f8f5c,abilityName:"Serpent's Last Dance",ability:'serpentdance',locked:true,start:2},
    nox:{name:'Nox Quillfinger',emoji:'🦊',role:'Assassin',swing:1.8,stars:2,hp:245,dmg:40,range:282,rangeHold:true,speed:92,atkSpeed:1.2,color:0x6b3f8f,abilityName:'Open Every Door',ability:'openeverydoor',locked:true,start:2},   /* v1169 (Phil 16 Oct: "hes midrow magic assasin ranged with 10 meter attack range"): range 26 (melee) -> 282 = 10 m x METER 28.2 (the game's field units per metre); rangeHold = he stands at his own 10 m range, not the 13 m mid-row ranged hold (which would widen his range to 13.6 m). Class / row / damage in hero-profiles.js; no damage numbers or multipliers changed */
@@ -28639,8 +28639,9 @@ function signinMonthKey(d){ return d.getFullYear()+'-'+(d.getMonth()+1); }
 function signinEnsure(){ const d=signinNow(), mk=signinMonthKey(d);
   if(G.signinMonth!==mk){ G.signinMonth=mk; G.signinClaimed=[]; }        // new month → fresh calendar
   if(!Array.isArray(G.signinClaimed)) G.signinClaimed=[]; }
-function monthlyHeroKey(){ const d=signinNow(); const pool=HERO_KEYS.filter(k=>!HERO_TYPES[k].myth && !HERO_TYPES[k].source);   // never a mythical or an exclusive-source hero (e.g. Grosk = arena only)
-  return pool[(d.getFullYear()*12+d.getMonth())%pool.length]||HERO_KEYS[0]; }
+function monthlyHeroKey(){ const d=signinNow(); const pool=HERO_KEYS.filter(k=>!HERO_TYPES[k].myth && (!HERO_TYPES[k].source || HERO_TYPES[k].signinSlot));   // never a mythical or an exclusive-source hero (e.g. Grosk = arena only)
+  let i=(d.getFullYear()*12+d.getMonth())%pool.length; while(HERO_TYPES[pool[i]]&&HERO_TYPES[pool[i]].source==='arena') i=(i+1)%pool.length;   /* v1287: Zahri (Arena only since 5 Nov) keeps his slot, his month goes to the next hero - same as the server */
+  return pool[i]||HERO_KEYS[0]; }
 function isLastSaturday(y,m,day){ return day+7 > new Date(y,m+1,0).getDate(); }
 /* 30 Aug — THE DAILY SIGN-IN PAID A SIGNED-IN PLAYER NOTHING, AND BURNED THE DAY ANYWAY.
    Every reward here was a client-mirror write with no server transaction, so ledgerSync erased it

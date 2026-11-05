@@ -21,7 +21,7 @@ function calendar(now){ const p={}; for(const x of new Intl.DateTimeFormat('en-U
   const srv=fs.readFileSync(path.join(root,srvFile),'utf8'), html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
   const HB=Object.keys(require(path.join(root,'server/sim.js')).HERO_BASE);
   const rows=[...html.matchAll(/^\s*([a-z_]+):\s*\{name:["']([^"']*)["'][^\n]*/gm)].filter(r=>HB.includes(r[1]));
-  const clientPool=rows.filter(r=>!/myth:true/.test(r[0])&&!/source:'/.test(r[0])).map(r=>r[1]);
+  const clientPool=rows.filter(r=>!/myth:true/.test(r[0])&&(!/source:'/.test(r[0])||/signinSlot:true/.test(r[0]))).map(r=>r[1]);   // v1287: Zahri (Arena only) keeps his rotation slot
   let pool=clientPool;
   if(!process.env.AUD_SERVER){ const m=srv.match(/const SIGNIN_HERO_POOL=\[([^\]]*)\]/); ok(m,'server defines SIGNIN_HERO_POOL');
     pool=m[1].match(/'([a-z_]+)'/g).map(s=>s.slice(1,-1));

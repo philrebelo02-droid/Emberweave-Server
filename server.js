@@ -1890,7 +1890,7 @@ const SIGNIN_DAILY=[{gold:300},{stamina:60},{gems:20},{gold:400},{gold:600},{gem
 function signinCalendarDay(now){ const t=now-9*3600000, g={}; for(const pt of _etFmt.formatToParts(new Date(t))) g[pt.type]=pt.value;
   const y=+g.year, m0=+g.month-1, day=+g.day, dow=new Date(Date.UTC(y,m0,day)).getUTCDay(), dim=new Date(Date.UTC(y,m0+1,0)).getUTCDate();
   return {y,m0,day,dow,dim}; }
-function signinReward(c){ if(c.dow===6){ const hero=SIGNIN_HERO_POOL[(c.y*12+c.m0)%SIGNIN_HERO_POOL.length]; return {frag:(c.day+7>c.dim)?15:5, hero}; }
+function signinReward(c){ if(c.dow===6){ let _si=(c.y*12+c.m0)%SIGNIN_HERO_POOL.length; while(ARENA_ONLY_HEROES.includes(SIGNIN_HERO_POOL[_si])) _si=(_si+1)%SIGNIN_HERO_POOL.length; const hero=SIGNIN_HERO_POOL[_si];   /* v1287 (Phil 5 Nov: "sign in rotation should never contain a mythic or shop hero"): mythicals are not in the list; an Arena-only hero keeps its slot (no other month moves) but is never paid - its month goes to the next hero */ return {frag:(c.day+7>c.dim)?15:5, hero}; }
   return SIGNIN_DAILY[(c.day-1)%SIGNIN_DAILY.length]; }
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
