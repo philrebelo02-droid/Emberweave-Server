@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.3.0", "date": "5 November 2026", "title": "Morvayne holds his ground", "items": ["Morvayne no longer slides when he is hit or sinks into the ground when he dies - he stays planted in every animation.", "Morvayne's card uses the close-up portrait.", "Cleaner shield dome on Morvayne's ultimate over bright backgrounds."]},
     {"ver": "1.2.9", "date": "5 November 2026", "title": "Morvayne's new look", "items": ["Morvayne has new art: card, idle, walk, attack, both spells, his ultimate and his death.", "Blade in the Dark: if you already own Vex, the quest now pays 7 Vex fragments instead of nothing."]},
     {"ver": "1.2.8", "date": "5 November 2026", "title": "Quests, equipment and Mythical heroes", "items": ["Quests you finish during a session can be claimed straight away - no reload needed.", "Equipment shows fragments you just won in the Vault without a reload.", "Mythical heroes now say where they really come from: the Mythical Pool, which opens at EGP 11."]},
     {"ver": "1.2.7", "date": "4 November 2026", "title": "Hero screen fixes", "items": ["Equipment now names each hero's loadout in plain words (for example Tank / Attack / Front).", "A skill's upgrade button is greyed out once the skill matches its hero's level - level the hero to raise it further."]},

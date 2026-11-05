@@ -29,12 +29,12 @@
         36
       ],
       "figH": 235,
-      "feet": 259,
-      "cx": 185.5,
+      "feet": 258.2,
+      "cx": 184.7,
       "fps": 16.941176470588236,
       "stride": 0.08470588235294119,
       "flip": false,
-      "top": 24
+      "top": 23.2
     },
     "attack": {
       "u": "/assets/anim/hero61/hero61_attack_1280.webp?v=1280",
@@ -44,26 +44,26 @@
       "cols": 8,
       "rows": 6,
       "figH": 177,
-      "feet": 266,
-      "cx": 144.8,
+      "feet": 265.9,
+      "cx": 143.8,
       "fps": 24,
       "flip": false,
-      "top": 89,
+      "top": 88.9,
       "contact": 24
     },
     "hit": {
-      "u": "/assets/anim/hero61/hero61_hit_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_hit_1280.webp?v=1281",
       "n": 15,
       "fw": 273,
       "fh": 267,
       "cols": 3,
       "rows": 5,
       "figH": 232,
-      "feet": 252,
-      "cx": 167.4,
+      "feet": 251.1,
+      "cx": 166.2,
       "fps": 25,
       "flip": false,
-      "top": 20
+      "top": 19.1
     },
     "green": {
       "u": "/assets/anim/hero61/hero61_green_1280.webp?v=1280",
@@ -73,26 +73,26 @@
       "cols": 9,
       "rows": 9,
       "figH": 161,
-      "feet": 216,
-      "cx": 120.7,
+      "feet": 215.8,
+      "cx": 120.2,
       "fps": 24,
       "flip": false,
-      "top": 55,
+      "top": 54.8,
       "contact": 53
     },
     "ult": {
-      "u": "/assets/anim/hero61/hero61_ult_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_ult_1280.webp?v=1281",
       "n": 72,
       "fw": 227,
       "fh": 235,
       "cols": 9,
       "rows": 8,
       "figH": 139,
-      "feet": 220,
-      "cx": 121.6,
+      "feet": 219.7,
+      "cx": 121,
       "fps": 24,
       "flip": false,
-      "top": 81,
+      "top": 80.7,
       "contact": 42
     },
     "death": {
@@ -104,7 +104,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -138,7 +138,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -146,7 +146,7 @@
       "lazy": true
     },
     "death3": {
-      "u": "/assets/anim/hero61/hero61_death3_1280.webp?v=1280",
+      "u": "/assets/anim/hero61/hero61_death3_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -154,7 +154,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -162,7 +162,7 @@
       "lazy": true
     },
     "death4": {
-      "u": "/assets/anim/hero61/hero61_death4_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death4_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -170,7 +170,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -178,7 +178,7 @@
       "lazy": true
     },
     "death5": {
-      "u": "/assets/anim/hero61/hero61_death5_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death5_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -186,7 +186,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -194,7 +194,7 @@
       "lazy": true
     },
     "death6": {
-      "u": "/assets/anim/hero61/hero61_death6_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death6_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -202,7 +202,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -210,7 +210,7 @@
       "lazy": true
     },
     "death7": {
-      "u": "/assets/anim/hero61/hero61_death7_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death7_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -218,7 +218,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -226,7 +226,7 @@
       "lazy": true
     },
     "death8": {
-      "u": "/assets/anim/hero61/hero61_death8_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death8_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -234,7 +234,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -242,7 +242,7 @@
       "lazy": true
     },
     "death9": {
-      "u": "/assets/anim/hero61/hero61_death9_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death9_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -250,7 +250,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -258,7 +258,7 @@
       "lazy": true
     },
     "death10": {
-      "u": "/assets/anim/hero61/hero61_death10_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death10_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -266,7 +266,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -274,7 +274,7 @@
       "lazy": true
     },
     "death11": {
-      "u": "/assets/anim/hero61/hero61_death11_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death11_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -282,7 +282,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -290,7 +290,7 @@
       "lazy": true
     },
     "death12": {
-      "u": "/assets/anim/hero61/hero61_death12_1280.webp?v=1280-spill1",
+      "u": "/assets/anim/hero61/hero61_death12_1280.webp?v=1281",
       "n": 4,
       "fw": 260,
       "fh": 256,
@@ -298,7 +298,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -314,7 +314,7 @@
       "rows": 4,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -330,7 +330,7 @@
       "rows": 1,
       "figH": 201,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 130.1,
       "fps": 8,
       "flip": false,
       "top": 32,
@@ -345,11 +345,11 @@
       "cols": 10,
       "rows": 12,
       "figH": 100,
-      "feet": 162,
-      "cx": 112.8,
+      "feet": 161.5,
+      "cx": 112.2,
       "fps": 24,
       "flip": false,
-      "top": 62,
+      "top": 61.5,
       "contact": 89
     }
   },
@@ -357,25 +357,25 @@
     "assets/anim/hero61/hero61_idle_1280.webp": "200744f6b40f5108f343497179ca6ffe2647a0416bff7346f3fb4fdc06e9e125",
     "assets/anim/hero61/hero61_walk_1280.webp": "43247099ae200bf34374b5cdd339d31801e11b163468c75ea9fd7508c37effd7",
     "assets/anim/hero61/hero61_attack_1280.webp": "44d1e4407124477cc4ed6a3fbc39432a136b233274bf605294666842b0d012d6",
-    "assets/anim/hero61/hero61_hit_1280.webp": "785740213c51c52c98bbe871b1b0fb1220506b7303732593bcdef36bce5ed61c",
+    "assets/anim/hero61/hero61_hit_1280.webp": "605cf6ee345809cbf9e0fe7372ecd0c0989fc171797d80cfb7fdb3a5a20922af",
     "assets/anim/hero61/hero61_green_1280.webp": "5cd9a788766ab916db3dc39c2dd17aea117a9dd3f7ac942e796e52b66825ed2e",
     "assets/anim/hero61/hero61_blue_1280.webp": "791a31d48e2b4570a2d4e58ddb56e4fd60c90b7b7ef3a0249a979b8e80f59eb1",
-    "assets/anim/hero61/hero61_ult_1280.webp": "5393b5b3b12de0a1e3cbf8213d33a8c82b45321b0fb076b3f22499600390610d",
+    "assets/anim/hero61/hero61_ult_1280.webp": "cc82ee464e15430461bce00f58dca8cbe4faef898d3b308e69c8a8e3df5e53ea",
     "assets/anim/hero61/hero61_death_1280.webp": "03c85a1d65ee8c54b2784dacf4fdf27721748ea0a6d6a5de5a054e1a5b4bb4f3",
     "assets/anim/hero61/hero61_death2_1280.webp": "6116ba272c058ae73757558dada37021b9ce45a14e9a89df034d96c1b356576c",
-    "assets/anim/hero61/hero61_death3_1280.webp": "d237facec2502a05ff9dcfa6840a7ceb29e1d1b5c6de636bdb9e462c75985412",
-    "assets/anim/hero61/hero61_death4_1280.webp": "860aba15baded68e977fe95f3b35a5f1b65e39d86df2add297522b78ef3152a4",
-    "assets/anim/hero61/hero61_death5_1280.webp": "b0a4e8956858d0bcfd0e6883843077be9480938a41e88ed13112a314a70ccdac",
-    "assets/anim/hero61/hero61_death6_1280.webp": "14573d289edbce8acfe56cb5647b44ecb6bcba63b0872e6477a93762b905c301",
-    "assets/anim/hero61/hero61_death7_1280.webp": "eeb2eb7616aa398a995cb5ab08ef4332b8b408c5523ea91467a0f614ad2cb848",
-    "assets/anim/hero61/hero61_death8_1280.webp": "4d7d3c1974f017d3845237bef749252acc56ac5e6c37cebdcb0271a728884fe9",
-    "assets/anim/hero61/hero61_death9_1280.webp": "5bf1c8190219c146f1b9c5e55e79c9070d33de89426ba07035d284cfdaf39b20",
-    "assets/anim/hero61/hero61_death10_1280.webp": "4a69743099c5cf24ee1cc4cb00592ebd47482c00eef3528f5ba93e87be4e72ae",
-    "assets/anim/hero61/hero61_death11_1280.webp": "941010929b7cbf29abb7097c5bdf2759879907b78f839c7d336b883920b96c34",
-    "assets/anim/hero61/hero61_death12_1280.webp": "204ad091f6b907854aa9ab56a12aa0b590737d88582ba2f281f04726bb1debfb",
+    "assets/anim/hero61/hero61_death3_1280.webp": "96264668355403ef24f9a81fd857926ef1376eeb979a05572051b4ce4476c5b5",
+    "assets/anim/hero61/hero61_death4_1280.webp": "8f187226f8b38462860e38a3c3f16e2568b61c25cca397532d4e17213cb11542",
+    "assets/anim/hero61/hero61_death5_1280.webp": "69e0b62c33edf7321bc151077e79722c45171ed3675f4d7190ddcdff2fd1a057",
+    "assets/anim/hero61/hero61_death6_1280.webp": "75c956e0f92586fbfb706581c38323bda8e2f6fdd6902e5a8c85618a77b3ad82",
+    "assets/anim/hero61/hero61_death7_1280.webp": "113d7921f03609d29268fc2c44180c58fca31ef031b31823dd48f704da89a2ca",
+    "assets/anim/hero61/hero61_death8_1280.webp": "33a861b2b26fd206bfc428dba44472466e9b2382d8845a7912eda41148f58fca",
+    "assets/anim/hero61/hero61_death9_1280.webp": "a854a2fd3f1c2e3d6d63d1561f517527d9b4a790e13dd39affe13012d4b15b16",
+    "assets/anim/hero61/hero61_death10_1280.webp": "6360f5022cf8f6e2b27fd3ccf3af1fc1c165061d3009ea61c6d98254f9d5bf7b",
+    "assets/anim/hero61/hero61_death11_1280.webp": "8659555ab44936258cde7c64e6ac171ce79924d7a82df3790244fa64bbc7b941",
+    "assets/anim/hero61/hero61_death12_1280.webp": "38932c9897e67f99602b05745c1b3e54fca5fc341b2b5533e83b0ffb856c4fa1",
     "assets/anim/hero61/hero61_death13_1280.webp": "a87ab805843f940b0f92922ebb4fc65ad00f507f82bf9e6b9d21f2b3e822b8c5",
     "assets/anim/hero61/hero61_death14_1280.webp": "bd169fdecfeab58073fa7723d1009ceb498a425074fb99197b9d952e79619986",
-    "assets/img/hero-cards/card-hero61.webp": "4d6fc74db3e3ae7901457cf706721c139925c007bb4df253265bcb62147df2f4"
+    "assets/img/hero-cards/card-hero61.webp": "a3699ac73f02d3cd4bd3faf6bf4f9f30277b4635c89b288303b5b1c22a43984f"
   },
   "cut": {
     "idle": {
@@ -497,24 +497,24 @@
       "unmixed_px": 332892,
       "fringe_master": {
         "edge_px": 76217,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 76217,
         "edge_gt4": 0.3647,
         "edge_gt12": 0.0013,
-        "edge_gt24": 0.0,
+        "edge_gt24": 0,
         "body_gt4": 0.0027,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "walk": {
@@ -593,11 +593,11 @@
       "unmixed_px": 177516,
       "fringe_master": {
         "edge_px": 47388,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 47388,
@@ -605,12 +605,12 @@
         "edge_gt12": 0.0274,
         "edge_gt24": 0.0021,
         "body_gt4": 0.0044,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "attack": {
@@ -701,11 +701,11 @@
       "unmixed_px": 194209,
       "fringe_master": {
         "edge_px": 36989,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 36989,
@@ -713,12 +713,12 @@
         "edge_gt12": 0.0081,
         "edge_gt24": 0.0027,
         "body_gt4": 0.0015,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "hit": {
@@ -776,24 +776,24 @@
       "unmixed_px": 64051,
       "fringe_master": {
         "edge_px": 17677,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 17677,
         "edge_gt4": 0.56,
         "edge_gt12": 0.0057,
-        "edge_gt24": 0.0,
+        "edge_gt24": 0,
         "body_gt4": 0.0014,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "green": {
@@ -916,24 +916,24 @@
       "unmixed_px": 319949,
       "fringe_master": {
         "edge_px": 52463,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 52463,
         "edge_gt4": 0.1277,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
         "body_gt4": 0.0006,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "blue": {
@@ -1092,24 +1092,24 @@
       "unmixed_px": 396786,
       "fringe_master": {
         "edge_px": 47089,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 47089,
         "edge_gt4": 0.0361,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "ult": {
@@ -1224,24 +1224,24 @@
       "unmixed_px": 241513,
       "fringe_master": {
         "edge_px": 47490,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 47490,
         "edge_gt4": 0.1137,
         "edge_gt12": 0.0105,
-        "edge_gt24": 0.0,
+        "edge_gt24": 0,
         "body_gt4": 0.0017,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death": {
@@ -1276,7 +1276,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1288,24 +1288,24 @@
       "unmixed_px": 17052,
       "fringe_master": {
         "edge_px": 3662,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3662,
         "edge_gt4": 0.1638,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
         "body_gt4": 0.001,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death2": {
@@ -1340,7 +1340,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1352,24 +1352,24 @@
       "unmixed_px": 15872,
       "fringe_master": {
         "edge_px": 3419,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3419,
         "edge_gt4": 0.4972,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death3": {
@@ -1404,7 +1404,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1416,24 +1416,24 @@
       "unmixed_px": 16268,
       "fringe_master": {
         "edge_px": 3468,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3468,
         "edge_gt4": 1.2399,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
         "body_gt4": 0.0044,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death4": {
@@ -1468,7 +1468,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1480,24 +1480,24 @@
       "unmixed_px": 16963,
       "fringe_master": {
         "edge_px": 3523,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3523,
         "edge_gt4": 0.738,
         "edge_gt12": 0.0284,
-        "edge_gt24": 0.0,
+        "edge_gt24": 0,
         "body_gt4": 0.0036,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death5": {
@@ -1532,7 +1532,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1544,24 +1544,24 @@
       "unmixed_px": 16045,
       "fringe_master": {
         "edge_px": 3323,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3323,
         "edge_gt4": 0.4514,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
         "body_gt4": 0.0024,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death6": {
@@ -1596,7 +1596,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1608,24 +1608,24 @@
       "unmixed_px": 16136,
       "fringe_master": {
         "edge_px": 3378,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3378,
         "edge_gt4": 0.4144,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
         "body_gt4": 0.0024,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death7": {
@@ -1660,7 +1660,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1672,24 +1672,24 @@
       "unmixed_px": 19426,
       "fringe_master": {
         "edge_px": 3975,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 3975,
         "edge_gt4": 0.6289,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
         "body_gt4": 0.0072,
-        "body_gt24": 0.0
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death8": {
@@ -1724,7 +1724,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1736,24 +1736,24 @@
       "unmixed_px": 22067,
       "fringe_master": {
         "edge_px": 4465,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 4465,
         "edge_gt4": 0.1792,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death9": {
@@ -1788,7 +1788,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1800,24 +1800,24 @@
       "unmixed_px": 23323,
       "fringe_master": {
         "edge_px": 4694,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 4694,
         "edge_gt4": 0.0852,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death10": {
@@ -1852,7 +1852,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1864,24 +1864,24 @@
       "unmixed_px": 21393,
       "fringe_master": {
         "edge_px": 4256,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 4256,
         "edge_gt4": 0.047,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death11": {
@@ -1916,7 +1916,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1928,24 +1928,24 @@
       "unmixed_px": 12686,
       "fringe_master": {
         "edge_px": 2559,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 2559,
         "edge_gt4": 0.2345,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death12": {
@@ -1980,7 +1980,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -1992,24 +1992,24 @@
       "unmixed_px": 7657,
       "fringe_master": {
         "edge_px": 1541,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 1541,
         "edge_gt4": 0.0649,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death13": {
@@ -2044,7 +2044,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -2061,24 +2061,24 @@
       "unmixed_px": 0,
       "fringe_master": {
         "edge_px": 0,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 0,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     },
     "death14": {
@@ -2110,7 +2110,7 @@
       "sy": 0.40878,
       "top": 32,
       "feet": 233,
-      "cx": 131.0,
+      "cx": 131,
       "figH": 201,
       "figH_exact": 201.122,
       "encode": "q95",
@@ -2124,24 +2124,24 @@
       "unmixed_px": 0,
       "fringe_master": {
         "edge_px": 0,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "fringe_q95": {
         "edge_px": 0,
-        "edge_gt4": 0.0,
-        "edge_gt12": 0.0,
-        "edge_gt24": 0.0,
-        "body_gt4": 0.0,
-        "body_gt24": 0.0
+        "edge_gt4": 0,
+        "edge_gt12": 0,
+        "edge_gt24": 0,
+        "body_gt4": 0,
+        "body_gt24": 0
       },
       "ghost_alpha": null,
       "unmix_soft": true,
       "ref_unmix": null,
-      "maxfig": 240.0,
+      "maxfig": 240,
       "problems": []
     }
   },
@@ -2151,7 +2151,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-approved-hook-animations-04nov\\idle-take-01.mp4",
         "sha256": "d8c28056f82034ef5cc2ba55d5d252f02da474d2a827e3288a54ddbab32c65f2",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2161,7 +2161,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-approved-hook-animations-04nov\\walk-take-01.mp4",
         "sha256": "fbbbeb415626a4a9cfbec898fc50c78573c45318d019ea0e2116ba938f649b38",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2171,7 +2171,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-approved-hook-animations-04nov\\hit-take-02.mp4",
         "sha256": "56981d268ac102e51b246266f0b6fe2de7a621f2c1f7141fb78be138b7608c3d",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2181,7 +2181,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-approved-hook-animations-04nov\\ult-take-01.mp4",
         "sha256": "ea33df53b4f5772b7e89b400604d33d12a8c8157c8e42d69c3f7499b441080cd",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2191,7 +2191,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-phil-redos-05nov\\asset-574722906767540230.mp4",
         "sha256": "8e7bf9d628ae11bd48ead222585a9fd0110531430fa62143f59f991c32884605",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2201,7 +2201,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-phil-redos-05nov\\asset-574712230644838406.mp4",
         "sha256": "b939d030f2f6f89507ab7c09d8fd91d4a57a51a8154925c9f8afa52e0fd1dbe3",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2211,7 +2211,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-phil-redos-05nov\\asset-574730669274980356.mp4",
         "sha256": "82afc42b653abaa183b49dd3e8714cd966531a9c27f0e18c56ef95f38b0819cb",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2221,7 +2221,7 @@
         "path": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-death-green-redo4-04nov\\death-take-01.mp4",
         "sha256": "e48a74749ce3318317375bf63121e14e9989626601210ba6c2cd9dfb5508716a",
         "frames": 158,
-        "fps": 24.0,
+        "fps": 24,
         "size": [
           768,
           832
@@ -2241,5 +2241,19 @@
     "source": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\morvayne-phil-redos-05nov\\asset-574730669274980356.mp4",
     "sourceSHA256": "82afc42b653abaa183b49dd3e8714cd966531a9c27f0e18c56ef95f38b0819cb",
     "contactCell": 89
+  },
+  "drift": {
+    "date": "2026-11-05",
+    "authority": "Phil 5 Nov: \"Make sure he has zero drift in all animations\"",
+    "hit": {
+      "frames": {
+        "2": 18,
+        "3": 15,
+        "4": 11
+      },
+      "how": "feet pinned to frame 0 by leg registration"
+    },
+    "death": "frames 10-46 lifted 3-9 px so nothing sinks below the frame-0 ground line (232)",
+    "anchors": "cx/feet/top per state from frame-0 leg centroid + lowest pixel, matched to idle"
   }
 }
