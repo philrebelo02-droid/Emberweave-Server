@@ -28530,7 +28530,7 @@ function questStateSync(force){
 }
 function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
   if(ACC.token){ apiOnce('quest:'+q.id,'/api/quest/claim',{id:q.id}).then(sr=>{ if(sr&&sr.busy) return;   // v250: the SERVER validates + pays quests
-      if(sr&&sr.ok){ const r=q.reward||''; G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); tutReturnAfterAction(); }
+      if(sr&&sr.ok){ const r=(sr.got&&sr.got.heroFrags&&sr.got.heroDup)?t('quest2.plus_hero_n_frags',{n:sr.got.heroFrags,hero:(HERO_TYPES[sr.got.heroDup]||{}).name||sr.got.heroDup}):(q.reward||''); G.questClaimed[q.id]=true;   /* 5 Nov: an owned hero reward pays fragments - the banner says so */ adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); tutReturnAfterAction(); }
       else if(sr&&sr.error){ bannerMsg(sr.error==='offline'?t('net.connection_lost'):(langMsg(sr.error)||sr.error)); ledgerSync(); } }).catch(()=>{}); return; }
   const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); }
 /* 30 Aug — THE STAGE-QUEST CHAIN BURNED THE STEP AND PAID NOTHING.

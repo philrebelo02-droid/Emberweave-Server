@@ -9131,7 +9131,10 @@ async function api(req,res,url){
         const rw=q.reward, got={};
         if(rw.gold){ creditGold(me,led,rw.gold,'quest:'+id); got.gold=rw.gold; }
         if(rw.gems){ creditGems(me,led,rw.gems,'quest:'+id); got.gems=rw.gems; }
-        if(rw.hero){ led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; }
+        /* 5 Nov 2026 (Phil: "Yes" - the sim bug checker found it): a hero reward the player already owns paid NOTHING (Blade in the Dark
+           = Vex, while the starter chain hands out Vex fragments). Like a duplicate wish it now pays that hero's duplicate fragments. */
+        if(rw.hero){ if(ownsHeroK(led,rw.hero)){ const f=POOL_DUPE_FRAG[POOL_START_STARS[rw.hero]||1]||7; creditFrags(me,led,rw.hero,f,'quest:'+id+':duplicate',{uncapped:true}); got.heroFrags=f; got.heroDup=rw.hero; }
+          else { led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; } }
         if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)); const n=rw.randFrags;
           for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; creditFrags(me,led,hk,1,'quest:'+id); } got.frags=n; }
         ledTx(me,'quest:'+id,got);
