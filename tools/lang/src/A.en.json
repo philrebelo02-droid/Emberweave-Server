@@ -842,7 +842,7 @@
 "arena.today_refreshes":"Today’s refreshes",
 "arena.refresh":"Refresh",
 "arena.attempts_left":"Attempts left",
-"arena.buy_attempt":"Buy +1 · {n} diamonds",
+"arena.buy_attempt":"Buy +{k} · {n} diamonds",
 "arena.no_one_left":"No one left to challenge.",
 "arena.top_pick_msg":"Top pick: {name} — rank #{n}",
 "arena.all_outgun":"Every opponent outguns you — weakest is {name}",

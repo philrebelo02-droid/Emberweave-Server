@@ -43,7 +43,7 @@
 "arena.today_refreshes":"今日刷新次数",
 "arena.refresh":"刷新",
 "arena.attempts_left":"剩余次数",
-"arena.buy_attempt":"购买 +1 · {n} 钻石",
+"arena.buy_attempt":"购买 +{k} · {n} 钻石",
 "arena.no_one_left":"已没有可挑战的对手。",
 "arena.top_pick_msg":"最佳对手：{name}——排名 #{n}",
 "arena.all_outgun":"所有对手都比你强——最弱的是 {name}",

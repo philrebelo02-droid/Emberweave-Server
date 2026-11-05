@@ -42,7 +42,7 @@
 "arena.today_refreshes":"Penyegaran hari ini",
 "arena.refresh":"Segarkan",
 "arena.attempts_left":"Sisa percobaan",
-"arena.buy_attempt":"Beli +1 · {n} berlian",
+"arena.buy_attempt":"Beli +{k} · {n} berlian",
 "arena.no_one_left":"Tidak ada lagi yang bisa ditantang.",
 "arena.top_pick_msg":"Pilihan teratas: {name} — peringkat #{n}",
 "arena.all_outgun":"Semua lawan lebih kuat darimu — yang terlemah adalah {name}",

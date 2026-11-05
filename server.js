@@ -1825,11 +1825,14 @@ function arenaDailyRewardSrv(rank){ for(const [lo,hi,g,gold,c] of ARENA_DAILY_BA
    once per requestId — a replayed receipt returns the original verdict and burns nothing.
    The two purchase numbers are Phil's to set; these are placeholders until he does. */
 const ARENA_FREE_ATTEMPTS   = 5;    // free fights per New-York day
-const ARENA_EXTRA_COST_GEMS = 20;   // diamonds per additional attempt        ← Phil to confirm
-const ARENA_EXTRA_MAX_DAY   = 5;    // additional attempts purchasable per day ← Phil to confirm
-function arenaAtt(led){ const dk=nyDayKey(); if(!led.arenaAtt||led.arenaAtt.k!==dk) led.arenaAtt={k:dk,used:0,bought:0}; return led.arenaAtt; }
+/* v1286 (Phil 5 Nov: "make it so that arena attack resets that you buy give your full 5 back, not 1 at a time"): one purchase
+   refills today's attempts to 5 (it used to add 1). Price = the EGP Arena reset's 50 diamonds; 5 refills a day. Phil to confirm both. */
+const ARENA_EXTRA_COST_GEMS = 50;   // diamonds per refill to 5               ← Phil to confirm
+const ARENA_EXTRA_MAX_DAY   = 5;    // refills purchasable per day             ← Phil to confirm
+function arenaAtt(led){ const dk=nyDayKey(); if(!led.arenaAtt||led.arenaAtt.k!==dk) led.arenaAtt={k:dk,used:0,bought:0,buys:0}; return led.arenaAtt; }
 function arenaAttView(led){ const a=arenaAtt(led);
-  return { attemptsLeft:Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used), used:a.used, bought:a.bought,
+  const left=Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used);
+  return { attemptsLeft:left, used:a.used, bought:a.bought, buys:(a.buys|0), refillN:Math.max(0,ARENA_FREE_ATTEMPTS-left),
            freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY }; }   /* v1093: fixed again - the chart's Arena row is reset purchases */
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
@@ -9907,9 +9910,11 @@ async function api(req,res,url){
   if(p==='/api/arena/buy-attempt' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':abuy:'+rid,()=>{ const led=ensureLedger(me), a=arenaAtt(led);
-      if(a.bought>=ARENA_EXTRA_MAX_DAY) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
+      if((a.buys|0)>=ARENA_EXTRA_MAX_DAY) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
+      const gap=Math.max(0,ARENA_FREE_ATTEMPTS-Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used));   /* v1286: back to a full 5 */
+      if(gap<=0) return {ok:false,error:'Your free Arena attempts are all still there.',arena:arenaAttView(led)};
       if((led.gems|0)<ARENA_EXTRA_COST_GEMS) return {ok:false,error:'Not enough diamonds — an extra arena attempt costs '+ARENA_EXTRA_COST_GEMS+'.',arena:arenaAttView(led)};
-      led.gems-=ARENA_EXTRA_COST_GEMS; a.bought++; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS});
+      led.gems-=ARENA_EXTRA_COST_GEMS; a.bought+=gap; a.buys=(a.buys|0)+1; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS,attempts:gap});
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok?200:400),out); }
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me); arenaOffered(me,[o.id]);

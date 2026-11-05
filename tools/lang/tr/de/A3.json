@@ -43,7 +43,7 @@
 "arena.today_refreshes":"Heutige Auffrischungen",
 "arena.refresh":"Auffrischen",
 "arena.attempts_left":"Versuche übrig",
-"arena.buy_attempt":"+1 kaufen · {n} Diamanten",
+"arena.buy_attempt":"+{k} kaufen · {n} Diamanten",
 "arena.no_one_left":"Niemand mehr zum Herausfordern.",
 "arena.top_pick_msg":"Top-Wahl: {name} – Rang #{n}",
 "arena.all_outgun":"Jeder Gegner ist dir überlegen – der schwächste ist {name}",

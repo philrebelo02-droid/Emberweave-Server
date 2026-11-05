@@ -43,7 +43,7 @@
 "arena.today_refreshes":"今日刷新次數",
 "arena.refresh":"刷新",
 "arena.attempts_left":"剩餘次數",
-"arena.buy_attempt":"購買 +1 · {n} 鑽石",
+"arena.buy_attempt":"購買 +{k} · {n} 鑽石",
 "arena.no_one_left":"已無可挑戰的對手。",
 "arena.top_pick_msg":"最佳對手：{name}——排名 #{n}",
 "arena.all_outgun":"所有對手都比你強——最弱的是 {name}",

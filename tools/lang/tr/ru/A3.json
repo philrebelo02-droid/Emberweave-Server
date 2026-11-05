@@ -43,7 +43,7 @@
 "arena.today_refreshes":"Обновлений сегодня",
 "arena.refresh":"Обновить",
 "arena.attempts_left":"Осталось попыток",
-"arena.buy_attempt":"Купить +1 · {n} алмазов",
+"arena.buy_attempt":"Купить +{k} · {n} алмазов",
 "arena.no_one_left":"Вызывать больше некого.",
 "arena.top_pick_msg":"Лучший выбор: {name} — место #{n}",
 "arena.all_outgun":"Все соперники сильнее вас — самый слабый: {name}",

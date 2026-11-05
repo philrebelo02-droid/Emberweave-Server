@@ -1,7 +1,7 @@
 // v1097 - sweep 9 Oct (real server on a free port + temp DB):
 //  #9  the Arena daily claim pays the arena coins it shows (server band table), and they survive a restart;
 //  #15 a Patron Arena reset gives back only the 5 free attempts - bought attempts already used stay used;
-//  #10 the buy-attempt route sells one attempt at its price (the client now shows it), and the client shows the attempts left,
+//  #10 (v1286: one purchase refills to 5) the buy-attempt route sells attempts at its price (the client now shows it), and the client shows the attempts left,
 //      blocks a Challenge with none left, and wires the buy button (static).
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
@@ -39,7 +39,7 @@ let rq=0; const R=()=>'a97-'+(rq++);
   await editDB(u=>{ u.led.arenaAtt={k:dk(),used:5,bought:0}; });
   const g0=(await led()).gems;
   const ba=await call('/api/arena/buy-attempt',{requestId:R()}); const g1=(await led()).gems;
-  ok(ba.data.ok===true&&ba.data.arena.attemptsLeft===1&&ba.data.arena.extraCostGems===20&&g0-g1===20,'buy-attempt sells one attempt for 20 diamonds ('+(ba.data.error||JSON.stringify(ba.data.arena))+')');
+  ok(ba.data.ok===true&&ba.data.arena.attemptsLeft===5&&ba.data.arena.extraCostGems===50&&g0-g1===50,'buy-attempt refills the attempts to 5 for 50 diamonds - v1286, Phil 5 Nov: "give your full 5 back, not 1 at a time" ('+(ba.data.error||JSON.stringify(ba.data.arena))+')');
   // #15 Patron reset: free attempts only
   const egp3=u=>{ u.led.patron={v:1,base:36,prestiged:false,edpBase:0}; delete u.led.patronDay; };
   await editDB(u=>{ egp3(u); u.led.arenaAtt={k:dk(),used:10,bought:5}; });
@@ -56,7 +56,7 @@ let rq=0; const R=()=>'a97-'+(rq++);
     const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
     ok(/if\(d\.arena\) ARENA\.att=d\.arena;/.test(html),'the Arena screen keeps the server\'s attempts view');
     ok(/id="arenaAttLeft"[^\n]*\$\{att\.attemptsLeft\|0\}/.test(html),'the Arena screen shows the attempts left');
-    ok(/apiOnce\('arenabuy','\/api\/arena\/buy-attempt'/.test(html)&&/\$\{t\('arena\.buy_attempt',\{n:att\.extraCostGems\|0\}\)\}/.test(html)&&JSON.parse(fs.readFileSync(path.join(root,'lang/en.json'),'utf8'))['arena.buy_attempt']==='Buy +1 \u00b7 {n} diamonds','a buy button calls /api/arena/buy-attempt and shows its cost');
+    ok(/apiOnce\('arenabuy','\/api\/arena\/buy-attempt'/.test(html)&&/\$\{t\('arena\.buy_attempt',\{n:att\.extraCostGems\|0,k:/.test(html)&&JSON.parse(fs.readFileSync(path.join(root,'lang/en.json'),'utf8'))['arena.buy_attempt']==='Buy +{k} \u00b7 {n} diamonds','a buy button calls /api/arena/buy-attempt and shows its cost');
     ok(/data-opp="\$\{i\}" \$\{noAtt\?'disabled':''\}/.test(html)&&/function startArena\(o\)\{ if\(arenaNoAttempts\(\)\)/.test(html),'Challenge is disabled and a fight never starts with 0 attempts');
     ok(/if\(!paid\) G\.arenaCoins=/.test(html)&&/_finish\(r\.reward,true\)/.test(html),'the client no longer adds the daily coins on top of the server\'s');
   }

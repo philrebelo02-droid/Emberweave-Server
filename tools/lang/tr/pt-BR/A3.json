@@ -43,7 +43,7 @@
 "arena.today_refreshes":"Atualizações de hoje",
 "arena.refresh":"Atualizar",
 "arena.attempts_left":"Tentativas restantes",
-"arena.buy_attempt":"Comprar +1 · {n} diamantes",
+"arena.buy_attempt":"Comprar +{k} · {n} diamantes",
 "arena.no_one_left":"Não resta ninguém para desafiar.",
 "arena.top_pick_msg":"Melhor escolha: {name} — posição nº {n}",
 "arena.all_outgun":"Todos os oponentes são mais fortes que você — o mais fraco é {name}",

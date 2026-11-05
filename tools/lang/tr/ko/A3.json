@@ -43,7 +43,7 @@
 "arena.today_refreshes":"오늘 새로고침",
 "arena.refresh":"새로고침",
 "arena.attempts_left":"남은 도전",
-"arena.buy_attempt":"+1 구매 · 다이아 {n}",
+"arena.buy_attempt":"+{k} 구매 · 다이아 {n}",
 "arena.no_one_left":"도전할 상대가 없습니다.",
 "arena.top_pick_msg":"추천 상대: {name} — {n}위",
 "arena.all_outgun":"모든 상대가 더 강합니다 — 가장 약한 상대는 {name}",

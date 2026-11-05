@@ -43,7 +43,7 @@
 "arena.today_refreshes":"本日の更新回数",
 "arena.refresh":"更新",
 "arena.attempts_left":"残り挑戦回数",
-"arena.buy_attempt":"+1購入 · ダイヤ{n}",
+"arena.buy_attempt":"+{k}購入 · ダイヤ{n}",
 "arena.no_one_left":"挑戦できる相手がいません。",
 "arena.top_pick_msg":"おすすめ: {name} — 順位 #{n}",
 "arena.all_outgun":"すべての相手があなたより強力です — 最も弱いのは{name}",

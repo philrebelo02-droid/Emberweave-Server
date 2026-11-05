@@ -43,7 +43,7 @@
 "arena.today_refreshes":"Actualisations du jour",
 "arena.refresh":"Actualiser",
 "arena.attempts_left":"Tentatives restantes",
-"arena.buy_attempt":"Acheter +1 · {n} diamants",
+"arena.buy_attempt":"Acheter +{k} · {n} diamants",
 "arena.no_one_left":"Plus personne à défier.",
 "arena.top_pick_msg":"Meilleur choix : {name} — rang n°{n}",
 "arena.all_outgun":"Tous les adversaires vous surpassent — le plus faible est {name}",

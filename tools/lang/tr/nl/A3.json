@@ -42,7 +42,7 @@
 "arena.today_refreshes":"Vernieuwingen vandaag",
 "arena.refresh":"Vernieuwen",
 "arena.attempts_left":"Pogingen over",
-"arena.buy_attempt":"+1 kopen · {n} diamanten",
+"arena.buy_attempt":"+{k} kopen · {n} diamanten",
 "arena.no_one_left":"Niemand meer om uit te dagen.",
 "arena.top_pick_msg":"Beste keus: {name} — rang #{n}",
 "arena.all_outgun":"Elke tegenstander is sterker dan jij — de zwakste is {name}",

@@ -42,7 +42,7 @@
 "arena.today_refreshes":"การรีเฟรชวันนี้",
 "arena.refresh":"รีเฟรช",
 "arena.attempts_left":"สิทธิ์ที่เหลือ",
-"arena.buy_attempt":"ซื้อ +1 · {n} เพชร",
+"arena.buy_attempt":"ซื้อ +{k} · {n} เพชร",
 "arena.no_one_left":"ไม่มีใครเหลือให้ท้าทาย",
 "arena.top_pick_msg":"ตัวเลือกแนะนำ: {name} — อันดับ #{n}",
 "arena.all_outgun":"คู่ต่อสู้ทุกคนแข็งแกร่งกว่าคุณ — ที่อ่อนที่สุดคือ {name}",

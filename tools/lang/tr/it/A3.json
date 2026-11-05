@@ -43,7 +43,7 @@
 "arena.today_refreshes":"Aggiornamenti di oggi",
 "arena.refresh":"Aggiorna",
 "arena.attempts_left":"Tentativi rimasti",
-"arena.buy_attempt":"Compra +1 · {n} diamanti",
+"arena.buy_attempt":"Compra +{k} · {n} diamanti",
 "arena.no_one_left":"Nessuno da sfidare.",
 "arena.top_pick_msg":"Scelta migliore: {name} — posizione n. {n}",
 "arena.all_outgun":"Ogni avversario ti supera — il più debole è {name}",

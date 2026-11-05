@@ -42,7 +42,7 @@
 "arena.today_refreshes":"Bugünkü yenilemeler",
 "arena.refresh":"Yenile",
 "arena.attempts_left":"Kalan deneme",
-"arena.buy_attempt":"+1 al · {n} elmas",
+"arena.buy_attempt":"+{k} al · {n} elmas",
 "arena.no_one_left":"Meydan okunacak kimse kalmadı.",
 "arena.top_pick_msg":"En iyi seçim: {name} — sıra #{n}",
 "arena.all_outgun":"Her rakip senden güçlü — en zayıfı {name}",

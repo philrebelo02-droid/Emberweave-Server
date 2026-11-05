@@ -42,7 +42,7 @@
 "arena.today_refreshes":"आज के रीफ़्रेश",
 "arena.refresh":"रीफ़्रेश",
 "arena.attempts_left":"बचे प्रयास",
-"arena.buy_attempt":"+1 खरीदें · {n} हीरे",
+"arena.buy_attempt":"+{k} खरीदें · {n} हीरे",
 "arena.no_one_left":"चुनौती देने को कोई नहीं बचा।",
 "arena.top_pick_msg":"सबसे अच्छा विकल्प: {name} — रैंक #{n}",
 "arena.all_outgun":"हर विरोधी आपसे ताकतवर है — सबसे कमज़ोर {name} है",
