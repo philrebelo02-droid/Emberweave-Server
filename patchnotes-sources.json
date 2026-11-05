@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.3.4", "releases": "v1285", "items": [{"text": "Phil 5 Nov: \"hes canceling his own animation\" - Green cut at cell 53/80, Blue at 89/116 by the next cast; now the follow-through plays and Blue waits for a Green in hand.", "sources": ["SHIPPED-v1285-morvayne-full-casts-05-11-2026.md"]}]},
     {"ver": "1.3.3", "releases": "v1284", "items": [{"text": "Phil 5 Nov: \"hes literally not anchored\" - the cast hop (0.4 x castAnim/0.5) lifted him 1.2-2.0 during his 1.5-2.5 s casts; measured on the live build canvas (CPU render).", "sources": ["SHIPPED-v1284-morvayne-anchor-05-11-2026.md"]}]},
     {"ver": "1.3.2", "releases": "v1283", "items": [{"text": "Phil 5 Nov: \"Heroes should receive energy when casting spells also not only autos\" (+11 per released Green/Blue, SPELL_ENERGY) / \"make sure the energy growth isnt broken on certain heroes\" (61-hero audit) / \"Hes sliding more than ever now\" (no casting while the game moves him).", "sources": ["SHIPPED-v1283-spell-energy-05-11-2026.md"]}]},
     {"ver": "1.3.1", "releases": "v1282", "items": [{"text": "Phil 5 Nov: \"Lower morvayne slightly\" / \"Like 1 head distance lower\" (25/204 of figH); \"Also hes still drifting\" (measured in game: the unit walked under Green/Blue cast clips - casts now root); \"he stops casting alot. Should be non stop\" (Green/Blue no longer wait for a hurt ally).", "sources": ["SHIPPED-v1282-morvayne-lower-05-11-2026.md"]}]},

@@ -29,8 +29,13 @@ for(const field of ['stunned','silencedT']){
  run(`king.${field}=0;hero61Cast(king,'blue')`);assert.equal(run('king._pend.t'),2.5);
  run('castTick(king,2.501)');assert.equal(run('king.blueCd'),8);
 }
-// Blue preempts Green; Ult preempts Blue. No unearned heal on either cancellation.
+// v1285 (Phil 5 Nov: "hes canceling his own animation"): the AUTO schedule never cuts his own Green - a ready Blue waits for it to
+// release and play out, then goes. A direct Blue cast still pre-empts (manual / control path). Ult preempts Blue. No unearned heal on either cancellation.
 reset();run(`hero61Cast(king,'green');king.blueCd=0;hero61Schedule(king,.01)`);
+assert.equal(run('king._pend.hero61Slot'),'green','the schedule leaves the Green being cast alone');
+run(`castTick(king,1.6);hero61Schedule(king,.01)`);assert.equal(run('king._pend'),null,'the released Green clip plays out before the next cast');
+run(`hero61Schedule(king,2.3);hero61Schedule(king,.01)`);assert.equal(run('king._pend&&king._pend.hero61Slot'),'blue','then the ready Blue starts');
+run(`hero61Cast(king,'green');hero61Cast(king,'blue')`);
 assert.equal(run('king._pend.hero61Slot'),'blue');
 run(`hero61Cast(king,'ult',friend)`);assert.equal(run('king._pend.hero61Slot'),'ult');assert.equal(run('king.energy'),0);
 run('battleTime=1.2;castTick(king,1.201)');

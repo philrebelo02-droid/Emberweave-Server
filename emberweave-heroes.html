@@ -13018,7 +13018,14 @@ function hero61Cast(u,slot,target){
       if(slot==='blue')u.blueCd=8; // successful release, never at press or interrupted cast
     }
   }};
-  u._castT=ct;u._castNow=ct;u.castAnim=ct;u._lockPri=slot==='ult'?6:4;u._abilPri=u._lockPri;u._animLockT=ct;
+  /* v1285 (Phil 5 Nov: "hes canceling his own animation"): filmed on the live build - the next cast started at each release, so Green was
+     cut at cell 53 of 80 and Blue at 89 of 116 every time. The clip now plays out: after the release he finishes the follow-through
+     (the cells past contact, at the speed the cast plays them) before the next Green/Blue starts. From BATTLE_ANIM data, so the server
+     replay waits exactly the same. */
+  const _A61=(typeof BATTLE_ANIM!=='undefined'&&BATTLE_ANIM.hero61&&BATTLE_ANIM.hero61[slot])||null;
+  const _rec61=(_A61&&_A61.contact>0&&_A61.n>_A61.contact)?(_A61.n-_A61.contact)*ct/_A61.contact:0;
+  u._castT=ct;u._castNow=ct;u.castAnim=ct;u._lockPri=slot==='ult'?6:4;u._abilPri=u._lockPri;u._animLockT=ct+_rec61;
+  if(slot!=='ult')u._h61Rec=ct+_rec61;
   if(slot==='ult'){u.energy=0;u._ultRootT=Math.max(ct,ultClipDur(u));}
   return true;
 }
@@ -13039,8 +13046,10 @@ function hero61Schedule(u,dt){
   if(auto&&u.energy>=100&&HERO61.allies(u,units).some(a=>a.hp<a.maxHp)){
     start('ult',HERO61.protectionTarget(u,units,battleTime));return;
   }
+  u._h61Rec=Math.max(0,(u._h61Rec||0)-dt);
   const pending=u._pend&&u._pend.hero61Slot;
   if(pending==='ult'||pending==='blue')return;
+  if(u._pend||u._h61Rec>0)return;   /* v1285: a Green being cast, or his last released Green/Blue clip, plays out first - Blue no longer cuts a Green (Phil: "hes canceling his own animation") */
   /* v1282 (Phil 5 Nov: "he stops casting alot. Should be non stop"): Green and Blue no longer wait for a hurt ally -
      he casts continuously; each release heals the weakest ally (a full ally takes no extra health). */
   if(u.blueAb&&u.blueCd<=0&&HERO61.allies(u,units).length){
@@ -31966,7 +31975,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793914937750';
+const BUILD_ID = '1793915376527';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
