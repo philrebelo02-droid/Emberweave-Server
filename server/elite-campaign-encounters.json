@@ -17717,54 +17717,54 @@
     {
      "key": "ashen",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "ashen",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "blackquill",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "blackquill",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     }
    ],
    [
     {
      "key": "crucible acolyte",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774,
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -17772,26 +17772,26 @@
     {
      "key": "crucible acolyte",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "ashen",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "blackquill",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     }
    ]
   ],
@@ -17802,7 +17802,7 @@
    "scale": 1.6623,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.7086,
+  "eliteTune": 0.6023,
   "wallFixes": [
    {
     "v": "v1121",
@@ -17810,8 +17810,7 @@
     "scale": 0.85,
     "dmgScale": 0.8286,
     "why": "follows Normal 14-7 (v1121 curve) so Elite stays ~1.5x its Normal stage"
-   }
-  ]
+   }, {"v": "v1276", "date": "2026-11-04", "scale": 0.85, "why": "Phil 4 Nov: \"go ahead with normal 14-7\". 31 Oct-4 Nov sims: Normal 14-7 held a median 23 game days (max 73, 5 of 33 never cleared); Elite 14-7 1 of 22 cleared (level-86 whales held). One x0.85 step; Elite (1.5x) and Veteran (2x) follow."}]
  },
  {
   "id": "14-8",
