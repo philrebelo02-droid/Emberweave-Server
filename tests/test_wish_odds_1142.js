@@ -20,7 +20,10 @@ const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
 async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
 const led=async()=>{ const l=(await call('/api/ledger')).data; return l.ledger||l; };
 const listOf=name=>{ const m=src.match(new RegExp('const '+name+'=(\\[[^\\]]*\\])')); return new Set(m?JSON.parse(m[1]):[]); };
-const P2=listOf('POOL_P2'), P3=listOf('POOL_P3');
+/* v1287 (Phil 5 Nov): the Diamond lists are derived from each hero's stars - every non-mythical 2/3-star hero except the Arena-only ones */
+const _HB=require(path.join(__dirname,'..','server','sim.js')).HERO_BASE, _SKIP=new Set(['konwu','vulmar','aureth','hurne','hollow','hero61','grosk','zahri']);
+const _byStars=n=>new Set(Object.keys(_HB).filter(k=>!_SKIP.has(k)&&((_HB[k]||{}).stars|0)===n));
+const P2=_byStars(2), P3=_byStars(3);
 const LADDER=(()=>{ const m=src.match(/const GLYPH_LADDER=Object\.freeze\((\[[^\]]*\])\)/); return m?eval(m[1]):[]; })();
 let rq=0; const R=()=>'w'+(rq++)+'-'+Date.now();
 const TABLE={full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNext:0.10,stamItem:0.17};

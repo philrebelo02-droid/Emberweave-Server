@@ -15,7 +15,9 @@ const SWAPS = [
   ['const ENEMY_NERF=0.95,', 'const ENEMY_NERF=1,', /const ENEMY_NERF\s*=/],
   ['const UNIT_SIZE=1.15;', 'const UNIT_SIZE=1;', /const UNIT_SIZE\s*=/],
   ['const WAVE_READY_HOLD=0.7;', 'const WAVE_READY_HOLD=0;', /const WAVE_READY_HOLD\s*=/],
-  ['const SPELL_ENERGY=11;', 'const SPELL_ENERGY=0;', /const SPELL_ENERGY\s*=/]];   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
+  ['const SPELL_ENERGY=11;', 'const SPELL_ENERGY=0;', /const SPELL_ENERGY\s*=/],
+  ["type:'hot',hps:0.06,dur:6,cd:7,gfx:'oakmir_green'", "type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green'", /hps:0\.06,dur:6,cd:\d+,gfx:'oakmir_green'/],   // v1287 (5 Nov, tester via Phil): Oakmir Green cd 6 -> 7
+  ["mul:0.22,cd:10,gfx:'oakmir_blue'", "mul:0.22,cd:9,gfx:'oakmir_blue'", /mul:0\.22,cd:\d+,gfx:'oakmir_blue'/]];   // v1287: Oakmir Blue cd 9 -> 10   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
 const made = [];
 process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } catch (e) {} } });
 function undoText(s) {

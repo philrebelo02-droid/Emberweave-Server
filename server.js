@@ -1877,10 +1877,10 @@ function marketOffersSrv(me,led,now){ const h=Math.floor(now/MARKET_HOUR_MS);
   return led.market; }
 function marketOfferView(mk){ return mk.offers.map(o=>({i:o.i,hero:o.hero,qty:o.qty,pay:o.pay,price:o.pay==='gems'?30*o.qty:550*o.qty,bought:mk.bought.includes(o.i)})); }
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
-const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow','hero61']);
+const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow','hero61','zahri']);   /* v1287 (Phil 5 Nov: "Only grosk and zahri is arena only right now") */
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
 /* v1079: the arena shop catalogue (= the client's ARENA_SHOP: id, price in arena coins); day = the old /api/tx/earn daily cap / amount. */
-const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
+const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, zahrifrag:{cost:500,frag:'zahri',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
 const GUILD_SHOP_SRV={0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
@@ -4977,11 +4977,19 @@ function tutorialStepMet(u,led,step){ const c=((led.camp||{}).cleared)|0, q=((le
    spec exactly; the pity rule (a full hero guaranteed within 40 diamond wishes) is server-added per
    the audit's pity requirement and shown to players. Legacy material prizes are returned for the
    client's local (non-competitive) material bag. */
-const POOL_P2=["fritz","rhukk","gruel","astra","quorrel","korvux","maren","lumi","vesper","tessit"];
-const POOL_P3=["bloatus","umbris","oakmir","meridian","rivet","grimsby"];
-const POOL_GOLD_HEROES=["tick","dandra","carn","vael","vex","sylthaine","vireo"];   /* v1144 (Phil 15 Oct: "The gold heroes should also include all 1 star" / "Like vael and vex"): every 1-star hero */
+/* v1287 (Phil 5 Nov: "All 2/3 star that isnt mythical should be in diamond pool" / "All 1 star in gold wish" / "And all mythical in
+   mythic pool" / "Only grosk and zahri is arena only right now"): the pools are DERIVED from each hero's stars, so no hero is left
+   without a way to earn it (31 of 61 were before - tester report 5 Nov). Mythicals stay in POOL_MYTHIC; Grosk and Zahri only in the
+   Arena shop. A new hero joins its pool by its stars. */
+const ARENA_ONLY_HEROES=['grosk','zahri'];
+const _POOL_SKIP=new Set(['konwu','vulmar','aureth','hurne','hollow','hero61'].concat(ARENA_ONLY_HEROES));
+const _poolByStars=n=>Object.keys((SIM&&SIM.HERO_BASE)||{}).filter(k=>!_POOL_SKIP.has(k)&&((SIM.HERO_BASE[k]||{}).stars|0)===n);
+const POOL_P2=_poolByStars(2);
+const POOL_P3=_poolByStars(3);
+const POOL_GOLD_HEROES=_poolByStars(1);
 const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,gruel:2,astra:2,quorrel:2,korvux:2,maren:2,lumi:2,hollow:3,rivet:3,carn:1,vesper:2,tessit:2,vex:1,grimsby:3,dandra:1};
 const POOL_DUPE_FRAG={1:7,2:14,3:30};
+for(const _k of Object.keys((SIM&&SIM.HERO_BASE)||{})) if(POOL_START_STARS[_k]==null) POOL_START_STARS[_k]=(SIM.HERO_BASE[_k]||{}).stars||1;   /* v1287: every hero has its start stars (31 had none -> duplicates paid 7) */
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300, WISH10_MULT=9;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000, WISH_FIRST_GEM_CLEAR_NODE=5;
 const WISH_GEM_PITY=40;   // a full hero is guaranteed within this many diamond wishes - the free daily ones count too (v998: comment matched to the code, Pool audit #17)
@@ -8396,7 +8404,7 @@ async function api(req,res,url){
       if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
       if(what==='frag' && !validHero(String(b.heroKey||''))) return {ok:false,error:'Unknown hero.'};
       if(what==='frag' && reason!=='arena' && heroNotSold(String(b.heroKey||''))) return {ok:false,error:'That hero\'s fragments are not sold or earned here.'};   /* 3 Oct Market audit #2 */
-      if(what==='frag' && reason==='arena' && String(b.heroKey||'')!=='grosk') return {ok:false,error:'The arena shop sells only Grosk fragments.'};   /* 3 Oct 23:2x: the arena frag rule was the last open fragment door - any hero, incl. purchase heroes */
+      if(what==='frag' && reason==='arena' && !ARENA_ONLY_HEROES.includes(String(b.heroKey||''))) return {ok:false,error:'The arena shop sells only Grosk fragments.'};   /* 3 Oct 23:2x: the arena frag rule was the last open fragment door - any hero, incl. purchase heroes */
       led.earnDay=earnDay; earnDay[what+':'+reason]=used+amt;
       if(what==='gold'){ const before=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+amt);
         resourceGain(me,'gold',led.gold-before,reason); }
