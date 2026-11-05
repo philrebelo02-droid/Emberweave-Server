@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.2.9", "releases": "v1280", "items": [{"text": "Morvayne final set (Phil picks 5 Nov, ChatGPT 066fdfb4 + 7622d887 spill fix); q_vex duplicate hero pays POOL_DUPE_FRAG (found by the sim bug checker).", "sources": ["SHIPPED-v1280-morvayne-final-05-11-2026.md"]}]},
     {"ver": "1.2.8", "releases": "v1279", "items": [{"text": "Smoke test 4-5 Nov (ChatGPT): quest ready map read only at sign-in; hero Equipment gear state read once per session; KonWu acquisition text vs the Mythical Pool (EGP 11, 1% hero).", "sources": ["SHIPPED-v1279-smoke-fixes-2-05-11-2026.md"]}]},
     {"ver": "1.2.7", "releases": "v1278", "items": [{"text": "Smoke test 4 Nov (ChatGPT): loadout title showed the path id; skill + button looked live at the hero-level cap.", "sources": ["SHIPPED-v1278-smoke-fixes-04-11-2026.md"]}]},
     {"ver": "1.2.6", "releases": "v1276", "items": [{"text": "14-7 x0.85 all portals (Phil 4 Nov: \"go ahead with normal 14-7\"; sims: Normal median 23 game days held, Elite 1 of 22 cleared).", "sources": ["SHIPPED-v1276-14-7-wall-04-11-2026.md"]}]},
