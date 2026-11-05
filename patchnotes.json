@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.2.7", "date": "4 November 2026", "title": "Hero screen fixes", "items": ["Equipment now names each hero's loadout in plain words (for example Tank / Attack / Front).", "A skill's upgrade button is greyed out once the skill matches its hero's level - level the hero to raise it further."]},
     {"ver": "1.2.6", "date": "4 November 2026", "title": "Stage 14-7 eased", "items": ["Campaign stage 14-7 is a little easier on Normal, Elite and Veteran: enemy health and damage lowered by 15%."]},
     {"ver": "1.2.5", "date": "4 November 2026", "title": "Facebook sign in", "items": ["Sign in with Facebook is now available next to Emberweave and Google sign in.", "Settings > Account: link Google and Facebook side by side."]},
     {"ver": "1.2.4", "date": "4 November 2026", "title": "Facebook sign in (coming soon)", "items": ["Facebook sign in and account linking are built and will switch on once the Facebook app is approved, next to Emberweave and Google sign in."]},

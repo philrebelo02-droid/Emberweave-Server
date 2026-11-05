@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.2.7", "releases": "v1278", "items": [{"text": "Smoke test 4 Nov (ChatGPT): loadout title showed the path id; skill + button looked live at the hero-level cap.", "sources": ["SHIPPED-v1278-smoke-fixes-04-11-2026.md"]}]},
     {"ver": "1.2.6", "releases": "v1276", "items": [{"text": "14-7 x0.85 all portals (Phil 4 Nov: \"go ahead with normal 14-7\"; sims: Normal median 23 game days held, Elite 1 of 22 cleared).", "sources": ["SHIPPED-v1276-14-7-wall-04-11-2026.md"]}]},
     {"ver": "1.2.5", "releases": "v1275", "items": [{"text": "Facebook switched on 4 Nov 14:0x; Google + Facebook link buttons in one row (Phil 4 Nov: \"put the Facebook link right next to the Google one\").", "sources": ["SHIPPED-v1275-links-row-04-11-2026.md"]}]},
     {"ver": "1.2.4", "releases": "v1274", "items": [{"text": "Facebook sign in built, OFF until FACEBOOK_APP_ID + FACEBOOK_APP_SECRET are set (Phil 4 Nov: \"lets setup facebook\").", "sources": ["SHIPPED-v1274-facebook-signin-04-11-2026.md"]}]},
