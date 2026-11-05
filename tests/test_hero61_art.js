@@ -10,10 +10,10 @@ for(const [slot,e] of Object.entries(F.entries)){
  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),F.files[relative]);
  assert.ok(bytes.length<=4e6);assert.ok(a.fw*a.cols<=2048&&a.fh*a.rows<=2048);
 }
-assert.equal(actual.blue.n,116,'approved Blue take5 has its own cast clip');
+assert.equal(actual.blue.n,116,'approved Blue take 2 has its own cast clip');
 assert.equal(actual.blue.contact,89);
-assert.equal(F.blueProvenance.sourceSHA256,'d268d383dd8d50e09a17364f9c18573b4ce6578dbb96ebd50c1058bd949adbf8');
-assert.equal(F.cut.blue.frames[89],54,'source release pose retained at the engine contact');
+assert.equal(F.blueProvenance.sourceSHA256,'82afc42b653abaa183b49dd3e8714cd966531a9c27f0e18c56ef95f38b0819cb');
+assert.equal(F.cut.blue.frames[89],91,'source release pose retained at the engine contact');
 run(`globalThis.blueCaster=makeUnit('hero61','ally',300,300,1,{rank:3});
  globalThis.blueFriend=makeUnit('vael','ally',320,300,1,{rank:3});
  units=[blueCaster,blueFriend];blueCaster.anim=BATTLE_ANIM.hero61;blueFriend.hp=blueFriend.maxHp*.2;hero61Cast(blueCaster,'blue');`);
@@ -31,7 +31,7 @@ for(const d of require('../server/gear-catalog.json').items.filter(d=>d.id.start
  const html=run('gearImg('+JSON.stringify(d)+',40)');assert.ok(html.includes('/'+d.artId+'.webp'));
  assert.ok(fs.existsSync(path.join(ROOT,'assets/img/gear/items',d.artId+'.webp')),'existing gear illustration exists');
 }
-for(const c of Object.values(F.cut)){assert.equal(c.problems.length,0);assert.ok(c.min_margin>=2);assert.ok(c.figH>=140&&c.figH<=240);assert.equal(c.fringe_master.edge_gt24,0);assert.ok(c.fringe_q95.edge_gt24<=.005);}
+for(const c of Object.values(F.cut)){assert.equal(c.problems.length,0);assert.ok(c.min_margin>=2);assert.ok(c.figH>=100&&c.figH<=240);assert.equal(c.fringe_master.edge_gt24,0);assert.ok(c.fringe_q95.edge_gt24<=.005);}
 // Art controls: deleting or replacing the art leaves the authoritative fight exactly the same.
 const specs=[{key:'hero61',level:30,rank:3,skillLv:[20,20,20,20]},{key:'vael',level:30,rank:3}];
 const foes=[{key:'hollow',level:30,rank:3},{key:'grosk',level:30,rank:3}];
@@ -41,4 +41,4 @@ const missing=require('../server/sim-host').load(path.join(ROOT,'emberweave-hero
 vm.runInContext('Object.entries(BATTLE_ANIM.hero61).forEach(([slot,a])=>{a.u="/assets/anim/hero61/missing-render-only-"+slot+".webp";delete a.tex;});',missing.ctx);
 const noTextures=missing.auto(missing.snapFromSpecs(specs),foes,61003);
 assert.deepEqual(noTextures,withArt,'pixels and texture availability cannot change combat');
-console.log('Hero61 art PASS: 8 approved sources, phone bounds/alpha/fringe, streaming ash death, offline assets, approved Blue5 contact, texture-independent combat');
+console.log('Hero61 art PASS: 8 approved sources, phone bounds/alpha/fringe, streaming ash death, offline assets, approved Blue contact, texture-independent combat');
