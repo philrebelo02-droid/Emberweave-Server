@@ -995,25 +995,25 @@
     {
      "key": "ooznik",
      "lvl": 10,
-     "hpMul": 4.4059,
+     "hpMul": 5.2871,
      "dmgMul": 4.0193
     },
     {
      "key": "skarrn",
      "lvl": 10,
-     "hpMul": 4.4059,
+     "hpMul": 5.2871,
      "dmgMul": 4.0193
     },
     {
      "key": "cinder skulk",
      "lvl": 10,
-     "hpMul": 4.4059,
+     "hpMul": 5.2871,
      "dmgMul": 4.0193
     },
     {
      "key": "vexmite",
      "lvl": 10,
-     "hpMul": 4.4059,
+     "hpMul": 5.2871,
      "dmgMul": 4.0193
     },
     {
@@ -2202,13 +2202,13 @@
     {
      "key": "mudsnap crab",
      "lvl": 13,
-     "hpMul": 4.3867,
+     "hpMul": 5.264,
      "dmgMul": 4.5719
     },
     {
      "key": "nightcap mimic",
      "lvl": 13,
-     "hpMul": 4.3867,
+     "hpMul": 5.264,
      "dmgMul": 4.5719
     },
     {
@@ -2221,7 +2221,7 @@
     {
      "key": "mudsnap crab",
      "lvl": 13,
-     "hpMul": 4.3867,
+     "hpMul": 5.264,
      "dmgMul": 4.5719
     }
    ]
@@ -3399,19 +3399,19 @@
     {
      "key": "granith",
      "lvl": 18,
-     "hpMul": 8.1801,
+     "hpMul": 9.8161,
      "dmgMul": 7.4237
     },
     {
      "key": "granith",
      "lvl": 18,
-     "hpMul": 8.1801,
+     "hpMul": 9.8161,
      "dmgMul": 7.4237
     },
     {
      "key": "luminant orb",
      "lvl": 18,
-     "hpMul": 8.1801,
+     "hpMul": 9.8161,
      "dmgMul": 7.4237
     },
     {
@@ -3424,7 +3424,7 @@
     {
      "key": "luminant orb",
      "lvl": 18,
-     "hpMul": 8.1801,
+     "hpMul": 9.8161,
      "dmgMul": 7.4237
     }
    ]
@@ -4665,19 +4665,19 @@
     {
      "key": "mordath",
      "lvl": 24,
-     "hpMul": 9.0304,
+     "hpMul": 10.8365,
      "dmgMul": 6.9427
     },
     {
      "key": "saltglass siren",
      "lvl": 24,
-     "hpMul": 9.0304,
+     "hpMul": 10.8365,
      "dmgMul": 6.9427
     },
     {
      "key": "storm eel",
      "lvl": 24,
-     "hpMul": 9.0304,
+     "hpMul": 10.8365,
      "dmgMul": 6.9427
     },
     {
@@ -4690,7 +4690,7 @@
     {
      "key": "mordath",
      "lvl": 24,
-     "hpMul": 9.0304,
+     "hpMul": 10.8365,
      "dmgMul": 6.9427
     }
    ]
@@ -6010,13 +6010,13 @@
     {
      "key": "wispweaver shade",
      "lvl": 30,
-     "hpMul": 9.2873,
+     "hpMul": 11.1448,
      "dmgMul": 7.5823
     },
     {
      "key": "mourn moth",
      "lvl": 30,
-     "hpMul": 9.2873,
+     "hpMul": 11.1448,
      "dmgMul": 7.5823
     },
     {
@@ -6029,7 +6029,7 @@
     {
      "key": "mourn moth",
      "lvl": 30,
-     "hpMul": 9.2873,
+     "hpMul": 11.1448,
      "dmgMul": 7.5823
     }
    ]
@@ -7325,7 +7325,7 @@
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 22.4787,
+     "hpMul": 26.9744,
      "dmgMul": 11.7507
     },
     {
@@ -7338,7 +7338,7 @@
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 22.4787,
+     "hpMul": 26.9744,
      "dmgMul": 11.7507
     }
    ]
@@ -8664,13 +8664,13 @@
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 29.3689,
+     "hpMul": 35.2427,
      "dmgMul": 14.7908
     },
     {
      "key": "zephyr harrier",
      "lvl": 43,
-     "hpMul": 29.3689,
+     "hpMul": 35.2427,
      "dmgMul": 14.7908
     },
     {
@@ -8683,7 +8683,7 @@
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 29.3689,
+     "hpMul": 35.2427,
      "dmgMul": 14.7908
     }
    ]
@@ -9937,19 +9937,19 @@
     {
      "key": "grundle",
      "lvl": 50,
-     "hpMul": 25.2503,
+     "hpMul": 30.3004,
      "dmgMul": 15.5228
     },
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 25.2503,
+     "hpMul": 30.3004,
      "dmgMul": 15.5228
     },
     {
      "key": "saltglass siren",
      "lvl": 50,
-     "hpMul": 25.2503,
+     "hpMul": 30.3004,
      "dmgMul": 15.5228
     },
     {
@@ -9962,7 +9962,7 @@
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 25.2503,
+     "hpMul": 30.3004,
      "dmgMul": 15.5228
     }
    ]
@@ -11306,13 +11306,13 @@
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 25.5469,
+     "hpMul": 30.6563,
      "dmgMul": 10.8984
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 25.5469,
+     "hpMul": 30.6563,
      "dmgMul": 10.8984
     },
     {
@@ -11325,7 +11325,7 @@
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 25.5469,
+     "hpMul": 30.6563,
      "dmgMul": 10.8984
     }
    ]
@@ -12669,13 +12669,13 @@
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 27.5877,
+     "hpMul": 33.1052,
      "dmgMul": 12.6358
     },
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 27.5877,
+     "hpMul": 33.1052,
      "dmgMul": 12.6358
     },
     {
@@ -12688,7 +12688,7 @@
     {
      "key": "basalt mauler",
      "lvl": 65,
-     "hpMul": 27.5877,
+     "hpMul": 33.1052,
      "dmgMul": 12.6358
     }
    ]
@@ -14044,13 +14044,13 @@
     {
      "key": "crystalhorn grazer",
      "lvl": 72,
-     "hpMul": 58.4134,
+     "hpMul": 70.0961,
      "dmgMul": 24.0893
     },
     {
      "key": "zephyr harrier",
      "lvl": 72,
-     "hpMul": 58.4134,
+     "hpMul": 70.0961,
      "dmgMul": 24.0893
     },
     {
@@ -14063,7 +14063,7 @@
     {
      "key": "luminant orb",
      "lvl": 72,
-     "hpMul": 58.4134,
+     "hpMul": 70.0961,
      "dmgMul": 24.0893
     }
    ]
@@ -15425,13 +15425,13 @@
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 92.9853,
+     "hpMul": 111.5824,
      "dmgMul": 30.8399
     },
     {
      "key": "rustclank",
      "lvl": 79,
-     "hpMul": 92.9853,
+     "hpMul": 111.5824,
      "dmgMul": 30.8399
     },
     {
@@ -15444,7 +15444,7 @@
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 92.9853,
+     "hpMul": 111.5824,
      "dmgMul": 30.8399
     }
    ]
@@ -16806,13 +16806,13 @@
     {
      "key": "skyroot dryad",
      "lvl": 86,
-     "hpMul": 45.8868,
+     "hpMul": 55.0642,
      "dmgMul": 19.8642
     },
     {
      "key": "wispweaver shade",
      "lvl": 86,
-     "hpMul": 45.8868,
+     "hpMul": 55.0642,
      "dmgMul": 19.8642
     },
     {
@@ -16825,7 +16825,7 @@
     {
      "key": "skyroot dryad",
      "lvl": 86,
-     "hpMul": 45.8868,
+     "hpMul": 55.0642,
      "dmgMul": 19.8642
     }
    ]
@@ -18186,13 +18186,13 @@
     {
      "key": "magma hound",
      "lvl": 93,
-     "hpMul": 74.9676,
+     "hpMul": 89.9611,
      "dmgMul": 28.6712
     },
     {
      "key": "granith",
      "lvl": 93,
-     "hpMul": 74.9676,
+     "hpMul": 89.9611,
      "dmgMul": 28.6712
     },
     {
@@ -18205,7 +18205,7 @@
     {
      "key": "luminant orb",
      "lvl": 93,
-     "hpMul": 74.9676,
+     "hpMul": 89.9611,
      "dmgMul": 28.6712
     }
    ]
@@ -19549,13 +19549,13 @@
     {
      "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 71.2105,
+     "hpMul": 85.4526,
      "dmgMul": 23.3219
     },
     {
      "key": "zephyr harrier",
      "lvl": 100,
-     "hpMul": 71.2105,
+     "hpMul": 85.4526,
      "dmgMul": 23.3219
     },
     {
@@ -19568,7 +19568,7 @@
     {
      "key": "riftling spider",
      "lvl": 100,
-     "hpMul": 71.2105,
+     "hpMul": 85.4526,
      "dmgMul": 23.3219
     }
    ]
@@ -20864,19 +20864,19 @@
     {
      "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 121.4465,
+     "hpMul": 145.7358,
      "dmgMul": 51.0576
     },
     {
      "key": "ironjaw raider",
      "lvl": 100,
-     "hpMul": 121.4465,
+     "hpMul": 145.7358,
      "dmgMul": 51.0576
     },
     {
      "key": "ironjaw raider",
      "lvl": 100,
-     "hpMul": 121.4465,
+     "hpMul": 145.7358,
      "dmgMul": 51.0576
     },
     {
@@ -20889,7 +20889,7 @@
     {
      "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 121.4465,
+     "hpMul": 145.7358,
      "dmgMul": 51.0576
     }
    ]

@@ -17412,11 +17412,52 @@ function _showScreen(name){
   if(name==='world') renderWorldOverview();
   updateChatVisibility();
   if(G.tutStarted&&!G.tutDone) setTimeout(highlightTutorialTarget,0);
+  if(name==='home') setTimeout(whatsNewMaybe,700);   /* v1295: "What's new" after an update */
 }
 /* v255 (80/20 contract §9): NOTHING may cover a battle/reward result. While the result panel is up,
    any auto-opened notice, tutorial nudge, event card or modal is QUEUED and flushed the moment the
    player dismisses the reward. Player-initiated taps are never queued. */
 let _rewardQueue=[], _rewardLockOn=false;
+/* v1295 (Phil 6 Nov: "when someone opens the game after an update it pops up a "whats new" explaining what was just updated. Without
+   ever using another games description or any Ai names"): reads the site's own patch notes (/patchnotes.json, newest first) and shows
+   the ones newer than the last one this player saw (G.whatsNewSeen = that patch's ver, saved with the game). Once per session, in town
+   only, never during the tutorial or over a result. A brand-new player sees nothing (marked silently); a player who never saw one gets
+   only the newest. WHATSNEW_BLOCK: a note naming an AI or another game is never shown (tests/test_whats_new_1293.js also fails the
+   build if patchnotes.json holds one). Game words that start with Ember (Ember Roast, Ember Cleave, Ember Gold...) stay allowed. */
+const WHATSNEW_BLOCK = /\b(Claude|ChatGPT|GPT|OpenAI|Anthropic|Grok|xAI|Kimi|Vigil|Codex|Gemini|Copilot|Ember\s*(?:AI|bot|brain)|Emberweave Brain|AI|A\.I\.|Magic Rush|Fractalia|Dragon Prayer)\b/i;
+let _whatsNewDone = false;
+async function whatsNewMaybe(){
+  if(_whatsNewDone || !(ACC&&ACC.token) || (G.tutStarted&&!G.tutDone) || state!=='home') return;
+  _whatsNewDone = true;
+  let notes;
+  try{ const r = await fetch('/patchnotes.json?v='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:''), {cache:'no-store'});
+    notes = ((await r.json()).patches||[]).filter(p=>p&&p.ver); }catch(e){ return; }
+  if(!notes.length) return;
+  const newest = notes[0].ver, seen = G.whatsNewSeen;
+  if(seen===newest) return;
+  const mark = ()=>{ G.whatsNewSeen = newest; try{ saveG(); }catch(e){} };
+  if(!seen && !G.tutDone){ mark(); return; }                       // a brand-new player: nothing to catch up on
+  const at = seen ? notes.findIndex(p=>p.ver===seen) : -1;
+  let fresh = (at>0 ? notes.slice(0,at) : seen ? notes.slice(0,3) : notes.slice(0,1)).slice(0,5);
+  fresh = fresh.map(p=>({ver:p.ver, date:p.date||'', title:WHATSNEW_BLOCK.test(p.title||'')?'':(p.title||''),
+                         items:(p.items||[]).filter(t=>typeof t==='string'&&!WHATSNEW_BLOCK.test(t))})).filter(p=>p.items.length);
+  if(!fresh.length){ mark(); return; }
+  const show = ()=>{ if(state!=='home'){ _whatsNewDone=false; return; }
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
+    ov.innerHTML = `<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:20px 18px;width:100%;max-width:380px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 14px 44px #000b">
+      <div style="font-family:Georgia,serif;font-weight:900;font-size:21px;color:#ffd45e;text-shadow:0 1px 4px #000;text-align:center;margin-bottom:10px">What's New</div>
+      <div style="overflow-y:auto;flex:1;min-height:0;text-align:left">${fresh.map(p=>`<div style="margin:0 0 14px">
+        <div style="font-weight:800;color:#e6edf3;font-size:14px">${escapeHTML(p.title||('Update '+p.ver))}</div>
+        <div style="font-size:11px;color:#8b98a9;margin:2px 0 6px">${escapeHTML((p.date?p.date+' · ':'')+'v'+p.ver)}</div>
+        <ul style="margin:0;padding-left:18px;color:#cdd6e4;font-size:13px;line-height:1.45">${p.items.map(t=>`<li style="margin:3px 0">${escapeHTML(t)}</li>`).join('')}</ul></div>`).join('')}</div>
+      <button class="btn" style="width:100%;margin-top:10px" id="_wnOk">Got it</button></div>`;
+    document.body.appendChild(ov);
+    const close = ()=>{ ov.remove(); mark(); };
+    ov.querySelector('#_wnOk').onclick = close; ov.onclick = e=>{ if(e.target===ov) close(); };
+  };
+  queueBehindReward(show);
+}
 function rewardLocked(){ try{ return state==='result'; }catch(e){ return false; } }
 function queueBehindReward(fn){ if(!rewardLocked()){ fn(); return true; }
   if(_rewardQueue.length<8) _rewardQueue.push(fn); return false; }
@@ -31985,7 +32026,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793987209654';
+const BUILD_ID = '1793996474866';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
