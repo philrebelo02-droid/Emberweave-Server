@@ -65,7 +65,7 @@ const EVIL = '<b class=pwn>x</b>&"\'', EVIL2 = '<img src=x onerror=__xss=1>', EV
     await pg.waitForFunction(() => typeof show === 'function' && typeof api === 'function', null, { timeout: 90000 }); await delay(2500);
     await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await delay(1000);
     await pg.evaluate(async () => { const r = await api('/api/login', 'POST', { name: 'nmDev', pass: 'password1' }); ACC.token = r.token; ACC.id = r.profile.id; ACC.name = r.profile.name; ACC.admin = !!r.profile.admin;
-      G.tutStarted = true; G.tutDone = true; try { document.body.classList.remove('gated'); } catch (e) {} try { authGateRefresh(); } catch (e) {} show('home'); });
+      G.tutStarted = true; G.tutDone = true; try { _whatsNewDone = true; } catch (e) {} /* v1296: What's New is a modal (chat hides under it); this test looks at chat */ try { document.body.classList.remove('gated'); } catch (e) {} try { authGateRefresh(); } catch (e) {} show('home'); });
     await delay(2500);
     const probe = () => pg.evaluate(([E, E2, EG]) => ({ pwn: document.querySelectorAll('.pwn').length, img: document.querySelectorAll('img[src="x"]').length, xss: typeof window.__xss !== 'undefined',
       lit: document.body.innerText.includes(E), lit2: document.body.innerText.includes(E2), litG: document.body.innerText.includes(EG) }), [EVIL, EVIL2, EVILG]);
