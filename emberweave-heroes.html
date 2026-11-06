@@ -15068,6 +15068,11 @@ function think(u,dt){
      is untouched. Safe for the server verdict: sim-host replays this same code, so both sides root together. */
   const _ultRoot=((u._ultRootT||0)>0);
   const silenced=(u.silencedT||0)>0;   // silenced (Grosk): can't use ANY ability — only auto-attack
+  /* v1296 (Phil 6 Nov: "Equipment doesnt auto activate when someone has auto on"): the gear active was a button only, so AUTO never
+     used it. With AUTO on, an ally's unused active fires from 2.5 s (the Emberdraft timing); castGearSkill keeps its own rules
+     (stun, "below X% health") and only marks it used when it really casts, so a conditional item waits for its moment.
+     Engine-side and keyed on autoUlt (a recorded input), so the server replay fires it on the same tick. */
+  if(u.team==='ally' && autoUlt && CUR.mode!=='online' && u.gearSkill && !u.gearSkill.used && battleTime>=2.5) castGearSkill(u,true);
   // ultimate (energy): enemies + AUTO auto-fire; player fires (and aims) via portrait
   if(u.key!==HERO61.KEY && !silenced && !u.t.monster && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
     /* v1103 (Phil 9 Oct, Emberdraft: "they dont auto ult. i still have to click" - "it was vireo"): a healer's ult waits for the first point of
@@ -17438,7 +17443,7 @@ async function whatsNewMaybe(){
   const mark = ()=>{ G.whatsNewSeen = newest; try{ saveG(); }catch(e){} };
   if(!seen && !G.tutDone){ mark(); return; }                       // a brand-new player: nothing to catch up on
   const at = seen ? notes.findIndex(p=>p.ver===seen) : -1;
-  let fresh = (at>0 ? notes.slice(0,at) : seen ? notes.slice(0,3) : notes.slice(0,1)).slice(0,5);
+  let fresh = (at>0 ? notes.slice(0,at) : notes.slice(0,3)).slice(0,5);   /* v1296 (Phil 6 Nov: "Include the past 2 patches worth"): the first popup shows this update and the 2 before it */
   fresh = fresh.map(p=>({ver:p.ver, date:p.date||'', title:WHATSNEW_BLOCK.test(p.title||'')?'':(p.title||''),
                          items:(p.items||[]).filter(t=>typeof t==='string'&&!WHATSNEW_BLOCK.test(t))})).filter(p=>p.items.length);
   if(!fresh.length){ mark(); return; }
@@ -32026,7 +32031,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793996474866';
+const BUILD_ID = '1793997726928';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
