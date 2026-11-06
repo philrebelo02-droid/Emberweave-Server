@@ -31668,6 +31668,7 @@ function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||
 let st2Tab='diamonds';
 const ST2_TABS=[['diamonds','Diamonds',8.72,18.50],['packs','Packs',29.89,18.77],['limited','Limited',51.50,18.61],['patron','Patron',72.83,18.45]];   // [id, label, left %, width %] - the frame's 4 plates
 function st2Offers(tab){ return GEM_OFFERS.map((o,i)=>[o,i]).filter(([o])=>{ const k=o.reward&&o.reward.kind;
+  if(o.real) return tab==='limited';   // v1298 (Phil 6 Nov: "also please put it in a seperate tab" / "put it in limited"): the real $1 TEST PACK lives only in Limited
   return tab==='diamonds'?k==='gems':tab==='packs'?(k==='dailyGems'||k==='dailyStamina'):false; }); }
 function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
   const m=document.getElementById('hudShop'); if(m) m.classList.add('st2');
