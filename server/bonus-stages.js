@@ -886,7 +886,7 @@ async function handle(p, method, ctx){
   if(p==='/api/bonus/state' && method==='GET'){
     return { status:200, body:{ ok:true,
       done:b.done, tiers:CH_BONUS_TIER, slotRate:SLOT_RATE,
-      perHour:totalPerHour(b), claim:pending(b, now), serverNow:now } };
+      perHour:totalPerHour(b), claim:pending(b, now), serverNow:now, since:b.ts||0 } };   // v1298: since = accrual start, for the panel's next-hour timer
   }
 
   /* ---- the bottom-left "Bonus stage rewards" icon ---- */
