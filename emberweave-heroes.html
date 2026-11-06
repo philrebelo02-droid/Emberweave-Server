@@ -3181,7 +3181,7 @@ HERO_PORTRAITS.tessit='/assets/img/glossary/glossary-heroes-tessit.webp?v=5';
 HERO_PORTRAITS.vex='/assets/img/glossary/glossary-heroes-vex.webp?v=5';
 HERO_PORTRAITS.grimsby='/assets/img/glossary/glossary-heroes-grimsby.webp?v=5';
 HERO_PORTRAITS.dandra='/assets/img/glossary/glossary-heroes-dandra.webp?v=5';
-HERO_PORTRAITS.hero61='/assets/img/hero-cards/card-hero61.webp?v=1281';
+HERO_PORTRAITS.hero61='/assets/img/hero-cards/card-hero61.webp?v=1288';
 const MYTHIC_BANNERS = {/*__MYTHBANNERS__*/}; // per-mythical-hero banner art OVERRIDE (optional), shown under the portrait
 const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHARED "MYTHICAL" plaque shown under ANY myth:true hero (per-hero MYTHIC_BANNERS wins if set)
 const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
@@ -23421,7 +23421,7 @@ HERO_PORTRAITS.pyroclast='/assets/img/glossary/glossary-heroes-pyroclast.webp?v=
 HERO_PORTRAITS.iver='/assets/img/glossary/glossary-heroes-iver.webp?v=1'; HERO_SPRITES.iver=HERO_PORTRAITS.iver; GLOSSARY_ART['heroes/iver']=HERO_PORTRAITS.iver;
 HERO_PORTRAITS.sloe='/assets/img/glossary/glossary-heroes-sloe.webp?v=1'; HERO_SPRITES.sloe=HERO_PORTRAITS.sloe; GLOSSARY_ART['heroes/sloe']=HERO_PORTRAITS.sloe;
 HERO_PORTRAITS.absalie='/assets/img/glossary/glossary-heroes-absalie.webp?v=1'; HERO_SPRITES.absalie=HERO_PORTRAITS.absalie; GLOSSARY_ART['heroes/absalie']=HERO_PORTRAITS.absalie;
-HERO_CARD_ART.hero61='/assets/img/hero-cards/card-hero61.webp?v=1281';
+HERO_CARD_ART.hero61='/assets/img/hero-cards/card-hero61.webp?v=1288';
 HERO_CARD_ART.grimsby='/assets/img/hero-cards/card-grimsby.webp?v=10';
 HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=10';
 HERO_CARD_ART.aureth='/assets/img/hero-cards/card-aureth.webp?v=10';
@@ -31977,7 +31977,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793922022679';
+const BUILD_ID = '1793924653130';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
