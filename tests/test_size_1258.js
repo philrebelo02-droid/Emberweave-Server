@@ -33,6 +33,8 @@ const walk = (o, n, p) => { if (typeof o === 'number' && typeof n === 'number') 
     odd.push(p + ' ' + o + ' -> ' + n); return; }
   if (o && typeof o === 'object' && n && typeof n === 'object') for (const k of Object.keys(o)) walk(o[k], n[k], p + '.' + k); };
 walk(O, N, '');
+/* v1287 (5 Nov, tester via Phil): Oakmir's cooldowns +1 s are a deliberate balance change, not part of the resize */
+for (const k of ['.KITS.oakmir.green.cd 6 -> 7', '.KITS.oakmir.blue.cd 9 -> 10']) { const j = odd.indexOf(k); if (j >= 0) odd.splice(j, 1); }
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
