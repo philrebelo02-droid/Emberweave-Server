@@ -6102,7 +6102,7 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     case 'haste': return '{i:s:energy} +'+lvPct(skLvNum('haste',ab,lv)-1)+' atk speed';
     case 'taunt': return '{i:s:shield} −'+lvPct(SKLV.tauntDr(lv))+' dmg taken';
     case 'creeprot': case 'dot': case 'aoedot': return '{i:s:attack} '+(ab.mul?Math.round(atk*ab.mul*sm)+' + ':'')+'DoT '+Math.round(atk*(ab.dps||.5)*sm)+'/s';
-    case 'punchflurry': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5);
+    case 'punchflurry': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5)+(ab.magicRider?' + '+Math.round(atk*(ab.mul||0.28)*sm*ab.magicRider)+' magic each':'');   /* v1292 Maelvara's magic rider */
     case 'frozenorb': return '{i:s:slow} '+Math.round(apw*(ab.mul||1.1)*sm)+' to every foe in a 28 m line + chill';
     case 'freeze': return '{i:s:slow} '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+ccSecFor(ab,'stun')+'s stun';
     case 'sunburst': return ''+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
@@ -12747,11 +12747,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(Array.isArray(o.hitTimes)&&o.hitTimes.length){ const _ct=castTimeFor(u,u._castSlot||'blue'), _D=dB*(o.mul||0.30)*rm, _clk=SIM_STEP*SIM_HZ*BATTLE_PACE;
         const _last=Math.max(0.01,o.hitTimes[o.hitTimes.length-1]*_clk-_ct); u._castT=Math.max(u._castT||0,_last+0.15);
         o.hitTimes.slice(0,o.hits||o.hitTimes.length).forEach(_ht=>{ groundHazards.push({arrival:true,delay:Math.max(0.01,_ht*_clk-_ct),run:function(){
-          if(!u.alive||!tg.alive)return; dealDamage(u,tg,_D,'#e0b070');
+          if(!u.alive||!tg.alive)return; dealDamage(u,tg,_D,'#e0b070'); if(o.magicRider&&tg.alive) dealDamage(u,tg,_D*o.magicRider,'#b79bff','magic');
           if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); ccApply(u,tg,'silencedT',o.tauntDur||2); }
           burstAt(tg.x,tg.y,0xe0b070,10); if(o.ownFx==='gfist'){ try{ groskFistFx(u); }catch(_e){} } }}); });   /* v1217 Hammer Fists: the burst on his fist as this punch lands (display only) */
         u.attackAnim=.2; break; }
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,dB*(o.mul||0.30)*rm,'#e0b070');
+        if(o.magicRider&&tg.alive) dealDamage(u,tg,dB*(o.mul||0.30)*rm*o.magicRider,'#b79bff','magic');   /* v1292 (Phil 6 Nov: Maelvara's green "does magic damage also. 30% extra damage per strike as magical") */
         if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); ccApply(u,tg,'silencedT',o.tauntDur||2); } }
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
     // ---- Vulmar (gravity) ----
@@ -21923,7 +21924,7 @@ Object.assign(MONSTER_TYPES,{
   'nerissa':{name:'Nerissa, Crown of the Drowned',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:4169672,fly:true,isboss:true,ap:1.6},
   'barrowmaw':{name:'Barrowmaw, Ossuary Devourer',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:8359786,isboss:true},
   'asterion':{name:'Asterion, Mirror Warden',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:150,speed:44,color:13162736,isboss:true},
-  'maelvara':{name:'Maelvara, Stormnest Matriarch',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7319807,fly:true,isboss:true},
+  'maelvara':{name:'Maelvara, Stormnest Matriarch',stars:5,swing:2.0,monster:true,role:'Brute',hp:345,dmg:26,range:46,speed:44,color:7319807,fly:true,isboss:true},   /* v1292 (Phil 6 Nov: "She needs 15% more health"): hp 300 -> 345 */
   'brukk':{name:'Brukk, Master of the Black Kiln',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:5917258,isboss:true},
   'nymira':{name:'Nymira, the Sunken Bloom',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:7325872,isboss:true,ap:1.6},
   'irix':{name:'Irix, the Sky-Shard Roc',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16765567,fly:true,isboss:true},
@@ -21967,7 +21968,7 @@ Object.assign(MONSTER_KITS,{
   'nerissa':{green:{name:'Royal Undertow',type:'cleave',mul:1.4,radius:2.8*METER,cd:8,gfx:'tidalwave',gfxR:2.8*METER,gdur:2.2},blue:{name:'Pearl Sentence',type:'stun',mul:1.8,stun:1.3,cd:10,gfx:'tsunami',gfxR:2.0*METER,gdur:2.4},pass:'tidereserve'},
   'barrowmaw':{green:{name:'Gravebreath',type:'cleavecone',mul:1.2,radius:3.2*METER,angle:60,burn:true,burnDps:0.4,burnDur:3,cd:8,gfx:'poison',gfxR:2.6*METER,gdur:2.0},blue:{name:'Bone Rush',type:'charge',mul:1.7,radius:2.4*METER,stun:0.8,cd:11,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},pass:'momentum'},
   'asterion':{green:{name:'Reflected Lance',type:'piercethrow',mul:1.8,width:34*UNIT_SIZE,cd:9,pfx:'prismbolt',pscale:3.4,pdur:0.3},blue:{name:'Shard Reversal',type:'defensive',mul:0.4,dur:4,cd:11,gfx:'frostnova',gfxAt:'self',gfxR:2.2*METER,gdur:1.3},pass:'notthere'},
-  'maelvara':{green:{name:'Thunder Talons',type:'punchflurry',hits:3,mul:0.7,tauntChance:0,cd:8,gfx:'groundslam',gfxR:2.0*METER,gdur:1.6},blue:{name:'Cyclone Choir',type:'ashfall',dps:0.5,dur:4,radius:3.2*METER,slow:2,color:'#bfe8ff',cd:12,gfx:'featherstorm',gfxR:3.2*METER,gdur:4.0},pass:'fury'},
+  'maelvara':{green:{name:'Thunder Talons',type:'punchflurry',hits:3,mul:0.7,magicRider:0.3,tauntChance:0,cd:8,gfx:'groundslam',gfxR:2.0*METER,gdur:1.6},blue:{name:'Cyclone Choir',type:'ashfall',dps:0.575,dur:4,radius:5*METER,slow:2,color:'#bfe8ff',cd:12,gfx:'featherstorm',gfxR:5*METER,gdur:4.0},pass:'fury'},
   'brukk':{green:{name:'Anvil Drop',type:'aoeStun',mul:2.0,stun:2.5,radius:4*METER,cd:8,gfx:'groundslam',gfxR:4*METER,gdur:1.4},blue:{name:'Quench Chain',type:'tendrilpull',knockback:15*METER,stop:1,dur:1.4,cd:10},pass:'bulwark'},
   'nymira':{green:{name:'Abyssal Pollen',type:'ashfall',dps:0.45,dur:4,radius:3.0*METER,slow:2,color:'#9fd6c8',cd:11,gfx:'poison',gfxR:3.0*METER,gdur:4.0},blue:{name:'Tendril Verdict',type:'cleave',mul:1.3,radius:2.6*METER,cd:8,gfx:'rallyroots',gfxR:2.6*METER,gdur:1.6},pass:'selfregen'},
   'irix':{green:{name:'Meteor Pinions',type:'volley',mul:1.0,n:4,color:'#ffd27f',cd:8,pfx:'featherbolt',pscale:2.6,pdur:0.26},blue:{name:'Talon Eclipse',type:'stun',mul:1.8,stun:1.2,cd:10,gfx:'featherstorm',gfxR:1.6*METER,gdur:1.8},pass:'stardust'},
@@ -31984,7 +31985,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793973240348';
+const BUILD_ID = '1793975250789';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
