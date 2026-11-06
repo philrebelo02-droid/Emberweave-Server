@@ -17,11 +17,13 @@ const oldKeys = new Set(JSON.parse(OLD(keysJs)));   // 3 Nov 2026: a unit added 
 const keys = JSON.parse(NEW(keysJs)).filter(k => oldKeys.has(k));
 const pick = (run, k) => JSON.parse(run(`(()=>{ const u=makeUnit(${JSON.stringify(k)},'enemy',500,500,10,{}); return JSON.stringify({range:u.range,reach:u.reach,cd:u.combatDist,speed:u.speed,r:u.r,sprH:u.sprH,hp:u.maxHp,dmg:u.dmg,ai:u.atkInterval}); })()`));
 const near = (a, b) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
+// stats Phil changed on purpose AFTER the resize (each with its release) - the resize itself still must not touch them
+const LATER_TUNED = { maelvara: ['hp'] };   // v1292 (6 Nov): Maelvara hp +15%
 let bad = [];
 let skipped = 0;
 for (const k of keys) { let o, n; try { o = pick(OLD, k); n = pick(NEW, k); } catch (e) { skipped++; continue; }
   for (const f of ['range', 'reach', 'cd', 'speed', 'r', 'sprH']) if (!near(n[f], o[f] * S)) bad.push(k + '.' + f + ' ' + o[f] + ' -> ' + n[f]);
-  for (const f of ['hp', 'dmg', 'ai']) if (!near(n[f], o[f])) bad.push(k + '.' + f + ' changed ' + o[f] + ' -> ' + n[f]); }
+  for (const f of ['hp', 'dmg', 'ai']) if (!near(n[f], o[f]) && !(LATER_TUNED[k] || []).includes(f)) bad.push(k + '.' + f + ' changed ' + o[f] + ' -> ' + n[f]); }
 ok(bad.length === 0 && skipped < keys.length / 10, (keys.length - skipped) + ' heroes + monsters: range, reach, row hold, speed, radius and figure height all x1.15, hp / dmg / attack speed unchanged' + (bad.length ? ' - ' + bad.slice(0, 8).join('; ') : ''));
 // every ability table: distance fields x1.15, everything else identical
 const DIST = /(range|radius|reach|width|len|length|dist|distance|wave|gfxR|knock|dash|jump|aim)$/i;   // distance-named (case-insensitive suffix)
@@ -35,6 +37,8 @@ const walk = (o, n, p) => { if (typeof o === 'number' && typeof n === 'number') 
 walk(O, N, '');
 /* v1287 (5 Nov, tester via Phil): Oakmir's cooldowns +1 s are a deliberate balance change, not part of the resize */
 for (const k of ['.KITS.oakmir.green.cd 6 -> 7', '.KITS.oakmir.blue.cd 9 -> 10']) { const j = odd.indexOf(k); if (j >= 0) odd.splice(j, 1); }
+/* v1292 (Phil 6 Nov): Maelvara's Cyclone Choir 10 m across (radius 3.2 -> 5 m, the effect with it) - a deliberate change, not the resize */
+for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.maelvara\.blue\.(radius|gfxR) /.test(odd[j])) odd.splice(j, 1);
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
