@@ -17443,7 +17443,7 @@ async function whatsNewMaybe(){
   const mark = ()=>{ G.whatsNewSeen = newest; try{ saveG(); }catch(e){} };
   if(!seen && !G.tutDone){ mark(); return; }                       // a brand-new player: nothing to catch up on
   const at = seen ? notes.findIndex(p=>p.ver===seen) : -1;
-  let fresh = (at>0 ? notes.slice(0,at) : notes.slice(0,3)).slice(0,5);   /* v1296 (Phil 6 Nov: "Include the past 2 patches worth"): the first popup shows this update and the 2 before it */
+  let fresh = notes.slice(0,3);   /* v1296 (Phil 6 Nov: "Include the past 2 patches worth" / "Actually show the last 3 deploy patches"): always the 3 latest updates */
   fresh = fresh.map(p=>({ver:p.ver, date:p.date||'', title:WHATSNEW_BLOCK.test(p.title||'')?'':(p.title||''),
                          items:(p.items||[]).filter(t=>typeof t==='string'&&!WHATSNEW_BLOCK.test(t))})).filter(p=>p.items.length);
   if(!fresh.length){ mark(); return; }
