@@ -30,7 +30,7 @@ let n=0; const buy=offerId=>call('/api/shop/purchase',{offerId,provider:'test',r
   ok(L.gems===gems0+600,'no rebate at EGP 0 (v1230: the $4.99 chest is 600) (gems +'+(L.gems-gems0)+')');
   const gems1=L.gems; await buy('d6000'); L=await led();   // $50 -> 300 base; rebate at EGP 2 = 7 % of 300 = 21
   ok(L.patron.base===330&&L.patron.egp===5,'a $50 pack adds 300 base -> 330 = EGP 5 (EGP '+L.patron.egp+')');
-  ok(L.gems===gems1+6000+21,'the rebate is paid at the level held before the buy: 7 % of 300 base = 21 (gems +'+(L.gems-gems1)+')');
+  ok(L.gems===gems1+6600+21,'the rebate is paid at the level held before the buy: 7 % of 300 base = 21 (gems +'+(L.gems-gems1)+')');
   ok(L.patron.attacks.free===16&&L.patron.rebatePct===20,'EGP 5: 16 daily attacks, 20 % rebate');
   const ba=await call('/api/patron/buy-attacks',{requestId:'ba1'}); L=await led();
   ok(ba.data.ok===true&&L.patron.attacks.cap===26&&L.patron.attacks.bought===10,'10 attacks for 400 diamonds raise today\'s cap to 26 ('+L.patron.attacks.cap+')');
@@ -49,7 +49,7 @@ let n=0; const buy=offerId=>call('/api/shop/purchase',{offerId,provider:'test',r
   const pr=await call('/api/patron/prestige',{requestId:'pr1'}); L=await led();
   ok(pr.data.ok===true&&L.patron.prestiged===true&&L.patron.edpBase===100&&L.patron.egp===15&&L.patron.edp===0,'prestige: EDP 0 with the 100 over EGP 15 carried; EGP 15 kept');
   const gems2=L.gems; await buy('d6000'); L=await led();
-  ok(L.patron.edpBase===400&&L.patron.base===30100&&L.gems===gems2+6000+360,'after the prestige a purchase counts toward EDP, rebate 120 % of 300 = 360 (gems +'+(L.gems-gems2)+')');
+  ok(L.patron.edpBase===400&&L.patron.base===30100&&L.gems===gems2+6600+360,'after the prestige a purchase counts toward EDP, rebate 120 % of 300 = 360 (gems +'+(L.gems-gems2)+')');
   const pr2=await call('/api/patron/prestige',{requestId:'pr2'}); ok(pr2.data.ok===false,'prestige once only');
   // the cap sites use the patron number
   ok(/if\(me\.pvpDay\.n>=attackCap\(me\)\)/.test(src)&&/if\(done\+open>=attackCap\(me\)\)/.test(src)&&/attacksLeft:Math\.max\(0,attackCap\(me\)-me\.pvpDay\.n\)/.test(src),'every city-attack limit reads the patron cap (no flat 20 left)');

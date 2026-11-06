@@ -65,7 +65,7 @@ const keysDeep=(o,out=[])=>{ if(o&&typeof o==='object') for(const k of Object.ke
   ok(G.patron&&G.patron.egp>=1&&typeof G.templeLevel==='number','progress: Patron level (EGP '+(G.patron&&G.patron.egp)+') and Temple level');
   ok(C.gems===12345&&C.gold===678901&&C.emberRoasts===3&&C.forgeDust===777&&C.arenaCoins===4321&&C.guildCoins===55&&C.stamina>0,'currencies: diamonds, gold, stamina, Ember Roasts, Forge Dust, arena / guild coins');
   ok(R.heroes>=1&&Array.isArray(R.top)&&R.top.length>=1&&R.top.length<=5&&R.top.every(h=>h.level>=1&&h.stars>=1&&h.power>0)&&R.teamPower>0,'roster: hero count '+R.heroes+', team power '+R.teamPower+', top heroes with level / stars / power');
-  ok(A.packs===2&&A.freePacks===2&&A.plans===1&&A.diamondsBought===1200,'account: packs 2, free packs 2, plans 1, diamonds bought 1,200');
+  ok(A.packs===2&&A.freePacks===2&&A.plans===1&&A.diamondsBought===1250,'account: packs 2, free packs 2, plans 1, diamonds bought 1,250 (v1297 pack)');
   ok(p.reports&&p.reports.sent===2&&p.reports.lastAt>0,'reports: 2 sent (the cheat signal is not one), latest time');
   ok(X.flag&&X.flag.reason==='test flag'&&X.cheatSignals===1&&X.battleIncidents===1,'integrity: flag, cheat signals, battle incidents');
   // ---- no secrets ----

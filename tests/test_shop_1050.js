@@ -45,10 +45,10 @@ async function boot(env) {
   try {
     const led0 = L((await B.call('/api/ledger', null, B.guest)).body);
     const d1 = await B.call('/api/shop/purchase', { offerId: 'd1200', provider: 'test', requestId: 'b1' }, B.guest);
-    ok(d1.body.ok && d1.body.granted.gems === 1200, 'a diamond pack credits its diamonds at once');
-    ok(d1.body.ledger.gems === led0.gems + 1200, 'the ledger holds them');
+    ok(d1.body.ok && d1.body.granted.gems === 1250, 'a diamond pack credits its diamonds at once');
+    ok(d1.body.ledger.gems === led0.gems + 1250, 'the ledger holds them');
     const again = await B.call('/api/shop/purchase', { offerId: 'd1200', provider: 'test', requestId: 'b1' }, B.guest);
-    ok(again.body.ledger.gems === led0.gems + 1200, 'a re-sent purchase (same request id) is not paid twice');
+    ok(again.body.ledger.gems === led0.gems + 1250, 'a re-sent purchase (same request id) is not paid twice');
     const c1 = await B.call('/api/shop/purchase', { offerId: 'cluster', provider: 'test', requestId: 'b2' }, B.guest);
     ok(c1.body.ok && c1.body.granted.planDays === 14 && c1.body.plans.gems.daysLeft === 14 && c1.body.plans.gems.ready === true, 'the Cluster Pack adds 14 days, ready today');
     const c2 = await B.call('/api/shop/purchase', { offerId: 'cluster', provider: 'test', requestId: 'b3' }, B.guest);

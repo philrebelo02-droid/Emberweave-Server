@@ -5095,10 +5095,10 @@ const SHOP_OFFERS=[
   {id:'cluster', price:'$4.99',  usd:4.99,  name:'Cluster Pack',   kind:'plan', plan:'gems',    amount:150,  days:14},
   {id:'burger',  price:'$2.99',  usd:2.99,  name:'Burger Meal',    kind:'plan', plan:'stamina', amount:120,  days:30},
   {id:'d500',    price:'$4.99',  usd:4.99,  name:'600 Diamonds',   kind:'gems', amount:600},   // v1230 (Phil 30 Oct: 'the 4.99 600'; the id stays for old records)
-  {id:'d1200',   price:'$9.99',  usd:9.99,  name:'1,200 Diamonds', kind:'gems', amount:1200},
-  {id:'d2800',   price:'$19.99', usd:19.99, name:'2,300 Diamonds', kind:'gems', amount:2300},   // v1230 (Phil: 'make it 2300')
-  {id:'d6000',   price:'$50.00', usd:50,    name:'6,000 Diamonds', kind:'gems', amount:6000},
-  {id:'d12500',  price:'$99.99', usd:99.99, name:'12,500 Diamonds', kind:'gems', amount:12500},
+  {id:'d1200',   price:'$9.99',  usd:9.99,  name:'1,250 Diamonds', kind:'gems', amount:1250}, /* v1297 (Phil 6 Nov: "$10 should be 1250, $20 should be 2600, $50 should be 6600, $100 ... 13400 diamonds" / "always 4.99 9.99 19.99 49.99 99.99") */
+  {id:'d2800',   price:'$19.99', usd:19.99, name:'2,600 Diamonds', kind:'gems', amount:2600},   // v1230 (Phil: 'make it 2300')
+  {id:'d6000',   price:'$49.99', usd:49.99, name:'6,600 Diamonds', kind:'gems', amount:6600},
+  {id:'d12500',  price:'$99.99', usd:99.99, name:'13,400 Diamonds', kind:'gems', amount:13400},
   /* v1291 (Phil 6 Nov: "setup a $1 pack in the shop that isnt free name it TEST PACK (REAL PURCHASE DONT CLICK), make it legit and
      not free so I can buy it myself and see if it goes to my bank"): real:true = never free, never the dev/test grant - only a
      Google Play receipt verified with Google pays it out, even while FREE_PACKS is on for every other pack. Play Console in-app

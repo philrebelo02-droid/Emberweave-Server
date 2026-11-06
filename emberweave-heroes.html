@@ -31416,12 +31416,12 @@ const GEM_OFFERS=[
   {id:'cluster', price:'$4.99', img:'cluster', name:'Cluster Pack',   get desc(){ return t('shop.cluster_desc',{n:150,days:14}); },      get detail(){ return t('shop.cluster_detail',{b:'<b>',eb:'</b>',n:150,gem:hudIcon('gem'),days:14,total:'2,100'})+' '+t('shop.rewards_daily_reset',{time:'09:00'}); }, reward:{kind:'dailyGems', amount:150, days:14}},
   {id:'burger', price:'$2.99', img:'burger',  name:'Burger Meal',    get desc(){ return t('shop.burger_desc',{n:120,days:30}); }, get detail(){ return t('shop.burger_detail',{b:'<b>',eb:'</b>',n:120,days:30,total:'3,600'})+' '+t('shop.rewards_daily_reset',{time:'09:00'}); }, reward:{kind:'dailyStamina', amount:120, days:30}},
   {id:'d500', price:'$4.99', img:'d500',    get name(){ return t('shop.n_diamonds',{n:'600'}); },   get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.chest_detail',{b:'<b>',eb:'</b>',n:'600',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:600}},
-  {id:'d1200', price:'$9.99', img:'d1200',   get name(){ return t('shop.n_diamonds',{n:'1,200'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.chest_detail',{b:'<b>',eb:'</b>',n:'1,200',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:1200}},
-  {id:'d2800', price:'$19.99',img:'d2800',   get name(){ return t('shop.n_diamonds',{n:'2,300'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.hoard_detail',{b:'<b>',eb:'</b>',n:'2,300',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:2300}},
-  {id:'d6000', price:'$50.00',img:'d6000',   get name(){ return t('shop.n_diamonds',{n:'6,000'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.grand_vault_detail',{b:'<b>',eb:'</b>',n:'6,000',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:6000}},
+  {id:'d1200', price:'$9.99', img:'d1200',   get name(){ return t('shop.n_diamonds',{n:'1,250'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.chest_detail',{b:'<b>',eb:'</b>',n:'1,250',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:1200}},
+  {id:'d2800', price:'$19.99',img:'d2800',   get name(){ return t('shop.n_diamonds',{n:'2,600'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.hoard_detail',{b:'<b>',eb:'</b>',n:'2,600',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:2300}},
+  {id:'d6000', price:'$49.99',img:'d6000',   get name(){ return t('shop.n_diamonds',{n:'6,600'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.grand_vault_detail',{b:'<b>',eb:'</b>',n:'6,600',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:6000}},
   /* v1291 (Phil 6 Nov): a REAL $1 Google Play purchase to test the money path - never free, never the dev popup */
   {id:'testpack', price:'$1.00', img:'d500', real:true, name:'TEST PACK (REAL PURCHASE DONT CLICK)', desc:'Real $1 Google Play test purchase', detail:'A real $1.00 charge through Google Play, to test that payments reach the bank. Gives 10 diamonds.', reward:{kind:'gems', amount:10}},
-  {id:'d12500', price:'$99.99',img:'d6000',   get name(){ return t('shop.n_diamonds',{n:'12,500'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.imperial_vault_detail',{b:'<b>',eb:'</b>',n:'12,500',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:12500}},
+  {id:'d12500', price:'$99.99',img:'d6000',   get name(){ return t('shop.n_diamonds',{n:'13,400'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.imperial_vault_detail',{b:'<b>',eb:'</b>',n:'13,400',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:12500}},
 ];
 // grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
 // drop a claimable entry at the top of the Quest log that pays out once per day until its days run out.
@@ -32031,7 +32031,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793997726928';
+const BUILD_ID = '1793998714115';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
