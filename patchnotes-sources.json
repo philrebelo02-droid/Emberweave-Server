@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.4.3", "releases": "v1294", "items": [{"text": "Phil 6 Nov: \"Fritz ult is meant to be aimable\" / \"Also make it have a 6m radius\" (tester: \"it does nothing or little damage\").", "sources": ["SHIPPED-v1294-fritz-aim-06-11-2026.md"]}]},
     {"ver": "1.4.2", "releases": "v1293", "items": [{"text": "Phil 6 Nov: \"The map is totally broken\" / \"Missing entire cities\" / \"This map is a 1 week regression\": the v1269 rebuild (4 Nov) lost cities and the floating World Tree; v1293 restores the v1249 map exactly.", "sources": ["SHIPPED-v1293-map-restore-06-11-2026.md"]}]},
     {"ver": "1.4.1", "releases": "v1292", "items": [{"text": "Phil 6 Nov: \"She needs 15% more health. And her blue now should be 10 meters wide, and more damage by 15%\" / \"her green does magic damage also. 30% extra damage per strike as magical\".", "sources": ["SHIPPED-v1292-maelvara-06-11-2026.md"]}]},
     {"ver": "1.4.0", "releases": "v1291", "items": [{"text": "Phil 6 Nov: \"setup a $1 pack in the shop that isnt free name it TEST PACK (REAL PURCHASE DONT CLICK)\".", "sources": ["SHIPPED-v1291-test-pack-06-11-2026.md"]}]},

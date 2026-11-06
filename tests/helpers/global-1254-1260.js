@@ -25,6 +25,11 @@ const SWAPS = [
   ["role:'Brute',hp:345,dmg:26,range:46,speed:44,color:7319807", "role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7319807", /role:'Brute',hp:\d+,dmg:26,range:46,speed:44,color:7319807/],   // v1292 (Phil 6 Nov): Maelvara hp 300 -> 345
   ["hits:3,mul:0.7,magicRider:0.3,tauntChance:0,cd:8,gfx:'groundslam'", "hits:3,mul:0.7,tauntChance:0,cd:8,gfx:'groundslam'", /hits:3,mul:0\.7,(magicRider:0\.3,)?tauntChance:0,cd:8,gfx:'groundslam'/],   // v1292: Thunder Talons +30% magic per strike
   ["type:'ashfall',dps:0.575,dur:4,radius:5*METER,slow:2,color:'#bfe8ff',cd:12,gfx:'featherstorm',gfxR:5*METER,gdur:4.0", "type:'ashfall',dps:0.5,dur:4,radius:3.2*METER,slow:2,color:'#bfe8ff',cd:12,gfx:'featherstorm',gfxR:3.2*METER,gdur:4.0", /type:'ashfall',dps:[0-9.]+,dur:4,radius:[0-9.]+\*METER,slow:2,color:'#bfe8ff',cd:12,gfx:'featherstorm'/],   // v1292: Cyclone Choir 10 m across, +15% damage
+  ["thundershower:{dur:3,radius:6*METER,tick:0.5,mul:0.6,channel:true}", "thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true}", /thundershower:\{dur:3,radius:[68]\*METER,tick:0\.5,mul:0\.6,channel:true\}/],   // v1294 (Phil 6 Nov): Thunder Shower radius 8 -> 6 m
+  ["case 'thundershower':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u;", "case 'thundershower':{ const ctr=u;", /case 'thundershower':\{ const ctr=/],   // v1294: the storm lands where the player aims
+  ["const _SELF_CENTRED={haste:1,", "const _SELF_CENTRED={thundershower:1,haste:1,", /const _SELF_CENTRED=\{(thundershower:1,)?haste:1,/],   // v1294: Thunder Shower is player-aimed
+  ["const AUTO_GROUND_AOE={thundershower:1,aoeStun:1,", "const AUTO_GROUND_AOE={aoeStun:1,", /const AUTO_GROUND_AOE=\{(thundershower:1,)?aoeStun:1,/],   // v1294: the auto-ult aims it like Blizzard
+  ["u._stormAcc-=0.5; const R=u._stormR||6*METER,", "u._stormAcc-=0.5; const R=8*METER,", /u._stormAcc-=0\.5; const R=/],   // v1294: the ticks use the ult's own radius
   ];   // v1287: Zahri is an Arena hero (Phil 5 Nov)   // v1287: Oakmir Blue cd 9 -> 10   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
 const made = [];
 process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } catch (e) {} } });

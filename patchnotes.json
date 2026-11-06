@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.4.3", "date": "6 November 2026", "title": "Fritz aims his storm", "items": ["Fritz: Thunder Shower is now aimed. Drag to choose where the storm lands; on auto it lands on the enemies. The storm covers 6 m around that point."]},
     {"ver": "1.4.2", "date": "6 November 2026", "title": "The world map is back", "items": ["The full world map is restored: every city, the floating World Tree island with its waterfalls, and the detailed terrain are back on the map."]},
     {"ver": "1.4.1", "date": "6 November 2026", "title": "Maelvara grows stronger", "items": ["Maelvara, Stormnest Matriarch (the Chapter 7 boss) has 15% more health.", "Thunder Talons: each strike also deals an extra 30% as magic damage.", "Cyclone Choir: the storm field is now 10 m across and deals 15% more damage."]},
     {"ver": "1.4.0", "date": "6 November 2026", "title": "A $1 store test pack", "items": ["The shop lists a TEST PACK for $1.00. It is a real Google Play purchase used to test payments - please do not buy it. Every other pack stays free."]},
