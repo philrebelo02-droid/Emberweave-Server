@@ -31372,6 +31372,8 @@ const GEM_OFFERS=[
   {id:'d1200', price:'$9.99', img:'d1200',   get name(){ return t('shop.n_diamonds',{n:'1,200'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.chest_detail',{b:'<b>',eb:'</b>',n:'1,200',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:1200}},
   {id:'d2800', price:'$19.99',img:'d2800',   get name(){ return t('shop.n_diamonds',{n:'2,300'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.hoard_detail',{b:'<b>',eb:'</b>',n:'2,300',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:2300}},
   {id:'d6000', price:'$50.00',img:'d6000',   get name(){ return t('shop.n_diamonds',{n:'6,000'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.grand_vault_detail',{b:'<b>',eb:'</b>',n:'6,000',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:6000}},
+  /* v1291 (Phil 6 Nov): a REAL $1 Google Play purchase to test the money path - never free, never the dev popup */
+  {id:'testpack', price:'$1.00', img:'d500', real:true, name:'TEST PACK (REAL PURCHASE DONT CLICK)', desc:'Real $1 Google Play test purchase', detail:'A real $1.00 charge through Google Play, to test that payments reach the bank. Gives 10 diamonds.', reward:{kind:'gems', amount:10}},
   {id:'d12500', price:'$99.99',img:'d6000',   get name(){ return t('shop.n_diamonds',{n:'12,500'}); }, get desc(){ return t('shop.one_time_bundle'); },               get detail(){ return t('shop.imperial_vault_detail',{b:'<b>',eb:'</b>',n:'12,500',gem:hudIcon('gem')}); }, reward:{kind:'gems', amount:12500}},
 ];
 // grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
@@ -31392,7 +31394,9 @@ const playBilling=(()=>{
     window.getDigitalGoodsService(method).then(s=>{service=s;}).catch(()=>{});
   async function buy(offer){
     if(pending||!offer||!ACC.token) return;
-    if(!service||!shopSrv()?.playBilling){ bannerMsg(t('err.diamond_packs_are_coming_soon')); return; }
+    if(offer.real&&!service){ bannerMsg('Real purchases work only in the Play Store app.'); return; }   // v1291
+    if(offer.real&&!shopSrv()?.playBillingReal){ bannerMsg('Real purchases are not switched on yet.'); return; }
+    if(!offer.real&&(!service||!shopSrv()?.playBilling)){ bannerMsg(t('err.diamond_packs_are_coming_soon')); return; }
     pending=true; let response;
     try{
       const request=new PaymentRequest([{supportedMethods:method,data:{sku:offer.id}}],
@@ -31518,6 +31522,7 @@ async function buyGoldNow(){ const c=goldNextCost(); if(c==null){ bannerMsg(t('s
   if(!r||!r.ok){ bannerMsg((r&&r.error)||t('shop.purchase_failed')); await ledgerSync(); renderHudShop('gold'); return; }
   adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg(t('shop.got_gold',{icon:hudIcon('gold'),n:r.gold})); }
 function buyGemOffer(i){
+  if(GEM_OFFERS[i]&&GEM_OFFERS[i].real) return playBilling.buy(GEM_OFFERS[i]);   // v1291: real money only - no free claim, no dev grant
   if(!freePacksOn()&&playBilling.available()) return playBilling.buy(GEM_OFFERS[i]);
   // Devs get a test popup that actually grants the reward, so packs can be verified before purchases go live.
   if(isDevAcct()){
@@ -31595,13 +31600,13 @@ function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
   const body=document.getElementById('hudShopBody'), free=freePacksOn();
   const list=st2Offers(st2Tab);
   const card=([o,i])=>{ const r=o.reward||{}, badge=r.days?escapeHTML(r.days+'d'):hudIcon('gem');   // (the small ribbon plate: a plan's days, or a diamond for a chest)
-    return `<div class="st2-card" data-i="${i}" role="button" tabindex="0" aria-label="${escAttr((o.name||'')+' - '+(free?t('common.free'):o.price))}">
+    return `<div class="st2-card" data-i="${i}" role="button" tabindex="0" aria-label="${escAttr((o.name||'')+' - '+(free&&!o.real?t('common.free'):o.price))}">
       <div class="st2-pic"><img src="${SHOP_ICONS[o.img]||''}" alt="" draggable="false"></div><div class="st2-cback"></div>
       <img class="st2-cframe" src="${STORE2_CARD}" alt="" draggable="false">
       <div class="st2-txt st2-badge">${badge}</div>
       <div class="st2-txt st2-name">${escapeHTML(o.name||'')}</div>
       <div class="st2-txt st2-what">${escapeHTML(o.desc||'')}</div>
-      <div class="st2-txt st2-price${free?' free':''}">${free?t('shop.free_caps'):escapeHTML(o.price||'')}</div></div>`; };
+      <div class="st2-txt st2-price${free&&!o.real?' free':''}">${free&&!o.real?t('shop.free_caps'):escapeHTML(o.price||'')}</div></div>`; };
   body.innerHTML=`<div class="st2-win">
       <div class="st2-back"></div><img class="st2-frame" src="${STORE2_WIN}" alt="" draggable="false">
       ${ST2_TABS.map(([id,lab,l,w])=>`<button class="st2-tab${id===st2Tab?' on':''}" data-tab="${id}" style="left:${l}%;width:${w}%" aria-pressed="${id===st2Tab}">${({diamonds:t('shop.tab_diamonds'),packs:t('shop.tab_packs'),limited:t('shop.tab_limited'),patron:t('patron.title')})[id]||lab}</button>`).join('')}
@@ -31979,7 +31984,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793931834038';
+const BUILD_ID = '1793973240348';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.4.0", "date": "6 November 2026", "title": "A $1 store test pack", "items": ["The shop lists a TEST PACK for $1.00. It is a real Google Play purchase used to test payments - please do not buy it. Every other pack stays free."]},
     {"ver": "1.3.9", "date": "5 November 2026", "title": "Use many XP potions at once", "items": ["On a hero's Stats tab, type how many XP potions to use (1-999) next to each potion. It stops at your Commander level cap, so no potion is wasted."]},
     {"ver": "1.3.8", "date": "5 November 2026", "title": "More Gold wish heroes", "items": ["Gruel, Sorrel and Yenna Cacklefang are now 1-star heroes and join the Gold wish (10 heroes). Anyone who already has them keeps their stars."]},
     {"ver": "1.3.7", "date": "5 November 2026", "title": "Morvayne's card", "items": ["Morvayne's card art sits lower so his helm and crown are no longer cut off by the card frame."]},

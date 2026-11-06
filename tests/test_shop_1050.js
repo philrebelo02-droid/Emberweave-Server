@@ -24,7 +24,7 @@ async function boot(env) {
   const A = await boot({});
   try {
     const offers = await A.call('/api/shop/offers', null, A.guest);
-    ok(offers.status === 200 && offers.body.offers.length === 7, 'the server lists the seven offers (v1230: + 12,500 for $99.99)');
+    ok(offers.status === 200 && offers.body.offers.filter(o => !o.real).length === 7 && offers.body.offers.filter(o => o.real).map(o => o.id).join() === 'testpack', 'the server lists the seven offers (v1230: + 12,500 for $99.99) plus the v1291 real $1 TEST PACK');
     ok(offers.body.offers.some(o => o.id === 'cluster' && o.kind === 'plan' && o.amount === 150 && o.days === 14), 'Cluster Pack = 150 a day for 14 days');
     ok(offers.body.offers.some(o => o.id === 'burger' && o.plan === 'stamina' && o.amount === 120 && o.days === 30), 'Burger Meal = 120 stamina a day for 30 days');
     const buy = await A.call('/api/shop/purchase', { offerId: 'd500', provider: 'test', requestId: 'p1' }, A.guest);

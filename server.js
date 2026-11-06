@@ -4896,7 +4896,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
     shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
       foodCost:((sh.food|0)<patronRow(led,'meals')?SHOP_FOOD_COSTS[Math.min(sh.food|0,SHOP_FOOD_COSTS.length-1)]:null), foodMax:patronRow(led,'meals'),
-      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys'), freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled() }; }catch(e){ return null; } })() }; }
+      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys'), freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), playBillingReal:PLAY_BILLING.enabled() }; }catch(e){ return null; } })() }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
 /* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
    server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
@@ -5098,7 +5098,12 @@ const SHOP_OFFERS=[
   {id:'d1200',   price:'$9.99',  usd:9.99,  name:'1,200 Diamonds', kind:'gems', amount:1200},
   {id:'d2800',   price:'$19.99', usd:19.99, name:'2,300 Diamonds', kind:'gems', amount:2300},   // v1230 (Phil: 'make it 2300')
   {id:'d6000',   price:'$50.00', usd:50,    name:'6,000 Diamonds', kind:'gems', amount:6000},
-  {id:'d12500',  price:'$99.99', usd:99.99, name:'12,500 Diamonds', kind:'gems', amount:12500}];   // v1230 (Phil: 'largest pack should be 99.99 for 12,500 diamonds')
+  {id:'d12500',  price:'$99.99', usd:99.99, name:'12,500 Diamonds', kind:'gems', amount:12500},
+  /* v1291 (Phil 6 Nov: "setup a $1 pack in the shop that isnt free name it TEST PACK (REAL PURCHASE DONT CLICK), make it legit and
+     not free so I can buy it myself and see if it goes to my bank"): real:true = never free, never the dev/test grant - only a
+     Google Play receipt verified with Google pays it out, even while FREE_PACKS is on for every other pack. Play Console in-app
+     product id must be exactly 'testpack' at $1.00. */
+  {id:'testpack', price:'$1.00', usd:1,     name:'TEST PACK (REAL PURCHASE DONT CLICK)', kind:'gems', amount:10, real:true}];   // v1230 (Phil: 'largest pack should be 99.99 for 12,500 diamonds')
 const SHOP_OFFER_BY_ID=Object.fromEntries(SHOP_OFFERS.map(o=>[o.id,o]));
 const SHOP_PLAN_KINDS=['gems','stamina'];
 function planDayKey(){ return nyDayKey(); }   // v1065: nyDayKey is the 09:00 day itself   // plans pay at the 09:00 ET reset (the shop's own promise)
@@ -5191,6 +5196,10 @@ function facebookBodyText(req,max){ return new Promise((resolve,reject)=>{ let d
 function facebookPublicOrigin(req){ const h=String(req.headers.host||'').toLowerCase();   // only our own hosts (a forged Host header never picks the URL)
   return 'https://'+(/^(?:s[1-5]\.)?emberweaveheroes\.com$/.test(h)?h:'emberweaveheroes.com'); }
 async function verifyPurchase(me,provider,receipt,offer){
+  if(offer&&offer.real){   // v1291: a real-money test pack - Google Play only, never free, never the dev grant
+    if(provider!=='play') return {ok:false,error:'This pack is a real purchase - buy it in the Play Store app.'};
+    return PLAY_BILLING.enabled() ? PLAY_BILLING.verify(receipt,offer) : {ok:false,error:'Real purchases are not switched on yet.'};
+  }
   if(provider==='play') return FREE_PACKS ? {ok:false,error:'Packs are free right now. Use the free pack option.'} : PLAY_BILLING.verify(receipt,offer);
   if(provider==='prebeta') return FREE_PACKS ? {ok:true,ref:'prebeta-free',free:true} : {ok:false,error:'Diamond packs are coming soon.'};
   if(provider==='test') return (isDev(me)||process.env.SHOP_TEST_PURCHASES==='1') ? {ok:true,ref:'test'} : {ok:false,error:'Diamond packs are coming soon.'};
@@ -7795,7 +7804,7 @@ async function api(req,res,url){
     return send(res,200,{ok:true,hour:mk.h,restockAt:(mk.h+1)*MARKET_HOUR_MS,offers:marketOfferView(mk),
       today:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0),max:12}}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
-    return send(res,200,{ ok:true, freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
+    return send(res,200,{ ok:true, freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), playBillingReal:PLAY_BILLING.enabled(), offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null,real:!!o.real})),
       plans:plansView(led) }); }
   if((p==='/api/shop/purchase'||p==='/api/shop/buy') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); req._shopBody=b;
