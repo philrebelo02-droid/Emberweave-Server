@@ -92,6 +92,12 @@ function brokenTree(name, intact) {
   for (const f of ['server.js', ...fs.readdirSync(path.join(R.root, 'server')).filter(n => /\.js$/.test(n)).map(n => 'server/' + n)]) fs.copyFileSync(path.join(R.root, f), path.join(dir, f));   // this tree's code, whatever is committed (v1128: every server module - store-io.js is new)
   fs.symlinkSync(path.join(R.root, 'assets'), path.join(dir, 'assets'), 'junction');
   { const g = path.join(dir, 'emberweave-heroes.html'); fs.writeFileSync(g, require('./helpers/global-1254-1260.js').undoText(fs.readFileSync(path.join(R.root, 'emberweave-heroes.html'), 'utf8'))); }
+  { /* v1289 (Phil 5 Nov: "Yenna, sorrel, gruel" -> 1 star): their stars also live in the server copy - undone like the page, so the
+       fights still compare with 59eaefba */
+    const undoStars = (f, re) => { const p = path.join(dir, f); if (!fs.existsSync(p)) return; let s = fs.readFileSync(p, 'utf8'); for (const k of ['gruel', 'sorrel', 'yenna']) s = s.replace(re(k), m => m.replace(/(stars"?:\s*)1/, '$12')); fs.writeFileSync(p, s); };
+    undoStars('server/sim.js', k => new RegExp('\\n\\s*' + k + ':\\{[^\\n]*?stars:1'));
+    undoStars('hero_base.json', k => new RegExp('"' + k + '":\\s*\\{[^{}]*?"stars":\\s*1'));
+    { const p = path.join(dir, 'server.js'); let s = fs.readFileSync(p, 'utf8'); s = s.replace(/const POOL_START_STARS=\{[^}]*\}/, m => m.replace(/\bgruel:1/, 'gruel:2')); fs.writeFileSync(p, s); } }
   if (intact) return dir;
   const f = path.join(dir, 'server.js'); let s = fs.readFileSync(f, 'utf8');
   const marker = "function _stageAccount(live,depth){\r\n  const out={}, copied=new Map(), touched=new Set();";
