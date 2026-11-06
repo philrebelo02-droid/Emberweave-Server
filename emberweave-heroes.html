@@ -28040,7 +28040,8 @@ function renderHeroDetail(){
       [statIcon('range')+ewT('hero.stat_type'),t.range>=60?ewT('hero.ranged'):ewT('hero.melee')],[ewT('hero.stat_row'),t.combatRow],[ewT('hero.stat_class'),ewT(('herolist.role_'+String(t.role).toLowerCase()))||t.role],[ewT('hero.stat_damage'),t.damageProfile],[ewT('hero.stat_scaling'),t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${heroProfWord(v)}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">${ewT('hero.totals_note')}</div></div>
-      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">${uiIcon('res-xp-potion')} ${ewT('hero.level_with_potions',{hero:escapeHTML(t.name)})}</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
+      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">${uiIcon('res-xp-potion')} ${ewT('hero.level_with_potions',{hero:escapeHTML(t.name)})}</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>{ const own=(G.xpPotions||{})[id]|0, ok=own>0&&!capped&&ACC.token;   /* v1290 (Phil 5 Nov): enter how many to use, 1-999 */
+        return `<div style="display:flex;gap:4px;align-items:center"><button class="btn secondary" data-xp-potion="${id}" ${ok?'':'disabled'} style="font-size:11px;padding:6px;flex:1;min-width:0">${name} +${amt.toLocaleString()} XP · ×${own}</button><input type="number" inputmode="numeric" data-xp-qty="${id}" min="1" max="${Math.max(1,Math.min(999,own))}" value="1" ${ok?'':'disabled'} style="width:52px;padding:5px 4px;font-size:12px;background:#0f1420;color:#e8edf5;border:1px solid #2a3448;border-radius:6px" aria-label="${ewT('bag.use')}"></div>`; }).join('')}</div></div>`:''}`;
   } else if(heroTab==='skills'){
     const skills=[
       {idx:0,name:t.abilityName,tier:ewT('glyphrank.grey'),col:RANK_COLOR[0]},
@@ -28134,7 +28135,7 @@ function renderHeroDetail(){
   body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=+r.dataset.skill; if(!(idx>=0&&idx<=3)) return;   /* v1164: Attack / Critical Strike rows have no skill text */
     r.addEventListener('dblclick',(e)=>{ if(e.target.closest('[data-skillup]'))return; e.preventDefault(); showSkillDesc(key,idx,r); });
     let _lt=0; r.addEventListener('pointerup',(e)=>{ if(e.target.closest('[data-skillup]'))return; const now=Date.now(); if(now-_lt<340){ e.preventDefault(); showSkillDesc(key,idx,r); _lt=0; } else { _lt=now; } }); });
-  body.querySelectorAll('[data-xp-potion]').forEach(btn=>btn.onclick=()=>useHeroXpPotion(key,btn.dataset.xpPotion));
+  body.querySelectorAll('[data-xp-potion]').forEach(btn=>btn.onclick=()=>{ const q=body.querySelector('[data-xp-qty="'+btn.dataset.xpPotion+'"]'); useHeroXpPotion(key,btn.dataset.xpPotion,q?q.value:1); });
   if(owned){ const hdS=body.querySelector('#hdStars'), hdSL=body.querySelector('#hdStarsLink');
     if(hdS) hdS.onclick=()=>openStarsPanel(key);
     if(hdSL) hdSL.onclick=()=>openStarsPanel(key); }
@@ -28149,9 +28150,10 @@ function renderHeroDetail(){
   if(port&&scr){ const cy=port.ewGameRect().top - scr.ewGameRect().top + port.offsetHeight/2;
     if(pv) pv.style.top=cy+'px'; if(nx) nx.style.top=cy+'px'; }
 }
-async function useHeroXpPotion(key,tier){
+async function useHeroXpPotion(key,tier,qty){
   if(!ACC.token)return;
-  const r=await apiOnce('xppotion','/api/hero/xp-potion',{heroKey:key,tier}); if(r&&r.busy) return;
+  const n=Math.max(1,Math.min(999,Math.floor(Number(qty)||1)));   /* v1290: 1-999; the server stops at the caps and takes only what it used */
+  const r=await apiOnce('xppotion','/api/hero/xp-potion',{heroKey:key,tier,qty:n}); if(r&&r.busy) return;
   if(!(r&&r.ok)){bannerMsg((r&&r.error)||ewT('hero.potion_failed'));await ledgerSync();return;}
   adoptLedger(r.ledger);renderHeroDetail();updateHubChrome();
   bannerMsg(uiIcon('lore-book')+' '+(r.levelAfter>r.levelBefore?ewT('hero.gained_xp_level',{hero:(HERO_TYPES[key]||{}).name||key,n:r.heroXp,lv:r.levelAfter}):ewT('hero.gained_xp',{hero:(HERO_TYPES[key]||{}).name||key,n:r.heroXp})));
@@ -31977,7 +31979,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793925714841';
+const BUILD_ID = '1793931834038';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

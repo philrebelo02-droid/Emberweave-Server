@@ -8096,11 +8096,18 @@ async function api(req,res,url){
       if(before>=ledPlayerLevel(led))return {ok:false,error:'Hero is at the Commander level cap.'};
       const amount=xpPotionAmount(tier);
       if(amount<1)return {ok:false,error:'Hero cannot gain XP.'};
-      led.xpPotions[tier]--;
-      hero.xp=Math.min(99000000,(hero.xp|0)+amount);
-      led.xpPotionUsed=led.xpPotionUsed||{}; led.xpPotionUsed[key]=(led.xpPotionUsed[key]|0)+1; if(key==='vex'&&tier==='minor')led.xpPotionUsed.vexMinor=(led.xpPotionUsed.vexMinor|0)+1;
-      ledTx(me,'hero:xp-potion:'+tier,{hero:key,heroXp:amount,xpPotion:-1});
-      writeDB(); return {ok:true,tier,heroKey:key,heroXp:amount,levelBefore:before,levelAfter:ledHeroLevel(led,key),ledger:ledgerView(me)};
+      /* v1290 (Phil 5 Nov: "can you make exp potions able to be used 1-999. allow people to enter the number they will use"): qty 1-999
+         (missing = 1, the old call). Applied one at a time: it stops before a potion that would start past the Commander cap or max XP,
+         so a big number never wastes potions - only the ones that gave XP are taken. */
+      const want=Math.max(1,Math.min(999,Math.floor(Number(b.qty)||1)));
+      let used=0, gained=0;
+      while(used<want && (led.xpPotions[tier]|0)>0){
+        if(d_levelForXP(hero.xp||0,D_HERO_CUM)>=D_MAX_LEVEL || ledHeroLevel(led,key)>=ledPlayerLevel(led)) break;
+        led.xpPotions[tier]--; const x0=hero.xp|0; hero.xp=Math.min(99000000,x0+amount); gained+=(hero.xp|0)-x0; used++;
+      }
+      led.xpPotionUsed=led.xpPotionUsed||{}; led.xpPotionUsed[key]=(led.xpPotionUsed[key]|0)+used; if(key==='vex'&&tier==='minor')led.xpPotionUsed.vexMinor=(led.xpPotionUsed.vexMinor|0)+used;
+      ledTx(me,'hero:xp-potion:'+tier,{hero:key,heroXp:gained,xpPotion:-used});
+      writeDB(); return {ok:true,tier,heroKey:key,heroXp:gained,used,asked:want,levelBefore:before,levelAfter:ledHeroLevel(led,key),ledger:ledgerView(me)};
     });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/campaign/sweep' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});

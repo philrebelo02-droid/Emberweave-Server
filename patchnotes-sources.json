@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.3.9", "releases": "v1290", "items": [{"text": "Phil 5 Nov: \"can you make exp potions able to be used 1-999. allow people to enter the number they will use\".", "sources": ["SHIPPED-v1290-xp-potion-qty-05-11-2026.md"]}]},
     {"ver": "1.3.8", "releases": "v1289", "items": [{"text": "Phil 5 Nov: \"Some heroes need to be moved to 1 star i think 7 isnt enough\" / \"Yenna, sorrel, gruel\".", "sources": ["SHIPPED-v1289-gold-three-05-11-2026.md"]}]},
     {"ver": "1.3.7", "releases": "v1288", "items": [{"text": "Phil 5 Nov: \"Morvaynes hero art is off\" / \"His head is cut off\" / \"Live moved down is good\" - ChatGPT v1c.", "sources": ["SHIPPED-v1288-morvayne-card-05-11-2026.md"]}]},
     {"ver": "1.3.6", "releases": "v1287", "items": [{"text": "Phil 5 Nov (tester Soul Eater: ~28/30 heroes unobtainable): \"All 2/3 star that isnt mythical should be in diamond pool\" / \"All 1 star in gold wish\" / \"And all mythical in mythic pool\" / \"Only grosk and zahri is arena only right now\"; \"oakmir is too strong we should increase his cooldown time by 1 second on green and blue\".", "sources": ["SHIPPED-v1287-pools-oakmir-05-11-2026.md"]}]},
