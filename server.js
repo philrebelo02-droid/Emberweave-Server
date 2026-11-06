@@ -4987,7 +4987,7 @@ const _poolByStars=n=>Object.keys((SIM&&SIM.HERO_BASE)||{}).filter(k=>!_POOL_SKI
 const POOL_P2=_poolByStars(2);
 const POOL_P3=_poolByStars(3);
 const POOL_GOLD_HEROES=_poolByStars(1);
-const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,gruel:2,astra:2,quorrel:2,korvux:2,maren:2,lumi:2,hollow:3,rivet:3,carn:1,vesper:2,tessit:2,vex:1,grimsby:3,dandra:1};
+const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,gruel:1,astra:2,quorrel:2,korvux:2,maren:2,lumi:2,hollow:3,rivet:3,carn:1,vesper:2,tessit:2,vex:1,grimsby:3,dandra:1};
 const POOL_DUPE_FRAG={1:7,2:14,3:30};
 for(const _k of Object.keys((SIM&&SIM.HERO_BASE)||{})) if(POOL_START_STARS[_k]==null) POOL_START_STARS[_k]=(SIM.HERO_BASE[_k]||{}).stars||1;   /* v1287: every hero has its start stars (31 had none -> duplicates paid 7) */
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300, WISH10_MULT=9;

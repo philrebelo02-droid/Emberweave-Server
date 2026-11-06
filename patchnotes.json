@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.3.8", "date": "5 November 2026", "title": "More Gold wish heroes", "items": ["Gruel, Sorrel and Yenna Cacklefang are now 1-star heroes and join the Gold wish (10 heroes). Anyone who already has them keeps their stars."]},
     {"ver": "1.3.7", "date": "5 November 2026", "title": "Morvayne's card", "items": ["Morvayne's card art sits lower so his helm and crown are no longer cut off by the card frame."]},
     {"ver": "1.3.6", "date": "5 November 2026", "title": "Every hero can be earned", "items": ["Every 2- and 3-star hero is now in the Diamond wish, every 1-star hero in the Gold wish, and every Mythical in the Mythical Pool - 31 heroes who could not be wished for before now can.", "Grosk and Zahri Sunhorn are Arena heroes: their fragments are sold in the Arena shop.", "Oakmir: Mending Bloom cooldown 6 -> 7 s, Rally Roots cooldown 9 -> 10 s."]},
     {"ver": "1.3.5", "date": "5 November 2026", "title": "Arena refills", "items": ["Buying Arena attempts now refills you to a full 5 in one purchase (50 diamonds, up to 5 refills a day) instead of one attempt at a time."]},

@@ -19,9 +19,9 @@ const HERO_BASE={
   // --- 4 Sep 2026: the 20 roster heroes wired client-side in v380-v398. Without these the
   // server silently skipped them everywhere it does `if(!SIM.HERO_BASE[k]) continue`, so they
   // could never be unlocked, summoned or granted - the dev panel's Unlock-all did nothing. ---
-  yenna:{swing:1.8,hp:245,dmg:36,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.0},
+  yenna:{swing:1.8,hp:245,dmg:36,apow:0,role:'Marksman',stars:1,healer:false,atkSpeed:1.0},
   calypsa:{swing:1.8,hp:240,dmg:36,apow:24,hybrid:true,role:'Marksman',stars:2,healer:false,atkSpeed:1.1},
-  sorrel:{swing:1.9,hp:230,dmg:40,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:0.95},
+  sorrel:{swing:1.9,hp:230,dmg:40,apow:0,role:'Assassin',stars:1,healer:false,atkSpeed:0.95},
   brannus:{swing:1.8,hp:560,dmg:26,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:1.0},
   deepcleft:{swing:1.8,hp:400,dmg:36,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.95},
   askel:{swing:1.8,hp:620,dmg:24,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
@@ -55,7 +55,7 @@ const HERO_BASE={
   rhukk:{swing:2.4,hp:430,dmg:26,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:0.9},
   hurne:{swing:2.5,hp:520,dmg:32,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.9},
   meridian:{swing:2,hp:200,dmg:34,apow:0,role:'Marksman',stars:3,healer:false,atkSpeed:1},
-  gruel:{swing:2.6,hp:560,dmg:26,apow:0,role:'Tank',stars:2,healer:false,atkSpeed:0.85},
+  gruel:{swing:2.6,hp:560,dmg:26,apow:0,role:'Tank',stars:1,healer:false,atkSpeed:0.85},
   astra:{swing:2,hp:180,dmg:16,apow:34,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
   quorrel:{swing:2.2,hp:450,dmg:28,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:1},
   korvux:{swing:2.3,hp:430,dmg:32,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:0.95},
