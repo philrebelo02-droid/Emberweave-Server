@@ -49,6 +49,7 @@ function band(level) { const A = TABLE.anchors; let i = 0; for (let k = 0; k < A
    A Well fight = ONE wave of 5 enemy HEROES: a front-liner, a bruiser, a marksman/assassin, a mage
    and a support, picked by the map seed (fixed for the cycle, shown on the square). They fight at the band start level, quality
    tier 3, stats x d where d = k[mode][band] x ramp[mode][idx] (the table: server/starless-well-heroes.json, whole-run tuned). */
+const FOE_CUT = 0.70;   // v1300: Well enemy heroes 30% weaker (health and damage)
 const FOE_SLOTS = [['Tank'], ['Bruiser'], ['Marksman', 'Assassin'], ['Mage'], ['Support']];
 function foesFor(r) { const out = [];
   for (const roles of FOE_SLOTS) { const pool = Object.keys(HERO_BASE).filter(k => roles.indexOf(HERO_BASE[k].role) >= 0 && out.indexOf(k) < 0).sort();
@@ -57,7 +58,9 @@ function foesFor(r) { const out = [];
 function fightWaves(mode, idx, level, foes) {
   if (!TABLE || !TABLE.k[mode] || !Array.isArray(foes) || !foes.length) return null;
   const bi = band(level), L = TABLE.anchors[bi], i = Math.max(0, Math.min(TABLE.ramp[mode].length - 1, idx));
-  const d = TABLE.k[mode][bi] * TABLE.ramp[mode][i], dd = Math.pow(d, 0.7);
+  /* v1300 (Phil 6 Nov: "starless well is siginificantly too hard, all heroes need like a 30% total stats cut"): every Well enemy hero's
+     health and damage x0.70 (FOE_CUT), on top of the table - one step, stats only. */
+  const d = TABLE.k[mode][bi] * TABLE.ramp[mode][i] * FOE_CUT, dd = Math.pow(TABLE.k[mode][bi] * TABLE.ramp[mode][i], 0.7) * FOE_CUT;
   return [foes.map(key => ({ key, lvl: L, hpMul: +d.toFixed(4), dmgMul: +dd.toFixed(4), isHero: true, rank: TABLE.rank }))];
 }
 /* which pool fight a square uses: map 1 = normal 0..4 (by column), Normal path maps 2/3 = normal 5..9 / 10..14 (boss = the last),
