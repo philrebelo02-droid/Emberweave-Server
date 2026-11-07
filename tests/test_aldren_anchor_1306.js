@@ -59,7 +59,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
       return rows;
     };
     if (process.env.DBG) await pg.evaluate(() => { window.__dbg = 1; });
-    const FILM = [['aldren', 'hit'], ['aldren', 'green'], ['aldren', 'passive'], ['aureth', 'ult'], ['aureth', 'attackDark'], ['aureth', 'crit'], ['aureth', 'blue'], ['sylthaine', 'green'], ['vex', 'green'], ['korvux', 'green']];
+    const FILM = [['aldren', 'hit'], ['aldren', 'green'], ['aldren', 'passive'], ['aureth', 'ult']];   // v1306: only Aldren is pinned (a roster-wide pass pinned banners / capes / lunges - reverted, per-clip visual review)
     for (const [hero, clip] of FILM) {
       const r = await film(hero, clip);
       if (r.err) { ck(hero + ' ' + clip + ': filmed', false, r.err); continue; }

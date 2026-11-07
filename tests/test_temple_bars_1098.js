@@ -151,7 +151,7 @@ function sweep(steps, lit) {
 
 /* ---- the page loads this build's modules (phones kept the v1094-tagged module after v1096) ---- */
 { const page = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
-  ok(/<script src="\/server\/temple-of-ash\.js\?v=r1263"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1123"><\/script>/.test(page), 'the changed Temple module uses r1263; unchanged temple-effects remains r1123');
+  ok(/<script src="\/server\/temple-of-ash\.js\?v=r1306"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1123"><\/script>/.test(page), 'the changed Temple module uses r1306 (v1306 Multi pray); unchanged temple-effects remains r1123');
   const fn = page.slice(page.indexOf('function renderTemple(){'), page.indexOf('function startDungeon(){'));
   ok(/hs\.bars\.map\(/.test(fn) && /\$\{B\.icon\}-v1\.webp/.test(fn) && /escapeHTML\(B\.name\)/.test(fn) && /T\.barText\(bar,val\)/.test(fn) && !/TP2_BARS|tp2BarLabel/.test(fn),
     'renderTemple draws the hero\'s own bars: name, icon, value as number or %');
