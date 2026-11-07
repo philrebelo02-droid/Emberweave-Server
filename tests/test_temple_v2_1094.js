@@ -102,10 +102,10 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   { const b=T.heroBonuses(sv.data.ledger.temple.heroes[PHYS],'Tank','Attack',PHYS), s=sv.data.ledger.temple.heroes[PHYS].steps;
     ok(b.hpFlat===s.health*35+320&&Math.abs(b['crit chance']-(s.critChance*0.0003+0.03))<1e-9,'v1096/v1098: Vael\'s OWN earned dots add Health +320 and Crit chance +3% on top of his Health and Crit chance bars ('+b.hpFlat+', '+b['crit chance']+')'); }
 
-  /* auto pray: closed below Temple 12, open at 12; saves only prayers whose power goes up */
+  /* auto pray ("Multi pray" since v1306): open from Temple 1 (was 12 - Phil 7 Nov: "make the option to multi pray up to x10"); saves only prayers whose power goes up */
   await setHero(PHYS,steps(10,10,10,10));
   const shut=await call('/api/temple/auto',{heroKey:PHYS,tier:'gold',count:5,requestId:R()});
-  ok(shut.data.ok===false&&/12/.test(shut.data.error||''),'auto pray is closed below Temple 12 ('+(shut.data.error||'')+')');
+  ok(shut.data.ok===true&&shut.data.ran>=1,'v1306: multi pray runs below Temple 12 ('+(shut.data.error||shut.data.ran)+')');
   await editDB(u=>{ u.led.temple.keeperPoints=levelPoints(12); u.led.temple.levelSeen=12; u.led.temple.goldLadderStep=0; u.led.temple.freeRitualDay=null; });
   L=await led(); const before=L.temple.heroes[PHYS].steps, gB=L.gold, ladder=L.temple.goldLadderStep|0;
   ok(L.temple.level===12,'Temple level 12');

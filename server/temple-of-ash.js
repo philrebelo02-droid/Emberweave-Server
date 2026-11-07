@@ -234,7 +234,7 @@
     DISCOUNT: { gold: [6, 0.10], kindled: [10, 0.10], stoked: [12, 0.10], blazing: [18, 0.10], inferno: [20, 0.10] },   // [temple level, off]
     BONUS_PRAYER_CHANCE: 0.10,        // Phil 27 Sep: every prayer has a 10% chance to bank 1 free prayer
     BONUS_PRAYER_CHANCE_AT: [[8, 0.12], [11, 0.14], [15, 0.16]],     // the reference's free-prayer boosts at 8 / 11 / 15
-    AUTO_PRAY_TEMPLE: 12,             // "Auto pray": auto save if power goes up (the reference's level-12 unlock)
+    AUTO_PRAY_TEMPLE: 1,              // "Multi pray" (was Temple 12): auto save if power goes up. v1306 Phil 7 Nov: "make the option to multi pray up to x10"
     AUTO_PRAY_MAX: 10,
 
     /* --- blessings (the dots, spec §5) --- */
