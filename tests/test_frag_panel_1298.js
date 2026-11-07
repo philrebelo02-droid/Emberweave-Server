@@ -57,11 +57,20 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     ck(/Next hour in \d+:\d\d/.test(T), 'a timer to the next hour');
     ck(p1 && !p1.dis && /Claim 15/.test(T), 'Claim 15 is enabled');
     if (p1) { await pg.click('#bfClaim'); await delay(2500); }
-    const banner = await pg.evaluate(() => (document.getElementById('banner') || {}).innerText || '');
+    /* v1302 (Phil 7 Nov: "the fragments should appear on the same bonus screen like wishing pools. Domino style" / "Using their actual fragment
+       art"): the claim is shown INSIDE the panel - one card per fragment won, its own glyph fragment art - then Collect All reopens the panel. */
+    const won = await pg.evaluate(() => { const P = document.getElementById('bonusFragPanel'); if (!P) return null;
+      const cards = [...P.querySelectorAll('.bfFrag')];
+      return { txt: P.innerText, n: cards.length, on: P.querySelectorAll('.bfFrag.on').length, sum: cards.reduce((a, c) => a + (+(c.querySelector('b').innerText.replace(/\D/g, '')) || 0), 0),
+        art: cards.every(c => /\/assets\/img\/glyphs-v2\/[A-Za-z0-9]+\/fragment-[a-z]+\.png/.test(c.querySelector('img').getAttribute('src')) && c.querySelector('img').naturalWidth > 0),
+        banner: (document.getElementById('banner') || {}).innerText || '' }; });
     const pageTok = await pg.evaluate(() => ACC.token);   // the page's sign-in replaced the test's session
     const st1 = (await call('/api/bonus/state', null, pageTok)).data;
     ck(st1.claim && st1.claim.total === 0, 'Claim pays out on the server: nothing left saved (' + JSON.stringify(st1).slice(0, 300) + ')');
-    ck(/Glyph fragments claimed: 15/.test(banner), 'the player is told 15 glyph fragments were claimed', banner);
+    ck(won && /Glyph fragments claimed: 15/.test(won.txt) && won.n >= 1 && won.on === won.n && won.sum === 15, 'the claim shows IN the panel: every fragment as a card (domino reveal done), quantities add to 15', JSON.stringify(won).slice(0, 300));
+    ck(won && won.art, 'each card uses that fragment\'s own glyph art (quality folder + family), loaded');
+    ck(won && !/Glyph fragments claimed/.test(won.banner), 'no banner behind the panel');
+    await pg.click('#bfCollect'); await delay(1500);
     const p2 = await read();
     ck(p2 && p2.dis && /Saved\s*0\b/.test(p2.txt), 'the panel refreshes: 0 saved, Claim disabled', p2 && p2.txt.slice(0, 200));
     if (p2) { await pg.click('#bfClose'); await delay(300); }

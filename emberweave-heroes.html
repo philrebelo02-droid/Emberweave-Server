@@ -161,6 +161,12 @@
   @media (max-height:500px){ #bonusFragPanel{padding:8px!important} #bonusFragPanel .bfCard{padding-bottom:18px} #bonusFragPanel .bfTitle{font-size:17px!important;margin-bottom:6px!important}
     #bonusFragPanel .bfPlaques{margin-bottom:6px!important} #bonusFragPanel .bfPlaque{padding:5px 8px 7px} #bonusFragPanel .bfPlaque .bfN{font-size:17px!important}
     #bonusFragPanel .bfRow{padding:4px 16px;margin-top:3px} #bonusFragPanel #bfNext{margin:5px 0 2px!important} #bonusFragPanel .bfClaim{min-height:40px} }
+  #bonusFragPanel .bfGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:7px;padding:2px 4px}
+  #bonusFragPanel .bfFrag{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 3px;border-radius:9px;background:rgba(10,15,26,.75);border:1px solid #6b5a2e;opacity:0;transform:scale(.5) translateY(8px);transition:opacity .26s ease-out,transform .26s ease-out}
+  #bonusFragPanel .bfFrag.on{opacity:1;transform:scale(1) translateY(0)}
+  #bonusFragPanel .bfFrag img{width:48px;height:48px;object-fit:contain}
+  #bonusFragPanel .bfFrag b{font:900 13px Georgia,serif;color:#ffd45e;text-shadow:0 1px 2px #000}
+  #bonusFragPanel .bfFrag span{font-size:9px;color:#cdd6e4;line-height:1.15;text-align:center}
   #bonusFragPanel .bfClaim:disabled{filter:grayscale(.85) brightness(.7);cursor:default}
   #bonusFragPanel .bfX{position:absolute;top:58px;right:14px;width:34px;height:34px;border:0;padding:0;background:url(/assets/img/ui/forge/close-button.webp?v=1) center/100% 100% no-repeat;color:#ffd45e;cursor:pointer}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
@@ -8854,11 +8860,29 @@ async function bonusHourlyClaim(){ if(!ACC.token){ bannerMsg(t('bonusclaim.sign_
   tick(); ov._tick=setInterval(()=>{ if(!document.body.contains(ov)){ clearInterval(ov._tick); return; } tick(); },1000);
   ov.querySelector('#bfClaim').onclick=async()=>{ if(_bonusClaimBusy||!(total>0)) return; _bonusClaimBusy=true;
     try{ const r=await apiOnce('bonusclaim','/api/bonus/claim',{}); if(r&&r.busy) return;
-      if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); bannerMsg(t('bonusclaim.claimed',{n:total,h:r.hours|0})); if(typeof glyphV2Sync==='function') glyphV2Sync(); saveG(); bonusHourlyClaim(); }
+      if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); if(typeof glyphV2Sync==='function') glyphV2Sync(); saveG(); bonusClaimReveal(ov,r); }
       else bannerMsg((r&&r.error&&r.error!=='offline')?langMsg(r.error):t('bonusclaim.not_confirmed'));
     } finally{ _bonusClaimBusy=false; } };
 }
 
+/* v1302 (Phil 7 Nov: "When I click claim, the fragments pop up behind the pop but not infront. Instead the fragments should appear on the same
+   bonus screen like wishing pools. Domino style" / "Using their actual fragment art"): the claim is shown INSIDE the pool panel - the quality rows
+   and Claim give way to one card per fragment won (its own glyph fragment art, x quantity, name), revealed one after another like the Wishing
+   Pool's x10, then Collect reopens the panel with the new numbers. No banner behind the panel. */
+function bonusClaimReveal(ov,r){ const card=ov&&ov.querySelector('.bfCard'); if(!card){ bonusHourlyClaim(); return; }
+  const by={}; for(const g of (r.granted||[])){ const k=g.key||g.fragmentId; if(!k) continue; if(!by[k]) by[k]={key:g.key,name:g.displayName||k,q:0}; by[k].q+=g.quantity|0; }
+  const list=Object.values(by), art=k=>{ try{ return g2NodeArtSrc({kind:'fragment',key:k}); }catch(e){ return ART_ICON['glyph-frag']; } };
+  const tot=list.reduce((a,x)=>a+x.q,0);
+  card.querySelectorAll('.bfPlaques,.bfHead,.bfList,#bfNext').forEach(e=>e.remove()); const cb=card.querySelector('#bfClaim'); if(cb) cb.parentNode.remove();
+  const box=document.createElement('div'); box.className='bfList bfWon';
+  box.innerHTML=`<div style="text-align:center;font-size:12px;color:#c9b88a;margin-bottom:6px">${t('bonusclaim.claimed',{n:tot.toLocaleString('en-US'),h:r.hours|0})}</div>`+
+    `<div class="bfGrid">${list.map(x=>`<div class="bfFrag"><img src="${x.key?art(x.key):ART_ICON['glyph-frag']}" alt="" draggable="false"><b>x${(x.q|0).toLocaleString('en-US')}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div>`;
+  card.appendChild(box);
+  const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;margin-top:10px';
+  row.innerHTML=`<button class="bfClaim" id="bfCollect">${t('wish.collect_all')}</button>`; card.appendChild(row);
+  row.querySelector('#bfCollect').onclick=()=>bonusHourlyClaim();
+  [...box.querySelectorAll('.bfFrag')].forEach((c,i)=>setTimeout(()=>c.classList.add('on'),130+i*115));   // dominoes, like the Wishing Pool x10
+}
 function openBonusModal(ch, slot){
   const id = ch+'-'+slot;
   GSPLIT_ENTRY = { ch, slot, id, stageInfo:null, squad:[], laneOf:{} };
