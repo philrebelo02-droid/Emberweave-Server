@@ -39,6 +39,9 @@ function undoText(s) {
     if (n === 0 && (!any.test(s) || s.split(to).length === 2)) continue;   /* a page from before the change, or one already undone */
     if (n !== 1) throw new Error('global-1254-1260: expected exactly one "' + from + '" in the page, found ' + n);
     s = s.replace(from, to); }
+  // v1306 (Phil 7 Nov "Aldren isnt anchored he slides"): Aldren's hit / green / passive clips gained per-frame anchor tables (render data only);
+  // taken back out so the older every-other-hero BATTLE_ANIM == BASE checks keep testing what they were written for (tests/test_aldren_anchor_1306.js checks v1306)
+  s = s.replace(/(aldren_(?:hit|green|passive)\.webp\?v=3'[^\n]*?),ax:\[[-\d,]+\]/g, '$1');
   return s; }
 function page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-global1260-page-' + process.pid + '-' + made.length + '.html');
