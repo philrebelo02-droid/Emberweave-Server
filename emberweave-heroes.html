@@ -778,8 +778,9 @@
   #chatWidget .cw-body{background:#0f1420;border:1px solid #2a3550;border-top:none;border-radius:0 0 10px 10px;display:flex;flex-direction:column;height:180px;max-height:calc(var(--ew-game-height,100vh) * 0.38);}
   #chatWidget.full{width:min(340px,calc(var(--ew-game-width,100vw) * 0.88));}
   #chatWidget.full .cw-body{height:340px;max-height:calc(var(--ew-game-height,100vh) * 0.64);}
-  #chatWidget .cw-tabs{display:flex;gap:4px;padding:6px;flex-wrap:wrap;border-bottom:1px solid #1c2434;}
-  #chatWidget .cw-tab{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #2e3c58;background:#141b2b;color:#c3ccd8;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;}
+  #chatWidget .cw-tabs{display:flex;gap:3px;padding:6px 5px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;border-bottom:1px solid #1c2434;}   /* v1300 (Phil 6 Nov: "make the whisper inline with the other categories"): one row; opened whisper tabs scroll sideways */
+  #chatWidget .cw-tabs::-webkit-scrollbar{display:none}
+  #chatWidget .cw-tab{flex:0 0 auto;font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid #2e3c58;background:#141b2b;color:#c3ccd8;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;}
   #chatWidget .cw-tab.on{background:#2a52c0;color:#fff;border-color:#3a6df0;}
   #chatWidget .cw-tab .x{opacity:.75;font-weight:800;padding:0 2px;}
   #chatWidget .cw-msgs{flex:1;overflow-y:auto;padding:8px;}
