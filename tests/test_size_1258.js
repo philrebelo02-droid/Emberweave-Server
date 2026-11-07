@@ -18,7 +18,7 @@ const keys = JSON.parse(NEW(keysJs)).filter(k => oldKeys.has(k));
 const pick = (run, k) => JSON.parse(run(`(()=>{ const u=makeUnit(${JSON.stringify(k)},'enemy',500,500,10,{}); return JSON.stringify({range:u.range,reach:u.reach,cd:u.combatDist,speed:u.speed,r:u.r,sprH:u.sprH,hp:u.maxHp,dmg:u.dmg,ai:u.atkInterval}); })()`));
 const near = (a, b) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
 // stats Phil changed on purpose AFTER the resize (each with its release) - the resize itself still must not touch them
-const LATER_TUNED = { maelvara: ['hp'] };   // v1292 (6 Nov): Maelvara hp +15%
+const LATER_TUNED = { maelvara: ['hp'], orryx: ['dmg', 'ai'] };   // v1292 (6 Nov): Maelvara hp +15%; v1303/v1304 (7 Nov): Orryx attack +20%, swing 20% slower
 let bad = [];
 let skipped = 0;
 for (const k of keys) { let o, n; try { o = pick(OLD, k); n = pick(NEW, k); } catch (e) { skipped++; continue; }
@@ -41,6 +41,8 @@ for (const k of ['.KITS.oakmir.green.cd 6 -> 7', '.KITS.oakmir.blue.cd 9 -> 10']
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.maelvara\.blue\.(radius|gfxR) /.test(odd[j])) odd.splice(j, 1);
 /* v1294 (Phil 6 Nov): Fritz's Thunder Shower radius 8 -> 6 m ("make it have a 6m radius") - a deliberate change, not the resize */
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.ULT_DEF\.thundershower\.radius /.test(odd[j])) odd.splice(j, 1);
+/* v1303/v1304 (Phil 7 Nov): Orryx's Labyrinth Charge and Prismatic Axe reworked (mul, stun, path hit, knock, swings) - deliberate, not the resize */
+for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.orryx\.(green|blue)\./.test(odd[j])) odd.splice(j, 1);
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
