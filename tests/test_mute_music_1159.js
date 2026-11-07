@@ -96,7 +96,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
 
     /* ---- sign in ---- */
     await pg.evaluate(async () => { const reg = await api('/api/register', 'POST', { name: 'mute' + Date.now().toString(36), pass: 'password1' }); ACC.token = reg.token; ACC.id = reg.profile.id;
-      G.tutStarted = true; G.tutDone = true; try { document.body.classList.remove('gated'); } catch (e) {} try { authGateRefresh(); } catch (e) {} show('home'); });
+      G.tutStarted = true; G.tutDone = true; try { _whatsNewDone = true; } catch (e) {} /* v1295: What's New is a modal on the town (uiWindowOpen), and v1230 hides the button under any window - this test looks at the bare town */ try { document.body.classList.remove('gated'); } catch (e) {} try { authGateRefresh(); } catch (e) {} show('home'); });
     await delay(2500);
 
     /* ---- (2) the hub: immediately left of the portrait, centred on it ---- */

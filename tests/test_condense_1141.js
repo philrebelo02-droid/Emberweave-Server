@@ -182,17 +182,22 @@ try {
       const stray = fetchedP.filter(u => { const m = /\/assets\/anim\/([^/]+)\//.exec(u); return m && m[1] !== 'fx' && !fighters.has(m[1]); });
       ck('only the six fighters\' battle sheets are fetched for the fight (' + fetchedP.length + ' anim requests, none for other heroes)', fetchedP.length > 20 && stray.length === 0, stray.slice(0, 4).join(','));
       // 5. PLACEMENT: quad expanded by tc == the logical cell drawn untrimmed
-      const place = await P.pg.evaluate(() => { const out = []; for (const u of units) { const A = u.anim && u.anim[u._animSt]; const L = A && A._lay; if (!L || !L.tc || !u._sprRef) continue;
+      const place = await P.pg.evaluate(() => { const out = []; for (const u of units) {
+          /* v1182/v1203: a dead hero with a death clip draws the CURRENT DEATH PART on its sprite (deathCell: its own figH scale, foot anchor and facing,
+             no withering) - that part is the clip to check, not the living _animSt clip (gruel got a death in v1203); an ended death draws nothing */
+          const D = !u.alive && u._die ? u._die : null; if (D && D.end) continue;
+          const A = D ? D.ps[D.pi] : (u.anim && u.anim[u._animSt]); const L = A && A._lay; if (!L || !L.tc || !u._sprRef) continue;
+          if (D && !(A.tex && u._sprRef.material && u._sprRef.material.map === A.tex)) continue;
           const spr = u._sprRef, tc = L.tc, sx = spr.scale.x, sy = spr.scale.y, cx = spr.center.x, cy = spr.center.y;
           // trimmed quad in sprite-local units (anchor at 0): x from -cx*sx to (1-cx)*sx; the logical cell is the quad grown by tc
-          const mir = u._fxMirror; const W = sx / tc[2], Hh = sy / tc[3];
+          const mir = D ? ((D.face > 0) !== !D.A.flip) : u._fxMirror; const W = sx / tc[2], Hh = sy / tc[3];
           const left = -cx * sx - (mir ? (1 - tc[0] - tc[2]) : tc[0]) * W, bottom = -cy * sy - (1 - tc[1] - tc[3]) * Hh;
-          const qh = A.figH ? u.sprH * (A.fh / A.figH) * ((A.fs && A.fs.length) ? (A.fs[Math.min(u._fxFr || 0, A.fs.length - 1)] || 1) : 1) : u.sprH * (A.sc || 1);
-          let cxp = (A.cx != null ? A.cx : A.fw * 0.5); if (A.ax && A.ax.length) cxp += A.ax[Math.min(u._fxFr || 0, A.ax.length - 1)] || 0;
+          const qh = D ? u.sprH * (A.fh / A.figH) : A.figH ? u.sprH * (A.fh / A.figH) * ((A.fs && A.fs.length) ? (A.fs[Math.min(u._fxFr || 0, A.fs.length - 1)] || 1) : 1) : u.sprH * (A.sc || 1);
+          let cxp = (A.cx != null ? A.cx : A.fw * 0.5); if (!D && A.ax && A.ax.length) cxp += A.ax[Math.min(u._fxFr || 0, A.ax.length - 1)] || 0;
           /* v1154: a dying unit withers (scale.y = sprH*(1-0.45k)), so its quad height is that, not qh - checked the same way (dead units joined the sample once fights changed) */
-          const hq = u.alive ? qh : Math.max(.01, u.sprH * (1 - Math.min(1, (u.deathT || 0) / .9) * 0.45));
+          const hq = (u.alive || D) ? qh : Math.max(.01, u.sprH * (1 - Math.min(1, (u.deathT || 0) / .9) * 0.45));
           const wantLeft = -(mir ? 1 - cxp / A.fw : cxp / A.fw) * qh * (A.fw / A.fh), wantBottom = A.figH ? -(1 - A.feet / A.fh) * hq : 0;
-          out.push({ k: u.key, st: u._animSt, mir, dl: left - wantLeft, db: bottom - wantBottom, dw: W - qh * (A.fw / A.fh), dh: Hh - hq, dead: !u.alive }); }
+          out.push({ k: u.key, st: u._animSt, mir, dl: left - wantLeft, db: bottom - wantBottom, dw: W - qh * (A.fw / A.fh), dh: Hh - hq, dead: !u.alive, death: !!D }); }
         return out; });
       /* v1154: the death wither on a trimmed sheet, forced (a dying unit is not always in the sample): half-way through the 0.9 s fade the quad
          grown by tc must be sprH*(1-0.45*0.5) tall, exactly the untrimmed quad (CONTROL: v1153's wither line, which ignores tc, fails it) */
@@ -204,7 +209,8 @@ try {
       // 4b. release on the hub
       const held = pg => pg.evaluate(() => { let n = 0; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) n++; } return n; });
       const h0 = await held(P.pg); await P.pg.evaluate(() => { ended = true; show('home'); }); await P.pg.waitForTimeout(1500); const h1 = await held(P.pg);
-      ck('going home frees every battle sheet, tier files included (' + h0 + ' -> ' + h1 + ')', h0 > 20 && h1 === 0);
+      const heldK = h1 ? await P.pg.evaluate(() => { const o = []; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) o.push(k + '.' + st); } return o; }) : [];
+      ck('going home frees every battle sheet, tier files included (' + h0 + ' -> ' + h1 + ')', h0 > 20 && h1 === 0, heldK.join(','));
       ck('no page error on either tier', P.errs.length === 0 && D.errs.length === 0, P.errs.concat(D.errs).slice(0, 3).join(' | '));
       await P.ctx.close(); await D.ctx.close();
       // 6. TICK-IDENTICAL across tiers

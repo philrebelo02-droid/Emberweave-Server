@@ -9,7 +9,9 @@ const http=require('http');
 const PORT=process.env.PORT||8871;
 function req(path, body, token){ return new Promise((resolve,reject)=>{
   const data=body?JSON.stringify(body):null;
-  const r=http.request({host:'localhost',port:PORT,path,method:body?'POST':'GET',
+  /* 7 Nov 2026: a fresh socket per request (agent:false). Node 19+ keeps sockets alive by default; the headless replays below block the event loop
+     for seconds, so on a slow host the server's 5 s keep-alive timeout closes the idle socket unseen and the next request dies 'socket hang up'. */
+  const r=http.request({host:'localhost',port:PORT,path,method:body?'POST':'GET',agent:false,
     headers:Object.assign({'content-type':'application/json'},token?{'x-token':token}:{},data?{'content-length':Buffer.byteLength(data)}:{})},
     res=>{ let s=''; res.on('data',c=>s+=c); res.on('end',()=>{ try{ resolve(JSON.parse(s)); }catch(e){ resolve({raw:s}); } }); });
   r.on('error',reject); if(data)r.write(data); r.end(); }); }
