@@ -4628,10 +4628,21 @@ function texTallyMB(){ if(_glTally.on) return _glTally.mb();   /* v1190: the rea
 function deathWarm(c){ if(c&&c.tex&&!c.tex._ewWarm&&deathTexOk(c)){ c.tex._ewWarm=1; try{ if(typeof renderer!=='undefined'&&renderer&&renderer.initTexture) renderer.initTexture(c.tex); }catch(e){} } }   /* uploaded before it is drawn */
 function deathFetchRest(ps){ for(let i=1;i<ps.length;i++){ const c=ps[i]; if(c._pf||c.tex) continue; c._pf=1;   /* bytes only, into the browser cache */
   try{ const F=(typeof artFile==='function')?artFile(c.u):null; fetch(F?F.u:c.u).then(r=>r.ok?r.arrayBuffer():null).then(()=>{},()=>{ c._pf=0; }); }catch(e){ c._pf=0; } } }
+/* v1301 (test_death_state STREAMED worst case: ten deaths at once peaked 1992.8 MB over the 1990 MB gate): the gate was asked only when a death's FIRST
+   sheet loaded - but every playing death then streams its next sheet. On a phone the next sheet now loads only while the real GPU total plus that
+   sheet stays under DEATH_CLIPS.gpuMB; a sheet that does not fit is late, so the body holds its last cell (at most DEATH_CLIPS.stall s) and fades. */
+/* ...and the first sheets asked for in the same frame are not on the GPU tally yet: every other hero whose death is preloaded or playing reserves
+   what it is not yet holding on the GPU (its peak minus its uploaded sheets), once per hero. */
+function deathPendMB(skip){ let mb=0; const seen=new Set();
+  for(const x of units.concat(_corpses)){ if(!x||x.key===skip||seen.has(x.key)) continue; const D=x._die; if(!(x._dPre||(D&&!D.end))) continue;
+    const A=deathClip(x); if(!A) continue; const ps=deathParts(x.anim,A); if(ps.length!==A.parts.length) continue; seen.add(x.key);
+    mb+=Math.max(0,deathPeakMB(ps)-deathSetMB(ps.filter(c=>c.tex&&c.tex._ewWarm))); }
+  return mb; }
+function deathNextOk(c){ if(ART_TIER!=='phone') return true; return texTallyMB()+deathSetMB([c])<=DEATH_CLIPS.gpuMB; }
 function deathPreload(u){ const A=deathClip(u); if(!A) return; const ps=deathParts(u.anim,A); if(ps.length!==A.parts.length) return;
   const c0=ps[0]; if(c0.tex){ u._dPre=1; deathWarm(c0); deathFetchRest(ps); return; }
   if(ART_TIER==='phone'){ const now=(typeof performance!=='undefined')?performance.now():0; if(A._gateAt&&now-A._gateAt<1000) return; A._gateAt=now;   /* asked at most once a second */
-    if(texTallyMB()+deathPeakMB(ps)>DEATH_CLIPS.gpuMB){ A._gated=(A._gated||0)+1; return; } }
+    if(texTallyMB()+deathPendMB(u.key)+deathPeakMB(ps)>DEATH_CLIPS.gpuMB){ A._gated=(A._gated||0)+1; return; } }
   u._dPre=1; try{ _loadClip(c0); }catch(e){} deathFetchRest(ps); }
 /* the sheets of one hero's death that some body still needs: a playing body its sheet + the next, a body waiting under 30% hp (or dead, not yet decided) the first */
 function deathKeep(key,n){ const k=new Set(); for(const x of units.concat(_corpses)){ if(!x||x.key!==key) continue; const D=x._die;
@@ -4662,10 +4673,10 @@ function deathDraw(u,spr,dt){
   const A=D.A, ps=D.ps, f=A.fps||8, n=A.dn||A.n, dur=n/f;
   let op=1; if((waveXfer&&waveXfer.phase!=='win')||D.xf!=null){ D.xf=(D.xf||0)+dt; op=Math.max(0,1-D.xf/0.25); }   /* v1197: the final win's idle (phase 'win') lets the last death play out */
   if(!D.end){ let t=Math.min(dur,D.t+dt), pi=deathPart(ps,Math.min(n-1,Math.floor(t*f)));
-    for(let j=D.pi+1;j<=pi;j++){ if(!deathTexOk(ps[j])){ if(!ps[j].tex){ try{ _loadClip(ps[j]); }catch(e){} } t=Math.max(D.t,(ps[j].first||0)/f-1e-6); pi=j-1; D.st+=dt; break; } }   /* late: hold */
+    for(let j=D.pi+1;j<=pi;j++){ if(!deathTexOk(ps[j])){ if(!ps[j].tex&&deathNextOk(ps[j])){ try{ _loadClip(ps[j]); }catch(e){} } t=Math.max(D.t,(ps[j].first||0)/f-1e-6); pi=j-1; D.st+=dt; break; } }   /* late: hold */
     D.t=t; if(pi!==D.pi){ D.pi=pi; deathRelease(u.key); }
     const cu=ps[D.pi]; if(cu&&!cu.tex){ try{ _loadClip(cu); }catch(e){} }   /* its own sheet freed under it (the fight's art eviction): ask for it again */
-    const nx=ps[D.pi+1]; if(nx){ if(!nx.tex){ try{ _loadClip(nx); }catch(e){} } else deathWarm(nx); }
+    const nx=ps[D.pi+1]; if(nx){ if(!nx.tex){ if(deathNextOk(nx)){ try{ _loadClip(nx); }catch(e){} } } else deathWarm(nx); }
     if(D.st>DEATH_CLIPS.stall) op=0; }
   const fin=D.t>=dur; if(fin&&A.end!=='hold') op=0;
   if(fin&&A.end==='hold'&&!D.held){ D.held=true; deathRelease(u.key); }   /* a held body keeps its last sheet only */

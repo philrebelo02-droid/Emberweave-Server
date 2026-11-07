@@ -407,8 +407,11 @@ try {
            new spell FX: v1186's Kharos FX alone +30.6 MB) */
         const gateVsGl = await pg.evaluate(() => [+texTallyMB().toFixed(1), +__gpuMB().toFixed(1), _glTally.on]);
         console.log('  info vs v1182\'s measured peak ' + PEAK_V1182 + ' MB: ' + (wPeak - PEAK_V1182 >= 0 ? '+' : '') + (wPeak - PEAK_V1182).toFixed(1) + ' MB; the deaths add ' + (wPeak - w0).toFixed(1) + ' MB over the fight art (' + WD.length + ' at once)');
-        ck('STREAMED worst case: peak ' + wPeak.toFixed(1) + ' MB <= the live gate 1990 MB with ' + ALL.length + ' deaths in, all ' + WD.length + ' deaths among the ten played (' + wPlayed + '), none gated, the deaths adding ' + (wPeak - w0).toFixed(1) + ' MB (<= 12 per death)',
-          wPeak <= 1990 && wPlayed === WD.length && wReady.length === WD.length && wPeak - w0 <= 12 * WD.length, JSON.stringify({ w0, wPeak, wPlayed, WD }));
+        /* v1301: the fight art grew (w0 1934.6 MB with rhukk + grosk among the heaviest ten), so ten deaths at ~5.8 MB each cannot all fit under 1990.
+           v1300 let all ten in and peaked 1992.8 MB OVER the gate (the CONTROL: TP_ROOT=<v1300 checkout> fails this check). The gate now reserves the
+           deaths still loading (deathPendMB) and checks every streamed sheet (deathNextOk): the peak stays under 1990, the deaths that do not fit fade. */
+        ck('STREAMED worst case: peak ' + wPeak.toFixed(1) + ' MB <= the live gate 1990 MB with ' + ALL.length + ' deaths in, every death that got in played (' + wPlayed + ' of ' + wReady.length + ' ready, ' + (WD.length - wReady.length) + ' faded at the gate), the deaths adding ' + (wPeak - w0).toFixed(1) + ' MB (<= 12 per death played)',
+          wPeak <= 1990 && wPlayed >= wReady.length && wReady.length >= 1 && wPeak - w0 <= 12 * Math.max(1, wPlayed), JSON.stringify({ w0, wPeak, wPlayed, wReady: wReady.length, WD }));
         ck('the gate counts the REAL GPU total: texTallyMB() ' + gateVsGl[0] + ' MB = the WebGL tally ' + gateVsGl[1] + ' MB (within 1 MB; it counted only the battle sheets before)', gateVsGl[2] === true && Math.abs(gateVsGl[0] - gateVsGl[1]) <= 1, JSON.stringify(gateVsGl));
         await pg.evaluate(() => { try { endBattle(true); } catch (e) {} });
       } else ck('the budget test\'s GPU tally was found', false);
