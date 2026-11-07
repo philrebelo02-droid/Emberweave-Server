@@ -5659,7 +5659,7 @@ async function api(req,res,url){
       if(ACCOUNT_AUTHORITY){
         if(current&&!current.guest&&!current.gid)return authFail(res,'facebook','no-gid',409,{error:'Sign in with your game-wide account before linking Facebook.'},current);
         const r=await authorityCall('/api/internal/account/facebook',{accessToken:b.accessToken,linkGid:current&&!current.guest?current.gid:null,ip:clientIP(req),deviceId:b.deviceId});
-        if(!r||r.status!==200||!r.body?.gid)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
+        if(!r||r.status!==200||!r.body?.gid)return authFail(res,'facebook','authority-'+(r?r.status:'down'),r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'},current);
         const data=r.body;created=!!data.created;
         if(current?.guest&&created){DB.byGid=DB.byGid||{};DB.byGid[data.gid]=current.id;}
         u=await linkedUser(data.gid,data.name,null,{login:data.login});u.facebook=data.facebook;u.facebookOnly=!!data.facebookOnly;applyAcctState(u,data.st);
