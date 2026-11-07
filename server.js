@@ -754,6 +754,9 @@ async function acctCreate(rawName, pass, cred){
    player's whole allowance and lock them out of recovery for a day. Each requesting network now has its own share per account
    (2 codes, 5 wrong guesses a day) under a higher ceiling (8 codes, 20 wrong guesses: 20 guesses at a 6-digit code is ~1 in 50,000). */
 const RESET_CODES_MAX=8, RESET_BAD_MAX=20, RESET_CODES_PER_IP=2, RESET_BAD_PER_IP=5;
+/* v1302 (BUG-0006, tester 7 Nov: "Google sign-in account creation is failing." - and nothing on the server said why): every refused Google /
+   Facebook sign-in writes one line to the server log - provider, reason, status, whether a session was open. No name, token or address. */
+function authFail(res,kind,why,status,body,current){ try{ console.log('[authfail] '+kind+' '+String(why).replace(/\s+/g,'-')+' '+status+(current?(current.guest?' guest':' signed-in'):' signed-out')+' '+String(body&&body.error||'').slice(0,90)); }catch(_){} return send(res,status,body); }
 function resetIpKey(ip){ return crypto.createHash('sha256').update(String(ip||'')).digest('hex').slice(0,16); }
 async function acctResetRequest(name, ip, purpose='password'){   // v1184: async - the code hash runs on the thread pool
   const id=loginId(name); const u=id&&DB.users[id];   /* v1253: the username */
@@ -5599,16 +5602,16 @@ async function api(req,res,url){
     return send(res,200,{enabled:true,clientId,nonce,linked:!!current?.google,email:current?.google?.email||''});
   }
   if(p==='/api/auth/google'&&req.method==='POST'){
-    if(!process.env.GOOGLE_OAUTH_CLIENT_ID)return send(res,503,{error:'Google sign-in is not configured.'});
-    if(rateLimited(req,'googleauth',15,60000))return send(res,429,{error:'Too many attempts. Please wait.'});
+    if(!process.env.GOOGLE_OAUTH_CLIENT_ID)return authFail(res,'google','config',503,{error:'Google sign-in is not configured.'});
+    if(rateLimited(req,'googleauth',15,60000))return authFail(res,'google','rate',429,{error:'Too many attempts. Please wait.'});
     const b=await body(req),current=authUser(req),nonce=googleNonces.get(b.nonce);googleNonces.delete(b.nonce);
-    if(!nonce||nonce.until<Date.now()||nonce.id!==(current?.id||null))return send(res,403,{error:'Sign-in expired. Please try again.'});
+    if(!nonce||nonce.until<Date.now()||nonce.id!==(current?.id||null))return authFail(res,'google',!nonce?'nonce-unknown':nonce.until<Date.now()?'nonce-expired':'nonce-other-session',403,{error:'Sign-in expired. Please try again.'},current);
     try{
       let u,created=false;
       if(ACCOUNT_AUTHORITY){
-        if(current&&!current.guest&&!current.gid)return send(res,409,{error:'Sign in with your game-wide account before linking Google.'});
+        if(current&&!current.guest&&!current.gid)return authFail(res,'google','no-gid',409,{error:'Sign in with your game-wide account before linking Google.'},current);
         const r=await authorityCall('/api/internal/account/google',{credential:b.credential,nonce:b.nonce,linkGid:current&&!current.guest?current.gid:null,ip:clientIP(req),deviceId:b.deviceId});
-        if(!r||r.status!==200||!r.body?.gid)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
+        if(!r||r.status!==200||!r.body?.gid)return authFail(res,'google','authority-'+(r?r.status:'down'),r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'},current);
         const data=r.body;created=!!data.created;
         if(current?.guest&&created){DB.byGid=DB.byGid||{};DB.byGid[data.gid]=current.id;}
         u=await linkedUser(data.gid,data.name,null,{login:data.login});u.google=data.google;u.googleOnly=!!data.googleOnly;applyAcctState(u,data.st);
@@ -5617,7 +5620,7 @@ async function api(req,res,url){
       acctDelCancel(u);dropTokens(u.id);const token=issueToken(u.id);
       if(saveSoon([u.id])===false)return send(res,503,{error:'Account save failed. Please try again.'});
       return send(res,200,{token,profile:profileFor(u),created});
-    }catch(_){return send(res,403,{error:'Google sign-in or linking failed. Check the Google account and try again.'});}
+    }catch(e){return authFail(res,'google','verify:'+String(e&&(e.code||e.message)||'?').slice(0,60),403,{error:'Google sign-in or linking failed. Check the Google account and try again.'},current);}
   }
   if((p==='/api/auth/google/unlink-request'||p==='/api/auth/google/unlink')&&req.method==='POST'){
     const current=authUser(req);if(!current||current.guest)return send(res,401,{error:'Sign in first.'});
@@ -5647,14 +5650,14 @@ async function api(req,res,url){
     return send(res,200,{enabled:true,appId:String(process.env.FACEBOOK_APP_ID),nonce,linked:!!current?.facebook,name:current?.facebook?.name||current?.facebook?.email||''});
   }
   if(p==='/api/auth/facebook'&&req.method==='POST'){
-    if(!facebookOn())return send(res,503,{error:'Facebook sign-in is not configured.'});
-    if(rateLimited(req,'fbauth',15,60000))return send(res,429,{error:'Too many attempts. Please wait.'});
+    if(!facebookOn())return authFail(res,'facebook','config',503,{error:'Facebook sign-in is not configured.'});
+    if(rateLimited(req,'fbauth',15,60000))return authFail(res,'facebook','rate',429,{error:'Too many attempts. Please wait.'});
     const b=await body(req),current=authUser(req),nonce=facebookNonces.get(b.nonce);facebookNonces.delete(b.nonce);
-    if(!nonce||nonce.until<Date.now()||nonce.id!==(current?.id||null))return send(res,403,{error:'Sign-in expired. Please try again.'});
+    if(!nonce||nonce.until<Date.now()||nonce.id!==(current?.id||null))return authFail(res,'facebook',!nonce?'nonce-unknown':nonce.until<Date.now()?'nonce-expired':'nonce-other-session',403,{error:'Sign-in expired. Please try again.'},current);
     try{
       let u,created=false;
       if(ACCOUNT_AUTHORITY){
-        if(current&&!current.guest&&!current.gid)return send(res,409,{error:'Sign in with your game-wide account before linking Facebook.'});
+        if(current&&!current.guest&&!current.gid)return authFail(res,'facebook','no-gid',409,{error:'Sign in with your game-wide account before linking Facebook.'},current);
         const r=await authorityCall('/api/internal/account/facebook',{accessToken:b.accessToken,linkGid:current&&!current.guest?current.gid:null,ip:clientIP(req),deviceId:b.deviceId});
         if(!r||r.status!==200||!r.body?.gid)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
         const data=r.body;created=!!data.created;
@@ -5665,7 +5668,7 @@ async function api(req,res,url){
       acctDelCancel(u);dropTokens(u.id);const token=issueToken(u.id);
       if(saveSoon([u.id])===false)return send(res,503,{error:'Account save failed. Please try again.'});
       return send(res,200,{token,profile:profileFor(u),created});
-    }catch(e){return send(res,403,{error:e&&e.code==='FB_PUBLIC'?e.message:'Facebook sign-in or linking failed. Check the Facebook account and try again.'});}
+    }catch(e){return authFail(res,'facebook','verify:'+String(e&&(e.code||e.message)||'?').slice(0,60),403,{error:e&&e.code==='FB_PUBLIC'?e.message:'Facebook sign-in or linking failed. Check the Facebook account and try again.'},current);}
   }
   if((p==='/api/auth/facebook/unlink-request'||p==='/api/auth/facebook/unlink')&&req.method==='POST'){
     const current=authUser(req);if(!current||current.guest)return send(res,401,{error:'Sign in first.'});

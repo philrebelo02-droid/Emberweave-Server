@@ -24617,13 +24617,17 @@ async function mountGoogleSignin(root){
       };return;
     }
     if(ACC.token&&!ACC.guest){const label=document.createElement('div');label.textContent=t('acct2.google_link');box.appendChild(label);}
-    const button=document.createElement('div');box.appendChild(button);await loadGoogleIdentity();if(!box.isConnected)return;
+    const button=document.createElement('div');box.appendChild(button);
+    try{ await loadGoogleIdentity(); }catch(e){ ewStep('authfail:google-script',String(e&&e.message||e)); throw e; }if(!box.isConnected)return;
+    /* v1302 (BUG-0006): the server's sign-in token lives 10 minutes - a player who sat on this screen longer got 'Sign-in expired'. The button
+       is rebuilt with a fresh token every 8 minutes while nobody is signing in. */
+    setTimeout(()=>{ if(box.isConnected&&!window._authBusy){ box.remove(); mountGoogleSignin(root); } },8*60000);
     window.google.accounts.id.initialize({client_id:config.clientId,nonce:config.nonce,auto_select:false,callback:async response=>{
       const submit=async()=>{
         if(window._authBusy)return;window._authBusy=true;
         try{
           const d=await api('/api/auth/google','POST',{credential:response.credential,nonce:config.nonce,deviceId:deviceId()});
-          if(!d?.token||!d.profile){bannerMsg(d?.error||t('acct2.err_google'));box.remove();mountGoogleSignin(root);return;}
+          if(!d?.token||!d.profile){ewStep('authfail:google',(d&&d.error)||'no reply');bannerMsg(d?.error||t('acct2.err_google'));box.remove();mountGoogleSignin(root);return;}
           const previous=ACC?.id;clearServerCaches();
           ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',guest:!!d.profile.guest,created:d.profile.created||0,admin:!!d.profile.admin,login:d.profile.login||''};saveAcc();DEV.on=isDevAcct();
           if(acctSwitchReload(previous,d.profile.id,!!d.created))return;
@@ -24692,12 +24696,13 @@ async function mountFacebookSignin(root){
     const button=document.createElement('button');button.type='button';button.className='fbAuthBtn';button.disabled=true;
     if(root.classList.contains('set-link')){ button.className='lnkTile'; button.title=t('auth.fb_continue'); button.setAttribute('aria-label',t('auth.fb_continue')); button.innerHTML=LNK_F_SVG; }   /* v1275: official f tile beside the Google G */
     else button.innerHTML=FB_AUTH_SVG+'<span>'+escapeHTML(t('auth.fb_continue'))+'</span>';box.appendChild(button);
-    await loadFacebookSdk(config.appId);if(!box.isConnected)return;button.disabled=false;
+    try{ await loadFacebookSdk(config.appId); }catch(e){ ewStep('authfail:facebook-sdk',String(e&&e.message||e)); throw e; }if(!box.isConnected)return;button.disabled=false;
+    setTimeout(()=>{ if(box.isConnected&&!window._authBusy){ box.remove(); mountFacebookSignin(root); } },8*60000);   /* v1302: fresh 10-minute token (see Google) */
     const submit=async accessToken=>{
       if(window._authBusy)return;window._authBusy=true;
       try{
         const d=await api('/api/auth/facebook','POST',{accessToken,nonce:config.nonce,deviceId:deviceId()});
-        if(!d?.token||!d.profile){bannerMsg(d?.error||t('auth.fb_failed'));box.remove();mountFacebookSignin(root);return;}
+        if(!d?.token||!d.profile){ewStep('authfail:facebook',(d&&d.error)||'no reply');bannerMsg(d?.error||t('auth.fb_failed'));box.remove();mountFacebookSignin(root);return;}
         const previous=ACC?.id;clearServerCaches();
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',guest:!!d.profile.guest,created:d.profile.created||0,admin:!!d.profile.admin,login:d.profile.login||''};saveAcc();DEV.on=isDevAcct();
         if(acctSwitchReload(previous,d.profile.id,!!d.created))return;
@@ -32454,7 +32459,7 @@ let _glFailed=false, _glFailMsg='● '+t('boot.no_webgl');
    WebGL failed, tap, sign-in gate, Terms, every first screen, first battle, errors, still-open at 90 s / 5 min) to /api/boot-step, so a
    stuck tester shows the exact step and device. Players past the tutorial report nothing. No name, no IP: a random session id. */
 const EWSTEP={ sid:(Math.random().toString(36).slice(2,10)+Date.now().toString(36)).slice(0,20), seen:{}, n:0, errs:0 };
-function ewStep(st,err){ try{ if(!st||EWSTEP.seen[st]||EWSTEP.n>=60) return; if(!/^err/.test(st)&&typeof G!=='undefined'&&G&&G.tutDone) return;
+function ewStep(st,err){ try{ if(!st||EWSTEP.seen[st]||EWSTEP.n>=60) return; if(!/^(err|authfail)/.test(st)&&typeof G!=='undefined'&&G&&G.tutDone) return;
   EWSTEP.seen[st]=1; EWSTEP.n++; const ua=navigator.userAgent||'', m=ua.match(/\(([^)]*)\)/);
   const b={ sid:EWSTEP.sid, st:String(st).slice(0,48), ms:Math.round(performance.now()), dev:(m?m[1]:ua).slice(0,90), dm:navigator.deviceMemory||0, gl:_glFailed?0:1,
     v:(typeof BUILD_ID!=='undefined'?String(BUILD_ID):''), uid:(typeof ACC!=='undefined'&&ACC&&ACC.id)||'', err:String(err||'').slice(0,200), w:innerWidth, h:innerHeight,
