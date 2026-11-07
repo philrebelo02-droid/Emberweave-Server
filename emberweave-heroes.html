@@ -99,10 +99,11 @@
   #rotateGate .splashStudio{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(27px + env(safe-area-inset-bottom,0px));right:auto;top:auto;display:flex;align-items:center;gap:5px;font-weight:600;font-size:clamp(9px,calc(var(--ew-game-width,100vw) * 0.0135),11px);letter-spacing:.3px;color:#c9b78d;opacity:.72;text-shadow:0 1px 4px #000;pointer-events:none;z-index:10001;}
   #rotateGate .splashStudio svg{width:13px;height:13px;opacity:.9;flex:0 0 auto}
   /* v1298: the Bonus Stage claim on the campaign map, bottom left - opens the fragments panel; the badge is what is saved */
-  #campBonusBtn{position:fixed!important;top:auto!important;right:auto!important;left:calc(10px + env(safe-area-inset-left,0px))!important;bottom:calc(52px + env(safe-area-inset-bottom,0px))!important;transform:none!important;z-index:30;display:flex;align-items:center;gap:4px;padding:2px 8px 2px 3px;border-radius:9px;border:1px solid #b88a3c;background:linear-gradient(180deg,#2a2015,#120d08);color:#ffe2a0;font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:11px;cursor:pointer;box-shadow:0 2px 6px #000a,inset 0 1px 0 #ffd27a33}
+  #campBonusBtn{position:fixed!important;top:auto!important;right:auto!important;left:calc(10px + env(safe-area-inset-left,0px))!important;bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;transform:none!important;z-index:30;width:54px;height:54px;padding:0;border-radius:50%;border:2px solid #d9a64a;background:#0b1220;cursor:pointer;box-shadow:0 0 0 1px #5a3d12,0 3px 10px #000b,0 0 12px #3a8bff66;overflow:visible}   /* v1298 (Phil: "Just make this symbol in the bottom left by itself"): ChatGPT's glyph bowl, nothing else */
   #campBonusBtn[hidden],.screen:not(.active) #campBonusBtn{display:none}
-  #campBonusBtn img{width:20px;height:20px;object-fit:contain;filter:drop-shadow(0 0 4px #5ee89b88)}
-  #campBonusBtn b{min-width:16px;padding:0 5px;border-radius:8px;background:#ffd45e;color:#1a1206;font-size:10px;line-height:14px;text-align:center}
+  #campBonusBtn img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;pointer-events:none}
+  #campBonusBtn:active{transform:scale(.94)!important}
+  #campBonusBtn b{position:absolute;top:-4px;right:-6px;min-width:16px;padding:0 5px;border-radius:8px;background:#ffd45e;color:#1a1206;font:800 10px/15px Georgia,serif;text-align:center;box-shadow:0 1px 3px #000a}
   #campBonusBtn.has b{animation:ewTapPulse2 1.6s ease-in-out infinite} @keyframes ewTapPulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
   body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
@@ -665,8 +666,8 @@
     #cmapScroll{position:absolute!important;inset:0;max-height:none;height:100%;scrollbar-width:thin;padding:0;margin:0;overflow-x:auto;overflow-y:hidden}#cmap{width:max(720px,min(calc(var(--ew-game-width,100vw) * 1),calc(calc(var(--ew-game-height,100vh) * 1) * 1.5)));width:max(720px,min(calc(var(--ew-game-width,100vw) * 1),calc(calc(var(--ew-game-height,100vh) * 1) * 1.5)));max-width:none;margin:0 auto;border-radius:0;border-top:0}.cnode{width:24px;height:24px}.cnode::before{bottom:21px}.cnode .clbl{top:28px}.cnode.elite{width:48px;height:64px;transform:translate(-50%,-100%)}.cnode.elite::before{top:0;bottom:auto}.cnode.elite .clbl{top:58px}.cnode.boss{width:30px;height:30px}.cnode.boss::before{bottom:27px}.cnode.boss .clbl{top:36px}.cbonus span{display:block}
   }
   @media (orientation:landscape){
-    #campaign.active #portalTabs{top:auto!important;bottom:5px!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:min(660px,90%);height:39px!important;padding:2px!important;gap:5px!important;background:#07121cbd!important;border-radius:11px;z-index:11!important}
-    #campaign.active #portalTabs .btn{font-size:11px!important;min-height:35px!important}
+    #campaign.active #portalTabs{top:auto!important;bottom:5px!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:auto;max-width:90%;height:39px!important;padding:2px!important;gap:5px!important;background:#07121cbd!important;border-radius:11px;z-index:11!important}
+    #campaign.active #portalTabs .btn{font-size:11px!important;min-height:35px!important;flex:0 0 auto!important;width:150px;max-width:30vw;white-space:nowrap}   /* v1298: same tab size, the bar hugs them */
     #campaign.active #starTrack{top:4px!important;left:80px!important;right:80px!important}
     #campaign.active #cmapHdr{top:30px!important;height:30px!important}
     #campaign.active #cmapScroll{overflow-x:hidden!important;touch-action:auto!important}
@@ -2599,7 +2600,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
-    <button type="button" id="campBonusBtn" class="campBonusBtn" onclick="bonusHourlyClaim()"><img src="/assets/img/glyphs-v2/Green/fragment-vitality.png?v=4" alt="" draggable="false"><span data-i18n="bonusfrag.btn">Bonus Stage</span><b id="campBonusCnt" hidden></b></button>   <!-- v1298 (Phil 6 Nov: "I want the bonus stage claim to be in the bottom left of the campaign map" / "You click it and it opens the pop out") -->
+    <button type="button" id="campBonusBtn" class="campBonusBtn" onclick="bonusHourlyClaim()" aria-label="Bonus Stage" data-i18n-aria="bonusfrag.btn"><img src="/assets/img/ui/bonus-pool-icon.webp?v=1" alt="" draggable="false"><b id="campBonusCnt" hidden></b></button>   <!-- v1298 (Phil 6 Nov: "I want the bonus stage claim to be in the bottom left of the campaign map" / "You click it and it opens the pop out") -->
   </div>
 
   <!-- TEAM SELECT -->
