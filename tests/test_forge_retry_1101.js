@@ -7,7 +7,7 @@ const i = page.indexOf('async function forgeSync(){'), j = page.indexOf('functio
 ok(i > 0 && j > i, 'forgeSync found');
 const src = page.slice(i, j);
 async function run(responses) {
-  const ctx = { FORGE: { cat: null, src: null, st: null }, api: async (p) => responses[p] };
+  const ctx = { FORGE: { cat: null, src: null, st: null }, api: async (p) => responses[p], setTimeout: (f) => setImmediate(f) };   // v1302: forgeSync retries a failed load (no real waits here)
   vm.runInNewContext(src + '\nthis.forgeSync=forgeSync;', ctx); await ctx.forgeSync(); return ctx.FORGE.st;
 }
 (async () => {

@@ -18186,6 +18186,21 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
   else if(msg){ try{ bannerMsg(iconize(msg(r))); }catch(e){} }
   await forgeSync(); renderForge();
 }
+/* v1302 (Phil 7 Nov: "Try doing like 20+ tempers"): Temper taps are QUEUED, never dropped (FORGE.busy used to swallow a tap while the last
+   one was in flight), sent in batches of up to 60, and each reply (revision, dust, temper, progress) updates the Forge here - one full state
+   read 0.9 s after the last tap instead of one per tap. A STALE reply takes the server's revision and resends once. */
+function forgeTemper(itemId,uses){ FORGE.tq=(FORGE.tq||0)+(uses|0||1); FORGE.tItem=itemId; if(!FORGE.tRun) forgeTemperRun(); }
+async function forgeTemperRun(){ FORGE.tRun=true; let stale=0;
+  try{ while(FORGE.tq>0){ const n=Math.min(60,FORGE.tq); FORGE.tq-=n;
+    const r=await api('/api/gear/temper','POST',{expectedRevision:FORGE.st.revision,itemId:FORGE.tItem,uses:n});
+    if(r&&r.error==='STALE'&&r.revision!=null&&stale<1){ stale++; FORGE.st.revision=r.revision; FORGE.tq+=n; continue; }
+    if(!r||r.error){ FORGE.tq=0; bannerMsg((r&&r.error)||t('forge.cold')); break; } stale=0;
+    FORGE.st.revision=r.revision; if(r.dust!=null) FORGE.st.dust=r.dust;
+    const tt=(FORGE.st.temperByType=FORGE.st.temperByType||{}), was=tt[r.gearId]||{}; tt[r.gearId]=Object.assign({},was,{temper:r.temper,prog:r.prog,dustSpent:(was.dustSpent||0)+(r.dustSpent||0)});
+    const it=(FORGE.st.items||{})[FORGE.tItem]; if(it) it.temper=r.temper; FORGE.stAt=Date.now();
+    try{ bannerMsg(iconize('{i:s:burn} '+((r.uses||1)>1?t('forge.tempered_x',{n:r.uses,d:r.dustSpent}):(r.levelsGained?t('forge.temper_up',{d:r.dustSpent}):t('forge.temper_progress',{d:r.dustSpent}))))); }catch(e){}
+    try{ renderForge(); }catch(e){} }
+  } finally{ FORGE.tRun=false; clearTimeout(FORGE.tSync); FORGE.tSync=setTimeout(()=>{ if(!FORGE.tRun) forgeSync().then(()=>{ try{ renderForge(); }catch(e){} }); },900); } }
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
 /* v365 (Phil): the Gear Compendium art — every finished item, fragment and sub-component (Emberweave
    Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
@@ -18480,9 +18495,11 @@ function forgePopDraw(){ const d=FORGE.open&&forgeDef(FORGE.open); let o=documen
   const face=(k,on)=>`<span class="fgFace${on?' on':''}" title="${escAttr((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,30)}</span>`;
   const stats=Object.entries(d.stats||{}).map(([k,v])=>`<div class="fgStat"><span>${escapeHTML(String(k))}</span><b>${(Math.round(v*(1+T.passivePerTemper*tp)*10)/10).toLocaleString()}</b></div>`).join('');
   const btns=!copy?`<div style="color:#8b98a9;font-size:12px">${t('forge.not_built')}</div>`:maxed?`<div style="color:#ffd45e">${uiIcon('star-filled')} ${t('forge.max_temper')}</div>`:
-    `<div style="display:flex;gap:8px"><button class="btn fgTBtn" style="flex:1" onclick="forgePost('/temper',{itemId:'${copy}',uses:1},r=>'{i:s:burn} '+(r.levelsGained?t('forge.temper_up',{d:r.dustSpent}):t('forge.temper_progress',{d:r.dustSpent})))">${statusIcon('burn')} ${t('forge.tab_temper')} x1 - ${uiIcon('res-forge-dust')}${cost}</button>`+
-    `<button class="btn secondary fgTBtn2" style="flex:0 0 auto" onclick="forgePost('/temper',{itemId:'${copy}',uses:10},r=>'{i:s:burn} '+t('forge.tempered_x',{n:r.uses||10,d:r.dustSpent}))">x10</button></div>`;
-  if(!o){ o=document.createElement('div'); o.id='fgPop'; o.onclick=e=>{ if(e.target===o) forgePopClose(); }; document.body.appendChild(o); }
+    `<div style="display:flex;gap:8px"><button class="btn fgTBtn" style="flex:1" data-ti="${copy}" data-tu="1">${statusIcon('burn')} ${t('forge.tab_temper')} x1 - ${uiIcon('res-forge-dust')}${cost}</button>`+
+    `<button class="btn secondary fgTBtn2" style="flex:0 0 auto" data-ti="${copy}" data-tu="10">x10</button></div>`;
+  if(!o){ o=document.createElement('div'); o.id='fgPop'; o.onclick=e=>{ if(e.target===o) forgePopClose(); };
+    o.addEventListener('pointerdown',e=>{ const b=e.target.closest&&e.target.closest('[data-tu]'); if(!b) return; e.preventDefault(); forgeTemper(b.dataset.ti,+b.dataset.tu); });   // v1302: queued on press
+    document.body.appendChild(o); }
   o.innerHTML=`<div class="fgPopCard"><button class="fgPopX" onclick="forgePopClose()" aria-label="Close">${uiIcon('close')}</button>`+
     `<div class="fgPopHead"><div class="fgItem" style="border-color:${col};box-shadow:0 0 12px ${col}88;width:76px;height:76px">${gearImg(d,72)}${tp?`<b class="fgT">+${tp}</b>`:''}</div>`+
     `<div style="min-width:0"><div class="fgName" style="color:${col};font-size:16px">${escapeHTML(d.name)}</div><div style="font-size:11px;color:#c9b88a">${escapeHTML(d.quality)} - ${escapeHTML(d.slotFull||d.slot||'')}</div>`+

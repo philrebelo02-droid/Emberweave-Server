@@ -6414,7 +6414,10 @@ async function api(req,res,url){
   if(p.startsWith('/api/gear')){
     if(!me) return send(res,401,{error:'auth'});
     if(!gearEnabledFor(me)) return send(res,200,{enabled:false});
-    if(rateLimited(req,'gear',80,60000)) return send(res,429,{error:'Slow down.'});
+    /* v1302 (Phil 7 Nov: "Try doing like 20+ tempers" / "there should be no limit on someone's upgrade amount"): 80 gear calls a minute ran out
+       after ~40 quick Temper taps (each was a temper + a state read) - 'Slow down.', and the next state read made the Forge 'unreachable'.
+       Every temper is paid in dust and checked here, so the fence only stops abuse. */
+    if(rateLimited(req,'gear',600,60000)) return send(res,429,{error:'Slow down.'});
     if(p==='/api/gear/catalog'){ return send(res,200,{ version:1, meta:GEARCAT.meta, items:GEARCAT.items }); }
     /* v256 (80/20 §5): every gear fragment's EXACT farm source, computed from the authored
        vault table — never "random drops". Memoised: the table is frozen at boot. */
