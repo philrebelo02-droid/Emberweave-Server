@@ -12057,11 +12057,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   switch(type){
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(o.pfx||u.range>60)abilShot(u,o,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
-    case 'volley':{const _vt=enemiesOf(u).sort((a,b)=>o.backline?dist(u,b)-dist(u,a):dist(u,a)-dist(u,b)).slice(0,o.n||3);   /* v935: o.backline = the farthest first (Verdant Shade's text) */
+    case 'volley':{let _vt=enemiesOf(u).sort((a,b)=>o.backline?dist(u,b)-dist(u,a):dist(u,a)-dist(u,b)).slice(0,o.n||3);
+      if(o.weakest){ const _in=enemiesOf(u).filter(e=>e.alive&&dist(u,e)<=(o.range||3*METER)); const _pool=_in.length?_in:enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,1);   // v1303 Prismatic Axe: the weakest (lowest HP share) within reach; nobody in reach = the nearest
+        _vt=_pool.sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp).slice(0,1); }   /* v935: o.backline = the farthest first (Verdant Shade's text) */
       /* v527 - Marked Deal throws every card into ONE target and the last one marks it. */
       const _one=!!o.single, _list=_one?(_vt.length?[_vt[0]]:[]):_vt, _reps=_one?(o.n||3):1;
       /* v891 - each projectile's damage lands when IT arrives (o.pdur), not at the cast */
       const _pd=o.pdur||0.30, _VD=dB*(o.mul||.9)*rm;
+      if(o.melee){ for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ groundHazards.push({arrival:true,delay:0.05+_r*(o.stagger||0.16),run:function(){ if(!e.alive)return; u.attackAnim=.2; dealDamage(u,e,_VD,'#b98bff'); burstAt(e.x,e.y,0xb98bff,8); }}); }); break; }   // v1303: 3 rapid axe swings, no projectile
       for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ const _fire=function(){ if(!e.alive)return; abilShot(u,o,e,u.t.color,(o.ownFx==='cards')?function(){ try{ sorrelHitFx(e,_one&&!!o.mark&&_r===_reps-1); }catch(_e){} }:undefined);   /* v1123: the card lands with its damage (same 0.30 s flight); the spark is display only */
           groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive) dealDamage(u,e,_VD,'#5ee89b'); }}); };
         const _dl=_r*0.15+(o.stagger&&!_one?_list.indexOf(e)*o.stagger:0);   /* v1069: o.stagger = arrows leave one after another (Sloe) */
@@ -12464,14 +12467,15 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          reaches it, o.pathHit x the slam), Greatbrow shields every ally (o.allyShield x max HP) and knocks the enemies on his path aside. */
       if(o.pathHit||o.knockAside){ const _px=lx-u.x, _py=ly-u.y, _pl=Math.hypot(_px,_py)||1, _ux=_px/_pl, _uy=_py/_pl, _W=o.pathW||1.4*METER;
         foes.forEach(e=>{ if(!e.alive)return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*_ux+ry*_uy, side=rx*_uy-ry*_ux;
-          if(pr<0||pr>_pl||Math.abs(side)>_W||dist({x:lx,y:ly},e)<_cR) return;
+          if(pr<0||pr>_pl||Math.abs(side)>_W||(o.slamOne?e===tg2:dist({x:lx,y:ly},e)<_cR)) return;   // v1303: slamOne - every other enemy on the path is hit + knocked aside
           groundHazards.push({arrival:true,delay:Math.max(0.03,_dur*pr/_pl),run:function(){ if(!e.alive)return;
             if(o.pathHit){ dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); burstAt(e.x,e.y,0xffcf40,8); }
             if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
               e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); } }}); }); }
       if(o.allyShield) alliesOf(u).forEach(a=>{ if(!a.alive)return; a.shield=(a.shield||0)+a.maxHp*o.allyShield; burstAt(a.x,a.y,0x9fe0ff,8); });
       u._dash={x0:u.x,y0:u.y,x1:lx,y1:ly,t:0,dur:_dur,run:function(){ u.attackAnim=.2; u._rushLandAt=battleTime;   /* v1021: render-only stamp - the ult clip's impact frames start here */
-        enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
+        if(o.slamOne){ if(tg2.alive){ dealDamage(u,tg2,_cD,'#ffcf40'); if(o.stun&&ccApply(u,tg2,'stunned',o.stun)&&o.stunFull) tg2.stunned=Math.max(tg2.stunned||0,o.stunFull); } }   // v1303: the slam is ONE enemy - the one he charged; stunFull = Phil's 3 s past the 2.8 s stacking ceiling (this skill only)
+        else enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
         burstAt(lx,ly,0xffcf40,20); }};
       u._castT=Math.max(u._castT||0,_dur); break; }
     /* v534 NOONDAY STAMPEDE (Zahri) - Phil, 9 Sep: "a line aimed up that can go up to 20 meter, when you use it she charges to the
@@ -22151,7 +22155,7 @@ Object.assign(MONSTER_TYPES,{
   'hourglass sentinel':{name:'Kharos, Hourglass Sentinel',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:14202986,isboss:true},
   'miregor':{name:'Miregor, King of the Briar March',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7311162,isboss:true},
   'sable vesper':{name:'Sable Vesper, Choir of Crows',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:3813194,fly:true,isboss:true,ap:1.6},
-  'orryx':{name:'Orryx, the Glass Minotaur',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:12159999,isboss:true},
+  'orryx':{name:'Orryx, the Glass Minotaur',stars:5,swing:2.4,monster:true,role:'Brute',hp:300,dmg:31.2,range:46,speed:44,color:12159999,isboss:true},
   'thorneveil':{name:'Thorneveil, Warden of the Ash Grove',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:9394730,isboss:true,ap:1.6},
   'nameless admiral':{name:'The Nameless Admiral',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:150,speed:44,color:6258591,isboss:true}
 });
@@ -22195,7 +22199,10 @@ Object.assign(MONSTER_KITS,{
   'hourglass sentinel':{green:{name:'Secondhand Cleave',type:'cleavecone',mul:1.5,radius:2.8*METER,angle:180,cd:9,gfx:'cleave',gfxR:2.6*METER,gdur:1.2},blue:{name:'Time Lock',type:'stun',mul:0.8,stun:2.0,cd:11,gfx:'glacialprison',gfxR:1.4*METER,gdur:2.2},pass:'unwind'},
   'miregor':{green:{name:'Thornstampede',type:'charge',mul:1.7,radius:2.4*METER,stun:0.8,cd:10,gfx:'rallyroots',gfxR:2.4*METER,gdur:1.6},blue:{name:'King\'s Goring',type:'punchflurry',hits:3,mul:0.7,tauntChance:0,cd:8,gfx:'bleed',gfxR:1.2*METER,gdur:1.6},pass:'mirewall'},
   'sable vesper':{green:{name:'Dirge Crescendo',type:'crescendo',dur:4,cd:9,gfx:'voidzone',radius:2.8*METER},blue:{name:'Murder of One',type:'multiShot',mul:1.1,n:5,cd:9,pfx:'featherbolt',pscale:2.4,pdur:0.26},pass:'hush'},
-  'orryx':{green:{name:'Labyrinth Charge',type:'charge',mul:1.8,radius:2.4*METER,stun:0.9,cd:10,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},blue:{name:'Prismatic Axe',type:'volley',mul:0.9,n:3,color:'#b98bff',cd:8,pfx:'crystalshard',pscale:2.4,pdur:0.26},pass:'unstepped'},
+  /* v1303 (Phil 7 Nov: "Labyrinth charge, when he charges the farthest enemy now he knocked to the side any enemy he passes through knocking them to the side 5 meters
+     and dealing 100% of his attack damage. 150% damage to the enemy he arrives at and slams them stunning them for 3 second." / "Prismatic axe deals 3 rapid 120% axe
+     swings on the weakest enemy within 3 meters of him"): pathHit 0.6667 x the 150% slam = 100%; slamOne = only the enemy he arrives at. */
+  'orryx':{green:{name:'Labyrinth Charge',type:'charge',mul:1.5,pathHit:0.6667,knockAside:5*METER,slamOne:true,radius:2.4*METER,stun:3/CC_NERF,ccFixed:['stun'],stunFull:3,cd:10,desc:"Charges the farthest enemy. Every enemy he passes through is knocked 5 meters aside and takes 100% of his Attack; the enemy he reaches is slammed for 150% of his Attack and stunned for 3 seconds.",gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},blue:{name:'Prismatic Axe',type:'volley',mul:1.2,n:3,single:true,weakest:true,range:3*METER,melee:true,stagger:0.16,desc:"Three rapid axe swings, each 120% of his Attack, on the weakest enemy within 3 meters.",color:'#b98bff',cd:8,pfx:'crystalshard',pscale:2.4,pdur:0.26},pass:'unstepped'},
   'thorneveil':{green:{name:'Wildfire Roots',type:'aoedot',mul:0.6,dps:0.5,dur:4,radius:2.6*METER,cd:9,gfx:'firepatch',gdur:2.4},blue:{name:'Verdant Collapse',type:'aoeStun',mul:1.3,stun:1.2,radius:2.6*METER,cd:11,gfx:'rallyroots',gdur:1.6},pass:'regen'},
   'nameless admiral':{green:{name:'Broadside of Souls',type:'piercethrow',mul:1.7,width:40*UNIT_SIZE,cd:9,pfx:'shadowball',pscale:3.2,pdur:0.3},blue:{name:'Anchor the Living',type:'tendrilpull',dur:1.6,cd:10},pass:'packstats'}
 });
