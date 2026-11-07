@@ -5499,9 +5499,27 @@ function cityViewTooBig(tiles){ if(!tiles.size) return true; let c0=9,c1=0,r0=9,
    in that region moves - it was rebuilt by the client's engine for every region on every map poll (35% of the main thread in the
    war profile, 11 Oct 2026) */
 const _botRosterCache=new Map();
+const _bootStepRL=new Map();   // v1299: /api/boot-step per-address rate limit
 async function api(req,res,url){
   const p=url.pathname;
   if(p==='/api/health') return send(res,200,{ok:true});   /* v1018: the client's net gate checks this - an /api/ path is never answered from the service worker cache (/health is) */
+  /* v1299 (Phil 6 Nov: "the issue isnt how many opted in, its the fact that none of them made it passed the load screen"): each player's
+     phone reports how far the game got (splash online, tap, sign-in gate, Terms, every first screen, first battle, errors) so a stuck tester
+     shows the exact step and device. No IP, no name: a random session id, the step, the device line, memory, WebGL, build, account id if signed in.
+     Appended to boot-steps.jsonl beside the database (rolled at 20 MB); read with tools on the server. Unauthenticated on purpose (a stuck
+     player may never sign in); small, rate-limited per address, never echoed. */
+  if(p==='/api/boot-step' && req.method==='POST'){
+    const ip=String(req.socket&&req.socket.remoteAddress||''), now=Date.now(), rl=_bootStepRL.get(ip)||{t:now,n:0};
+    if(now-rl.t>60000){ rl.t=now; rl.n=0; } rl.n++; _bootStepRL.set(ip,rl); if(_bootStepRL.size>5000) _bootStepRL.clear();
+    if(rl.n>60) return send(res,204,'');
+    let b={}; try{ b=await body(req,2048); }catch(_){ return send(res,204,''); }
+    const cl=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f]/g,' ').slice(0,n);
+    const row={ ts:now, sid:cl(b.sid,24), st:cl(b.st,48), ms:Math.max(0,Math.min(1e8,+b.ms||0)), dev:cl(b.dev,90), dm:+b.dm||0, gl:b.gl?1:0, v:cl(b.v,16), uid:cl(b.uid,40), err:cl(b.err,200), w:+b.w||0, h:+b.h||0, twa:b.twa?1:0 };
+    if(!row.sid||!row.st) return send(res,204,'');
+    try{ const f=path.join(path.dirname(DB_FILE),'boot-steps.jsonl'); let sz=0; try{ sz=fs.statSync(f).size; }catch(_){}
+      if(sz>20*1024*1024){ try{ fs.renameSync(f,f+'.1'); }catch(_){} } fs.appendFile(f,JSON.stringify(row)+'\n',()=>{}); }catch(_){}
+    return send(res,204,'');
+  }
   /* v1154: bytes of every file under assets/ (path -> size), walked once per process. The Settings 'Update all features' card sums it
      over the files THIS device saves, so its MB figures are the files it really keeps, not the whole origin's storage. */
   if(p==='/api/asset-sizes' && req.method==='GET') return send(res,200,{ok:true,sizes:assetSizes1154()});
