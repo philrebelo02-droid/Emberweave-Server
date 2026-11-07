@@ -54,7 +54,9 @@ case "$BROKE" in *"costs 200 gold"*|*capped*|*"max level"*) ck "broke/capped con
 
 # v1009: the war runs on a 14-day cycle (registration Sat 02:00 ET, every other week). The old 'next Saturday 01:00' landed in a
 # finished week, so 25 checks below failed unseen. Warp to one minute after the server's own next registration opening.
-OFF=$(curl -s $B/api/guild-war/status -H "$H1" | python3 -c "import sys,json,time;t=json.load(sys.stdin)['tournament'];o=t['registrationOpensAt'] if time.time()*1000<t['registrationLocksAt'] else t['nextRegistrationOpensAt'];print(int(max(o+60000,time.time()*1000)-time.time()*1000))")
+# v1302: anchored on the REAL registration opening (negative while it is already open - the warp takes negatives). The old max(..,now)
+# re-anchored on 'now' inside a live Saturday window, so 'Tue 19:31' missed the 18:00-20:00 match (the 7 Nov 06:55 ET suite).
+OFF=$(curl -s $B/api/guild-war/status -H "$H1" | python3 -c "import sys,json,time;t=json.load(sys.stdin)['tournament'];o=t['registrationOpensAt'] if time.time()*1000<t['registrationLocksAt'] else t['nextRegistrationOpensAt'];print(int(o+60000-time.time()*1000))")
 W=$(curl -s -X POST $B/api/guild-war/debug-warp -H "$HD" -H 'content-type: application/json' -d "{\"offsetMs\":$OFF}")
 ck "warp to Saturday: registration" '"state":"registration"' "$W"
 
