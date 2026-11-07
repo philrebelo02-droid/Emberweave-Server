@@ -119,12 +119,10 @@ ck('stages 3/6/9 and stage 10 carry the Guardian/boss steps',
 ck('every stage records the validated correction applied to the baseline',
   S.every(e=>typeof e.difficultyTune==='number'&&e.difficultyTune>0));
 ck('enemy level tracks each stage reference target', S.every(e=>e.waves.every(w=>w.every(m=>m.lvl===e.targetLevel))));
-/* v1307 (Phil 7 Nov 2026: "reduce all power of every stage from chapter 10-16+ by 15% it shouldnt be as hard as it is" / "chapter 10-16"):
-   chapters 10-16 are x0.85, so the curve steps DOWN once, at 9-10 -> 10-1; everywhere else it still never goes backwards, and
-   10-1 is exactly 0.85 x what it was (21847 -> 18570). */
-ck('recommended power never goes backwards (except the one v1307 step at 9-10 -> 10-1)', S.every((e,i)=>i===0||e.node===91||e.recommendedPower>=S[i-1].recommendedPower));
-ck('v1307: chapters 10-16 sit 15% under the old curve (10-1 = 18570, 16-10 = 58327)', S[90].recommendedPower===18570&&S[159].recommendedPower===58327, S[90].recommendedPower+' / '+S[159].recommendedPower);
-ck('v1307: Phil "raise 10-10 to 24000" - 10-10 is 24000', S[99].recommendedPower===24000, String(S[99].recommendedPower));
+/* v1307 (Phil 7 Nov 2026): "reduce all power of every stage from chapter 10-16+ by 15%" / "chapter 10-16" -> chapters 11-16 x0.85;
+   "raise 10-10 to 24000" and "scale chapter 10" -> 10-1..10-9 ramp evenly from 9-10 (21691) to 10-10 (24000). The curve never goes backwards. */
+ck('recommended power never goes backwards', S.every((e,i)=>i===0||e.recommendedPower>=S[i-1].recommendedPower));
+ck('v1307: chapter 10 ramps 21922 .. 24000 (10-1, 10-10); 16-10 = 58327 (x0.85)', S[90].recommendedPower===21922&&S[99].recommendedPower===24000&&S[159].recommendedPower===58327, [S[90],S[99],S[159]].map(e=>e.recommendedPower).join(' / '));
 ck('1-1 and 1-2 need no glyphs at all (a new account owns none)',
   S[0].targetGlyph==='None'&&S[1].targetGlyph==='None');
 
