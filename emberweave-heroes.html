@@ -137,6 +137,32 @@
   .fgBar{height:7px;background:#0b0f1a;border-radius:4px;overflow:hidden;margin-bottom:6px}.fgBar i{display:block;height:100%;background:linear-gradient(90deg,#c9922a,#ffd45e)}
   .fgOpenRow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:#ffd45e}
   @media (max-width:700px){ .fgTabs{flex-basis:84px} .fgQ{font-size:10px;padding:6px 4px} }
+  /* v1301 (Phil 6 Nov: "give the art job to chatgpt" / "i want it good quality like temple of ash"): ChatGPT's painted Forge + Bonus Stage pieces */
+  #forge.screen.hub{background:linear-gradient(rgba(5,7,12,.30),rgba(5,7,12,.55)),#070a14 url(/assets/img/ui/forge/forge-bg.webp?v=1) center/cover no-repeat}
+  .fgRow{min-height:80px;padding:14px 20px 12px 25px;border:0;border-radius:0;background:none;border-image:url(/assets/img/ui/forge/forge-row.webp?v=1) 30 40 30 190 fill / 15px 20px 15px 95px stretch;flex-wrap:nowrap}
+  .fgItem{width:58px;height:58px;border:0!important;border-radius:6px;background:none}
+  .fgItem img{width:54px!important;height:54px!important}
+  .fgFaces{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.fgFaces::-webkit-scrollbar{display:none}
+  .fgFace{flex:0 0 auto}
+  .fgQ{border:0;border-radius:0;background:url(/assets/img/ui/forge/forge-tab.webp?v=1) center/100% 100% no-repeat;padding:10px 6px;text-shadow:0 0 3px #000,0 1px 2px #000}
+  .fgQ.on{background:url(/assets/img/ui/forge/forge-tab-on.webp?v=1) center/100% 100% no-repeat;box-shadow:none;color:#24170a!important;text-shadow:0 1px 0 #ffe9a8}
+  .fgPopCard{border:0;border-radius:0;background:none;box-shadow:0 14px 44px #000c;padding:22px 22px 20px;border-image:url(/assets/img/ui/forge/forge-popup.webp?v=1) 48 fill / 24px stretch}
+  .fgPopX{top:10px;right:10px;width:34px;height:34px;border:0;background:url(/assets/img/ui/forge/close-button.webp?v=1) center/100% 100% no-repeat}
+  .fgBar.big{height:20px;border:0;border-radius:0;overflow:visible;background:url(/assets/img/ui/forge/forge-temper-bar.webp?v=1) center/100% 100% no-repeat;position:relative}
+  .fgBar.big i{position:absolute;inset:0;width:auto!important;background:url(/assets/img/ui/forge/forge-temper-fill.webp?v=1) center/100% 100% no-repeat}
+  .fgTBtn{border:0!important;border-radius:0!important;background:url(/assets/img/ui/forge/forge-temper-btn.webp?v=1) center/100% 100% no-repeat!important;color:#24170a!important;font-weight:900;text-shadow:0 1px 0 #ffe9a8;min-height:40px;box-shadow:none!important}
+  .fgTBtn2{border:0!important;border-radius:0!important;background:url(/assets/img/ui/forge/forge-tab.webp?v=1) center/100% 100% no-repeat!important;color:#ffd45e!important;min-height:40px;box-shadow:none!important}
+  #bonusFragPanel .bfCard{width:100%;max-width:380px;max-height:calc(var(--ew-game-height,100vh) - 16px);overflow:hidden;display:flex;flex-direction:column;color:#e6edf3;padding:66px 22px 22px;border-image:url(/assets/img/ui/bonus/panel-frame.webp?v=1) 175 44 64 44 fill / 66px 17px 24px 17px stretch;filter:drop-shadow(0 14px 30px #000b);position:relative}
+  #bonusFragPanel .bfPlaque{background:url(/assets/img/ui/bonus/stat-plaque.webp?v=1) center/100% 100% no-repeat;padding:9px 10px 11px;text-align:center}
+  #bonusFragPanel .bfRow{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;align-items:center;padding:7px 16px;font-size:13px;background:url(/assets/img/ui/bonus/row-band.webp?v=1) center/100% 100% no-repeat;margin-top:4px}
+  #bonusFragPanel .bfHead{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;padding:0 16px;font-size:11px;color:#8b98a9}
+  #bonusFragPanel .bfClaim{flex:1;border:0;border-radius:0;min-height:46px;background:url(/assets/img/ui/bonus/claim-button.webp?v=1) center/100% 100% no-repeat;color:#24170a;font:900 15px Georgia,serif;text-shadow:0 1px 0 #ffe9a8;cursor:pointer}
+  #bonusFragPanel .bfList{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
+  @media (max-height:500px){ #bonusFragPanel{padding:8px!important} #bonusFragPanel .bfCard{padding-bottom:18px} #bonusFragPanel .bfTitle{font-size:17px!important;margin-bottom:6px!important}
+    #bonusFragPanel .bfPlaques{margin-bottom:6px!important} #bonusFragPanel .bfPlaque{padding:5px 8px 7px} #bonusFragPanel .bfPlaque .bfN{font-size:17px!important}
+    #bonusFragPanel .bfRow{padding:4px 16px;margin-top:3px} #bonusFragPanel #bfNext{margin:5px 0 2px!important} #bonusFragPanel .bfClaim{min-height:40px} }
+  #bonusFragPanel .bfClaim:disabled{filter:grayscale(.85) brightness(.7);cursor:default}
+  #bonusFragPanel .bfX{position:absolute;top:58px;right:14px;width:34px;height:34px;border:0;padding:0;background:url(/assets/img/ui/forge/close-button.webp?v=1) center/100% 100% no-repeat;color:#ffd45e;cursor:pointer}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
   body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
   body.gated #three,body.gated #three canvas,body.gated #overlay{visibility:hidden;opacity:0;}
@@ -8795,19 +8821,18 @@ async function bonusHourlyClaim(){ if(!ACC.token){ bannerMsg(t('bonusclaim.sign_
   const c=st.claim||{}, rates=c.rates||{}, per=c.perQuality||{}, ph=st.perHour|0, cap=c.capHours||36, hours=c.hours|0, total=c.total|0;
   const skew=(st.serverNow||Date.now())-Date.now(), fmt=n=>(n|0).toLocaleString('en-US');
   const qs=G2_LADDER16.filter(q=>(rates[q]|0)>0);
-  const td='padding:5px 8px;border-top:1px solid #2a3550';
-  const rows=qs.length ? qs.map(q=>`<tr><td style="${td};color:${G2_LCOL[q]||'#cdd6e4'};font-weight:700">${escapeHTML(q)}</td><td style="${td};text-align:right">${fmt(rates[q])}</td><td style="${td};text-align:right;color:#ffd45e;font-weight:700">${fmt(per[q]||0)}</td></tr>`).join('')
-    : `<tr><td colspan="3" style="${td};color:#8b98a9">${t('bonusclaim.clear_first')}</td></tr>`;
+  const rows=qs.length ? qs.map(q=>`<div class="bfRow"><span style="color:${G2_LCOL[q]||'#cdd6e4'};font-weight:700">${escapeHTML(q)}</span><span style="text-align:right">${fmt(rates[q])}</span><span style="text-align:right;color:#ffd45e;font-weight:700">${fmt(per[q]||0)}</span></div>`).join('')
+    : `<div class="bfRow" style="grid-template-columns:1fr;color:#8b98a9">${t('bonusclaim.clear_first')}</div>`;
   const ov=document.createElement('div'); ov.id='bonusFragPanel';
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:20050;padding:16px';
-  ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:18px 16px;width:100%;max-width:380px;max-height:84vh;overflow-y:auto;box-shadow:0 14px 44px #000b;color:#e6edf3">
-      <div style="font-family:Georgia,serif;font-weight:900;font-size:20px;color:#ffd45e;text-shadow:0 1px 4px #000;text-align:center;margin-bottom:12px">${t('bonusfrag.title')}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <div style="background:#0f1420;border:1px solid #2a3550;border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:#8b98a9">${t('bonusfrag.per_hour')}</div><div style="font-size:20px;font-weight:900">${fmt(ph)}</div></div>
-        <div style="background:#0f1420;border:1px solid #2a3550;border-radius:10px;padding:8px;text-align:center"><div style="font-size:11px;color:#8b98a9">${t('bonusfrag.saved')}</div><div style="font-size:20px;font-weight:900;color:#ffd45e">${fmt(total)}</div><div style="font-size:11px;color:#8b98a9">${t('bonusfrag.hours',{h:hours,cap})}</div></div></div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="font-size:11px;color:#8b98a9"><td style="padding:3px 8px">${t('bonusfrag.quality')}</td><td style="padding:3px 8px;text-align:right">${t('bonusfrag.per_hour')}</td><td style="padding:3px 8px;text-align:right">${t('bonusfrag.saved')}</td></tr>${rows}</table>
+  ov.innerHTML=`<div class="bfCard"><button class="bfX" id="bfClose" aria-label="${escAttr(t('common.close'))}">${uiIcon('close')}</button>
+      <div class="bfTitle" style="font-family:Georgia,serif;font-weight:900;font-size:20px;color:#ffd45e;text-shadow:0 1px 4px #000;text-align:center;margin-bottom:12px;padding:0 34px">${t('bonusfrag.title')}</div>
+      <div class="bfPlaques" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div class="bfPlaque"><div style="font-size:11px;color:#c9b88a">${t('bonusfrag.per_hour')}</div><div class="bfN" style="font-size:20px;font-weight:900">${fmt(ph)}</div></div>
+        <div class="bfPlaque"><div style="font-size:11px;color:#c9b88a">${t('bonusfrag.saved')}</div><div class="bfN" style="font-size:20px;font-weight:900;color:#ffd45e">${fmt(total)}</div><div style="font-size:11px;color:#8b98a9">${t('bonusfrag.hours',{h:hours,cap})}</div></div></div>
+      <div class="bfHead"><span>${t('bonusfrag.quality')}</span><span style="text-align:right">${t('bonusfrag.per_hour')}</span><span style="text-align:right">${t('bonusfrag.saved')}</span></div><div class="bfList">${rows}</div>
       <div id="bfNext" style="text-align:center;font-size:12px;color:#8b98a9;margin:10px 0 4px"></div>
-      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" id="bfClaim" style="flex:1"${total>0?'':' disabled'}>${t('bonusfrag.claim',{n:fmt(total)})}</button><button class="btn secondary" id="bfClose">${t('common.close')}</button></div></div>`;
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="bfClaim" id="bfClaim"${total>0?'':' disabled'}>${t('bonusfrag.claim',{n:fmt(total)})}</button></div></div>`;
   document.body.appendChild(ov);
   ov.onclick=e=>{ if(e.target===ov) _bfClose(); }; ov.querySelector('#bfClose').onclick=_bfClose;
   const since=+st.since||0, nx=ov.querySelector('#bfNext');
@@ -18411,8 +18436,8 @@ function forgePopDraw(){ const d=FORGE.open&&forgeDef(FORGE.open); let o=documen
   const face=(k,on)=>`<span class="fgFace${on?' on':''}" title="${escAttr((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,30)}</span>`;
   const stats=Object.entries(d.stats||{}).map(([k,v])=>`<div class="fgStat"><span>${escapeHTML(String(k))}</span><b>${(Math.round(v*(1+T.passivePerTemper*tp)*10)/10).toLocaleString()}</b></div>`).join('');
   const btns=!copy?`<div style="color:#8b98a9;font-size:12px">${t('forge.not_built')}</div>`:maxed?`<div style="color:#ffd45e">${uiIcon('star-filled')} ${t('forge.max_temper')}</div>`:
-    `<div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="forgePost('/temper',{itemId:'${copy}',uses:1},r=>'{i:s:burn} '+(r.levelsGained?t('forge.temper_up',{d:r.dustSpent}):t('forge.temper_progress',{d:r.dustSpent})))">${statusIcon('burn')} ${t('forge.tab_temper')} x1 - ${uiIcon('res-forge-dust')}${cost}</button>`+
-    `<button class="btn secondary" style="flex:0 0 auto" onclick="forgePost('/temper',{itemId:'${copy}',uses:10},r=>'{i:s:burn} '+t('forge.tempered_x',{n:r.uses||10,d:r.dustSpent}))">x10</button></div>`;
+    `<div style="display:flex;gap:8px"><button class="btn fgTBtn" style="flex:1" onclick="forgePost('/temper',{itemId:'${copy}',uses:1},r=>'{i:s:burn} '+(r.levelsGained?t('forge.temper_up',{d:r.dustSpent}):t('forge.temper_progress',{d:r.dustSpent})))">${statusIcon('burn')} ${t('forge.tab_temper')} x1 - ${uiIcon('res-forge-dust')}${cost}</button>`+
+    `<button class="btn secondary fgTBtn2" style="flex:0 0 auto" onclick="forgePost('/temper',{itemId:'${copy}',uses:10},r=>'{i:s:burn} '+t('forge.tempered_x',{n:r.uses||10,d:r.dustSpent}))">x10</button></div>`;
   if(!o){ o=document.createElement('div'); o.id='fgPop'; o.onclick=e=>{ if(e.target===o) forgePopClose(); }; document.body.appendChild(o); }
   o.innerHTML=`<div class="fgPopCard"><button class="fgPopX" onclick="forgePopClose()" aria-label="Close">${uiIcon('close')}</button>`+
     `<div class="fgPopHead"><div class="fgItem" style="border-color:${col};box-shadow:0 0 12px ${col}88;width:76px;height:76px">${gearImg(d,72)}${tp?`<b class="fgT">+${tp}</b>`:''}</div>`+
@@ -18420,7 +18445,7 @@ function forgePopDraw(){ const d=FORGE.open&&forgeDef(FORGE.open); let o=documen
     `${d.active?`<div style="font-size:11px;color:#8fe3ff;margin-top:3px">${uiIcon('sparkle-new')} ${escapeHTML(d.active)}</div>`:''}</div></div>`+
     `<div class="fgStats">${stats}</div>`+
     `<div class="fgTempLine"><span>${t('gear.temper_of',{n:tp,m:T.max})}</span>${pct?`<b style="color:#5ee89b">${t('forge.pct_stats',{n:pct})}</b>`:''}<span style="margin-left:auto;color:#8b98a9">${maxed?'':(rec.prog||0)+' / '+bar}</span></div>`+
-    `<div class="fgBar big"><i style="width:${maxed?100:Math.round(100*(rec.prog||0)/bar)}%"></i></div>`+
+    `<div class="fgBar big"><i style="clip-path:inset(0 ${100-(maxed?100:Math.round(100*(rec.prog||0)/bar))}% 0 0)"></i></div>`+
     `${btns}<div class="fgBy" style="margin-top:10px">${t('forge.equipped_by')}</div><div class="fgFaces">${worn.map(k=>face(k,true)).join('')}${rest.map(k=>face(k,false)).join('')}</div></div>`;
 }
 function forgeItemsTabHTML(){
