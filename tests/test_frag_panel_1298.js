@@ -37,7 +37,14 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     await pg.evaluate(async () => { const r = await api('/api/login', 'POST', { name: 'fragTester', pass: 'password1' }); ACC.token = r.token; ACC.id = r.profile.id; ACC.name = r.profile.name;
       G.tutStarted = true; G.tutDone = true; try { _whatsNewDone = true; } catch (e) {} try { document.body.classList.remove('gated'); } catch (e) {} show('home'); });
     await delay(1500);
-    await pg.evaluate(() => bonusHourlyClaim()); await delay(1500);
+    await pg.evaluate(() => show('campaign')); await delay(2500);
+    const cb = await pg.evaluate(() => { const b = document.getElementById('campBonusBtn'); if (!b) return null; const r = b.getBoundingClientRect(), c = document.getElementById('campBonusCnt');
+      return { vis: !b.hidden && r.width > 0, left: Math.round(r.left), bottomGap: Math.round(innerHeight - r.bottom), w: innerWidth, cnt: c && !c.hidden ? c.textContent : null }; });
+    ck(cb && cb.vis && cb.left < 40 && cb.bottomGap < 80, 'the campaign map has the Bonus Stage claim in the bottom left (above the portal tabs) (' + JSON.stringify(cb) + ')');
+    ck(cb && cb.cnt === '15', 'its badge shows the 15 saved fragments');
+    if (process.env.FRAG_SHOT2) await pg.screenshot({ path: process.env.FRAG_SHOT2 });
+    if (cb) await pg.click('#campBonusBtn'); else await pg.evaluate(() => bonusHourlyClaim());
+    await delay(1500);
     const read = () => pg.evaluate(() => { const o = document.getElementById('bonusFragPanel'); const b = o && o.querySelector('#bfClaim'); return o ? { txt: o.innerText, dis: !!(b && b.disabled) } : null; });
     const p1 = await read();
     if (process.env.FRAG_SHOT) await pg.screenshot({ path: process.env.FRAG_SHOT });
