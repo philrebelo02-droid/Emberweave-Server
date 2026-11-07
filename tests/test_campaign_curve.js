@@ -124,6 +124,7 @@ ck('enemy level tracks each stage reference target', S.every(e=>e.waves.every(w=
    10-1 is exactly 0.85 x what it was (21847 -> 18570). */
 ck('recommended power never goes backwards (except the one v1307 step at 9-10 -> 10-1)', S.every((e,i)=>i===0||e.node===91||e.recommendedPower>=S[i-1].recommendedPower));
 ck('v1307: chapters 10-16 sit 15% under the old curve (10-1 = 18570, 16-10 = 58327)', S[90].recommendedPower===18570&&S[159].recommendedPower===58327, S[90].recommendedPower+' / '+S[159].recommendedPower);
+ck('v1307: Phil "raise 10-10 to 24000" - 10-10 is 24000', S[99].recommendedPower===24000, String(S[99].recommendedPower));
 ck('1-1 and 1-2 need no glyphs at all (a new account owns none)',
   S[0].targetGlyph==='None'&&S[1].targetGlyph==='None');
 

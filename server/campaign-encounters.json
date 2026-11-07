@@ -14369,7 +14369,7 @@
     "id": "10-10",
     "node": 100,
     "checkpoint": "boss",
-    "recommendedPower": 22894,
+    "recommendedPower": 24000,
     "rewards": {
       "firstGold": 3404,
       "repeatGold": 3307,
@@ -14392,85 +14392,85 @@
         {
           "key": "basalt mauler",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         },
         {
           "key": "grundle",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         },
         {
           "key": "sootwing imp",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         },
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         }
       ],
       [
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         },
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         },
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         },
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118
+          "hpMul": 15.416,
+          "dmgMul": 7.9795
         }
       ],
       [
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 17.6467,
-          "dmgMul": 7.6118
+          "hpMul": 18.4992,
+          "dmgMul": 7.9795
         },
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 17.6467,
-          "dmgMul": 7.6118
+          "hpMul": 18.4992,
+          "dmgMul": 7.9795
         },
         {
           "key": "magma hound",
           "lvl": 65,
-          "hpMul": 17.6467,
-          "dmgMul": 7.6118
+          "hpMul": 18.4992,
+          "dmgMul": 7.9795
         },
         {
           "key": "barrowmaw",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118,
+          "hpMul": 15.416,
+          "dmgMul": 7.9795,
           "boss": true
         },
         {
           "key": "vael",
           "lvl": 65,
-          "hpMul": 14.7056,
-          "dmgMul": 7.6118,
+          "hpMul": 15.416,
+          "dmgMul": 7.9795,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
