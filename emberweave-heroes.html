@@ -14517,7 +14517,7 @@ function konwuRuyiHitFx(u,hit){ if(!TH||!scene||!camera||!u) return; const d=FX2
 function rhukkDigInFx(u,dur){ if(!TH||!scene||!camera||!u) return; const dr=FX2_DEF.rhukkroar, m=_fx22Disc('rhukkroar',u.x,u.y,dr.R*METER*_fx22Area(),-5);
   if(m) _fx1123.push({kind:'roar',s:m,d:dr,t:0,fade:0.3});
   for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i]; if(o.kind==='shell'&&o.u===u){ _fx22Kill(o); _fx1123.splice(i,1); } }
-  const d=FX2_DEF.rhukkshell, s=_fx22Spr('rhukkshell',996); if(!s) return; s.center.set(0.5,0.5);
+  const d=FX2_DEF.rhukkshell, s=_fx22Spr('rhukkshell',-1); if(!s) return;   /* v1311 (Phil 8 Nov: "dig in spell FX is meant to be a layer behind not infront of heroes"): the shell drew at 996, on top of everyone - now -1, behind the heroes like vireo_blue */ s.center.set(0.5,0.5);
   const o={kind:'shell',s,d,t:0,life:Math.max(dur,d.dur*FX_RT),u}; _fx22ShellPos(o); _fx1123.push(o); }
 function _fx22ShellPos(o){ const d=o.d, h=_fx22Head(o.u), H=d.size*h*d.fh/(d.fh-16); o.s.scale.set(H*d.fw/d.fh,H,1); o.s.position.copy(_fx22On(o.u,0.5*h)); }
 function _fx22ShellCell(o){ const d=o.d, c=o.t/FX_RT, tot=o.life/FX_RT, nOut=d.n-d.outC0, a=d.inN/d.fps, z=tot-nOut/d.fps;
