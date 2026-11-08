@@ -11353,7 +11353,7 @@
   "node": 91,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 32868,
+  "recommendedPower": 52059,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -11381,66 +11381,66 @@
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "basalt mauler",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "crucible acolyte",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "magma hound",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "magma hound",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "basalt mauler",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "basalt mauler",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076,
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -11448,26 +11448,26 @@
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "crucible acolyte",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "magma hound",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     },
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 58.7759,
-     "dmgMul": 26.1076
+     "hpMul": 42.9064,
+     "dmgMul": 19.0585
     }
    ]
   ],
@@ -11500,7 +11500,7 @@
   "node": 92,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 33244,
+  "recommendedPower": 52458,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -11528,90 +11528,90 @@
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "cinder skulk",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "cinder skulk",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "cinder skulk",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "magma hound",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     },
     {
      "key": "cinder skulk",
      "lvl": 59,
-     "hpMul": 46.0494,
-     "dmgMul": 21.9992
+     "hpMul": 43.2864,
+     "dmgMul": 20.6792
     }
    ]
   ],
@@ -11637,7 +11637,7 @@
   "node": 93,
   "mode": "elite",
   "checkpoint": "guardian",
-  "recommendedPower": 33573,
+  "recommendedPower": 52431,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -11665,84 +11665,84 @@
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "magma hound",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "sootwing imp",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "magma hound",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "magma hound",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "furnace gnawer",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     },
     {
      "key": "ashen",
      "lvl": 59,
-     "hpMul": 61.0062,
-     "dmgMul": 27.7843
+     "hpMul": 41.4842,
+     "dmgMul": 18.8933
     }
    ]
   ],
@@ -11768,7 +11768,7 @@
   "node": 94,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 33911,
+  "recommendedPower": 52418,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -11796,54 +11796,54 @@
     {
      "key": "crucible acolyte",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "magma hound",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "furnace gnawer",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "furnace gnawer",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "basalt mauler",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "magma hound",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817,
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -11851,20 +11851,20 @@
     {
      "key": "magma hound",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "furnace gnawer",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     },
     {
      "key": "magma hound",
      "lvl": 60,
-     "hpMul": 69.733,
-     "dmgMul": 35.3817
+     "hpMul": 66.2464,
+     "dmgMul": 33.6126
     }
    ]
   ],
@@ -11891,7 +11891,7 @@
   "node": 95,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 34265,
+  "recommendedPower": 52782,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -11919,102 +11919,102 @@
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "crucible acolyte",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "sootwing imp",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     }
    ],
    [
     {
      "key": "grundle",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "crucible acolyte",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "cinder skulk",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     },
     {
      "key": "grundle",
      "lvl": 61,
-     "hpMul": 43.0972,
-     "dmgMul": 20.7653
+     "hpMul": 42.2353,
+     "dmgMul": 20.35
     }
    ]
   ],
@@ -12040,7 +12040,7 @@
   "node": 96,
   "mode": "elite",
   "checkpoint": "guardian",
-  "recommendedPower": 34621,
+  "recommendedPower": 52799,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -12068,90 +12068,90 @@
     {
      "key": "basalt mauler",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "grundle",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "ashen",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "ashen",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "cinder skulk",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "cinder skulk",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "ashen",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "cinder skulk",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "cinder skulk",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "ashen",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "cinder skulk",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     },
     {
      "key": "basalt mauler",
      "lvl": 62,
-     "hpMul": 56.6156,
-     "dmgMul": 28.8867
+     "hpMul": 35.1017,
+     "dmgMul": 17.9098
     }
    ]
   ],
@@ -12177,7 +12177,7 @@
   "node": 97,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 34960,
+  "recommendedPower": 52787,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -12205,54 +12205,54 @@
     {
      "key": "crucible acolyte",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "cinder skulk",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "furnace gnawer",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "furnace gnawer",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118,
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -12260,26 +12260,26 @@
     {
      "key": "furnace gnawer",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "cinder skulk",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 64.9994,
-     "dmgMul": 32.1118
+     "hpMul": 42.2496,
+     "dmgMul": 20.8727
     }
    ]
   ],
@@ -12306,7 +12306,7 @@
   "node": 98,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 35313,
+  "recommendedPower": 53901,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -12334,90 +12334,90 @@
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "magma hound",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "crucible acolyte",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "magma hound",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     }
    ],
    [
     {
      "key": "crucible acolyte",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "grundle",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "magma hound",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "ashen",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "crucible acolyte",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     },
     {
      "key": "magma hound",
      "lvl": 63,
-     "hpMul": 60.4462,
-     "dmgMul": 26.9168
+     "hpMul": 42.3123,
+     "dmgMul": 18.8418
     }
    ]
   ],
@@ -12443,7 +12443,7 @@
   "node": 99,
   "mode": "elite",
   "checkpoint": "guardian",
-  "recommendedPower": 35639,
+  "recommendedPower": 53870,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -12471,90 +12471,90 @@
     {
      "key": "basalt mauler",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "cinder skulk",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "furnace gnawer",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "cinder skulk",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "furnace gnawer",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "furnace gnawer",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "cinder skulk",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "furnace gnawer",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "furnace gnawer",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "sootwing imp",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "cinder skulk",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     },
     {
      "key": "basalt mauler",
      "lvl": 64,
-     "hpMul": 56.9652,
-     "dmgMul": 27.7437
+     "hpMul": 47.2811,
+     "dmgMul": 23.0273
     }
    ]
   ],
@@ -12580,7 +12580,7 @@
   "node": 100,
   "mode": "elite",
   "checkpoint": "boss",
-  "recommendedPower": 35997,
+  "recommendedPower": 53888,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -12608,60 +12608,60 @@
     {
      "key": "basalt mauler",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     },
     {
      "key": "grundle",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     },
     {
      "key": "sootwing imp",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     },
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     },
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     },
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     },
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585,
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -12669,27 +12669,27 @@
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 29.4967,
-     "dmgMul": 11.2585
+     "hpMul": 41.5903,
+     "dmgMul": 15.8745
     },
     {
      "key": "magma hound",
      "lvl": 65,
-     "hpMul": 29.4967,
-     "dmgMul": 11.2585
+     "hpMul": 41.5903,
+     "dmgMul": 15.8745
     },
     {
      "key": "barrowmaw",
      "lvl": 65,
-     "hpMul": 24.5806,
-     "dmgMul": 11.2585,
+     "hpMul": 34.6586,
+     "dmgMul": 15.8745,
      "boss": true
     },
     {
      "key": "basalt mauler",
      "lvl": 65,
-     "hpMul": 29.4967,
-     "dmgMul": 11.2585
+     "hpMul": 41.5903,
+     "dmgMul": 15.8745
     }
    ]
   ],

@@ -122,7 +122,7 @@ ck('enemy level tracks each stage reference target', S.every(e=>e.waves.every(w=
 /* v1307 (Phil 7 Nov 2026): "reduce all power of every stage from chapter 10-16+ by 15%" / "chapter 10-16" -> chapters 11-16 x0.85;
    "raise 10-10 to 24000" and "scale chapter 10" -> 10-1..10-9 ramp evenly from 9-10 (21691) to 10-10 (24000). The curve never goes backwards. */
 ck('recommended power never goes backwards', S.every((e,i)=>i===0||e.recommendedPower>=S[i-1].recommendedPower));
-ck('v1307: chapter 10 ramps 21922 .. 24000 (10-1, 10-10)', S[90].recommendedPower===21922&&S[99].recommendedPower===24000, [S[90],S[99]].map(e=>e.recommendedPower).join(' / '));
+ck('v1308: chapter 10 calibrated too (Phil "calibrate chapter 10 too"): 10-1 34722 .. 10-10 35928, under 11-1 36164', S[90].recommendedPower===34722&&S[99].recommendedPower===35928&&S[99].recommendedPower<=S[100].recommendedPower, [S[90],S[99],S[100]].map(e=>e.recommendedPower).join(' / '));
 /* v1308 (Phil 7 Nov: "16-10 should be passable by a maxed level 80" with his spec - level 80, best quality at 80, 3-dot prayer, all gear +7, 5 stars, skills 80):
    chapters 11-16 calibrated in the real engine (spec team at each stage's target level, 57 -> 80, wins >= 85%); recommendedPower = 0.9 x that team's card power / 3.0908. */
 ck('v1308: 16-10 stored recommended power 52911 (163,537 on screen)', S[159].recommendedPower===52911, String(S[159].recommendedPower));
