@@ -47,6 +47,8 @@ for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.orryx\.(green|bl
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.(ULT_DEF\.(hipposlam|laststand)|KITS\.rhukk\.(green|blue)|KITS\.grosk\.blue|MONSTER_KITS\.bitwraith\.green)\./.test(odd[j])) odd.splice(j, 1);
 /* v1313 (Phil 8 Nov): Magmourn's Ignite All "a 20 meter range on all heroes" (radius 99999 -> 20 m) - a deliberate change, not the resize (tests/test_monster_damage_types_1313.js checks it) */
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.magmourn\.blue\.radius /.test(odd[j])) odd.splice(j, 1);
+/* v1314 (Phil 8 Nov): Magmourn's Ignite All 20 m wide (gfxR) and Fireball a real projectile with a 5 m burst (green radius / gfxR) - deliberate, not the resize (tests/test_magmourn_1314.js checks them) */
+for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.magmourn\.(blue\.gfxR|green\.(radius|gfxR)) /.test(odd[j])) odd.splice(j, 1);
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');

@@ -22,7 +22,7 @@ const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok   ' + nam
 const near = (a, b, e) => Math.abs(a - b) <= (e || 1e-9) * Math.max(1, Math.abs(b));
 const prep = `units=[]; ended=false; paused=false; battleTime=0; groundHazards.length=0;
   const mk=(k,t,x,y,ex)=>{ const z=makeUnit(k,t,x,y,50,Object.assign({owned:false,rank:3},ex||{})); z.atkInterval=99; z.speed=0; z.energy=0; z.critChance=0; z.crit=0; z.glyphCrit=0; z.dodge=0; z.evaStat=0; z.blockStat=0; z.maxHp=z.hp=1e7; z.greenCd=z.blueCd=999; z.armorPen=0; z.magicPen=0; z.armorRating=0; z.mrRating=0; return z; };
-  const cast=(W,ab)=>{ W._castLv=1; W._aimWX=null; W._aimWY=null; doEffect(W,ab.type,ab); };`;
+  const cast=(W,ab)=>{ W._castLv=1; W._aimWX=null; W._aimWY=null; doEffect(W,ab.type,ab.deliver?Object.assign({},ab,{_arrived:true}):ab); };`;   /* v1314: Magmourn's Fireball is a delivered shot - the check runs its landing */
 try {
   // ---- 1. the data ----
   const data = r => JSON.parse(r(`JSON.stringify((()=>{ const o={}; for(const k in MONSTER_TYPES){ const t=MONSTER_TYPES[k]; o[k]=[t.role,t.damageProfile||null]; } return o; })())`));
@@ -57,7 +57,7 @@ try {
   ck('Skulk (Attack) Rockskin Slam on 0 / 0: the live number', h['skulk|zero'].ab > 0 && near(h['skulk|zero'].ab, hL['skulk|zero'].ab, 1e-9));
   ck('... cut by Armor, not by MR', near(h['skulk|arm'].ab, h['skulk|zero'].ab * ref, 1e-7) && near(h['skulk|mr'].ab, h['skulk|zero'].ab, 1e-9), JSON.stringify([h['skulk|arm'].ab, h['skulk|mr'].ab]));
   ck('Skulk keeps no Ability Power (Attack)', !(h['skulk|zero'].apow > 0));
-  ck('Magmourn Fireball on 0 / 0: the live number (a mage tank keeps the caster +30%)', h['magmourn|zero'].ab > 0 && near(h['magmourn|zero'].ab, hL['magmourn|zero'].ab, 1e-9), h['magmourn|zero'].ab + ' vs ' + hL['magmourn|zero'].ab);
+  ck('Magmourn Fireball on 0 / 0: the live number x1.3 (v1314: "magmourn needs 30% more ability power"; a mage tank keeps the caster +30%)', h['magmourn|zero'].ab > 0 && near(h['magmourn|zero'].ab, hL['magmourn|zero'].ab * 1.3, 1e-9), h['magmourn|zero'].ab + ' vs ' + hL['magmourn|zero'].ab);
   ck('Magmourn Fireball and auto: magic (MR cuts them, Armor does not)', near(h['magmourn|mr'].ab, h['magmourn|zero'].ab * ref, 1e-7) && near(h['magmourn|arm'].ab, h['magmourn|zero'].ab, 1e-9) && near(h['magmourn|mr'].auto, ref, 1e-7));
   ck('helper undo (MON_DMG_TYPES=false): Lost Soul Soul Bolt physical again', (() => { const u = hits(runUndo); return near(u['lost soul|arm'].ab, u['lost soul|zero'].ab * ref, 1e-7) && near(u['lost soul|mr'].ab, u['lost soul|zero'].ab, 1e-9); })());
   // a damage multiplier applied after the unit is built (campaign dmgMul, Wrath...) reaches the Ability Power too
@@ -84,7 +84,7 @@ try {
   const f = fb(run), fL = fb(runLive);
   ck('back-row test heroes found (' + backs.join(', ') + ' / front ' + fronts.join(', ') + ')', backs.length === 3 && fronts.length === 1);
   ck('Fireball hits the lowest-HP back-row hero', f.b2 > 0, JSON.stringify(f));
-  ck('... and the hero 1.5 m from it (an area hit, 2.4 m radius as before)', f.nb > 0 && f.radius === 2.4, JSON.stringify(f));
+  ck('... and the hero 1.5 m from it (an area hit - v1314: 5 m radius, Phil: "hits everyone within 5 meters of impact")', f.nb > 0 && f.radius === 5, JSON.stringify(f));
   ck('... not the healthier back-row hero, nor the lower-HP front-row hero beside Magmourn', f.b1 === 0 && f.fr === 0, JSON.stringify(f));
   ck('the visual lands on the same hero (fire rain target + plate centre + the cast aim)', f.fx === 'b2' && f.art === 'b2' && f.castAim === 'b2', JSON.stringify(f));
   ck('CONTROL: live v1312 Fireball burst on his current target (the front hero), not the back row', fL.fr > 0 && fL.b2 === 0 && fL.b1 === 0, JSON.stringify(fL));
@@ -96,11 +96,11 @@ try {
 
   // ---- 4. Ignite All: every hero within 20 m of him ----
   const ig = r => JSON.parse(r(`(()=>{ ${prep} const M=mk('magmourn','enemy',500,400,{boss:true});
-    const n=mk('vael','ally',500,400+15*METER), far=mk('vael','ally',500,400+25*METER); M.target=n; units=[M,n,far];
+    const n=mk('vael','ally',500,400+8*METER), far=mk('vael','ally',500,400+12*METER);   /* v1314: 20 m wide = 10 m radius */ M.target=n; units=[M,n,far];
     cast(M,M.blueAb); return JSON.stringify({n:n.dots.length, far:far.dots.length, r:M.blueAb.radius/METER}); })()`));
   const g = ig(run), gL = ig(runLive);
-  ck('Ignite All burns the hero at 15 m', g.n > 0, JSON.stringify(g));
-  ck('... and not the one at 25 m (radius 20 m, centred on Magmourn)', g.far === 0 && Math.abs(g.r - 20) < 1e-9, JSON.stringify(g));
+  ck('Ignite All burns the hero at 8 m (v1314: 20 m wide)', g.n > 0, JSON.stringify(g));
+  ck('... and not the one at 12 m (radius 10 m = 20 m wide, centred on Magmourn)', g.far === 0 && Math.abs(g.r - 10) < 1e-9, JSON.stringify(g));
   ck('CONTROL: live v1312 Ignite All burned both (whole field)', gL.n > 0 && gL.far > 0, JSON.stringify(gL));
 
   // ---- 5. the card ----
