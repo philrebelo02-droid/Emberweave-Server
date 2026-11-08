@@ -37,19 +37,19 @@ console.log('== Magmourn ==');
   // the engine: one real Fireball / Ignite All cast against a hero standing in the blast
   const eng = R(NEW, `(function(){ const rec=[], _dd=dealDamage; dealDamage=function(u,t,a){ rec.push(a); }; const out={};
     try{ for(const s of ['green','blue']){ rec.length=0; const m=makeUnit('magmourn','enemy',600,300,1,{boss:true}), h=makeUnit('lumi','ally',580,300,1,{});
-      units=[m,h]; m.target=h; m._castSM=1; m._castLv=1; m._aimWX=h.x; m._aimWY=h.y; const ab=MONSTER_KITS.magmourn[s]; _doEffectCore(m,ab.type,ab);
+      units=[m,h]; m.target=h; m._castSM=1; m._castLv=1; m._aimWX=h.x; m._aimWY=h.y; const ab=Object.assign({},MONSTER_KITS.magmourn[s],{_arrived:true}); _doEffectCore(m,ab.type,ab);   /* v1314: Fireball is a delivered shot - its effect runs on arrival */
       out[s]={hit:rec.length?rec[0]/monSkillStat(m):0, dot:(h.dots&&h.dots[0])?h.dots[0].dps/monSkillStat(m):0}; } } finally{ dealDamage=_dd; units=[]; }
     return out; })()`);
   ck('the engine agrees: a real Fireball deals ' + (eng.green.hit * 100).toFixed(1) + '% of his Ability Power (shown ' + p + '%)', Math.round(eng.green.hit * 100) === p, J(eng));
   ck('the engine agrees: a real Ignite All burns ' + Math.round(eng.blue.dot * 100) + '% a second (shown ' + Math.round(b.dps * 100) + '%)', Math.round(eng.blue.dot * 100) === Math.round(b.dps * 100), J(eng));
 }
-console.log('== Irix ==');
+console.log('== Irix ==');   // v1315 (Phil 8 Nov class audit): Irix is a caster bruiser - Ability Power
 { const K = kit('irix'), g = K.k.green, b = K.k.blue, a = row(NEW, 'irix', g.name), c = row(NEW, 'irix', b.name), ps = row(NEW, 'irix', 'Passive');
-  ck('Meteor Pinions: the ' + g.n + ' nearest heroes, ' + burst(K, g.mul) + '% of Attack Damage each', a.includes(g.n + ' nearest heroes') && a.includes(burst(K, g.mul) + '% of Attack Damage'), a);
+  ck('Meteor Pinions: the ' + g.n + ' nearest heroes, ' + burst(K, g.mul) + '% of Ability Power each', a.includes(g.n + ' nearest heroes') && a.includes(burst(K, g.mul) + '% of Ability Power'), a);
   const st = +cc(b, 'stun').toFixed(2);
-  ck('Talon Eclipse: ' + burst(K, b.mul) + '% of Attack Damage and a ' + st + ' s stun (the fight\'s CC table)', c.includes(burst(K, b.mul) + '% of Attack Damage') && c.includes(st + ' s'), c);
+  ck('Talon Eclipse: ' + burst(K, b.mul) + '% of Ability Power and a ' + st + ' s stun (the fight\'s CC table)', c.includes(burst(K, b.mul) + '% of Ability Power') && c.includes(st + ' s'), c);
   const sd = Math.round(R(NEW, 'SKLV.stardust(1)') * 100);
-  ck('Stardust passive: ' + sd + '% of Attack Damage burn', ps.includes(sd + '% of Attack Damage') && /burn/.test(ps), ps);
+  ck('Stardust passive: ' + sd + '% of Ability Power burn', ps.includes(sd + '% of Ability Power') && /burn/.test(ps), ps);
 }
 console.log('== Nerissa ==');
 { const K = kit('nerissa'), g = K.k.green, b = K.k.blue, a = row(NEW, 'nerissa', g.name), c = row(NEW, 'nerissa', b.name), ps = row(NEW, 'nerissa', 'Passive');

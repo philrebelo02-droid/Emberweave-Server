@@ -31,8 +31,10 @@ try {
   ck('every monster / boss type (' + keys.length + ') has damageProfile Magic or Attack', keys.length > 70 && keys.every(k => d[k][1] === 'Magic' || d[k][1] === 'Attack'), JSON.stringify(keys.filter(k => !/^(Magic|Attack)$/.test(d[k][1]))));
   ck('every Mage-role monster is Magic', keys.filter(k => d[k][0] === 'Mage').every(k => d[k][1] === 'Magic'));
   const extra = keys.filter(k => d[k][0] !== 'Mage' && d[k][1] === 'Magic').sort();
-  ck('the non-Mage Magic ones: ashen, magmourn, nightgloom, wintercrag', JSON.stringify(extra) === JSON.stringify(['ashen', 'magmourn', 'nightgloom', 'wintercrag']), JSON.stringify(extra));
-  ck('Irix / Brukk / Vharok / Maelvara are Attack', ['irix', 'brukk', 'vharok', 'maelvara'].every(k => d[k][1] === 'Attack'));
+  // v1315 (Phil 8 Nov "audit the game"): classes come from MON_CLASS (art, kit, lore), no more Warrior / Brute; caster bruisers and mage tanks are Magic
+  ck('v1315: no monster is left on a label the game has no class for (Warrior / Brute)', keys.every(k => !/^(Warrior|Brute)$/.test(d[k][0])), JSON.stringify(keys.filter(k => /^(Warrior|Brute)$/.test(d[k][0]))));
+  ck('v1315: the non-Mage Magic ones are the caster bruisers, mage tanks and the dryad', extra.includes('leviath') && extra.includes('wintercrag') && extra.includes('magmourn') && extra.includes('runic automaton') && !extra.includes('brukk'), JSON.stringify(extra));
+  ck('v1315: Brukk / Vharok / Orryx are Attack; Volthex a Mage, Leviath a Bruiser, both Magic', ['brukk', 'vharok', 'orryx'].every(k => d[k][1] === 'Attack') && d.volthex[0] === 'Mage' && d.volthex[1] === 'Magic' && d.leviath[0] === 'Bruiser' && d.leviath[1] === 'Magic', JSON.stringify([d.volthex, d.leviath]));
   ck('Magmourn is a Tank with Magic damage (a mage tank)', d.magmourn[0] === 'Tank' && d.magmourn[1] === 'Magic', JSON.stringify(d.magmourn));
   ck('Magmourn stands in the front line (formation depth 0)', run(`heroFormationDepth('magmourn')`) === 0 && runLive(`heroFormationDepth('magmourn')`) > 0);
   ck('CONTROL: live v1312 has no damageProfile on any monster, Magmourn a Mage', Object.keys(dL).every(k => dL[k][1] === null) && dL.magmourn[0] === 'Mage');
@@ -105,15 +107,15 @@ try {
 
   // ---- 5. the card ----
   const card = (r, id) => r(`glStatsHtml(${JSON.stringify(id)},'bosses')`);
-  const nerC = card(run, 'nerissa'), irxC = card(run, 'irix'), magC = card(run, 'magmourn');
+  const nerC = card(run, 'nerissa'), irxC = card(run, 'brukk'), magC = card(run, 'magmourn');
   const AP = run(`ewT('hero.stat_apow')`), AD = run(`ewT('hero.stat_atk')`);
   ck('Nerissa (mage boss) card: "' + AP + '" with the Ability Power icon, no "Damage"', nerC.includes(AP) && nerC.includes('/stat/apow-') && !nerC.includes('>' + run(`ewT('gloss.damage')`) + '<') && !/ Damage</.test(nerC));
-  ck('Irix card: "' + AD + '" with the Attack icon', irxC.includes(AD) && irxC.includes('/stat/atk-') && !irxC.includes(AP));
+  ck('Brukk card (v1315: Irix is a caster now): "' + AD + '" with the Attack icon', irxC.includes(AD) && irxC.includes('/stat/atk-') && !irxC.includes(AP));
   ck('Magmourn card: Ability Power, Tank, front line', magC.includes(AP) && magC.includes(run(`rosterClassName('Tank')`)) && magC.includes(run(`ewT('gloss.front_line')`)));
   ck('the card number is unchanged (Irix ' + (irxC.match(/<b>(\d+)<\/b><\/div><div class="gsRow"><span>⏱/) || [])[1] + ')', (irxC.match(/<b>(\d+)<\/b><\/div><div class="gsRow"><span>⏱/) || [])[1] === (card(runLive, 'irix').match(/<b>(\d+)<\/b><\/div><div class="gsRow"><span>⏱/) || [])[1]);
   // the stats-by-level modal needs a real DOM (the sim's document is a frozen stub): its header is glDmgLabel(t,true) - checked in the source and by value
   ck('"View stats by level" table header names the stat: openStatChart reads glDmgLabel(t,true)', run(`openStatChart.toString()`).includes("<th>'+glDmgLabel(t,true)+'</th>") && !run(`openStatChart.toString()`).includes("gloss.dmg"));
-  ck('... Ability Power for a mage boss (Nerissa), Attack Damage for Irix', run(`glDmgLabel(MONSTER_TYPES.nerissa,true)`).includes(AP) && run(`glDmgLabel(MONSTER_TYPES.nerissa,true)`).includes('/stat/apow-') && run(`glDmgLabel(MONSTER_TYPES.irix,true)`).includes(AD));
+  ck('... Ability Power for a mage boss (Nerissa), Attack Damage for Brukk', run(`glDmgLabel(MONSTER_TYPES.nerissa,true)`).includes(AP) && run(`glDmgLabel(MONSTER_TYPES.nerissa,true)`).includes('/stat/apow-') && run(`glDmgLabel(MONSTER_TYPES.brukk,true)`).includes(AD));
   ck('CONTROL: live v1312 Irix card read "Damage"', card(runLive, 'irix').includes(runLive(`ewT('gloss.damage')`)) && !card(runLive, 'irix').includes(AD));
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log('test_monster_damage_types_1313.js: ' + pass + ' passed, ' + fail + ' failed');
