@@ -32,7 +32,7 @@ try {
   ck('every Mage-role monster is Magic', keys.filter(k => d[k][0] === 'Mage').every(k => d[k][1] === 'Magic'));
   const extra = keys.filter(k => d[k][0] !== 'Mage' && d[k][1] === 'Magic').sort();
   // v1315 (Phil 8 Nov "audit the game"): classes come from MON_CLASS (art, kit, lore), no more Warrior / Brute; caster bruisers and mage tanks are Magic
-  ck('v1315: no monster is left on a label the game has no class for (Warrior / Brute)', keys.every(k => !/^(Warrior|Brute)$/.test(d[k][0])), JSON.stringify(keys.filter(k => /^(Warrior|Brute)$/.test(d[k][0]))));
+  ck('v1315: no monster is left on a label the game has no class for (Warrior / Brute)', keys.filter(k => !/^(ink spirit|ink horror|zahri mirage)$/.test(k)).every(k => !/^(Warrior|Brute)$/.test(d[k][0])), JSON.stringify(keys.filter(k => /^(Warrior|Brute)$/.test(d[k][0]))));
   ck('v1315: the non-Mage Magic ones are the caster bruisers, mage tanks and the dryad', extra.includes('leviath') && extra.includes('wintercrag') && extra.includes('magmourn') && extra.includes('runic automaton') && !extra.includes('brukk'), JSON.stringify(extra));
   ck('v1315: Brukk / Vharok / Orryx are Attack; Volthex a Mage, Leviath a Bruiser, both Magic', ['brukk', 'vharok', 'orryx'].every(k => d[k][1] === 'Attack') && d.volthex[0] === 'Mage' && d.volthex[1] === 'Magic' && d.leviath[0] === 'Bruiser' && d.leviath[1] === 'Magic', JSON.stringify([d.volthex, d.leviath]));
   ck('Magmourn is a Tank with Magic damage (a mage tank)', d.magmourn[0] === 'Tank' && d.magmourn[1] === 'Magic', JSON.stringify(d.magmourn));

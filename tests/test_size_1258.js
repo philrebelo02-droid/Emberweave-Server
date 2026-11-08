@@ -19,12 +19,13 @@ const pick = (run, k) => JSON.parse(run(`(()=>{ const u=makeUnit(${JSON.stringif
 const near = (a, b) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
 // stats Phil changed on purpose AFTER the resize (each with its release) - the resize itself still must not touch them
 const LATER_TUNED = { maelvara: ['hp'], orryx: ['dmg', 'ai'] };
+const CLASS_DEF = (() => { try { return JSON.parse(NEW(`JSON.stringify(Object.keys(typeof MON_CLASS!=='undefined'?MON_CLASS:{}))`)); } catch (e) { return []; } })();   // v1315: Armor / MR set by class -> the HP that offsets them (monHpComp) moves with them
 const CLASS_MOVED = { wintercrag: ['range', 'cd'], leviath: ['range', 'cd'] };   // v1315 (Phil 8 Nov "caster bruiser"): back-line Brute -> Bruiser, so they hold a Bruiser's distance   // v1292 (6 Nov): Maelvara hp +15%; v1303/v1304 (7 Nov): Orryx attack +20%, swing 20% slower
 let bad = [];
 let skipped = 0;
 for (const k of keys) { let o, n; try { o = pick(OLD, k); n = pick(NEW, k); } catch (e) { skipped++; continue; }
   for (const f of ['range', 'reach', 'cd', 'speed', 'r', 'sprH']) if (!near(n[f], o[f] * S) && !(CLASS_MOVED[k] || []).includes(f)) bad.push(k + '.' + f + ' ' + o[f] + ' -> ' + n[f]);
-  for (const f of ['hp', 'dmg', 'ai']) if (!near(n[f], o[f]) && !(LATER_TUNED[k] || []).includes(f)) bad.push(k + '.' + f + ' changed ' + o[f] + ' -> ' + n[f]); }
+  for (const f of ['hp', 'dmg', 'ai']) if (!near(n[f], o[f]) && !(LATER_TUNED[k] || []).includes(f) && !(f === 'hp' && CLASS_DEF.includes(k))) bad.push(k + '.' + f + ' changed ' + o[f] + ' -> ' + n[f]); }
 ok(bad.length === 0 && skipped < keys.length / 10, (keys.length - skipped) + ' heroes + monsters: range, reach, row hold, speed, radius and figure height all x1.15, hp / dmg / attack speed unchanged' + (bad.length ? ' - ' + bad.slice(0, 8).join('; ') : ''));
 // every ability table: distance fields x1.15, everything else identical
 const DIST = /(range|radius|reach|width|len|length|dist|distance|wave|gfxR|knock|dash|jump|aim)$/i;   // distance-named (case-insensitive suffix)

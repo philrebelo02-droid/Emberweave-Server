@@ -12,11 +12,11 @@ fs.writeFileSync(oldFile, cp.execSync('git show 6a80d24a:emberweave-heroes.html'
 process.on('exit', () => { try { fs.unlinkSync(oldFile); } catch (e) {} });
 const OLD = load(oldFile);
 const R = (h, c) => vm.runInContext(c, h.ctx);
-const cls = h => JSON.parse(R(h, `JSON.stringify((()=>{ const o={}; for(const k in MONSTER_TYPES){ const t=MONSTER_TYPES[k]; if(t&&t.monster) o[k]=[t.role,t.damageProfile,monsterRow(k)]; } return o; })())`));
+const cls = h => JSON.parse(R(h, `JSON.stringify((()=>{ const o={}; for(const k in MONSTER_TYPES){ const t=MONSTER_TYPES[k]; if(t&&t.monster&&!t.summonOnly&&!t.mirage) o[k]=[t.role,t.damageProfile,monsterRow(k)]; } return o; })())`));
 const n = cls(NEW), o = cls(OLD), keys = Object.keys(n);
 const GAME = ['Tank', 'Bruiser', 'Mage', 'Marksman', 'Support'];
-ck('every monster and boss (' + keys.length + ') has a game class (Tank / Bruiser / Mage / Marksman / Support)', keys.length > 70 && keys.every(k => GAME.includes(n[k][0])), keys.filter(k => !GAME.includes(n[k][0])));
-ck('every one is in MON_CLASS (nothing falls back to the old label rule)', R(NEW, `Object.keys(MONSTER_TYPES).filter(k=>MONSTER_TYPES[k]&&MONSTER_TYPES[k].monster&&!MON_CLASS[k]).length`) === 0);
+ck('every monster and boss (' + keys.length + ') has a game class (Tank / Bruiser / Mage / Marksman / Support)', keys.length >= 70 && keys.every(k => GAME.includes(n[k][0])), keys.filter(k => !GAME.includes(n[k][0])));
+ck('every one is in MON_CLASS (nothing falls back to the old label rule)', R(NEW, `Object.keys(MONSTER_TYPES).filter(k=>MONSTER_TYPES[k]&&MONSTER_TYPES[k].monster&&!MONSTER_TYPES[k].summonOnly&&!MONSTER_TYPES[k].mirage&&!MON_CLASS[k]).length`) === 0);
 ck('no Assassin monster (the backline dive stays a hero mechanic)', keys.every(k => n[k][0] !== 'Assassin'));
 ck('Leviath: Bruiser, Ability Power (a caster bruiser), front line', n.leviath[0] === 'Bruiser' && n.leviath[1] === 'Magic' && n.leviath[2] !== 'back', n.leviath);
 ck('Volthex: Mage, Ability Power, back line', n.volthex[0] === 'Mage' && n.volthex[1] === 'Magic' && n.volthex[2] === 'back', n.volthex);
@@ -26,6 +26,8 @@ ck('every Mage is Ability Power', keys.filter(k => n[k][0] === 'Mage').every(k =
 const card = id => R(NEW, `glStatsHtml(${JSON.stringify(id)},'bosses')`);
 ck('Leviath card: Ability Power, Front line', card('leviath').includes(R(NEW, `ewT('hero.stat_apow')`)) && card('leviath').includes(R(NEW, `ewT('gloss.front_line')`)));
 ck('Volthex card: Ability Power, Back line', card('volthex').includes(R(NEW, `ewT('hero.stat_apow')`)) && card('volthex').includes(R(NEW, `ewT('gloss.back_line')`)));
+ck('hero summons keep their set-up (Ink Spirit / Elder Ink Horror / Mirage of Zahri unchanged from v1314)', R(NEW,`JSON.stringify(['ink spirit','ink horror','zahri mirage'].map(k=>[MONSTER_TYPES[k].role,MONSTER_TYPES[k].armor,MONSTER_TYPES[k].mr]))`) === R(OLD,`JSON.stringify(['ink spirit','ink horror','zahri mirage'].map(k=>[MONSTER_TYPES[k].role,MONSTER_TYPES[k].armor,MONSTER_TYPES[k].mr]))`));
+ck('Armor / Magic Resist by class: Volthex (Mage) 15 / 100, Leviath (caster bruiser) 40 / 100, Basalt Mauler (Tank) 160 / 15', R(NEW,`[MONSTER_TYPES.volthex.armor,MONSTER_TYPES.volthex.mr,MONSTER_TYPES.leviath.armor,MONSTER_TYPES.leviath.mr,MONSTER_TYPES['basalt mauler'].armor,MONSTER_TYPES['basalt mauler'].mr].join()`)==='15,100,40,100,160,15');
 ck('CONTROL: v1314 had Warrior / Brute labels and Leviath on Attack, Volthex a Warrior', keys.some(k => o[k] && /^(Warrior|Brute)$/.test(o[k][0])) && o.leviath[1] === 'Attack' && o.volthex[0] === 'Warrior', { leviath: o.leviath, volthex: o.volthex });
 console.log('test_monster_class_1315.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
