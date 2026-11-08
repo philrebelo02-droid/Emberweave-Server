@@ -22,10 +22,10 @@ try {
   const g = JSON.parse(run(`(()=>{ ${prep} const R=mk('rhukk','ally',400,700); units=[R]; const out={cd:R.greenAb.cd, dur:R.greenAb.dur};
     for(const lv of [1,100]){ R._castLv=lv; R.drT=0; R.drMul=1; doEffect(R,R.greenAb.type,R.greenAb); out['m'+lv]=R.drMul; out['t'+lv]=R.drT; }
     out.desc1=KIT_DESC_LV.defensive(1,R.greenAb.desc,R.greenAb); out.desc100=KIT_DESC_LV.defensive(100,R.greenAb.desc,R.greenAb); return JSON.stringify(out); })()`));
-  ck('Carapace level 1: damage taken x0.65 (35% less)', near(g.m1, 0.65), g.m1);
-  ck('Carapace level 100: damage taken x0.55 (45% less)', near(g.m100, 0.55), g.m100);
+  ck('Carapace level 1: damage taken x0.80 (20% less) - v1310, Phil: "lower carapace to 20% and 35% at 100"', near(g.m1, 0.80), g.m1);
+  ck('Carapace level 100: damage taken x0.65 (35% less)', near(g.m100, 0.65), g.m100);
   ck('Carapace cooldown 10 s, still lasts 5 s', g.cd === 10 && g.dur === 5 && g.t1 === 5, JSON.stringify({ cd: g.cd, dur: g.dur, t: g.t1 }));
-  ck('Carapace text reads the real numbers (35% at 1, 45% at 100)', /taking 35% less damage for 5 seconds/.test(g.desc1) && /taking 45% less damage/.test(g.desc100), g.desc1 + ' | ' + g.desc100);
+  ck('Carapace text reads the real numbers (20% at 1, 35% at 100)', /taking 20% less damage for 5 seconds/.test(g.desc1) && /taking 35% less damage/.test(g.desc100), g.desc1 + ' | ' + g.desc100);
   // ---- 2a. Dig In: Rhukk's own taunt DR; Brannus's taunt (shared curve) unchanged ----
   const t = JSON.parse(run(`(()=>{ ${prep} const R=mk('rhukk','ally',400,700), B=mk('brannus','ally',300,700), E=mk('skulk','enemy',600,700); units=[R,B,E]; const out={};
     for(const lv of [1,100]){ for(const [k,u] of [['r',R],['b',B]]){ u._castLv=lv; u.drT=0; u.drMul=1; doEffect(u,u.blueAb.type,u.blueAb); out[k+lv]=1-u.drMul; out[k+'T'+lv]=u.drT; } }
