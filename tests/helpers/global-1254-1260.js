@@ -97,6 +97,9 @@ function undoText(s) {
   // v1306 (Phil 7 Nov "Aldren isnt anchored he slides"): Aldren's hit / green / passive clips gained per-frame anchor tables (render data only);
   // taken back out so the older every-other-hero BATTLE_ANIM == BASE checks keep testing what they were written for (tests/test_aldren_anchor_1306.js checks v1306)
   s = s.replace(/(aldren_(?:hit|green|passive)\.webp\?v=3'[^\n]*?),ax:\[[-\d,]+\]/g, '$1');
+  // v1314 (Phil 8 Nov, Magmourn's Ignite All "like a ring around him"): the new FX2_DEF row magmourn_ring (used only inside the MON_DMG_TYPES block,
+  // off for these fights) is taken back out so the every-other-FX2_DEF-entry == BASE checks keep testing what they were written for (tests/test_magmourn_1314.js checks v1314)
+  s = s.replace(/\r?\n  magmourn_ring: \{[^\n]*/, '');
   return s; }
 function page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-global1260-page-' + process.pid + '-' + made.length + '.html');
