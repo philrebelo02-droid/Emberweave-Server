@@ -61,7 +61,7 @@ const HERO_BASE={
   korvux:{swing:2.3,hp:430,dmg:32,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:0.95},
   maren:{swing:2.2,hp:300,dmg:16,apow:30,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
   lumi:{swing:2,hp:210,dmg:14,apow:30,role:'Support',stars:2,healer:true,atkSpeed:0.9},
-  hollow:{swing:1.7,hp:360,dmg:40,apow:0,role:'Assassin',stars:3,healer:false,atkSpeed:1.2},
+  hollow:{swing:1.7,hp:360,dmg:36,apow:0,role:'Assassin',stars:3,healer:false,atkSpeed:1.2},
   rivet:{swing:1.8,hp:380,dmg:30,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1},
   carn:{swing:2.4,hp:410,dmg:34,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:1.05},
   vesper:{swing:2,hp:190,dmg:16,apow:32,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
