@@ -13092,10 +13092,10 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const per=Math.floor(n/tg.length); let rem=n-per*tg.length; const plan=[]; tg.forEach(t=>{ let c=per+(rem>0?1:0); if(rem>0)rem--; for(let i=0;i<c;i++)plan.push(t); });
       for(let i=plan.length-1;i>0;i--){ const j=Math.floor(brnd()*(i+1)); const q=plan[i]; plan[i]=plan[j]; plan[j]=q; }
       const pp=!!(u.pass&&u.pass.perfectpitch);
-      spawnBeeHive(u,plan,{dmg:apB*(o.dmgMul||0.14)*rm, heal:apB*(o.healMul||0.5), healPct:(o.healPct||0.02), hold:(o.hold||0.7), shield:pp});
+      spawnBeeHive(u,plan,{dmg:apB*(o.dmgMul||0.14)*rm, heal:(apB/(sm||1))*(o.healMul||0.5), healPct:(o.healPct||0.02), hold:(o.hold||0.7), shield:pp});
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'symphony':{ const pp=!!(u.pass&&u.pass.perfectpitch);   /* v567 (Phil): 'it shouldnt have a range, vireo ult hits all enemy and all allies regardless of range. the downside is its only 30% of ability power heal or damage'. No distance test at all, and the heal is now a flat share of ability power - the old a.maxHp*0.35 + apB*2 term is gone. */
-      alliesOf(u).forEach(a=>{ const h=apB*(o.healMul||0.30); healFrom(u,a,h); if(pp){ a.shield=Math.max(a.shield,h*SKLV.pitchSymphony(passLv(u))); a.shieldT=6; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate */
+      alliesOf(u).forEach(a=>{ const h=(apB/(sm||1))*(o.healMul||0.30); healFrom(u,a,h); if(pp){ a.shield=Math.max(a.shield,h*SKLV.pitchSymphony(passLv(u))); a.shieldT=6; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate */
       enemiesOf(u).forEach(e=>{ dealDamage(u,e,apB*(o.dmgMul||0.30)*rm,'#d0a6ff','magic'); });
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     // ---- Fritz (lightning assassin) — lightning scales off ability power ----
@@ -14331,8 +14331,8 @@ function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx
 // Plague/curse telegraph: a tiny void zone blooms under a struck unit; 0.5s later it fades and the DoT begins ticking.
 const _pendingDots=[];
 function plagueDot(t,dps,dur,interval,color,src,kind){ if(!t)return;
-  try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
-    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+SKLV.debtaura(passLv(g)); break; } } } }catch(e){}
+  /* v1311 (Phil 8 Nov: "check this game wide, for effects accidentally earning multiple gains"): Compound Interest is applied ONCE, in
+     pushDot - this function used to stretch the duration too, so a plague DoT near Grimsby lasted (1+x)^2 longer (10 s -> 14 s at L1). */
   if(!t)return; const k=dotKind(color); const curse=!!(color&&/8a5cff|7a3fb0|b06bff|c9a6ff|9a6fff/i.test(color));
   if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5,src,kind}); }
   else pushDot(t,dps,dur,interval,color,src,kind); }
