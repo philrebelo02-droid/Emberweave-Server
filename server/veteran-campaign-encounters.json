@@ -5835,7 +5835,7 @@
   "node": 51,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 17862,
+  "recommendedPower": 16968,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -5863,48 +5863,48 @@
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "crucible acolyte",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338,
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -5912,26 +5912,26 @@
     {
      "key": "crucible acolyte",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "cinder skulk",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     },
     {
      "key": "crucible acolyte",
      "lvl": 31,
-     "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "hpMul": 32.5198,
+     "dmgMul": 22.1672
     }
    ]
   ],
@@ -5948,7 +5948,7 @@
   "node": 52,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 17862,
+  "recommendedPower": 16968,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -5976,78 +5976,78 @@
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "grundle",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     }
    ],
    [
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     },
     {
      "key": "grundle",
      "lvl": 31,
-     "hpMul": 33.5078,
-     "dmgMul": 21.5866
+     "hpMul": 31.8324,
+     "dmgMul": 20.5072
     }
    ]
   ],
@@ -6063,7 +6063,7 @@
   "node": 53,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 18294,
+  "recommendedPower": 17380,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6091,96 +6091,96 @@
     {
      "key": "ashen",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "crucible acolyte",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "furnace gnawer",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "magma hound",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "ashen",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     }
    ],
    [
     {
      "key": "crucible acolyte",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "ashen",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "crucible acolyte",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "furnace gnawer",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "furnace gnawer",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "crucible acolyte",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "magma hound",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "ashen",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904
     },
     {
      "key": "vireo",
      "lvl": 32,
-     "hpMul": 30.5844,
-     "dmgMul": 20.2004,
+     "hpMul": 29.0552,
+     "dmgMul": 19.1904,
      "isHero": true,
      "rank": 3
     }
@@ -6198,7 +6198,7 @@
   "node": 54,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 18294,
+  "recommendedPower": 17380,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6226,60 +6226,60 @@
     {
      "key": "basalt mauler",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "cinder skulk",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "furnace gnawer",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     }
    ],
    [
     {
      "key": "grundle",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "cinder skulk",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "furnace gnawer",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "cinder skulk",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "basalt mauler",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936,
+     "hpMul": 29.6662,
+     "dmgMul": 21.749,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -6287,14 +6287,14 @@
     {
      "key": "basalt mauler",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     },
     {
      "key": "furnace gnawer",
      "lvl": 32,
-     "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "hpMul": 29.6662,
+     "dmgMul": 21.749
     }
    ]
   ],
@@ -6311,7 +6311,7 @@
   "node": 55,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 18406,
+  "recommendedPower": 17486,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6339,78 +6339,78 @@
     {
      "key": "basalt mauler",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     }
    ],
    [
     {
      "key": "grundle",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "basalt mauler",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "grundle",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 36.0184,
-     "dmgMul": 23.404
+     "hpMul": 34.2174,
+     "dmgMul": 22.2338
     }
    ]
   ],
@@ -6426,7 +6426,7 @@
   "node": 56,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 18584,
+  "recommendedPower": 17654,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6454,78 +6454,78 @@
     {
      "key": "furnace gnawer",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "magma hound",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "grundle",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     }
    ],
    [
     {
      "key": "magma hound",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "grundle",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "furnace gnawer",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943
+     "hpMul": 23.047,
+     "dmgMul": 17.9958
     },
     {
      "key": "vael",
      "lvl": 34,
-     "hpMul": 24.26,
-     "dmgMul": 18.943,
+     "hpMul": 23.047,
+     "dmgMul": 17.9958,
      "isHero": true,
      "rank": 3
     }
@@ -6543,7 +6543,7 @@
   "node": 57,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 18584,
+  "recommendedPower": 17654,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6571,72 +6571,72 @@
     {
      "key": "ashen",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "ashen",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "sootwing imp",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "basalt mauler",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "sootwing imp",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "basalt mauler",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "ashen",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426,
+     "hpMul": 31.128,
+     "dmgMul": 20.5604,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -6644,20 +6644,20 @@
     {
      "key": "crucible acolyte",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "sootwing imp",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     },
     {
      "key": "basalt mauler",
      "lvl": 34,
-     "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "hpMul": 31.128,
+     "dmgMul": 20.5604
     }
    ]
   ],
@@ -6674,7 +6674,7 @@
   "node": 58,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 18702,
+  "recommendedPower": 17766,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6702,90 +6702,90 @@
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "cinder skulk",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "furnace gnawer",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "cinder skulk",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "cinder skulk",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "furnace gnawer",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     },
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 29.9678,
-     "dmgMul": 21.1856
+     "hpMul": 28.4694,
+     "dmgMul": 20.1264
     }
    ]
   ],
@@ -6801,7 +6801,7 @@
   "node": 59,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 18702,
+  "recommendedPower": 17766,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6829,72 +6829,72 @@
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "magma hound",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "magma hound",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "sootwing imp",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "grundle",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "ashen",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548
+     "hpMul": 34.1772,
+     "dmgMul": 23.137
     },
     {
      "key": "fritz",
      "lvl": 35,
-     "hpMul": 35.976,
-     "dmgMul": 24.3548,
+     "hpMul": 34.1772,
+     "dmgMul": 23.137,
      "isHero": true,
      "rank": 3
     }
@@ -6912,7 +6912,7 @@
   "node": 60,
   "mode": "veteran",
   "checkpoint": "boss",
-  "recommendedPower": 22102,
+  "recommendedPower": 20996,
   "targetLevel": 43,
   "recommendedQuality": "Purple +1",
   "qualityMinHeroLevel": 43,
@@ -6940,79 +6940,79 @@
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     },
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     },
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     },
     {
      "key": "sootwing imp",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     },
     {
      "key": "basalt mauler",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     },
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     },
     {
      "key": "sootwing imp",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106
     }
    ],
    [
     {
      "key": "basalt mauler",
      "lvl": 36,
-     "hpMul": 31.6562,
-     "dmgMul": 17.8006
+     "hpMul": 30.0734,
+     "dmgMul": 16.9106
     },
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 31.6562,
-     "dmgMul": 17.8006
+     "hpMul": 30.0734,
+     "dmgMul": 16.9106
     },
     {
      "key": "vharok",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006,
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106,
      "boss": true
     },
     {
      "key": "umbris",
      "lvl": 36,
-     "hpMul": 26.3802,
-     "dmgMul": 17.8006,
+     "hpMul": 25.0612,
+     "dmgMul": 16.9106,
      "isHero": true,
      "rank": 3,
      "rewardHero": true
@@ -7032,7 +7032,7 @@
   "node": 61,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 22214,
+  "recommendedPower": 21104,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7060,72 +7060,72 @@
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "zephyr harrier",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "ironjaw raider",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "frostjaw troll",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "ironjaw raider",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     }
    ],
    [
     {
      "key": "frostjaw troll",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "ironjaw raider",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "ironjaw raider",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "zephyr harrier",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594,
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -7133,26 +7133,26 @@
     {
      "key": "ironjaw raider",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "zephyr harrier",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     },
     {
      "key": "ironjaw raider",
      "lvl": 37,
-     "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "hpMul": 39.9472,
+     "dmgMul": 24.6614
     }
    ]
   ],
@@ -7169,7 +7169,7 @@
   "node": 62,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 22214,
+  "recommendedPower": 21104,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7197,78 +7197,78 @@
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "luminant orb",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "storm eel",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "luminant orb",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     }
    ],
    [
     {
      "key": "luminant orb",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "storm eel",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "storm eel",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "zephyr harrier",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     },
     {
      "key": "blackquill",
      "lvl": 37,
-     "hpMul": 37.9108,
-     "dmgMul": 25.2504
+     "hpMul": 36.0152,
+     "dmgMul": 23.9878
     }
    ]
   ],
@@ -7284,7 +7284,7 @@
   "node": 63,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 22398,
+  "recommendedPower": 21278,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7312,84 +7312,84 @@
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "ironjaw raider",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "ironjaw raider",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154
     },
     {
      "key": "bloatus",
      "lvl": 38,
-     "hpMul": 38.5776,
-     "dmgMul": 24.0162,
+     "hpMul": 36.6488,
+     "dmgMul": 22.8154,
      "isHero": true,
      "rank": 3
     }
@@ -7407,7 +7407,7 @@
   "node": 64,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 22524,
+  "recommendedPower": 21398,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7435,66 +7435,66 @@
     {
      "key": "frostjaw troll",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "storm eel",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "frostjaw troll",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "zephyr harrier",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "storm eel",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "granith",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "zephyr harrier",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "storm eel",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758,
+     "hpMul": 32.1884,
+     "dmgMul": 22.967,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -7502,14 +7502,14 @@
     {
      "key": "frostjaw troll",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     },
     {
      "key": "storm eel",
      "lvl": 39,
-     "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "hpMul": 32.1884,
+     "dmgMul": 22.967
     }
    ]
   ],
@@ -7526,7 +7526,7 @@
   "node": 65,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 22974,
+  "recommendedPower": 21826,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7554,84 +7554,84 @@
     {
      "key": "crystalhorn grazer",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     }
    ],
    [
     {
      "key": "storm eel",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     }
    ],
    [
     {
      "key": "crystalhorn grazer",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "storm eel",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     },
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 46.6404,
-     "dmgMul": 25.5144
+     "hpMul": 44.3084,
+     "dmgMul": 24.2386
     }
    ]
   ],
@@ -7647,7 +7647,7 @@
   "node": 66,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 22974,
+  "recommendedPower": 21826,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7675,84 +7675,84 @@
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "luminant orb",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     }
    ],
    [
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "granith",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "luminant orb",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "frostjaw troll",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "blackquill",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306
+     "hpMul": 41.3932,
+     "dmgMul": 27.389
     },
     {
      "key": "umbris",
      "lvl": 40,
-     "hpMul": 43.5718,
-     "dmgMul": 28.8306,
+     "hpMul": 41.3932,
+     "dmgMul": 27.389,
      "isHero": true,
      "rank": 3
     }
@@ -7770,7 +7770,7 @@
   "node": 67,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 23532,
+  "recommendedPower": 22356,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7798,60 +7798,60 @@
     {
      "key": "blackquill",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "blackquill",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     }
    ],
    [
     {
      "key": "luminant orb",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "zephyr harrier",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162,
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -7859,20 +7859,20 @@
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     },
     {
      "key": "blackquill",
      "lvl": 41,
-     "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "hpMul": 46.3124,
+     "dmgMul": 27.5654
     }
    ]
   ],
@@ -7889,7 +7889,7 @@
   "node": 68,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 23724,
+  "recommendedPower": 22538,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -7917,78 +7917,78 @@
     {
      "key": "crystalhorn grazer",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "luminant orb",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     }
    ],
    [
     {
      "key": "storm eel",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "luminant orb",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     }
    ],
    [
     {
      "key": "storm eel",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "luminant orb",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     },
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 44.2076,
-     "dmgMul": 28.79
+     "hpMul": 41.9972,
+     "dmgMul": 27.3504
     }
    ]
   ],
@@ -8004,7 +8004,7 @@
   "node": 69,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 23724,
+  "recommendedPower": 22538,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -8032,90 +8032,90 @@
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "ironjaw raider",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "granith",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "luminant orb",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "luminant orb",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     }
    ],
    [
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "granith",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "ironjaw raider",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "ironjaw raider",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     }
    ],
    [
     {
      "key": "ironjaw raider",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "frostjaw troll",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "luminant orb",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "granith",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834
     },
     {
      "key": "oakmir",
      "lvl": 42,
-     "hpMul": 30.0472,
-     "dmgMul": 20.7194,
+     "hpMul": 28.5448,
+     "dmgMul": 19.6834,
      "isHero": true,
      "rank": 3
     }
@@ -8133,7 +8133,7 @@
   "node": 70,
   "mode": "veteran",
   "checkpoint": "boss",
-  "recommendedPower": 27378,
+  "recommendedPower": 22450,
   "targetLevel": 50,
   "recommendedQuality": "Purple +2",
   "qualityMinHeroLevel": 50,
@@ -8161,85 +8161,85 @@
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     },
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     },
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     },
     {
      "key": "luminant orb",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     },
     {
      "key": "luminant orb",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     }
    ],
    [
     {
      "key": "storm eel",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     },
     {
      "key": "storm eel",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     },
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 43,
-     "hpMul": 46.5886,
-     "dmgMul": 19.8912
+     "hpMul": 38.2026,
+     "dmgMul": 16.3108
     },
     {
      "key": "granith",
      "lvl": 43,
-     "hpMul": 46.5886,
-     "dmgMul": 19.8912
+     "hpMul": 38.2026,
+     "dmgMul": 16.3108
     },
     {
      "key": "zephyr harrier",
      "lvl": 43,
-     "hpMul": 46.5886,
-     "dmgMul": 19.8912
+     "hpMul": 38.2026,
+     "dmgMul": 16.3108
     },
     {
      "key": "maelvara",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912,
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108,
      "boss": true
     },
     {
      "key": "oakmir",
      "lvl": 43,
-     "hpMul": 38.8238,
-     "dmgMul": 19.8912,
+     "hpMul": 31.8356,
+     "dmgMul": 16.3108,
      "isHero": true,
      "rank": 3,
      "rewardHero": true
@@ -8259,7 +8259,7 @@
   "node": 71,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 27868,
+  "recommendedPower": 26474,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8287,54 +8287,54 @@
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "bitwraith",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "grundle",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     }
    ],
    [
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "grundle",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "bitwraith",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382,
+     "hpMul": 39.38,
+     "dmgMul": 26.1612,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -8342,20 +8342,20 @@
     {
      "key": "clockwork lantern",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     },
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "hpMul": 39.38,
+     "dmgMul": 26.1612
     }
    ]
   ],
@@ -8372,7 +8372,7 @@
   "node": 72,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 27868,
+  "recommendedPower": 26474,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8400,72 +8400,72 @@
     {
      "key": "bitwraith",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "saltglass siren",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "bitwraith",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "runic automaton",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     }
    ],
    [
     {
      "key": "bonepike guard",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "runic automaton",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     },
     {
      "key": "runic automaton",
      "lvl": 44,
-     "hpMul": 39.113,
-     "dmgMul": 26.7616
+     "hpMul": 37.1574,
+     "dmgMul": 25.4236
     }
    ]
   ],
@@ -8481,7 +8481,7 @@
   "node": 73,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 28082,
+  "recommendedPower": 26678,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8509,84 +8509,84 @@
     {
      "key": "riftling spider",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "bitwraith",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "grundle",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "rustclank",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "bitwraith",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     }
    ],
    [
     {
      "key": "riftling spider",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "grundle",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "bitwraith",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "grundle",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "rustclank",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "bitwraith",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008
     },
     {
      "key": "sylthaine",
      "lvl": 45,
-     "hpMul": 31.4406,
-     "dmgMul": 21.1588,
+     "hpMul": 29.8686,
+     "dmgMul": 20.1008,
      "isHero": true,
      "rank": 3
     }
@@ -8604,7 +8604,7 @@
   "node": 74,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 28298,
+  "recommendedPower": 26884,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8632,66 +8632,66 @@
     {
      "key": "clockwork lantern",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "bonepike guard",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "runic automaton",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "clockwork lantern",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     }
    ],
    [
     {
      "key": "bonepike guard",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "clockwork lantern",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "runic automaton",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "riftling spider",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "bonepike guard",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742,
+     "hpMul": 40.738,
+     "dmgMul": 24.2004,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -8699,20 +8699,20 @@
     {
      "key": "riftling spider",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "clockwork lantern",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     },
     {
      "key": "runic automaton",
      "lvl": 46,
-     "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "hpMul": 40.738,
+     "dmgMul": 24.2004
     }
    ]
   ],
@@ -8729,7 +8729,7 @@
   "node": 75,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 28412,
+  "recommendedPower": 26992,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8757,78 +8757,78 @@
     {
      "key": "saltglass siren",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "saltglass siren",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "bonepike guard",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "runic automaton",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     }
    ],
    [
     {
      "key": "saltglass siren",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "bonepike guard",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "riftling spider",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     }
    ],
    [
     {
      "key": "saltglass siren",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "runic automaton",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "bonepike guard",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "saltglass siren",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     },
     {
      "key": "runic automaton",
      "lvl": 47,
-     "hpMul": 46.4568,
-     "dmgMul": 30.1836
+     "hpMul": 44.134,
+     "dmgMul": 28.6744
     }
    ]
   ],
@@ -8844,7 +8844,7 @@
   "node": 76,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 29918,
+  "recommendedPower": 28422,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8872,78 +8872,78 @@
     {
      "key": "grundle",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "runic automaton",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "grundle",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "rustclank",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "riftling spider",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     }
    ],
    [
     {
      "key": "riftling spider",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "riftling spider",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "grundle",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "runic automaton",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "grundle",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616
     },
     {
      "key": "vireo",
      "lvl": 47,
-     "hpMul": 45.6416,
-     "dmgMul": 28.4858,
+     "hpMul": 43.3596,
+     "dmgMul": 27.0616,
      "isHero": true,
      "rank": 3
     }
@@ -8961,7 +8961,7 @@
   "node": 77,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 30406,
+  "recommendedPower": 28886,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -8989,54 +8989,54 @@
     {
      "key": "bonepike guard",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "bitwraith",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "grundle",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     }
    ],
    [
     {
      "key": "bonepike guard",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "bitwraith",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "saltglass siren",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "bitwraith",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176,
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -9044,26 +9044,26 @@
     {
      "key": "grundle",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "bitwraith",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "bonepike guard",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     },
     {
      "key": "grundle",
      "lvl": 48,
-     "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "hpMul": 37.1958,
+     "dmgMul": 25.1918
     }
    ]
   ],
@@ -9080,7 +9080,7 @@
   "node": 78,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 30558,
+  "recommendedPower": 29030,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -9108,72 +9108,72 @@
     {
      "key": "bitwraith",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "clockwork lantern",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "bitwraith",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     }
    ],
    [
     {
      "key": "riftling spider",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "clockwork lantern",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "saltglass siren",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "saltglass siren",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     }
    ],
    [
     {
      "key": "bitwraith",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "clockwork lantern",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "bitwraith",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     },
     {
      "key": "riftling spider",
      "lvl": 49,
-     "hpMul": 45.4224,
-     "dmgMul": 28.7526
+     "hpMul": 43.1512,
+     "dmgMul": 27.315
     }
    ]
   ],
@@ -9189,7 +9189,7 @@
   "node": 79,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 30558,
+  "recommendedPower": 29030,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -9217,78 +9217,78 @@
     {
      "key": "bitwraith",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "runic automaton",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "rustclank",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "runic automaton",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "bitwraith",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     }
    ],
    [
     {
      "key": "saltglass siren",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "rustclank",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "runic automaton",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "rustclank",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "rustclank",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742
     },
     {
      "key": "vael",
      "lvl": 49,
-     "hpMul": 31.1228,
-     "dmgMul": 22.0782,
+     "hpMul": 29.5666,
+     "dmgMul": 20.9742,
      "isHero": true,
      "rank": 3
     }
@@ -9306,7 +9306,7 @@
   "node": 80,
   "mode": "veteran",
   "checkpoint": "boss",
-  "recommendedPower": 36296,
+  "recommendedPower": 29036,
   "targetLevel": 57,
   "recommendedQuality": "Purple +3",
   "qualityMinHeroLevel": 57,
@@ -9334,97 +9334,97 @@
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "grundle",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "saltglass siren",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     }
    ],
    [
     {
      "key": "saltglass siren",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "grundle",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "grundle",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     },
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284
     }
    ],
    [
     {
      "key": "riftling spider",
      "lvl": 50,
-     "hpMul": 39.9883,
-     "dmgMul": 20.9104
+     "hpMul": 31.9908,
+     "dmgMul": 16.7284
     },
     {
      "key": "grundle",
      "lvl": 50,
-     "hpMul": 39.9883,
-     "dmgMul": 20.9104
+     "hpMul": 31.9908,
+     "dmgMul": 16.7284
     },
     {
      "key": "bonepike guard",
      "lvl": 50,
-     "hpMul": 39.9883,
-     "dmgMul": 20.9104
+     "hpMul": 31.9908,
+     "dmgMul": 16.7284
     },
     {
      "key": "saltglass siren",
      "lvl": 50,
-     "hpMul": 39.9883,
-     "dmgMul": 20.9104
+     "hpMul": 31.9908,
+     "dmgMul": 16.7284
     },
     {
      "key": "orryx",
      "lvl": 50,
-     "hpMul": 42.0,
-     "dmgMul": 20.9104,
+     "hpMul": 33.6,
+     "dmgMul": 16.7284,
      "boss": true
     },
     {
      "key": "bloatus",
      "lvl": 50,
-     "hpMul": 33.3236,
-     "dmgMul": 20.9104,
+     "hpMul": 26.6588,
+     "dmgMul": 16.7284,
      "isHero": true,
      "rank": 3,
      "rewardHero": true
@@ -9444,7 +9444,7 @@
   "node": 81,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 36470,
+  "recommendedPower": 34646,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -9472,66 +9472,66 @@
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "kelp hexer",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "kelp hexer",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     }
    ],
    [
     {
      "key": "lost soul",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "mourn moth",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "lost soul",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "mourn moth",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014,
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -9539,26 +9539,26 @@
     {
      "key": "lost soul",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "mourn moth",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "hpMul": 41.7216,
+     "dmgMul": 24.3214
     }
    ]
   ],
@@ -9575,7 +9575,7 @@
   "node": 82,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 36470,
+  "recommendedPower": 34646,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -9603,90 +9603,90 @@
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "kelp hexer",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "kelp hexer",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "storm eel",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "nightcap mimic",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "kelp hexer",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "storm eel",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "storm eel",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     },
     {
      "key": "bitwraith",
      "lvl": 51,
-     "hpMul": 47.7634,
-     "dmgMul": 28.4764
+     "hpMul": 45.3752,
+     "dmgMul": 27.0526
     }
    ]
   ],
@@ -9702,7 +9702,7 @@
   "node": 83,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 36990,
+  "recommendedPower": 35140,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -9730,84 +9730,84 @@
     {
      "key": "nightgloom",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "bitwraith",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "lost soul",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "nightgloom",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     }
    ],
    [
     {
      "key": "nightgloom",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "nightgloom",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "nightcap mimic",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "nightgloom",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "bitwraith",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     }
    ],
    [
     {
      "key": "lost soul",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "nightgloom",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "nightcap mimic",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412
     },
     {
      "key": "rhukk",
      "lvl": 52,
-     "hpMul": 44.9534,
-     "dmgMul": 26.9908,
+     "hpMul": 42.7058,
+     "dmgMul": 25.6412,
      "isHero": true,
      "rank": 3
     }
@@ -9825,7 +9825,7 @@
   "node": 84,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 37152,
+  "recommendedPower": 35294,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -9853,54 +9853,54 @@
     {
      "key": "bitwraith",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "bitwraith",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "mourn moth",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     }
    ],
    [
     {
      "key": "mourn moth",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "nightcap mimic",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "nightcap mimic",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "wispweaver shade",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624,
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -9908,20 +9908,20 @@
     {
      "key": "wispweaver shade",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "mourn moth",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     },
     {
      "key": "nightcap mimic",
      "lvl": 53,
-     "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "hpMul": 54.2346,
+     "dmgMul": 32.5492
     }
    ]
   ],
@@ -9938,7 +9938,7 @@
   "node": 85,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 37456,
+  "recommendedPower": 35584,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -9966,102 +9966,102 @@
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "bitwraith",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "storm eel",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "bitwraith",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "storm eel",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     }
    ],
    [
     {
      "key": "bitwraith",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "storm eel",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     },
     {
      "key": "bitwraith",
      "lvl": 54,
-     "hpMul": 49.6802,
-     "dmgMul": 28.9452
+     "hpMul": 47.1962,
+     "dmgMul": 27.498
     }
    ]
   ],
@@ -10077,7 +10077,7 @@
   "node": 86,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 37456,
+  "recommendedPower": 35584,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -10105,90 +10105,90 @@
     {
      "key": "lost soul",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "kelp hexer",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     }
    ],
    [
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     }
    ],
    [
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "nightgloom",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "reef prowler",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382
     },
     {
      "key": "bloatus",
      "lvl": 54,
-     "hpMul": 56.7608,
-     "dmgMul": 32.9876,
+     "hpMul": 53.9228,
+     "dmgMul": 31.3382,
      "isHero": true,
      "rank": 3
     }
@@ -10206,7 +10206,7 @@
   "node": 87,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 37764,
+  "recommendedPower": 35876,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -10234,54 +10234,54 @@
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "kelp hexer",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "mourn moth",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798,
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -10289,26 +10289,26 @@
     {
      "key": "storm eel",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "reef prowler",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     },
     {
      "key": "kelp hexer",
      "lvl": 55,
-     "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "hpMul": 56.5088,
+     "dmgMul": 34.3708
     }
    ]
   ],
@@ -10325,7 +10325,7 @@
   "node": 88,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 38314,
+  "recommendedPower": 36398,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -10353,90 +10353,90 @@
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "lost soul",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "mourn moth",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "lost soul",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     }
    ],
    [
     {
      "key": "mourn moth",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightcap mimic",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 56.7848,
-     "dmgMul": 34.2076
+     "hpMul": 53.9456,
+     "dmgMul": 32.4972
     }
    ]
   ],
@@ -10452,7 +10452,7 @@
   "node": 89,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 38314,
+  "recommendedPower": 36398,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -10480,90 +10480,90 @@
     {
      "key": "lost soul",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "nightcap mimic",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "storm eel",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "lost soul",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "nightcap mimic",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "reef prowler",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422
     },
     {
      "key": "umbris",
      "lvl": 56,
-     "hpMul": 56.7794,
-     "dmgMul": 33.9392,
+     "hpMul": 53.9404,
+     "dmgMul": 32.2422,
      "isHero": true,
      "rank": 3
     }
@@ -10581,7 +10581,7 @@
   "node": 90,
   "mode": "veteran",
   "checkpoint": "boss",
-  "recommendedPower": 43382,
+  "recommendedPower": 35140,
   "targetLevel": 65,
   "recommendedQuality": "Gold",
   "qualityMinHeroLevel": 65,
@@ -10609,85 +10609,85 @@
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     },
     {
      "key": "storm eel",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     }
    ],
    [
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 36.3794,
-     "dmgMul": 16.327
+     "hpMul": 29.4674,
+     "dmgMul": 13.2248
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 36.3794,
-     "dmgMul": 16.327
+     "hpMul": 29.4674,
+     "dmgMul": 13.2248
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 36.3794,
-     "dmgMul": 16.327
+     "hpMul": 29.4674,
+     "dmgMul": 13.2248
     },
     {
      "key": "nameless admiral",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327,
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248,
      "boss": true
     },
     {
      "key": "umbris",
      "lvl": 57,
-     "hpMul": 30.3162,
-     "dmgMul": 16.327,
+     "hpMul": 24.5562,
+     "dmgMul": 13.2248,
      "isHero": true,
      "rank": 3,
      "rewardHero": true
