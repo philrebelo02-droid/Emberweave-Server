@@ -43,6 +43,8 @@ for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.maelvara\.blue\.
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.ULT_DEF\.thundershower\.radius /.test(odd[j])) odd.splice(j, 1);
 /* v1303/v1304 (Phil 7 Nov): Orryx's Labyrinth Charge and Prismatic Axe reworked (mul, stun, path hit, knock, swings) - deliberate, not the resize */
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.orryx\.(green|blue)\./.test(odd[j])) odd.splice(j, 1);
+/* v1308 (Phil 7 Nov): Rhukk Carapace / Dig In, Vael Last Stand, Grosk Croc Drop + Hammer Fists, Bitwraith Corruption - deliberate balance changes, not the resize (tests/test_rhukk_bitwraith_1308.js checks them) */
+for (let j = odd.length - 1; j >= 0; j--) if (/^\.(ULT_DEF\.(hipposlam|laststand)|KITS\.rhukk\.(green|blue)|KITS\.grosk\.blue|MONSTER_KITS\.bitwraith\.green)\./.test(odd[j])) odd.splice(j, 1);
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
