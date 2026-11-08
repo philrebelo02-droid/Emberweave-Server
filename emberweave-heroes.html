@@ -10552,6 +10552,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.greenCd=mk.green?mk.green.cd*0.5:0; u.blueCd=mk.blue?mk.blue.cd*0.75:0;
     if(mk.pass){ const p=mk.pass;                                   // boss passive
       if(p==='unstoppable'){ u.immovable=true; u.stunImmune=true; } else u.pass={[p]:true}; } }
+  if(t.monster&&monScaleMode(u)) monSkillStat(u);   /* v1313: a Magic monster's Ability Power = its damage number */
   /* v270 (DETERMINISM): a unit's SOLID BODY comes from data, never from pixels. It used to be derived
      from the sprite's aspect ratio — which is set when the image finishes downloading — so a slow
      connection literally changed how much space a hero took up, and therefore the fight. The visual
@@ -11672,7 +11673,7 @@ function bloomstepJump(u,T){ if(!u||!T) return; const dir=((T.x-u.x)>=0)?1:-1; u
   }
 function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;return;}
   HERO_FX_MUL=1;   // KonWu's deferred blink strike — FX at normal speed
-  const sm=u._blinkSM||1, rm=rageMul, dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
+  const sm=u._blinkSM||1, rm=rageMul, dB=(monScaleMode(u)?monSkillStat(u):u.dmg)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);   /* v1313 */
   const R=o.range||15*METER; const inRange=enemiesOf(u).filter(e=>dist(u,e)<=R);
   let tg=inRange.length?inRange.reduce((a,b)=>a.hp<=b.hp?a:b):nearestEnemy(u); if(!tg){u._blinkO=null;return;}
   burstAt(u.x,u.y,0xb98bff,16); ringBurst(u.x,u.y,0xb98bff,12);   // vanish
@@ -11903,6 +11904,18 @@ function applyChill(tgt){ if(!tgt||!tgt.alive)return; tgt._chillStacks=Math.min(
 function dealFrostDamage(src,tgt,amt,color,kind,silent){ const was=!!src._frostHit; src._frostHit=true; try{return dealDamage(src,tgt,amt,color,kind,silent);} finally{src._frostHit=was;} }
 function heroScaleMode(u){ const h=u&&u.t; if(!h||h.monster)return null;
   const d=h.damageProfile||'Attack'; if(d==='Hybrid')return null; return (d==='Magic'||d==='Healer')?'ap':'ad'; }
+/* v1313 (Phil 8 Nov 2026: "big flaw with all monsters and bosses" / "they should have ability power or attack damage and scale off that"):
+   every monster and boss has a damage type (MONSTER_TYPES[k].damageProfile, set below the monster tables). A Magic one's abilities scale off
+   its Ability Power and land as magic damage (Magic Resist), its basic attacks too; an Attack one's off Attack Damage, physical (Armor).
+   A Magic monster's Ability Power IS its damage number (monSkillStat keeps u.apow = u.dmg through every later damage multiplier), so no
+   number moved - only the stat that reads it and the defence that stops it. Summons that carry their own apow (Boar Shaman, Ink Horror) keep it. */
+function monScaleMode(u){ const t=u&&u.t; if(!MON_DMG_TYPES||!t||!t.monster||!t.damageProfile) return null; return t.damageProfile==='Magic'?'ap':'ad'; }
+function monSkillStat(u){ if(monScaleMode(u)!=='ap') return u.dmg; if(u.t.apow>0) return u.dmg; u.apow=u.dmg; return u.apow; }
+/* v1313 (Phil 8 Nov: Magmourn's "fireball ... he always aims for the weakest hero in backline"): the enemy in the BACK row (HERO_PROFILES
+   combatRow 'Back') with the lowest current HP; no back-row enemy alive -> the lowest-HP enemy overall. */
+function weakestBackEnemy(u){ const fs=enemiesOf(u).filter(e=>e&&e.alive&&!e._dropHidden&&!e._noTarget); if(!fs.length) return null;
+  const bk=fs.filter(e=>{ const p=(typeof HERO_PROFILES!=='undefined')&&HERO_PROFILES[e.key]; return !!(p&&p.combatRow==='Back'); });
+  return (bk.length?bk:fs).reduce((a,e)=>(e.hp<a.hp?e:a)); }
 /* v592 (Phil, 18 Sep: "The area should scale to the bonus area ... if grosk is 3 meters in campaign and .5 meters in
    bonus stage the spells radius should reduce 6x"). A bonus-run unit is drawn at BONUS_UNIT_SCALE (0.28), so every
    spatial footprint of its spells shrinks by the same factor: radius, line width, knockback distance. Sentinel radii
@@ -12091,19 +12104,21 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
   // Ability Power research multiplier. Buffs and per-cast skill scaling still apply here once.
-  let apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm; let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm;
+  const _mMode=monScaleMode(u), _mStat=_mMode?monSkillStat(u):0, _apU=(_mMode&&!(u.t.apow>0))?0:(u.apow||0);   /* v1313: a Magic monster's stat is its Ability Power (= its damage number); kit lines that read apB keep their v1312 value */
+  let apB=_apU*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm; let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm;
   const _mode=heroScaleMode(u); if(_mode==='ap'){ dB=apB; } else if(_mode==='ad'){ apB=dB; }
   if(u.pass&&u.pass.risingheat&&(u.apMul||1)>1){ apB*=u.apMul; dB*=u.apMul; }   /* v886 Rising Heat: the scorched-count bonus now reaches her spells */
-  const _sD=(_mode==='ap')?(u.apow||0):u.dmg, _sA=(_mode==='ad')?u.dmg:(u.apow||0);   // the role's stat, for the cases that read u.dmg / u.apow directly
+  const _sD=(_mode==='ap')?(u.apow||0):(_mMode?_mStat:u.dmg), _sA=(_mode==='ad')?u.dmg:_apU;   // the role's stat, for the cases that read u.dmg / u.apow directly
   // Monster/boss abilities scale off POWER: Mage-role casters deal +30% ability damage; brutes/warriors/tanks unchanged.
   // (apMul carries a boss's magic multiplier, e.g. Magmourn 1.6.) Basic auto-attacks are unaffected — they never route through doEffect.
-  if(u.t && u.t.monster){ dB = u.dmg*(u.t.role==='Mage'?1.3:1)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); }
+  if(u.t && u.t.monster){ dB = (_mMode?_mStat:u.dmg)*((u.t.role==='Mage'||(u.t.role==='Tank'&&_mMode==='ap'))?1.3:1)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); }   /* v1313: Ability Power or Attack Damage by damage type; a mage tank (Magmourn) keeps the caster's +30% */
   let aimCtr=o._aim?{x:o._aim.x,y:o._aim.y}:((u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null);
   /* v483 (Phil: Astra's Starfire/Nebula 'should cast on an area with the most congested enemy group and do damage in that range'):
      at:'cluster' picks the densest enemy group (most foes inside the radius) and casts THERE, any distance — not around the caster. */
   if(!aimCtr&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aimCtr=c; }
+  let _aimU=null; if(o.target==='weakestBack'){ _aimU=weakestBackEnemy(u); if(_aimU) aimCtr={x:_aimU.x,y:_aimU.y}; }   /* v1313 Magmourn's Fireball: picked at release, so the burst, the plate and the fire rain land on that hero */
   HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
-  const tgt=(o._arrived&&o._tgtU)?o._tgtU:((u.target&&u.target.alive)?u.target:nearestEnemy(u));
+  const tgt=_aimU||((o._arrived&&o._tgtU)?o._tgtU:((u.target&&u.target.alive)?u.target:nearestEnemy(u)));
   _ownFxCast = !!(o && o.gfx); setTimeout(()=>{_ownFxCast=false;},0);   /* v451 FX-OWNERSHIP */
   fxFor(type,u,tgt,o);   // ability visual effect
   /* v552 (Phil: 'buff abilities like vireos heal and shield + any buff abilities should generate above everyone's health bar that's effected'):
@@ -13266,7 +13281,8 @@ function hero61Schedule(u,dt){
 function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
   // Green/Blue are automatic: ground-targeted offensive areas choose the densest pack.
   // Self-centred and allied circles deliberately retain their authored anchors.
-  if(AUTO_GROUND_AOE[ab.type]&&!_SELF_CENTRED[ab.type]){
+  if(ab.target==='weakestBack'){ const w=weakestBackEnemy(u); if(w){u._aimWX=w.x;u._aimWY=w.y;} }   /* v1313: Magmourn's Fireball faces its target from the cast start */
+  else if(AUTO_GROUND_AOE[ab.type]&&!_SELF_CENTRED[ab.type]){
     const R=(ab.radius||(ab.type==='blizzard'?8*METER:3*METER))*gsplitAreaMul(u), c=densestEnemyCluster(u,R);   // v592: bonus-run area
     if(c){u._aimWX=c.x;u._aimWY=c.y;}
   }
@@ -22702,6 +22718,19 @@ const MONSTER_DEF={
   'sylphice':[15,160]
 };
 for(const k in MONSTER_DEF){ const t=MONSTER_TYPES[k]; if(t&&t.monster){ t.armor=MONSTER_DEF[k][0]; t.mr=MONSTER_DEF[k][1]; } }
+/* v1313 (Phil 8 Nov 2026: "they should all scale ability power or attack damage"): EVERY monster and boss gets a damage type. Magic = the
+   casters: every Mage-role monster, plus the spell-based kits of other roles - Ashen (Ignite / Ashfall), Nightgloom (Shadow Bolt / Shade Nova),
+   Wintercrag (Frost Nova / Blizzard) and Magmourn. Everyone else is Attack. Magmourn ("magmourn seems a bit weak lets change him a bit" /
+   "he should be a mage tank"): role Tank (front line), Magic damage; "fireball is an AOE ability now, he always aims for the weakest hero in
+   backline" - still a 2.4 m burst, aimed at the lowest-HP back-row hero; "ignite all is a 20 meter range on all heroes" - every hero within
+   20 m of him (was the whole field). MON_DMG_TYPES=false puts v1312 back (tests/helpers/global-1254-1260.js does, for the older BASE fights). */
+const MON_DMG_TYPES=true;
+const MON_MAGIC_EXTRA={ashen:1, nightgloom:1, wintercrag:1, magmourn:1};
+const MON_DMG_IDS={magic:'Magic', attack:'Attack', tank:'Tank'};   // engine ids (damageProfile / role values), never shown raw
+if(MON_DMG_TYPES){ for(const k in MONSTER_TYPES){ const t=MONSTER_TYPES[k]; if(t&&t.monster) t.damageProfile=(t.role==='Mage'||MON_MAGIC_EXTRA[k])?MON_DMG_IDS.magic:MON_DMG_IDS.attack; }
+  MONSTER_TYPES['magmourn'].role=MON_DMG_IDS.tank;
+  MONSTER_KITS['magmourn'].green.target='weakestBack';
+  MONSTER_KITS['magmourn'].blue.radius=20*METER; }
 MONSTER_KITS['ink horror']={green:{name:'Ink Spin',type:'nova',mul:1.0,radius:2.4*METER,cd:6,gfx:'voidzone',gfxAt:'self',gfxR:2.4*METER,gdur:1.4}};
 ABILITY_CAST_MON['ink horror']={green:0.6};
 HERO_BATTLE_H['ink spirit']=2.3; HERO_BATTLE_H['ink horror']=3.3;   // the wolf is long, not tall; the horror is a mage-sized mass
@@ -23885,9 +23914,12 @@ Object.assign(GLOSSARY_INFO, {
 });
 function abilW(ab){ if(!ab)return ''; if(ab.knockback)return t('gloss.abil_knockback'); const M={tendrilpull:t('gloss.abil_tendrilpull'),stun:t('gloss.abil_stun'),cleavecone:t('gloss.abil_cleavecone'),aoeStun:t('gloss.abil_aoestun'),cleave:t('gloss.abil_cleave'),nova:t('gloss.abil_nova'),taunt:t('gloss.abil_taunt'),dot:t('gloss.abil_dot'),aoedot:t('gloss.abil_aoedot'),mortal:t('gloss.abil_mortal'),selfheal:t('gloss.abil_selfheal'),defensive:t('gloss.abil_defensive'),haste:t('gloss.abil_haste'),lifestealbuff:t('gloss.abil_lifestealbuff'),blink:t('gloss.abil_blink'),punchflurry:t('gloss.abil_punchflurry'),multiShot:t('gloss.abil_multishot'),strike:t('gloss.abil_strike'),piercethrow:t('gloss.abil_piercethrow'),charge:t('gloss.abil_charge'),warcry:t('gloss.abil_warcry'),ashfall:t('gloss.abil_ashfall'),fireball:t('gloss.abil_fireball'),volley:t('gloss.abil_volley')}; return M[ab.type]||ab.name; }
 function monKitHtml(id){ const k=MONSTER_KITS[id]; if(!k)return ''; let h=''; if(k.green)h+='<div class="glAb"><b>'+k.green.name+'</b> — '+abilW(k.green)+'</div>'; if(k.blue)h+='<div class="glAb"><b>'+k.blue.name+'</b> — '+abilW(k.blue)+'</div>'; if(k.pass)h+='<div class="glAb glPass"><b>'+t('gloss.passive',{name:String(k.pass).replace(/(^|_)([a-z])/g,function(m,a,b){return b.toUpperCase();})})+'</b></div>'; return h; }
+/* v1313 (Phil 8 Nov: the Irix card read a generic "Damage 47"): the damage row names the stat the fight uses - Ability Power (Magic / Healer)
+   or Attack Damage (Attack), with that stat's icon; only a type without a damage type (Hybrid) keeps the old label. */
+function glDmgLabel(t,short){ const d=t&&t.damageProfile; if(d==='Magic'||d==='Healer') return statIcon('apow')+' '+ewT('hero.stat_apow'); if(d==='Attack') return statIcon('atk')+' '+ewT('hero.stat_atk'); return statusIcon('attack')+' '+ewT(short?'gloss.dmg':'gloss.damage'); }
 function statAtLevel(id,cat,lvl){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return null; const boss=(cat==='bosses'); const b=baseAtLevel(t,lvl); return { hp:Math.round(b.hp*(boss?2.4:1)), dmg:Math.round(b.dmg*(boss?1.8:1)) }; }
-function glStatsHtml(id,cat){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return ''; const s1=statAtLevel(id,cat,1); const row=(t.range<60)?ewT('gloss.front_line'):ewT('gloss.back_line'); return '<div class="glSec"><b>'+uiIcon('chart')+' '+ewT('gloss.stats')+'</b><div class="glStats"><div class="gsRow"><span>'+statIcon('hp')+' '+ewT('gloss.hp')+'</span><b>'+s1.hp+'</b></div><div class="gsRow"><span>'+statusIcon('attack')+' '+ewT('gloss.damage')+'</span><b>'+s1.dmg+'</b></div><div class="gsRow"><span>⏱️ '+ewT('gloss.atk_speed')+'</span><b>'+ewT('gloss.seconds',{n:t.swing})+'</b></div><div class="gsRow"><span>'+statusIcon('mark')+' '+ewT('gloss.range')+'</span><b>'+(t.range<60?ewT('gloss.melee'):t.range)+'</b></div><div class="gsRow"><span>🧭 '+ewT('gloss.position')+'</span><b>'+(t.role?rosterClassName(t.role):'—')+' · '+row+'</b></div></div><div class="gsNote">'+ewT('gloss.shown_lv1')+'</div><button class="gsBtn" onclick="openStatChart(\''+cat+'\',\''+id.replace(/\x27/g,"")+'\')">'+uiIcon('chart')+' '+ewT('gloss.view_by_level')+'</button></div>'; }
-function openStatChart(cat,id){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return; const gi=GLOSSARY_INFO[id]; let rows=''; for(let L=1;L<=60;L++){ const s=statAtLevel(id,cat,L); rows+='<tr'+(L%10===0?' class="mile"':'')+'><td>'+L+'</td><td>'+s.hp+'</td><td>'+s.dmg+'</td></tr>'; } let m=document.getElementById('statChartModal'); if(!m){ m=document.createElement('div'); m.id='statChartModal'; document.body.appendChild(m); m.addEventListener('click',function(e){ if(e.target.id==='statChartModal') m.classList.remove('open'); }); } m.innerHTML='<div class="scBox"><button class="glClose" onclick="document.getElementById(\'statChartModal\').classList.remove(\'open\')">'+uiIcon('close')+'</button><h3>'+ewT('gloss.stats_by_level',{name:((gi&&gi.name)||t.name)})+'</h3><div class="scSub">'+(cat==='bosses'?ewT('gloss.boss_scaling'):ewT('gloss.grows'))+'</div><div class="scScroll"><table class="scTbl"><thead><tr><th>'+ewT('gloss.lv_col')+'</th><th>'+statIcon('hp')+' '+ewT('gloss.hp')+'</th><th>'+statusIcon('attack')+' '+ewT('gloss.dmg')+'</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'; m.classList.add('open'); }
+function glStatsHtml(id,cat){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return ''; const s1=statAtLevel(id,cat,1); const row=(t.range<60)?ewT('gloss.front_line'):ewT('gloss.back_line'); return '<div class="glSec"><b>'+uiIcon('chart')+' '+ewT('gloss.stats')+'</b><div class="glStats"><div class="gsRow"><span>'+statIcon('hp')+' '+ewT('gloss.hp')+'</span><b>'+s1.hp+'</b></div><div class="gsRow"><span>'+glDmgLabel(t)+'</span><b>'+s1.dmg+'</b></div><div class="gsRow"><span>⏱️ '+ewT('gloss.atk_speed')+'</span><b>'+ewT('gloss.seconds',{n:t.swing})+'</b></div><div class="gsRow"><span>'+statusIcon('mark')+' '+ewT('gloss.range')+'</span><b>'+(t.range<60?ewT('gloss.melee'):t.range)+'</b></div><div class="gsRow"><span>🧭 '+ewT('gloss.position')+'</span><b>'+(t.role?rosterClassName(t.role):'—')+' · '+row+'</b></div></div><div class="gsNote">'+ewT('gloss.shown_lv1')+'</div><button class="gsBtn" onclick="openStatChart(\''+cat+'\',\''+id.replace(/\x27/g,"")+'\')">'+uiIcon('chart')+' '+ewT('gloss.view_by_level')+'</button></div>'; }
+function openStatChart(cat,id){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return; const gi=GLOSSARY_INFO[id]; let rows=''; for(let L=1;L<=60;L++){ const s=statAtLevel(id,cat,L); rows+='<tr'+(L%10===0?' class="mile"':'')+'><td>'+L+'</td><td>'+s.hp+'</td><td>'+s.dmg+'</td></tr>'; } let m=document.getElementById('statChartModal'); if(!m){ m=document.createElement('div'); m.id='statChartModal'; document.body.appendChild(m); m.addEventListener('click',function(e){ if(e.target.id==='statChartModal') m.classList.remove('open'); }); } m.innerHTML='<div class="scBox"><button class="glClose" onclick="document.getElementById(\'statChartModal\').classList.remove(\'open\')">'+uiIcon('close')+'</button><h3>'+ewT('gloss.stats_by_level',{name:((gi&&gi.name)||t.name)})+'</h3><div class="scSub">'+(cat==='bosses'?ewT('gloss.boss_scaling'):ewT('gloss.grows'))+'</div><div class="scScroll"><table class="scTbl"><thead><tr><th>'+ewT('gloss.lv_col')+'</th><th>'+statIcon('hp')+' '+ewT('gloss.hp')+'</th><th>'+glDmgLabel(t,true)+'</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'; m.classList.add('open'); }
 
 /* v658 (Phil: "Dont forget monster art as background in glossary" / "Ink monsters too small for this" / "Need to make them larger" /
    "Same treatment as heroes. Thigh to top of head, center head"): monster, boss and summon cards are painted on a canvas like the hero

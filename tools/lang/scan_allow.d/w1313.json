@@ -1,0 +1,10 @@
+{
+ "_why": "v1313 (monster damage types): English kept on purpose, each with its reason.",
+ "tables": {
+  "MON_DMG_IDS": "engine id values for MONSTER_TYPES damageProfile ('Magic' / 'Attack') and role ('Tank'), the same ids HERO_PROFILES uses; every display reads them through ewT (hero.stat_apow / hero.stat_atk, rosterClassName)"
+ },
+ "functions": {},
+ "text": {},
+ "patterns": [],
+ "lines": []
+}
