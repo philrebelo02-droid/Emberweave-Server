@@ -47,6 +47,10 @@ const SWAPS = [
   ["for 3 seconds every ally takes 20% less damage while Grosk still stands.'", "for 5 seconds every ally takes 30% less damage while Grosk still stands.'", /for 3 seconds every ally takes 20% less damage while Grosk still stands\.'/],   // v1308 Croc Drop text
   ["  hipposlam:(lv,s)=>s.replace(/takes 20% less damage/,", "  hipposlam:(lv,s)=>s.replace(/takes 30% less damage/,", /  hipposlam:\(lv,s\)=>s\.replace\(\/takes 20% less damage\/,/],   // v1308 Croc Drop hover
   ["blue:{name:'Hammer Fists',type:'punchflurry',hits:3,armorMul:0.20,armorPerLv:0.10/99,desc:\"Grosk throws three heavy punches at his target, each dealing 20% of his Armor as damage; every punch forces it to attack him and silences it.\",hitTimes:", "blue:{name:'Hammer Fists',type:'punchflurry',hits:3,mul:0.6,hitTimes:", /blue:\{name:'Hammer Fists',type:'punchflurry',hits:3,armorMul:0\.20,armorPerLv:0\.10\/99,desc:"Grosk throws three heavy punches at his target, each dealing 20% of his Armor as damage; every punch forces it to attack him and silences it\.",hitTimes:/],   // v1308: Hammer Fists off Armor 20% -> 30%
+  // v1309 (Phil 8 Nov 2026, "Make DoTs respect armor and magic resist, like every other hit" - Yes): every DoT / ground-hazard tick is
+  //   mitigated by the target's Armor or MR (defMul). Turned off so the older BASE fights keep checking only what they were written for;
+  //   tests/test_dot_mitigation_1309.js checks v1309 itself.
+  ['const DOT_MITIGATION=true;', 'const DOT_MITIGATION=false;', /const DOT_MITIGATION\s*=/],
   ];   // v1287: Zahri is an Arena hero (Phil 5 Nov)   // v1287: Oakmir Blue cd 9 -> 10   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
 const made = [];
 process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } catch (e) {} } });

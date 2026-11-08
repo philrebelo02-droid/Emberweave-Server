@@ -10754,12 +10754,12 @@ function damage(u,a,c,noEnergy,crit){
     if((u._debtStk||0)>0 && u._debtOwner && u._debtOwner.alive){
       const owner=u._debtOwner, blast=(u._debtDps||6)*(u._debtStk||1)*1.6;
       units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<3*METER){
-        dealDamage(owner,e,blast,'#8a7a3a'); pushDot(e,(u._debtDps||6),3,1,'#8a7a3a'); } });
+        dealDamage(owner,e,blast,'#8a7a3a'); pushDot(e,(u._debtDps||6),3,1,'#8a7a3a',owner); } });
       ringBurst(u.x,u.y,0x8a7a3a,16);
       floatTexts.push({x:u.x,y:u.y-14,txt:'DEBT CALLED IN',t:1.3,color:'#8a7a3a',vy:1,sz:13}); }
     if(u._contagion && u.dots && u.dots.some(d=>d.color===u._plagueColor)){   // only the carrier's own plague/curse spreads — a stray bleed or burn does not // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
       const _cgDur=SKLV.contagionDur(contagionLv(u.team));   /* v1112: the spread lasts 4 s + 0.02 s a level of the strongest Contagion on the other side */
-      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f'); e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
+      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ { const _cd=u.dots.find(d=>d.color===u._plagueColor); plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f',_cd&&_cd.src,_cd&&_cd.kind); } e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
       if(typeof SFX!=='undefined'&&SFX.loop) sfxSpread(u);   /* v1138 sound: the plague's owner's passive */
       if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
@@ -11520,16 +11520,15 @@ function dealDamage(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _aut
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
-  const _shA=Math.max(0,(tgt.armorRating||0)+HERO61.aura(tgt,units))*(1-((src&&src._wpnArmIgn)||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0));
-  const _shM=Math.max(0,(tgt.mrRating||0))*(1-(((tgt._mrShredT||0)>0)?(tgt._mrShredPct||0):0));
-  if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); }      // MR vs Magic Pen
+  /* v1309: the rating, the shreds and the pen are read in defMul(src,tgt,kind) - the one place, shared with every DoT tick and ground-hazard tick */
+  if(kind==='magic'){ amt*=defMul(src,tgt,'magic'); }      // MR vs Magic Pen
   else if(kind==='split'){ /* v1150 (Phil 15 Oct): Aureth's auto - 70% of the hit is physical (Armor vs Armor Pen, Block halves only that part),
        30% magic (MR vs Magic Pen). One hit: one evasion roll, one crit, one number (the total), one lifesteal off the HP removed. */
     const _sp=(src&&src.t&&src.t.autoSplit)||{phys:1,mag:0};
-    let _ph=amt*_sp.phys*(1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl)); const _mg=amt*_sp.mag*(1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl));
+    let _ph=amt*_sp.phys*defMul(src,tgt,'phys'); const _mg=amt*_sp.mag*defMul(src,tgt,'magic');
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); }
     amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }
-  else if(kind!=='true'){ amt*=1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl); // Armor vs Armor Pen
+  else if(kind!=='true'){ amt*=defMul(src,tgt,'phys'); // Armor vs Armor Pen
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
@@ -11548,27 +11547,44 @@ function dealDamage(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _aut
   if((src._gearVampT||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._gearVampPct||0));
   if(src.pass&&src.pass.notthere&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.10);   // the smaller Bloodletter that survived the rework
   if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
-  if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
+  if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a',src);
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
-  if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4');   /* v1112: 10% + 0.1 pt a level */
+  if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4',src);   /* v1112: 10% + 0.1 pt a level */
   /* v1137 (Phil 14 Oct): Rivet's old six-step Whatever's Loaded cycle (stun, splash, bleed, slow, chain, heavy shot) lived here, on every hit he dealt. It is REPLACED by his ten weapons - each basic attack's effect is its weapon's (rivetFire), the chain hook is automatic (rivetHookTick). */
 }
 // Hollow's bleed stacks: the third one ruptures for a burst and clears the set.
 function addBleedStack(src,tgt,o){ if(!tgt||!tgt.alive)return; o=o||{};
   tgt._blStk=(tgt._blStk||0)+1; tgt._blT=o.stackDur||6;
-  pushDot(tgt,src.dmg*(o.bleed||0.16),o.stackDur||6,1,'#8f8fa8');
+  pushDot(tgt,src.dmg*(o.bleed||0.16),o.stackDur||6,1,'#8f8fa8',src);
   if(tgt._blStk>=(o.rupture||3)){ tgt._blStk=0; tgt._blT=0;
     dealDamage(src,tgt,src.dmg*(o.ruptMul||1.9),'#ff5b6b');
     burstAt(tgt.x,tgt.y,0xff5b6b,20); ringBurst(tgt.x,tgt.y,0x8f8fa8,14);
     floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'RUPTURE',t:1.2,color:'#ff5b6b',vy:1,sz:14}); }
   else floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'bleed x'+tgt._blStk,t:.7,color:'#8f8fa8',vy:1,sz:10});
 }
-function pushDot(t,dps,dur,interval,color){
+/* v1309 (Phil 8 Nov 2026, "Make DoTs respect armor and magic resist, like every other hit" - Yes): the damage multiplier a hit of
+   `kind` takes from tgt's Armor (phys) or Magic Resist (magic) - rating, Open Gate aura, armour / MR shred, gear armour cut, the source's
+   weapon armour-ignore and Armor / Magic Pen, then defToDR at the target's level. dealDamage uses it for every hit; a DoT tick and a
+   ground-hazard tick use it too (DOT_MITIGATION). Before v1309 those ticks called damage() straight and were true damage.
+   DOT_MITIGATION=false is the pre-v1309 engine (tests/helpers/global-1254-1260.js flips it for the older BASE fights). */
+const DOT_MITIGATION=true;
+function defMul(src,tgt,kind){ if(kind==='true') return 1;
+  if(kind==='magic') return 1-defToDR(Math.max(0,Math.max(0,(tgt.mrRating||0))*(1-(((tgt._mrShredT||0)>0)?(tgt._mrShredPct||0):0))-((src&&src.magicPen)||0)),tgt.lvl);   // MR vs Magic Pen
+  return 1-defToDR(Math.max(0,Math.max(0,(tgt.armorRating||0)+HERO61.aura(tgt,units))*(1-((src&&src._wpnArmIgn)||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0))-((src&&src.armorPen)||0)),tgt.lvl); }   // Armor vs Armor Pen
+/* v1309: a DoT's damage kind. An explicit kind wins (the kind of the hit that applies it, e.g. Dandra's sting, the plague breaths); else a
+   colour the engine NAMES as a bleed is physical and one it names as a curse is magic (DOT_KIND_BY_COLOR - no hue guess); else dealDamage's
+   own default: a Magic / Healer hero's damage is magic, everyone else's (monsters carry no damageProfile) physical. */
+function dotDmgKind(src,color,kind){ if(kind) return kind; const f=color?DOT_KIND_BY_COLOR[String(color).toLowerCase()]:null;
+  if(f==='bleed') return 'phys'; if(f==='curse') return 'magic';
+  return (src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys'; }
+/* v1309: the tick's damage after the target's Armor / Magic Resist (no source recorded = unchanged) */
+function dotTickAmt(src,tgt,amt,kind){ return (DOT_MITIGATION&&src)?amt*defMul(src,tgt,kind):amt; }
+function pushDot(t,dps,dur,interval,color,src,kind){   // v1309: src (the caster) and kind decide the tick's Armor / MR mitigation
   // Compound Interest (Grimsby): a debt near him is slower to clear — every DoT on an enemy
   // within his aura lasts 20% longer. Applies to the WHOLE team's damage-over-time, not just his.
   try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
     if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+SKLV.debtaura(passLv(g)); break; } } } }catch(e){}
-  t.dots.push({dps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0,color:color||'#ff8844'}); }
+  t.dots.push({dps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0,color:color||'#ff8844',src:src||null,kind:src?dotDmgKind(src,color||'#ff8844',kind):null}); }
 function pushHot(t,hps,dur,interval){ t.hots.push({hps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0}); }
 function enemiesOf(u){ return units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)); }
 function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team&&!o._dropHidden&&!(o._riseT>0)); }
@@ -12103,13 +12119,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
       if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
-      if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a');}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
+      if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a',u);}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a'); if(o.stun)ccApply(u,e,'stunned',o.stun); } } });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a',u); if(o.stun)ccApply(u,e,'stunned',o.stun); } } });
       ringBurst(u.x,u.y,0xffa657,10); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,10); break; }
     case 'fireball':{const ctr=aimCtr||tgt;if(!ctr)break;enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||95)){dealDamage(u,e,dB*(o.mul||2.2)*rm,'#b98bff');}});burstAt(ctr.x,ctr.y,0xb98bff,24);break;}
     case 'fireorb':{ if(!tgt)break; const dmgAmt=dB*(o.mul||2.6)*rm, R=o.radius||58*UNIT_SIZE, atk=u, tx=tgt.x, ty=tgt.y;
-      spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(brnd()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a'); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
+      spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(brnd()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a',atk); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
       break; }
     case 'serpentdance':{   /* v885 Silkcoil (Phil 1 Oct): the star circles her 4 times; each pass strikes; under 10% health is executed. The orbit lives in think() so the replay runs it too. */
       u._danceDur=o.dur||2.4; u._danceT=u._danceDur; u._danceR=o.radius||3*METER; u._danceHit=dB*(o.mul||0.6)*rm; u._danceExec=o.exec||0.10; u._danceSpins=o.spins||4;
@@ -12126,7 +12142,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         // and every rider at once, on the primary
         ccApply(u,prime,'stunned',0.4*pm);
         ccApply(u,prime,'slow',1.5*pm);
-        pushDot(prime,_sD*0.18*pm,3,1,'#c0392b');
+        pushDot(prime,_sD*0.18*pm,3,1,'#c0392b',u);
         enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm,'#ffa657'); });
         dealDamage(u,prime,_sD*0.40*pm,'#ffe08a');
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
@@ -12171,7 +12187,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          inside it (read after ccApply, so it is the real, ccDur-shortened stun), in place of the blue burst. Display only - reads, never writes. */
       if(o.ownFx==='hourglass'){ try{ const _R=o.radius||110; let _st=0; enemiesOf(u).forEach(e=>{ if(e.alive&&dist(ctr,e)<_R) _st=Math.max(_st,e.stunned||0); }); tessitHourglassFx(ctr.x,ctr.y,_R*_fx22Area(),_st); }catch(_e){} }
       else burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
-    case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90*UNIT_SIZE, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); if(o.ownFx==='reap'){ try{ carnReapFx(u,dir,R); }catch(_e){} }   /* v1123 Crimson Reap crescent (display only) */ if(o.ownFx==='chop'){ try{ korvuxChopHitFx(u,dir,R); }catch(_e){} }   /* v1125 Ember Cleave chop (display only) */ burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
+    case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90*UNIT_SIZE, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b',u); } } }); if(o.ownFx==='reap'){ try{ carnReapFx(u,dir,R); }catch(_e){} }   /* v1123 Crimson Reap crescent (display only) */ if(o.ownFx==='chop'){ try{ korvuxChopHitFx(u,dir,R); }catch(_e){} }   /* v1125 Ember Cleave chop (display only) */ burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'worldbreaker':{   /* v889 Pellucid Rook: three slams; each shockwave hits an enemy when it REACHES it */
       const _R=o.radius||6*METER, _spd=o.wave||12*METER, _D=dB*(o.mul||0.45)*rm, _st=o.stun||0.4, _n=o.slams||3, _gap=o.gap||0.7;
       u._castT=Math.max(u._castT||0,_gap*(_n-1)+0.4);
@@ -12203,11 +12219,11 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       break; }
     case 'execute':{if(!tgt)break;const bonus=1+(1-tgt.hp/tgt.maxHp)*2;dealDamage(u,tgt,dB*(o.mul||2.2)*rm*bonus,'#ff5b6b');burstAt(tgt.x,tgt.y,0xff5b6b,14);break;}
     case 'creeprot': case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8');
-      const _pc=o.color||'#ff8844', _pd=_sD*(o.dps||.5)*sm; plagueDot(tgt,_pd,o.dur||4,o.interval||1,_pc);
+      const _pc=o.color||'#ff8844', _pd=_sD*(o.dps||.5)*sm; plagueDot(tgt,_pd,o.dur||4,o.interval||1,_pc,u);
       if(o.ownFx==='wound'){ try{ vexWoundFx(tgt,o.dur||4,_pc); }catch(_e){} }   /* v1115 24: the wound opens and stays while it bleeds (display only) */
       // Contagion carriers tag their OWN plague/curse so it can spread on the victim's death.
       if(u.pass&&u.pass.contagion){ tgt._contagion=true; tgt._plagueDps=_pd; tgt._plagueColor=_pc; tgt._plagueHex=parseInt(_pc.slice(1),16)||0x8fbf3f; } if(o.foot){tgt._darkAuraT=o.dur||4;tgt._plagueColor=o.color||'#8a5cff';tgt._plagueHex=0x7a3fb0;} if(o.handglow){ const dd=Math.max(1,dist(u,tgt)); const hx=u.x+(tgt.x-u.x)/dd*20, hy=u.y+(tgt.y-u.y)/dd*20; u._darkAuraT=Math.max(u._darkAuraT||0,0.7); burstAt(hx,hy,0x7a3fb0,8); burstAt(tgt.x,tgt.y,0x7a3fb0,12); ringBurst(tgt.x,tgt.y,0x8a5cff,8); } else if(o.chain){spawnShadowChain(u,tgt);} else if(u.range>60)spawnShot(u,tgt,u.t.color); break;}
-    case 'shadeburst':{ const R=o.radius||7*METER; const _c=aimCtr||densestEnemyCluster(u,R)||{x:u.x,y:u.y};   /* v571 Phil: Shadeburst erupts AMONG the enemy, not around Umbris - he stands at ally depth 3.4, so a caster-centred circle spent 20 m crossing the empty gap and could never reach the enemy back row */ enemiesOf(u).forEach(e=>{ if(Math.hypot(e.x-_c.x,e.y-_c.y)<R){ if(o.mul)dealDamage(u,e,dB*o.mul,'#c9a6ff'); const _sd=apB*(o.dps||0.3); plagueDot(e,_sd,o.dur||6,1,'#8a5cff'); e._darkAuraT=o.dur||6; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0;
+    case 'shadeburst':{ const R=o.radius||7*METER; const _c=aimCtr||densestEnemyCluster(u,R)||{x:u.x,y:u.y};   /* v571 Phil: Shadeburst erupts AMONG the enemy, not around Umbris - he stands at ally depth 3.4, so a caster-centred circle spent 20 m crossing the empty gap and could never reach the enemy back row */ enemiesOf(u).forEach(e=>{ if(Math.hypot(e.x-_c.x,e.y-_c.y)<R){ if(o.mul)dealDamage(u,e,dB*o.mul,'#c9a6ff'); const _sd=apB*(o.dps||0.3); plagueDot(e,_sd,o.dur||6,1,'#8a5cff',u); e._darkAuraT=o.dur||6; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0;
         if(u.pass&&u.pass.contagion){ e._contagion=true; e._plagueDps=_sd; }
         if(o.gfx&&e.sprH){ const th=e.sprH; window._fxTgtH=th; window._fxAtH=0.05+th*0.84; const _pa=(typeof _fxAllow!=='undefined'); if(_pa)_fxAllow=true; try{ spawnGroundFx(o.gfx,e.x,e.y,(o.artR||2*METER),o.gdur||1.6); }catch(_){} finally{ if(_pa)_fxAllow=false; window._fxTgtH=null; window._fxAtH=null; } }   /* v483 Phil: Shadeburst bursts over the FACE of every enemy it touches, face-sized. v571: the circle is now centred on the densest enemy cluster at 7 m, not on Umbris at 25 m */
       } }); if(u.team==='ally')screenFlash=Math.max(screenFlash,.14); break; }
@@ -12222,7 +12238,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          time (it was rel*clip*BATTLE_PACE after the cast: 22% slow, plus the whole cast late). Damage, radius, DoT and zone unchanged. */
       u._voidT=Math.max(0.01,rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE-castTimeFor(u,'ult')); u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
-    case 'aoedot':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(C.x,C.y,0xffa657,14);break;}
+    case 'aoedot':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657',u);}});burstAt(C.x,C.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');ccApply(u,tgt,'stunned',o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');ccApply(u,tgt,'slow',2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=o.dur||5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
@@ -12231,7 +12247,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       /* v538 (Phil): "it should only apply on anyone within 30 meters of him" - cast on an enemy, hits every enemy in 30 m of HIM */
       const _fsR=o.range||30*METER;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>_fsR)return; dealDamage(u,e,dB*(o.mul||1.4)*rm,'#d9b26a');
-        e.mortalT=Math.max(e.mortalT||0,md); pushDot(e,bd,bdur,1,'#c0392b'); });
+        e.mortalT=Math.max(e.mortalT||0,md); pushDot(e,bd,bdur,1,'#c0392b',u); });
       u._lifestealPct=Math.max(u._lifestealPct||0,o.steal||0.35); u._lifestealT=o.buffDur||3;
       pushHot(u,u.maxHp*(o.regen||0.03),o.buffDur||3,1);
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'FINAL EXPEDITION',t:1.2,color:'#d9b26a',vy:1,sz:14});
@@ -12251,7 +12267,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
         let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI;
         if(Math.abs(a)<=half){ for(let h=0;h<hits;h++) dealDamage(u,e,dB*mul*rm,'#c9a6ff');
-          pushDot(e,_sD*0.12*sm,3,1,'#c0392b'); } });
+          pushDot(e,_sD*0.12*sm,3,1,'#c0392b',u); } });
       for(let h=0;h<hits;h++) setTimeout(()=>ringBurst(u.x+Math.cos(dir)*R*.4,u.y+Math.sin(dir)*R*.4,0x7a3fa0,10), h*160);
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'RAZOR TEMPEST',t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
     case 'mendburst':{ const l=lowestAlly(u); if(!l)break;
@@ -12328,13 +12344,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     // ---- Carn: the wound speaks. Damage scales with the health he has ALREADY LOST. ----
     case 'bloodnova':{ const R=o.radius||2.8*METER, missing=1-(u.hp/u.maxHp);
       const mul=(o.mul||0.7)*(1+(o.missingBonus||2.2)*missing);
-      enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)<=R){ dealDamage(u,e,dB*mul*rm,'#c0392b'); pushDot(e,_sD*0.15*sm,3,1,'#c0392b'); } });
+      enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)<=R){ dealDamage(u,e,dB*mul*rm,'#c0392b'); pushDot(e,_sD*0.15*sm,3,1,'#c0392b',u); } });
       ringBurst(u.x,u.y,0xc0392b,20); burstAt(u.x,u.y,0x8a1f1f,16);
       floatTexts.push({x:u.x,y:u.y-12,txt:missing>0.5?'VEINS BURST':'Vein Burst',t:1.0,color:'#c0392b',vy:1,sz:13}); break; }
 
     // ---- Vesper "The Annotator": a field of corrections. Nothing inside it can cast. ----
     case 'erratafield':{ const px=(tgt&&tgt.alive)?tgt.x:u.x, py=(tgt&&tgt.alive)?tgt.y:u.y;
-      groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.2)*sm,team:u.team,
+      groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.2)*sm,team:u.team,src:u,
         interval:0.5,acc:0,life:o.dur||5,color:'#c9a227',slow:0,silence:o.silence||0.6});
       burstAt(px,py,0xc9a227,18); ringBurst(px,py,0xc9a227,14);
       floatTexts.push({x:px,y:py-12,txt:'ERRATA',t:1.1,color:'#c9a227',vy:1,sz:12}); break; }
@@ -12391,7 +12407,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'debtmark':{ if(!tgt)break; dealDamage(u,tgt,dB*(o.mul||0.5)*rm,'#8a7a3a');
       tgt._debtStk=Math.min(o.maxStk||6,(tgt._debtStk||0)+1);
       tgt._debtDps=_sD*(o.dps||0.35)*sm; tgt._debtDur=o.dur||6; tgt._debtOwner=u;
-      pushDot(tgt,tgt._debtDps*tgt._debtStk,o.dur||6,1,'#8a7a3a');
+      pushDot(tgt,tgt._debtDps*tgt._debtStk,o.dur||6,1,'#8a7a3a',u);
       floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'OVERDUE x'+tgt._debtStk,t:1.0,color:'#8a7a3a',vy:1,sz:12}); break; }
 
     // ---- Dandra: the sting slows their hands. Sting an already-stung foe and they SLEEP. ----
@@ -12399,7 +12415,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; ccApply(u,tgt,'stunned',sl); tgt._sleepT=sl; tgt._stungT=0;
         burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'ASLEEP',t:1.2,color:'#f2d84a',vy:1,sz:13}); }
       else { tgt._stungT=o.stung||6; tgt.hasteMul=Math.min(tgt.hasteMul||1,1-(o.slowPct||0.3)); tgt.hasteT=Math.max(tgt.hasteT||0,o.stung||6);
-        pushDot(tgt,_sA*(o.dps||0.25)*sm,4,1,'#f2d84a');
+        pushDot(tgt,_sA*(o.dps||0.25)*sm,4,1,'#f2d84a',u,'magic');
         /* 30 Aug — "The Swarm Moves On" could never happen. Meryln's purple is pass:'contagion',
            and the spread machinery needs the stung foe marked as a carrier with the dot's colour
            (see the umbralcata path). Drowsy Sting set neither, so the bees never moved on. */
@@ -12464,16 +12480,16 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'chantzone':{ const R=o.radius||5*METER; const C=aimCtr||densestAllyCluster(u,R)||u;
       /* Phil: "only after the circle is complete the 4 seconds starts" - o.lead is the snake's lap round the circle; no tick
          lands during it, then dur seconds of ticks. life = lead + dur so the hazard outlives its own lead-in. */
-      groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35),heal:apB*(o.hps||0.6),team:u.team,   /* v1114: apB already carries the level (sm) - it was applied twice */interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
+      groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35),heal:apB*(o.hps||0.6),team:u.team,src:u,   /* v1114: apB already carries the level (sm) - it was applied twice */interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
       floatTexts.push({x:C.x,y:C.y-12,txt:'BONE CHANT',t:1.0,color:'#8fe08f',vy:1,sz:13}); ringBurst(C.x,C.y,0x5fbf5f,16); break; }
     case 'ashfall':{ if(o.deliver==='travel'){   /* v888 Spiral Current: the whirlpool moves through the formation */
         const _tC=aimCtr||((tgt&&tgt.alive)?tgt:u), _dx=_tC.x-u.x, _dy=_tC.y-u.y, _L=Math.hypot(_dx,_dy)||1, _ux=_dx/_L, _uy=_dy/_L, _spd=o.speed||6*METER, _tt=(_L+3*METER)/_spd;
-        const _h={x:u.x+_ux*METER,y:u.y+_uy*METER,vx:_ux*_spd,vy:_uy*_spd,travelLeft:_tt,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,interval:0.5,acc:0,life:_tt+0.6,color:o.color||'#2f8fa8',slow:o.slow||0,nrgSlow:o.nrgSlow||0,nrgDur:o.dur||4};
+        const _h={x:u.x+_ux*METER,y:u.y+_uy*METER,vx:_ux*_spd,vy:_uy*_spd,travelLeft:_tt,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,src:u,interval:0.5,acc:0,life:_tt+0.6,color:o.color||'#2f8fa8',slow:o.slow||0,nrgSlow:o.nrgSlow||0,nrgDur:o.dur||4};
         groundHazards.push(_h);
         try{ if(TH&&scene&&o.gfx&&FX2_DEF[o.gfx]){ window._fxCaster=u; _fxAllow=true; const _fx=spawnGroundFx(o.gfx,_h.x,_h.y,o.gfxR||_h.r,_h.life); if(_fx) _fx.follow=_h; } }catch(_e){} finally{ _fxAllow=false; }
         break; }
       const _aC=aimCtr||((tgt&&tgt.alive)?tgt:u), px=_aC.x, py=_aC.y;   // v544: aimed (radius) - lands on the aim point, else the target   // throw a burning/icy patch to the ground: ticks damage (+optional slow) to foes within radius for a few seconds
-      groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,interval:0.5,acc:0,life:o.dur||3,color:o.color||'#ff6a3a',slow:o.slow||0});
+      groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,src:u,interval:0.5,acc:0,life:o.dur||3,color:o.color||'#ff6a3a',slow:o.slow||0});
       /* v527 Spiral Current - the whirlpool does not just hurt, it slows what the formation is charging. */
       if(o.nrgSlow){ enemiesOf(u).forEach(e=>{ if(!e.alive||dist({x:px,y:py},e)>(o.radius||3*METER))return;
         e._nrgSlowT=Math.max(e._nrgSlowT||0,o.dur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,o.nrgSlow);
@@ -12826,7 +12842,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.4*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         dealDamage(u,e,dB*(o.mul||0.8)*rm,'#ff8a3a');
-        pushDot(e,bd,o.dur||4,1,'#ff6a2a'); });
+        pushDot(e,bd,o.dur||4,1,'#ff6a2a',u); });
       ringBurst(u.x,u.y,0xff8a3a,18); try{ tolleyQuenchSettle(u); }catch(_e){}
       floatTexts.push({x:u.x,y:u.y-16,txt:'QUENCH',t:1.0,color:'#ff8a3a',vy:1,sz:12}); break; }
 
@@ -12994,7 +13010,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       spawnBeamFx('toxcone',u,tx,ty,0.45,0.3);                  /* v1045 (Phil 6 Oct: "please check bloatus toxic breath spell FX"): the green gas plume (was the thin dark toxbeam streak) shoots mouth -> target over his exhale (frames 27-39 = 0.45 s), then thins out 0.3 s */
       const dd=Math.max(1,Math.hypot(tx-u.x,ty-u.y)), ux=(tx-u.x)/dd, uy=(ty-u.y)/dd, half=1.4*METER;
       enemiesOf(u).forEach(e=>{ let pr=(e.x-u.x)*ux+(e.y-u.y)*uy; if(pr<0)pr=0; if(pr>dd)pr=dd; const cx=u.x+ux*pr, cy=u.y+uy*pr;
-        if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: without the colour the spread test never matched and Contagion never fired
+        if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f',u,'magic'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: without the colour the spread test never matched and Contagion never fired
       floatTexts.push({x:u.x,y:u.y-12,txt:'TOXIC BREATH',t:.9,color:'#a6e05a',vy:1,sz:12}); break; }
     case 'finalcandle':{   /* v896 Waxen Duchess: flood (slow) -> statues (stun) -> shatter (damage), each stage when it happens */
       const _c=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u, _R=o.radius||7*METER, _sh=apB*(o.mul||2.0)*rm;
@@ -13034,7 +13050,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); });
       break; }
     case 'plaguesov':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f',u,'magic'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
       ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Vireo (bard support) — heals/shields scale off ability power ----
     case 'crescendo':{
@@ -13453,7 +13469,7 @@ function rivetFire(u,t,dmg,clip,crit){ const W=RIVET_WPN, w=u._rvWpn, rate=u._at
   switch(w){
     case 'gatling': for(let k=0;k<W.gatShots;k++){ const off=k*W.gatGap/rate; vis(off); hit(()=>{ if(t.alive) dealDamage(u,t,dmg*W.gatPct,'#ffe08a'); },fly+off); } break;
     case 'revolver': vis(); hit(()=>{ u._wpnCrit=W.revCrit; try{ dealDamage(u,t,dmg*W.revPct,'#fff'); } finally{ u._wpnCrit=0; } },fly); break;
-    case 'saw': vis(); hit(()=>{ dealDamage(u,t,dmg*W.sawPct,'#e0e0e0'); if(t.alive) pushDot(t,dmg*W.sawBleed/W.sawBleedDur,W.sawBleedDur,1,'#c0392b'); },fly); break;
+    case 'saw': vis(); hit(()=>{ dealDamage(u,t,dmg*W.sawPct,'#e0e0e0'); if(t.alive) pushDot(t,dmg*W.sawBleed/W.sawBleedDur,W.sawBleedDur,1,'#c0392b',u); },fly); break;
     case 'bolt': vis(); hit(()=>{ u._wpnArmIgn=W.boltArmIgn; try{ dealDamage(u,t,dmg*W.boltPct,'#bfe6ff'); } finally{ u._wpnArmIgn=0; } },fly); break;
     case 'cannon': { const ax=t.x-u.x, ay=t.y-u.y, aL=Math.hypot(ax,ay)||1, cMin=Math.cos(W.canAngle/2*Math.PI/180);
       vis(); hit(()=>{ enemiesOf(u).forEach(e=>{ if(!e.alive) return; const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy);
@@ -14301,13 +14317,13 @@ function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx
   fx2SetFrame(o.spr,d,(d.f0!=null)?(d.f0+Math.floor(o.t*11)%(d.n-d.f0)):(Math.floor(o.t*11)%d.n)); } }   /* v1045: the SPRITE - fx2Hook reads its own _uv; setting the texture's offset was ignored, so every beam sat on frame 0 */
 // Plague/curse telegraph: a tiny void zone blooms under a struck unit; 0.5s later it fades and the DoT begins ticking.
 const _pendingDots=[];
-function plagueDot(t,dps,dur,interval,color){ if(!t)return;
+function plagueDot(t,dps,dur,interval,color,src,kind){ if(!t)return;
   try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
     if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+SKLV.debtaura(passLv(g)); break; } } } }catch(e){}
   if(!t)return; const k=dotKind(color); const curse=!!(color&&/8a5cff|7a3fb0|b06bff|c9a6ff|9a6fff/i.test(color));
-  if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5}); }
-  else pushDot(t,dps,dur,interval,color); }
-function updatePendingDots(dt){ for(let i=_pendingDots.length-1;i>=0;i--){ const p=_pendingDots[i]; p.delay-=dt; if(p.delay<=0){ if(p.t&&p.t.alive)pushDot(p.t,p.dps,p.dur,p.interval,p.color); _pendingDots.splice(i,1);} } }
+  if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5,src,kind}); }
+  else pushDot(t,dps,dur,interval,color,src,kind); }
+function updatePendingDots(dt){ for(let i=_pendingDots.length-1;i>=0;i--){ const p=_pendingDots[i]; p.delay-=dt; if(p.delay<=0){ if(p.t&&p.t.alive)pushDot(p.t,p.dps,p.dur,p.interval,p.color,p.src,p.kind); _pendingDots.splice(i,1);} } }
 // Universal DoT status FX: ANY unit (hero or monster) carrying a bleed/poison/burn DoT shows the matching effect
 // at its feet for the DoT's lifetime. Classified by the dot's colour. Burn = a small fire patch under the feet.
 /* v1141 (Phil, 15 Oct: "Debuffs like burn, bleed, poison, curse, wax ... should be under their feet"): every damage-over-time colour the
@@ -15370,7 +15386,7 @@ function think(u,dt){
            Dark Convergence: every auto leaves a DARK burn in curse colour (10% attack + 5% ability power, 2 s, ticking
            twice a second); every 3rd auto the void visibly converges — she plays the gathering clip and regains 5 energy. */
         if(u.pass&&u.pass.darkconv&&t.alive){ const pm=(u.passMul||1);
-          pushDot(t,(u.dmg*0.10+(u.apow||0)*0.05)*pm,2,0.5,'#7a3fb0');
+          pushDot(t,(u.dmg*0.10+(u.apow||0)*0.05)*pm,2,0.5,'#7a3fb0',u);
           u._dcN=((u._dcN||0)+1)%3; if(u._dcN===0){ u.energy=Math.min(100,u.energy+5*pm); ringBurst(t.x,t.y,0x4a2a8a,12); burstAt(t.x,t.y,0x7a3fb0,8);
             firePassiveClip(u, u.anim&&u.anim.passive?Math.min(1.2,u.anim.passive.n/(u.anim.passive.fps||12)):0); } }
         /* v410 (Phil, on Lumi's new attack clip): "the moment her arm and finger fully extends is the
@@ -16430,7 +16446,7 @@ function _updateBattleCore(dt){
     if(u.pass.twinfonts){ if(!((u.greenAb&&u.greenAb.type==='duality')||(u.blueAb&&u.blueAb.type==='duality'))){ u._tfT=(u._tfT||0)+dt;   /* v895: without Duality he turns his own fonts every 5 s */
         if(u._tfT>=5){ u._tfT-=5; u._darkStance=!u._darkStance; try{ firePassiveFx(u); floatTexts.push({x:u.x,y:u.y-10,txt:u._darkStance?'DARK FONT':'LIGHT FONT',t:.9,color:u._darkStance?'#b06bff':'#ffe89a',vy:1,sz:11}); }catch(_e){} } }
       if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt*SKLV.twinfonts(passLv(u)); dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=Math.min(worldHealCap(u),u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt*SKLV.twinfonts(passLv(u)));   /* v1112: Twin Fonts x(1 + 0.0066 a level) */ } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
-    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,u.dmg*SKLV.immolate(passLv(u)),'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
+    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,dotTickAmt(u,e,u.dmg*SKLV.immolate(passLv(u)),dotDmgKind(u,'#ff6a3a')),'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     // Deep Reserves (Old Maren): the sea keeps him topped up — health AND energy
     if(u.pass.tidereserve){ const pm=(u.passMul||1); const _hurt=u.hp<u.maxHp; u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.01*pm*dt); u.energy=Math.min(100,u.energy+1*pm*dt);
       u._drFxT=(u._drFxT||0)+dt; if(u._drFxT>=6){ u._drFxT=0; if(_hurt) firePassiveFx(u,u,{aboveBar:true}); } }   /* v1044 (Phil: "finish them all"): Deep Reserves' plate pulses over his bar every 6 s while it is healing him - art only (a heal marker, v498) */
@@ -16457,7 +16473,7 @@ function _updateBattleCore(dt){
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // MMO-style status effects: DoT / HoT ticks + buff/debuff timers
   units.forEach(u=>{ if(!u.alive)return;
-    for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; damage(u,d.dps,d.color,true); d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
+    for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
@@ -16484,7 +16500,7 @@ function _updateBattleCore(dt){
     if(h.vx||h.vy){ h.x+=h.vx*dt; h.y+=h.vy*dt; h.travelLeft-=dt; if(h.travelLeft<=0){ h.vx=0; h.vy=0; } }   /* v888 a travelling hazard */
     h.life-=dt; h.acc+=dt;
     if(h.acc>=h.interval){ h.acc-=h.interval; if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
-      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,h.dmg,h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;
             const _d=Math.hypot(a.x-e.x,a.y-e.y); if(_d<_bd){_bd=_d;_b=a;} }
@@ -18149,7 +18165,7 @@ function castGearSkill(u,_fromTick){
   u.gearSkill.used=true;
   floatTexts.push({x:u.x,y:u.y-16,txt:'✦ '+g.name,t:1.2,color:'#ffd45e',vy:1.2,sz:15});
   try{ ringBurst(u.x,u.y,0xffd45e,22); burstAt(u.x,u.y,0xfff1b0,14); if(u.team==='ally') screenFlash=Math.max(screenFlash,.18); }catch(e){}   // v478: the active is a visible event
-  const burn=(t,frac,dur)=>{ if(t&&frac&&t.dots) pushDot(t,u.dmg*frac/(2*(dur||3)),dur||3,0.5,'#ff9a3c'); };
+  const burn=(t,frac,dur)=>{ if(t&&frac&&t.dots) pushDot(t,u.dmg*frac/(2*(dur||3)),dur||3,0.5,'#ff9a3c',u); };
   switch(ty){
     case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
     case 'stun': { const ts=p.target==='caster' ? [_gsNearCaster(u)||_gsNearFoe(u)].filter(Boolean) : _gsFoes(u,p.target==='aoe'?'aoe':'near',p.target==='aoe'?3:1);   /* v646: Static Crown stuns the nearest CASTER */

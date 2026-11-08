@@ -211,6 +211,7 @@ try {
   { const burn = lv => JSON.parse(run(`(()=>{ units=[]; ended=false; paused=false; battleTime=0;
       const u=makeUnit('korvux','ally',300,700,20,{owned:false}), e=makeUnit('lumi','enemy',320,700,20,{owned:false});
       units=[u,e]; units.forEach(x=>{ x.atkInterval=99; x.speed=0; x.greenAb=null; x.blueAb=null; x.energy=0; }); e.maxHp=e.hp=1e9;
+      e.armorRating=0; e.mrRating=0;   /* v1309 (Phil 8 Nov 2026, "Make DoTs respect armor and magic resist, like every other hit" - Yes): the aura tick now takes Lumi's Armor off; a bare target keeps this a check of the level curve (tests/test_dot_mitigation_1309.js checks the mitigation) */
       u.skillLv=[1,1,1,${lv}]; u.pass={immolate:true}; u.passMul=skillMul(${lv});
       const _dist=dist, _dmg=damage; let got=0; dist=()=>0; damage=function(t,a,c){ if(c==='#ff6a3a') got+=a; return _dmg.apply(this,arguments); };   // the aura's own hits, bodies ignored
       try{ for(let i=0;i<Math.round(1.05/SIM_STEP);i++) updateBattle(SIM_STEP); } finally{ dist=_dist; damage=_dmg; }
