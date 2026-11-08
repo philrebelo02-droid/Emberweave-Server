@@ -5824,6 +5824,9 @@ function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +SKIL
    hover text all call these, so the number a player reads is the number the fight uses. lvAdd = base + per x (levels above 1): level 1 never
    moves. Kits carry their own step as `perLv` (skLvNum reads it per type); passives read SKLV with the passive's level (passLv). */
 function lvStep(lv){ return Math.max(0,((lv|0)||1)-1); }
+/* v1311 (Phil 8 Nov 2026, Veyr Weightless Predator: "no reset it per wave"): what a hero gains DURING a wave that must not carry into the
+   next one is cleared here - called at the top of buildEnemyWave (live battle and the headless replay both build each wave through it). */
+function resetPerWave(){ try{ for(const u of units){ if(u&&u._wlCrit){ u.glyphCrit=Math.max(0,(u.glyphCrit||0)-u._wlCrit); u._wlCrit=0; } } }catch(e){} }
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -10644,7 +10647,7 @@ function enemyLevelFor(g){ return Math.max(1, Math.round(1 + Math.max(g-1,0)*(45
 // Campaign waves (Phil's spec 2026-08-07): 3 waves of MONSTERS; elite/boss stages add a random 3★ hero
 // (and a boss). Monsters cast their green + blue kit abilities (real cast times + cooldowns). Difficulty ramps to the per-chapter
 // clear-level target (see the campaign-wave-structure design note).
-function buildEnemyWave(){
+function buildEnemyWave(){ resetPerWave();
   if(CUR.mode==='vault'){   // The Vault: monsters are PRE-DETERMINED per floor by the server — same lineup every attempt, beatable by practice
     const specs=(CUR.vwaves&&CUR.vwaves[waveIdx])||[];
     const _keys=specs.map(s=>s.key);
@@ -11517,7 +11520,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _aut
     /* v527 - the two passives that pay out ON a dodge, not on a hit. */
     if(tgt.pass&&tgt.pass.weightless){ const pm=(tgt.passMul||1);
       tgt.hasteMul=Math.min(1.6,Math.max(tgt.hasteMul||1,1)+0.08*pm); tgt.hasteT=Math.max(tgt.hasteT||0,5);
-      tgt.glyphCrit=Math.min(0.6,(tgt.glyphCrit||0)+0.05*pm);
+      { const _c0=tgt.glyphCrit||0; tgt.glyphCrit=Math.min(0.6,_c0+0.05*pm); tgt._wlCrit=(tgt._wlCrit||0)+(tgt.glyphCrit-_c0); }   /* v1311 (Phil 8 Nov: "no reset it per wave"): the dodge crit is counted apart and cleared every wave */
       firePassiveFx(tgt);
       floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'WEIGHTLESS',t:.8,color:'#3a5fa8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'weightless',1.5); }
     if(tgt.pass&&tgt.pass.prismscales&&src.alive&&!tgt._ctring){ tgt._ctring=1;

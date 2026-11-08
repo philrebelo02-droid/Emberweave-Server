@@ -55,5 +55,14 @@ const ctrl = h => JSON.parse(R(h, `(function(){ const T=__team(); const a=T.a; a
 let cN, cO; try { cN = ctrl(NEW); cO = ctrl(OLD); } catch (e) { cN = { err: String(e).slice(0, 120) }; }
 ck('two overlapping +0.25 casts give +0.25 (not +0.50) and expiry returns to the base', cN && Math.abs(cN.peak - 0.35) < 1e-9 && Math.abs(cN.after - cN.base) < 1e-9, cN);
 ck('CONTROL: live v1310 left a permanent bonus after expiry', cO && cO.after > cO.base + 0.2, cO);
+console.log('== Veyr Weightless Predator: dodge crit resets every wave (Phil 8 Nov: "no reset it per wave") ==');
+const veyr = h => JSON.parse(R(h, `(function(){ units.length=0; const C=makeUnit('veyr','ally',300,300,50,{spec:{key:'veyr',level:50,stars:5,rank:5}}),
+    E=makeUnit('ooznik','enemy',3000,300,1,{}); E.dmg=0; E.maxHp=E.hp=1e12; units.push(C,E); const base=C.glyphCrit||0;
+  for(let i=0;i<10;i++){ C._evadeT=5; C._evadeMul=0; dealDamage(E,C,1); }
+  const peak=C.glyphCrit||0; try{ buildEnemyWave(); }catch(e){} return JSON.stringify({base:+base.toFixed(3),peak:+peak.toFixed(3),nextWave:+(C.glyphCrit||0).toFixed(3)}); })()`));
+let vN, vO; try { vN = veyr(NEW); vO = veyr(OLD); } catch (e) { vN = { err: String(e).slice(0, 160) }; }
+ck('10 real dodges raise his crit within the wave', vN && vN.peak > vN.base + 0.2, vN);
+ck('the next wave starts him back at his own crit', vN && Math.abs(vN.nextWave - vN.base) < 1e-9, vN);
+ck('CONTROL: live v1310 carried the dodge crit into the next wave', vO && vO.nextWave > vO.base + 0.2, vO);
 console.log('test_stacking_1311.js: ' + PASS + ' passed, ' + FAIL + ' failed');
 process.exit(FAIL ? 1 : 0);
