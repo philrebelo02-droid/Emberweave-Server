@@ -122,11 +122,11 @@ ck('enemy level tracks each stage reference target', S.every(e=>e.waves.every(w=
 /* v1307 (Phil 7 Nov 2026): "reduce all power of every stage from chapter 10-16+ by 15%" / "chapter 10-16" -> chapters 11-16 x0.85;
    "raise 10-10 to 24000" and "scale chapter 10" -> 10-1..10-9 ramp evenly from 9-10 (21691) to 10-10 (24000). The curve never goes backwards. */
 ck('recommended power never goes backwards', S.every((e,i)=>i===0||e.recommendedPower>=S[i-1].recommendedPower));
-ck('v1309: chapter 10 recalibrated (level-85 curve, enemy damage >= 0.80x original): 10-1 34722 .. 10-10 36164, no higher than 11-1', S[90].recommendedPower===34722&&S[99].recommendedPower===36164&&S[99].recommendedPower<=S[100].recommendedPower, [S[90],S[99],S[100]].map(e=>e.recommendedPower).join(' / '));
+ck('v1309: chapter 10 recalibrated (level-85 curve, enemy damage >= 0.80x original): 10-1 36458 .. 10-10 37972 (v1310 +5%), no higher than 11-1', S[90].recommendedPower===36458&&S[99].recommendedPower===37972&&S[99].recommendedPower<=S[100].recommendedPower, [S[90],S[99],S[100]].map(e=>e.recommendedPower).join(' / '));
 /* v1308 (Phil 7 Nov: "16-10 should be passable by a maxed level 80" with his spec - level 80, best quality at 80, 3-dot prayer, all gear +7, 5 stars, skills 80):
    chapters 11-16 calibrated in the real engine (spec team at each stage's target level, 57 -> 80, wins >= 85%); recommendedPower = 0.9 x that team's card power / 3.0908. */
 /* v1309 (Phil 8 Nov: "They dont do any damage anymore" / "No level 85" / "Make it 80% of the original power" / "A push it"): 16-10 benchmark = the spec team at LEVEL 85, enemy damage >= 0.80 x the v1306 values, HP cut as needed (floor 0.15). */
-ck('v1309: 16-10 stored recommended power 54113 (167,251 on screen)', S[159].recommendedPower===54113, String(S[159].recommendedPower));
+ck('v1309: 16-10 stored recommended power 56819 (v1310 +5%, Phil: "make 10-16 5% stronger")', S[159].recommendedPower===56819, String(S[159].recommendedPower));
 ck('1-1 and 1-2 need no glyphs at all (a new account owns none)',
   S[0].targetGlyph==='None'&&S[1].targetGlyph==='None');
 
