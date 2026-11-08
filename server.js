@@ -2014,7 +2014,11 @@ function snapshotHeroFromServer(u, key, save, sOpts){
   const XT={skillLv:ledSkillArr(u.led,key).slice()};
   acadApply(R,XT,AC);
   TEMPLE_EFFECTS.coreRatings(R,XT,TB);
-  const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill, extra:XT});
+  /* v1311: the hero's quality rank (= client heroQuality: G2_TIER16 of the glyph ascension index) - the core applies the purple
+     FURY passive from it (server/sim.js PURPLE_FURY) */
+  const _board=u.glyphs&&u.glyphs.boards&&u.glyphs.boards[key];
+  const rank=SKILL_QUALITY_TIER16[Math.max(0,Math.min(15,(_board&&_board.ascensionIndex)|0))];
+  const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, rank, ratings:R, gearSkillSlot, gearSkill, extra:XT});
   return sOpts&&sOpts.noTempleEffects?unit:TEMPLE_EFFECTS.applyCore(unit,TB);
 }
 
@@ -2726,14 +2730,29 @@ function heroSkillFactor(h){
 const POWER_K=5.2;
 const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
 function swingIntervalOf(b){ return (b&&b.swing!=null)?b.swing:((ROLE_SWING[b&&b.role])||1.0); }
-/* priced off a unit built WITHOUT glyph flats - see heroCardPower */
-function unitCardPower(s,key){
+/* v1311 (Phil 8 Nov: "2. yes" - Academy Crit Resist and Healing research count in hero power). MUST stay identical in
+   emberweave-heroes.html heroPower. Crit resist: a crit deals 1+max(0,0.6-critRes) (the fight rule), so it is priced as an EHP
+   multiplier against a reference enemy that crits REF_ENEMY_CRIT of its hits. Healing power: heals are x(1+healPow), priced as a
+   DPS multiplier 1+healPow*w - w HEAL_POWER_W_HEALER for a Healer damage profile, HEAL_POWER_W_OTHER for everyone else. Only the
+   Academy tracks are priced (rating -> fraction exactly as the core converts it); with neither track researched the card is
+   unchanged to the bit. */
+const REF_ENEMY_CRIT=0.15, REF_CRIT_BONUS=0.6, HEAL_POWER_W_HEALER=1.0, HEAL_POWER_W_OTHER=0.25;
+function acadCritResEhpMul(critResRating){ if(!(critResRating>0)) return 1;
+  const cr=Math.min(SIM.CORE.CONV.critResCap,critResRating*SIM.CORE.CONV.critResPerPt);
+  return (1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }
+function acadHealDpsMul(healRating,key){ if(!(healRating>0)) return 1;
+  const w=((SIM.HERO_BASE[key]||{}).damageProfile==='Healer')?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER;
+  return 1+healRating*0.0005*w; }   /* = combat-core buildUnit healPow (20 points = 1%) */
+/* priced off a unit built WITHOUT glyph flats - see heroCardPower. AC (optional) = acadCombat(u): its crit resist and healing
+   ratings are priced on top (v1311); callers without an account (NPC, benchmark) pass none and price as before. */
+function unitCardPower(s,key,AC){
   if(!s) return 0;
   const base=SIM.HERO_BASE[key]||{};
   const lv=s.level||1;
   const dr=Math.min(0.6,(s.dmgRed||0)+(base.dr||0));
   const mitig=Math.min(0.85,(SIM.CORE.defToDR(s.armor,lv)+SIM.CORE.defToDR(s.mr,lv))/2 + dr);
-  const ehp=(s.maxHp||0)/Math.max(0.15,1-mitig);
+  let ehp=(s.maxHp||0)/Math.max(0.15,1-mitig);
+  if(AC&&AC.critResRating>0) ehp*=acadCritResEhpMul(AC.critResRating);   /* v1311 */
   const apW=(base.role==='Mage'||base.role==='Support')?1.5:0.5;
   /* v812 - A HERO WITH NO ABILITY LINE HAS NO ABILITY POWER, whatever their level.
      `ROLE_GROWTH` grants every role a little apow per level - a Tank gets +0.3 - so `baseAtLevel`
@@ -2751,15 +2770,16 @@ function unitCardPower(s,key){
      over its own swing interval */
   const rating=baseSpd>0?((s.speed||baseSpd)/baseSpd):1;
   const sw=1/Math.max(0.05, swingIntervalOf(base)/Math.max(0.01,rating));
-  const dps=Math.max(1,((s.atkP||0)+apW*(hasAbilityLine?(s.atkM||0):0))*sw
+  let dps=Math.max(1,((s.atkP||0)+apW*(hasAbilityLine?(s.atkM||0):0))*sw
     *(1+crit*(s.critDmg||0.6))*(s.dmgBonus||1)*(1+0.25*(s.energyReg||0)));
+  if(AC&&AC.healRating>0) dps*=acadHealDpsMul(AC.healRating,key);   /* v1311 */
   return POWER_K*Math.sqrt(ehp*dps);
 }
 /* v806 - ONE HERO, PRICED EXACTLY AS THEIR CARD PRICES THEM. */
 function heroCardPower(u,key){
   if(!u||!SIM.HERO_BASE[key]) return 0;
   let p=0;
-  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key); }catch(e){ return 0; }
+  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key,acadCombat(u)); }catch(e){ return 0; }
   try{ const sk=ledSkillArr(u.led,key)||[]; for(let i=0;i<4;i++) p+=Math.max(0,((sk[i]|0)||1)-1)*20; }catch(e){}
   try{ p+=glyphHeroPower(u,key); }catch(e){}
   return Math.round(p*TEMPLE_EFFECTS.powerMultiplier(templeBonusesFor(u,key)));
@@ -7003,6 +7023,7 @@ async function api(req,res,url){
         const extra={ skillLv:[botSkill,botSkill,botSkill,botSkill] };
         acadApply(R,extra,AC);   /* v1099: the same Academy flats a player's hero gets */
         return SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R,
+          rank:SKILL_QUALITY_TIER16[Math.max(0,Math.min(15,botTier|0))],   /* v1311: a bot's board tier is its quality rank (purple FURY) */
           gearSkillSlot:null, gearSkill:null, extra}); };
       /* v733 (Phil: "each line heroes are unique. They cannot be used multiple times like you did" /
          "All 7 lines requires 35 unique heroes") - THIS is the one he was looking at. botLine() built

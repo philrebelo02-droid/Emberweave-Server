@@ -6547,6 +6547,14 @@ function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skil
    A geometric mean cannot be dominated by one factor: doubling HP alone raises power by only ~41%,
    and a hero with big HP and no damage scores LOW, which is the property the sum never had. Tanks
    still lead on EHP and carries still lead on DPS, and the two land in the same band. */
+/* v1311 (Phil 8 Nov: "1. yes 2. yes"): three terms the card did not price. MUST stay identical in server.js unitCardPower.
+   FURY - the purple passive (KITS[key].purple.pass==='fury', rank 3+) divides the swing timer by 1+0.25*skillMul(passive level),
+   exactly as makeUnit does; the card prices the same swings. ACADEMY CRIT RESIST - a crit deals 1+max(0,0.6-critRes), priced as an
+   EHP multiplier against a reference enemy that crits REF_ENEMY_CRIT of its hits. ACADEMY HEALING - heals are x healPowMul, priced
+   as DPS x 1+(healPowMul-1)*w (w HEAL_POWER_W_HEALER for a Healer damage profile, else HEAL_POWER_W_OTHER). Each term is applied
+   only when its source is there, so a hero with none of them prices to the bit as before. */
+const REF_ENEMY_CRIT=0.15, REF_CRIT_BONUS=0.6, HEAL_POWER_W_HEALER=1.0, HEAL_POWER_W_OTHER=0.25;
+function furyPowerMul(key){ const k=KITS[key]; return (k&&k.purple&&k.purple.pass==='fury'&&heroQuality(key)>=3) ? (1+0.25*skillMul(skillLevel(key,3))) : 1; }
 const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) lifted every class's EHP; K retuned so an Orange board reads ~25k power across classes
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(templeBonusesClient(key))); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
@@ -6563,9 +6571,11 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + (tt.mr||0)*3 + TBF.mrFlat;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
-  const ehp  = hp/Math.max(0.15,1-mitig);
+  let ehp    = hp/Math.max(0.15,1-mitig);
+  const _crR = (typeof techFlat==='function'?techFlat('critres'):0); if(_crR>0){ const cr=Math.min(0.75,_crR*0.0005); ehp*=(1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }   /* v1311: Academy crit resist (= mulsFromTotals critRes) */
   const crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
-  const sw   = 1/Math.max(0.05, swingInterval(t)/(1+((tt.atkSpd||0)*0.0005)));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
+  const _fu  = furyPowerMul(key);   /* v1311: purple FURY */
+  const sw   = 1/Math.max(0.05, swingInterval(t)/(_fu!==1 ? (1+((tt.atkSpd||0)*0.0005))*_fu : (1+((tt.atkSpd||0)*0.0005))));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
   /* AP is weighted 1.5x a point of Attack and energy regen adds a little on top: a spell carries a
      kit coefficient and usually lands on more than one target, so counting Ability Power as if it
      were a single-target auto-attack read every Mage and Support ~40% below the rest of the roster.
@@ -6574,7 +6584,8 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Cathedral / King Bloatus read ~55% above the other tanks and Aureth ~50% above the other fighters for a few spell coefficients.
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
-  const dps  = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
+  let dps    = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
+  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0); if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow) */
   const _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
   return _powerNoGlyph ? _pw : Math.round(_pw); }   // v1024: the inner (pre-Temple) call stays unrounded - the card rounds ONCE, after the Temple multiplier, as the server does (rounding twice put Yenna's card 446 against the server's 445)
 

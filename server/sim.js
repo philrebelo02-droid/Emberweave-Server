@@ -82,6 +82,9 @@ const HERO_BASE={
   rafe:{swing:2,hp:220,dmg:33,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.05},
   ceraline:{swing:2,hp:190,dmg:17,apow:35,role:'Mage',stars:3,healer:false,atkSpeed:0.85}
 };
+/* v1311: heroes whose purple passive is FURY (client KITS[key].purple.pass==='fury') -> the attack-speed fraction per skillMul.
+   The server has no kit table, so this mirrors it; tests/test_power_terms_1311.js checks it against the client KITS. */
+const PURPLE_FURY={quorrel:0.25, carn:0.25};
 const HERO61=require('../hero61.js');
 HERO_BASE.hero61=Object.assign({},HERO61.BASE);
 const HERO_PROFILES=require('../hero-profiles.js');
@@ -171,6 +174,12 @@ function heroCombatStats(key, opts){
      star multiplier) but was throwing it away, and the war log needs it to draw a hero card with
      the right ascension frame. */
   u.stars=stars; u.pips=pips;
+  /* v1311 (Phil 8 Nov: "1. yes" - the purple FURY passive applies in server battles and counts in power): the client's makeUnit
+     divides the swing timer by (1+0.25*skillMul(passive level)) once the hero's quality rank is 3 (Purple); the core's attack
+     speed is the inverse of that timer, so the same factor multiplies `speed`. opts.rank = quality tier 0..3 (G2_TIER16 of the
+     glyph ascension index); callers that pass no rank (NPC ladder, Vault specs) are unchanged. */
+  const rank=opts.rank|0;
+  if(rank>=3 && PURPLE_FURY[key]) u.speed*=1+PURPLE_FURY[key]*CORE.skillMul(u.skillLv[3]);
   // legacy aliases: scores (vaultTeamScore), plausibility gates, and views read these
   u.atk=Math.max(u.atkP,u.atkM);
   u.dr=(CORE.defToDR(u.armor,level)+CORE.defToDR(u.mr,level))/2;
@@ -216,5 +225,5 @@ function resolveTwoWaveBattle(teamSnaps, enemyWaveSnaps, seed){
   return { result:{won:true}, waveResults };
 }
 
-module.exports={ HERO_BASE, HERO_PROFILES, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
+module.exports={ HERO_BASE, HERO_PROFILES, PURPLE_FURY, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
 
