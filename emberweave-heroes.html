@@ -5824,6 +5824,12 @@ function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +SKIL
    hover text all call these, so the number a player reads is the number the fight uses. lvAdd = base + per x (levels above 1): level 1 never
    moves. Kits carry their own step as `perLv` (skLvNum reads it per type); passives read SKLV with the passive's level (passLv). */
 function lvStep(lv){ return Math.max(0,((lv|0)||1)-1); }
+/* v1311 (Phil 8 Nov 2026: "Rhukk ult it way too strong, reduce to 200% attack damage scale and 300% at 100"): Impale Rush hit for
+   ULT_DEF.charge mul 1.8 x skillMul (394% of Attack at level 100). A hero listed here gets its OWN ult ratio - mul at skill level 1
+   + mulPerLv a level, NOT multiplied by the skill curve. Tharl, Askel and Brannus (the other charge heroes) keep the shared one. */
+const ULT_HERO_MUL={rhukk:{mul:2.0,mulPerLv:1.0/99}};
+function heroUltMul(key,lv){ const h=ULT_HERO_MUL[key]; return h?(h.mul+h.mulPerLv*lvStep(lv)):null; }
+function heroUltDisp(key,d,lv){ const m=heroUltMul(key,lv); return m==null?d:Object.assign({},d,{mul:m/skillMul(lv)}); }   // displays print d.mul x skillMul
 function lvAdd(base,per,lv){ return base+(per||0)*lvStep(lv); }
 function lvPct(x){ return (Math.round(x*1000+1e-6)/10)+'%'; }   // one decimal, halves round up (0.3985 -> 39.9%)
 function lvSec(x){ return (+(+x).toFixed(2))+'s'; }
@@ -6003,7 +6009,7 @@ function ccMetaSegs(o){
 }
 /* v1136 rig: Veyr's Abyssal Undertow runs the eventhorizon code but its collapse SLOWS 2 s (ccDur, the fight's 1.4 s) instead of silencing -
    the card's control line must say Slow, not Absalie's Silence. ccFixed: the authored 2 s, not the area-slow table's 3 s. */
-function ultDefShown(key,ab){ const d=ULT_DEF[ab]||{}; return (key==='veyr'&&ab==='eventhorizon')?Object.assign({},d,{silence:0,slow:2/0.7,ccFixed:['slow']}):d; }
+function ultDefShown(key,ab){ const d=heroUltDisp(key,ULT_DEF[ab]||{},skillLevel(key,0)); return (key==='veyr'&&ab==='eventhorizon')?Object.assign({},d,{silence:0,slow:2/0.7,ccFixed:['slow']}):d; }
 function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!kit)return ''; const seg=[];
   const mel=t.range<60, fakeU={key,t};
   const rng=(rad)=> rad?(+(rad/METER).toFixed(1)+' m') : (mel?(t.reach?('Melee · '+(+(t.reach*UNIT_SIZE/METER).toFixed(1))+' m reach'):'Melee'):(+(t.range*UNIT_SIZE/METER).toFixed(1)+' m'));
@@ -6149,7 +6155,7 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
   if(!apw) apw=atk;
   { const _dp=t.damageProfile; if(_dp==='Magic'||_dp==='Healer') atk=apw; else if(_dp==='Attack') apw=atk; }   /* v1101: the stat the fight uses */   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
-  if(idx===0){ const d=ULT_DEF[t.ability]||{};
+  if(idx===0){ const d=heroUltDisp(key,ULT_DEF[t.ability]||{},lv);   /* v1311: ULT_HERO_MUL */
     if(t.ability==='flywheel') return '{i:s:attack} '+Math.round(atk*(d.mul||1.6)*sm)+' AoE';
     if(t.ability==='blizzard') return '{i:s:slow} '+Math.round(apw*0.5*sm)+'/tick · '+(d.dur||4)+'s';
     if(t.ability==='eclipse') return '{i:s:attack} '+Math.round(apw*(d.mul||2.2)*sm)+' AoE + team shield';
@@ -12507,7 +12513,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const lx=Math.max(60,Math.min(FW-60,tg2.x)), ly=Math.max(110,Math.min(FD-60,tg2.y));   /* v493: charge radius 2.6->5 m, so the landing clamp moves in to keep the wider blast fully in frame */
       ringBurst(u.x,u.y,0xff8844,12);
       /* v892 - a real dash: he travels there, and the slam lands when he ARRIVES (it used to teleport and slam at once) */
-      const _dd=Math.hypot(lx-u.x,ly-u.y), _dur=Math.max(0.15,Math.min(0.8,_dd/(o.dashSpeed||22*METER))), _cD=dB*(o.mul||1.6)*rm, _cR=o.radius||2.4*METER;
+      const _dd=Math.hypot(lx-u.x,ly-u.y), _dur=Math.max(0.15,Math.min(0.8,_dd/(o.dashSpeed||22*METER))), _cD=dB*((heroUltMul(u.key,u._castLv)!=null)?heroUltMul(u.key,u._castLv)/(sm||1):(o.mul||1.6))*rm, _cR=o.radius||2.4*METER;   /* v1311: ULT_HERO_MUL */
       /* v935 - the ult text says what happens ON THE WAY: Ironcoil and Chainwheel roll THROUGH (each enemy on the path is struck as he
          reaches it, o.pathHit x the slam), Greatbrow shields every ally (o.allyShield x max HP) and knocks the enemies on his path aside. */
       if(o.pathHit||o.knockAside){ const _px=lx-u.x, _py=ly-u.y, _pl=Math.hypot(_px,_py)||1, _ux=_px/_pl, _uy=_py/_pl, _W=o.pathW||1.4*METER;
