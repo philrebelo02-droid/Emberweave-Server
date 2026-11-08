@@ -28,6 +28,8 @@ ck('Leviath card: Ability Power, Front line', card('leviath').includes(R(NEW, `e
 ck('Volthex card: Ability Power, Back line', card('volthex').includes(R(NEW, `ewT('hero.stat_apow')`)) && card('volthex').includes(R(NEW, `ewT('gloss.back_line')`)));
 ck('hero summons keep their set-up (Ink Spirit / Elder Ink Horror / Mirage of Zahri unchanged from v1314)', R(NEW,`JSON.stringify(['ink spirit','ink horror','zahri mirage'].map(k=>[MONSTER_TYPES[k].role,MONSTER_TYPES[k].armor,MONSTER_TYPES[k].mr]))`) === R(OLD,`JSON.stringify(['ink spirit','ink horror','zahri mirage'].map(k=>[MONSTER_TYPES[k].role,MONSTER_TYPES[k].armor,MONSTER_TYPES[k].mr]))`));
 ck('Armor / Magic Resist by class: Volthex (Mage) 15 / 100, Leviath (caster bruiser) 40 / 100, Basalt Mauler (Tank) 160 / 15', R(NEW,`[MONSTER_TYPES.volthex.armor,MONSTER_TYPES.volthex.mr,MONSTER_TYPES.leviath.armor,MONSTER_TYPES.leviath.mr,MONSTER_TYPES['basalt mauler'].armor,MONSTER_TYPES['basalt mauler'].mr].join()`)==='15,100,40,100,160,15');
+const mines = h => R(h, `JSON.stringify([1,2,3,4,5,6,7,8,9,10].map(l=>[{level:l,id:'m'+l},{level:l,x:3,y:9}].map(m=>mineGarrison(m).map(x=>x.key))))`);
+ck('mine garrisons: still 5 guardians each, the same ones as v1314 (the suite caught every mine fight refusing "garrison incomplete")', mines(NEW) === mines(OLD) && JSON.parse(mines(NEW)).every(l => l.every(g => g.length === 5)));
 ck('CONTROL: v1314 had Warrior / Brute labels and Leviath on Attack, Volthex a Warrior', keys.some(k => o[k] && /^(Warrior|Brute)$/.test(o[k][0])) && o.leviath[1] === 'Attack' && o.volthex[0] === 'Warrior', { leviath: o.leviath, volthex: o.volthex });
 console.log('test_monster_class_1315.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
