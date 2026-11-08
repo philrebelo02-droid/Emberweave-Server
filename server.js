@@ -8249,8 +8249,11 @@ async function api(req,res,url){
     if(b.maxGlyphs&&Array.isArray(b.heroKeys)){ const gg=(glyphMigrate(tgt),glyphFlowMigrate(tgt),ensureGlyphs(tgt));
       for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue; led.unlocked[k]=ownsHeroK(led,k)||true;
         const board=glyphBoard(gg,k); if(board.ascensionIndex>=GLYPH_MAX_ASC) continue;
+        /* v1312 (Phil 8 Nov: dev panel "switch the max all heroes glyphs to the 'max for current heroes level' quality"): toLevel stops the walk
+           where /api/glyphs/ascend would - a tier is ascended only while the hero's level meets its gate (glyphLevelGate) */
+        const _lvK=b.toLevel?ledHeroLevel(led,k):Infinity; if(b.toLevel&&glyphLevelGate(board.ascensionIndex)>_lvK) continue;
         for(const sid of board.slots){ const inst=sid&&gg.finished[sid]; if(inst){ inst.status='consumed'; inst.consumedAt=Date.now(); } }
-        while(board.ascensionIndex<GLYPH_MAX_ASC){ const qi=board.ascensionIndex;
+        while(board.ascensionIndex<GLYPH_MAX_ASC&&glyphLevelGate(board.ascensionIndex)<=_lvK){ const qi=board.ascensionIndex;
           for(let i=0;i<6;i++){ const def=glyphPreChoice(k,i,qi); if(!def) continue;
             for(const st of def.stats){ const cur=board.ascended[st.stat]||{val:0,pct:st.pct}; cur.val=+(cur.val+st.val).toFixed(2); cur.pct=st.pct; board.ascended[st.stat]=cur; } }
           board.slots=[null,null,null,null,null,null]; board.ascensionIndex++; }
