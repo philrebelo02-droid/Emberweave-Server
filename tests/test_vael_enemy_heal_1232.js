@@ -20,14 +20,17 @@ const healShare = (team, campaignHero, lv) => JSON.parse(run(`(()=>{ units=[]; e
   doEffect(u,'laststand',Object.assign({},ULT_DEF.laststand));
   return JSON.stringify((u.hp-h0)/u.maxHp); })()`));
 const kit = JSON.parse(run('JSON.stringify({ls:ULT_DEF.laststand,bt:KITS.vael.blue})'));
-ck('ULT_DEF.laststand: heal 0.15, enemyHeal 0.10, perLv 0.001', kit.ls.heal === 0.15 && kit.ls.enemyHeal === 0.1 && kit.ls.perLv === 0.001, JSON.stringify(kit.ls));
+// v1308 (Phil 7 Nov 2026: "it also needs to restore up to 20% health at level 1, and 30% at level 100. this health heal scales off his health remaining ...
+//   every 5% of missing health he gains 1% increase to the heal"): the player / Arena Vael's heal is now cap x min(1, (1 + floor(missing% / 5)) / 20),
+//   cap 20% -> 30% (perLv 0.10/99); the campaign wave Vael keeps its flat 10% + 0.1 pt a level (enemyPerLv 0.001). At 10% health that is 19/20 of the cap.
+ck('ULT_DEF.laststand: heal cap 0.20, perLv 0.10/99; enemyHeal 0.10, enemyPerLv 0.001', kit.ls.heal === 0.2 && Math.abs(kit.ls.perLv - 0.10 / 99) < 1e-15 && kit.ls.enemyHeal === 0.1 && kit.ls.enemyPerLv === 0.001, JSON.stringify(kit.ls));
 ck('Bloodthirst keeps cd 7 / enemyCd 10', kit.bt.cd === 7 && kit.bt.enemyCd === 10, JSON.stringify({ cd: kit.bt.cd, enemyCd: kit.bt.enemyCd }));
 for (const lv of [1, 50]) {
-  const g = 0.001 * (lv - 1);
+  const g = 0.001 * (lv - 1), mine = (0.20 + 0.10 * (lv - 1) / 99) * 19 / 20;   // v1308: player / Arena Vael at 10% health
   const enemy = healShare('enemy', true, lv), player = healShare('ally', false, lv), enemyNotCampaign = healShare('enemy', false, lv);
   ck('lv ' + lv + ': campaign-enemy Vael heals ' + (10 + g * 100).toFixed(1) + '%', near(enemy, 0.10 + g), enemy);
-  ck('lv ' + lv + ': player Vael heals ' + (15 + g * 100).toFixed(1) + '% (unchanged)', near(player, 0.15 + g), player);
-  ck('lv ' + lv + ': CONTROL enemy Vael not from the authored waves (Arena opponent) heals 15%', near(enemyNotCampaign, 0.15 + g), enemyNotCampaign);
+  ck('lv ' + lv + ': player Vael heals ' + (mine * 100).toFixed(2) + '% at 10% health (v1308)', near(player, mine), player);
+  ck('lv ' + lv + ': CONTROL enemy Vael not from the authored waves (Arena opponent) heals as a player Vael (' + (mine * 100).toFixed(2) + '%)', near(enemyNotCampaign, mine), enemyNotCampaign);
 }
 // one stats step: max HP and attack x0.9 for a campaign wave Vael only (same level, same extra otherwise)
 const st = JSON.parse(run(`JSON.stringify([true,false].map(c=>{ const u=makeUnit('vael','enemy',0,0,40,{owned:false,campaignHero:c}); return [u.maxHp,u.dmg]; }))`));

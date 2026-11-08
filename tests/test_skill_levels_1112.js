@@ -96,17 +96,20 @@ try {
     ['sorrel', 2, '(u)=>u.hasteMul', 1.32, 0.002, v => '+' + pct(v - 1) + ' atk speed'],
     ['tessit', 1, '(u,a)=>a.dmgBuffMul', 1.30, 0.001, v => '+' + pct(v - 1) + ' team dmg'],
     ['yenna', 2, '(u,a,e)=>e._markMul', 1.28, 0.001, v => '+' + pct(v - 1) + ' damage taken'],
-    ['rhukk', 1, '(u)=>u.drMul', 0.50, -0.001, v => '−' + pct(1 - v) + ' damage taken'],
+    // v1308 (Phil 7 Nov 2026: "rhukk needs his green reduced to base 35%, ending at 45% at level 100 skills"): Carapace x0.65 -> x0.55 (was 0.50, -0.001)
+    ['rhukk', 1, '(u)=>u.drMul', 0.65, -0.10 / 99, v => '−' + pct(1 - v) + ' damage taken'],
     ['hobb', 2, '(u)=>u.drMul', 0.45, -0.0005, v => '−' + pct(1 - v) + ' damage taken'],
     ['tharl', 2, '(u)=>u.drMul', 0.35, 0, v => '−' + pct(1 - v) + ' damage taken'],
-    ['rhukk', 2, '(u)=>u.drMul', 0.60, -0.002, v => '−' + pct(1 - v) + ' dmg taken'],
+    // v1308 (Phil 7 Nov 2026: "his blue needs to start at 10% and ending at 20% at 100"): Dig In has its own 10% -> 20% (was the shared 40% -> 59.8%)
+    ['rhukk', 2, '(u)=>u.drMul', 0.90, -0.10 / 99, v => '−' + pct(1 - v) + ' dmg taken'],
     ['brannus', 2, '(u)=>u.drMul', 0.60, -0.002, v => '−' + pct(1 - v) + ' dmg taken'],
     ['gruel', 0, '(u)=>u.drMul', 0.60, -0.002, v => '−' + pct(1 - v) + ' dmg taken'],
     ['nox', 2, '(u,a)=>a.energy', 25, 0.1, v => 'ally +' + (+v.toFixed(1)) + ' energy'],
     ['lumi', 1, '(u,a)=>Math.max(a._wardT||0,u._wardT||0)', 3, 0.01, v => 'for ' + sec(v)],
     ['vael', 0, '(u)=>u.hp', null, null, null],
     ['lysara', 0, '(u,a)=>a.dmgBuffMul', 1.30, 0.001, v => 'team +' + pct(v - 1)],
-    ['grosk', 0, '(u,a)=>a._mwDrPct', 0.30, 0.0015, v => 'team −' + pct(v) + ' dmg'],
+    // v1308 (Phil 7 Nov 2026: "croc drop needs a nerf, turn the team damage reduction for 3 seconds and maxes out at 35%, level 1 is 20%") (was 0.30, +0.0015)
+    ['grosk', 0, '(u,a)=>a._mwDrPct', 0.20, 0.15 / 99, v => 'team −' + pct(v) + ' dmg'],
   ];
   for (const [key, slot, probe, v1, per, txt] of ACT) {
     if (v1 === null) continue;
@@ -123,7 +126,8 @@ try {
   ck('C: every single-skill damage reduction at L100 <= 60% except Fortress Curl, which is 65% from level 1 and does not grow', ['rhukk:1', 'hobb:2'].every(s => { const [k, i] = s.split(':'); return 1 - cast(k, +i, 100, '(u)=>u.drMul') <= 0.6 + 1e-9; }) && near(cast('tharl', 2, 100, '(u)=>u.drMul'), 0.35));
   // ults with heals / revive / shares
   { const v = {}; for (const lv of LVS) v[lv] = run(`skLvNum('laststand',ULT_DEF.laststand,${lv})`);
-    ck('vael Last Stand heal 15% / 19.9% / 24.9%', near(v[1], 0.15) && near(v[50], 0.199) && near(v[100], 0.249), JSON.stringify(v));
+    // v1308 (Phil 7 Nov 2026: "it also needs to restore up to 20% health at level 1, and 30% at level 100"): the cap 20% -> 30% (was 15% / 19.9% / 24.9%); the share of it by missing health is tests/test_rhukk_bitwraith_1308.js
+    ck('vael Last Stand heal cap 20% / 24.9% / 30%', near(v[1], 0.20) && near(v[50], 0.20 + 0.10 * 49 / 99) && near(v[100], 0.30), JSON.stringify(v));
     const h = cast('vael', 0, 100, '(u)=>{ return 0; }'); void h;
     for (const lv of LVS) { const c = card('vael', 0, lv); ck(`vael ult card L${lv} shows ${pct(v[lv])} max HP and no damage hit`, c.includes(pct(v[lv]) + ' max HP') && /dmg taken/.test(c), c); } }
   for (const [key, ab, b, per] of [['dandra', 'rally', 0.30, 0.001], ['linnet', 'rewind', 0.40, 0.0015]]) {
@@ -218,8 +222,8 @@ try {
   ck('Skeleton-Key Fortune at L100: +10.9% crit damage, +6.6% dodge on the card', card('nox', 3, 100).includes('+10.9% crit dmg') && card('nox', 3, 100).includes('+6.6% dodge'));
 
   // ================================================================ D. hover text reads the level
-  ck('hover: Rhukk Carapace at L100 says 59.9% less damage (was "half damage")', hover('rhukk', 1, 100).includes('59.9% less damage'));
-  ck('hover: Grosk Croc Drop at L100 says 44.9% less damage (was 30%)', hover('grosk', 0, 100).includes('44.9% less damage'));
+  ck('hover: Rhukk Carapace at L100 says 45% less damage (v1308, Phil 7 Nov: "base 35%, ending at 45% at level 100")', hover('rhukk', 1, 100).includes('45% less damage'));
+  ck('hover: Grosk Croc Drop at L100 says 35% less damage (v1308, Phil 7 Nov: "maxes out at 35%, level 1 is 20%")', hover('grosk', 0, 100).includes('35% less damage'));
   ck('hover: KonWu ult at L100 says 219% ATK and the meta ratio is 219% of Attack (was the level-1 100%)', hover('konwu', 0, 100).includes('dealing 219% ATK') && hover('konwu', 0, 100).includes('219% of Attack'));
   ck('hover: KonWu Cleaving Arc meta ratio is levelled (150% at L1, 328% at L100)', hover('konwu', 1, 1).includes('150% of Attack') && hover('konwu', 1, 100).includes('328% of Attack'));
   ck('hover: Gruel Reckoning at L1 says 40% less damage (was "half", wrong even at L1)', hover('gruel', 0, 1).includes('40% less damage'));
@@ -227,7 +231,7 @@ try {
   ck('hover: Zahri Mirage Herd at L50 says 34.9% of her stats', hover('zahri', 2, 50).includes('34.9% of her stats'));
   ck('hover: Bloatus Contagion keeps his words and adds the levelled spread', /his poison/.test(hover('bloatus', 3, 100)) && hover('bloatus', 3, 100).includes('5.98s'));
   ck('hover: Calypsa Fighting Current at L100 says 49.9% less damage', hover('calypsa', 2, 100).includes('49.9% less damage'));
-  ck('hover CONTROL: a level-1 hover still reads the level-1 numbers (Rhukk 50%)', hover('rhukk', 1, 1).includes('50% less damage'));
+  ck('hover CONTROL: a level-1 hover still reads the level-1 numbers (Rhukk 35% since v1308)', hover('rhukk', 1, 1).includes('35% less damage'));
   // D. no card line falls to the Attack-hit default for a skill that deals no hit
   for (const [key, slot, re] of [['grosk', 1, /silence/], ['grimsby', 2, /silence/], ['vulmar', 2, /pull the farthest/], ['hurne', 1, /boar warrior/], ['lumi', 1, /cannot fall below 1/], ['tessit', 2, /steals/], ['oakmir', 2, /max HP to every ally/], ['oakmir', 0, /max HP/], ['korvux', 0, /every 0\.5s/], ['umbris', 1, /DoT/], ['vesper', 0, /freeze/]])
     { const c = card(key, slot, 1); ck(`card ${key} ${['ult', 'green', 'blue'][slot]} is not a fake Attack hit: "${c}"`, re.test(c), c); }
