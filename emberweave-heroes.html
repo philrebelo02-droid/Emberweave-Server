@@ -5824,6 +5824,9 @@ function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +SKIL
    hover text all call these, so the number a player reads is the number the fight uses. lvAdd = base + per x (levels above 1): level 1 never
    moves. Kits carry their own step as `perLv` (skLvNum reads it per type); passives read SKLV with the passive's level (passLv). */
 function lvStep(lv){ return Math.max(0,((lv|0)||1)-1); }
+/* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
+function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
+  const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
 /* v1311 (Phil 8 Nov 2026: "Rhukk ult it way too strong, reduce to 200% attack damage scale and 300% at 100"): Impale Rush hit for
    ULT_DEF.charge mul 1.8 x skillMul (394% of Attack at level 100). A hero listed here gets its OWN ult ratio - mul at skill level 1
    + mulPerLv a level, NOT multiplied by the skill curve. Tharl, Askel and Brannus (the other charge heroes) keep the shared one. */
@@ -12523,7 +12526,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
             if(o.pathHit){ dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); burstAt(e.x,e.y,0xffcf40,8); }
             if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
               e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); } }}); }); }
-      if(o.allyShield) alliesOf(u).forEach(a=>{ if(!a.alive)return; a.shield=(a.shield||0)+a.maxHp*o.allyShield; burstAt(a.x,a.y,0x9fe0ff,8); });
+      if(o.allyShield) alliesOf(u).forEach(a=>{ if(!a.alive)return; a.shield=Math.max(a.shield||0,a.maxHp*o.allyShield); a.shieldT=Math.max(a.shieldT||0,o.shieldDur||5); burstAt(a.x,a.y,0x9fe0ff,8); });   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): March's shield had no timer and stacked */
       u._dash={x0:u.x,y0:u.y,x1:lx,y1:ly,t:0,dur:_dur,run:function(){ u.attackAnim=.2; u._rushLandAt=battleTime;   /* v1021: render-only stamp - the ult clip's impact frames start here */
         if(o.slamOne){ if(tg2.alive){ dealDamage(u,tg2,_cD,'#ffcf40'); if(o.stun&&ccApply(u,tg2,'stunned',o.stun)&&o.stunFull) tg2.stunned=Math.max(tg2.stunned||0,o.stunFull); } }   // v1303: the slam is ONE enemy - the one he charged; stunFull = Phil's 3 s past the 2.8 s stacking ceiling (this skill only)
         else enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
@@ -12617,7 +12620,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       alliesOf(u).forEach(a=>{ if(!a.alive||dist(u,a)>R)return;
         a.drMul=Math.min(a.drMul||1,skLvNum('banner',o,_kLv));   /* v1112 BUG FIX: 18% + 0.1 pt a level (it fell to 15% from level 4) */ a.drT=Math.max(a.drT||0,D);
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,D);
-        a.ctrlRes=Math.min(0.85,(a.ctrlRes||0)+(o.ctrl||0.25)); a._ctrlBonusT=D; a._ctrlBonus=(o.ctrl||0.25);
+        ctrlBonusSet(a,(o.ctrl||0.25),D,0.85);
         floatTexts.push({x:a.x,y:a.y-16,txt:'RALLIED',t:.9,color:'#e8c87a',vy:1,sz:11}); });
       try{ window._fxPreScaled=!!o._areaScaled; spawnGroundFx('rallyroots',u.x,u.y,R*0.5,1.0); }catch(e){} finally{ window._fxPreScaled=false; }
       burstAt(u.x,u.y,0xe8c87a,16); break; }
@@ -12660,7 +12663,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       best.dmgBuffMul=Math.max(best.dmgBuffMul||1,_mu?(o.muUltMul||1.5):(o.ultMul||1.25));
       best.dmgBuffT=Math.max(best.dmgBuffT||0,o.dur||6);
       best._buffedT=0.5;
-      if(_mu){ best.ctrlRes=Math.min(0.95,(best.ctrlRes||0)+0.6); best._ctrlBonus=0.6; best._ctrlBonusT=o.dur||6;
+      if(_mu){ ctrlBonusSet(best,0.6,o.dur||6,0.95);
         best.stunned=0; best.fearT=0; best.silencedT=0;
         ringBurst(best.x,best.y,0xf4c35f,22);
         floatTexts.push({x:best.x,y:best.y-24,txt:'UNINTERRUPTIBLE',t:1.3,color:'#f4c35f',vy:1,sz:12}); }
@@ -12718,7 +12721,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'lastbreath':{                                             // "shields the weakest ally and prevents their health falling below 1"
       let best=null,bv=2; alliesOf(u).forEach(a=>{ if(!a.alive)return; const f=a.hp/a.maxHp; if(f<bv){bv=f;best=a;} });
       if(!best)break;
-      best.shield=(best.shield||0)+(u.apow||0)*(o.mul||1.8)*sm;
+      best.shield=Math.max(best.shield||0,(u.apow||0)*(o.mul||1.8)*sm); best.shieldT=Math.max(best.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): lastbreath shield had no timer and stacked per cast */
       best._wardT=Math.max(best._wardT||0,o.dur||5);   // the Dawnward hold: they will not fall while it lasts
       best._buffedT=0.5;
       ringBurst(best.x,best.y,0xf0c86a,16);
@@ -12783,7 +12786,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(a.dots&&a.dots.length)a.dots.length=0;
         a.stunned=0; a.fearT=0; a.silencedT=0; a.slow=0; a.mortalT=0;
         healFrom(u,a,(u.apow||0)*(o.heal||0.8)*sm);
-        a.shield=(a.shield||0)+a.maxHp*(o.shield||0.10);
+        a.shield=Math.max(a.shield||0,a.maxHp*(o.shield||0.10)); a.shieldT=Math.max(a.shieldT||0,o.dur||6);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): Imperial Plumage shield had no timer and stacked */
         a._buffedT=0.5; burstAt(a.x,a.y,0x7fe0d0,12); });
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
         e._shredPct=Math.max(e._shredPct||0,o.shred||0.30); e._shredT=Math.max(e._shredT||0,o.dur||6);
@@ -12831,7 +12834,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       ringBurst(u.x,u.y,0x6a3fb0,18); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
 
     case 'thornguard':{                                             // "a defensive brace shields him and retaliates against direct attacks"
-      u.shield=(u.shield||0)+u.maxHp*(o.pct||0.16)*sm;
+      u.shield=Math.max(u.shield||0,u.maxHp*(o.pct||0.16)*sm); u.shieldT=Math.max(u.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): Thunder Guard shield had no timer and stacked */
       u._thornT=o.dur||5; u._thornMul=o.thorn||0.55;
       ringBurst(u.x,u.y,0x5aa8ff,16);
       floatTexts.push({x:u.x,y:u.y-14,txt:'GUARD',t:1.0,color:'#8fd0ff',vy:1,sz:12}); break; }
@@ -15196,7 +15199,7 @@ function think(u,dt){
         try{ if(((KITS[u.key]||{}).blue||{}).ownFx==='dburrow') deepcleftEmergeFx(u); }catch(_e){} } } }   /* v1171: Burrow Guard's burst again where he pops up (display only) */
   /* v527 - the bookkeeping the new pack behaviours need, all in one place. */
   if((u._miragT||0)>0){ u._miragT-=dt; if(u._miragT<=0&&u._miragEva){ u.evaStat=Math.max(0,(u.evaStat||0)-u._miragEva); u._miragEva=0; } }
-  if((u._ctrlBonusT||0)>0){ u._ctrlBonusT-=dt; if(u._ctrlBonusT<=0&&u._ctrlBonus){ u.ctrlRes=Math.max(0,(u.ctrlRes||0)-u._ctrlBonus); u._ctrlBonus=0; } }
+  if((u._ctrlBonusT||0)>0){ u._ctrlBonusT-=dt; if(u._ctrlBonusT<=0){ u.ctrlRes=Math.max(0,(u.ctrlRes||0)-(u._ctrlAdded||0)); u._ctrlBonus=0; u._ctrlAdded=0; } }
   if((u._linkT||0)>0){ u._linkT-=dt; if(u._linkT<=0) u._linkTo=null; }
   if((u._waxCoatT||0)>0){ u._waxCoatT-=dt; if(u._waxCoatT<=0){ u._waxCoatT=0; u._waxCoatBy=null; } }
   /* the boomerang's return pass - the leg the pack says hits harder */
@@ -16389,7 +16392,7 @@ function _updateBattleCore(dt){
     // Unbroken Dawn (Dawnbringer): the one time the light will not let him fall.
     if(u.pass.unbroken && !u._ubUsed && u.hp>0 && u.hp/u.maxHp<0.30){ u._ubUsed=1;
       u.shield=(u.shield||0)+u.maxHp*0.30*(u.passMul||1);
-      u.ctrlRes=Math.min(0.85,(u.ctrlRes||0)+0.4); u._ctrlBonus=0.4; u._ctrlBonusT=8;
+      ctrlBonusSet(u,0.4,8,0.85);
       if(u.anim&&u.anim.passive) firePassiveClip(u,clipDur(u.anim.passive)); else firePassiveFx(u);
       ringBurst(u.x,u.y,0xf0d070,22);
       floatTexts.push({x:u.x,y:u.y-16,txt:'UNBROKEN',t:1.4,color:'#f0d070',vy:1,sz:14}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'unbroken'); }
@@ -16409,7 +16412,7 @@ function _updateBattleCore(dt){
           burstAt(a.x,a.y,0x8a6b3f,6); } }); } }
     // Trail of Splendor (Velvetplume): every buff she lands also leaves a small stacking shield.
     if(u.pass.splendor){ alliesOf(u).forEach(a=>{ if(!a.alive)return;
-      if((a._buffedT||0)>0){ a._buffedT=0; a.shield=(a.shield||0)+a.maxHp*0.04*(u.passMul||1);
+      if((a._buffedT||0)>0){ a._buffedT=0; a.shield=(a.shield||0)+a.maxHp*0.04*(u.passMul||1); a.shieldT=Math.max(a.shieldT||0,5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): stacks by design, but had no timer */
         firePassiveFx(u,a,{aboveBar:true}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'splendor',1.5);
         burstAt(a.x,a.y,0x6fe0ff,6); } }); }
     // Golden Thread (Threadseer): she is tied to the ally nearest death and shares what she is given.
@@ -16490,7 +16493,7 @@ function _updateBattleCore(dt){
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
-    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
+    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if(u.dmgBuffT>0){u.dmgBuffT-=dt; if(u.dmgBuffT<=0)u.dmgBuffMul=1;} if(u.drT>0){u.drT-=dt; if(u.drT<=0)u.drMul=1;}   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): an expired buff's multiplier no longer seeds the next one */ if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
     if(u._gearDelayedHeals&&u._gearDelayedHeals.length){ for(let i=u._gearDelayedHeals.length-1;i>=0;i--){ const h=u._gearDelayedHeals[i]; h.t-=dt; if(h.t<=0){ healUnit(u,h.amt); u._gearDelayedHeals.splice(i,1); } } }
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
