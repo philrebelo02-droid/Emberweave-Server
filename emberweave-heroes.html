@@ -32236,6 +32236,9 @@ function buyGemOffer(i){
 }
 // same defect as openProfile above — the HUD shop's + button threw on every press
 function openHudShop(kind){ if(rewardLocked()){ queueBehindReward(()=>openHudShop(kind)); return; } if(kind==='gem') st2Tab='diamonds';   /* v1230: the store opens on Diamonds */
+  /* v1323 (Phil 9 Nov: "The plus signs when clicked dont actually open stam or diamond shops" / "They open only when you exit to main screen"):
+     #hudShop lived inside #home, so from the campaign it opened inside a hidden screen. It now sits beside #stageModal (outside every screen), on any screen. */
+  { const m=document.getElementById('hudShop'), sm=document.getElementById('stageModal'); if(m&&sm&&m.parentElement!==sm.parentElement) sm.parentElement.insertBefore(m, sm.nextSibling); }
   renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
 function closeHudShop(){ document.getElementById('hudShop').classList.remove('active'); }
 function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.dataset.kind=kind; m.classList.toggle('framed', kind==='gem'); m.classList.toggle('st2', kind==='gem');
@@ -32669,7 +32672,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794246742409';
+const BUILD_ID = '1794249215727';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

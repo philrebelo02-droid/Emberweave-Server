@@ -383,7 +383,7 @@
   /* ---- the hero's real spell art (sheets from the game: /assets/anim/fx/...) ----
      kinds: up / fx16* / tip / above = an upright plate standing on the spot; disc / disc22 / flat / reap / ring = flat on the ground at its
      radius; proj / fx16glide = flies hero -> target; drop = falls onto the target. 'target' = the nearest monster in 9 m, else 4 m ahead. */
-  const SHEETS = {}, ART_NOW = [], FXS = 1.5;   // FXS: the Spire camera is far out (72 m across) - the game's plates read 1.5x bigger here
+  const SHEETS = {}, ART_NOW = [], FXS = 1.5, FXK2 = 3.6 * 1.2 / (4.6 * 1.5);   // FXK2: 2D hero (HERO_2D_M 3.6 m) - the plates were sized for the far 3D camera   // FXS: the Spire camera is far out (72 m across) - the game's plates read 1.5x bigger here
   function sheetIm(d) { if (SHEETS[d.u] !== undefined) return SHEETS[d.u]; SHEETS[d.u] = null; const im = new Image(); im.onload = () => SHEETS[d.u] = im; im.src = d.u; return null; }
   function preloadSheets(kit) { [].concat(...kit.skills.map(s => s.fx || []), kit.ult.fx || []).forEach(e => sheetIm(e.d)); if (kit.atk) sheetIm(kit.atk.img ? { u: kit.atk.img } : kit.atk.d); }
   // a heal / ward is on herself in the Spire (in a team fight it lands on an ally): it stays on her, unturned
@@ -404,6 +404,7 @@
       else if (d.cone && !A.onSelf) { const r = Math.max(2, e.R || 3) * FXS; w = hh = r * 2 * sc; rot = A.a + Math.PI / 2; x = ox + Math.cos(A.a) * r * 0.5; y = oy + Math.sin(A.a) * r * 0.5; }
       else if (d.cone) { w = hh = 5.5 * FXS * sc; y -= 1.2; }   // a self-heal cone: the plate on her, centred on her body
       else { hh = 4.6 * (d.upSize || 1) * FXS * sc; w = hh * d.fw / d.fh; if (k === 'above' || d.upAbove) y -= 2.4; }   // upright: hero-sized (its own upSize); an 'above' plate at her head
+      if (H2) { w *= FXK2; hh *= FXK2; }   // v1323 (Phil 9 Nov: "also scaled to their hero"): the 2D hero is 3.6 m - an upright plate stands 1.2x her, not 6.9 m
       const fade = Math.min(1, (1 - u) * 6, u * 12 + 0.2), cx = X(x), cy = Y(y);
       g.save(); g.globalAlpha = fade; g.translate(cx, cy); if (rot) g.rotate(rot);
       if (flat && !rot) g.scale(1, 0.62);   // a ground plate lies in the camera's tilt
@@ -907,6 +908,12 @@
         if (AK.img) { const hh = w * aim.height / aim.width; g.drawImage(aim, -w / 2, -hh / 2, w, hh); /* its own shape (26 Oct: 2:1 and 3:1 art) */ } else { const d = AK.d, f = AK.fr | 0; g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); } g.restore(); return; }
       span('fx_wake', x - s.vx * 0.05 * sc, y - s.vy * 0.05 * sc, x, y, r * 1.4, 0.55); el(fx('fx_light_mote'), x, y, r * 2.2, 0, 1); });
     g = G_ART; drawSpells(X, Y, sc, W, H, tnow); g = G0;
+    // skill + ult: the 3D model plays the cast clip and the hero's REAL game spell art plays (Phil 24 Oct: "they should use their real game
+    // ability animation and FX") - each slot's skillPreviewPlan entries from the game, at their own time, place and size
+    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? (H3.clips.Ult ? 'Ult' : 'mage_soell_cast_2') : (KIT[f.slot] || {}).anim);
+        if (H2) H2.act(f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).anim2d);
+        const hk = window._heroKit; if (hk) startSpellArt(f.kind === 'ult' ? hk.ult.fx : ((hk.skills[f.slot] || {}).fx || []), f, f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).kind); } });
+    drawSpellArt(X, Y, sc, W, H);   // v1323 (Phil 9 Nov: "Spell art is to large and infront of the heroes. Should be behind"): drawn BEFORE the hero
     if (H2) {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
       const swg = S.fx.find(f => f.kind === 'swing' && !seenShot.has(f));   // a melee swing plays the attack sheet even on the move
@@ -951,12 +958,6 @@
     document.getElementById('ult').classList.toggle('ready', h.ult >= h.ultMax);
     h.kit.forEach((k, i) => { const b = document.getElementById('sk' + i); if (!b) return; const f = k.cdLeft / (k.cd || 1);
       b.style.setProperty('--cd', f.toFixed(3)); b.classList.toggle('cool', k.cdLeft > 0); b.querySelector('small').textContent = k.cdLeft > 0 ? Math.ceil(k.cdLeft) : ''; });
-    // skill + ult: the 3D model plays the cast clip and the hero's REAL game spell art plays (Phil 24 Oct: "they should use their real game
-    // ability animation and FX") - each slot's skillPreviewPlan entries from the game, at their own time, place and size
-    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? (H3.clips.Ult ? 'Ult' : 'mage_soell_cast_2') : (KIT[f.slot] || {}).anim);
-        if (H2) H2.act(f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).anim2d);
-        const hk = window._heroKit; if (hk) startSpellArt(f.kind === 'ult' ? hk.ult.fx : ((hk.skills[f.slot] || {}).fx || []), f, f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).kind); } });
-    drawSpellArt(X, Y, sc, W, H);
   }
 })();
 </script>
