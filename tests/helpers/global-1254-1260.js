@@ -101,7 +101,7 @@ function undoText(s) {
   // off for these fights) is taken back out so the every-other-FX2_DEF-entry == BASE checks keep testing what they were written for (tests/test_magmourn_1314.js checks v1314)
   s = s.replace(/\r?\n  magmourn_ring: \{[^\n]*/, '');
   // v1317 (Phil 9 Nov "make dandra ult be 20%, smaller"): dandra_ult upSize 1.7 -> 1.36, put back for the older FX2_DEF == BASE checks (tests/test_dandra_ult_1317.js checks v1317)
-  s = s.replace(/(dandra_ult:\{[^\n]*?upSize:)1\.36,([^\n]*?\},)   \/\* v1317[^\n]*\*\//, (m, a, b) => a + '1.7,' + b);
+  s = s.replace(/(dandra_ult:\{[^\n]*?upSize:)0\.952,([^\n]*?\},)   \/\* v1317[^\n]*\*\//, (m, a, b) => a + '1.7,' + b);
   return s; }
 function page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-global1260-page-' + process.pid + '-' + made.length + '.html');

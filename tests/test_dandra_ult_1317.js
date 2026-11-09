@@ -12,7 +12,7 @@ process.on('exit', () => { try { fs.unlinkSync(oldFile); } catch (e) {} });
 const OLD = load(oldFile);
 const fx = h => JSON.parse(vm.runInContext('JSON.stringify(FX2_DEF.dandra_ult)', h.ctx));
 const n = fx(NEW), o = fx(OLD);
-ck("Queen's Call effect draws 20% smaller (upSize = 0.8 x live)", Math.abs(n.upSize - o.upSize * 0.8) < 1e-9, [n.upSize, o.upSize]);
+ck("Queen's Call effect: v1317 x0.8 then v1318 x0.7 (upSize = 0.56 x the v1316 1.7)", Math.abs(n.upSize - o.upSize * 0.8 * 0.7) < 1e-9, [n.upSize, o.upSize]);
 const strip = x => { const c = Object.assign({}, x); delete c.upSize; return JSON.stringify(c); };
 ck('every other field of the effect is unchanged (sheet, frames, anchor, disc, timing)', strip(n) === strip(o));
 const heal = h => vm.runInContext("skLvNum('rally', ULT_DEF.rally, 1)", h.ctx);
