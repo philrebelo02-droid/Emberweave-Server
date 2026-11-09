@@ -2633,6 +2633,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 body{position:fixed;left:0;top:0;transform-origin:0 0;isolation:isolate;}
 body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:#000;}body.ew-rotated::before{background:var(--ew-stage-background,url('/assets/img/ui/screen-bg.webp?v=1')) center/cover no-repeat;}  /* 20 Oct hotfix (Phil: "desktop version is bugged"): the 18 Oct art fill of the margins is for TALL PHONES (the rotated root) only. On a wide desktop window the same fill showed a second, broken copy of the town map beside the real one, so everywhere else the bars are plain black again, as before 18 Oct. */
 .screen.popout{width:min(440px,94%);height:100%;max-height:100%;}
+/* v1322 (Phil 9 Nov: "We changed the hero tab pop out before not sure why is was reverted but its meant to be centered on the screen"):
+   the Heroes list and the hero window open in the middle of the screen, not docked to the right edge */
+#heroesPanel.popout,#heroDetail.popout{left:50%!important;right:auto!important;transform:translateX(-50%)!important;border-radius:16px!important;border-right:1px solid #3a4a6e;box-shadow:0 18px 55px rgba(0,0,0,.65)}
+/* the red upgrade dot sits in the card's very corner, clear of the power line */
+.hero-card>.hupDot{left:3px;bottom:3px;width:10px;height:10px}
 .screen.popout > .ew-pinned-exits{position:sticky;top:-18px;min-height:44px;width:100%;flex-shrink:0;align-self:stretch;z-index:40;display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#11172a;}
 .screen.popout > .ew-pinned-exits .backbtn{position:relative!important;top:auto!important;left:auto!important;right:auto!important;margin-right:auto;}
 .screen.popout > .ew-pinned-exits .popoutClose{position:relative!important;top:auto!important;right:auto!important;flex-shrink:0;}
@@ -32646,7 +32651,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794244503436';
+const BUILD_ID = '1794244600159';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
