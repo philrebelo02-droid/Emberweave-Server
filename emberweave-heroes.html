@@ -6557,7 +6557,9 @@ const REF_ENEMY_CRIT=0.15, REF_CRIT_BONUS=0.6, HEAL_POWER_W_HEALER=1.0, HEAL_POW
 function furyPowerMul(key){ const k=KITS[key]; return (k&&k.purple&&k.purple.pass==='fury'&&heroQuality(key)>=3) ? (1+0.25*skillMul(skillLevel(key,3))) : 1; }
 const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) lifted every class's EHP; K retuned so an Orange board reads ~25k power across classes
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
-  if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(templeBonusesClient(key))); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
+  if(!_powerNoGlyph){ _powerNoGlyph=true; try{ const _tb=templeBonusesClient(key), _gp=(typeof gearSockMul==='function'?gearSockMul(key):{})||{};   /* v1316 (Phil 8 Nov: gear penetration counts): gear pen joins the Temple pen term */
+    const _tp=((_gp.armorPen||0)>0||(_gp.magicPen||0)>0) ? Object.assign({},_tb,{armorPenFlat:(Number(_tb&&_tb.armorPenFlat)||0)+(_gp.armorPen||0), magicPenFlat:(Number(_tb&&_tb.magicPenFlat)||0)+(_gp.magicPen||0)}) : _tb;   /* v1316: = server heroCardPower; no gear pen -> the Temple bonuses as before */
+    return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(_tp)); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
   const TBF=TempleEffects.clientFlats(templeBonusesClient(key));   /* v1094 (Temple v2): the bars are flat stats - same whole numbers the server folds into its ratings */
   /* v807 - ROUND WHERE THE FIGHT ROUNDS. `buildUnit` rounds HP and attack to whole points before
@@ -6572,7 +6574,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   let ehp    = hp/Math.max(0.15,1-mitig);
-  const _crR = (typeof techFlat==='function'?techFlat('critres'):0); if(_crR>0){ const cr=Math.min(0.75,_crR*0.0005); ehp*=(1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }   /* v1311: Academy crit resist (= mulsFromTotals critRes) */
+  const _crR = (typeof techFlat==='function'?techFlat('critres'):0)+(tt.critRes||0); if(_crR>0){ const cr=Math.min(0.75,_crR*0.0005); ehp*=(1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }   /* v1311: Academy crit resist (= mulsFromTotals critRes); v1316 (Phil 8 Nov): + gear crit resist (tt is gear only here - glyphs count as their tier) */
   const crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
   const _fu  = furyPowerMul(key);   /* v1311: purple FURY */
   const sw   = 1/Math.max(0.05, swingInterval(t)/(_fu!==1 ? (1+((tt.atkSpd||0)*0.0005))*_fu : (1+((tt.atkSpd||0)*0.0005))));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
@@ -6585,7 +6587,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
   let dps    = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
-  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0); if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow) */
+  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0)+(tt.healPow||0); if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow); v1316 (Phil 8 Nov): + gear healing power */
   const _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
   return _powerNoGlyph ? _pw : Math.round(_pw); }   // v1024: the inner (pre-Temple) call stays unrounded - the card rounds ONCE, after the Temple multiplier, as the server does (rounding twice put Yenna's card 446 against the server's 445)
 

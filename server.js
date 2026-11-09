@@ -2779,10 +2779,13 @@ function unitCardPower(s,key,AC){
 function heroCardPower(u,key){
   if(!u||!SIM.HERO_BASE[key]) return 0;
   let p=0;
-  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key,acadCombat(u)); }catch(e){ return 0; }
+  let gf=null; try{ gf=(u.gear&&typeof gearHeroFlats==='function')?gearHeroFlats(u,key):null; }catch(e){ gf=null; }   /* v1316 (Phil 8 Nov): the gear totals the snapshot folds in (= client gearSockMul) */
+  const AC=acadCombat(u), PC=(gf&&(gf.critRes>0||gf.healPow>0)) ? Object.assign({},AC||{},{critResRating:((AC&&AC.critResRating)||0)+gf.critRes, healRating:((AC&&AC.healRating)||0)+gf.healPow}) : AC;   /* v1316: gear crit resist + healing power ride the v1311 Academy terms */
+  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key,PC); }catch(e){ return 0; }
   try{ const sk=ledSkillArr(u.led,key)||[]; for(let i=0;i<4;i++) p+=Math.max(0,((sk[i]|0)||1)-1)*20; }catch(e){}
   try{ p+=glyphHeroPower(u,key); }catch(e){}
-  return Math.round(p*TEMPLE_EFFECTS.powerMultiplier(templeBonusesFor(u,key)));
+  const TB=templeBonusesFor(u,key), TP=(gf&&(gf.armorPen>0||gf.magicPen>0)) ? Object.assign({},TB,{armorPenFlat:(Number(TB&&TB.armorPenFlat)||0)+gf.armorPen, magicPenFlat:(Number(TB&&TB.magicPenFlat)||0)+gf.magicPen}) : TB;   /* v1316: gear pen joins the Temple pen term (= client heroPower) */
+  return Math.round(p*TEMPLE_EFFECTS.powerMultiplier(TP));
 }
 
 /* Witches Hut balance seam. The benchmark is an earned-power reference line, never the
