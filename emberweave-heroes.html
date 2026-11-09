@@ -643,10 +643,11 @@
   #campaign .campPill img{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 1px 2px #000)}
   #campaign .campPill b{font:800 13px Georgia,'Times New Roman',serif;color:#fff;text-shadow:0 1px 2px #000;letter-spacing:.2px}
   #campaign .campPill i{font-style:normal;font-size:10px;color:#bff0a8}
-  #campaign .campPill .campPlus{width:22px;height:22px;border:0;padding:0;background:url(/assets/img/ui/mi-plus.webp?v=1) center/contain no-repeat;font-size:0;color:transparent;cursor:pointer;flex:0 0 auto}
+  #campaign .campPill .campPlus{width:22px;height:22px;border:0;padding:0;background:url(/assets/img/ui/hud2/plus-button.webp?v=1) center/contain no-repeat;font-size:0;color:transparent;cursor:pointer;flex:0 0 auto}
+  /* v1322 (Phil 9 Nov: "Add the plus sign to add stam and diamonds on campaign currency spots"): the + shows on phones too, the B kit's plus */
   #campaign #campStamF{left:calc(25% - 67px)}
   #campaign #campGemF{left:calc(75% + 43px)}
-  @media (max-width:900px){ #campaign .campPill .campPlus,#campaign .campPill i{display:none} #campaign .campPill b{font-size:12px} #campaign .campPill img{width:22px;height:22px} #campaign .campPill{padding:0 7px 0 4px} }
+  @media (max-width:900px){ #campaign .campPill i{display:none} #campaign .campPill .campPlus{width:20px;height:20px} #campaign .campPill b{font-size:12px} #campaign .campPill img{width:22px;height:22px} #campaign .campPill{padding:0 7px 0 4px} }
   .hd-tab .hupDot{left:auto;bottom:auto;right:3px;top:3px;width:9px;height:9px}
 .hero-card.hc-tile:not(.mythic){border:1px solid #8a6a2e !important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}   /* v1245 (Phil 31 Oct: "the frame for normal heroes dont look full colored in"): the roster card is filled like a mythic - a thin bronze line instead of the thick hud-panel frame over its edges (mythics keep their gold line) */
 .hero-card .hc-role{font-size:10px;font-weight:800;letter-spacing:.4px;color:#e9c98a;line-height:1.15;margin:1px 0 0;text-transform:uppercase}   /* v1245 (Phil: put the class on the card) */
@@ -32668,7 +32669,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794245969779';
+const BUILD_ID = '1794246742409';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
