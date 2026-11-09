@@ -627,7 +627,17 @@
   /* v1321 (Phil 9 Nov): the red "upgrade available" dot - bottom left of a hero card, top right of a hero window tab */
   .hupDot{position:absolute;left:7px;bottom:7px;width:13px;height:13px;border-radius:50%;background:#e6483f;box-shadow:0 0 0 2px #2a0b08,0 0 7px #ff4a3acc;z-index:4;pointer-events:none}
   .hd-tab{position:relative}
-  @media (max-width:900px){ #campRes .resplus{display:none} #campRes .resval{font-size:12px} #campRes .resframe{padding-left:13px;margin-left:10px} #campRes .resicon{width:30px;height:30px;left:-17px} }   /* v1321: the campaign chips fit beside the stars bar on a phone; each is centred in its gap (Base..stars bar, stars bar..Glossary; the bar is 390 px wide and centred) */
+  /* v1321 (Phil 9 Nov: "Make it more pleasing to the eyes, these buttons and ui are all messed up"): the campaign's top bar is ONE row -
+     Base, food, the stars bar, diamonds, Glossary - every piece 34 px tall at the same top (4 px) in the same navy + gold frame; each chip is
+     centred in its gap (Base..stars bar, stars bar..Glossary; the stars bar is 390 px wide and centred); the chapter title sits below it. */
+  #campaign .campPill{position:absolute!important;top:4px;height:34px;box-sizing:border-box;display:flex;align-items:center;gap:5px;padding:0 5px 0 4px;border:1px solid #b8913f;border-radius:9px;background:linear-gradient(#1f2b48,#0c1326);box-shadow:0 2px 6px #0008;z-index:10!important;transform:translateX(-50%);white-space:nowrap}
+  #campaign .campPill img{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 1px 2px #000)}
+  #campaign .campPill b{font:800 13px Georgia,'Times New Roman',serif;color:#fff;text-shadow:0 1px 2px #000;letter-spacing:.2px}
+  #campaign .campPill i{font-style:normal;font-size:10px;color:#bff0a8}
+  #campaign .campPill .campPlus{width:22px;height:22px;border:0;padding:0;background:url(/assets/img/ui/mi-plus.webp?v=1) center/contain no-repeat;font-size:0;color:transparent;cursor:pointer;flex:0 0 auto}
+  #campaign #campStamF{left:calc(25% - 67px)}
+  #campaign #campGemF{left:calc(75% + 43px)}
+  @media (max-width:900px){ #campaign .campPill .campPlus,#campaign .campPill i{display:none} #campaign .campPill b{font-size:12px} #campaign .campPill img{width:22px;height:22px} #campaign .campPill{padding:0 7px 0 4px} }
   .hd-tab .hupDot{left:auto;bottom:auto;right:5px;top:5px;width:11px;height:11px}
 .hero-card.hc-tile:not(.mythic){border:1px solid #8a6a2e !important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}   /* v1245 (Phil 31 Oct: "the frame for normal heroes dont look full colored in"): the roster card is filled like a mythic - a thin bronze line instead of the thick hud-panel frame over its edges (mythics keep their gold line) */
 .hero-card .hc-role{font-size:10px;font-weight:800;letter-spacing:.4px;color:#e9c98a;line-height:1.15;margin:1px 0 0;text-transform:uppercase}   /* v1245 (Phil: put the class on the card) */
@@ -750,7 +760,9 @@
     #campaign.active #portalTabs{top:auto!important;bottom:5px!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:auto;max-width:90%;height:39px!important;padding:2px!important;gap:5px!important;background:#07121cbd!important;border-radius:11px;z-index:11!important}
     #campaign.active #portalTabs .btn{font-size:11px!important;min-height:35px!important;flex:0 0 auto!important;width:150px;max-width:30vw;white-space:nowrap}   /* v1298: same tab size, the bar hugs them */
     #campaign.active #starTrack{top:4px!important;left:80px!important;right:80px!important}
-    #campaign.active #cmapHdr{top:30px!important;height:30px!important}
+    #campaign.active #cmapHdr{top:42px!important;height:30px!important}   /* v1321: under the 38 px top bar, never on it */
+    #campaign.active>.backbtn,#campaign.active #campGlossBtn{top:4px!important;height:34px!important;min-height:34px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;padding-top:0!important;padding-bottom:0!important}
+    #campaign.active #starTrack>div{border-color:#b8913f!important;border-radius:9px!important;box-sizing:border-box;min-height:34px!important}
     #campaign.active #cmapScroll{overflow-x:hidden!important;touch-action:auto!important}
     #campaign.active #cmap{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important}
   }
@@ -2679,8 +2691,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ <span data-i18n="nav.base">Base</span></button>
     <!-- v1320 (Phil 9 Nov: "make stamina and diamonds visible on campaign screen"); v1321 (Phil 9 Nov, drawn arrows: "Fix this"): food beside Base, diamonds beside Glossary, in the top strip off the map -->
-    <div id="campRes" style="position:static!important;z-index:auto!important"><div class="resframe" id="campStamF" style="position:absolute!important;top:4px;left:calc(25% - 77px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""></span><span class="resval"><b id="campStam">60/60</b><i id="campStamT"></i></span><button class="resplus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div>
-      <div class="resframe" id="campGemF" style="position:absolute!important;top:4px;left:calc(75% + 33px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""></span><span class="resval"><b id="campGems">0</b></span><button class="resplus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
+    <div id="campRes" style="position:static!important;z-index:auto!important"><div class="campPill" id="campStamF"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""><b id="campStam">60/60</b><i id="campStamT"></i><button class="campPlus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div><div class="campPill" id="campGemF"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""><b id="campGems">0</b><button class="campPlus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
     <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> <span data-i18n="nav.glossary">Glossary</span></button>
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
@@ -32580,7 +32591,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794239434708';
+const BUILD_ID = '1794239617803';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
