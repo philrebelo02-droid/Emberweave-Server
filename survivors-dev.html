@@ -217,6 +217,16 @@
   /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged model, 1024 px textures (92 MB -> 5 MB).
      The camera looks down at the field; the model turns to face the way the hero moves and always walks (Phil 24 Oct: "her run, turn it into a walk"); standing still holds the walk's first frame. */
   let H3 = null; const seenShot = new WeakSet();
+  /* v1319 (Phil 9 Nov 2026: "swap all heroes in spire to 2d"): the hero plays in 2D with the game's own battle sheets - idle standing,
+     walk moving, attack / crit on a blow, green / blue on a skill, ult on the ult - feet on the hero's spot, mirrored to face its way.
+     The 3D path stays for the side project (the game sends a model only when SURV_3D_ON). */
+  let H2 = null; const HERO_2D_M = 3.6;   // figure height in metres: bigger than the fodder (1.5-1.8 m) so the hero reads first
+  function mk2d(art) { Object.keys(art).forEach(k => sheetIm(art[k])); let act = null, t0 = 0, dur = 1;
+    return { art, faceL: false,
+      act(st, d2) { const s2 = art[st] ? st : !st ? null : art.green ? 'green' : art.blue ? 'blue' : art.attack ? 'attack' : null;   // Fritz has no cast sheets: his skills play his attack if (!s2) return;
+        act = s2; t0 = performance.now() / 1000; dur = d2 || (s2 === 'ult' ? 1.4 : (s2 === 'attack' || s2 === 'crit') ? 1.0 : 1.2); },
+      busy() { return !!act && performance.now() / 1000 - t0 < dur; },
+      state(moving) { if (this.busy()) return [act, (performance.now() / 1000 - t0) / dur]; act = null; return [moving ? 'walk' : 'idle', -1]; } }; }
   /* 26 Oct (Phil: "adding all heroes into spire"): every hero with a 3D model plays in 3D. The roster sends the model url; each model
      carries the same clip names (Walking, Running, Attack, Cast, Ult - renamed at export), Linnet keeps her own cast clips. */
   async function load3d(url) {
@@ -328,7 +338,8 @@
     /* 25 Oct (Phil): the old Ascendant Spire button is gone - Hero Survivors replaces the old tower */
     const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
       const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null; window._heroCls = hh && hh.cls;
-      window._heroModel = (hh && hh.model) || (HERO_PICK === 'linnet' ? '/assets/survivors/linnet-1k.glb' : null);
+      window._heroArt2d = (hh && hh.art2d) || null;
+      window._heroModel = window._heroArt2d ? null : ((hh && hh.model) || (HERO_PICK === 'linnet' ? '/assets/survivors/linnet-1k.glb' : null));
       document.getElementById('use3d').checked = !!window._heroModel; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
     const cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
     function offerContinue() { const sv = saveRead(); cont.hidden = !sv;
@@ -344,7 +355,7 @@
     const cls = CLS6.indexOf(window._heroCls) >= 0 ? window._heroCls : document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls];
     if (window._heroKit) { const own = HERO_PICK === 'linnet';   // other heroes' models share one Cast clip for both skills
-      KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: own ? (KITS.linnet[i] || {}).anim : 'Cast' }, k)); preloadSheets(window._heroKit); }
+      KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: own ? (KITS.linnet[i] || {}).anim : 'Cast', anim2d: i === 0 ? 'green' : 'blue' }, k)); preloadSheets(window._heroKit); }
     buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
@@ -355,7 +366,8 @@
     if (labCls) { const set = +(LAB.get('set') || 0), lv = +(LAB.get('lv') || 1);   // spell lab: five spells of a class at one level
       const only = LAB.get('only'); (only ? AURAS.filter(a => a.key === only) : AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5)).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; window._labEcho = LAB.get('echo') === '1'; S._baseT = 1e9; }
     document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
-    if (document.getElementById('use3d').checked) load3d(window._heroModel).catch(e => console.error('3D load failed', e));
+    H2 = window._heroArt2d ? mk2d(window._heroArt2d) : null;
+    if (!H2 && document.getElementById('use3d').checked) load3d(window._heroModel).catch(e => console.error('3D load failed', e));
   };
   function label(o) {
     if (o.t === 'aura') { const a = byKey[o.key], what = o.to === 1 ? (a.desc || '') : o.to === 10 ? (a.ten || a.l10) : (a.up || '');   // the descriptions (Phil 24 Oct: "do a better job of explaining them")
@@ -895,7 +907,24 @@
         if (AK.img) { const hh = w * aim.height / aim.width; g.drawImage(aim, -w / 2, -hh / 2, w, hh); /* its own shape (26 Oct: 2:1 and 3:1 art) */ } else { const d = AK.d, f = AK.fr | 0; g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); } g.restore(); return; }
       span('fx_wake', x - s.vx * 0.05 * sc, y - s.vy * 0.05 * sc, x, y, r * 1.4, 0.55); el(fx('fx_light_mote'), x, y, r * 2.2, 0, 1); });
     g = G_ART; drawSpells(X, Y, sc, W, H, tnow); g = G0;
-    if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
+    if (H2) {
+      const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
+      const swg = S.fx.find(f => f.kind === 'swing' && !seenShot.has(f));   // a melee swing plays the attack sheet even on the move
+      if (swg) { S.fx.forEach(f => f.kind === 'swing' && seenShot.add(f)); H2.act('attack', 1.0); }
+      else if (!moving && !H2.busy()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H2.act('attack', 0.8); } });
+      else S.shots.forEach(s => seenShot.add(s));
+      const sa = H2.state(moving), st = sa[0], u = sa[1], d = H2.art[st] || H2.art.idle, im = sheetIm(d);
+      const fxd = h.swing ? Math.cos(h.swing.a) : h.dirx; H2.faceL = fxd < -0.01 ? true : fxd > 0.01 ? false : H2.faceL;
+      if (im) { const n = d.n || 1, fps = d.fps || 12; let fr;
+        if (u < 0) { const k = Math.floor(tnow * fps); if (d.pingpong && n > 1) { const m = 2 * n - 2, q = k % m; fr = q < n ? q : m - q; } else fr = k % n; }
+        else fr = Math.min(n - 1, Math.floor(u * n));
+        const cols = d.cols || 1, pxm = HERO_2D_M * sc / (d.figH || d.fh), mir = d.flip ? !H2.faceL : H2.faceL;
+        g.save(); if (h.iframes > 0) g.globalAlpha = 0.65; g.translate(W / 2, H / 2 + 0.3 * sc); if (mir) g.scale(-1, 1);
+        g.drawImage(im, (fr % cols) * d.fw, Math.floor(fr / cols) * d.fh, d.fw, d.fh, -(d.cx != null ? d.cx : d.fw / 2) * pxm, -(d.feet != null ? d.feet : d.fh) * pxm, d.fw * pxm, d.fh * pxm); g.restore(); }
+      else { g.fillStyle = '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
+      window._dbg = { dirx: h.dirx, diry: h.diry, st, fr2d: u, faceL: H2.faceL, paused: !!S.choice };   // dev probe
+    }
+    else if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
       const swg = S.fx.find(f => f.kind === 'swing' && !seenShot.has(f));   // a melee swing plays the Attack clip even on the move - the blow lands at its contact (0.25 s)
@@ -909,7 +938,7 @@
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice, atk: !!(H3.clips.Attack && H3.clips.Attack.isRunning()) };   // dev probe
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
     }
-    if (!H3) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke(); }   // facing tick only for the dev dot (the 3D hero faces her way)
+    if (!H3 && !H2) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke(); }   // facing tick only for the dev dot (the 3D hero faces her way)
     // the ULT (kit, no code fill): a fan of light shafts sweeps out over the 120-degree cone it hits, with a flash on the hero
     const ownUlt = window._heroKit && window._heroKit.ult && (window._heroKit.ult.fx || []).length;   // the hero's own ult art replaces the fan (26 Oct)
     S.fx.forEach(f => { if (f.kind !== 'ult' || ownUlt) return; const u = f.t / f.life, a0 = Math.atan2(f.dy, f.dx), ox = f.echo ? X(f.x) : W / 2, oy = f.echo ? Y(f.y) : H / 2;
@@ -925,6 +954,7 @@
     // skill + ult: the 3D model plays the cast clip and the hero's REAL game spell art plays (Phil 24 Oct: "they should use their real game
     // ability animation and FX") - each slot's skillPreviewPlan entries from the game, at their own time, place and size
     S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? (H3.clips.Ult ? 'Ult' : 'mage_soell_cast_2') : (KIT[f.slot] || {}).anim);
+        if (H2) H2.act(f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).anim2d);
         const hk = window._heroKit; if (hk) startSpellArt(f.kind === 'ult' ? hk.ult.fx : ((hk.skills[f.slot] || {}).fx || []), f, f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).kind); } });
     drawSpellArt(X, Y, sc, W, H);
   }

@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.17", "releases": "v1319", "items": [{"text": "Phil 9 Nov: 2d yes / swap all heroes in spire to 2d / only swap back if i OK all 61 heroes.", "sources": ["SHIPPED-v1319-spire-heroes-2d-09-11-2026.md"]}]},
     {"ver": "1.5.16", "releases": "v1318", "items": [{"text": "Phil 9 Nov: 'still too large reduce it by another 30%'.", "sources": ["SHIPPED-v1318-dandra-ult-smaller-again-09-11-2026.md"]}]},
     {"ver": "1.5.15", "releases": "v1317", "items": [{"text": "Phil 9 Nov: 'Can you make dandra ult be 20%, smaller'.", "sources": ["SHIPPED-v1317-dandra-ult-smaller-09-11-2026.md"]}]},
     {"ver": "1.5.14", "releases": "v1316", "items": [{"text": "Phil 8 Nov: 'do everything you think is best' (open list: Sable Vesper heal 0, Maelvara Fury / Admiral Pack Stats do nothing on a monster, gear and glyph stats in power).", "sources": ["SHIPPED-v1316-boss-passives-gear-power-08-11-2026.md"]}]},

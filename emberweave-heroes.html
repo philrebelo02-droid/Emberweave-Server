@@ -29829,13 +29829,23 @@ const SURV_MODELS={ linnet:'/assets/survivors/linnet-1k.glb', absalie:'/assets/s
   tharl:'/assets/survivors/models/tharl-1k.glb?v=1', tick:'/assets/survivors/models/tick-1k.glb?v=1', umbris:'/assets/survivors/models/umbris-1k.glb?v=1', vael:'/assets/survivors/models/vael-1k.glb?v=2',
   vaelora:'/assets/survivors/models/vaelora-1k.glb?v=1', vesper:'/assets/survivors/models/vesper-1k.glb?v=1', vex:'/assets/survivors/models/vex-1k.glb?v=2', veyr:'/assets/survivors/models/veyr-1k.glb?v=2',
   yenna:'/assets/survivors/models/yenna-1k.glb?v=2', tolley:'/assets/survivors/models/tolley-1k.glb?v=1', quorrel:'/assets/survivors/models/quorrel-1k.glb?v=1', vulmar:'/assets/survivors/models/vulmar-1k.glb?v=1', rhukk:'/assets/survivors/models/rhukk-1k.glb?v=1', carn:'/assets/survivors/models/carn-1k.glb?v=1', zahri:'/assets/survivors/models/zahri-1k.glb?v=2' };
-const SURV_PLAYABLE=Object.keys(SURV_MODELS);
+/* v1319 (Phil 9 Nov 2026: "2d yes" / "swap all heroes in spire to 2d" / "The 3d project for spire will be done on the side, and only swap
+   back if i OK all 61 heroes"): the Spire plays every hero in 2D with the hero's own battle sheets (idle, walk, attack, crit, green, blue,
+   ult). SURV_MODELS stays for the side project; SURV_3D_ON goes true only when Phil has OK'd all 61. */
+const SURV_3D_ON=false;
+let SURV_PLAYABLE=null;
+const survPlayable=()=>SURV_PLAYABLE||(SURV_PLAYABLE=SURV_3D_ON?Object.keys(SURV_MODELS):Object.keys(HERO_TYPES).filter(k=>BATTLE_ANIM[k]&&BATTLE_ANIM[k].walk&&BATTLE_ANIM[k].idle));
+const SURV_2D_STATES=['idle','walk','attack','crit','green','blue','ult'];
+function survHeroArt(k){ const A=BATTLE_ANIM[k]; if(!A) return null; const o={};
+  SURV_2D_STATES.forEach(st=>{ const d=A[st]; if(d&&d.u) o[st]=Object.fromEntries(['u','n','fw','fh','cols','rows','figH','feet','cx','fps','flip','loop','pingpong','top'].filter(x=>d[x]!=null&&typeof d[x]!=='function').map(x=>[x,d[x]])); });
+  return o.walk&&o.idle?o:null; }
 function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(k), pw=k=>{ try{ return heroPower(k)||0; }catch(e){ return 0; } };
-  const rest=all.filter(k=>SURV_PLAYABLE.indexOf(k)<0).sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));
-  return SURV_PLAYABLE.concat(rest).map(k=>{ const t=HERO_TYPES[k]||{};   /* all heroes listed (was the first 20) */
+  const PL=survPlayable(), rest=all.filter(k=>PL.indexOf(k)<0).sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));
+  const first=PL.slice().sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));   /* v1319: owned and strongest first */
+  return first.concat(rest).map(k=>{ const t=HERO_TYPES[k]||{};   /* all heroes listed (was the first 20) */
     return { key:k, name:t.name||k, sub:(typeof HERO_SUBNAME!=='undefined'&&HERO_SUBNAME[k])||'', cls:t.role||'', img:HERO_PORTRAITS[k]||'',
-      owned:own(k), lv:own(k)?heroLevel(k):0, stars:own(k)?heroStars(k):0, power:own(k)?pw(k):0, playable:SURV_PLAYABLE.indexOf(k)>=0, model:SURV_MODELS[k]||null,
-      kit:SURV_PLAYABLE.indexOf(k)>=0?survivorsKit(k):null }; }); }
+      owned:own(k), lv:own(k)?heroLevel(k):0, stars:own(k)?heroStars(k):0, power:own(k)?pw(k):0, playable:PL.indexOf(k)>=0, model:SURV_3D_ON?(SURV_MODELS[k]||null):null, art2d:(!SURV_3D_ON&&PL.indexOf(k)>=0)?survHeroArt(k):null,
+      kit:PL.indexOf(k)>=0?survivorsKit(k):null }; }); }
 /* the hero's real skills for the Spire: KITS rows -> {name, kind (heal / ward / dash / bolt / nova), cd, power, dur}, and each slot's spell
    art from skillPreviewPlan (the Skills tab plan = how the fight places it): sheet + where (self / target / above / a projectile) + when + how
    long + its radius in metres. Only plain fields cross to the frame. */
@@ -32477,7 +32487,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794225746349';
+const BUILD_ID = '1794230634384';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
