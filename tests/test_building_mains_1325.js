@@ -20,6 +20,8 @@ const tOld = fnOf(old, 'renderTemple') + tempLines(old), tNew = fnOf(html, 'rend
 ck('Temple of Ash untouched (Phil: excluded)', tOld === tNew && !/#temple[^{]*building-main/.test(html));
 ck('CONTROL: v1324 had none of it', !/academy-main|merchant-main|building-main/.test(old));
 ck('v1326: the Forge item-list panel drops the stretched laurel frame (Phil 9 Nov Forge screenshot) - each row keeps its own', /#forge:not\(:has\(#fgPop\)\) #forgeBody>\.panel:has\(\.fgRow\),#forge #forgeBody>\.panel:has\(\.fgRow\)\{background:none!important/.test(html));
-ck('v1326: the City Wall tab bar fills (no row padding on it) and its rows clear the laurel corners (Phil 9 Nov screenshot)', html.includes('.wdPanel>.wdBar{padding:0!important;height:14px!important') && html.includes('.wdPanel{padding-top:52px!important;padding-bottom:112px!important}'));
+ck('v1326: the City Wall tab bar fills (no row padding on it) and its rows clear the laurel corners (Phil 9 Nov screenshot)', html.includes('.wdPanel>.wdBar{padding:0!important;height:14px!important') && html.includes('.wdPanel{padding:72px 15% 112px!important}'));
+ck('v1326: the six big framed panels pad 62 px / 16 % so the laurels never touch text ("I dont like the boarders touching lettering")', (html.match(/padding:62px 16%!important/g) || []).length === 6);
+ck('v1326: Forge qualities are a tab column on the RIGHT of the list ("Qualitys should be on the right like tabs")', html.includes('#forge .fgTabs{order:2!important;display:flex!important;flex-direction:column!important') && html.includes('#forge .fgWrap{flex-direction:row!important'));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
