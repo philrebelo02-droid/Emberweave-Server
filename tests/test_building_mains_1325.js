@@ -19,5 +19,6 @@ const tempLines = s => s.split('\n').filter(l => l.includes('#temple')).join('\n
 const tOld = fnOf(old, 'renderTemple') + tempLines(old), tNew = fnOf(html, 'renderTemple') + tempLines(html);
 ck('Temple of Ash untouched (Phil: excluded)', tOld === tNew && !/#temple[^{]*building-main/.test(html));
 ck('CONTROL: v1324 had none of it', !/academy-main|merchant-main|building-main/.test(old));
+ck('v1326: the Forge item-list panel drops the stretched laurel frame (Phil 9 Nov Forge screenshot) - each row keeps its own', /#forge:not\(:has\(#fgPop\)\) #forgeBody>\.panel:has\(\.fgRow\),#forge #forgeBody>\.panel:has\(\.fgRow\)\{background:none!important/.test(html));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
