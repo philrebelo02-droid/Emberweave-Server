@@ -157,7 +157,6 @@
   #bonusFragPanel .bfRow{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;align-items:center;padding:7px 16px;font-size:13px;background:url(/assets/img/ui/bonus/row-band.webp?v=1) center/100% 100% no-repeat;margin-top:4px}
   #bonusFragPanel .bfHead{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;padding:0 16px;font-size:11px;color:#8b98a9}
   #bonusFragPanel .bfClaim{flex:1;border:0;border-radius:0;min-height:46px;background:url(/assets/img/ui/bonus/claim-button.webp?v=1) center/100% 100% no-repeat;color:#24170a;font:900 15px Georgia,serif;text-shadow:0 1px 0 #ffe9a8;cursor:pointer}
-  @media (max-height:520px){ #campRes{top:96px!important;gap:8px!important} }
   #stageRewPop{position:fixed;inset:0;z-index:9800;display:flex;align-items:center;justify-content:center;background:rgba(3,6,12,.72);padding:12px}
   #stageRewPop .srCard{width:min(560px,94vw);max-height:90vh;overflow:auto;box-sizing:border-box;padding:16px 16px 14px;border-radius:16px;background:linear-gradient(180deg,#1b2233,#0d1220);border:2px solid #b8913f;box-shadow:0 10px 40px #000c,inset 0 0 22px #b8913f33;text-align:center;transform:scale(.86);opacity:0;transition:transform .22s ease-out,opacity .22s ease-out}
   #stageRewPop.on .srCard{transform:scale(1);opacity:1}
@@ -628,6 +627,7 @@
   /* v1321 (Phil 9 Nov): the red "upgrade available" dot - bottom left of a hero card, top right of a hero window tab */
   .hupDot{position:absolute;left:7px;bottom:7px;width:13px;height:13px;border-radius:50%;background:#e6483f;box-shadow:0 0 0 2px #2a0b08,0 0 7px #ff4a3acc;z-index:4;pointer-events:none}
   .hd-tab{position:relative}
+  @media (max-width:900px){ #campRes .resplus{display:none} #campRes .resval{font-size:12px} #campRes .resframe{padding-left:13px;margin-left:10px} #campRes .resicon{width:30px;height:30px;left:-17px} }   /* v1321: the campaign chips fit beside the stars bar on a phone; each is centred in its gap (Base..stars bar, stars bar..Glossary; the bar is 390 px wide and centred) */
   .hd-tab .hupDot{left:auto;bottom:auto;right:5px;top:5px;width:11px;height:11px}
 .hero-card.hc-tile:not(.mythic){border:1px solid #8a6a2e !important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}   /* v1245 (Phil 31 Oct: "the frame for normal heroes dont look full colored in"): the roster card is filled like a mythic - a thin bronze line instead of the thick hud-panel frame over its edges (mythics keep their gold line) */
 .hero-card .hc-role{font-size:10px;font-weight:800;letter-spacing:.4px;color:#e9c98a;line-height:1.15;margin:1px 0 0;text-transform:uppercase}   /* v1245 (Phil: put the class on the card) */
@@ -2678,9 +2678,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <!-- CAMPAIGN ROADMAP -->
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ <span data-i18n="nav.base">Base</span></button>
-    <!-- v1320 (Phil 9 Nov: "make stamina and diamonds visible on campaign screen"): the base HUD's food and diamond chips, under Base -->
-    <div id="campRes" style="position:absolute!important;top:104px;left:14px;z-index:7!important;display:flex;flex-direction:column;gap:10px;align-items:flex-start;pointer-events:auto"><div class="resframe"><span class="resicon"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""></span><span class="resval"><b id="campStam">60/60</b><i id="campStamT"></i></span><button class="resplus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div>
-      <div class="resframe"><span class="resicon"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""></span><span class="resval"><b id="campGems">0</b></span><button class="resplus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
+    <!-- v1320 (Phil 9 Nov: "make stamina and diamonds visible on campaign screen"); v1321 (Phil 9 Nov, drawn arrows: "Fix this"): food beside Base, diamonds beside Glossary, in the top strip off the map -->
+    <div id="campRes" style="position:static!important;z-index:auto!important"><div class="resframe" id="campStamF" style="position:absolute!important;top:8px;left:calc(25% - 77px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""></span><span class="resval"><b id="campStam">60/60</b><i id="campStamT"></i></span><button class="resplus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div>
+      <div class="resframe" id="campGemF" style="position:absolute!important;top:8px;left:calc(75% + 33px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""></span><span class="resval"><b id="campGems">0</b></span><button class="resplus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
     <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> <span data-i18n="nav.glossary">Glossary</span></button>
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
@@ -32580,7 +32580,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794238919142';
+const BUILD_ID = '1794239382677';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -33,5 +33,11 @@ ck('Equipment: the dot follows the slot + that is green (gearCanCraft / owned fr
 ck('Glyphs: all six slotted (Ascend) or the server\'s build-tree canBuild / canBuildAll for the next slot, asked once per glyph revision, two at a time', /if\(sl<0\) return true;/.test(html) && /HUP_GLY\[k\]=!!\(r\.canBuild\|\|r\.canBuildAll\)/.test(html) && /while\(_hupBusy<2&&_hupQ\.length\)/.test(html));
 ck('the hero card gets the dot bottom left; each tab with an upgrade gets one in its corner', /heroUpDotSet\(card,u\.skills\|\|u\.glyphs\|\|u\.equip\)/.test(html) && /\$\{_hup\[id\]\?'<span class="hupDot"><\/span>':''\}/.test(html) && /\.hupDot\{position:absolute;left:7px;bottom:7px/.test(html));
 ck('CONTROL: v1320 had no upgrade dots', !/hupDot/.test(old));
+
+// campaign chips (Phil 9 Nov, arrows drawn: "Fix this" / "Center then better" / "Not touching the base/glossary buttons")
+ck('the campaign food chip sits in the top strip, centred between Base and the stars bar', /id="campStamF" style="position:absolute!important;top:8px;left:calc\(25% - 77px\);transform:translateX\(-50%\);z-index:10!important"/.test(html));
+ck('the diamond chip sits in the top strip, centred between the stars bar and Glossary', /id="campGemF" style="position:absolute!important;top:8px;left:calc\(75% \+ 33px\);transform:translateX\(-50%\);z-index:10!important"/.test(html));
+ck('their wrapper makes no layer of its own (so they draw over the stars strip, z 9)', /<div id="campRes" style="position:static!important;z-index:auto!important">/.test(html));
+ck('on a phone (under 900 px) the chips drop the + and shrink to fit the gaps', /@media \(max-width:900px\)\{ #campRes \.resplus\{display:none\}/.test(html));
 console.log('test_sweep_dots_1321.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
