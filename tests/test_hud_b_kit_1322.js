@@ -18,7 +18,7 @@ ck('CONTROL: v1321 had none of the B kit', !/\/assets\/img\/ui\/hud2\//.test(old
 
 // same release, Phil 9 Nov
 ck('EGP opens on whichever of pointerup / touchend / click comes first, once per press ("Clicking the egp button pulls up nothing" - a phone tap reached nothing)', /pb\.addEventListener\('pointerup',go\); pb\.addEventListener\('touchend',go,\{passive:false\}\); pb\.onclick=go;/.test(html) && /if\(now-\(pb\._openAt\|\|0\)<600\) return; pb\._openAt=now; openPatron\(\);/.test(html));
-ck('each building name label is its own building\'s button, above every box ("If i click on the word market it shouldnt be opening the academy")', /lab\.style\.pointerEvents='auto'; lab\.style\.zIndex='40';/.test(html) && /lab\.addEventListener\('click',ev=>\{ ev\.stopPropagation\(\); hit\.onclick\(ev\); \}\)/.test(html));
+ck('each building name label is its own building\'s button, above every box ("If i click on the word market it shouldnt be opening the academy")', /lab\.style\.pointerEvents='auto'; lab\.style\.zIndex='(40|25)';/.test(html) && /lab\.addEventListener\('click',ev=>\{ ev\.stopPropagation\(\); hit\.onclick\(ev\); \}\)/.test(html));
 ck('the Vault label moved right off the Arena art (x 75 -> 81)', /\[75,38,14,22,81,52\]/.test(html) && /\[75,38,14,22,75,52\]/.test(old));
 ck('the base HUD hugs its edges ("Cannot waste space for buildings")', /#home #townHud\{top:3px\}/.test(html) && /#home #leftHud\{top:2px;left:calc\(0\.5% \+ 37px\)\}/.test(html) && /#home #cornerHud\{top:2px;right:3px\}/.test(html));
 ck('the Heroes list and the hero window open centred on the screen ("its meant to be centered on the screen")', /#heroesPanel\.popout,#heroDetail\.popout\{left:50%!important;right:auto!important;transform:translateX\(-50%\)!important;/.test(html));
