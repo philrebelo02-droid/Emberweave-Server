@@ -23,8 +23,8 @@ const roster = JSON.parse(vm.runInContext(`JSON.stringify(survivorsRoster().filt
   const T = HERO_TYPES[h.key] || {}, K = KITS[h.key] || {}, U = ULT_DEF[T.ability] || {};
   return { key: h.key, cls: h.cls, kit: h.kit, game: { green: K.green && K.green.type, blue: K.blue && K.blue.type, ult: T.ability, ultKey: U.key || '' } }; }))`, host.ctx));
 
-const HEAL = new Set(['mendburst', 'linkheal', 'healbuff', 'orbheal', 'hot', 'heal']);
-const SHIELD = new Set(['lastbreath', 'harmonyshield', 'dawnward', 'burrowguard', 'thornguard']);
+const HEAL = new Set(['mendburst', 'linkheal', 'healbuff', 'orbheal', 'hot', 'heal', 'kingsMercy']);   // v1324: Morvayne's King's Mercy heals HIM in the Spire (Phil 9 Nov: "his heal abilities and ult shield should be on himself")
+const SHIELD = new Set(['lastbreath', 'harmonyshield', 'dawnward', 'burrowguard', 'thornguard', 'crownShelter']);   // v1324: Morvayne's Shelter of the Crown shields HIM
 const BUFF = new Set(['haste', 'banner', 'defensive', 'lifestealbuff', 'energygift', 'honeyglob']);   // ally/self buffs: no ally here (DESIGN)
 const DUMMIES = [[3, 0], [4.5, 0.8], [2, -1.2], [6, -0.5], [-2.5, 1], [0, 3], [8, 0]];
 const SEC = s => Math.round(s / C.TICK);
