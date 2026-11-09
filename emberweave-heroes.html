@@ -630,7 +630,10 @@
   .hero-card .hc-info{text-align:center;min-width:0;height:30px}
   .hero-card.hc-tile{padding:6px 6px 5px}
   /* v1321 (Phil 9 Nov): the red "upgrade available" dot - bottom left of a hero card, top right of a hero window tab */
-  .hupDot{position:absolute;left:7px;bottom:7px;width:13px;height:13px;border-radius:50%;background:#e6483f;box-shadow:0 0 0 2px #2a0b08,0 0 7px #ff4a3acc;z-index:4;pointer-events:none}
+  /* v1322 (Phil 9 Nov: "Red dot looks like it was done on paint ... needs to be smaller ... more in the corner ... more artsy"): a small cut-gem dot -
+     gold rim, a ruby face lit from the top-left, a soft ember glow that breathes */
+  .hupDot{position:absolute;left:3px;bottom:3px;width:9px;height:9px;box-sizing:border-box;border-radius:50%;border:1px solid #f4cf6a;background:radial-gradient(circle at 34% 30%,#ffe7dc 0 10%,#ff6a4f 26%,#d4180e 58%,#6b0703 100%);box-shadow:0 0 0 1px rgba(40,12,4,.85),0 0 5px 1px rgba(255,80,40,.75);z-index:4;pointer-events:none;animation:hupGlow 2.4s ease-in-out infinite}
+  @keyframes hupGlow{0%,100%{box-shadow:0 0 0 1px rgba(40,12,4,.85),0 0 4px 0 rgba(255,80,40,.55)}50%{box-shadow:0 0 0 1px rgba(40,12,4,.85),0 0 7px 2px rgba(255,110,60,.9)}}
   .hd-tab{position:relative}
   /* v1321 (Phil 9 Nov: "Make it more pleasing to the eyes, these buttons and ui are all messed up"): the campaign's top bar is ONE row -
      Base, food, the stars bar, diamonds, Glossary - every piece 34 px tall at the same top (4 px) in the same navy + gold frame; each chip is
@@ -643,7 +646,7 @@
   #campaign #campStamF{left:calc(25% - 67px)}
   #campaign #campGemF{left:calc(75% + 43px)}
   @media (max-width:900px){ #campaign .campPill .campPlus,#campaign .campPill i{display:none} #campaign .campPill b{font-size:12px} #campaign .campPill img{width:22px;height:22px} #campaign .campPill{padding:0 7px 0 4px} }
-  .hd-tab .hupDot{left:auto;bottom:auto;right:5px;top:5px;width:11px;height:11px}
+  .hd-tab .hupDot{left:auto;bottom:auto;right:3px;top:3px;width:9px;height:9px}
 .hero-card.hc-tile:not(.mythic){border:1px solid #8a6a2e !important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}   /* v1245 (Phil 31 Oct: "the frame for normal heroes dont look full colored in"): the roster card is filled like a mythic - a thin bronze line instead of the thick hud-panel frame over its edges (mythics keep their gold line) */
 .hero-card .hc-role{font-size:10px;font-weight:800;letter-spacing:.4px;color:#e9c98a;line-height:1.15;margin:1px 0 0;text-transform:uppercase}   /* v1245 (Phil: put the class on the card) */
   .hero-card .hc-sub{font-size:10px;font-weight:800;color:#ffd45e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
@@ -2637,7 +2640,7 @@ body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none
    the Heroes list and the hero window open in the middle of the screen, not docked to the right edge */
 #heroesPanel.popout,#heroDetail.popout{left:50%!important;right:auto!important;transform:translateX(-50%)!important;border-radius:16px!important;border-right:1px solid #3a4a6e;box-shadow:0 18px 55px rgba(0,0,0,.65)}
 /* the red upgrade dot sits in the card's very corner, clear of the power line */
-.hero-card>.hupDot{left:3px;bottom:3px;width:10px;height:10px}
+.hero-card>.hupDot{left:3px;bottom:3px}
 /* v1322 (Phil 9 Nov: "Make it have 5 columns now" / "Rows of 5"): the Heroes list shows 5 cards a row; its centred window widens to keep the cards their size */
 #heroList{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 #heroesPanel.popout{width:min(560px,96%)!important}
@@ -32654,7 +32657,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794244669591';
+const BUILD_ID = '1794244792500';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

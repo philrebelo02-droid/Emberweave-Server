@@ -22,7 +22,7 @@ ck('each building name label is its own building\'s button, above every box ("If
 ck('the Vault label moved right off the Arena art (x 75 -> 81)', /\[75,38,14,22,81,52\]/.test(html) && /\[75,38,14,22,75,52\]/.test(old));
 ck('the base HUD hugs its edges ("Cannot waste space for buildings")', /#home #townHud\{top:3px\}/.test(html) && /#home #leftHud\{top:2px;left:calc\(0\.5% \+ 37px\)\}/.test(html) && /#home #cornerHud\{top:2px;right:3px\}/.test(html));
 ck('the Heroes list and the hero window open centred on the screen ("its meant to be centered on the screen")', /#heroesPanel\.popout,#heroDetail\.popout\{left:50%!important;right:auto!important;transform:translateX\(-50%\)!important;/.test(html));
-ck('the red upgrade dot sits in the card corner, clear of the power line', /\.hero-card>\.hupDot\{left:3px;bottom:3px;width:10px;height:10px\}/.test(html));
+ck('the upgrade dot is a small cut gem (9 px, gold rim, lit ruby face, breathing glow) in the card corner and the tab corner ("looks like it was done on paint")', /\.hupDot\{position:absolute;left:3px;bottom:3px;width:9px;height:9px;[^}]*border:1px solid #f4cf6a;background:radial-gradient\(/.test(html) && /@keyframes hupGlow/.test(html) && /\.hd-tab \.hupDot\{left:auto;bottom:auto;right:3px;top:3px;width:9px;height:9px\}/.test(html));
 ck('the Heroes list shows rows of 5, in a window wide enough to keep the cards their size ("Rows of 5")', /#heroList\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important\}/.test(html) && /#heroesPanel\.popout\{width:min\(560px,96%\)!important\}/.test(html));
 console.log('test_hud_b_kit_1322.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
