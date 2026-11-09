@@ -34,5 +34,9 @@ ck('v1327: the two reused controls point at the shared kit, nothing still points
 ck('v1327: the art never sets the card size, so every EGP page stays the same size', !/\.patCard\s*\{[^}]*(?:^|[;{\s])(?:width|height|max-height)\s*:/.test(egpCss));
 ck('v1327: the art is EGP only, the EDP pages keep their look', egpCss.split('\n').every(l => !l.includes('#patScreen ') || l.includes(EGP) || l.trim().startsWith('@media')));
 ck('v1327: the title sits on the card centre (gutter on both edges)', html.includes('scrollbar-gutter:stable both-edges'));
+const cbp = html.slice(html.indexOf('function cbonusClearPlates('), html.indexOf('function renderRoadmap('));
+ck('v1327: bonus plates clear the stages (Phil 9 Nov "arent stacked under other stages") - measured against every stage piece, the chapter banner and the mode tabs', ["querySelectorAll('.cnode')", "getElementById('cmapHdr')", "getElementById('portalTabs')"].every(x => cbp.includes(x)));
+ck('v1327: each moved plate blocks the next one, and it holds on a sideways phone', cbp.includes('obs.push({l:r.l+bx') && cbp.includes('EWViewport.state.rotated'));
+ck('v1327: renderRoadmap runs the plate check after the map is on screen, not before', /map\.appendChild\(_inner\);\r?\n\s*cbonusClearPlates\(_inner\);/.test(html));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

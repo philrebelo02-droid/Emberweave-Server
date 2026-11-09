@@ -22413,6 +22413,28 @@ function startCampaignIdleNodes(){
     _campaignIdleRAF=requestAnimationFrame(tick); };
   _campaignIdleRAF=requestAnimationFrame(tick);
 }
+/* v1327 (Phil 9 Nov, Chapter 2 screenshot: "Check the bonus stages arent stacked under other stages, move the bonus stage plates"): the plate hangs under its
+   building, and on many chapters that is right on the path - BONUS 2-4 under stage 2-5, BONUS 2-6 under the 2-9 hero. Fixed plate offsets per chapter would break on the next
+   screen shape (the map is rescaled per screen), so each plate is measured against what is really drawn and moved the smallest distance that clears it. */
+function cbonusClearPlates(root){
+  const plates=[...root.querySelectorAll('.cbonus>span')]; if(!plates.length) return;
+  const rot=!!(typeof EWViewport!=='undefined'&&EWViewport.state&&EWViewport.state.rotated), W=window.innerWidth;
+  const N=r=>rot?{l:r.top,r:r.bottom,t:W-r.right,b:W-r.left}:{l:r.left,r:r.right,t:r.top,b:r.bottom};   /* game axes, also when the app is turned on its side */
+  plates.forEach(s=>{ s.style.marginTop=''; s.style.marginLeft=''; });
+  const box=N(root.getBoundingClientRect()), H=box.b-box.t; if(!(H>0)||!root.offsetHeight) return;
+  const k=H/root.offsetHeight, PAD=4*k, obs=[];
+  const add=e=>{ if(!e) return; const r=e.getBoundingClientRect(); if(r.width&&r.height) obs.push(N(r)); };
+  root.querySelectorAll('.cnode').forEach(n=>{ add(n); [...n.children].forEach(add); });
+  const hdr=document.getElementById('cmapHdr'); if(hdr) [...hdr.children].forEach(add);
+  add(document.getElementById('portalTabs'));
+  const hits=(r,x,d)=>obs.some(o=>r.l+x-PAD<o.r&&r.r+x+PAD>o.l&&r.t+d-PAD<o.b&&r.b+d+PAD>o.t);
+  plates.forEach(s=>{ const r=N(s.getBoundingClientRect()); if(!r.r) return;
+    /* the nearest clear spot; a plate stays on its own building's side of the path (only as a last resort does it cross) */
+    const pref=s.parentElement.classList.contains('upper')?-1:1, STEP=3*k, MY=H*0.32, MX=(box.r-box.l)*0.1, ok=(x,d)=>r.t+d>=box.t+2&&r.b+d<=box.b-2&&r.l+x>=box.l+2&&r.r+x<=box.r-2&&!hits(r,x,d);
+    let bx=0, best=0; if(!ok(0,0)){ let cost=Infinity; for(let d=-MY;d<=MY;d+=STEP) for(let x=-MX;x<=MX;x+=STEP){ const c=Math.abs(d)+Math.abs(x)*1.5+(d*pref<-8*k?1e4:0); if(c<cost&&ok(x,d)){ cost=c; bx=x; best=d; } } }
+    if(best) s.style.marginTop=(best/k)+'px'; if(bx) s.style.marginLeft=(bx/k)+'px';
+    obs.push({l:r.l+bx,r:r.r+bx,t:r.t+best,b:r.b+best}); });   /* the next plate clears this one too */
+}
 function renderRoadmap(){
   renderStarTrack();
   renderPortalTabs();
@@ -22498,6 +22520,7 @@ function renderRoadmap(){
       _inner.appendChild(el);
     }
     map.appendChild(_inner);
+    cbonusClearPlates(_inner); requestAnimationFrame(()=>cbonusClearPlates(_inner)); setTimeout(()=>{ if(_inner.isConnected) cbonusClearPlates(_inner); },500);
   } else {
   const N=STAGES_PER_CH, rowH=72, H=N*rowH+40; map.style.height=H+'px';
   const pts=[];
@@ -33255,7 +33278,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794264374697';
+const BUILD_ID = '1794265040841';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
