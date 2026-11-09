@@ -632,7 +632,8 @@
   /* v1321 (Phil 9 Nov): the red "upgrade available" dot - bottom left of a hero card, top right of a hero window tab */
   /* v1322 (Phil 9 Nov: "Red dot looks like it was done on paint ... needs to be smaller ... more in the corner ... more artsy"): a small cut-gem dot -
      gold rim, a ruby face lit from the top-left, a soft ember glow that breathes */
-  .hupDot{position:absolute;left:3px;bottom:3px;width:9px;height:9px;box-sizing:border-box;border-radius:50%;border:1px solid #f4cf6a;background:radial-gradient(circle at 34% 30%,#ffe7dc 0 10%,#ff6a4f 26%,#d4180e 58%,#6b0703 100%);box-shadow:0 0 0 1px rgba(40,12,4,.85),0 0 5px 1px rgba(255,80,40,.75);z-index:4;pointer-events:none;animation:hupGlow 2.4s ease-in-out infinite}
+  /* v1322: ChatGPT's painted ruby (Phil 9 Nov "Get chatgpt to do it" / "This isnt minecraft"), Game Art/UI/Main Screen HUD 09NOV2026/upgrade dot/ - 9 px, no glow */
+.hupDot{position:absolute;left:3px;bottom:3px;width:9px;height:9px;box-sizing:border-box;border:0;border-radius:0;background:url(/assets/img/ui/hud2/upgrade-dot.webp?v=1) center/contain no-repeat;box-shadow:none;z-index:4;pointer-events:none}
   @keyframes hupGlow{0%,100%{box-shadow:0 0 0 1px rgba(40,12,4,.85),0 0 4px 0 rgba(255,80,40,.55)}50%{box-shadow:0 0 0 1px rgba(40,12,4,.85),0 0 7px 2px rgba(255,110,60,.9)}}
   .hd-tab{position:relative}
   /* v1321 (Phil 9 Nov: "Make it more pleasing to the eyes, these buttons and ui are all messed up"): the campaign's top bar is ONE row -
@@ -32667,7 +32668,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794245664912';
+const BUILD_ID = '1794245969779';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
