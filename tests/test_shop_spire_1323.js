@@ -18,5 +18,12 @@ ck('Spire: the spell art is drawn before the 2D hero (behind her)', iArt > 0 && 
 const oA = odev.indexOf('drawSpellArt(X, Y, sc, W, H);'), oH = odev.indexOf('    if (H2) {');
 ck('CONTROL: v1322 drew it after the hero (in front)', oA > oH);
 ck('Spire 2D: spell art scaled to the hero (FXK2 = 3.6 x 1.2 / 6.9)', /FXK2 = 3\.6 \* 1\.2 \/ \(4\.6 \* 1\.5\)/.test(dev) && /if \(H2\) \{ w \*= FXK2; hh \*= FXK2; \}/.test(dev));
+// (3) the EGP screen (Phil 9 Nov: "center the EGP 13 / Ember Gold Patron. Then make a left and right arrow ... At the last patron level it gives
+// an option to see EDP" / "remove the buy attacks and arena resets from their screen")
+const srv = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
+ck('EGP screen: the head is centred between a left and a right arrow', /function patHeadHtml\(edp,lvl,own\)/.test(html) && /#patScreen \.patHeadC\{position:relative;justify-content:center/.test(html) && /patHeadHtml\(edp,lvl,true\)\+/.test(html));
+ck('the arrows walk EGP 0-15 then EDP 1-15 (the right arrow at EGP 15 reads EDP)', /for\(let i=0;i<=15;i\+\+\) a\.push\(\{edp:false,lv:i\}\); for\(let i=1;i<=15;i\+\+\) a\.push\(\{edp:true,lv:i\}\)/.test(html) && /d==='R'&&s\.edp&&!edp\?'<small>EDP<\/small>'/.test(html));
+ck('a browsed level shows the server\'s own numbers for it (table.rows sent by the server)', /rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP/.test(srv) && /function patLevelRows\(T,edp,lv\)/.test(html));
+ck('no buy-attacks or arena-reset button on the patron screen', !/id="patBuyAtk"/.test(html) && !/id="patArena"/.test(html) && /id="patArena"/.test(old));
 console.log('test_shop_spire_1323.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
