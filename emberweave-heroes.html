@@ -2499,7 +2499,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlDone{font-family:Georgia,'Times New Roman',serif;letter-spacing:3px;text-transform:uppercase;color:#ffe9b8}
 
 /* v1092 EGP / EDP (blueprint 25) */
-#patBadge{position:relative;left:auto;top:auto;transform:none;z-index:31;align-self:flex-end;margin:-6px 6px -4px 0;min-width:112px;height:36px;padding:0 16px;box-sizing:border-box;border:1.5px solid #c9a35e;border-radius:10px;font:800 15px/1 Georgia,'Times New Roman',serif;letter-spacing:.06em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);box-shadow:0 3px 8px #000a,inset 0 0 8px #c9a35e33;cursor:pointer;white-space:nowrap;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
+#patBadge{position:relative;left:auto;top:auto;transform:none;z-index:31;align-self:flex-end;margin:-14px 22px -12px 0;min-width:82px;height:28px;padding:0 11px;box-sizing:border-box;border:1.5px solid #c9a35e;border-radius:9px;font:800 13px/1 Georgia,'Times New Roman',serif;letter-spacing:.06em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);box-shadow:0 3px 8px #000a,inset 0 0 8px #c9a35e33;cursor:pointer;white-space:nowrap;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
 /* v1144: the sign-in gate and the GUEST marker */
 #authGate{position:fixed;inset:0;z-index:2147481000;display:none;align-items:center;justify-content:flex-end;padding:12px max(16px,calc(var(--ew-game-width,100vw) * 0.05));
   background:linear-gradient(90deg,rgba(5,7,12,.15) 0%,rgba(5,7,12,.55) 45%,rgba(5,7,12,.88) 100%),url(/assets/img/miscellaneous/splash-v2.jpg) center/cover no-repeat,#0b0f17;
@@ -32591,7 +32591,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794239788392';
+const BUILD_ID = '1794240200991';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
