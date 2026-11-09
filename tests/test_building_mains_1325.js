@@ -26,5 +26,6 @@ ck('v1326: Forge qualities are a tab column on the RIGHT of the list ("Qualitys 
 ck('v1326: the redesigned building screens fill a wide phone ("why is it not fit to screen")', /const FILL_WIDE=\{campaign:1,home:1,skyisland:1,arena:1,skyfall:1,forge:1,tech:1,market:1,shadymarket:1,wall:1,rankings:1,dungeon:1,watchtower:1,guild:1,wishing:1\};/.test(html));
 ck('v1326: Forge - one row per equipment, title raised ("each equipment 1 row" / "raise the forge title up")', html.includes("min-height:0!important;padding:7px max(52px,12%)!important;flex-wrap:nowrap!important") && html.includes("#forge .fgBy{display:none!important}") && html.includes(".titlebar{top:52px!important}"));
 ck('v1326: Guild Hall chat uses the same layout as the other guild tabs ("the chat bounces from the other tabs")', !/#guild:not\(:has\(#gInput\)\)\s*[>]?\s*[#.{a-z]/.test(html));
+ck('v1326: every EGP page is one fixed size; the head stays put ("make all the EGP pop outs the SAME size")', html.includes("#patScreen .patCard{width:min(640px,96%)!important;height:min(calc(var(--ew-game-height,100vh) * 0.9),760px)!important") && html.includes("#patScreen .patCard>.patHead{position:sticky"));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

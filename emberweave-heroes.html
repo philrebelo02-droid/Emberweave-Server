@@ -3082,6 +3082,10 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgFaces>*{width:30px!important;height:30px!important;min-width:30px}
 #forge .fgFaces img{width:100%!important;height:100%!important}
 /* v1326 (Phil 9 Nov: "the chat bounces from the other tabs. please put the chat to match the other tabs placement"): the rollout's 35 Guild Hall rules were scoped #guild:not(:has(#gInput)) - the chat tab holds #gInput, so it alone fell back to the old centred layout. They now apply to every guild tab. */
+/* v1326 (Phil 9 Nov: "make all the EGP pop outs the SAME size, so they dont bounce around when clicking left and right"): one fixed
+   card size for every level; the head (arrows, level) stays put and only the body scrolls */
+#patScreen .patCard{width:min(640px,96%)!important;height:min(calc(var(--ew-game-height,100vh) * 0.9),760px)!important;max-height:none!important;overflow-y:auto;box-sizing:border-box}
+#patScreen .patCard>.patHead{position:sticky;top:-14px;z-index:3;background:#121826;margin:-14px -14px 10px;padding:14px 58px 10px}
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -33193,7 +33197,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794261898280';
+const BUILD_ID = '1794262148059';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
