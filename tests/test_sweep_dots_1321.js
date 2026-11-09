@@ -43,7 +43,8 @@ ck('on a phone (under 900 px) the pills drop the + and the timer', /@media \(max
 
 // EGP button (Phil 9 Nov: "The EGP button needs to be bigger, and its own button separate from the commander plate" / "So I can press it")
 ck('the EGP button is its own element in the corner HUD, no longer inside the commander plate', !/<div id="profileBtn">[\s\S]*?id="patBadge"[\s\S]*?<div id="hubMenu">/.test(html.slice(html.indexOf('<div id="profileBtn">'), html.indexOf('<div id="hubMenu">')).replace(/<\/div>\s*<button id="patBadge"[\s\S]*$/, '')) && /<\/div>\r?\n    <button id="patBadge" hidden/.test(html));
-ck('it is a real button (28 px tall, 82 px wide, Georgia 13 px, tucked between the commander plate and MENU) with a press feedback', /#patBadge\{position:relative;[^}]*margin:-14px 22px -12px 0;min-width:82px;height:28px;[^}]*font:800 13px\/1 Georgia/.test(html) && /#patBadge:active\{transform:scale\(\.96\)\}/.test(html));
+ck('it is a real button (28 px tall, 82 px wide, Georgia 13 px) on the LEFT of the Commander plate, placed from the plate\'s own box', /#patBadge\{position:absolute;[^}]*min-width:82px;height:28px;[^}]*font:800 13px\/1 Georgia/.test(html) && /function egpPlace\(\)\{[\s\S]{0,700}pb\.style\.right=Math\.round\(\(h\.right-n\.left\)\/sc\+6\)\+'px'/.test(html));
+ck('MENU stays on the right and moves up under the plate; the base food / gold / diamond bar is centred at the top', /#hubMenu\{margin-top:-12px\}/.test(html) && /#home #townHud\{left:50%;transform:translateX\(-50%\);flex-wrap:nowrap;justify-content:center\}/.test(html));
 ck('CONTROL: v1320 drew it as a 10 px badge inside the commander plate', /<div id="profileBtn">[\s\S]*?<button id="patBadge"/.test(old.slice(old.indexOf('<div id="profileBtn">'), old.indexOf('<div id="hubMenu">'))) && /#patBadge\{position:absolute;[^}]*font:800 10px/.test(old));
 console.log('test_sweep_dots_1321.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

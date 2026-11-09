@@ -238,6 +238,10 @@
   #townHots{position:absolute;inset:0;}
   /* floating HUD on the town — clean framed resource chips with icon + value + buy(+) */
   #townHud{position:absolute;left:1.5%;top:2.5%;z-index:20;display:flex;gap:8px;flex-wrap:wrap;}
+  /* v1321 (Phil 9 Nov: "Put gold stam + diamonds center mid" / "Add it to the left side, commander + egp" / "keep menu right and move it up"):
+     the base's food / gold / diamond bar is centred at the top; EGP sits on the left of the Commander plate (egpPlace); MENU tucks under it */
+  #home #townHud{left:50%;transform:translateX(-50%);flex-wrap:nowrap;justify-content:center}
+  #hubMenu{margin-top:-12px}
   .resframe{display:inline-flex;align-items:center;gap:5px;padding:3px 3px 3px 6px;
     background:linear-gradient(180deg,#2a344c 0%,#161d2f 100%);border:1px solid #4a638f;border-radius:12px;
     box-shadow:0 3px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15);}
@@ -2499,7 +2503,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlDone{font-family:Georgia,'Times New Roman',serif;letter-spacing:3px;text-transform:uppercase;color:#ffe9b8}
 
 /* v1092 EGP / EDP (blueprint 25) */
-#patBadge{position:relative;left:auto;top:auto;transform:none;z-index:31;align-self:flex-end;margin:-14px 22px -12px 0;min-width:82px;height:28px;padding:0 11px;box-sizing:border-box;border:1.5px solid #c9a35e;border-radius:9px;font:800 13px/1 Georgia,'Times New Roman',serif;letter-spacing:.06em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);box-shadow:0 3px 8px #000a,inset 0 0 8px #c9a35e33;cursor:pointer;white-space:nowrap;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
+#patBadge{position:absolute;right:140px;top:44px;left:auto;transform:none;z-index:31;margin:0;min-width:82px;height:28px;padding:0 11px;box-sizing:border-box;border:1.5px solid #c9a35e;border-radius:9px;font:800 13px/1 Georgia,'Times New Roman',serif;letter-spacing:.06em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);box-shadow:0 3px 8px #000a,inset 0 0 8px #c9a35e33;cursor:pointer;white-space:nowrap;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
 /* v1144: the sign-in gate and the GUEST marker */
 #authGate{position:fixed;inset:0;z-index:2147481000;display:none;align-items:center;justify-content:flex-end;padding:12px max(16px,calc(var(--ew-game-width,100vw) * 0.05));
   background:linear-gradient(90deg,rgba(5,7,12,.15) 0%,rgba(5,7,12,.55) 45%,rgba(5,7,12,.88) 100%),url(/assets/img/miscellaneous/splash-v2.jpg) center/cover no-repeat,#0b0f17;
@@ -17733,11 +17737,19 @@ function bannerMsg(t){ if(window._p2guard) return;   // headless sim (arena seed
   const b=document.getElementById('banner');b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
 // (matIcon deleted with MATS)
 
+/* v1321 (Phil 9 Nov: "Add it to the left side, commander + egp"): the EGP button sits on the LEFT of the Commander plate, its middle on the
+   plate's middle, 6 px apart - measured from the plate itself after layout (the ring scales with the screen height). */
+function egpPlace(){ const pb=document.getElementById('patBadge'), nm=document.getElementById('pfName'), hud=document.getElementById('cornerHud'); if(!pb||!nm||!hud||pb.hidden) return;
+  requestAnimationFrame(()=>{ const n=nm.getBoundingClientRect(), h=hud.getBoundingClientRect(); if(!n.width||!h.width) return;
+    const sc=(hud.offsetWidth&&h.width)?h.width/hud.offsetWidth:1;   // the app may be scaled to fit the screen
+    pb.style.right=Math.round((h.right-n.left)/sc+6)+'px'; pb.style.top=Math.round((n.top-h.top+n.height/2)/sc-pb.offsetHeight/2)+'px'; }); }
+addEventListener('resize',()=>{ try{ egpPlace(); }catch(e){} });
 function updateHubChrome(){
   regenStamina();
   const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
   set('pLevel',playerLevel()); set('pGold',G.gold); set('pGems',G.gems);
   set('resLevel',playerLevel()); set('resName',G.playerName||t('profile.commander'));
+  try{ egpPlace(); }catch(e){}
   { const pb=document.getElementById('patBadge'), pt=(typeof LED!=='undefined'&&LED.st&&LED.st.patron)||null;   /* v1092 EGP / EDP */
     if(pb){ if(pt){ pb.hidden=false; pb.textContent=pt.prestiged?('EDP '+pt.edp):('EGP '+pt.egp); pb.classList.toggle('edp',!!pt.prestiged); if(!pb._wired){ pb._wired=1;   /* v1093 (Phil: "i cannot click the EGP icon by itself, it makes me click the profile portrait"): the portrait listens to pointerdown/up (wireTap) - stop those here */
       pb.addEventListener('pointerdown',ev=>ev.stopPropagation()); pb.addEventListener('pointerup',ev=>{ ev.stopPropagation(); openPatron(); }); pb.onclick=ev=>ev.stopPropagation(); } } else pb.hidden=true; } }
@@ -32591,7 +32603,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794240200991';
+const BUILD_ID = '1794240338159';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
