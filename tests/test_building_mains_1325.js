@@ -20,5 +20,6 @@ const tOld = fnOf(old, 'renderTemple') + tempLines(old), tNew = fnOf(html, 'rend
 ck('Temple of Ash untouched (Phil: excluded)', tOld === tNew && !/#temple[^{]*building-main/.test(html));
 ck('CONTROL: v1324 had none of it', !/academy-main|merchant-main|building-main/.test(old));
 ck('v1326: the Forge item-list panel drops the stretched laurel frame (Phil 9 Nov Forge screenshot) - each row keeps its own', /#forge:not\(:has\(#fgPop\)\) #forgeBody>\.panel:has\(\.fgRow\),#forge #forgeBody>\.panel:has\(\.fgRow\)\{background:none!important/.test(html));
+ck('v1326: the City Wall tab bar fills (no row padding on it) and its rows clear the laurel corners (Phil 9 Nov screenshot)', html.includes('.wdPanel>.wdBar{padding:0!important;height:14px!important') && html.includes('.wdPanel{padding-top:52px!important;padding-bottom:112px!important}'));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

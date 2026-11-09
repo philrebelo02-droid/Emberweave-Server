@@ -3050,6 +3050,11 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 /* v1326 (Phil 9 Nov, Forge list screenshot): the rollout stretched the laurel dialog frame over the WHOLE item-list panel, so on a long list
    its wreaths sat mid-list over the cards. A panel holding item rows drops it - every row keeps its own frame. */
 #forge:not(:has(#fgPop)) #forgeBody>.panel:has(.fgRow),#forge #forgeBody>.panel:has(.fgRow){background:none!important;padding:0 2%!important}
+/* v1326 (Phil 9 Nov, City Wall tab screenshot): the rollout's 14 px row padding also hit the durability bar, so its fill had 0 height and
+   the bar looked empty at 100 %; and the laurel frame's corners covered the last row. */
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel.wdPanel>.wdBar{padding:0!important;height:14px!important;box-sizing:border-box;border-top:0!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel.wdPanel>.wdBar>i{height:100%!important;padding:0!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel.wdPanel{padding-top:52px!important;padding-bottom:112px!important}   /* the rollout's own selector plus .wdPanel, so these win */
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -33159,7 +33164,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794259175054';
+const BUILD_ID = '1794259519451';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
