@@ -2857,22 +2857,22 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 @media(max-width:700px){#watchtower{background-position:30% top!important;background-attachment:fixed!important}#watchtower>.hdrbox,#watchtower>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#watchtower h1{font-size:33px!important}#watchtower #watchBody{width:94%!important;margin:130px auto 28px!important}#watchtower #watchBody>.panel{padding:32px 12%!important}#watchtower .btn{min-height:40px}}
 
 #watchtower{background:linear-gradient(90deg,#080d1626,transparent 40%,#080b1450),url('/assets/img/ui/building-main/watch-hall.webp?v=1') center/cover!important}
-#guild:not(:has(#gInput)){position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
-#guild:not(:has(#gInput)).active{display:block}
-#guild:not(:has(#gInput))>.hdrbox,#guild:not(:has(#gInput))>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
-#guild:not(:has(#gInput)) h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
-#guild:not(:has(#gInput)) h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
-#guild:not(:has(#gInput))>.hdrbox .sub,#guild:not(:has(#gInput))>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
-#guild:not(:has(#gInput))>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
-#guild:not(:has(#gInput)) #guildBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
-#guild:not(:has(#gInput)) #guildBody>.panel{width:100%!important;max-width:none!important;padding:62px 16%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
-#guild:not(:has(#gInput)) .btn,#guild:not(:has(#gInput)) .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
-#guild:not(:has(#gInput)) .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
-#guild:not(:has(#gInput)) .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
-#guild:not(:has(#gInput)) button:focus-visible,#guild:not(:has(#gInput)) input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
-#guild:not(:has(#gInput)) input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
-@media(max-height:560px) and (min-width:701px){#guild:not(:has(#gInput))>.hdrbox,#guild:not(:has(#gInput))>.titlebar{top:25%;left:2%;width:27%!important}#guild:not(:has(#gInput)) h1{font-size:26px!important}#guild:not(:has(#gInput)) #guildBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#guild:not(:has(#gInput)) #guildBody>.panel{padding:30px 12%!important}#guild:not(:has(#gInput)) .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
-@media(max-width:700px){#guild:not(:has(#gInput)){background-position:30% top!important;background-attachment:fixed!important}#guild:not(:has(#gInput))>.hdrbox,#guild:not(:has(#gInput))>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#guild:not(:has(#gInput)) h1{font-size:33px!important}#guild:not(:has(#gInput)) #guildBody{width:94%!important;margin:130px auto 28px!important}#guild:not(:has(#gInput)) #guildBody>.panel{padding:32px 12%!important}#guild:not(:has(#gInput)) .btn{min-height:40px}}
+#guild{position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
+#guild.active{display:block}
+#guild>.hdrbox,#guild>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#guild h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
+#guild h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
+#guild>.hdrbox .sub,#guild>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
+#guild>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
+#guild #guildBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
+#guild #guildBody>.panel{width:100%!important;max-width:none!important;padding:62px 16%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
+#guild .btn,#guild .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
+#guild .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#guild .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
+#guild button:focus-visible,#guild input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
+#guild input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
+@media(max-height:560px) and (min-width:701px){#guild>.hdrbox,#guild>.titlebar{top:25%;left:2%;width:27%!important}#guild h1{font-size:26px!important}#guild #guildBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#guild #guildBody>.panel{padding:30px 12%!important}#guild .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
+@media(max-width:700px){#guild{background-position:30% top!important;background-attachment:fixed!important}#guild>.hdrbox,#guild>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#guild h1{font-size:33px!important}#guild #guildBody{width:94%!important;margin:130px auto 28px!important}#guild #guildBody>.panel{padding:32px 12%!important}#guild .btn{min-height:40px}}
 
 #forge:not(:has(#fgPop)){position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
 #forge:not(:has(#fgPop)).active{display:block}
@@ -2907,9 +2907,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #watchtower #watchBody{margin-top:0!important}
 #watchtower #watchBody>.panel{min-height:150px;line-height:1.7}
 #watchtower #watchBody>.panel:only-child{padding-top:74px!important;background-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1')!important}
-#guild:not(:has(#gInput)) #guildBody>.panel{max-width:none!important;margin:0 0 16px!important}
-#guild:not(:has(#gInput)) #guildBody>.panel:first-child>div:first-child{font-size:0!important;height:90px;background:url('/assets/img/ui/building-main/guild-crest.webp?v=1') center/contain no-repeat}
-#guild:not(:has(#gInput)) #guildBody input{flex:1;width:120px}
+#guild #guildBody>.panel{max-width:none!important;margin:0 0 16px!important}
+#guild #guildBody>.panel:first-child>div:first-child{font-size:0!important;height:90px;background:url('/assets/img/ui/building-main/guild-crest.webp?v=1') center/contain no-repeat}
+#guild #guildBody input{flex:1;width:120px}
 #forge #forgeBody{max-width:900px!important}
 #forge .fgRow{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;border-radius:0!important;padding:14px!important;margin:7px 0!important}
 #forge .fgName{font-family:Georgia;color:#f4d595}
@@ -3039,7 +3039,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgRow{width:100%!important;min-height:130px!important;padding:27px 12%!important}
 #forge .fgName{overflow-wrap:normal!important;word-break:normal!important}
 #forge .fgItem{width:58px!important;height:58px!important;flex:0 0 58px!important}
-#guild:not(:has(#gInput)){background-size:cover!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
+#guild{background-size:cover!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
 #arena .arHero{height:auto!important;aspect-ratio:1!important;width:calc(20% - 5px)!important;max-width:104px!important;flex:1 1 0!important}
 #dungeon #dungeonBody>div>div>div:nth-child(3):not(.panel){background-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1')!important;padding:30px 12%!important;min-height:125px}
 
@@ -3081,6 +3081,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 @media (max-height:500px){ #forge .fgTabs .fgQ{min-height:24px!important;height:24px;font-size:11px!important} #forge .fgTabs{gap:3px!important} #forge .fgName{flex-basis:110px} }
 #forge .fgFaces>*{width:30px!important;height:30px!important;min-width:30px}
 #forge .fgFaces img{width:100%!important;height:100%!important}
+/* v1326 (Phil 9 Nov: "the chat bounces from the other tabs. please put the chat to match the other tabs placement"): the rollout's 35 Guild Hall rules were scoped #guild:not(:has(#gInput)) - the chat tab holds #gInput, so it alone fell back to the old centred layout. They now apply to every guild tab. */
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -33192,7 +33193,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794261585726';
+const BUILD_ID = '1794261898280';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
