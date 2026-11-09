@@ -10551,7 +10551,9 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.greenAb=mk.green||null; u.blueAb=mk.blue||null;
     u.greenCd=mk.green?mk.green.cd*0.5:0; u.blueCd=mk.blue?mk.blue.cd*0.75:0;
     if(mk.pass){ const p=mk.pass;                                   // boss passive
-      if(p==='unstoppable'){ u.immovable=true; u.stunImmune=true; } else u.pass={[p]:true}; } }
+      if(p==='unstoppable'){ u.immovable=true; u.stunImmune=true; } else u.pass={[p]:true};
+      if(p==='fury') u.atkInterval/=1.25;   /* v1316 (Phil 8 Nov "do everything you think is best"): Fury (+25% attack speed, Maelvara) only ever worked on the hero rank path - on a boss it set a flag nothing read */
+    } }
   if(t.monster&&monScaleMode(u)) monSkillStat(u);   /* v1313: a Magic monster's Ability Power = its damage number */
   /* v270 (DETERMINISM): a unit's SOLID BODY comes from data, never from pixels. It used to be derived
      from the sprite's aspect ratio — which is set when the image finishes downloading — so a slow
@@ -12106,7 +12108,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
   // Ability Power research multiplier. Buffs and per-cast skill scaling still apply here once.
-  const _mMode=monScaleMode(u), _mStat=_mMode?monSkillStat(u):0, _apU=(_mMode&&!(u.t.apow>0))?0:(u.apow||0);   /* v1313: a Magic monster's stat is its Ability Power (= its damage number); kit lines that read apB keep their v1312 value */
+  const _mMode=monScaleMode(u), _mStat=_mMode?monSkillStat(u):0, _apU=(_mMode&&!(u.t.apow>0))?(_mMode==='ap'?_mStat:0):(u.apow||0);   /* v1313: a Magic monster's stat is its Ability Power (= its damage number). v1316 (Phil 8 Nov "do everything you think is best"): a Magic monster with no apow of its own now reads that Ability Power in apB too - Sable Vesper's Dirge Crescendo healed 0 (the only monster kit hit; Boar Shaman / Ink Horror carry their own apow) */
   let apB=_apU*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm; let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm;
   const _mode=heroScaleMode(u); if(_mode==='ap'){ dB=apB; } else if(_mode==='ad'){ apB=dB; }
   if(u.pass&&u.pass.risingheat&&(u.apMul||1)>1){ apB*=u.apMul; dB*=u.apMul; }   /* v886 Rising Heat: the scorched-count bonus now reaches her spells */
@@ -22728,6 +22730,8 @@ for(const k in MONSTER_DEF){ const t=MONSTER_TYPES[k]; if(t&&t.monster){ t.armor
    backline" - still a 2.4 m burst, aimed at the lowest-HP back-row hero; "ignite all is a 20 meter range on all heroes" - every hero within
    20 m of him (was the whole field). MON_DMG_TYPES=false puts v1312 back (tests/helpers/global-1254-1260.js does, for the older BASE fights). */
 const MON_DMG_TYPES=true;
+/* v1316 (Phil 8 Nov "do everything you think is best"): the Nameless Admiral's Pack Stats counted his living summons and he has none, so it never did anything; he takes Lifesteal (heals for 20% of all damage it deals - the soul-taking ghost captain), already live on Voraxis. */
+MONSTER_KITS['nameless admiral'].pass='lifesteal';
 const MON_MAGIC_EXTRA={ashen:1, nightgloom:1, wintercrag:1, magmourn:1};
 const MON_DMG_IDS={magic:'Magic', attack:'Attack', tank:'Tank'};   // engine ids (damageProfile / role values), never shown raw
 /* v1315 (Phil 8 Nov 2026: Leviath "this is meant to be a caster bruiser" / Volthex "what makes you think this is a warrior" "its clearly a mage" /
