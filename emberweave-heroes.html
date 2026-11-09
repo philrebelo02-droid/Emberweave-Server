@@ -3063,6 +3063,24 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgTabs{order:2!important;display:flex!important;flex-direction:column!important;flex:0 0 132px!important;width:132px!important;gap:6px!important;position:sticky;top:8px}
 #forge .fgTabs .fgQ{min-height:38px;white-space:nowrap!important}
 @media (max-width:700px){ #forge .fgTabs{flex-basis:92px!important;width:92px!important} }
+/* v1326 FORGE (Phil 9 Nov: "raise the forge title up" / "each equipment 1 row" / "all qualities on the side" / "you love to waste space") */
+#forge:not(:has(#fgPop))>.hdrbox,#forge:not(:has(#fgPop))>.titlebar{top:52px!important}
+#forge:not(:has(#fgPop)) #forgeBody{margin:10px 2% 10px auto!important;width:64%!important;max-width:1100px!important}
+#forge:not(:has(#fgPop)) #forgeBody>.panel{padding:22px max(10%,64px)!important;margin:0 0 8px!important}
+#forge .fgRow{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;min-height:0!important;padding:7px max(52px,12%)!important;flex-wrap:nowrap!important;gap:10px!important;align-items:center!important;margin:0!important}
+#forge .fgList{gap:6px!important}
+#forge .fgItem{flex:0 0 44px!important;width:44px!important;height:44px!important}
+#forge .fgItem img{width:40px!important;height:40px!important}
+#forge .fgMain{display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;min-width:0;flex:1 1 auto}
+#forge .fgName{flex:0 0 170px;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;font-size:13px!important}
+#forge .fgBy{display:none!important}
+#forge .fgFaces{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1 1 auto}
+#forge .fgFaces>*{flex:0 0 auto}
+#forge .fgTabs{gap:4px!important;top:4px}
+#forge .fgTabs .fgQ{min-height:28px!important;height:28px;padding:2px 6px!important;font-size:12px!important}
+@media (max-height:500px){ #forge .fgTabs .fgQ{min-height:24px!important;height:24px;font-size:11px!important} #forge .fgTabs{gap:3px!important} #forge .fgName{flex-basis:110px} }
+#forge .fgFaces>*{width:30px!important;height:30px!important;min-width:30px}
+#forge .fgFaces img{width:100%!important;height:100%!important}
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -32835,7 +32853,9 @@ if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualV
    viewport meta) whenever it drifts with no text field focused. Also forced after any update reload. */
 function ewGameView(){ const v=window.EWViewport&&window.EWViewport.state;return v&&v.width&&v.height?{width:v.width,height:v.height}:{width:window.innerWidth,height:window.innerHeight}; }
 function _fitApp(){ try{ const app=document.getElementById('app');if(!app)return;EWViewport.state.screen=state;EWViewport.fit();const v=ewGameView(),vw=v.width,vh=v.height;if(!vw||!vh)return;
- const fillWide=EWViewport.state.rotated||((state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall')&&vw>vh&&vh<=700&&vw/vh>1.85);
+ /* v1326 (Phil 9 Nov: "why is it not fit to screen" / "you love to waste space"): the redesigned building screens fill a wide phone too */
+ const FILL_WIDE={campaign:1,home:1,skyisland:1,arena:1,skyfall:1,forge:1,tech:1,market:1,shadymarket:1,wall:1,rankings:1,dungeon:1,watchtower:1,guild:1,wishing:1};
+ const fillWide=EWViewport.state.rotated||(FILL_WIDE[state]&&vw>vh&&vh<=700&&vw/vh>1.85);
  const w=fillWide?vw:Math.min(vw,vh*1024/572),h=fillWide?vh:Math.min(vh,vw*572/1024);
  if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){app.style.width=Math.floor(w)+'px';app.style.height=Math.floor(h)+'px';_refitAll();}}catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
@@ -33172,7 +33192,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794260512016';
+const BUILD_ID = '1794261564194';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
