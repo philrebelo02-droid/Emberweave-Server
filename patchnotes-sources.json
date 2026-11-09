@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.14", "releases": "v1316", "items": [{"text": "Phil 8 Nov: 'do everything you think is best' (open list: Sable Vesper heal 0, Maelvara Fury / Admiral Pack Stats do nothing on a monster, gear and glyph stats in power).", "sources": ["SHIPPED-v1316-boss-passives-gear-power-08-11-2026.md"]}]},
     {"ver": "1.5.13", "releases": "v1315", "items": [{"text": "Phil 8 Nov: 'please put a better description in glossary of abilities' / Leviath 'this is meant to be a caster bruiser' / Volthex 'its clearly a mage' / 'audit the game' / 'yes do both' / 'this is too easy, check all chapters' / 'increase the stat % to balance'.", "sources": ["SHIPPED-v1315-monster-classes-campaign-08-11-2026.md"]}]},
     {"ver": "1.5.12", "releases": "v1314", "items": [{"text": "Phil 8 Nov: 'ignite all is way too big, it should be 20 meters wide' / 'fire ball should be an actual fireball projectile ... hits everyone within 5 meters of impact' / 'magmourn needs 30% more ability power' / 'like a ring around him'.", "sources": ["SHIPPED-v1314-magmourn-08-11-2026.md"]}]},
     {"ver": "1.5.11", "releases": "v1313", "items": [{"text": "Phil 8 Nov: 'big flaw with all monsters and bosses' / 'they should all scale ability power or attack damage' / Magmourn 'he should be a mage tank'.", "sources": ["SHIPPED-v1313-monster-damage-types-08-11-2026.md"]}]},
