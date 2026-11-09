@@ -241,7 +241,7 @@
   /* v1321 (Phil 9 Nov: "Put gold stam + diamonds center mid" / "Add it to the left side, commander + egp" / "keep menu right and move it up"):
      the base's food / gold / diamond bar is centred at the top; EGP sits on the left of the Commander plate (egpPlace); MENU tucks under it */
   #home #townHud{left:50%;transform:translateX(-50%);flex-wrap:nowrap;justify-content:center}
-  #hubMenu{margin-top:-12px}
+  #hubMenu{margin-top:0}
   .resframe{display:inline-flex;align-items:center;gap:5px;padding:3px 3px 3px 6px;
     background:linear-gradient(180deg,#2a344c 0%,#161d2f 100%);border:1px solid #4a638f;border-radius:12px;
     box-shadow:0 3px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15);}
@@ -255,6 +255,7 @@
   .resplus:active{transform:scale(.9);}
   /* top-right corner stack: portrait with the menu tucked directly beneath it */
   #cornerHud{position:absolute;right:0.5%;top:2%;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:16px;}
+  #leftHud{position:absolute;left:calc(0.5% + 43px);top:2%;z-index:30;display:flex;flex-direction:column;align-items:flex-start;}
   /* building name labels + lock badges (scroll with the map) */
   .townlbl{position:absolute;transform:translate(-50%,-50%);z-index:5;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;pointer-events:none;
     background:linear-gradient(180deg,#2a2416,#171208);border:1px solid #6b5a2e;border-radius:20px;padding:3px 11px;
@@ -2503,7 +2504,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlDone{font-family:Georgia,'Times New Roman',serif;letter-spacing:3px;text-transform:uppercase;color:#ffe9b8}
 
 /* v1092 EGP / EDP (blueprint 25) */
-#patBadge{position:absolute;right:140px;top:44px;left:auto;transform:none;z-index:31;margin:0;min-width:82px;height:28px;padding:0 11px;box-sizing:border-box;border:1.5px solid #c9a35e;border-radius:9px;font:800 13px/1 Georgia,'Times New Roman',serif;letter-spacing:.06em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);box-shadow:0 3px 8px #000a,inset 0 0 8px #c9a35e33;cursor:pointer;white-space:nowrap;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
+#patBadge{position:absolute;left:0;top:44px;right:auto;transform:none;z-index:31;margin:0;min-width:0;box-sizing:border-box;padding:2px 14px;font-family:Georgia,serif;font-weight:800;font-size:clamp(8px,calc(var(--ew-game-width,100vw) * 0.0155),13px);line-height:1.25;letter-spacing:.4px;color:#ffe6a8;text-shadow:0 1px 3px #000;white-space:nowrap;background:none;border-radius:0;box-shadow:none;border-style:solid;border-color:transparent;border-width:0 12px;border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 12px stretch;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));cursor:pointer;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
 /* v1144: the sign-in gate and the GUEST marker */
 #authGate{position:fixed;inset:0;z-index:2147481000;display:none;align-items:center;justify-content:flex-end;padding:12px max(16px,calc(var(--ew-game-width,100vw) * 0.05));
   background:linear-gradient(90deg,rgba(5,7,12,.15) 0%,rgba(5,7,12,.55) 45%,rgba(5,7,12,.88) 100%),url(/assets/img/miscellaneous/splash-v2.jpg) center/cover no-repeat,#0b0f17;
@@ -2652,7 +2653,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
         <button class="resplus" id="gemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button>
       </div>
     </div>
-    <div id="cornerHud">
+    <!-- v1321 (Phil 9 Nov: "Add it to the left side, commander + egp" / "keep menu right and move it up"): the commander ring, its level badge and EGP live top-left; MENU alone keeps the top-right corner -->
+    <div id="leftHud">
     <div id="pfLvBadge"><i>Lv</i><b id="resLevel">1</b></div>
     <div id="profileBtn">
       <div id="xpRing"><div id="pcAvatarWrap"><img id="pcAvatar" alt=""></div></div>
@@ -2661,6 +2663,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
       <button id="guestMark" hidden aria-label="Guest account - create an account" data-i18n-aria="html2.guest_create"></button>
     </div>
     <button id="patBadge" hidden aria-label="Patron" data-i18n-aria="patron.title"></button>   <!-- v1321 (Phil 9 Nov: "The EGP button needs to be bigger, and its own button separate from the commander plate" / "So I can press it") -->
+    </div>
+    <div id="cornerHud">
     <div id="hubMenu">
       <div id="menuBtn"><img class="mbIc" src="/assets/img/ui/mi-menu.webp?v=1" alt=""><span data-i18n="menu.menu">Menu</span><span class="chev">▾</span></div>
       <div id="menuPanel">
@@ -11279,13 +11283,14 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
       return void dock(cx-s/2,g.bottom+MUTE_GAP,s,'win-under-x',host); }
     MUTE_DOCK.x=null;
     /* the hub */
-    const home=document.getElementById('home'), pf=document.getElementById('profileBtn');
-    if(home&&home.classList.contains('active')&&st==='home'&&pf){ const r=R(pf);
-      if(r){ const f=R('#pfFrame'), L=f?Math.min(r.left,f.left):r.left, x=L-MUTE_GAP-MUTE_SZ, y=Math.max(4,r.top+r.height/2-MUTE_SZ/2-6);
-        MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(r.top+r.height/2)/vh; return void fix(x,y,MUTE_SZ,'hub'); } }   // (other screens: level with the portrait's centre)
+    /* v1321 (Phil 9 Nov: the commander moved top-left, MENU keeps the top right): on the hub the mute button sits LEFT of MENU, level with it;
+       every other screen keeps that spot (MUTE_POS) - it used to dock left of the commander ring */
+    const home=document.getElementById('home'), mbt=document.getElementById('hubMenu');   // the whole MENU plate, its round icon included
+    if(home&&home.classList.contains('active')&&st==='home'&&mbt){ const r=R(mbt);
+      if(r){ const x=r.left-MUTE_GAP-8-MUTE_SZ, y=Math.max(4,r.top+r.height/2-MUTE_SZ/2);   // Phil: "make sure the sound button isnt touching the menu" (14 px)
+        MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(r.top+r.height/2)/vh; return void fix(x,y,MUTE_SZ,'hub'); } }
     if(MUTE_POS.rx==null){ /* never on the hub yet: the hub's own CSS geometry (#cornerHud right .5%, #profileBtn clamp(56px,calc(var(--ew-game-height,100vh) * 0.1),92px) + its margin) */
-      const w=Math.max(56,Math.min(92,vh*0.10)), m=Math.max(30,Math.min(46,vh*0.047));
-      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP+0.07*w)/vw; MUTE_POS.ty=(vh*0.02+w/2)/vh; }
+      MUTE_POS.rx=(vw*0.005+152+MUTE_GAP)/vw; MUTE_POS.ty=(vh*0.02+17)/vh; }   // v1321: left of MENU (152 px wide, 34 px tall)
     const hx=vw-MUTE_POS.rx*vw-MUTE_SZ, hy=MUTE_POS.ty*vh-MUTE_SZ/2;
     /* battle: left of the speed button */
     if(st==='battle'){ const sp=R('#speedBtn'); if(sp) return void fix(sp.left-MUTE_GAP-MUTE_SZ,sp.top+sp.height/2-MUTE_SZ/2,MUTE_SZ,'battle'); return void fix(hx,hy,MUTE_SZ,'battle-hub'); }
@@ -17737,12 +17742,13 @@ function bannerMsg(t){ if(window._p2guard) return;   // headless sim (arena seed
   const b=document.getElementById('banner');b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
 // (matIcon deleted with MATS)
 
-/* v1321 (Phil 9 Nov: "Add it to the left side, commander + egp"): the EGP button sits on the LEFT of the Commander plate, its middle on the
-   plate's middle, 6 px apart - measured from the plate itself after layout (the ring scales with the screen height). */
-function egpPlace(){ const pb=document.getElementById('patBadge'), nm=document.getElementById('pfName'), hud=document.getElementById('cornerHud'); if(!pb||!nm||!hud||pb.hidden) return;
+/* v1321 (Phil 9 Nov: "Move the commander plate on the top left of the screen, egp under commander plate. Keep menu on the top right of the
+   screen"): the commander ring and EGP sit top-left; EGP is the SAME plate as Commander (same plaque art, font and box), right under it (Phil: "Tuck the commander and EGP plates more snug left" / "Make sure the commander and EGP buttons around the same") - measured from the plate after
+   layout (the ring scales with the screen height). */
+function egpPlace(){ const pb=document.getElementById('patBadge'), nm=document.getElementById('pfName'), hud=document.getElementById('leftHud'); if(!pb||!nm||!hud||pb.hidden) return;
   requestAnimationFrame(()=>{ const n=nm.getBoundingClientRect(), h=hud.getBoundingClientRect(); if(!n.width||!h.width) return;
     const sc=(hud.offsetWidth&&h.width)?h.width/hud.offsetWidth:1;   // the app may be scaled to fit the screen
-    pb.style.right=Math.round((h.right-n.left)/sc+6)+'px'; pb.style.top=Math.round((n.top-h.top+n.height/2)/sc-pb.offsetHeight/2)+'px'; }); }
+    pb.style.width=Math.round(n.width/sc)+'px'; pb.style.height=Math.round(n.height/sc)+'px'; pb.style.left=Math.round((n.left-h.left)/sc)+'px'; pb.style.top=Math.round((n.bottom-h.top)/sc+1)+'px'; }); }
 addEventListener('resize',()=>{ try{ egpPlace(); }catch(e){} });
 function updateHubChrome(){
   regenStamina();
@@ -32603,7 +32609,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794240338159';
+const BUILD_ID = '1794242267970';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
