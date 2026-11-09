@@ -23,5 +23,6 @@ ck('the Vault label moved right off the Arena art (x 75 -> 81)', /\[75,38,14,22,
 ck('the base HUD hugs its edges ("Cannot waste space for buildings")', /#home #townHud\{top:3px\}/.test(html) && /#home #leftHud\{top:2px;left:calc\(0\.5% \+ 37px\)\}/.test(html) && /#home #cornerHud\{top:2px;right:3px\}/.test(html));
 ck('the Heroes list and the hero window open centred on the screen ("its meant to be centered on the screen")', /#heroesPanel\.popout,#heroDetail\.popout\{left:50%!important;right:auto!important;transform:translateX\(-50%\)!important;/.test(html));
 ck('the red upgrade dot sits in the card corner, clear of the power line', /\.hero-card>\.hupDot\{left:3px;bottom:3px;width:10px;height:10px\}/.test(html));
+ck('the Heroes list shows rows of 5, in a window wide enough to keep the cards their size ("Rows of 5")', /#heroList\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important\}/.test(html) && /#heroesPanel\.popout\{width:min\(560px,96%\)!important\}/.test(html));
 console.log('test_hud_b_kit_1322.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
