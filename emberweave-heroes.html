@@ -17904,7 +17904,7 @@ function renderHome(){
     /* v1322 (Phil 9 Nov: "Fix the click boxes on the buildings. If i click on the word market it shouldnt be opening the academy"): a name label
        used to let the tap fall through to whichever building box lay under it (Academy's box reaches under the Market label). Every label is now
        its own building's button, drawn above all the boxes; a locked one only shows its level (hold) and opens nothing. */
-    lab.style.pointerEvents='auto'; lab.style.zIndex='40';
+    lab.style.pointerEvents='auto'; lab.style.zIndex='25';   /* v1323 (Phil 9 Nov: "The vault plate shouldnt be popping up over the menu pop out"): above every box (z 2), under the HUD + MENU (z 30) */
     if(clickable && hit.onclick){ lab.style.cursor='pointer'; lab.addEventListener('click',ev=>{ ev.stopPropagation(); hit.onclick(ev); }); }
     else lab.addEventListener('click',ev=>ev.stopPropagation());
     lab.dataset.nav=h.nav||(h.well?'well':h.cauldron?'cauldron':'');
@@ -32712,7 +32712,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794249454610';
+const BUILD_ID = '1794249586658';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

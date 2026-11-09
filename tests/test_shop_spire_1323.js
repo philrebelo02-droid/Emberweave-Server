@@ -25,5 +25,6 @@ ck('EGP screen: the head is centred between a left and a right arrow', /function
 ck('the arrows walk EGP 0-15 then EDP 1-15 (the right arrow at EGP 15 reads EDP)', /for\(let i=0;i<=15;i\+\+\) a\.push\(\{edp:false,lv:i\}\); for\(let i=1;i<=15;i\+\+\) a\.push\(\{edp:true,lv:i\}\)/.test(html) && /d==='R'&&s\.edp&&!edp\?'<small>EDP<\/small>'/.test(html));
 ck('a browsed level shows the server\'s own numbers for it (table.rows sent by the server)', /rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP/.test(srv) && /function patLevelRows\(T,edp,lv\)/.test(html));
 ck('no buy-attacks or arena-reset button on the patron screen', !/id="patBuyAtk"/.test(html) && !/id="patArena"/.test(html) && /id="patArena"/.test(old));
+ck('building names sit under the HUD and MENU (z 25 < 30) but above every building box ("The vault plate shouldnt be popping up over the menu pop out")', /lab\.style\.pointerEvents='auto'; lab\.style\.zIndex='25';/.test(html) && /lab\.style\.zIndex='40';/.test(old));
 console.log('test_shop_spire_1323.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
