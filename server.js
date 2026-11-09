@@ -4886,17 +4886,17 @@ const PATRON_EDP_ROWS=Object.freeze({   // index = EDP level 0-15
    by its line's size (Phil 9 Nov: "A players attacks should do 8% damage to wall naturally per hero missing when the line hits the wall reduces
    the damage ... 5 heroes 8% / 4 heroes 6% / 3 heroes 4% / 2 heroes 2% / 1 heroes 1%"); at 0 % the castle moves to a random open square of
    its own region and the wall is rebuilt. */
-const WALL_DUR=Object.freeze({ regenPerHour:4, hitByLine:[0,1,2,4,6,8], repairPct:25, repairCost:200 });   /* hitByLine[heroes in the attacking line] */
+const WALL_DUR=Object.freeze({ regenPerHour:4, hitByLine:[0,2,4,6,8,10], repairPct:25, repairCost:200 });   /* Phil 9 Nov (later): "Make attacks do 10%" - 5 heroes 10 %, -2 % per missing hero */   /* hitByLine[heroes in the attacking line] */
 /* v1323 (Phil 9 Nov: "Later city level will play a part in mitigating damage" / "If your city level(academy) is higher than the players level it
    reduces damage taken by 10% per level above" / "If you academy level is 44 and the player that hits your wall is level 40 you reduce ... 40%"): each
    level the defender's Academy stands above the ATTACKER'S PLAYER LEVEL takes 10 % off the hit, at most 90 % off. */
-function wallHitPct(n,defLv=0,atkLv=0){ const above=Math.max(0,(defLv|0)-(atkLv|0)); return WALL_DUR.hitByLine[Math.max(0,Math.min(5,n|0))]*Math.max(0.1,1-0.1*above); }   /* Phil 9 Nov: "The max reduced damage is 90%" */
+function wallHitPct(n,defLv=0,atkLv=0){ const above=Math.max(0,(defLv|0)-(atkLv|0)); return WALL_DUR.hitByLine[Math.max(0,Math.min(5,n|0))]*Math.max(0.1,1-0.05*above); }   /* Phil 9 Nov (final): "Mitigation is 5% per city wall ahead" - at most 90 % off, so a 5-hero line always does 1 % */   /* Phil 9 Nov: "The max reduced damage is 90%" */
 function cityLevel(u){ try{ return (ensureAcad(u).lv.academy|0); }catch(e){ return 0; } }
 function wallDur(u,now=Date.now()){ let w=u.wallDur; if(!w||typeof w!=='object'||!Number.isFinite(+w.pct)) w=u.wallDur={pct:100,t:now};
   const t=Number.isFinite(+w.t)?+w.t:now; if(now>t){ w.pct=Math.min(100,(+w.pct)+WALL_DUR.regenPerHour*(now-t)/3600000); w.t=now; } else w.t=Math.max(t,now);
   w.pct=Math.max(0,Math.min(100,+w.pct)); return w; }
 function wallView(u,now=Date.now()){ const w=wallDur(u,now); return { pct:Math.round(w.pct*10)/10, regenPerHour:WALL_DUR.regenPerHour,
-  repairPct:WALL_DUR.repairPct, repairCost:WALL_DUR.repairCost, hitByLine:WALL_DUR.hitByLine, cityLevel:cityLevel(u), mitigatePerLevel:10, fullInMs:w.pct>=100?0:Math.ceil((100-w.pct)/WALL_DUR.regenPerHour*3600000), fellAt:+u.wallFellAt||0 }; }
+  repairPct:WALL_DUR.repairPct, repairCost:WALL_DUR.repairCost, hitByLine:WALL_DUR.hitByLine, cityLevel:cityLevel(u), mitigatePerLevel:5, fullInMs:w.pct>=100?0:Math.ceil((100-w.pct)/WALL_DUR.regenPerHour*3600000), fellAt:+u.wallFellAt||0 }; }
 /* a won attack on this castle by a line of n heroes: the wall loses wallHitPct(n); at 0 the castle is destroyed and moved (returns the new square, else null) */
 function wallHit(d,n,now=Date.now(),atkLv=0){ if(!d||d.isNpc) return null; const w=wallDur(d,now); w.pct=Math.max(0,w.pct-wallHitPct(n,cityLevel(d),atkLv));
   if(w.pct>0) return null; const loc=d.worldLocation; if(!loc||!WORLD_LOCATION.REGIONS[loc.region]) { w.pct=100; return null; }

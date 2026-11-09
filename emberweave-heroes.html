@@ -25818,7 +25818,7 @@ function renderWallDur(body){ const W=(LED&&LED.st&&LED.st.wall)||null, P=patNow
   const row=(k,v)=>'<div class="patRow"><span>'+k+'</span><b>'+v+'</b></div>';
   panel.innerHTML='<div class="wdHead"><b>'+t('bld.city_wall')+'</b><span class="wdPct" style="color:'+col+'">'+Math.floor(pct)+'%</span></div>'+
     '<div class="wdBar"><i style="width:'+pct+'%;background:'+col+'"></i></div>'+
-    row(t('wall.dur_regen'),'+'+W.regenPerHour+'% / h')+(W.fullInMs>0?row(t('wall.dur_full_in'),fmtDur(W.fullInMs)):'')+row(t('wall.dur_loss'),(W.hitByLine||[]).slice(1).reverse().map((x,i)=>(5-i)+'·'+x+'%').join('  '))+row(t('wall.dur_city'),t('wall.dur_city_v',{lv:W.cityLevel|0,pct:(W.mitigatePerLevel||10)+'%'}))+
+    row(t('wall.dur_regen'),'+'+W.regenPerHour+'% / h')+(W.fullInMs>0?row(t('wall.dur_full_in'),fmtDur(W.fullInMs)):'')+row(t('wall.dur_loss'),(W.hitByLine||[]).slice(1).reverse().map((x,i)=>(5-i)+'·'+x+'%').join('  '))+row(t('wall.dur_city'),t('wall.dur_city_v',{lv:W.cityLevel|0,pct:(W.mitigatePerLevel||5)+'%'}))+
     '<div class="patBtns"><button class="btn" id="wdRepair"'+(pct>=100||gems<W.repairCost?' disabled':'')+'>'+t('wall.dur_repair',{pct:W.repairPct+'%',cost:hudIcon('gem')+W.repairCost})+'</button>'+
     (A&&A.buysMax>0?'<button class="btn" id="wdBuyAtk"'+((A.buys|0)>=A.buysMax||gems<A.pack.cost?' disabled':'')+'>'+t('patron.buy_attacks',{n:A.pack.n,cost:hudIcon('gem')+A.pack.cost})+'</button>':'')+'</div>'+
     (A?row(t('patron.city_attacks_today'),Math.max(0,A.cap-A.used)+' / '+A.cap)+row(t('patron.attack_buys'),A.buysMax>0?((A.buys|0)+' / '+A.buysMax):t('wall.dur_buys_egp3')):'');
@@ -32761,7 +32761,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794250620040';
+const BUILD_ID = '1794250783119';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

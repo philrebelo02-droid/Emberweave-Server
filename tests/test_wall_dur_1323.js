@@ -23,12 +23,12 @@ ck('a new wall stands at 100 %', ctx.wallDur(u, t0).pct === 100);
 u.wallDur = { pct: 50, t: t0 }; ck('it regenerates 4 % an hour (50 % -> 60 % after 2.5 h)', Math.abs(ctx.wallDur(u, t0 + 2.5 * H).pct - 60) < 1e-9);
 u.wallDur = { pct: 98, t: t0 }; ck('and never past 100 %', ctx.wallDur(u, t0 + 10 * H).pct === 100);
 u.wallDur = { pct: 50, t: t0 }; const v = ctx.wallView(u, t0); ck('the view says when it is full (50 % -> 12.5 h)', v.fullInMs === 12.5 * H && v.pct === 50);
-ck('a won attack takes Phil\'s damage by line size: 5 heroes 8 %, 4 6 %, 3 4 %, 2 2 %, 1 1 %', [5, 4, 3, 2, 1].map(n => ctx.wallHitPct(n)).join() === '8,6,4,2,1');
-u.wallDur = { pct: 45, t: t0 }; const r1 = ctx.wallHit(u, 5, t0); ck('a 5-hero line takes 8 % (45 -> 37) and the castle stays', r1 === null && u.wallDur.pct === 37 && u.worldLocation.x === 5);
-u.wallDur = { pct: 45, t: t0 }; ctx.wallHit(u, 3, t0); ck('a 3-hero line takes 4 % (45 -> 41)', u.wallDur.pct === 41);
-ck('Phil example: Academy 44 vs a level-40 attacker takes 40 % off (8 % -> 4.8 %)', Math.abs(ctx.wallHitPct(5, 44, 40) - 4.8) < 1e-9);
-ck('city level (Academy) above the attacker level takes 10 % off per level: 8 % -> 5.6 % at 3 above, capped at 90 % off (0.8 %) from 9 above; never more when below ("The max reduced damage is 90%")', Math.abs(ctx.wallHitPct(5, 13, 10) - 5.6) < 1e-9 && Math.abs(ctx.wallHitPct(5, 30, 10) - 0.8) < 1e-9 && ctx.wallHitPct(5, 4, 9) === 8);
-{ const d = { acadLv: 12, wallDur: { pct: 50, t: t0 }, worldLocation: { region: 'r1', x: 1, y: 1 } }; ctx.wallHit(d, 5, t0, 10); ck('a defender 2 Academy levels up loses 6.4 % to a 5-hero line (50 -> 43.6)', Math.abs(d.wallDur.pct - 43.6) < 1e-9, d.wallDur.pct); }
+ck('a won attack takes Phil damage by line size ("Attacks do 10%"): 5 heroes 10 %, 4 8 %, 3 6 %, 2 4 %, 1 2 %', [5, 4, 3, 2, 1].map(n => ctx.wallHitPct(n)).join() === '10,8,6,4,2');
+u.wallDur = { pct: 45, t: t0 }; const r1 = ctx.wallHit(u, 5, t0); ck('a 5-hero line takes 10 % (45 -> 35) and the castle stays', r1 === null && u.wallDur.pct === 35 && u.worldLocation.x === 5);
+u.wallDur = { pct: 45, t: t0 }; ctx.wallHit(u, 3, t0); ck('a 3-hero line takes 6 % (45 -> 39)', u.wallDur.pct === 39);
+ck('Academy 44 vs a level-40 attacker: 4 levels ahead x 5 % = 20 % off (10 % -> 8 %) ("Mitigation is 5% per city wall ahead")', Math.abs(ctx.wallHitPct(5, 44, 40) - 8) < 1e-9);
+ck('5 % off per level ahead: 10 % -> 8.5 % at 3 ahead, capped at 90 % off from 18 ahead - a 5-hero line always does 1 % ("So a player can always do 1%"); never more when below', Math.abs(ctx.wallHitPct(5, 13, 10) - 8.5) < 1e-9 && Math.abs(ctx.wallHitPct(5, 28, 10) - 1) < 1e-9 && Math.abs(ctx.wallHitPct(5, 100, 10) - 1) < 1e-9 && ctx.wallHitPct(5, 4, 9) === 10);
+{ const d = { acadLv: 12, wallDur: { pct: 50, t: t0 }, worldLocation: { region: 'r1', x: 1, y: 1 } }; ctx.wallHit(d, 5, t0, 10); ck('a defender 2 Academy levels ahead loses 9 % to a 5-hero line (50 -> 41)', Math.abs(d.wallDur.pct - 41) < 1e-9, d.wallDur.pct); }
 u.wallDur = { pct: 6, t: t0 }; const r2 = ctx.wallHit(u, 5, t0);
 ck('at 0 % the castle is destroyed and moved to a random open square of its OWN region, its old square refused', r2 && u.worldLocation.region === 'r1' && u.worldLocation.x === 77 && moved.length === 1 && moved[0][1] === 3, [r2, moved]);
 ck('and the wall is rebuilt at 100 %, the fall recorded', u.wallDur.pct === 100 && u.wallFellAt === t0);
