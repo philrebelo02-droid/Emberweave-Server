@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.20", "releases": "v1322", "items": [{"text": "Phil 9 Nov: B (ChatGPT's Forged Ember Heraldry kit) / Clicking the egp button pulls up nothing / If i click on the word market it shouldnt be opening the academy / move the plate for the vault right / more snug to the top and border.", "sources": ["SHIPPED-v1322-base-hud-b-kit-09-11-2026.md"]}]},
     {"ver": "1.5.19", "releases": "v1321", "items": [{"text": "Phil 9 Nov: Allow x3 sweep / make the top number reduce everytime I sweep / red dot on hero cards and tabs when upgrades are available.", "sources": ["SHIPPED-v1321-sweep-x3-upgrade-dots-09-11-2026.md"]}]},
     {"ver": "1.5.18", "releases": "v1320", "items": [{"text": "Phil 9 Nov: make stamina and diamonds visible on campaign screen / show the rewards just like wishing pool, 1 item at a time domino / the actual fragments art / the prompt in the back of the glyph screen should be infront.", "sources": ["SHIPPED-v1320-campaign-rewards-popup-09-11-2026.md"]}]},
     {"ver": "1.5.17", "releases": "v1319", "items": [{"text": "Phil 9 Nov: 2d yes / swap all heroes in spire to 2d / only swap back if i OK all 61 heroes.", "sources": ["SHIPPED-v1319-spire-heroes-2d-09-11-2026.md"]}]},

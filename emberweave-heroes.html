@@ -1248,6 +1248,33 @@
 #chatWidget .cw-head > span:first-child{position:static;}
 #chatWidget .cw-head{position:relative;}
 #chatWidget:not(.min) .cw-head{margin:0 6px -4px;position:relative;z-index:2;}
+/* v1322 (Phil 9 Nov: "B" - ChatGPT's Forged Ember Heraldry kit, Game Art/UI/Main Screen HUD 09NOV2026/kit/): the base screen's HUD pieces
+   wear the B kit - resource pills (9-slice: caps fixed, centre stretched), food / gold / diamond icons, + button, commander ring, level
+   shield, Commander + EGP plates (the same plate; EDP its silver one), MENU plate + book icon, the chat bar; the sound button (every screen) */
+#home #townHud{gap:4px}
+/* v1322 (Phil 9 Nov: "The ui needs to be more snug to the top and border in general" / "Cannot waste space for buildings"): every base HUD piece hugs its edge */
+#home #townHud{top:3px}
+#home #leftHud{top:2px;left:calc(0.5% + 37px)}
+#home #cornerHud{top:2px;right:3px}
+body:has(#home.active) #chatWidget.min{left:max(3px,env(safe-area-inset-left,0px));bottom:max(2px,env(safe-area-inset-bottom,0px))}
+#home #townHud .resframe{position:relative;height:30px;padding:0;margin-left:6px;border-style:solid;border-color:transparent;border-width:7px 26px 6px 26px;border-image:url(/assets/img/ui/hud2/resource-pill.webp?v=1) 36 150 30 150 fill / 7px 26px 6px 26px stretch;background:none;box-sizing:border-box;display:flex;align-items:center}
+#home #townHud .resframe .resval{margin:-7px 0 -6px;padding:0 3px 0 7px;font-size:13px;line-height:30px}
+#home #townHud .resframe .resicon{left:-32px;width:34px;height:34px;z-index:2}
+#home #townHud .resplus{position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:22px;height:22px;margin:0;background:url(/assets/img/ui/hud2/plus-button.webp?v=1) center/contain no-repeat;z-index:2}
+#home #townHud .resplus:active{transform:translateY(-50%) scale(.9)}
+#home #townHud .resframe:has(#resStamina) .resicon img{content:url(/assets/img/ui/hud2/food-icon.webp?v=1)}
+#home #townHud .resframe:has(#resGold) .resicon img{content:url(/assets/img/ui/hud2/gold-icon.webp?v=1)}
+#home #townHud .resframe:has(#resGems) .resicon img{content:url(/assets/img/ui/hud2/diamond-icon.webp?v=1)}
+#home #pfFrame{content:url(/assets/img/ui/hud2/commander-ring.webp?v=1)}
+#home #pfLvBadge{background:url(/assets/img/ui/hud2/level-badge.webp?v=1) center/contain no-repeat;aspect-ratio:5/6;top:0}
+#home #pfName .pname{border:0;border-image:none;background:url(/assets/img/ui/hud2/commander-plate.webp?v=1) center/100% 100% no-repeat;padding:6px 24px 7px;display:inline-block}
+#home #patBadge{border:0;border-image:none;background:url(/assets/img/ui/hud2/egp-plate.webp?v=1) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;padding:0}
+#home #patBadge.edp{background:url(/assets/img/ui/hud2/edp-plate.webp?v=1) center/100% 100% no-repeat;color:#e6f6ff}
+#home #menuBtn{border:0;border-image:none;background:url(/assets/img/ui/hud2/menu-plate.webp?v=1) center/100% 100% no-repeat;height:42px;padding:0 22px 0 40px;margin-left:24px}
+#home #menuBtn .mbIc{content:url(/assets/img/ui/hud2/menu-icon.webp?v=1);left:-18px;width:48px;height:48px}
+body:has(#home.active) #chatWidget.min .cw-head{border:0;border-image:none;background:url(/assets/img/ui/hud2/chat-bar.webp?v=1) center/100% 100% no-repeat;min-height:0;height:46px;width:276px;padding:0 34px 0 58px}
+body:has(#home.active) #chatWidget.min .cwIc{opacity:0}
+body:has(#home.active) #chatWidget.min #cwToggle{color:transparent;width:30px;height:30px}
 #chatWidget .cw-body{background:none;border-radius:0;padding:12px 11px 10px;box-sizing:border-box;
   border:0 solid transparent;border-width:5px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 22px stretch;filter:drop-shadow(0 6px 14px rgba(0,0,0,.7));}
 #chatWidget .cw-tabs{border-bottom:1px solid rgba(201,162,78,.35);}
@@ -11153,7 +11180,7 @@ function sndMuteApply(){ const on=SND_MUTE.on;
   try{ if(SND.out&&SND.ctx){ const g=SND.out.gain, t=SND.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(on?0:1, t); g.value=on?0:1; } }catch(e){}
   try{ if(_lore.a) _lore.a.muted=on; }catch(e){}
   try{ const b=document.getElementById('muteBtn'); if(b){ b.classList.toggle('off',on); b.setAttribute('aria-pressed',on?'true':'false'); b.setAttribute('aria-label',on?ewT('soundbtn.off'):ewT('soundbtn.on'));
-      const im=b.querySelector('img'); if(im) im.src=ICON_SRC.u(on?'audio-off':'audio-on'); } }catch(e){}
+      const im=b.querySelector('img'); if(im) im.src=on?'/assets/img/ui/hud2/sound-off.webp?v=1':'/assets/img/ui/hud2/sound-on.webp?v=1'; } }catch(e){}   /* v1322: the B kit's bell (Phil picked B) */
   try{ const cb=document.getElementById('snd_mute'); if(cb) cb.checked=on; }catch(e){} }
 function sndMuteSet(on){ SND_MUTE.on=!!on; try{ localStorage.setItem('ew_mute',SND_MUTE.on?'1':'0'); }catch(e){} sndMuteApply(); }
 /* The button lives on <body>, above every modal and the sign-in gate - or, docked under a window's close X, in that X's own row.
@@ -11321,7 +11348,7 @@ function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.bo
       'box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 0 6px rgba(255,200,120,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;'+
       'touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;outline:none}'+
       '#muteBtn.dock{position:absolute;left:var(--mx,0px);top:var(--my,0px)}'+
-      '#muteBtn img{width:70%;height:70%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px #000)}'+
+      '#muteBtn{border:0!important;background:none!important;box-shadow:none!important}#muteBtn img{width:100%;height:100%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}'+
       '#muteBtn.off{border-color:#8a6b2e}#muteBtn:active{transform:scale(.94)}#muteBtn:focus-visible{box-shadow:0 0 0 2px #ffd45e}';
       document.head.appendChild(st); }
     const b=document.createElement('button'); b.id='muteBtn'; b.type='button'; b.innerHTML='<img alt="" draggable="false">';
@@ -17758,7 +17785,10 @@ function updateHubChrome(){
   try{ egpPlace(); }catch(e){}
   { const pb=document.getElementById('patBadge'), pt=(typeof LED!=='undefined'&&LED.st&&LED.st.patron)||null;   /* v1092 EGP / EDP */
     if(pb){ if(pt){ pb.hidden=false; pb.textContent=pt.prestiged?('EDP '+pt.edp):('EGP '+pt.egp); pb.classList.toggle('edp',!!pt.prestiged); if(!pb._wired){ pb._wired=1;   /* v1093 (Phil: "i cannot click the EGP icon by itself, it makes me click the profile portrait"): the portrait listens to pointerdown/up (wireTap) - stop those here */
-      pb.addEventListener('pointerdown',ev=>ev.stopPropagation()); pb.addEventListener('pointerup',ev=>{ ev.stopPropagation(); openPatron(); }); pb.onclick=ev=>ev.stopPropagation(); } } else pb.hidden=true; } }
+      pb.addEventListener('pointerdown',ev=>ev.stopPropagation());   /* v1322 (Phil 9 Nov: "Clicking the egp button pulls up nothing"): on a phone the tap's pointerup never reached the
+      button (a touch tap measured: nothing; a mouse click: the panel) - it now opens on whichever of pointerup / touchend / click arrives first, once per press */
+      const go=ev=>{ ev.stopPropagation(); if(ev.type==='touchend') ev.preventDefault(); const now=Date.now(); if(now-(pb._openAt||0)<600) return; pb._openAt=now; openPatron(); };
+      pb.addEventListener('pointerup',go); pb.addEventListener('touchend',go,{passive:false}); pb.onclick=go; } } else pb.hidden=true; } }
   set('resGold',G.gold); set('resGems',G.gems);
   const mx=maxStamina(), full=G.stamina>=mx; set('resStamina',G.stamina+'/'+mx);
   const st=document.getElementById('resStaminaTimer'); if(st) st.textContent=full?'':('⏳'+fmtDur(staminaToNext()));
@@ -17822,7 +17852,7 @@ function renderHome(){
     [48,11,18,17,48,20], [35,20,12,14,35,29],
     [58,15,14,20,58,27], [73,15,15,26,73,31],
     [46,31,20,26,46,46], [61,35,13,15,61,46],
-    [75,38,14,22,75,52], [56,53,10,16,56,64],
+    [75,38,14,22,81,52], [56,53,10,16,56,64],   /* v1322 (Phil 9 Nov: "move the plate for the vault right so it doesnt cover the arena art"): Vault label x 75 -> 81 */
     [72,56,15,20,72,69], [9,70,11,25,9,82],
     [38,68,17,23,38,83], [63,75,17,23,63,94],
     [30,36,12,16,30,45], [28,54,12,16,28,64], [90,70,16,34,90,88]
@@ -17849,6 +17879,13 @@ function renderHome(){
     lab.innerHTML=inner;
     const wrapEl=lab.querySelector('.lockwrap');
     if(wrapEl && !wrapEl.classList.contains('acatimer')) townLockHold(lab, wrapEl);   // hold the name (not just the lock) to see the level
+    /* v1322 (Phil 9 Nov: "Fix the click boxes on the buildings. If i click on the word market it shouldnt be opening the academy"): a name label
+       used to let the tap fall through to whichever building box lay under it (Academy's box reaches under the Market label). Every label is now
+       its own building's button, drawn above all the boxes; a locked one only shows its level (hold) and opens nothing. */
+    lab.style.pointerEvents='auto'; lab.style.zIndex='40';
+    if(clickable && hit.onclick){ lab.style.cursor='pointer'; lab.addEventListener('click',ev=>{ ev.stopPropagation(); hit.onclick(ev); }); }
+    else lab.addEventListener('click',ev=>ev.stopPropagation());
+    lab.dataset.nav=h.nav||(h.well?'well':h.cauldron?'cauldron':'');
     box.appendChild(lab);
   });
   // ---- Island of Trials is now a static hotspot on the new town map (added to hots above) — old animated sprite disabled ----
@@ -32609,7 +32646,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794242267970';
+const BUILD_ID = '1794244445666';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
