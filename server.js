@@ -4879,6 +4879,30 @@ const PATRON_ROWS=Object.freeze({
 const PATRON_EDP_ROWS=Object.freeze({   // index = EDP level 0-15
   marchesAdd:  [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,3],
   marchSpeed:  [0,0,0,0,5,8,8,12,12,16,20,20,20,20,25,25] });
+/* v1323 CITY WALL DURABILITY (Phil 9 Nov 2026: "make a third tab called city wall. The city wall will have durability, when the durability hits
+   zero percent the castle is destroyed and randomly teleported to another location in the region. The city wall will regenerate about 4% city
+   wall health per hour, on this same tab there will be an option to repair wall (200 diamonds per 25% wall heal) to speed it up, and a buy
+   attacks option"). u.wallDur={pct,t}: regen 4 %/h computed on read; every city attack a player WINS against this castle takes the wall down
+   by its line's size (Phil 9 Nov: "A players attacks should do 8% damage to wall naturally per hero missing when the line hits the wall reduces
+   the damage ... 5 heroes 8% / 4 heroes 6% / 3 heroes 4% / 2 heroes 2% / 1 heroes 1%"); at 0 % the castle moves to a random open square of
+   its own region and the wall is rebuilt. */
+const WALL_DUR=Object.freeze({ regenPerHour:4, hitByLine:[0,1,2,4,6,8], repairPct:25, repairCost:200 });   /* hitByLine[heroes in the attacking line] */
+/* v1323 (Phil 9 Nov: "Later city level will play a part in mitigating damage" / "If your city level(academy) is higher than the players level it
+   reduces damage taken by 10% per level above" / "If you academy level is 44 and the player that hits your wall is level 40 you reduce ... 40%"): each
+   level the defender's Academy stands above the ATTACKER'S PLAYER LEVEL takes 10 % off the hit, at most 90 % off. */
+function wallHitPct(n,defLv=0,atkLv=0){ const above=Math.max(0,(defLv|0)-(atkLv|0)); return WALL_DUR.hitByLine[Math.max(0,Math.min(5,n|0))]*Math.max(0.1,1-0.1*above); }   /* Phil 9 Nov: "The max reduced damage is 90%" */
+function cityLevel(u){ try{ return (ensureAcad(u).lv.academy|0); }catch(e){ return 0; } }
+function wallDur(u,now=Date.now()){ let w=u.wallDur; if(!w||typeof w!=='object'||!Number.isFinite(+w.pct)) w=u.wallDur={pct:100,t:now};
+  const t=Number.isFinite(+w.t)?+w.t:now; if(now>t){ w.pct=Math.min(100,(+w.pct)+WALL_DUR.regenPerHour*(now-t)/3600000); w.t=now; } else w.t=Math.max(t,now);
+  w.pct=Math.max(0,Math.min(100,+w.pct)); return w; }
+function wallView(u,now=Date.now()){ const w=wallDur(u,now); return { pct:Math.round(w.pct*10)/10, regenPerHour:WALL_DUR.regenPerHour,
+  repairPct:WALL_DUR.repairPct, repairCost:WALL_DUR.repairCost, hitByLine:WALL_DUR.hitByLine, cityLevel:cityLevel(u), mitigatePerLevel:10, fullInMs:w.pct>=100?0:Math.ceil((100-w.pct)/WALL_DUR.regenPerHour*3600000), fellAt:+u.wallFellAt||0 }; }
+/* a won attack on this castle by a line of n heroes: the wall loses wallHitPct(n); at 0 the castle is destroyed and moved (returns the new square, else null) */
+function wallHit(d,n,now=Date.now(),atkLv=0){ if(!d||d.isNpc) return null; const w=wallDur(d,now); w.pct=Math.max(0,w.pct-wallHitPct(n,cityLevel(d),atkLv));
+  if(w.pct>0) return null; const loc=d.worldLocation; if(!loc||!WORLD_LOCATION.REGIONS[loc.region]) { w.pct=100; return null; }
+  const blocked=worldBlockedKeys(d,now); for(const key of WORLD_LOCATION.footKeys(loc.x,loc.y)) blocked.add(key);
+  const next=WORLD_LOCATION.openInRegion(loc.region,blocked); w.pct=100; w.t=now; d.wallFellAt=now;
+  if(next){ d.worldLocation=next; return next; } return null; }
 const PATRON_COSTS=Object.freeze({ eliteReset:50, arenaReset:50 });   // diamonds - Claude's default, not on Phil's chart [TUNE]
 const PATRON_DOUBLE_GOLD_EGP=6, PATRON_SHADY_ITEMS=['warchest','shields3','arenacoins','targeted5'];
 function patronRow(led,key){ const L=patronLevels(led), lv=Math.min(15,L.egp), r=PATRON_ROWS[key];
@@ -4907,7 +4931,7 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
     table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd,
       rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP } }; }   /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) */
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), wall:wallView(u), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -7790,6 +7814,15 @@ async function api(req,res,url){
     return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v825 DEV PACK TEST - the server credits the pack (amount from ITS list, never the client's) and files it to the dev inbox. */
   /* v1050: THE DIAMOND SHOP (see SHOP_OFFERS) - the offers, a purchase credited by the server, and the plans' daily claim */
+  /* v1323: repair the city wall - 200 diamonds per 25 % (Phil 9 Nov) */
+  if(p==='/api/wall/repair' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':wallrepair:'+reqId,(me)=>{ const led=ensureLedger(me), w=wallDur(me), c=WALL_DUR.repairCost;
+      if(w.pct>=100) return {ok:false,error:'Your wall is at full strength.'};
+      if((led.gems|0)<c) return {ok:false,error:'You need '+c+' diamonds.'};
+      led.gems-=c; w.pct=Math.min(100,w.pct+WALL_DUR.repairPct);
+      ledTx(me,'wall:repair',{gems:-c,pct:WALL_DUR.repairPct}); return {ok:true, wall:wallView(me), ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   /* v1092 EGP / EDP routes (blueprint 25) */
   if(p==='/api/patron/buy-attacks' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -9454,11 +9487,14 @@ async function api(req,res,url){
           if(c>0){ led.guildCoins=(led.guildCoins|0)+c; me.pvpDay.coins=(me.pvpDay.coins|0)+c; paidCoins=c; }
           loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
+        /* v1323: a won attack takes the wall's durability; at 0 % the castle is destroyed and teleported in its region */
+        let wallFell=null; if(won&&!d.isNpc){ wallFell=wallHit(d,ids.length,Date.now(),ledPlayerLevel(ensureLedger(me))); }   /* the attacker's PLAYER level (Phil: "academy level is 44 and the player that hits your wall is level 40" -> 40 %) */
+        const wallPct=d.isNpc?null:Math.round(wallDur(d).pct);
         d.pvpMail=d.pvpMail||[];
         /* v1042: both players' war mail gets the report WITH the fight (the replay the server fought: attacker's squad vs the
            defender's wall, same seed) - the receipt that used to hold it lasts an hour now. Delivered by /api/pvp/reports + ack. */
         const mailBattle=replay?{v:2,seed:replay.seed,mineSnap:replay.snaps,foe:replay.foe,won:!!won,oppName:me.name,attacker:me.name,defender:d.name}:undefined;
-        d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds, marchId:march.id, battle:mailBattle});
+        d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds, marchId:march.id, battle:mailBattle, wallPct, wallFell:!!wallFell, newLoc:wallFell?{x:wallFell.x,y:wallFell.y}:undefined});
         if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
         for(const o of new Set(garrison.map(g=>g.o))){ o.pvpMail=o.pvpMail||[]; o.pvpMail.push({id:uid(),kind:'defend-report',from:me.name,to:d.name,won,t:Date.now(),marchId:march.id}); if(o.pvpMail.length>20) o.pvpMail=o.pvpMail.slice(-20); }   /* v1097 */
         me.pvpMail=me.pvpMail||[];
@@ -9467,7 +9503,7 @@ async function api(req,res,url){
         if(me.pvpMail.length>20) me.pvpMail=me.pvpMail.slice(-20);
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w; _dpk('watch',me.id);
-        const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:Math.max(0,attackCap(me)-me.pvpDay.n), allyDefenders:garrison.length};
+        const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:Math.max(0,attackCap(me)-me.pvpDay.n), allyDefenders:garrison.length, wallPct, wallFell:!!wallFell};
         march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;   // the settled march replays this exact reply to a late retry (2 days) - tests/witches-hut-api pins it
         // A synchronous currency write must include the settled march and retry receipt.
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
