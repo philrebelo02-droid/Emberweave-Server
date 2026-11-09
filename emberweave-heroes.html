@@ -32656,8 +32656,18 @@ async function ewDiag(key){
   say(''); say('done.','#6cf');
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
+/* v1322 (Phil 9 Nov, screenshot "1667 new of 1667 files": "This is the 5th time you told me this was fixed but it isnt actually fixes"). Measured
+   in Chrome: download 1667/1667 kept, reopen -> 0 new - the code keeps the art; the PHONE drops it (Chrome refused persist: 'denied', so
+   the art is best-effort storage the browser may evict). Every open now reports what the device still holds, so the next screenshot comes
+   with the phone's own numbers: files held, persist state, usage / quota, and the last cache-log breadcrumb. */
+setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await caches.open('ember-assets-v1'); const n=(await c.keys()).length;
+  let per='?', est=null; try{ per=navigator.storage&&navigator.storage.persisted?String(await navigator.storage.persisted()):'n/a'; }catch(e){}
+  try{ est=navigator.storage&&navigator.storage.estimate?await navigator.storage.estimate():null; }catch(e){}
+  let last=''; try{ const L=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); const x=L[L.length-1]; if(x) last=x.t+' del '+x.deleted+(x.blocked?(' '+x.blocked):''); }catch(e){}
+  ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
+}catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794244792500';
+const BUILD_ID = '1794245664912';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -32913,7 +32923,7 @@ let _glFailed=false, _glFailMsg='● '+t('boot.no_webgl');
    WebGL failed, tap, sign-in gate, Terms, every first screen, first battle, errors, still-open at 90 s / 5 min) to /api/boot-step, so a
    stuck tester shows the exact step and device. Players past the tutorial report nothing. No name, no IP: a random session id. */
 const EWSTEP={ sid:(Math.random().toString(36).slice(2,10)+Date.now().toString(36)).slice(0,20), seen:{}, n:0, errs:0 };
-function ewStep(st,err){ try{ if(!st||EWSTEP.seen[st]||EWSTEP.n>=60) return; if(!/^(err|authfail)/.test(st)&&typeof G!=='undefined'&&G&&G.tutDone) return;
+function ewStep(st,err){ try{ if(!st||EWSTEP.seen[st]||EWSTEP.n>=60) return; if(!/^(err|authfail|offart)/.test(st)&&typeof G!=='undefined'&&G&&G.tutDone) return;
   EWSTEP.seen[st]=1; EWSTEP.n++; const ua=navigator.userAgent||'', m=ua.match(/\(([^)]*)\)/);
   const b={ sid:EWSTEP.sid, st:String(st).slice(0,48), ms:Math.round(performance.now()), dev:(m?m[1]:ua).slice(0,90), dm:navigator.deviceMemory||0, gl:_glFailed?0:1,
     v:(typeof BUILD_ID!=='undefined'?String(BUILD_ID):''), uid:(typeof ACC!=='undefined'&&ACC&&ACC.id)||'', err:String(err||'').slice(0,200), w:innerWidth, h:innerHeight,
