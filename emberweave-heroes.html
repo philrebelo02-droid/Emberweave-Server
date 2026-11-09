@@ -3112,7 +3112,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #patScreen:has(.patLv:not(.edp)) .patSub {font:12px/1.4 system-ui,sans-serif;color:#d8c29b;margin-top:4px;min-height:2.8em;}
 #patScreen:has(.patLv:not(.edp)) .patArw {width:40px;height:40px;flex:0 0 40px;margin-bottom:6px;border-radius:0;border:0;background:transparent url('/assets/img/ui/emberdraft-main/item-slot.webp?v=1') center/100% 100% no-repeat;color:#ffe5a5;font-size:17px;box-shadow:none;}
 #patScreen:has(.patLv:not(.edp)) .patArw:hover {filter:brightness(1.18);}
-#patScreen:has(.patLv:not(.edp)) .patHeadC #patX {top:12px;right:8px;transform:none;width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:#f6d792;font:22px/1 Georgia,serif;}
+#patScreen:has(.patLv:not(.edp)) .patHeadC #patX {top:12px;right:8px;transform:none;width:32px;height:32px;min-height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #b48239;border-radius:5px;background:#0b1420;box-shadow:none;color:#f6d792;font:22px/1 Georgia,serif;}
+#patScreen:has(.patLv:not(.edp)) .patHeadC #patX>*{width:20px!important;height:20px!important;margin:0}   /* the red X reads against the red curtain only on a dark plate, clear of its edge */
 #patScreen:has(.patLv:not(.edp)) .patSec {font:700 15px/1.4 Georgia,serif;letter-spacing:.05em;color:#f4d58f;margin:16px 0 7px;padding:0 0 7px;border-bottom:1px solid #b1843c66;}
 #patScreen:has(.patLv:not(.edp)) .patRow {padding:9px 2px;gap:16px;border-bottom:1px solid #a1875c2b;align-items:center;}
 #patScreen:has(.patLv:not(.edp)) .patRow:nth-of-type(even){background:#e9c97a04;}
