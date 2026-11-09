@@ -26,5 +26,7 @@ ck('the arrows walk EGP 0-15 then EDP 1-15 (the right arrow at EGP 15 reads EDP)
 ck('a browsed level shows the server\'s own numbers for it (table.rows sent by the server)', /rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP/.test(srv) && /function patLevelRows\(T,edp,lv\)/.test(html));
 ck('no buy-attacks or arena-reset button on the patron screen', !/id="patBuyAtk"/.test(html) && !/id="patArena"/.test(html) && /id="patArena"/.test(old));
 ck('building names sit under the HUD and MENU (z 25 < 30) but above every building box ("The vault plate shouldnt be popping up over the menu pop out")', /lab\.style\.pointerEvents='auto'; lab\.style\.zIndex='25';/.test(html) && /lab\.style\.zIndex='40';/.test(old));
+ck('a mine trip this device no longer knows is resolved on the next march sync (server battle, one requestId per trip) ("I sent this troops to this mine a week ago")', /function healOrphanMines\(\)/.test(html) && /requestId:'orphan-'\+String\(row\.id\)/.test(html) && /cache\.sync\(!!force\)\.then\(r=>\{ try\{ healOrphanMines\(\); \}/.test(html) && !/healOrphanMines/.test(old));
+ck('no mute button on the campaign screen ("Remove the mute from campaign screen")', /body:has\(#campaign\.active\) #muteBtn\{display:none!important\}/.test(html));
 console.log('test_shop_spire_1323.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

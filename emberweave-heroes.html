@@ -1259,6 +1259,8 @@
 #home #townHud{gap:4px}
 /* v1322 (Phil 9 Nov: "The ui needs to be more snug to the top and border in general" / "Cannot waste space for buildings"): every base HUD piece hugs its edge */
 #home #townHud{top:3px}
+/* v1323 (Phil 9 Nov: "Remove the mute from campaign screen") */
+body:has(#campaign.active) #muteBtn{display:none!important}
 #home #leftHud{top:2px;left:calc(0.5% + 37px)}
 #home #cornerHud{top:2px;right:3px}
 body:has(#home.active) #chatWidget.min{left:max(3px,env(safe-area-inset-left,0px));bottom:max(2px,env(safe-area-inset-bottom,0px))}
@@ -26457,7 +26459,27 @@ function worldMarchCache(){
     token:()=>ACC.token,online:()=>online(),fetchState:()=>api('/api/world/marches','GET')});
   return _worldMarchCache;
 }
-function syncWorldMarches(force){const cache=worldMarchCache();return cache?cache.sync(!!force):Promise.resolve(null);}
+function syncWorldMarches(force){const cache=worldMarchCache();return cache?cache.sync(!!force).then(r=>{ try{ healOrphanMines(); }catch(e){} return r; }):Promise.resolve(null);}
+/* v1323 (Phil 9 Nov: "I sent this troops to this mine a week ago" - Marches: "Lv 1 coal mine - Battle result awaiting resolution"): a mine trip
+   is resolved from this device's own copy of the march (G.marches). When that copy is gone (another device, cleared storage, an old save) the
+   server's trip waited forever. Every march sync now resolves such an orphan the normal way: the SERVER runs the mine battle
+   (/api/world/mine/resolve, one requestId per trip so a retry answers with the receipt), pays the haul, and the mail + report follow. */
+let _orphanMineBusy=false;
+function healOrphanMines(){ if(_orphanMineBusy||!ACC.token) return; const cache=worldMarchCache(), s=cache&&cache.state(); if(!s||!s.loaded) return;
+  const known=new Set(activeMarches().filter(m=>!m.resolved).map(m=>m.serverMineId).filter(Boolean));
+  const row=(s.rows||[]).find(m=>m.kind==='mine'&&m.resultPending&&s.now>=m.arriveAt&&!known.has(m.id)); if(!row) return;
+  _orphanMineBusy=true;
+  api('/api/world/mine/resolve','POST',{marchId:row.id,requestId:'orphan-'+String(row.id).slice(0,40)}).then(r=>{ _orphanMineBusy=false;
+    if(!r||!r.ok) return;
+    if(r.res) G.res=Object.assign({},G.res||{},r.res); if(r.witch&&r.witch.ledger) adoptLedger(r.witch.ledger);
+    const res=row.resource||'', label=mnResName(res), got=r.granted|0, opp=mineLabel({level:row.level||1,res});
+    const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,foe:r.replay.foe,won:!!r.won,oppName:opp}:null;
+    if(r.won){ addMail('mines',{from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:label}),subj:'{i:u:mode-mine} '+ewT('mine.cleared',{res:label}),body:ewT('mine.cleared_body',{amt:mnResIcon(res)+' '+got,res:label}),battle:replay});
+      marchReport('{i:u:mode-mine} '+ewT('mine.complete'),ewT('mine.hauled',{amt:mnResIcon(res)+' '+got,res:label})); }
+    else { addMail('mines',{from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:label}),subj:'{i:u:mode-mine} '+ewT('mine.guardians_held',{res:label}),body:ewT('mine.drove_off',{hut:ewT('bld.witches_hut')}),battle:replay});
+      marchReport('{i:u:mode-mine} '+ewT('mine.failed'),ewT('mine.held_heal',{hut:ewT('bld.witches_hut')})); }
+    updateMailBadges(); updateHubChrome(); saveG(); setTimeout(()=>syncWorldMarches(true),400);   /* the next orphan, if any */
+  }).catch(()=>{ _orphanMineBusy=false; }); }
 function drawServerMarchInfo(body,local){
   const box=document.createElement('div');box.style.cssText='font-size:12px;margin-top:12px;padding-top:8px;border-top:1px solid #33405e';body.appendChild(box);
   const render=()=>{if(!box.isConnected)return;const cache=worldMarchCache(),s=cache&&cache.state();box.replaceChildren();
@@ -32712,7 +32734,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794249586658';
+const BUILD_ID = '1794249713859';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
