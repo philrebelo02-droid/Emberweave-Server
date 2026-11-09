@@ -3086,6 +3086,63 @@ body.ew-rotated #app{max-width:none;max-height:none;}
    card size for every level; the head (arrows, level) stays put and only the body scrolls */
 #patScreen .patCard{width:min(640px,96%)!important;height:min(calc(var(--ew-game-height,100vh) * 0.9),760px)!important;max-height:none!important;overflow-y:auto;box-sizing:border-box}
 #patScreen .patCard>.patHead{position:sticky;top:-14px;z-index:3;background:#121826;margin:-14px -14px 10px;padding:14px 58px 10px}
+/* Phil 9 Nov EGP art. Append AFTER Claude's v1326 fixed-size rules.
+   Scoped paint only: no card width/height, tier data, state, or action changes.
+   Keep patHeadHtml markup and existing click handlers. */
+#patScreen:has(.patLv:not(.edp)) .patCard {
+  padding:18px 24px;color:#f4e9d1;
+  border:12px solid transparent;border-radius:0;
+  border-image:url('/assets/img/ui/egp-display/egp-patron-panel.webp?v=1') 64 fill / 12px stretch;
+  background:#091422;
+  box-shadow:0 18px 80px #000b;
+  scrollbar-width:thin;scrollbar-color:#9d7636 #0b1723;
+  scrollbar-gutter:stable both-edges;
+}
+#patScreen:has(.patLv:not(.edp)) .patCard>.patHead {
+  position:sticky;top:-6px;z-index:3;
+  margin:-6px -10px 12px;padding:0 52px 24px;
+  height:clamp(180px,26vw,220px);min-height:180px;box-sizing:border-box;
+  justify-content:center;align-items:flex-end;gap:16px;
+  background:#091422 url('/assets/img/ui/egp-display/egp-phoenix-header.webp?v=1') center top/100% 100% no-repeat;
+  box-shadow:0 9px 12px #07121be6;
+}
+#patScreen:has(.patLv:not(.edp)) .patCard>.patHead::before{content:'';position:absolute;inset:-40px -12px auto;height:40px;background:#091422;pointer-events:none;}
+#patScreen:has(.patLv:not(.edp)) .patMid {min-width:0;flex:0 1 310px;text-align:center;}
+#patScreen:has(.patLv:not(.edp)) .patLv {font:800 clamp(27px,3vw,36px)/1.1 Georgia,serif;letter-spacing:.035em;color:#ffe4a0;text-shadow:0 2px 3px #000,0 0 16px #b26a2b66;}
+#patScreen:has(.patLv:not(.edp)) .patSub {font:12px/1.4 system-ui,sans-serif;color:#d8c29b;margin-top:4px;min-height:2.8em;}
+#patScreen:has(.patLv:not(.edp)) .patArw {width:40px;height:40px;flex:0 0 40px;margin-bottom:6px;border-radius:0;border:0;background:transparent url('/assets/img/ui/emberdraft-main/item-slot.webp?v=1') center/100% 100% no-repeat;color:#ffe5a5;font-size:17px;box-shadow:none;}
+#patScreen:has(.patLv:not(.edp)) .patArw:hover {filter:brightness(1.18);}
+#patScreen:has(.patLv:not(.edp)) .patHeadC #patX {top:12px;right:8px;transform:none;width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:#f6d792;font:22px/1 Georgia,serif;}
+#patScreen:has(.patLv:not(.edp)) .patSec {font:700 15px/1.4 Georgia,serif;letter-spacing:.05em;color:#f4d58f;margin:16px 0 7px;padding:0 0 7px;border-bottom:1px solid #b1843c66;}
+#patScreen:has(.patLv:not(.edp)) .patRow {padding:9px 2px;gap:16px;border-bottom:1px solid #a1875c2b;align-items:center;}
+#patScreen:has(.patLv:not(.edp)) .patRow:nth-of-type(even){background:#e9c97a04;}
+#patScreen:has(.patLv:not(.edp)) .patRow span {min-width:0;overflow-wrap:anywhere;}
+#patScreen:has(.patLv:not(.edp)) .patRow b {flex:0 0 auto;max-width:48%;text-align:right;font-variant-numeric:tabular-nums;color:#ffe2a2;}
+#patScreen:has(.patLv:not(.edp)) .patBar {height:12px;border:1px solid #b08a45;border-radius:7px;background:#050d17;margin:4px 0 8px;box-shadow:inset 0 2px 4px #000b;}
+#patScreen:has(.patLv:not(.edp)) .patBar i {background:linear-gradient(90deg,#975717,#e6a544,#ffe7a2);box-shadow:0 0 10px #fcae5277;}
+#patScreen:has(.patLv:not(.edp)) .patBtns .btn {flex:0 1 300px;max-width:300px;margin:0 auto;min-height:72px;border:0;border-radius:0;background:transparent url('/assets/img/ui/emberdraft-main/play-button.webp?v=1') center/100% 100% no-repeat;color:#fff0c9;font:700 15px/1.2 Georgia,serif;padding:22px 24px;text-shadow:0 1px 3px #3b1401;}
+#patScreen:has(.patLv:not(.edp)) .patList {padding:0 4px 0 20px;margin:8px 0 18px;line-height:1.65;}
+#patScreen:has(.patLv:not(.edp)) .patList li {padding:3px 0;}
+#patScreen:has(.patLv:not(.edp)) .patList li::marker {color:#d7aa54;}
+#patScreen:has(.patLv:not(.edp)) .patList.next {color:#ead7ad;}
+#patScreen:has(.patLv:not(.edp)) .patSoon {font:10px/1.4 system-ui,sans-serif;color:#a5a7ac;border:1px solid #77756366;border-radius:3px;padding:0 3px;white-space:nowrap;}
+@media(max-width:480px){
+  #patScreen:has(.patLv:not(.edp)) .patCard{padding:14px 18px;font-size:12px;}
+  #patScreen:has(.patLv:not(.edp)) .patCard>.patHead{top:-3px;margin:-3px -5px 10px;padding:0 36px 20px;gap:8px;}
+  #patScreen:has(.patLv:not(.edp)) .patArw{width:32px;height:36px;flex-basis:32px;font-size:14px;margin-bottom:7px;}
+  #patScreen:has(.patLv:not(.edp)) .patSub{font-size:10px;}
+  #patScreen:has(.patLv:not(.edp)) .patRow{padding:9px 0;gap:8px;}
+  #patScreen:has(.patLv:not(.edp)) .patSec{font-size:14px;}
+}
+@media(max-height:480px) and (min-width:481px){
+  /* v1327: phone landscape keeps the phoenix at its true shape and crops the empty lower field, so the benefits get the room */
+  #patScreen:has(.patLv:not(.edp)) .patCard>.patHead{height:128px;min-height:128px;padding-bottom:4px;background-size:100% auto;background-position:center top;border-bottom:1px solid #b08a45;margin-bottom:6px;}
+  #patScreen:has(.patLv:not(.edp)) .patLv{font-size:24px;line-height:1;}
+  #patScreen:has(.patLv:not(.edp)) .patSub{min-height:0;margin-top:2px;white-space:nowrap;font-size:11px;}
+  #patScreen:has(.patLv:not(.edp)) .patArw{width:34px;height:34px;flex-basis:34px;margin-bottom:2px;}
+  #patScreen:has(.patLv:not(.edp)) .patRow{padding:6px 2px;}
+  #patScreen:has(.patLv:not(.edp)) .patSec{margin:8px 0 4px;padding-bottom:4px;}
+}
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -33197,7 +33254,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794262148059';
+const BUILD_ID = '1794264374697';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

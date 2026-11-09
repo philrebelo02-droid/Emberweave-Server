@@ -27,5 +27,12 @@ ck('v1326: the redesigned building screens fill a wide phone ("why is it not fit
 ck('v1326: Forge - one row per equipment, title raised ("each equipment 1 row" / "raise the forge title up")', html.includes("min-height:0!important;padding:7px max(52px,12%)!important;flex-wrap:nowrap!important") && html.includes("#forge .fgBy{display:none!important}") && html.includes(".titlebar{top:52px!important}"));
 ck('v1326: Guild Hall chat uses the same layout as the other guild tabs ("the chat bounces from the other tabs")', !/#guild:not\(:has\(#gInput\)\)\s*[>]?\s*[#.{a-z]/.test(html));
 ck('v1326: every EGP page is one fixed size; the head stays put ("make all the EGP pop outs the SAME size")', html.includes("#patScreen .patCard{width:min(640px,96%)!important;height:min(calc(var(--ew-game-height,100vh) * 0.9),760px)!important") && html.includes("#patScreen .patCard>.patHead{position:sticky"));
+const EGP = '#patScreen:has(.patLv:not(.edp))';
+const egpCss = html.split('\n').filter(l => l.includes(EGP)).join('\n');
+ck('v1327: EGP art (Phil 9 Nov "more artsy and glamourous") - the phoenix header and gold panel ship as WebP', ['egp-phoenix-header', 'egp-patron-panel'].every(n => egpCss.includes('/assets/img/ui/egp-display/' + n + '.webp?v=1') && fs.existsSync(path.join(ROOT, 'assets/img/ui/egp-display/' + n + '.webp'))));
+ck('v1327: the two reused controls point at the shared kit, nothing still points at the package', egpCss.includes('/assets/img/ui/emberdraft-main/item-slot.webp') && egpCss.includes('/assets/img/ui/emberdraft-main/play-button.webp') && !egpCss.includes('./assets/'));
+ck('v1327: the art never sets the card size, so every EGP page stays the same size', !/\.patCard\s*\{[^}]*(?:^|[;{\s])(?:width|height|max-height)\s*:/.test(egpCss));
+ck('v1327: the art is EGP only, the EDP pages keep their look', egpCss.split('\n').every(l => !l.includes('#patScreen ') || l.includes(EGP) || l.trim().startsWith('@media')));
+ck('v1327: the title sits on the card centre (gutter on both edges)', html.includes('scrollbar-gutter:stable both-edges'));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
