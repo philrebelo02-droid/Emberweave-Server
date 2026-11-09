@@ -22059,7 +22059,7 @@ function openStageModal(i,mode){
     if(r.runsLeft!=null){ try{ const sd=stageDaily(); sd.n[mode+':'+i]=Math.max(0,ELITE_BOSS_DAILY-(r.runsLeft|0)); }catch(e){} }   /* v1015 (re-audit Arena N7): the server's count of today's rewarded runs wins */
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
-    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i,mode); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=stageDropsHTML(r.stage,i,mode); }
+    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i,mode); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=(window._smReceipt&&window._smReceipt.key===_smKey)?window._smReceipt.html:stageDropsHTML(r.stage,i,mode); }
     preloadStageArt(r.stage); }
     else if(window.SM_KEY===_smKey&&!STAGE_CACHE[mode+':'+i]){ const de=document.getElementById('smDetails');   /* v1200: a failed or timed-out stage request says so, with Try again */
       if(de){ de.innerHTML='<div style="font-size:11px;color:#ff9a9a">'+t('stage.details_failed')+' <button class="btn xs" id="smDetRetry">'+t('stage.try_again')+'</button></div>'; const b=document.getElementById('smDetRetry'); if(b) b.onclick=()=>openStageModal(i,mode); } } }).catch(()=>{}); }
@@ -22086,7 +22086,10 @@ function openStageModal(i,mode){
     ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">'+t('stage.no_stamina')+'</div>'}
     <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?statusIcon('attack')+' '+(cleared?t('stage.fight_again'):t('stage.fight_now')):hudIcon('lock')+' '+t('stage.reach_level',{n:_gate})}</button>
       ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep'):hudIcon('lock')+' '+t('stage.needs',{stars:uiIcon('star-filled').repeat(3)})}</button>`:'<button class="btn secondary" disabled>'+statusIcon('dash')+' '+t('stage.sweep')+'</button>'}
-      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep_x10'):hudIcon('lock')+' ×10'}</button>`:'<button class="btn secondary" disabled>'+statusIcon('dash')+' '+t('stage.sweep_x10')+'</button>'}
+      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep_x10'):hudIcon('lock')+' ×10'}</button>`
+        :(cleared&&_eb)?(()=>{ const n=Math.max(0,Math.min(_left,Math.floor((G.stamina||0)/Math.max(1,stageStamCost(i,mode)))));   /* v1321 (Phil 9 Nov: "elite staged that have 3 chances. Allow x3 sweep for it instead of having the x10 sweep there") */
+            return `<button class="btn secondary" id="smSweepN" data-n="${n}" ${(n>0&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep')+' ×'+(n>0?n:ELITE_BOSS_DAILY):hudIcon('lock')+' ×'+ELITE_BOSS_DAILY}</button>`; })()
+        :'<button class="btn secondary" disabled>'+statusIcon('dash')+' '+t('stage.sweep_x10')+'</button>'}
       ${(()=>{ const P=patNow(); if(!_eb||_left>0||!P||!P.rows||!(P.rows.eliteResets>0)) return ''; const u=(P.used&&P.used.eliteResets)|0, mx=P.rows.eliteResets, c=(P.costs&&P.costs.eliteReset)||50;   /* v1093: EGP Elite stage reset */
         return `<button class="btn secondary" id="smReset" ${u>=mx||(G.gems||0)<c?'disabled':''}>↺ ${t('stage.reset_runs')} · ${hudIcon('gem')}${c} (${u}/${mx})</button>`; })()}
       <button class="btn sm secondary smCancel" id="smClose">${t('stage.back_to_map')}</button></div>
@@ -22100,8 +22103,9 @@ function openStageModal(i,mode){
     else { document.getElementById('smMsg').textContent=langMsg(r&&r.error)||t('stage.no_server'); rs.disabled=false; } };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i,1,mode);
   const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10,mode);
+  const swN=body.querySelector('#smSweepN'); if(swN) swN.onclick=()=>{ const n=+swN.dataset.n||0; if(n>0) sweepStage(i,n,mode); };
 }
-function closeStageModal(){ window.SM_KEY=null; document.getElementById('stageModal').classList.remove('active'); }
+function closeStageModal(){ window.SM_KEY=null; window._smReceipt=null; document.getElementById('stageModal').classList.remove('active'); }
 // Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
 // can actually pay for and says how many it ran, rather than refusing the whole batch at 9/10.
 /* v253 (visual audit #1/#2): ONE reward vocabulary. Guaranteed named items on top with icon + exact
@@ -22194,11 +22198,15 @@ function sweepStage(i,times,mode){
     const spoils=[ r.gold?`<span style="color:#ffd45e">+${r.gold.toLocaleString()}g</span>`:'',
       r.px?`<span style="color:#5ee89b">${t('reward.xp',{n:r.px.toLocaleString()})}</span>`:'' ].filter(Boolean)
       .map(x=>`<span style="font-size:10.5px">${x}</span>`).join('');
+    /* v1321 (Phil 9 Nov: "when I sweep it doesnt remove from the sweep chance display until I exit the stage and come back, also ... resetting
+       chances is unavailable until I exit stage"): the panel is drawn again from the new counts before the receipt goes in. */
+    try{ if(document.getElementById('stageModal').classList.contains('active')) openStageModal(i,mode); }catch(e){}
     const tgt=document.getElementById('smFragTarget');
     if(tgt) tgt.innerHTML=`<div style="border-top:1px solid #2b7a55;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
       <span style="font-size:9px;letter-spacing:1px;color:#5ee89b;font-weight:800">${uiIcon('check')} ${t('stage.swept',{n:r.times})}</span>
       ${items||'<span style="font-size:10.5px;color:#6f7d90">'+t('stage.no_fragments')+'</span>'}${eliteLine}${potionLine}${spoils}
       ${um?`<span style="color:#ffd45e;font-size:10.5px">${um}</span>`:''}</div>`;
+    if(tgt) window._smReceipt={key:mode+':'+i, html:tgt.innerHTML};
     document.getElementById('smMsg').textContent='';
     try{ stageRewardPop(stageRewardItems(r), t('stage.swept',{n:r.times})); }catch(e){}   /* v1320 */
     if(typeof glyphV2Sync==='function') glyphV2Sync();
