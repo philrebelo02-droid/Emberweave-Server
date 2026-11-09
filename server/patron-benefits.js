@@ -118,76 +118,92 @@
   [
    "Keeps every EGP 15 benefit",
    "EDP badge and diamond name color",
-   "125% rebate on purchases"
+   "125% rebate on purchases",
+   "+0.7% wall damage on every city attack hit (added)"
   ],
   [
    "City wall recovers 10% faster",
-   "130% rebate on purchases"
+   "130% rebate on purchases",
+   "+1.3% wall damage on every city attack hit (added)"
   ],
   [
    "21 city attacks a day",
    "6 attack buys a day",
-   "135% rebate on purchases"
+   "135% rebate on purchases",
+   "+2% wall damage on every city attack hit (added)"
   ],
   [
    "Armies march 5% faster on the world map",
-   "140% rebate on purchases"
+   "140% rebate on purchases",
+   "+2.7% wall damage on every city attack hit (added)"
   ],
   [
    "+1 army out on the world map at once (6)",
    "City wall recovers 22% faster",
    "Armies march 8% faster",
-   "145% rebate on purchases"
+   "145% rebate on purchases",
+   "+3.3% wall damage on every city attack hit (added)"
   ],
   [
    "22 city attacks a day",
    "7 attack buys a day",
-   "150% rebate on purchases"
+   "150% rebate on purchases",
+   "+4% wall damage on every city attack hit (added)"
   ],
   [
    "Armies march 12% faster",
-   "155% rebate on purchases"
+   "155% rebate on purchases",
+   "+4.7% wall damage on every city attack hit (added)"
   ],
   [
    "City wall recovers 35% faster",
-   "160% rebate on purchases"
+   "160% rebate on purchases",
+   "+5.3% wall damage on every city attack hit (added)"
   ],
   [
    "23 city attacks a day",
    "8 attack buys a day",
    "Armies march 16% faster",
-   "165% rebate on purchases"
+   "165% rebate on purchases",
+   "+6% wall damage on every city attack hit (added)"
   ],
   [
    "+1 army out on the world map at once (7)",
    "City wall recovers 50% faster",
    "Armies march 20% faster",
-   "170% rebate on purchases"
+   "170% rebate on purchases",
+   "+6.7% wall damage on every city attack hit (added)"
   ],
   [
    "Mines gather for 8 extra hours",
-   "175% rebate on purchases"
+   "175% rebate on purchases",
+   "+7.3% wall damage on every city attack hit (added)"
   ],
   [
    "24 city attacks a day",
    "9 attack buys a day",
-   "180% rebate on purchases"
+   "180% rebate on purchases",
+   "+8% wall damage on every city attack hit (added)"
   ],
   [
    "Mines gather for 10 extra hours",
-   "185% rebate on purchases"
+   "185% rebate on purchases",
+   "+8.7% wall damage on every city attack hit (added)"
   ],
   [
    "Armies march 25% faster",
-   "190% rebate on purchases"
+   "190% rebate on purchases",
+   "+9.3% wall damage on every city attack hit (added)"
   ],
   [
    "25 city attacks a day",
    "10 attack buys a day",
    "+1 army out on the world map at once (8)",
    "Exclusive EDP chat bubble and frame",
-   "195% rebate on purchases"
-  ]
+   "195% rebate on purchases",
+   "+10% wall damage on every city attack hit (added)"
+  ],
+   "+10% wall damage on every city attack hit (added)"
  ]
 };
   if(typeof module!=='undefined'&&module.exports) module.exports=PATRON_BENEFITS; else root.PATRON_BENEFITS=PATRON_BENEFITS;

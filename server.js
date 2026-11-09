@@ -4878,7 +4878,8 @@ const PATRON_ROWS=Object.freeze({
   shadyOff:    [0,0,0,0,0,0,0,0,0,10,10,10,20,20,20,30] });
 const PATRON_EDP_ROWS=Object.freeze({   // index = EDP level 0-15
   marchesAdd:  [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,3],
-  marchSpeed:  [0,0,0,0,5,8,8,12,12,16,20,20,20,20,25,25] });
+  marchSpeed:  [0,0,0,0,5,8,8,12,12,16,20,20,20,20,25,25],
+  wallRecover: [0,0,10,10,10,22,22,22,35,35,50,50,50,50,50,50] });   /* v1324: Phil's chart - "City wall recovers 10/22/35/50% faster" at EDP 2/5/8/10, built now the wall has durability (v1323) */
 /* v1323 CITY WALL DURABILITY (Phil 9 Nov 2026: "make a third tab called city wall. The city wall will have durability, when the durability hits
    zero percent the castle is destroyed and randomly teleported to another location in the region. The city wall will regenerate about 4% city
    wall health per hour, on this same tab there will be an option to repair wall (200 diamonds per 25% wall heal) to speed it up, and a buy
@@ -4890,16 +4891,21 @@ const WALL_DUR=Object.freeze({ regenPerHour:4, hitByLine:[0,2,4,6,8,10], repairP
 /* v1323 (Phil 9 Nov: "Later city level will play a part in mitigating damage" / "If your city level(academy) is higher than the players level it
    reduces damage taken by 10% per level above" / "If you academy level is 44 and the player that hits your wall is level 40 you reduce ... 40%"): each
    level the defender's Academy stands above the ATTACKER'S PLAYER LEVEL takes 10 % off the hit, at most 90 % off. */
-function wallHitPct(n,defLv=0,atkLv=0){ const above=Math.max(0,(defLv|0)-(atkLv|0)); return WALL_DUR.hitByLine[Math.max(0,Math.min(5,n|0))]*Math.max(0.1,1-0.05*above); }   /* Phil 9 Nov (final): "Mitigation is 5% per city wall ahead" - at most 90 % off, so a 5-hero line always does 1 % */   /* Phil 9 Nov: "The max reduced damage is 90%" */
+/* v1324 EDP WALL DAMAGE (Phil 9 Nov: "Damage should get 10% total damage increase by EDP 15 climbing slowly. And thats added not a percent of the 10%"
+   / "So an EDP15 player does 20% damage on the wall of a player. 5 hits should destroy someones castle if they land full 5 heroes"): an EDP n attacker
+   adds 10*n/15 points (EDP 15 = +10) to a full line's hit, a smaller line its share (n heroes = n/5); the defender's Academy mitigation then applies */
+function patronWallBonus(u){ try{ const L=patronLevels(ensureLedger(u)); return L.prestiged?Math.round(10*Math.min(15,L.edp)/15*10)/10:0; }catch(e){ return 0; } }
+function wallRegenRate(u){ try{ const L=patronLevels(ensureLedger(u)); return WALL_DUR.regenPerHour*(1+(L.prestiged?(PATRON_EDP_ROWS.wallRecover[Math.min(15,L.edp)]|0):0)/100); }catch(e){ return WALL_DUR.regenPerHour; } }
+function wallHitPct(n,defLv=0,atkLv=0,bonus=0){ const k=Math.max(0,Math.min(5,n|0)), above=Math.max(0,(defLv|0)-(atkLv|0)); return (WALL_DUR.hitByLine[k]+(+bonus||0)*k/5)*Math.max(0.1,1-0.05*above); }   /* Phil 9 Nov (final): "Mitigation is 5% per city wall ahead" - at most 90 % off, so a 5-hero line always does 1 % */   /* Phil 9 Nov: "The max reduced damage is 90%" */
 function cityLevel(u){ try{ return (ensureAcad(u).lv.academy|0); }catch(e){ return 0; } }
 function wallDur(u,now=Date.now()){ let w=u.wallDur; if(!w||typeof w!=='object'||!Number.isFinite(+w.pct)) w=u.wallDur={pct:100,t:now};
-  const t=Number.isFinite(+w.t)?+w.t:now; if(now>t){ w.pct=Math.min(100,(+w.pct)+WALL_DUR.regenPerHour*(now-t)/3600000); w.t=now; } else w.t=Math.max(t,now);
+  const t=Number.isFinite(+w.t)?+w.t:now; if(now>t){ w.pct=Math.min(100,(+w.pct)+wallRegenRate(u)*(now-t)/3600000); w.t=now; } else w.t=Math.max(t,now);
   w.pct=Math.max(0,Math.min(100,+w.pct)); return w; }
-function wallView(u,now=Date.now()){ const s=u&&u.wallDur, w=(s&&Number.isFinite(+s.pct))?{pct:Math.min(100,(+s.pct)+(now>(+s.t||now)?WALL_DUR.regenPerHour*(now-(+s.t))/3600000:0))}:{pct:100};   /* read-only: a ledger read stores nothing */
-  return { pct:Math.round(w.pct*10)/10, regenPerHour:WALL_DUR.regenPerHour,
-  repairPct:WALL_DUR.repairPct, repairCost:WALL_DUR.repairCost, hitByLine:WALL_DUR.hitByLine, cityLevel:cityLevel(u), mitigatePerLevel:5, fullInMs:w.pct>=100?0:Math.ceil((100-w.pct)/WALL_DUR.regenPerHour*3600000), fellAt:+u.wallFellAt||0 }; }
+function wallView(u,now=Date.now()){ const rr=wallRegenRate(u), s=u&&u.wallDur, w=(s&&Number.isFinite(+s.pct))?{pct:Math.min(100,(+s.pct)+(now>(+s.t||now)?rr*(now-(+s.t))/3600000:0))}:{pct:100};   /* read-only: a ledger read stores nothing */
+  return { pct:Math.round(w.pct*10)/10, regenPerHour:Math.round(rr*100)/100, edpWallBonus:patronWallBonus(u),
+  repairPct:WALL_DUR.repairPct, repairCost:WALL_DUR.repairCost, hitByLine:WALL_DUR.hitByLine, cityLevel:cityLevel(u), mitigatePerLevel:5, fullInMs:w.pct>=100?0:Math.ceil((100-w.pct)/rr*3600000), fellAt:+u.wallFellAt||0 }; }
 /* a won attack on this castle by a line of n heroes: the wall loses wallHitPct(n); at 0 the castle is destroyed and moved (returns the new square, else null) */
-function wallHit(d,n,now=Date.now(),atkLv=0){ if(!d||d.isNpc) return null; const w=wallDur(d,now); w.pct=Math.max(0,w.pct-wallHitPct(n,cityLevel(d),atkLv));
+function wallHit(d,n,now=Date.now(),atkLv=0,bonus=0){ if(!d||d.isNpc) return null; const w=wallDur(d,now); w.pct=Math.max(0,w.pct-wallHitPct(n,cityLevel(d),atkLv,bonus));
   if(w.pct>0) return null; const loc=d.worldLocation; if(!loc||!WORLD_LOCATION.REGIONS[loc.region]) { w.pct=100; return null; }
   const blocked=worldBlockedKeys(d,now); for(const key of WORLD_LOCATION.footKeys(loc.x,loc.y)) blocked.add(key);
   const next=WORLD_LOCATION.openInRegion(loc.region,blocked); w.pct=100; w.t=now; d.wallFellAt=now;
@@ -9491,7 +9497,7 @@ async function api(req,res,url){
           loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         /* v1323: a won attack takes the wall's durability; at 0 % the castle is destroyed and teleported in its region */
-        let wallFell=null; if(won&&!d.isNpc){ wallFell=wallHit(d,ids.length,Date.now(),ledPlayerLevel(ensureLedger(me))); }   /* the attacker's PLAYER level (Phil: "academy level is 44 and the player that hits your wall is level 40" -> 40 %) */
+        let wallFell=null; if(won&&!d.isNpc){ wallFell=wallHit(d,ids.length,Date.now(),ledPlayerLevel(ensureLedger(me)),patronWallBonus(me)); }   /* the attacker's PLAYER level (Phil: "academy level is 44 and the player that hits your wall is level 40" -> 40 %) */
         const wallPct=d.isNpc?null:Math.round(wallDur(d).pct);
         d.pvpMail=d.pvpMail||[];
         /* v1042: both players' war mail gets the report WITH the fight (the replay the server fought: attacker's squad vs the
