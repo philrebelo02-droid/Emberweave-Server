@@ -32222,7 +32222,9 @@ function patLevelRows(T,edp,lv){ const R=T&&T.rows; if(!R) return ''; const g=ed
     row(t('patron.vault_resets'),R.vaultExtra[g]>0?R.vaultExtra[g]:'—')+row(t('patron.armies_out'),mar)+(ms?row(t('patron.march_speed'),'+'+ms+'%'):'')+
     (so?row(t('patron.market_discount',{market:t('bld.shady_market')}),t('patron.off_items',{pct:so+'%',n:2})):'')+
     row(t('patron.rebate'),(edp?(T.rebate[15]+(T.edpRebateStep|0)*e):T.rebate[g])+'%'); }
-function renderPatronLevel(o,P,V){ const B=(typeof window!=='undefined'&&window.PATRON_BENEFITS)||null, T=P.table||{}, lines=B?((V.edp?B.edp:B.egp)[V.lv]||[]):[];
+let PAT_LT=null;   /* v1323: the per-level tables (GET /api/patron/table), fetched once when a level is first browsed */
+function renderPatronLevel(o,P,V){ if(!PAT_LT){ PAT_LT={pending:true}; api('/api/patron/table','GET').then(r=>{ PAT_LT=(r&&r.ok)?r:null; if(document.getElementById('patScreen')&&renderPatron._v) renderPatron(); }).catch(()=>{ PAT_LT=null; }); }
+  const B=(typeof window!=='undefined'&&window.PATRON_BENEFITS)||null, T=Object.assign({},P.table||{},(PAT_LT&&!PAT_LT.pending)?PAT_LT:{}), lines=B?((V.edp?B.edp:B.egp)[V.lv]||[]):[];
   const cost=(V.edp?T.edp:T.egp)||[], need=cost[V.lv];
   o.innerHTML='<div class="patCard">'+patHeadHtml(V.edp,V.lv,false)+
     (need!=null?'<div class="patRow"><span>'+t('patron.reached_at')+'</span><b>'+(need|0).toLocaleString()+' '+(V.edp?t('patron.edp_base'):t('patron.base'))+' '+hudIcon('gem')+'</b></div>':'')+
@@ -32761,7 +32763,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794250783119';
+const BUILD_ID = '1794251631636';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

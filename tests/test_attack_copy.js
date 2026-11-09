@@ -15,7 +15,7 @@ const R = require('./helpers/split-rig.cjs');
 const WS = require('../server/world-store.js');
 const SQUADS = [['vael', 'sylthaine', 'vireo'], ['brannus', 'yenna', 'seyla'], ['kharos', 'tharl', 'orryn'], ['hobb', 'askel', 'calypsa']];
 const CLOCK = /^(t|ts|at|now|iat|exp|created|lastSeen|depart|arrive|home|reachAt|readyAt|expireAt|startedAt|landedAt|resolvedAt|sentAt|serverNow|mtime|day|dayKey|skillImported)$|At$|Ms$/;
-const IDS = /^(id|marchId|mid|requestId|rid|key|engine|sz)$/;   // v1129: engine = the client BUILD_ID, which every release bumps (not part of the fight); 4 Nov 2026: sz = the v1258 snapshot's UNIT_SIZE stamp (59eaefba's snapshots have none)
+const IDS = /^(id|marchId|mid|requestId|rid|key|engine|sz|wallPct|wallFell|newLoc|wallDur|wallFellAt|wall)$/;   // v1323: the City Wall's durability (Phil 9 Nov) is new in every reply and account - nothing the fight reads   // v1129: engine = the client BUILD_ID, which every release bumps (not part of the fight); 4 Nov 2026: sz = the v1258 snapshot's UNIT_SIZE stamp (59eaefba's snapshots have none)
 function norm(v, k) {
   if (Array.isArray(v)) return v.map(x => norm(x));
   if (v && typeof v === 'object') { const o = {}; for (const kk of Object.keys(v).sort()) { if (CLOCK.test(kk) || IDS.test(kk)) continue; o[kk] = norm(v[kk], kk); } return o; }

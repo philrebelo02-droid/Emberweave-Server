@@ -4895,7 +4895,8 @@ function cityLevel(u){ try{ return (ensureAcad(u).lv.academy|0); }catch(e){ retu
 function wallDur(u,now=Date.now()){ let w=u.wallDur; if(!w||typeof w!=='object'||!Number.isFinite(+w.pct)) w=u.wallDur={pct:100,t:now};
   const t=Number.isFinite(+w.t)?+w.t:now; if(now>t){ w.pct=Math.min(100,(+w.pct)+WALL_DUR.regenPerHour*(now-t)/3600000); w.t=now; } else w.t=Math.max(t,now);
   w.pct=Math.max(0,Math.min(100,+w.pct)); return w; }
-function wallView(u,now=Date.now()){ const w=wallDur(u,now); return { pct:Math.round(w.pct*10)/10, regenPerHour:WALL_DUR.regenPerHour,
+function wallView(u,now=Date.now()){ const s=u&&u.wallDur, w=(s&&Number.isFinite(+s.pct))?{pct:Math.min(100,(+s.pct)+(now>(+s.t||now)?WALL_DUR.regenPerHour*(now-(+s.t))/3600000:0))}:{pct:100};   /* read-only: a ledger read stores nothing */
+  return { pct:Math.round(w.pct*10)/10, regenPerHour:WALL_DUR.regenPerHour,
   repairPct:WALL_DUR.repairPct, repairCost:WALL_DUR.repairCost, hitByLine:WALL_DUR.hitByLine, cityLevel:cityLevel(u), mitigatePerLevel:5, fullInMs:w.pct>=100?0:Math.ceil((100-w.pct)/WALL_DUR.regenPerHour*3600000), fellAt:+u.wallFellAt||0 }; }
 /* a won attack on this castle by a line of n heroes: the wall loses wallHitPct(n); at 0 the castle is destroyed and moved (returns the new square, else null) */
 function wallHit(d,n,now=Date.now(),atkLv=0){ if(!d||d.isNpc) return null; const w=wallDur(d,now); w.pct=Math.max(0,w.pct-wallHitPct(n,cityLevel(d),atkLv));
@@ -4928,12 +4929,13 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
     rows:{ meals:patronRow(led,'meals'), goldBuys:patronRow(led,'goldBuys'), eliteResets:patronRow(led,'eliteResets'), arenaResets:patronRow(led,'arenaResets'), vaultExtraSweeps:patronRow(led,'vaultExtra'),
       marches:patronRow(led,'marches'), marchSpeed:patronMarchSpeed(led), shadyOff:patronRow(led,'shadyOff'), doubleGold:L.egp>=PATRON_DOUBLE_GOLD_EGP, attackBuys:patronAttackBuys(led) },
     used:{ eliteResets:patronDayCount(led,'eliteResets'), arenaResets:patronDayCount(led,'arenaResets') }, costs:PATRON_COSTS, shadyPicks:patronRow(led,'shadyOff')>0?patronShadyPicks(me):[],
-    table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd,
-      rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP } }; }   /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) */
+    table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd } }; }
+/* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) - their own GET, fetched when a level is browsed, so the tables stay out of every ledger and saved fight */
+function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP }; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), wall:wallView(u), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
-    skill:led.skill||{}, temple:templeClientState(led),
+    skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
@@ -7814,6 +7816,7 @@ async function api(req,res,url){
     return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v825 DEV PACK TEST - the server credits the pack (amount from ITS list, never the client's) and files it to the dev inbox. */
   /* v1050: THE DIAMOND SHOP (see SHOP_OFFERS) - the offers, a purchase credited by the server, and the plans' daily claim */
+  if(p==='/api/patron/table' && req.method==='GET'){ return send(res,200,Object.assign({ok:true},patronLevelTable())); }
   /* v1323: repair the city wall - 200 diamonds per 25 % (Phil 9 Nov) */
   if(p==='/api/wall/repair' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});

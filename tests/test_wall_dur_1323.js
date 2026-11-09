@@ -35,7 +35,7 @@ ck('and the wall is rebuilt at 100 %, the fall recorded', u.wallDur.pct === 100 
 ck('an arena bot (no castle) is never hit', ctx.wallHit({ isNpc: true }, 5, t0) === null);
 ck('a won city attack hits the defender\'s wall; the report carries wallPct / wallFell / newLoc', /let wallFell=null; if\(won&&!d\.isNpc\)\{ wallFell=wallHit\(d,ids\.length,Date\.now\(\),ledPlayerLevel\(ensureLedger\(me\)\)\); \}/.test(srv) && /wallPct, wallFell:!!wallFell, newLoc:/.test(srv));
 ck('POST /api/wall/repair: 200 diamonds, +25 %, refused at 100 % or without the diamonds, one requestId per repair', /p==='\/api\/wall\/repair'/.test(srv) && /if\(w\.pct>=100\) return \{ok:false,error:'Your wall is at full strength\.'\}/.test(srv) && /led\.gems-=c; w\.pct=Math\.min\(100,w\.pct\+WALL_DUR\.repairPct\)/.test(srv));
-ck('the ledger carries the wall (wall:wallView)', /patron:patronView\(u,led\), wall:wallView\(u\),/.test(srv));
+ck('the ledger carries the wall (wall:wallView)', /temple:templeClientState\(led\), wall:wallView\(u\),/.test(srv) && /function wallView\(u,now=Date\.now\(\)\)\{ const s=u&&u\.wallDur/.test(srv));
 ck('the wall screen tabs: Defense · Cauldron · City Wall', /data-wall-tab="wall">\$\{t\('wall\.tab_defense'\)\}<\/button>.*data-wall-tab="cauldron">.*data-wall-tab="dur">\$\{t\('bld\.city_wall'\)\}/.test(html) && /"wall\.tab_defense":"Defense"/.test(html));
 ck('the City Wall tab: durability, repair and buy attacks', /function renderWallDur\(body\)/.test(html) && /id="wdRepair"/.test(html) && /id="wdBuyAtk"/.test(html) && /act\('\/api\/patron\/buy-attacks'/.test(html));
 ck('CONTROL: v1322 had no wall durability', !/WALL_DUR/.test(oldSrv));
