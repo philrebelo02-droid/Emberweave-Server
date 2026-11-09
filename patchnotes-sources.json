@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.19", "releases": "v1321", "items": [{"text": "Phil 9 Nov: Allow x3 sweep / make the top number reduce everytime I sweep / red dot on hero cards and tabs when upgrades are available.", "sources": ["SHIPPED-v1321-sweep-x3-upgrade-dots-09-11-2026.md"]}]},
     {"ver": "1.5.18", "releases": "v1320", "items": [{"text": "Phil 9 Nov: make stamina and diamonds visible on campaign screen / show the rewards just like wishing pool, 1 item at a time domino / the actual fragments art / the prompt in the back of the glyph screen should be infront.", "sources": ["SHIPPED-v1320-campaign-rewards-popup-09-11-2026.md"]}]},
     {"ver": "1.5.17", "releases": "v1319", "items": [{"text": "Phil 9 Nov: 2d yes / swap all heroes in spire to 2d / only swap back if i OK all 61 heroes.", "sources": ["SHIPPED-v1319-spire-heroes-2d-09-11-2026.md"]}]},
     {"ver": "1.5.16", "releases": "v1318", "items": [{"text": "Phil 9 Nov: 'still too large reduce it by another 30%'.", "sources": ["SHIPPED-v1318-dandra-ult-smaller-again-09-11-2026.md"]}]},

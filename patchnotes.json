@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.19", "date": "9 November 2026", "title": "Sweeps and upgrade dots", "items": ["Guardian, boss and elite stages can sweep all their remaining runs at once (Sweep x3).", "The Chances count on a stage goes down as soon as you sweep, and the reset button appears without leaving the stage.", "A red dot on a hero's card shows an upgrade is waiting (gold for a skill, glyph fragments or equipment fragments), and a red dot marks each tab that has it."]},
     {"ver": "1.5.18", "date": "9 November 2026", "title": "Campaign rewards", "items": ["The campaign map now shows your stamina and diamonds.", "After you win or sweep a stage, your rewards pop out one at a time, each with its own art.", "The 'locked into the board' message on the glyph screen now shows in front of the hero window."]},
     {"ver": "1.5.17", "date": "9 November 2026", "title": "The Swarm Spire in 2D", "items": ["Every hero now plays the Swarm Spire with their own battle animations: idle, walk, attack, skills and ultimate. All 61 heroes are playable."]},
     {"ver": "1.5.16", "date": "9 November 2026", "title": "Dandra's Queen's Call", "items": ["Dandra's Queen's Call effect is smaller again, so it no longer covers your heroes. Its healing is unchanged."]},

@@ -17,5 +17,21 @@ ck('after a sweep the stage panel is drawn again from the new counts (chances n/
 ck('the receipt survives the panel\'s own stage refresh', /window\._smReceipt=\{key:mode\+':'\+i, html:tgt\.innerHTML\}/.test(html) && /\(window\._smReceipt&&window\._smReceipt\.key===_smKey\)\?window\._smReceipt\.html:stageDropsHTML/.test(html));
 ck('closing the panel forgets the receipt (a fresh open shows the drops)', /function closeStageModal\(\)\{ window\.SM_KEY=null; window\._smReceipt=null;/.test(html));
 ck('CONTROL: v1320 never redrew the panel after a sweep', !/_smReceipt/.test(old));
-console.log('test_sweep_chances_1321.js: ' + P + ' passed, ' + F + ' failed');
+
+// v1321 red dots (Phil 9 Nov: "If they have available upgrades ... the bottom left of their hero card has a little red dot ... a little red dot in the corner of each tab there is an upgrade in")
+const vm = require('vm');
+const NEW = require(path.join(ROOT, 'server', 'sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+const E = c => vm.runInContext(c, NEW.ctx);
+E('G.unlocked=G.unlocked||{}; G.unlocked.vael=true; G.heroXP=G.heroXP||{}; G.playerXP=1e7; G.heroXP.vael=5e6;');
+const owned = E('heroOwned("vael")');
+E('G.gold=0'); const noGold = E('heroSkillsCanUp("vael")');
+E('G.gold=5e6'); const rich = E('heroSkillsCanUp("vael")');
+ck('Skills: the dot needs the gold for a skill the hero can still raise (same rule as the skill +)', owned && noGold === false && rich === true, [owned, noGold, rich]);
+E('G.heroXP.vael=0'); const lv1 = E('heroSkillsCanUp("vael")');
+ck('a level-1 hero (skills already at its level) shows no skills dot even with gold', lv1 === false);
+ck('Equipment: the dot follows the slot + that is green (gearCanCraft / owned fresh / gearPlan ok)', /if\(gearCanCraft\(st,d\)\|\|gearOwnedFresh\(st,d\.id\)\|\|gearPlan\(st,d,role\)\.ok\) return true;/.test(html));
+ck('Glyphs: all six slotted (Ascend) or the server\'s build-tree canBuild / canBuildAll for the next slot, asked once per glyph revision, two at a time', /if\(sl<0\) return true;/.test(html) && /HUP_GLY\[k\]=!!\(r\.canBuild\|\|r\.canBuildAll\)/.test(html) && /while\(_hupBusy<2&&_hupQ\.length\)/.test(html));
+ck('the hero card gets the dot bottom left; each tab with an upgrade gets one in its corner', /heroUpDotSet\(card,u\.skills\|\|u\.glyphs\|\|u\.equip\)/.test(html) && /\$\{_hup\[id\]\?'<span class="hupDot"><\/span>':''\}/.test(html) && /\.hupDot\{position:absolute;left:7px;bottom:7px/.test(html));
+ck('CONTROL: v1320 had no upgrade dots', !/hupDot/.test(old));
+console.log('test_sweep_dots_1321.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

@@ -625,6 +625,10 @@
   .hero-card .hc-name.hc-mythn{background:linear-gradient(180deg,#9b5cff,#5a1fae 55%,#3a0f78);border-radius:6px;box-shadow:0 0 0 1px #e6c56a,0 0 8px rgba(185,110,255,.7);color:#fff4d6;font-family:Georgia,serif;padding:0 4px;text-shadow:0 1px 2px #2a0a4a}   /* v612: a mythical hero's name sits on the purple plaque; the word Mythical is only in the detail view */
   .hero-card .hc-info{text-align:center;min-width:0;height:30px}
   .hero-card.hc-tile{padding:6px 6px 5px}
+  /* v1321 (Phil 9 Nov): the red "upgrade available" dot - bottom left of a hero card, top right of a hero window tab */
+  .hupDot{position:absolute;left:7px;bottom:7px;width:13px;height:13px;border-radius:50%;background:#e6483f;box-shadow:0 0 0 2px #2a0b08,0 0 7px #ff4a3acc;z-index:4;pointer-events:none}
+  .hd-tab{position:relative}
+  .hd-tab .hupDot{left:auto;bottom:auto;right:5px;top:5px;width:11px;height:11px}
 .hero-card.hc-tile:not(.mythic){border:1px solid #8a6a2e !important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}   /* v1245 (Phil 31 Oct: "the frame for normal heroes dont look full colored in"): the roster card is filled like a mythic - a thin bronze line instead of the thick hud-panel frame over its edges (mythics keep their gold line) */
 .hero-card .hc-role{font-size:10px;font-weight:800;letter-spacing:.4px;color:#e9c98a;line-height:1.15;margin:1px 0 0;text-transform:uppercase}   /* v1245 (Phil: put the class on the card) */
   .hero-card .hc-sub{font-size:10px;font-weight:800;color:#ffd45e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
@@ -18493,6 +18497,42 @@ function heroGearBuildHTML(key){
     ${gearTreeView(key)}
     <div style="display:flex;gap:8px;margin-top:10px">${action}</div></div>`;
 }
+/* v1321 (Phil 9 Nov: "If they have available upgrades, meaning you have gold to upgrade them, they have equipment fragments or glyph
+   fragments available to use, the bottom left of their hero card has a little red dot showing it has upgrades available. Similarly when you
+   open their card, you see a little red dot in the corner of each tab there is an upgrade in"). Each check is the SAME rule the tab's own
+   button uses: Skills = the skill's + is lit (unlocked, under max and the hero's level, gold for it); Equipment = a slot's + is green (its
+   piece can be built from what you hold); Glyphs = the next glyph can be built (the server's build-tree canBuild / canBuildAll, asked once
+   per hero per glyph revision, two at a time) or all six are slotted (Ascend). */
+function heroSkillsCanUp(key){ try{ if(!heroOwned(key)) return false;
+  for(let idx=0;idx<SKILL_UP_BASE.length;idx++){ if(!skillUnlocked(key,idx)) continue; const lv=skillLevel(key,idx);
+    if(lv>=SKILL_MAX||lv>=heroLevel(key)) continue; if((G.gold||0)>=skillUpCost(idx,lv)) return true; } }catch(e){} return false; }
+function heroGearCanUp(key){ try{ const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||st.offline||!st.enabled||!FORGE.cat||!heroOwned(key)) return false;
+  const eq=(st.equipped||{})[key]||{}, role=gearLoadoutFor(key), ids=GEAR_LOADOUTS[role]||[];
+  for(const gid of ids){ const d=forgeDef(gid); if(!d) continue; const iid=eq[d.slot], it=iid&&st.items[iid]; if(it&&it.d===gid) continue;
+    if(gearCanCraft(st,d)||gearOwnedFresh(st,d.id)||gearPlan(st,d,role).ok) return true; } }catch(e){} return false; }
+const HUP_GLY={}; const _hupQ=[]; let _hupBusy=0;
+function _hupPump(){ while(_hupBusy<2&&_hupQ.length){ const f=_hupQ.shift(); _hupBusy++; Promise.resolve().then(f).catch(()=>{}).then(()=>{ _hupBusy--; _hupPump(); }); } }
+function heroGlyphCanUp(key){ try{ if(typeof RUNE2==='undefined'||!RUNE2.st||!RUNE2.cat||RUNE2.enabled===false||!heroOwned(key)||!(ACC&&ACC.token)) return false;
+  const b=g2board(key), idx=b.ascensionIndex; if(idx>=RUNE2.cat.ladder.length) return false;
+  let sl=-1; for(let i=0;i<6;i++){ if(!b.slots[i]){ sl=i; break; } }
+  if(sl<0) return true;   // all six slotted: Ascend
+  const lvNeed=(b.levelRequired!=null)?b.levelRequired:((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1); if(heroLevel(key)<lvNeed) return false;
+  const k=key+'|'+(RUNE2.st.revision||0); if(k in HUP_GLY) return !!HUP_GLY[k];
+  HUP_GLY[k]=null;
+  _hupQ.push(()=>api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(key)+'&slot='+sl).then(r=>{ if(!r||r.error){ delete HUP_GLY[k]; return; }
+    HUP_GLY[k]=!!(r.canBuild||r.canBuildAll); if(HUP_GLY[k]) heroUpDotsRefresh(key); }));
+  _hupPump(); return false; }catch(e){ return false; } }
+function heroUpgrades(key){ return { skills:heroSkillsCanUp(key), glyphs:heroGlyphCanUp(key), equip:heroGearCanUp(key) }; }
+function heroUpDotSet(el,on){ if(!el) return; let d=el.querySelector(':scope>.hupDot'); if(on&&!d){ d=document.createElement('span'); d.className='hupDot'; el.appendChild(d); } else if(!on&&d) d.remove(); }
+function heroUpDotsRefresh(key){ try{ const u=heroUpgrades(key), any=u.skills||u.glyphs||u.equip;
+    document.querySelectorAll('#heroList .hero-card[data-hero-key="'+key+'"]').forEach(c=>heroUpDotSet(c,any));
+    if(typeof detailHero!=='undefined'&&detailHero===key) document.querySelectorAll('#heroDetail .hd-tab').forEach(tb=>heroUpDotSet(tb,!!u[tb.dataset.tab])); }catch(e){} }
+function heroUpDotsAll(){ try{ document.querySelectorAll('#heroList .hero-card[data-hero-key]').forEach(c=>{ const k=c.dataset.heroKey; if(heroOwned(k)) heroUpDotsRefresh(k); }); }catch(e){} }
+let _hupSyncing=false;
+function heroUpDotsSync(){ if(_hupSyncing||!(ACC&&ACC.token)) return; const need=[];
+  if(typeof FORGE!=='undefined'&&!FORGE.st&&typeof forgeSync==='function') need.push(forgeSync().catch(()=>{}));
+  if(typeof RUNE2!=='undefined'&&(!RUNE2.st||!RUNE2.cat)&&typeof glyphV2Sync==='function') need.push(glyphV2Sync().catch(()=>{}));
+  if(!need.length) return; _hupSyncing=true; Promise.all(need).then(()=>{ _hupSyncing=false; heroUpDotsAll(); }); }
 function heroGearTabHTML(key){
   const st=(typeof FORGE!=='undefined')&&FORGE.st;
   if(!st){ forgeSync().then(()=>renderHeroDetail()); return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">'+t('forge.stoking')+'</div>'; }
@@ -28120,7 +28160,9 @@ function renderHeroList(){
         </div>`;
     card._pick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);
+    if(unlocked){ const u=heroUpgrades(key); heroUpDotSet(card,u.skills||u.glyphs||u.equip); }   /* v1321 */
   });
+  heroUpDotsSync();
   // upgrade OTHER heroes' portraits to a centered head+shoulders bust matching KonWu's framing.
   // KonWu is the reference — leave his original portrait untouched.
   const _preFramed=['konwu','vulmar','grosk','tick','sylthaine','aureth','bloatus','vireo','fritz','umbris','vael','oakmir','rhukk'];
@@ -28536,7 +28578,8 @@ function renderHeroDetail(){
     ? [['stats',uiIcon('chart')+' '+ewT('hero.tab_stats')],['skills',statusIcon('attack')+' '+ewT('hero.tab_skills')],['glyphs','💠 '+ewT('hero.tab_glyphs')],['equip',uiIcon('mode-forge')+' '+ewT('hero.tab_equipment')],['lore',uiIcon('quest-scroll')+' '+ewT('hero.tab_lore')]]
     : [['stats',uiIcon('chart')+' '+ewT('hero.tab_stats')],['skills',statusIcon('attack')+' '+ewT('hero.tab_skills')],['lore',uiIcon('quest-scroll')+' '+ewT('hero.tab_lore')]];   // locked heroes: view-only (no upgrade tabs)
   if(!tabs.some(([id])=>id===heroTab)) heroTab = owned?'stats':'lore';
-  const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}</button>`).join('');
+  const _hup=owned?heroUpgrades(key):{};   /* v1321: a red dot on each tab that has an upgrade waiting */
+  const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}${_hup[id]?'<span class="hupDot"></span>':''}</button>`).join('');
   let tab='';
   if(heroTab==='stats'){
     /* v364: the card shows the SAME rating the fight uses — base (× level × stars) + Academy + glyph/gear
@@ -32537,7 +32580,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794237420963';
+const BUILD_ID = '1794238919142';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
