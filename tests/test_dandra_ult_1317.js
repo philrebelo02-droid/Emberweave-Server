@@ -12,11 +12,13 @@ process.on('exit', () => { try { fs.unlinkSync(oldFile); } catch (e) {} });
 const OLD = load(oldFile);
 const fx = h => JSON.parse(vm.runInContext('JSON.stringify(FX2_DEF.dandra_ult)', h.ctx));
 const n = fx(NEW), o = fx(OLD);
-ck("Queen's Call effect: v1317 x0.8 then v1318 x0.7 (upSize = 0.56 x the v1316 1.7)", Math.abs(n.upSize - o.upSize * 0.8 * 0.7) < 1e-9, [n.upSize, o.upSize]);
-const strip = x => { const c = Object.assign({}, x); delete c.upSize; return JSON.stringify(c); };
-ck('every other field of the effect is unchanged (sheet, frames, anchor, disc, timing)', strip(n) === strip(o));
+// v1318 (Phil 9 Nov: "her ult isnt high enough" / "its not syncing with the other buffs placement"): the effect carries no placement of
+// its own any more, so it takes the SAME above-the-bar badge placement as every other buff (_fxAboveBar path).
+ck("Queen's Call effect has no own placement (no upAbove / upAnchor / upSize) - it uses the shared buff badge placement", !n.upAbove && !n.upAnchor && n.upSize == null, n);
+ck("rally (Queen's Call) is an above-the-bar buff, like the other buffs", vm.runInContext('!!_ABOVE_BAR.rally', NEW.ctx));
+ck('the effect sheet is unchanged (url, frames, grid, timing, disc)', ['u','n','fw','fh','cols','rows','dur'].every(k => n[k] === o[k]) && JSON.stringify(n.disc) === JSON.stringify(o.disc));
 const heal = h => vm.runInContext("skLvNum('rally', ULT_DEF.rally, 1)", h.ctx);
 ck("the heal is unchanged (Queen's Call is a team heal)", heal(NEW) === heal(OLD), [heal(NEW), heal(OLD)]);
-ck('CONTROL: live v1316 drew it at upSize 1.7', o.upSize === 1.7, o.upSize);
+ck('CONTROL: live v1316 had its own placement (upAbove, centred anchor, upSize 1.7), so it skipped the shared badge path', o.upAbove === true && o.upSize === 1.7);
 console.log('test_dandra_ult_1317.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
