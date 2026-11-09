@@ -2673,6 +2673,380 @@ body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none
 body.ew-rotated #app{max-width:none;max-height:none;}
 #stageModal .ew-stage-exit{position:sticky;top:-7px;display:flex;justify-content:flex-end;min-height:36px;z-index:50;background:#141b2b;}
 #stageModal .ew-stage-exit button{width:32px;height:32px;padding:0;font-size:22px;}
+
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Academy Main Screen 09NOV2026) */
+/* Phil 9 November: building main screens match Emberdraft; Academy first.
+   Scope is #tech only. No Temple, map, research economy or timer changes. */
+#tech{--ac-ink:#f5e7cf;--ac-muted:#cfbfa8;--ac-gold:#f0ca7e;position:relative;isolation:isolate;min-height:100dvh;padding:0!important;color:var(--ac-ink);background-image:linear-gradient(90deg,#070c1cdc,transparent 36%,transparent 62%,#070c1cbd),linear-gradient(0deg,#070c1cf0,transparent 38%),url('/assets/img/ui/academy-main/academy-hall.webp?v=1')!important;background-size:cover!important;background-position:center!important;font-family:Georgia,'Times New Roman',serif;overflow-y:auto}
+#tech *{box-sizing:border-box}
+#tech .backbtn{position:absolute;z-index:5;top:max(16px,env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));border:0;border-radius:0;box-shadow:none;min-width:112px;min-height:44px;padding:12px 26px;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100% no-repeat;color:#ffe7b5;font:700 14px Georgia,serif}
+#tech .hdrbox{position:absolute;z-index:2;left:4.5%;top:24%;width:27%;max-width:370px;background:none!important;border:0!important;padding:0;box-shadow:none;text-align:center}
+#tech .titlebar{border:0;background:none;padding:0}
+#tech h1{height:160px;margin:0;font-size:0;line-height:0;background:url('/assets/img/ui/academy-main/academy-wordmark.webp?v=1') center/contain no-repeat;color:transparent}
+#tech h1:not(.ac-title-art){background:none;color:#f7d895;font:700 42px/1.3 Georgia,serif;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
+#tech .sub{color:#f3dbac;font:italic 18px/1.6 Georgia,serif;max-width:270px;margin:10px auto 0;text-shadow:0 2px 5px #000}
+#tech #techPanel{width:100%;max-width:none;height:max(740px,100dvh);margin:0;padding:0;border:0!important;outline:0;background:none!important;box-shadow:none!important;position:relative}
+#tech .ac-wallet{position:absolute;right:4.5%;top:30px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:3}
+#tech .pill{display:inline-flex;align-items:center;gap:8px;min-width:76px;min-height:42px;justify-content:center;padding:10px 15px!important;background:url('/assets/img/ui/emberdraft-main/tab-idle.webp?v=1') center/100% 100% no-repeat!important;color:#f7dfb0;font:700 13px/1.3 system-ui,sans-serif}
+#tech .pill img{width:22px!important;height:22px!important}
+#tech .techWheel{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;margin:0}
+#tech .techWheel .tw-center{position:absolute;left:49%;top:39%;width:min(31vw,420px);transform:translate(-50%,-50%);background:none!important;border:0;outline-offset:4px;padding:0;z-index:1}
+#tech .techWheel .tw-center>img{width:100%!important;height:auto!important;max-height:490px;object-fit:contain;filter:drop-shadow(0 12px 20px #0007)}
+#tech .techWheel .tw-lbl{display:flex;align-items:center;justify-content:center;min-height:64px;width:250px;max-width:100%;margin:-2px auto 0;padding:17px 20px;background:url('/assets/img/ui/emberdraft-main/tab-idle.webp?v=1') center/100% 100% no-repeat;font:700 16px/1.3 Georgia,serif;letter-spacing:.04em;color:#ffedcd;text-shadow:0 1px 3px #000}
+#tech .tw-center.sel .tw-lbl{background-image:url('/assets/img/ui/emberdraft-main/tab-active.webp?v=1')}
+#tech .ac-tracks{position:absolute;left:4.5%;right:4.5%;bottom:30px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;z-index:3}
+#tech .tw-node,#tech .tw-node.sel,#tech .tw-node.capped,#tech .tw-node.learning{position:relative;left:auto!important;top:auto!important;transform:none;width:100%;max-width:none;min-width:0;min-height:138px;aspect-ratio:auto;padding:14px 10px 16px;border:0!important;border-radius:0;background:url('/assets/img/ui/emberdraft-main/item-slot.webp?v=1') center/100% 100% no-repeat!important;box-shadow:none!important;cursor:pointer;display:flex;flex-direction:column;gap:6px;justify-content:center;align-items:center;text-align:center;transition:filter .12s,transform .12s}
+#tech .tw-node.sel{filter:drop-shadow(0 0 5px #e9af53);transform:translateY(-5px)}
+#tech .tw-node:hover{filter:brightness(1.13);transform:translateY(-3px)}
+#tech .tw-node.learning{filter:drop-shadow(0 0 4px #65cbe5)}
+#tech .tw-node.busyOther{opacity:.72}
+#tech .tw-node .tw-ic{height:39px;font-size:30px;line-height:1}
+#tech .tw-node .stIc{width:38px!important;height:38px!important;object-fit:contain}
+#tech .tw-node .tw-name{font:700 12px/1.25 Georgia,serif;color:#fbe5b8;min-height:30px;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
+#tech .tw-node .tw-lv{font:600 11px/1.3 system-ui,sans-serif;color:#e4ccb1;margin:0;display:flex;align-items:center;gap:4px}
+#tech .tw-node .tw-lv .stIc{width:12px!important;height:12px!important}
+#tech .tw-detail{position:absolute;right:4.5%;top:22%;width:27%;max-width:350px;min-height:300px;padding:34px 28px 30px;margin:0;border-radius:0;background:none;border:0 solid transparent;border-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 270 480 fill / 30px 45px stretch;box-shadow:none;color:#f5e7cf;z-index:2}
+#tech .tw-detail>div:first-child{flex-direction:column;text-align:center;gap:16px!important;margin-bottom:20px!important}
+#tech .tw-detail>div:first-child>div:first-child .stIc{width:52px;height:52px;object-fit:contain}
+#tech .tw-detail>div:first-child>div:last-child>div:first-child{font:700 20px/1.35 Georgia,serif!important;color:#ffe3ac;margin-bottom:12px}
+#tech .tw-detail [style*='color:#8b98a9']{color:#cfc1ad!important;line-height:1.7}
+#tech .tw-detail b{color:#9be1bb!important}
+#tech .tw-detail>.ac-duration{margin-top:16px}
+#tech .tw-detail .btn{border:0;border-radius:0;box-shadow:none;white-space:normal;min-height:64px;width:100%;padding:19px 24px;background:url('/assets/img/ui/emberdraft-main/play-button.webp?v=1') center/100% 100% no-repeat;color:#331a09;font:700 15px/1.4 Georgia,serif;text-shadow:none}
+#tech .tw-detail .btn:disabled{opacity:1;background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1');color:#c4b79e;cursor:default}
+#tech .tw-detail .btn .stIc{width:16px;height:16px;vertical-align:middle}
+#tech .tw-detail .btn img{width:15px!important;height:15px!important;object-fit:contain;vertical-align:middle}
+#tech .tw-detail .btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+#tech .ac-learn-label{display:block}
+#tech .ac-cost{display:block;font:600 10px/1.8 system-ui,sans-serif;word-spacing:2px}
+#tech [role=button]:focus-visible,#tech button:focus-visible{outline:2px solid #fff1c5;outline-offset:4px}
+@media(max-width:1100px) and (min-width:701px){
+ #tech #techPanel{height:max(390px,100dvh)}
+ #tech .hdrbox{left:3%;top:24%;width:27%}#tech h1{height:98px}#tech .sub{font-size:13px;line-height:1.45;margin-top:0}
+ #tech .ac-wallet{right:3%;top:12px;gap:4px}#tech .pill{min-width:54px;min-height:34px;padding:6px 10px!important;font-size:10px}#tech .pill img{width:17px!important;height:17px!important}
+ #tech .techWheel .tw-center{top:39%;left:49%;width:27vw}#tech .techWheel .tw-center>img{max-height:200px}#tech .techWheel .tw-lbl{min-height:44px;width:190px;font-size:12px;padding:12px}
+ #tech .tw-detail{right:3%;top:58px;width:29%;min-height:0;max-height:224px;overflow-y:auto;padding:18px 22px 14px;border-image-width:22px 32px}
+ #tech .tw-detail>div:first-child{gap:7px!important;margin-bottom:6px!important}#tech .tw-detail>div:first-child>div:first-child .stIc{width:26px;height:26px}#tech .tw-detail>div:first-child>div:last-child>div:first-child{font-size:14px!important;margin-bottom:3px}#tech .tw-detail [style*='color:#8b98a9']{font-size:10px!important;line-height:1.4}#tech .tw-detail .btn{font-size:11px;min-height:44px;padding:11px 14px}
+ #tech .tw-detail>div:first-child>div:first-child{display:none}#tech .tw-detail .btn{padding:14px 14px;min-height:62px;font-size:10px}#tech .ac-cost{font-size:9px;line-height:1.5}#tech .tw-detail .btn img{width:12px!important;height:12px!important}
+ #tech .ac-tracks{left:3%;right:3%;bottom:12px;gap:6px}#tech .tw-node,#tech .tw-node.sel,#tech .tw-node.capped,#tech .tw-node.learning{min-height:84px;padding:9px 5px;gap:3px}#tech .tw-node .tw-ic{height:24px}#tech .tw-node .stIc{width:24px!important;height:24px!important}#tech .tw-node .tw-name{font-size:9px;min-height:22px}#tech .tw-node .tw-lv{font-size:9px}#tech .tw-node .tw-lv .stIc{width:10px!important;height:10px!important}#tech .backbtn{top:10px;left:16px;min-height:38px;font-size:12px;padding:10px 20px}
+}
+@media(max-width:700px){
+ #tech{background-attachment:fixed!important;background-position:49% center!important}
+ #tech #techPanel{height:auto;min-height:0;padding:0 18px 26px}
+ #tech .hdrbox{position:relative;top:auto;left:auto;width:100%;max-width:none;padding:76px 20px 0;margin:0 auto}#tech h1{height:110px}#tech .sub{font-size:15px;max-width:300px;margin:0 auto 8px}
+ #tech .ac-wallet{top:12px;right:16px;left:135px;gap:3px}#tech .pill{min-width:45px;min-height:27px;padding:5px 8px!important;font-size:10px}#tech .pill img{width:15px!important;height:15px!important}
+ #tech .techWheel{position:static;height:auto;display:flex;flex-direction:column;padding-top:48px}
+ #tech .techWheel .tw-center{position:relative;left:auto;top:auto;transform:none;width:260px;max-width:85%;margin:4px auto 20px}#tech .techWheel .tw-center>img{max-height:280px}#tech .techWheel .tw-lbl{font-size:14px;min-height:50px;width:240px;padding:13px}
+ #tech .ac-tracks{position:relative;inset:auto;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 18px}
+ #tech .tw-node,#tech .tw-node.sel,#tech .tw-node.capped,#tech .tw-node.learning{min-height:104px;padding:12px 6px;gap:4px}#tech .tw-node .tw-ic{height:28px}#tech .tw-node .stIc{width:28px!important;height:28px!important}#tech .tw-node .tw-name{font-size:10px;min-height:26px}#tech .tw-node .tw-lv{font-size:10px}#tech .tw-node .tw-lv .stIc{width:11px!important;height:11px!important}
+ #tech .tw-detail{position:relative;inset:auto;width:100%;max-width:none;min-height:290px;margin:0 auto;padding:30px 30px 28px}
+ #tech .tw-detail>div:first-child>div:last-child>div:first-child{font-size:19px!important}
+ #tech .backbtn{left:16px;top:14px;min-width:103px}
+}
+@media(prefers-reduced-motion:reduce){#tech .tw-node{transition:none}}
+
+
+/* v1325 game-fit for ChatGPT's Academy (measured in game, not in his preview): the game's .panel smoked-glass blur covered the hall painting,
+   and .hdrbox centres its children so the painted title shrank to its 0-size text (14 px wide) */
+#tech #techPanel{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+#tech .hdrbox .titlebar,#tech .hdrbox h1.ac-title-art{width:100%;align-self:stretch}
+
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Market and Shady Market Main Screens 09NOV2026) */
+#market{position:relative;min-height:100dvh;height:100dvh;overflow:auto;background:linear-gradient(90deg,#080d1680,transparent 40%,#080b1440 65%,#080b14aa),url('/assets/img/ui/merchant-main/market-hall.webp?v=1') center/cover!important;color:#f5e6c9;padding:0!important;isolation:isolate}
+#market .backbtn{position:absolute;left:22px;top:18px;z-index:3;border:0;width:108px;height:42px;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;color:#efdab0;text-shadow:0 2px 2px #000}
+#market .titlebar{position:absolute;left:3%;top:13%;width:35%;text-align:center;margin:0}
+#market h1{font-size:clamp(26px,4vw,58px);color:#edc16d;text-shadow:0 3px 6px #000;margin:0}
+#market h1.merc-title-art{background:url('/assets/img/ui/merchant-main/market-wordmark.webp?v=1') center/contain no-repeat;height:170px;font-size:0}
+#market>.sub{position:absolute;left:3%;top:calc(13% + 176px);width:35%;text-align:center;font:italic 16px Georgia;color:#e9d0a7;text-shadow:0 2px 4px #000;margin:0}
+#market>.panel{position:relative;margin:0 4% 32px auto;top:13%;width:52%;max-width:660px!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;background:none;border:0;padding:0;box-shadow:none}
+#market .merc-wallet{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;padding:16px 23px;color:#f1dba8;background:linear-gradient(#0b1524e8,#0b1524e8);border-block:1px solid #a87d3f;border-radius:3px;font:13px Georgia;box-shadow:0 5px 22px #0008}
+#market .merc-offer{display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:12px;min-width:0;min-height:244px;padding:29px 25px 24px;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%;filter:drop-shadow(0 8px 8px #0006)}
+#market .merc-info{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;min-width:0}
+#market .merc-info>.ascw,#market .merc-info>img,#market .merc-info>span{width:76px!important;height:76px!important;display:inline-flex;align-items:center;justify-content:center;background:url('/assets/img/ui/emberdraft-main/item-slot.webp?v=1') center/100% 100%;padding:8px;flex-shrink:0}
+#market .merc-info .ascw>img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+#market .merc-info>span>.stIc{width:56px;height:56px;object-fit:contain}
+#market .merc-info b{font-size:17px;color:#f4d79a;overflow-wrap:anywhere;line-height:1.25;display:block}
+#market .merc-info b+div{font-size:12px!important;line-height:1.4;color:#c1c6d0!important;margin-top:5px}
+#market .merc-offer button{min-height:44px;width:100%;padding:7px 16px;border:0;color:#fff0c9;background:url('/assets/img/ui/emberdraft-main/play-button.webp?v=1') center/100% 100%;text-shadow:0 2px 2px #000;font:bold 16px Georgia}
+#market .merc-offer button:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1');color:#b5ac99;cursor:default}
+#market button:focus-visible{outline:2px solid #ffe2a3;outline-offset:3px}
+@media(max-height:560px) and (min-width:701px){#market .titlebar{top:20%;width:30%}#market h1.merc-title-art{height:110px}#market>.sub{top:calc(20% + 115px);width:30%;font-size:13px}#market>.panel{top:14%;width:61%;margin-right:3%;gap:8px;margin-bottom:60px}#market .merc-wallet{padding:8px 17px;font-size:11px}#market .merc-offer{min-height:119px;padding:15px 18px 13px;gap:5px}#market .merc-info{flex-direction:row;gap:8px;text-align:left}#market .merc-info>.ascw,#market .merc-info>img,#market .merc-info>span{width:48px!important;height:48px!important;padding:5px}#market .merc-info>span>.stIc{width:36px;height:36px}#market .merc-info b{font-size:13px}#market .merc-info b+div{font-size:10px!important;margin-top:3px}#market .merc-offer button{min-height:34px;font-size:13px}}
+@media(max-width:700px){#market{background-position:32% top;background-attachment:fixed}#market .backbtn{left:10px;top:10px;width:92px;height:36px}#market .titlebar{left:10%;top:58px;width:80%}#market h1.merc-title-art{height:125px}#market>.sub{left:8%;top:182px;width:84%;font-size:14px}#market>.panel{top:0;width:94%;margin:270px auto 34px;gap:10px}#market .merc-wallet{padding:12px 16px;font-size:11px}#market .merc-offer{padding:22px 16px 17px;min-height:220px;gap:8px}#market .merc-info{gap:9px}#market .merc-info b{font-size:14px}#market .merc-info b+div{font-size:11px!important}#market .merc-info>.ascw,#market .merc-info>img,#market .merc-info>span{width:65px!important;height:65px!important}#market .merc-offer button{font-size:14px;min-height:40px}}
+
+
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Market and Shady Market Main Screens 09NOV2026) */
+#shadymarket{position:relative;min-height:100dvh;height:100dvh;overflow:auto;background:linear-gradient(90deg,#080d1680,transparent 40%,#080b1440 65%,#080b14aa),url('/assets/img/ui/merchant-main/shady-hall.webp?v=1') center/cover!important;color:#f5e6c9;padding:0!important;isolation:isolate}
+#shadymarket .backbtn{position:absolute;left:22px;top:18px;z-index:3;border:0;width:108px;height:42px;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;color:#efdab0;text-shadow:0 2px 2px #000}
+#shadymarket .titlebar{position:absolute;left:3%;top:13%;width:35%;text-align:center;margin:0}
+#shadymarket h1{font-size:clamp(26px,4vw,58px);color:#edc16d;text-shadow:0 3px 6px #000;margin:0}
+#shadymarket h1.merc-title-art{background:url('/assets/img/ui/merchant-main/shady-wordmark.webp?v=1') center/contain no-repeat;height:170px;font-size:0}
+#shadymarket>.sub{position:absolute;left:3%;top:calc(13% + 176px);width:35%;text-align:center;font:italic 16px Georgia;color:#e9d0a7;text-shadow:0 2px 4px #000;margin:0}
+#shadymarket>.panel{position:relative;margin:0 4% 32px auto;top:13%;width:52%;max-width:660px!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;background:none;border:0;padding:0;box-shadow:none}
+#shadymarket .merc-wallet{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;padding:16px 23px;color:#f1dba8;background:linear-gradient(#0b1524e8,#0b1524e8);border-block:1px solid #a87d3f;border-radius:3px;font:13px Georgia;box-shadow:0 5px 22px #0008}
+#shadymarket .merc-offer{display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:12px;min-width:0;min-height:244px;padding:29px 25px 24px;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%;filter:drop-shadow(0 8px 8px #0006)}
+#shadymarket .merc-info{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;min-width:0}
+#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:76px!important;height:76px!important;display:inline-flex;align-items:center;justify-content:center;background:url('/assets/img/ui/emberdraft-main/item-slot.webp?v=1') center/100% 100%;padding:8px;flex-shrink:0}
+#shadymarket .merc-info .ascw>img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+#shadymarket .merc-info>span>.stIc{width:56px;height:56px;object-fit:contain}
+#shadymarket .merc-info b{font-size:17px;color:#f4d79a;overflow-wrap:anywhere;line-height:1.25;display:block}
+#shadymarket .merc-info b+div{font-size:12px!important;line-height:1.4;color:#c1c6d0!important;margin-top:5px}
+#shadymarket .merc-offer button{min-height:44px;width:100%;padding:7px 16px;border:0;color:#fff0c9;background:url('/assets/img/ui/emberdraft-main/play-button.webp?v=1') center/100% 100%;text-shadow:0 2px 2px #000;font:bold 16px Georgia}
+#shadymarket .merc-offer button:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1');color:#b5ac99;cursor:default}
+#shadymarket button:focus-visible{outline:2px solid #ffe2a3;outline-offset:3px}
+@media(max-height:560px) and (min-width:701px){#shadymarket .titlebar{top:20%;width:30%}#shadymarket h1.merc-title-art{height:110px}#shadymarket>.sub{top:calc(20% + 115px);width:30%;font-size:13px}#shadymarket>.panel{top:14%;width:61%;margin-right:3%;gap:8px;margin-bottom:60px}#shadymarket .merc-wallet{padding:8px 17px;font-size:11px}#shadymarket .merc-offer{min-height:119px;padding:15px 18px 13px;gap:5px}#shadymarket .merc-info{flex-direction:row;gap:8px;text-align:left}#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:48px!important;height:48px!important;padding:5px}#shadymarket .merc-info>span>.stIc{width:36px;height:36px}#shadymarket .merc-info b{font-size:13px}#shadymarket .merc-info b+div{font-size:10px!important;margin-top:3px}#shadymarket .merc-offer button{min-height:34px;font-size:13px}}
+@media(max-width:700px){#shadymarket{background-position:32% top;background-attachment:fixed}#shadymarket .backbtn{left:10px;top:10px;width:92px;height:36px}#shadymarket .titlebar{left:10%;top:58px;width:80%}#shadymarket h1.merc-title-art{height:125px}#shadymarket>.sub{left:8%;top:182px;width:84%;font-size:14px}#shadymarket>.panel{top:0;width:94%;margin:270px auto 34px;gap:10px}#shadymarket .merc-wallet{padding:12px 16px;font-size:11px}#shadymarket .merc-offer{padding:22px 16px 17px;min-height:220px;gap:8px}#shadymarket .merc-info{gap:9px}#shadymarket .merc-info b{font-size:14px}#shadymarket .merc-info b+div{font-size:11px!important}#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:65px!important;height:65px!important}#shadymarket .merc-offer button{font-size:14px;min-height:40px}}
+
+/* v1325 game-fit for ChatGPT's Market + Shady Market: the game's .panel smoked-glass blur off (their header box is skipped in the v659 wrapper) */
+#market .panel,#shadymarket .panel{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+#market .titlebar,#shadymarket .titlebar{padding-left:0!important;padding-right:0!important;max-width:none}   /* the game's .titlebar keeps 96 px each side for back/close buttons - it left the painted title 17 px */
+#market .titlebar h1.merc-title-art,#shadymarket .titlebar h1.merc-title-art{width:100%!important;max-width:none!important;align-self:stretch;flex:1 1 100%!important}   /* the game's .titlebar centres a 0-size-text title down to 12 px */
+
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Building Main Screens Rollout 09NOV2026) */
+/* Named MAIN screen selectors only. Temple and map geometry excluded. */
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))){position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))).active{display:block}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.hdrbox,#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.hdrbox .sub,#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel{width:100%!important;max-width:none!important;padding:38px 12%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) .btn,#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) button:focus-visible,#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
+@media(max-height:560px) and (min-width:701px){#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.hdrbox,#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.titlebar{top:25%;left:2%;width:27%!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) h1{font-size:26px!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel{padding:30px 12%!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
+@media(max-width:700px){#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))){background-position:30% top!important;background-attachment:fixed!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.hdrbox,#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) h1{font-size:33px!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody{width:94%!important;margin:130px auto 28px!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel{padding:32px 12%!important}#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) .btn{min-height:40px}}
+
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))){background:linear-gradient(90deg,#080d1626,transparent 40%,#080b1450),url('/assets/img/ui/building-main/wall-hall.webp?v=1') center/cover!important}
+#rankings{position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
+#rankings.active{display:block}
+#rankings>.hdrbox,#rankings>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#rankings h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
+#rankings h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
+#rankings>.hdrbox .sub,#rankings>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
+#rankings>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
+#rankings #rankingsBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
+#rankings #rankingsBody>.panel{width:100%!important;max-width:none!important;padding:38px 12%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
+#rankings .btn,#rankings .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
+#rankings .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#rankings .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
+#rankings button:focus-visible,#rankings input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
+#rankings input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
+@media(max-height:560px) and (min-width:701px){#rankings>.hdrbox,#rankings>.titlebar{top:25%;left:2%;width:27%!important}#rankings h1{font-size:26px!important}#rankings #rankingsBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#rankings #rankingsBody>.panel{padding:30px 12%!important}#rankings .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
+@media(max-width:700px){#rankings{background-position:30% top!important;background-attachment:fixed!important}#rankings>.hdrbox,#rankings>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#rankings h1{font-size:33px!important}#rankings #rankingsBody{width:94%!important;margin:130px auto 28px!important}#rankings #rankingsBody>.panel{padding:32px 12%!important}#rankings .btn{min-height:40px}}
+
+#rankings{background:linear-gradient(90deg,#080d1626,transparent 40%,#080b1450),url('/assets/img/ui/building-main/bulletin-hall.webp?v=1') center/cover!important}
+#watchtower{position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
+#watchtower.active{display:block}
+#watchtower>.hdrbox,#watchtower>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#watchtower h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
+#watchtower h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
+#watchtower>.hdrbox .sub,#watchtower>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
+#watchtower>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
+#watchtower #watchBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
+#watchtower #watchBody>.panel{width:100%!important;max-width:none!important;padding:38px 12%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
+#watchtower .btn,#watchtower .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
+#watchtower .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#watchtower .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
+#watchtower button:focus-visible,#watchtower input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
+#watchtower input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
+@media(max-height:560px) and (min-width:701px){#watchtower>.hdrbox,#watchtower>.titlebar{top:25%;left:2%;width:27%!important}#watchtower h1{font-size:26px!important}#watchtower #watchBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#watchtower #watchBody>.panel{padding:30px 12%!important}#watchtower .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
+@media(max-width:700px){#watchtower{background-position:30% top!important;background-attachment:fixed!important}#watchtower>.hdrbox,#watchtower>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#watchtower h1{font-size:33px!important}#watchtower #watchBody{width:94%!important;margin:130px auto 28px!important}#watchtower #watchBody>.panel{padding:32px 12%!important}#watchtower .btn{min-height:40px}}
+
+#watchtower{background:linear-gradient(90deg,#080d1626,transparent 40%,#080b1450),url('/assets/img/ui/building-main/watch-hall.webp?v=1') center/cover!important}
+#guild:not(:has(#gInput)){position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
+#guild:not(:has(#gInput)).active{display:block}
+#guild:not(:has(#gInput))>.hdrbox,#guild:not(:has(#gInput))>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#guild:not(:has(#gInput)) h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
+#guild:not(:has(#gInput)) h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
+#guild:not(:has(#gInput))>.hdrbox .sub,#guild:not(:has(#gInput))>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
+#guild:not(:has(#gInput))>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
+#guild:not(:has(#gInput)) #guildBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
+#guild:not(:has(#gInput)) #guildBody>.panel{width:100%!important;max-width:none!important;padding:38px 12%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
+#guild:not(:has(#gInput)) .btn,#guild:not(:has(#gInput)) .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
+#guild:not(:has(#gInput)) .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#guild:not(:has(#gInput)) .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
+#guild:not(:has(#gInput)) button:focus-visible,#guild:not(:has(#gInput)) input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
+#guild:not(:has(#gInput)) input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
+@media(max-height:560px) and (min-width:701px){#guild:not(:has(#gInput))>.hdrbox,#guild:not(:has(#gInput))>.titlebar{top:25%;left:2%;width:27%!important}#guild:not(:has(#gInput)) h1{font-size:26px!important}#guild:not(:has(#gInput)) #guildBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#guild:not(:has(#gInput)) #guildBody>.panel{padding:30px 12%!important}#guild:not(:has(#gInput)) .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
+@media(max-width:700px){#guild:not(:has(#gInput)){background-position:30% top!important;background-attachment:fixed!important}#guild:not(:has(#gInput))>.hdrbox,#guild:not(:has(#gInput))>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#guild:not(:has(#gInput)) h1{font-size:33px!important}#guild:not(:has(#gInput)) #guildBody{width:94%!important;margin:130px auto 28px!important}#guild:not(:has(#gInput)) #guildBody>.panel{padding:32px 12%!important}#guild:not(:has(#gInput)) .btn{min-height:40px}}
+
+#forge:not(:has(#fgPop)){position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
+#forge:not(:has(#fgPop)).active{display:block}
+#forge:not(:has(#fgPop))>.hdrbox,#forge:not(:has(#fgPop))>.titlebar{position:absolute!important;left:3%;top:14%;width:35%!important;max-width:none!important;text-align:center;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#forge:not(:has(#fgPop)) h1{font:bold clamp(26px,3.5vw,52px) Georgia!important;letter-spacing:1px;color:#f3cc7e!important;-webkit-text-fill-color:#f3cc7e!important;background:none!important;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;margin:0;line-height:1.1;overflow-wrap:anywhere}
+#forge:not(:has(#fgPop)) h1::after{content:'';display:block;width:84%;height:20px;margin:12px auto 0;background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;opacity:.65}
+#forge:not(:has(#fgPop))>.hdrbox .sub,#forge:not(:has(#fgPop))>.sub{font:italic 14px/1.5 Georgia;color:#d4c2a7!important;text-shadow:0 2px 3px #000;margin:12px 0}
+#forge:not(:has(#fgPop))>.backbtn{z-index:24;left:15px!important;top:12px!important;min-width:90px}
+#forge:not(:has(#fgPop)) #forgeBody{position:relative!important;top:0!important;inset:auto!important;display:block;width:57%!important;max-width:860px!important;min-height:0!important;height:auto!important;margin:70px 3% 30px auto!important;padding:0!important;overflow:visible!important}
+#forge:not(:has(#fgPop)) #forgeBody>.panel{width:100%!important;max-width:none!important;padding:38px 12%!important;margin:0 0 12px!important;font-size:14px;border:0!important;border-radius:0!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;box-shadow:0 7px 14px #0006!important;color:#d9d8da}
+#forge:not(:has(#fgPop)) .btn,#forge:not(:has(#fgPop)) .arMini{border:0!important;border-image:none!important;border-radius:0!important;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;color:#fff0cc!important;text-shadow:0 2px 2px #000;box-shadow:none!important;min-height:36px;padding:8px 18px!important;font-family:Georgia!important;white-space:normal;line-height:1.2}
+#forge:not(:has(#fgPop)) .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#forge:not(:has(#fgPop)) .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#a9a394!important;filter:none!important;opacity:1!important}
+#forge:not(:has(#fgPop)) button:focus-visible,#forge:not(:has(#fgPop)) input:focus-visible{outline:2px solid #ffe1a0;outline-offset:3px}
+#forge:not(:has(#fgPop)) input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
+@media(max-height:560px) and (min-width:701px){#forge:not(:has(#fgPop))>.hdrbox,#forge:not(:has(#fgPop))>.titlebar{top:25%;left:2%;width:27%!important}#forge:not(:has(#fgPop)) h1{font-size:26px!important}#forge:not(:has(#fgPop)) #forgeBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#forge:not(:has(#fgPop)) #forgeBody>.panel{padding:30px 12%!important}#forge:not(:has(#fgPop)) .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
+@media(max-width:700px){#forge:not(:has(#fgPop)){background-position:30% top!important;background-attachment:fixed!important}#forge:not(:has(#fgPop))>.hdrbox,#forge:not(:has(#fgPop))>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#forge:not(:has(#fgPop)) h1{font-size:33px!important}#forge:not(:has(#fgPop)) #forgeBody{width:94%!important;margin:130px auto 28px!important}#forge:not(:has(#fgPop)) #forgeBody>.panel{padding:32px 12%!important}#forge:not(:has(#fgPop)) .btn{min-height:40px}}
+
+/* Defense main and durability tab: keep the cauldron owner layout separate. */
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel:nth-child(2)>div{border-top:1px solid #80603980!important;padding:14px 0!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel:nth-child(2)>div:first-child{border:0!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel:nth-child(2)>div>div:first-child{flex-wrap:wrap}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody>.panel:nth-child(2)>div>div:first-child>span:nth-child(2){font:700 16px Georgia!important;color:#f1cf8f}
+#rankings #rankingsBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#rankings #rankingsBody>.panel:first-child{grid-column:1/-1}
+#rankings #rankingsBody>.panel{margin:0!important;padding:25px 20px!important;min-width:0}
+#rankings #rankingsBody>.panel>div[style*="justify-content:space-between"]{border-bottom:1px solid #77603b50;padding:8px 0!important;gap:10px}
+#rankings #rankingsBody>.panel>div[style*="justify-content:space-between"]>span:first-child{min-width:0;overflow-wrap:anywhere}
+#rankings #rankingsBody>.panel>div[style*="justify-content:space-between"]>span:last-child{flex-shrink:0}
+#watchtower #watchTabs{position:relative;width:57%;margin:70px 3% 12px auto!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important}
+#watchtower #watchBody{margin-top:0!important}
+#watchtower #watchBody>.panel{min-height:150px;line-height:1.7}
+#watchtower #watchBody>.panel:only-child{padding-top:74px!important;background-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1')!important}
+#guild:not(:has(#gInput)) #guildBody>.panel{max-width:none!important;margin:0 0 16px!important}
+#guild:not(:has(#gInput)) #guildBody>.panel:first-child>div:first-child{font-size:0!important;height:90px;background:url('/assets/img/ui/building-main/guild-crest.webp?v=1') center/contain no-repeat}
+#guild:not(:has(#gInput)) #guildBody input{flex:1;width:120px}
+#forge #forgeBody{max-width:900px!important}
+#forge .fgRow{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;border-radius:0!important;padding:14px!important;margin:7px 0!important}
+#forge .fgName{font-family:Georgia;color:#f4d595}
+#forge .fgQ{background-image:url('/assets/img/ui/emberdraft-main/tab-idle.webp?v=1')!important;background-size:100% 100%!important;border:0!important;border-image:none!important}
+/* Arena lobby only: no match/report rules changed. */
+#arena:has(.arWrap){background:linear-gradient(90deg,transparent,#080b1460),url('/assets/img/ui/building-main/arena-hall.webp?v=1') center/cover!important;display:none;padding:0!important;overflow:auto!important}
+#arena.active:has(.arWrap){display:block}
+#arena:has(.arWrap)>.hdrbox{position:absolute;top:17%;left:2%;width:29%;margin:0;background:none;border:0;box-shadow:none}
+#arena:has(.arWrap) h1{font:700 clamp(28px,4vw,60px) Georgia;color:#f1c979;text-shadow:0 4px 5px #000}
+#arena:has(.arWrap) #arenaBody{display:block!important;position:relative;width:65%!important;max-width:none!important;height:auto!important;min-height:0;margin:65px 2% 30px auto!important;flex:none;overflow:visible}
+#arena .arWrap{gap:15px;flex:none}
+#arena .arTop,#arena .arBot{gap:10px}
+#arena .arMedal,#arena .arDay{background:url('/assets/img/ui/building-main/panel-portrait.webp?v=1') center/100% 100%;border:0;border-radius:0;box-shadow:none;padding:20px 12px;flex-basis:124px}
+#arena .arDef,#arena .arOpp{border:0;border-image:none;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%;padding:20px 16px;box-shadow:0 5px 9px #0005}
+#arena .arOpps{flex-wrap:wrap;gap:8px}
+#arena .arOpp{flex:1 1 135px;max-width:none;min-width:125px;justify-content:space-between;gap:10px}
+#arena .arOppNm{font-size:11px;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+#arena .arOppNums{gap:5px}
+#arena .arOpp .btn,#arena .arTabs>button,#arena .arMini{background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;border:0;color:#f4dfb4;text-shadow:0 2px 2px #000;min-height:32px;padding:7px 9px;white-space:normal}
+#arena .arOpp .btn{background-image:url('/assets/img/ui/building-main/action-primary.webp?v=1')}
+#arena button:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#b4aa94}
+/* Vault entrance data/team picker remains real; nothing affects battles. */
+#dungeon{background:url('/assets/img/ui/building-main/vault-hall.webp?v=1') center/cover!important}
+#dungeon #dungeonBody>div{overflow-y:auto!important}
+#dungeon #dungeonBody>div>div{max-width:850px!important;width:57%;margin:65px 3% 30px auto!important;padding:0!important}
+#dungeon #dungeonBody>div>div>div:first-child{padding:0 0 12px!important;color:#f1cb85}
+#dungeon .panel{background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;border:0;border-radius:0;box-shadow:none;padding:25px!important}
+#dungeon .btn{background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%;border:0;border-image:none;color:#f7e4ba;text-shadow:0 2px 2px #000;min-height:40px;padding:10px 16px;white-space:normal}
+#dungeon .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')}
+#dungeon .btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')}
+/* Preserve fitted painted Wishing Pool stage; replace only flat UI treatment. */
+#wishing .wpsTitle{font-family:Georgia;color:#f2cd83;text-shadow:0 3px 5px #000}
+#wishing .wpsCard{background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;box-shadow:0 5px 16px #0008;border-radius:0!important;padding:calc(var(--u)*20) calc(var(--u)*18)!important}
+#wishing .wpsName{font-family:Georgia;color:#f3d594}
+#wishing .wpsCard>.btn{background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;border-radius:0!important;color:#fff0cc;text-shadow:0 2px 2px #000}
+#wishing .wpsCard>.btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1')!important}
+#wishing .wpsCard>.btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important}
+/* Witch's Hut chrome only. No cauldron still/video swaps or timing changes. */
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) .hdrbox{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;box-shadow:none;padding:14px 30px!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) h1{font-family:Georgia;color:#edc67d;text-shadow:0 2px 3px #000}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.row .btn{background:url('/assets/img/ui/emberdraft-main/tab-active.webp?v=1') center/100% 100%;border:0;color:#f1d9a7}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.row .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/tab-idle.webp?v=1')}
+/* Map entrances: chrome only; absolutely no map/node/hotspot geometry selectors. */
+#campaign #portalTabs .btn{background:url('/assets/img/ui/emberdraft-main/tab-active.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;color:#f3d69a;text-shadow:0 2px 2px #000}
+#campaign #portalTabs .btn.secondary{background-image:url('/assets/img/ui/emberdraft-main/tab-idle.webp?v=1')!important}
+#campaign #cmapHdr{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;box-shadow:none!important;color:#f2d294;font-family:Georgia}
+#campaign #starClaim{background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%!important;border:0!important;color:#ffe8b8;text-shadow:0 2px 2px #000}
+#skyisland>.titlebar h1,#wlMap .wlH1{font-family:Georgia;color:#efd196;text-shadow:0 3px 4px #000}
+#skyisland>.sub,#wlMap .wlSubT{font-family:Georgia;color:#d1c5ad}
+#skyisland>.backbtn,#wlMap .wlBackB{background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;color:#f5dfb0;text-shadow:0 2px 2px #000}
+#wlMap .wlTop{background:linear-gradient(#080e19c9,#080e1970,transparent)!important}
+@media(max-height:560px) and (min-width:701px){#watchtower #watchTabs{width:66%;margin-top:62px!important;margin-right:2%!important}#arena:has(.arWrap)>.hdrbox{top:50px;left:0;width:100%;text-align:center}#arena:has(.arWrap) h1{font-size:26px;margin:0}#arena:has(.arWrap) #arenaBody{width:96%!important;margin:98px auto 20px!important}#arena .arTop,#arena .arBot{gap:8px}#arena .arDef,#arena .arOpp{padding:15px 12px}#arena .arOpps{flex-wrap:nowrap}#arena .arOpp{min-width:0;flex-basis:0;padding:14px 10px}#arena .arOppTop{flex-direction:column;align-items:center}#arena .arOppNums{padding:0;flex-direction:row;flex-wrap:wrap;justify-content:center}#arena .arMedal,#arena .arDay{flex-basis:100px}#dungeon #dungeonBody>div>div{width:66%;margin-right:2%!important}}
+@media(max-width:700px){#rankings #rankingsBody{grid-template-columns:1fr}#watchtower #watchTabs{width:94%;margin:130px auto 12px!important}#watchtower #watchBody{margin:0 auto 25px!important}#arena:has(.arWrap)>.hdrbox{position:relative;left:0;top:0;width:96%;text-align:center;margin:75px auto 0}#arena:has(.arWrap) #arenaBody{width:95%!important;margin:100px auto 25px!important}#arena .arTop,#arena .arBot{flex-direction:column}#arena .arMedal,#arena .arDay{flex:none;display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;justify-content:center;padding:20px}#arena .arOpp{min-width:140px}#arena .arDef{padding:20px 16px}#dungeon #dungeonBody>div>div{width:94%;margin:180px auto 25px!important}#dungeon #dungeonBody>div>div>div:first-child{flex-wrap:wrap}#guild #guildBody>.panel>div[style*="display:flex"]{flex-wrap:wrap}}
+
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody .panel span[style*="font-size:10px"]{font-size:12px!important;color:#b7c3d1!important}
+#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary))) #wallBody .panel div[style*="font-size:11px"]{font-size:13px!important;color:#bdc7d1!important}
+#rankings #rankingsBody>.panel{padding:32px 12%!important}
+
+#rankings #rankingsBody{align-items:start}
+#rankings #rankingsBody>.panel{padding:36px 16%!important}
+#rankings #rankingsBody>.panel:first-child{padding:35px 11%!important}
+#arena:has(.arWrap) h1{-webkit-text-fill-color:#f1c979!important;background:none!important}
+#arena .arBot{align-items:flex-start}
+#arena .arOpp{align-self:flex-start;min-height:205px;padding:25px 18px 22px}
+#arena .arOppTop{flex-direction:column;align-items:center}
+#arena .arOppL{width:100%;flex:initial}
+#arena .arOppArt{margin:auto}
+#arena .arOppNm{margin-top:6px;font-family:Georgia;color:#ead2a1}
+#arena .arOppNums{padding:0;flex-direction:row;flex-wrap:wrap;justify-content:center}
+#arena:has(.arWrap)>.backbtn{background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;border:0;border-image:none;color:#f0d9a9}
+#dungeon .panel{width:100%!important;max-width:none!important;border-image:none!important;padding:35px 12%!important}
+#dungeon #dungeonBody>div>div>div:nth-child(2)>div{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-radius:0!important;padding:16px!important}
+#dungeon #dungeonBody>div>div>div:nth-child(3):not(.panel){background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-radius:0!important;padding:20px 30px!important}
+
+/* Pool layout is responsive CSS rather than stale preview fit dimensions. All authored pool illustrations remain. */
+#wishing #wpsStage{width:100%!important;height:100%!important;position:absolute!important;inset:0!important;transform:none!important;padding:25px 3% 30px!important;overflow-y:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:20px}
+#wishing .wpsTitle{height:auto!important;min-height:65px;font-size:clamp(25px,3vw,44px)!important;padding:15px 45px!important;letter-spacing:2px!important;background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-radius:0!important;flex:none}
+#wishing .wpsHelp{width:32px!important;height:32px!important;font-size:22px!important;border-width:1px!important;margin-left:8px}
+#wishing .wpsCards{width:min(100%,1020px)!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;margin:auto 0!important;flex:none!important}
+#wishing .wpsCard,#wishing .wpsStage.tall .wpsCard{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;padding:35px 15% 38px!important;min-height:390px!important;gap:5px!important;width:auto!important;flex:none!important}
+#wishing .wpsOrb,#wishing .wpsStage.tall .wpsOrb{width:110px!important;height:110px!important;flex:none!important}
+#wishing .wpsName{font-size:25px!important;line-height:1.1!important;margin:4px 0!important}
+#wishing .wpsCost{font-size:17px!important}
+#wishing .wpsFree{font-size:14px!important;min-height:22px!important}
+#wishing .wpsSub{font-size:12px!important;max-height:none!important;overflow:visible!important}
+#wishing .wpsOdds{font-size:11px!important;line-height:1.4!important;min-height:63px;margin:4px 0!important}
+#wishing .wpsCard .btn,#wishing .wpsStage.tall .wpsCard .btn{height:39px!important;min-height:39px!important;font-size:14px!important;line-height:1.1!important;padding:7px 15px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;margin:4px 0 0!important;border:0!important;box-shadow:none!important}
+#wishing .wpsCard .btn::before,#wishing .wpsCard .btn::after{display:none!important}
+#wishing .wpsCard .stIc{width:17px!important;height:17px!important}
+@media(max-height:560px) and (min-width:701px){#wishing #wpsStage{padding:8px 3% 12px!important;gap:4px}#wishing .wpsTitle{font-size:26px!important;padding:7px 35px!important;min-height:40px}#wishing .wpsCards{gap:8px!important}#wishing .wpsCard{padding:20px 13% 22px!important;min-height:280px!important;gap:2px!important}#wishing .wpsOrb{width:56px!important;height:56px!important}#wishing .wpsName{font-size:19px!important}#wishing .wpsCost{font-size:13px!important}#wishing .wpsFree{font-size:11px!important;min-height:15px!important}#wishing .wpsSub{font-size:10px!important}#wishing .wpsOdds{font-size:9px!important;min-height:48px!important}#wishing .wpsCard .btn{height:29px!important;min-height:29px!important;font-size:11px!important}}
+@media(max-width:700px){#wishing #wpsStage{padding-top:65px!important;gap:10px}#wishing .wpsTitle{min-height:48px;font-size:24px!important;padding:12px 20px!important}#wishing .wpsCards{grid-template-columns:1fr!important;gap:8px!important;width:96%!important;margin:0!important}#wishing .wpsCard,#wishing .wpsStage.tall .wpsCard{position:relative;min-height:0!important;display:grid!important;grid-template-columns:68px 1fr!important;gap:3px 9px!important;padding:25px 12% 25px!important;text-align:left!important;align-items:center!important}#wishing .wpsOrb,#wishing .wpsStage.tall .wpsOrb{width:68px!important;height:68px!important;grid-column:1!important;grid-row:1/span 4!important}#wishing .wpsCard>*:not(.wpsOrb){grid-column:2!important}#wishing .wpsName{font-size:19px!important}#wishing .wpsCost{font-size:14px!important}#wishing .wpsFree{font-size:11px!important;min-height:0!important}#wishing .wpsSub{font-size:10px!important}#wishing .wpsOdds{font-size:10px!important;min-height:0!important;grid-column:1/-1!important}#wishing .wpsCard .btn,#wishing .wpsStage.tall .wpsCard .btn{grid-column:1/-1!important;min-height:33px!important;height:33px!important;font-size:13px!important}}
+
+#wishing .wpsCard>.btn:first-of-type{margin-top:auto!important}
+#campaign #cmapHdr{background:none!important}
+#campaign #cmapHdr::before{content:'';position:absolute;width:300px;max-width:80%;height:100%;background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%;z-index:-1;pointer-events:none}
+#skyisland>.titlebar{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;box-shadow:none!important;padding:10px 35px!important;max-width:90%;width:max-content!important;margin-inline:auto!important}
+#skyisland>.titlebar h1{-webkit-text-fill-color:#f0cc85!important;background:none!important;font-size:26px!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) .hdrbox{width:min(650px,75%)!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) h1{-webkit-text-fill-color:#edc67d!important;background:none!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody{width:94%!important;max-width:1050px!important;margin:0 auto!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.row{justify-content:center!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 32px;align-content:center;align-items:center;width:100%!important;max-width:none!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;box-shadow:none;padding:45px 10%!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>video{grid-column:1;grid-row:1/span 7;width:100%!important;max-width:380px;margin:0!important;border-radius:15px!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div{grid-column:2;min-width:0}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div:first-child{font:700 21px Georgia!important;color:#edcb8c}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody .whBrewTxt{font-size:16px!important;color:#e1d3b7!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row{gap:10px!important;display:flex;flex-direction:column}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn{width:100%;min-height:44px;padding:10px 20px;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%;border:0;border-image:none;box-shadow:none;color:#efdbb0;font:700 14px Georgia;white-space:normal;text-shadow:0 2px 2px #000}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1');color:#a49e91}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn::before,#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn::after{display:none}
+@media(max-width:700px){#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{grid-template-columns:1fr;gap:9px;padding:35px 12%!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div{grid-column:1}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>video{grid-column:1;grid-row:2;width:80%!important;max-width:230px;margin:auto!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div:first-child{font-size:17px!important;text-align:center}#skyisland>.titlebar h1{font-size:20px!important}}
+
+#forge .fgRow{background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;min-height:125px!important;padding:25px 11%!important;gap:12px!important;align-items:center!important}
+#forge .fgMain{min-width:0}
+#forge .fgFaces{flex-wrap:wrap!important;gap:3px!important}
+#forge .fgFace{flex:none!important}
+#forge .fgName{font-size:14px!important;line-height:1.3;overflow-wrap:anywhere}
+#forge .fgList{max-height:none!important;overflow:visible!important;padding:0!important}
+#forge .fgWrap{align-items:flex-start}
+#forge #forgeBody>.panel:last-child{padding:38px 9%!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn:disabled{opacity:1!important;color:#b9b2a2!important;filter:none!important}
+
+#forge .fgWrap{display:flex!important;flex-direction:column!important;gap:12px!important}
+#forge .fgTabs{order:-1;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%!important;flex:none!important;gap:6px!important}
+#forge .fgTabs .fgQ{min-height:34px;white-space:normal!important;overflow-wrap:anywhere}
+#forge .fgList{width:100%!important;flex:none!important}
+#forge .fgRow{width:100%!important;min-height:130px!important;padding:27px 12%!important}
+#forge .fgName{overflow-wrap:normal!important;word-break:normal!important}
+#forge .fgItem{width:58px!important;height:58px!important;flex:0 0 58px!important}
+#guild:not(:has(#gInput)){background-size:cover!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
+#arena .arHero{height:auto!important;aspect-ratio:1!important;width:calc(20% - 5px)!important;max-width:104px!important;flex:1 1 0!important}
+#dungeon #dungeonBody>div>div>div:nth-child(3):not(.panel){background-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1')!important;padding:30px 12%!important;min-height:125px}
+
+@media(max-width:700px){#skyisland>.titlebar{max-width:62%!important;margin-left:auto!important;margin-right:10px!important;padding:9px 20px!important}#skyisland>.titlebar h1{font-size:16px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{padding:35px 16%!important}}
+
+@media(max-height:560px) and (min-width:701px){#wall:has([data-wall-tab="cauldron"]:not(.secondary)) .hdrbox{padding:8px 25px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{padding:24px 9%!important;gap:6px 22px}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>video{width:210px!important;max-width:100%;height:210px!important;object-fit:contain!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div:first-child{font-size:17px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody .whBrewTxt{font-size:13px!important;margin:2px 0!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row{margin:4px 0!important;gap:5px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn{min-height:32px;padding:7px 15px!important;font-size:12px!important}}
+
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -21677,11 +22051,13 @@ const SHADY_SHOP=[
 ];
 function shadyCost(it){ const P=(typeof patNow==='function')?patNow():null, key=it.server||(it.id==='tele'?'targeted5':''); const off=P&&P.rows?(P.rows.shadyOff|0):0;   /* v1093: EGP 9/12/15 discount on 2 items a day */
   return (off>0&&(P.shadyPicks||[]).includes(key))?Math.round(it.cost*(1-off/100)):it.cost; }
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Market and Shady Market Main Screens 09NOV2026) */
 function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!b)return;
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gem')} ${G.gems}</span><span style="color:#c9a2ff">${t('shady.diamonds_only')}</span></div>`
+  const mh=document.querySelector('#shadymarket h1');if(mh)mh.classList.toggle('merc-title-art',typeof LANG!=='undefined'&&LANG.cur==='en');
+  b.innerHTML=`<div class="merc-wallet"><span>${hudIcon('gem')} ${G.gems}</span><span style="color:#c9a2ff">${t('shady.diamonds_only')}</span></div>`
     +SHADY_SHOP.map((it,i)=>{ const cost=shadyCost(it), can=(G.gems||0)>=cost;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
-        <div style="display:flex;gap:8px;align-items:center;min-width:0">${it.img?`<img src="${it.img}" alt="" style="width:30px;height:30px;object-fit:contain">`:`<span style="font-size:22px">${it.icon}</span>`}<div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
+      return `<div class="merc-offer">
+        <div class="merc-info">${it.img?`<img src="${it.img}" alt="" style="width:30px;height:30px;object-fit:contain">`:`<span style="font-size:22px">${it.icon}</span>`}<div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
         <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>${cost<it.cost?`<s style="opacity:.6">${it.cost}</s> `:''}${hudIcon('gem')} ${cost}</button></div>`; }).join('');
   b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<shadyCost(it))return;
     if(it.id==='tele'){
@@ -21707,7 +22083,7 @@ async function renderRankings(){ const b=document.getElementById('rankingsBody')
       <div>${uiIcon('trophy')} ${t('rank.arena_rank')}<br><b style="color:#ffd45e;font-size:16px">#${myArena}</b></div>
       <div>${statusIcon('shield')} ${t('nav.guild')}<br><b style="color:#5ee89b;font-size:14px">${G.guild?escapeHTML(G.guild.name)+' · Lv '+(G.guild.level||1):'—'}</b></div>
       <div>${uiIcon('map')} ${t('bld.campaign')}<br><b style="color:#8fe3ff;font-size:14px">${G.campaignCleared?t('rank.stage',{code:stageCode(G.campaignCleared)}):'—'}</b></div>
-      <div>🐲 ${t('rank.dungeon')}<br><b style="color:#ff9a6b;font-size:14px">${G.dungeonBest?t('rank.cleared',{n:G.dungeonBest}):'—'}</b></div>
+      <div>${uiIcon('mode-vault')} ${t('rank.dungeon')}<br><b style="color:#ff9a6b;font-size:14px">${G.dungeonBest?t('rank.cleared',{n:G.dungeonBest}):'—'}</b></div>
     </div></div>`;
   html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">${uiIcon('trophy')} ${t('rank.arena_top')}</div>`
     +(lad.length?lad.slice(0,20).map(e=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 6px;border-radius:6px;${e.me?'background:#1a2b1f':''}">
@@ -21801,19 +22177,21 @@ let SHOP_BUSY=false; const SHOP_RID={};
 function shopRid(k){ return SHOP_RID[k]||(SHOP_RID[k]=uid8()); }
 function shopRidDone(k,r){ if(!(r&&(r.error==='offline'||r.storageFailed))) delete SHOP_RID[k]; }
 async function shopOnce(fn){ if(SHOP_BUSY) return; SHOP_BUSY=true; try{ await fn(); } finally{ SHOP_BUSY=false; } }
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Market and Shady Market Main Screens 09NOV2026) */
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   /* v1212 (run-ahead pass): the shield row's price was frozen at restock; a same-hour level-up showed 95 and charged 98.
      Signed in, it is the server's own formula at the CURRENT level (server.js what==='shield_market'). */
   if(ACC.token) for(const o of (G.market.offers||[])) if(o.kind==='shield') o.cost={gems:Math.round(70*(1+(playerLevel()-1)*0.04))};
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gold')} ${G.gold}  ·  ${hudIcon('gem')} ${G.gems}${(ACC.token&&G.marketToday)?`  ·  ${t('market.frags_today',{n:(G.marketToday.used|0)+'/'+(G.marketToday.max|0)})}`:''}</span><span>${t('market.restock',{t:fmtDur(left)})}</span></div>`+
+  const mh=document.querySelector('#market h1');if(mh)mh.classList.toggle('merc-title-art',typeof LANG!=='undefined'&&LANG.cur==='en');
+  b.innerHTML=`<div class="merc-wallet"><span>${hudIcon('gold')} ${G.gold}  ·  ${hudIcon('gem')} ${G.gems}${(ACC.token&&G.marketToday)?`  ·  ${t('market.frags_today',{n:(G.marketToday.used|0)+'/'+(G.marketToday.max|0)})}`:''}</span><span>${t('market.restock',{t:fmtDur(left)})}</span></div>`+
     G.market.offers.map((o,i)=>{ const c=o.cost.gold?(hudIcon('gold')+' '+o.cost.gold):(hudIcon('gem')+' '+o.cost.gems), afford=o.cost.gold?G.gold>=o.cost.gold:G.gems>=o.cost.gems;
       const frag=o.kind==='frag', ic=frag?heroIcon(o.hero,34):`<span style="font-size:22px">${o.icon}</span>`;
       const nm=frag?t('market.hero_frags',{n:o.qty,hero:HERO_TYPES[o.hero].name}):(o.kind==='shield'?t('market.peace_shield'):o.name);
       const sub=o.kind==='shield'?t('market.shield_desc'):(frag?(HERO_TYPES[o.hero].locked&&!G.unlocked[o.hero]?t('market.to_unlock',{n:heroFrag(o.hero)+'/'+summonCost(o.hero)}):uiIcon('check')+' '+t('market.owned')):'');
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
-        <div style="display:flex;gap:8px;align-items:center;min-width:0">${ic}<div style="min-width:0"><b>${nm}</b>${sub?`<div style="font-size:10px;color:#8b98a9">${sub}</div>`:''}</div></div>
+      return `<div class="merc-offer">
+        <div class="merc-info">${ic}<div style="min-width:0"><b>${nm}</b>${sub?`<div style="font-size:10px;color:#8b98a9">${sub}</div>`:''}</div></div>
         <button class="btn sm" data-i="${i}" ${o.bought||!afford||(o.kind==='frag'&&G.market.pending)?'disabled':''}>${o.bought?t('market.sold'):c}</button></div>`;
     }).join('');
   b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
@@ -24312,7 +24690,8 @@ function closeGlossaryCard(){ const m=document.getElementById('glModal'); if(m)m
 /* v659 (Phil: "These tabs all deserve a nice header box created for them"): each screen's title (and the subtitle under it) is wrapped once
    in a .hdrbox, a painted gold-cornered enamel box (hud-header, drawn as a nine-slice so the corners never stretch). The Floating Isle keeps
    its title floating over the map. */
-(function(){ document.querySelectorAll('.screen').forEach(sc=>{ if(sc.id==='skyisland') return; const tb=[...sc.children].find(c=>c.classList.contains('titlebar')); if(!tb) return;
+/* v1325: ChatGPT's Market and Shady Market main screens (9 Nov) place their own title and subtitle - no header box there */
+(function(){ const NO_HDRBOX={skyisland:1,market:1,shadymarket:1}; document.querySelectorAll('.screen').forEach(sc=>{ if(NO_HDRBOX[sc.id]) return; const tb=[...sc.children].find(c=>c.classList.contains('titlebar')); if(!tb) return;
   const box=document.createElement('div'); box.className='hdrbox'; tb.before(box); box.appendChild(tb); const sub=box.nextElementSibling; if(sub&&sub.classList.contains('sub')) box.appendChild(sub); }); })();
 function glOpenFrom(ret, label){ const b=document.querySelector('#glossary .backbtn'); if(b){ b.dataset.nav=ret; b.textContent='◀ '+label; } show('glossary'); }
 (function(){ const gb=document.getElementById('glossaryBtn'); if(gb) gb.addEventListener('click',()=>glOpenFrom('menu',ewT('menu.menu')));
@@ -24520,8 +24899,10 @@ const TECH_TRACKS=[
 ];
 function techText(k){ const N={atk:[t('tech.atk_name'),t('tech.atk_desc')],hp:[t('tech.hp'),t('tech.hp')],ap:[t('tech.ap_name'),t('tech.ap_desc')],heal:[t('tech.heal_name'),t('tech.heal_desc')],armor:[t('tech.armor'),t('tech.armor')],mr:[t('tech.mr_name'),t('tech.mr_desc')],crit:[t('tech.crit_name'),t('tech.crit_desc')],critres:[t('tech.critres_name'),t('tech.critres_desc')]}; return N[k]||null; }   // v1271: a track's [name, description] as shown
 let techSel='atk';
+/* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Academy Main Screen 09NOV2026) */
 function renderTech(){
-  applySceneBg('tech',ACADEMY_BG);
+  applySceneBg('tech','/assets/img/ui/academy-main/academy-hall.webp?v=1');
+  const acHeading=document.querySelector('#tech h1'); if(acHeading){acHeading.dataset.i18n='bld.academy';acHeading.textContent=t('bld.academy');acHeading.classList.toggle('ac-title-art',LANG.cur==='en');}
   // v327: if the boot sync never landed (offline at 2.8s, or signed in mid-session), repair the display on open.
   // Only re-render on SUCCESS: academySync swallows its errors, so re-rendering unconditionally would loop forever on a failed fetch.
   /* v991 (Academy audit #10): re-sync on EVERY open, not only the first - income earned since boot was invisible */
@@ -24531,15 +24912,16 @@ function renderTech(){
   const p=document.getElementById('techPanel'); p.innerHTML='';
   const busy=learnBusy();   // only one research at a time
   // resource wallet strip
-  p.insertAdjacentHTML('beforeend','<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:12px;margin-bottom:6px">'+RES.map(([k,ic,nm])=>`<span class="pill">${resIconHtml(k,15)} ${G.res[k]||0}</span>`).join('')+'</div>');
+  p.insertAdjacentHTML('beforeend','<div class="ac-wallet">'+RES.map(([k,ic,nm])=>`<span class="pill">${resIconHtml(k,15)} ${G.res[k]||0}</span>`).join('')+'</div>');
   // ---- kingdom layout: 4 tech nodes down the LEFT, 4 down the RIGHT, Academy castle in the middle ----
   const wheel=document.createElement('div'); wheel.className='techWheel';
   const centerImg=playerCastleImg();   // v1099: the castle for your CURRENT Academy level (tier 1..5)
   const TW_CASTLE_H=[0,80,104,124,146,164], ctier=castleTierAcad(academyLevel());   // center castle grows with the Academy level
   const acadLvl=G.tech.academy||0, acadLearning=(G.techLearn.academy||0)>Date.now();
   wheel.insertAdjacentHTML('beforeend',`<div class="tw-center${techSel==='academy'?' sel':''}" id="twAcademy">
-      ${centerImg?`<img src="${centerImg}" style="height:${TW_CASTLE_H[ctier]||100}px;width:auto" draggable="false">`:'<div style="font-size:60px">🏛️</div>'}
-      <div class="tw-lbl">🏛️ ${t('bld.academy').toLocaleUpperCase(LANG.cur)} · ${acadLearning?uiIcon('timer'):t('roster.lv',{n:acadLvl})}</div></div>`);
+      <img src="/assets/img/ui/academy-main/academy-grimoire.webp?v=1" alt="" draggable="false">
+      <div class="tw-lbl">${t('bld.academy').toLocaleUpperCase(LANG.cur)} · ${acadLearning?uiIcon('timer'):t('roster.lv',{n:acadLvl})}</div></div>`);
+  const nodeTray=document.createElement('div'); nodeTray.className='ac-tracks'; wheel.appendChild(nodeTray);
   const rows=[13,38,62,87];              // 4 vertical slots (% of height)
   const bulge=(r)=>7*Math.sin(Math.PI*(r/3));   // half-moon: 0 at top/bottom, bows outward in the middle
   tracks.forEach(([k,ic,name,desc],i)=>{
@@ -24550,15 +24932,16 @@ function renderTech(){
     const node=document.createElement('div');
     node.className='tw-node'+(techSel===k?' sel':'')+(learning?' learning':'')+(acadLocked?' capped':'')+((busy&&busy!==k)?' busyOther':'');
     node.style.left=x+'%'; node.style.top=y+'%';
-    node.innerHTML=`<div class="tw-ic">${ic}</div><div class="tw-lv">${learning?uiIcon('timer'):(acadLocked?hudIcon('lock')+' '+lvl:t('roster.lv',{n:lvl}))}</div>`;
+    node.innerHTML=`<div class="tw-ic">${ic}</div><div class="tw-name">${(techText(k)||[name])[0]}</div><div class="tw-lv">${learning?uiIcon('timer'):(acadLocked?hudIcon('lock')+' '+lvl:t('roster.lv',{n:lvl}))}</div>`;
     node.onclick=()=>{ techSel=k; renderTech(); };
-    wheel.appendChild(node);
+    node.setAttribute('role','button'); node.tabIndex=0; node.setAttribute('aria-label',(techText(k)||[name])[0]); node.setAttribute('aria-pressed',String(techSel===k)); node.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();node.click();}};
+    nodeTray.appendChild(node);
   });
   p.appendChild(wheel);
-  wheel.querySelector('#twAcademy').onclick=()=>{ techSel='academy'; renderTech(); };
+  const acadButton=wheel.querySelector('#twAcademy'); acadButton.setAttribute('role','button'); acadButton.tabIndex=0; acadButton.setAttribute('aria-label',t('bld.academy')); acadButton.onclick=()=>{ techSel='academy'; renderTech(); }; acadButton.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();acadButton.click();}};
   // ---- detail card for the selected tech / the Academy building ----
   const isAcad=techSel==='academy';
-  const sel=isAcad?['academy','🏛️',ewT('bld.academy'),ewT('tech.acad_desc')]:(tracks.find(t=>t[0]===techSel)||tracks[0]);
+  const sel=isAcad?['academy','<img class="stIc" src="/assets/img/ui/academy-main/academy-grimoire.webp?v=1" alt="">',ewT('bld.academy'),ewT('tech.acad_desc')]:(tracks.find(t=>t[0]===techSel)||tracks[0]);
   const [k,ic]=sel, [name,desc]=isAcad?[sel[2],sel[3]]:(techText(k)||[sel[2],sel[3]]);
   const tmax=isAcad?ACADEMY_MAX:TECH_MAX, lvl=G.tech[k]||0, maxed=lvl>=tmax, cost=60+lvl*70, rc=learnResCost(k,lvl), learning=G.techLearn[k]||0, remain=learning-Date.now();
   const affordable=G.gold>=cost&&canAffordRes(rc), blocked=busy&&busy!==k;
@@ -24576,7 +24959,7 @@ function renderTech(){
   else if(learning&&remain>0){ btn=`<button class="btn" disabled>${uiIcon('timer')} ${t('tech.upgrading',{t:fmtDur(remain),n:lvl+1})}</button>`; }
   else if(acadLocked){ btn=`<button class="btn secondary" disabled>${hudIcon('lock')} ${t('tech.raise_academy',{n:lvl+1})}</button>`; }
   else if(blocked){ btn=`<button class="btn secondary" disabled>${t('tech.busy_elsewhere')}</button>`; }
-  else { btn=`<button class="btn" id="techLearnBtn" ${affordable?'':'disabled'}>${isAcad?t('tech.upgrade_lv',{n:lvl+1}):t('tech.learn_lv',{n:lvl+1})} · ${hudIcon('gold')} ${cost} ${resCostStr(rc)}</button>`; }
+  else { btn=`<button class="btn" id="techLearnBtn" ${affordable?'':'disabled'}><span class="ac-learn-label">${isAcad?t('tech.upgrade_lv',{n:lvl+1}):t('tech.learn_lv',{n:lvl+1})}</span><span class="ac-cost">${hudIcon('gold')} ${cost} ${resCostStr(rc)}</span></button>`; }
   const card=document.createElement('div'); card.className='tw-detail';
   card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="font-size:26px">${ic}</div>
@@ -25827,6 +26210,7 @@ function renderWallDur(body){ const W=(LED&&LED.st&&LED.st.wall)||null, P=patNow
   const rp=panel.querySelector('#wdRepair'); if(rp) rp.onclick=()=>{ rp.disabled=true; act('/api/wall/repair',t('wall.dur_repaired',{pct:W.repairPct+'%'})); };
   const ba=panel.querySelector('#wdBuyAtk'); if(ba) ba.onclick=()=>{ ba.disabled=true; act('/api/patron/buy-attacks',t('patron.plus_attacks',{n:A.pack.n})); }; }
 function renderWall(){
+  const whTitle=document.querySelector('#wall h1');if(whTitle){const key=WALL_TAB==='cauldron'?'bld.witches_hut':'bld.city_wall';whTitle.dataset.i18n=key;whTitle.textContent=t(key);}   /* v1325 ChatGPT rollout: the heading names the tab's building */
   const lv=playerLevel(), body=document.getElementById('wallBody'); body.innerHTML='';
   const locked = lv<WALL_UNLOCK_LEVEL;
   if(locked && !AUDIT_MODE()){ body.innerHTML=`<div class="panel" style="text-align:center">${hudIcon('lock')} ${t('wall.locked',{wall:t('bld.city_wall'),n:WALL_UNLOCK_LEVEL})}<br><span style="color:#8b98a9;font-size:12px">${t('wall.you_are_level',{n:lv})}</span></div>`; return; }
@@ -25858,7 +26242,7 @@ function renderWall(){
   const home=G.regionChosen?ZONES[myRegion()].name:t('wall.not_chosen');
   const free=transferFree();
   const tp=document.createElement('div'); tp.className='panel';
-  tp.innerHTML=`<div style="font-weight:700;margin-bottom:4px">🏰 ${t('wall.region')}</div>
+  tp.innerHTML=`<div style="font-weight:700;margin-bottom:4px">${uiIcon('map-pin')} ${t('wall.region')}</div>
     <div style="font-size:12px;color:#8b98a9;margin-bottom:8px">${t('wall.live_in',{home:'<b style="color:#ffd45e">'+home+'</b>',cost:'<b>'+(free?t('wall.free_monthly'):hudIcon('gem')+' '+TRANSFER_COST)+'</b>'})}</div>
     <div class="row" id="xferRow" style="gap:6px;justify-content:center;flex-wrap:wrap"></div>
     <div id="xferMsg" style="font-size:11px;color:#ffd45e;margin-top:6px;min-height:14px"></div>`;
@@ -28165,7 +28549,7 @@ function renderGuildLobby(b){
       <div id="gcMsg" style="font-size:11px;color:#ffd45e;min-height:14px"></div>
     </div>
     <div class="panel" style="max-width:440px;margin:10px auto 0">
-      <div style="font-weight:700;margin-bottom:6px">&#128269; ${t('guild.find')}</div>
+      <div style="font-weight:700;margin-bottom:6px"><img class="stIc" src="/assets/img/ui/building-main/search-icon.webp?v=1" alt=""> ${t('guild.find')}</div>
       <div style="display:flex;gap:8px;margin-bottom:8px"><input id="gSearch" maxlength="24" placeholder="${t('guild.search_ph')}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3"><button class="btn sm" id="gSearchBtn">${t('guild.search')}</button></div>
       <div id="gJoinList"><div style="text-align:center;color:#8b98a9;font-size:12px;padding:8px">${t('guild.loading_guilds')}</div></div>
     </div>`;
@@ -32772,7 +33156,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794255224516';
+const BUILD_ID = '1794257516738';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -33672,7 +34056,8 @@ function openEmberdraft(){   /* v1324 (Phil 9 Nov, via ChatGPT: "Emberdraft MAIN
 }
 @media(prefers-reduced-motion:reduce){#edLobby *,#edLobby *::before,#edLobby *::after{animation:none!important;transition:none!important}}
 
-  </style>
+  
+</style>
   <div class="edl-shade"></div><canvas class="edl-av" id="edAvCv"></canvas><canvas class="edl-fx"></canvas>
   <button class="edl-back" id="edX">◀ ${ewT('draft.island')}</button>
   <div class="edl-wrap">
