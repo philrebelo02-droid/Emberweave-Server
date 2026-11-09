@@ -17775,7 +17775,7 @@ function bannerMsg(t){ if(window._p2guard) return;   // headless sim (arena seed
 function egpPlace(){ const pb=document.getElementById('patBadge'), nm=document.getElementById('pfName'), hud=document.getElementById('leftHud'); if(!pb||!nm||!hud||pb.hidden) return;
   requestAnimationFrame(()=>{ const n=nm.getBoundingClientRect(), h=hud.getBoundingClientRect(); if(!n.width||!h.width) return;
     const sc=(hud.offsetWidth&&h.width)?h.width/hud.offsetWidth:1;   // the app may be scaled to fit the screen
-    pb.style.width=Math.round(n.width/sc)+'px'; pb.style.height=Math.round(n.height/sc)+'px'; pb.style.left=Math.round((n.left-h.left)/sc)+'px'; pb.style.top=Math.round((n.bottom-h.top)/sc+1)+'px'; }); }
+    pb.style.width=Math.round(n.width/sc)+'px'; pb.style.height=Math.round(n.height/sc)+'px'; pb.style.left=Math.round((n.left-h.left)/sc)+'px'; pb.style.top=Math.round((n.bottom-h.top)/sc-7)+'px'; }); }   // v1322 (Phil: "Egp plate should be closer to commander plate"): the B plates carry clear space top and bottom, so EGP tucks 7 px up into it
 addEventListener('resize',()=>{ try{ egpPlace(); }catch(e){} });
 function updateHubChrome(){
   regenStamina();
@@ -32646,7 +32646,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794244445666';
+const BUILD_ID = '1794244503436';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
