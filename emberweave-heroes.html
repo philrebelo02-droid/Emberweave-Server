@@ -2499,7 +2499,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlDone{font-family:Georgia,'Times New Roman',serif;letter-spacing:3px;text-transform:uppercase;color:#ffe9b8}
 
 /* v1092 EGP / EDP (blueprint 25) */
-#patBadge{position:absolute;left:50%;transform:translateX(-50%);top:calc(127% + 1px);z-index:3;border:1px solid #c9a35e;border-radius:8px;padding:0 7px;font:800 10px/14px system-ui,sans-serif;letter-spacing:.04em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);cursor:pointer;white-space:nowrap}
+#patBadge{position:relative;left:auto;top:auto;transform:none;z-index:31;align-self:flex-end;margin:-6px 6px -4px 0;min-width:112px;height:36px;padding:0 16px;box-sizing:border-box;border:1.5px solid #c9a35e;border-radius:10px;font:800 15px/1 Georgia,'Times New Roman',serif;letter-spacing:.06em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);box-shadow:0 3px 8px #000a,inset 0 0 8px #c9a35e33;cursor:pointer;white-space:nowrap;touch-action:manipulation}#patBadge:active{transform:scale(.96)}
 /* v1144: the sign-in gate and the GUEST marker */
 #authGate{position:fixed;inset:0;z-index:2147481000;display:none;align-items:center;justify-content:flex-end;padding:12px max(16px,calc(var(--ew-game-width,100vw) * 0.05));
   background:linear-gradient(90deg,rgba(5,7,12,.15) 0%,rgba(5,7,12,.55) 45%,rgba(5,7,12,.88) 100%),url(/assets/img/miscellaneous/splash-v2.jpg) center/cover no-repeat,#0b0f17;
@@ -2654,9 +2654,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
       <div id="xpRing"><div id="pcAvatarWrap"><img id="pcAvatar" alt=""></div></div>
       <img id="pfFrame" src="/assets/img/ui/hud-ring.webp?v=1" alt="" aria-hidden="true">
       <div id="pfName"><span class="pname" id="resName">Commander</span></div>
-      <button id="patBadge" hidden aria-label="Patron" data-i18n-aria="patron.title"></button>
       <button id="guestMark" hidden aria-label="Guest account - create an account" data-i18n-aria="html2.guest_create"></button>
     </div>
+    <button id="patBadge" hidden aria-label="Patron" data-i18n-aria="patron.title"></button>   <!-- v1321 (Phil 9 Nov: "The EGP button needs to be bigger, and its own button separate from the commander plate" / "So I can press it") -->
     <div id="hubMenu">
       <div id="menuBtn"><img class="mbIc" src="/assets/img/ui/mi-menu.webp?v=1" alt=""><span data-i18n="menu.menu">Menu</span><span class="chev">▾</span></div>
       <div id="menuPanel">
@@ -32591,7 +32591,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794239617803';
+const BUILD_ID = '1794239788392';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
