@@ -157,6 +157,19 @@
   #bonusFragPanel .bfRow{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;align-items:center;padding:7px 16px;font-size:13px;background:url(/assets/img/ui/bonus/row-band.webp?v=1) center/100% 100% no-repeat;margin-top:4px}
   #bonusFragPanel .bfHead{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;padding:0 16px;font-size:11px;color:#8b98a9}
   #bonusFragPanel .bfClaim{flex:1;border:0;border-radius:0;min-height:46px;background:url(/assets/img/ui/bonus/claim-button.webp?v=1) center/100% 100% no-repeat;color:#24170a;font:900 15px Georgia,serif;text-shadow:0 1px 0 #ffe9a8;cursor:pointer}
+  @media (max-height:520px){ #campRes{top:96px!important;gap:8px!important} }
+  #stageRewPop{position:fixed;inset:0;z-index:9800;display:flex;align-items:center;justify-content:center;background:rgba(3,6,12,.72);padding:12px}
+  #stageRewPop .srCard{width:min(560px,94vw);max-height:90vh;overflow:auto;box-sizing:border-box;padding:16px 16px 14px;border-radius:16px;background:linear-gradient(180deg,#1b2233,#0d1220);border:2px solid #b8913f;box-shadow:0 10px 40px #000c,inset 0 0 22px #b8913f33;text-align:center;transform:scale(.86);opacity:0;transition:transform .22s ease-out,opacity .22s ease-out}
+  #stageRewPop.on .srCard{transform:scale(1);opacity:1}
+  #stageRewPop .srTitle{font:900 22px Georgia,serif;color:#ffd45e;letter-spacing:1px;text-shadow:0 2px 4px #000;margin-bottom:10px}
+  #stageRewPop .srGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:9px;margin-bottom:12px}
+  #stageRewPop .srItem{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:8px 4px 7px;border-radius:11px;background:rgba(10,15,26,.82);border:1px solid #6b5a2e;opacity:0;transform:scale(.5) translateY(10px);transition:opacity .28s ease-out,transform .28s cubic-bezier(.3,1.6,.6,1)}
+  #stageRewPop .srItem.on{opacity:1;transform:scale(1) translateY(0)}
+  #stageRewPop .srArt{width:52px;height:52px;display:flex;align-items:center;justify-content:center}
+  #stageRewPop .srArt img{max-width:52px;max-height:52px;object-fit:contain}
+  #stageRewPop .srItem b{font:900 14px Georgia,serif;color:#fff;text-shadow:0 1px 2px #000}
+  #stageRewPop .srItem span{font-size:10px;color:#cdd6e4;line-height:1.15}
+  #stageRewPop .srGo{min-width:180px;min-height:42px;border-radius:21px;border:1px solid #ffe6b0;background:linear-gradient(180deg,#f2c14e,#b8862b);color:#2a1a05;font:900 15px Georgia,serif;cursor:pointer}
   #bonusFragPanel .bfList{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
   @media (max-height:500px){ #bonusFragPanel{padding:8px!important} #bonusFragPanel .bfCard{padding-bottom:18px} #bonusFragPanel .bfTitle{font-size:17px!important;margin-bottom:6px!important}
     #bonusFragPanel .bfPlaques{margin-bottom:6px!important} #bonusFragPanel .bfPlaque{padding:5px 8px 7px} #bonusFragPanel .bfPlaque .bfN{font-size:17px!important}
@@ -957,7 +970,7 @@
   .ctrlBtn{pointer-events:auto;background:rgba(21,27,43,.92);color:#e6edf3;border:1px solid #33405e;border-radius:20px;padding:0 8px;font-size:12px;font-weight:800;cursor:pointer;width:92px;height:32px;box-sizing:border-box;white-space:nowrap;text-align:center;}
   .ctrlBtn.on{background:#ffd45e;color:#0b0e14;border-color:#ffd45e;}
   .ctrlBtn.pending{background:rgba(21,27,43,.92);border-color:#ffd45e;color:#ffe49c;font-size:10px;cursor:wait;}
-  #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:75;text-align:center;letter-spacing:2px;padding:20px;}
+  #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:9600;text-align:center;letter-spacing:2px;padding:20px;}   /* v1320 (Phil 9 Nov: "The prompt in the back of the glyph screen should be infront"): over the pop-out panels (9000-9200), under the reward pop-out (9800) */
   #banner.show{display:flex;animation:pop 1.4s ease-out forwards;}
   @keyframes pop{0%{opacity:0;transform:scale(2.2);}20%{opacity:1;transform:scale(1);}72%{opacity:1;}100%{opacity:0;transform:scale(1.1);}}
 
@@ -2661,6 +2674,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <!-- CAMPAIGN ROADMAP -->
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ <span data-i18n="nav.base">Base</span></button>
+    <!-- v1320 (Phil 9 Nov: "make stamina and diamonds visible on campaign screen"): the base HUD's food and diamond chips, under Base -->
+    <div id="campRes" style="position:absolute!important;top:104px;left:14px;z-index:7!important;display:flex;flex-direction:column;gap:10px;align-items:flex-start;pointer-events:auto"><div class="resframe"><span class="resicon"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""></span><span class="resval"><b id="campStam">60/60</b><i id="campStamT"></i></span><button class="resplus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div>
+      <div class="resframe"><span class="resicon"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""></span><span class="resval"><b id="campGems">0</b></span><button class="resplus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
     <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> <span data-i18n="nav.glossary">Glossary</span></button>
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
@@ -16253,6 +16269,7 @@ function endBattle(won){
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(langMsg(r.error))+'</span>'):ewT('result.squad_fell')));
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result');
+      if(sWon && r && r.reward) try{ stageRewardPop(stageRewardItems(r.reward), ewT('result.victory')); }catch(e){}   /* v1320 */
     },800); return; }
   resultLater(()=>{
   if(won){ const msg=grantRewards();
@@ -17712,6 +17729,7 @@ function updateHubChrome(){
   set('resGold',G.gold); set('resGems',G.gems);
   const mx=maxStamina(), full=G.stamina>=mx; set('resStamina',G.stamina+'/'+mx);
   const st=document.getElementById('resStaminaTimer'); if(st) st.textContent=full?'':('⏳'+fmtDur(staminaToNext()));
+  set('campStam',G.stamina+'/'+mx); set('campGems',G.gems); { const ct=document.getElementById('campStamT'); if(ct) ct.textContent=full?'':('⏳'+fmtDur(staminaToNext())); }   /* v1320 */
   const ring=document.getElementById('xpRing'); if(ring) ring.style.setProperty('--xp',(xpIntoLevel()*3.6)+'deg');
   if(typeof checkTutorial==='function') checkTutorial();
   try{ updateGuestMarks(); }catch(e){}   /* v1144 */
@@ -22089,6 +22107,27 @@ function closeStageModal(){ window.SM_KEY=null; document.getElementById('stageMo
 /* v253 (visual audit #1/#2): ONE reward vocabulary. Guaranteed named items on top with icon + exact
    count and the farm source; gold/XP below, clearly labelled bonus. Glyph materials always read
    "Glyph Fragment"; gear materials always read "Gear Fragment" — never mixed. */
+/* v1320 (Phil 9 Nov: "after a stage is done, show the rewards just like wishing pool, 1 items at a time domino effect style in a nice pop
+   out screen"): a won campaign fight and a sweep open a pop-out over the result - one card per reward from the SERVER's receipt (glyph
+   fragments with their art, the hero fragment, XP potions, diamonds, gold, player XP), dealt one after another like the Wishing Pool x10,
+   then Collect closes it. The result screen / stage panel underneath keeps its full receipt. */
+function stageRewardItems(rw){ rw=rw||{}; const out=[];
+  for(const f of (rw.glyphFragments||[])){ const k=String(f.key||f.displayName||'').replace(/ Fragment$/,'');
+    let src=''; try{ src=g2NodeArtSrc({kind:'fragment',key:k}); }catch(e){}   /* each fragment's OWN art (Phil 9 Nov: "It should be the actual fragments art") - the Bonus claim's lookup */
+    out.push({art:src?`<img src="${src}" alt="" draggable="false">`:((typeof g2artKey==='function')?g2artKey('fragment',k,52):'◆'), qty:f.quantity||1, name:String(f.displayName||f.key||'').replace(/ Fragment$/,'')+' Fragment'}); }
+  const ef=rw.eliteFrag; if(ef&&ef.qty) out.push({art:fragCard(ef.heroKey,52), qty:ef.qty|0, name:((HERO_TYPES[ef.heroKey]||{}).name||ef.heroKey)+' Fragment'});
+  for(const [tier,n] of Object.entries(rw.xpPotions||{})) if(n>0) out.push({art:'<span style="display:inline-block;transform:scale(2.4)">'+uiIcon('lore-book')+'</span>', qty:n, name:tier[0].toUpperCase()+tier.slice(1)+' XP Potion'});
+  if(rw.gems>0) out.push({art:'<img src="/assets/img/ui/hud-gem.webp?v=1" alt="">', qty:rw.gems, name:'Diamonds'});
+  if(rw.gold>0) out.push({art:'<img src="/assets/img/ui/hud-gold.webp?v=1" alt="">', qty:rw.gold, name:'Gold'});
+  const px=rw.px||rw.playerXp||0; if(px>0) out.push({art:'<b style="font:900 24px Georgia,serif;color:#5ee89b;text-shadow:0 1px 3px #000">XP</b>', qty:px, name:'Player XP'});
+  return out; }
+function stageRewardPop(items,title){ if(!items||!items.length) return null; const old=document.getElementById('stageRewPop'); if(old) old.remove();
+  const ov=document.createElement('div'); ov.id='stageRewPop';
+  ov.innerHTML=`<div class="srCard"><div class="srTitle">${escapeHTML(title||'')}</div><div class="srGrid">${items.map(x=>`<div class="srItem"><div class="srArt">${x.art}</div><b>x${(+x.qty||0).toLocaleString('en-US')}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div><button class="srGo" type="button">${t('wish.collect_all')}</button></div>`;
+  document.body.appendChild(ov); requestAnimationFrame(()=>ov.classList.add('on'));
+  [...ov.querySelectorAll('.srItem')].forEach((c,i)=>setTimeout(()=>c.classList.add('on'),260+i*180));   // dominoes, like the Wishing Pool x10
+  ov.querySelector('.srGo').onclick=()=>ov.remove();
+  return ov; }
 function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){
   const gf=(glyphFrags||[]).map(f=>{ const k=String(f.key||f.displayName||'').replace(/ Fragment$/,'');   /* v1141: art from the key ('Grey Sinew'), never the display name ('Rough Sinew' has no Rough folder) */
     return `<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:3px 0">
@@ -22161,6 +22200,7 @@ function sweepStage(i,times,mode){
       ${items||'<span style="font-size:10.5px;color:#6f7d90">'+t('stage.no_fragments')+'</span>'}${eliteLine}${potionLine}${spoils}
       ${um?`<span style="color:#ffd45e;font-size:10.5px">${um}</span>`:''}</div>`;
     document.getElementById('smMsg').textContent='';
+    try{ stageRewardPop(stageRewardItems(r), t('stage.swept',{n:r.times})); }catch(e){}   /* v1320 */
     if(typeof glyphV2Sync==='function') glyphV2Sync();
     saveG(); updateHubChrome(); if(typeof renderCampaign==='function'&&state==='campaign')renderCampaign();
   } finally { sweepStage._busy=false; } })();
@@ -32124,6 +32164,8 @@ function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
 document.getElementById('staminaPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('food'); };
 document.getElementById('goldPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gold'); };
 document.getElementById('gemPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gem'); };
+document.getElementById('campStamPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('food'); };   /* v1320: the campaign's chips buy like the base's */
+document.getElementById('campGemPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gem'); };
 document.getElementById('hudShopClose').onclick=closeHudShop;
 document.getElementById('hudShop').addEventListener('click',(e)=>{ if(e.target.id==='hudShop') closeHudShop(); });
 let homeZoom=1;
@@ -32487,7 +32529,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794230634384';
+const BUILD_ID = '1794237420963';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
