@@ -35,8 +35,8 @@ ck('the hero card gets the dot bottom left; each tab with an upgrade gets one in
 ck('CONTROL: v1320 had no upgrade dots', !/hupDot/.test(old));
 
 // campaign chips (Phil 9 Nov, arrows drawn: "Fix this" / "Center then better" / "Not touching the base/glossary buttons")
-ck('the campaign food chip sits in the top strip, centred between Base and the stars bar', /id="campStamF" style="position:absolute!important;top:8px;left:calc\(25% - 77px\);transform:translateX\(-50%\);z-index:10!important"/.test(html));
-ck('the diamond chip sits in the top strip, centred between the stars bar and Glossary', /id="campGemF" style="position:absolute!important;top:8px;left:calc\(75% \+ 33px\);transform:translateX\(-50%\);z-index:10!important"/.test(html));
+ck('the campaign food chip sits in the top strip, centred between Base and the stars bar', /id="campStamF" style="position:absolute!important;top:4px;left:calc\(25% - 77px\);transform:translateX\(-50%\);z-index:10!important"/.test(html));
+ck('the diamond chip sits in the top strip, centred between the stars bar and Glossary', /id="campGemF" style="position:absolute!important;top:4px;left:calc\(75% \+ 33px\);transform:translateX\(-50%\);z-index:10!important"/.test(html));
 ck('their wrapper makes no layer of its own (so they draw over the stars strip, z 9)', /<div id="campRes" style="position:static!important;z-index:auto!important">/.test(html));
 ck('on a phone (under 900 px) the chips drop the + and shrink to fit the gaps', /@media \(max-width:900px\)\{ #campRes \.resplus\{display:none\}/.test(html));
 console.log('test_sweep_dots_1321.js: ' + P + ' passed, ' + F + ' failed');

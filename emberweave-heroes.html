@@ -2679,8 +2679,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ <span data-i18n="nav.base">Base</span></button>
     <!-- v1320 (Phil 9 Nov: "make stamina and diamonds visible on campaign screen"); v1321 (Phil 9 Nov, drawn arrows: "Fix this"): food beside Base, diamonds beside Glossary, in the top strip off the map -->
-    <div id="campRes" style="position:static!important;z-index:auto!important"><div class="resframe" id="campStamF" style="position:absolute!important;top:8px;left:calc(25% - 77px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""></span><span class="resval"><b id="campStam">60/60</b><i id="campStamT"></i></span><button class="resplus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div>
-      <div class="resframe" id="campGemF" style="position:absolute!important;top:8px;left:calc(75% + 33px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""></span><span class="resval"><b id="campGems">0</b></span><button class="resplus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
+    <div id="campRes" style="position:static!important;z-index:auto!important"><div class="resframe" id="campStamF" style="position:absolute!important;top:4px;left:calc(25% - 77px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-food.webp?v=1" alt=""></span><span class="resval"><b id="campStam">60/60</b><i id="campStamT"></i></span><button class="resplus" id="campStamPlus" aria-label="Buy food" data-i18n-aria="html2.buy_food">+</button></div>
+      <div class="resframe" id="campGemF" style="position:absolute!important;top:4px;left:calc(75% + 33px);transform:translateX(-50%);z-index:10!important"><span class="resicon"><img src="/assets/img/ui/hud-gem.webp?v=1" alt=""></span><span class="resval"><b id="campGems">0</b></span><button class="resplus" id="campGemPlus" aria-label="Open shop" data-i18n-aria="html2.open_shop">+</button></div></div>
     <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> <span data-i18n="nav.glossary">Glossary</span></button>
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
@@ -32580,7 +32580,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794239382677';
+const BUILD_ID = '1794239434708';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
