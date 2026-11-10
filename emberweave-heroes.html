@@ -3449,7 +3449,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arOpps>.arOpp{flex:0 0 calc((100% - 16px) / 5)!important}   /* the cards keep their size; only the gaps close */   /* Phil 10 Nov: "Remove the gap between players" - the frame art's empty edges overlap */   /* Phil 10 Nov: "Closer" / "Thats too close now" */
 #arena .arTabs>button{flex:0 0 auto!important;width:clamp(120px,21%,280px)!important;box-shadow:none!important}   /* Phil 10 Nov: "Condense top pick, ranking, record shop banners closer together close the gaps" */
 #arena .arDay{position:relative;overflow:visible!important}
-#arena .arDay #arenaRefresh{min-height:36px!important;width:100%;font-size:15px!important;padding:4px 8px!important}   /* Phil 10 Nov: "the refresh button needs to be a bit larger" */
+#arena .arDay #arenaRefresh{min-height:36px!important;width:100%;font-size:11px!important;padding:4px 16px!important;white-space:nowrap}   /* Phil 10 Nov: "Refresh isnt in its box, please shrink the word a bit" */   /* Phil 10 Nov: "the refresh button needs to be a bit larger" */
 #arena .arDay .arMini.arClaim,#arena .arDay .arMini.arClaim:disabled{font-size:14px!important;line-height:1}
 #arena .arDay .arClaim{position:absolute;left:4px;right:4px;top:calc(100% + 8px);min-height:36px!important;font-size:14px!important;display:flex;align-items:center;justify-content:center;gap:5px}   /* Phil 10 Nov: "move the claim out of the refresh and reset box. Put it below that" */
 @media (max-height:380px) and (min-width:701px){ #arena .arDay{padding:11px 13px!important} #arena .arDay .arMini{min-height:21px!important} #arena .arDayNo{font-size:13px!important;line-height:14px} #arena .arOppNm{font-size:10px!important} #arena .arOpp{padding:10px 19px 9px!important} }
@@ -26488,6 +26488,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg(t('arena.no_refresh')); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
   b.querySelector('#setArenaDef').onclick=()=>{ teamCtx='arena'; menuReturn='arena'; show('menu'); };
   b.querySelector('#arenaShopBtn').onclick=()=>show('arenaShop');
+  requestAnimationFrame(arenaShift);
   b.querySelector('#arenaReportsBtn').onclick=async()=>{ if(ACC.token){ try{ const d=await api('/api/arena/reports','GET'); if(d&&Array.isArray(d.defenses)){ if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]}; G.arenaReports.defenses=d.defenses.map(x=>({v:2,seed:x.seed,mineSnap:x.mineSnap,foe:x.foe,won:!!x.won,oppName:x.atkName,t:x.t})); } }catch(e){} } renderArenaReports(); };
   b.querySelector('#arenaRankings').onclick=openRankings;
   const cd=b.querySelector('#claimDaily'); if(cd&&dready) cd.onclick=()=>{
@@ -26548,6 +26549,13 @@ function renderArenaTop(list,failed){
   ov.querySelectorAll('[data-atv]').forEach(btn=>btn.onclick=async()=>{ const r=list[+btn.dataset.atv]; if(!r||btn.disabled) return; btn.disabled=true; const want=+btn.dataset.v, v=(r.mine===want)?0:want;
     try{ const d=await api('/api/arena/vote','POST',{id:r.id,v}); if(d&&d.ok&&d.battles){ renderArenaTop(d.battles,false); return; } bannerMsg((d&&d.error)||t('arena.top_offline')); }catch(e){ bannerMsg(t('arena.top_offline')); } btn.disabled=false; });
 }
+/* Phil 10 Nov: "That entire area i circled, move right but keeping the exact same alignment": the Defenders block, the four banners and the
+   opponents move right together by the free space at the right end of the opponent row, so nothing moves relative to anything else. */
+function arenaShift(){ const b=document.getElementById('arenaBody'); if(!b) return; const R=b.querySelector('.arRight'), O=b.querySelector('#arenaOpps'); if(!R||!O) return;
+  R.style.transform=''; O.style.transform=''; const last=O.lastElementChild; if(!last) return;
+  const rc=e=>(typeof e.ewGameRect==='function')?e.ewGameRect():e.getBoundingClientRect(), d=Math.max(0,Math.round(rc(O).right-rc(last).right));
+  if(d){ R.style.transform='translateX('+d+'px)'; O.style.transform='translateX('+d+'px)'; } }
+addEventListener('resize',()=>{ try{ if(state==='arena') arenaShift(); }catch(e){} });
 function renderArenaReports(){
   if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]};
   if(!Array.isArray(G.arenaReports.attacks))G.arenaReports.attacks=[]; if(!Array.isArray(G.arenaReports.defenses))G.arenaReports.defenses=[];
@@ -33635,7 +33643,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794341259943';
+const BUILD_ID = '1794341789559';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

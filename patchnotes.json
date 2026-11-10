@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.44", "date": "10 November 2026", "title": "Arena layout tidy", "items": ["The Arena defenders, banners and opponents sit further right as one block.", "Refresh fits neatly in its frame."]},
     {"ver": "1.5.43", "date": "10 November 2026", "title": "Arena opponents side by side", "items": ["The five Arena opponents sit side by side with no gaps."]},
     {"ver": "1.5.42", "date": "10 November 2026", "title": "Tidier Arena", "items": ["The Top Pick, Ranking, Record and Shop banners sit closer together.", "The new Arena title, the bigger Refresh and the Claim button now show on every screen size."]},
     {"ver": "1.5.41", "date": "10 November 2026", "title": "New Arena title and reward icons", "items": ["The Arena has a new title to match the Vault and the Forge.", "Top Pick has painted thumbs up and thumbs down.", "Hero XP, Player XP, Guild Coins, Arena Coins and Stamina have their own icons everywhere they are shown."]},
