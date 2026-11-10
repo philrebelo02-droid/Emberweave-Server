@@ -2815,6 +2815,38 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #guild{--gh-frame:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1');--gh-title:url('/assets/img/ui/guild-main/guild-hall-title.webp?v=1');}
 #guild .titlebar h1{height:clamp(80px,19vh,170px)!important;width:100%;background:var(--gh-title) center/contain no-repeat!important;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;}
 #guild .titlebar h1::after{display:none!important;}#guild .hdrbox>.titlebar{flex:1 1 auto!important;width:100%!important;min-width:0}
+/* v1351 (Phil 10 Nov: "the panel that holds the items shouldnt look basic" / "guild hall panels" "is wrong"): ChatGPT's painted Market/Shady holder, item card and price rail (Game Art/UI/Market frames 10NOV2026) and the Guild Hall ornate panel redo (Guild Hall frames 10NOV2026/ornate-panel-redo), 9-sliced, no whole-image stretch */
+:is(#market,#shadymarket){--mf-holder:url('/assets/img/ui/merchant-main/market-holder-frame.webp?v=1');--mf-card:url('/assets/img/ui/merchant-main/market-item-frame.webp?v=1');--mf-price:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
+:is(#market,#shadymarket)>.panel{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;padding:0 24px 44px!important;}
+:is(#market,#shadymarket)>.panel::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;border:0 solid transparent;border-image:var(--mf-holder) 25% fill / 44px / 0 stretch;}
+:is(#market,#shadymarket) .merc-wallet{background:none!important;border:0!important;box-shadow:inset 0 -1px #ae844c66!important;border-radius:0!important;margin:0 -24px;}
+:is(#market,#shadymarket) .merc-offer{box-sizing:border-box;background:none!important;border:0!important;border-radius:0!important;border-image:var(--mf-card) 25% fill / 24px / 0 stretch!important;padding:18px 18px 20px!important;gap:8px;filter:none!important;min-width:0;}
+:is(#market,#shadymarket) .merc-info{min-width:0;}
+:is(#market,#shadymarket) .merc-info>div{min-width:0;}
+:is(#market,#shadymarket) .merc-info b{overflow-wrap:anywhere;}
+:is(#market,#shadymarket) .merc-offer button{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;flex-shrink:0;min-width:0;white-space:normal;line-height:1.1;color:#fff0c9!important;padding:7px 16px!important;}
+:is(#market,#shadymarket) .merc-offer button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--mf-price) 25% fill / 10px 30px / 0 stretch;}
+:is(#market,#shadymarket) .merc-offer button:disabled{color:#d6cfc0!important;opacity:1!important;cursor:default;}
+:is(#market,#shadymarket) .merc-offer button:disabled::before{filter:grayscale(.85) brightness(.55);}
+:is(#market,#shadymarket) .merc-offer button:focus-visible{outline:2px solid #ffe1a0;outline-offset:2px;}
+@media(max-height:560px) and (min-width:701px){:is(#market,#shadymarket) .merc-offer{padding:12px 18px 18px!important;gap:5px;} :is(#market,#shadymarket)>.panel{padding:0 14px 28px!important;}:is(#market,#shadymarket) .merc-wallet{margin:0 -14px;}:is(#market,#shadymarket)>.panel::before{border-image-width:28px;}}
+@media(max-width:700px){:is(#market,#shadymarket) .merc-offer{padding:18px 16px 20px!important;}:is(#market,#shadymarket)>.panel{padding:0 16px 36px!important;}:is(#market,#shadymarket) .merc-wallet{margin:0 -16px;}:is(#market,#shadymarket)>.panel::before{border-image-width:36px;}}
+#guild{--gh-frame:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
+#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol)::before{border-image-source:var(--gh-frame);border-image-slice:25% fill;}
+#guild #guildBody .gHead{--gh-y:24px;--gh-x:24px;padding-left:32px;padding-right:32px;}
+#guild #guildBody .gTabStrip{--gh-y:22px;--gh-x:22px;padding:4px 6px;scrollbar-width:thin;scrollbar-color:#b88a3e #091422;}
+#guild #guildBody .gTab{--gh-y:14px;--gh-x:14px;padding:5px 8px 4px;gap:2px;min-height:48px;}
+#guild #guildBody .gTab :is(.gIco,.gGly){width:18px;height:18px;font-size:13px;}
+#guild #guildBody .gcol{--gh-y:56px;--gh-x:56px;}
+#guild #guildBody .gbar{padding:38px 56px 12px;background:transparent!important;border-bottom-color:#ad843d!important;}
+#guild #gChat{padding:12px 10px 12px 40px;margin-right:38px;}
+#guild #gRoster{padding:12px 8px 12px 40px;margin-right:38px;margin-bottom:40px;}
+#guild #gInputRow{background:none!important;padding:12px 0 0;margin:0 40px 40px;}
+#guild #gInput{border-image:var(--gh-frame) 25% fill / 8px / 0 stretch!important;}
+#guild :is(#guildBody,#gTabBody)>.panel{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;padding:52px 48px!important;}
+#guild :is(#guildBody,#gTabBody)>.panel::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--gh-frame) 25% fill / 56px / 0 stretch;}
+@media(max-width:700px){#guild #guildBody .gHead{padding-left:24px;padding-right:24px;}#guild #guildBody .gcol{--gh-y:44px;--gh-x:44px;}#guild #guildBody .gbar{padding:30px 44px 10px;}#guild #gChat,#guild #gRoster{padding:10px 8px 10px 32px;margin-right:30px;}#guild #gRoster{margin-bottom:32px;}#guild #gInputRow{margin:0 32px 32px;padding-top:10px;}}
+@media(max-width:700px){#guild :is(#guildBody,#gTabBody)>.panel{padding:42px 36px!important;}#guild :is(#guildBody,#gTabBody)>.panel::before{border-image-width:44px;}}
 #guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol){position:relative;isolation:isolate;border-color:transparent!important;border-image:none!important;border-radius:0!important;background:#091422!important;box-shadow:0 4px 12px #0005;}
 #guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol)::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-style:solid;border-color:transparent;border-width:0;border-image-source:var(--gh-frame);border-image-slice:270 480 fill;border-image-width:var(--gh-y,12px) var(--gh-x,21.3333px);border-image-repeat:stretch;}
 #guild #guildBody .gHead{--gh-y:12px;--gh-x:21.3333px;padding-left:22px;padding-right:22px;gap:10px;}
