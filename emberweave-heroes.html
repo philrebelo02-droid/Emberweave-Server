@@ -3199,7 +3199,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgResLine+.pill{font-size:clamp(11px,calc(.5vw + 7px),16px)!important}
 @media (max-height:500px){ #forge .fgResLine{font-size:11px!important;margin-right:8px} #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){padding:0 36px!important} }
 #forge .fgRow{height:var(--fgH)!important;min-height:0!important;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgH) * 1.12) stretch!important;padding:0 calc(var(--fgH) * .6)!important;gap:10px!important;box-sizing:border-box}
-#forge .fgList{gap:2px!important;--fgW:calc((var(--fgH) * .74 + 5px) * 8 + var(--fgH) + 130px);flex:0 1 var(--fgW)!important;max-width:var(--fgW)}   /* Phil 10 Nov: "condense the banner more" / "To match the max amount of heroes": eight faces, the most any item has */   /* v1328 (Phil: "push the items left, and less long") */
+#forge .fgList{gap:2px!important;--fgW:calc((var(--fgH) * .74 + 5px) * 8 + var(--fgH) + 86px);flex:0 1 var(--fgW)!important;max-width:var(--fgW)}   /* Phil 10 Nov: "condense the banner more" / "To match the max amount of heroes": eight faces, the most any item has */   /* v1328 (Phil: "push the items left, and less long") */
 #forge .fgWrap{justify-content:flex-end!important;gap:0!important}
 #forge .fgTabs{flex:0 0 clamp(136px,17vw,320px)!important;width:clamp(136px,17vw,320px)!important;gap:6px!important;top:0}
 #forge .fgTabs .fgQ{height:calc(var(--fgH) * .9)!important;min-height:36px!important;font-size:clamp(15px,calc(var(--fgH) * .27),26px)!important}
@@ -33404,7 +33404,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794322294654';
+const BUILD_ID = '1794323279208';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
