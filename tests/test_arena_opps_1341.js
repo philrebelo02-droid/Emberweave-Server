@@ -18,7 +18,8 @@ async function setRank(rk){ await delay(400); await stop(); const db=disk(); con
   for(const rk of [1,2,3,10,11,45,800]){ await setRank(rk); const r=await call('/api/arena/opponents'); const o=(r.data.opponents||[]);
     ok(r.data.rank===rk,'rank '+rk+' set');
     ok(o.length>=4,'rank '+rk+': at least 4 opponents (got '+o.length+')');
-    if(rk<=10){ const want=new Set([1,2,3,4,5,6,7,8,9,10].filter(x=>x!==rk)); ok(o.length===9&&o.every(x=>want.has(x.rank)),'rank '+rk+': the other 9 of the top 10 (got '+o.map(x=>x.rank).join(',')+')'); }
+    if(rk<=10){ const want=new Set([1,2,3,4,5,6,7,8,9,10].filter(x=>x!==rk)); ok(o.length===5&&o.every(x=>want.has(x.rank)),'rank '+rk+': 5 of the other top 10 (got '+o.map(x=>x.rank).join(',')+')');
+      const seen=new Set(o.map(x=>x.rank)); for(let k=0;k<25&&seen.size<9;k++){ const q=(await call('/api/arena/opponents')).data.opponents||[]; q.forEach(x=>seen.add(x.rank)); } ok(seen.size===9,'rank '+rk+': refreshing reaches all 9 others (saw '+seen.size+')'); }
     ok(!o.some(x=>x.id===id),'rank '+rk+': never yourself'); }
   const src=fs.readFileSync(path.join(root,srvFile),'utf8');
   ok(/\[Math\.min\(T,oneRank\),T\*1\.25\]/.test(src)&&/\(T\+12\)\*1\.25\]/.test(src),'each band reaches 25% further');

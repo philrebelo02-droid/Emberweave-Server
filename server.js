@@ -10083,14 +10083,15 @@ async function api(req,res,url){
        so the list fills with the nearest players below. A win against a lower rank keeps your rank (applyResult only swaps upward) and pays the win reward. */
     if(opps.length<4){ const below=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>me.rank).sort((a,b)=>a.rank-b.rank); for(const u of below){ if(opps.length>=4) break; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } } }
     /* Phil 10 Nov: "Rank 1 should be able to see the top 10 to fight": anyone in the top 10 is offered everyone else in the top 10 */
-    if(me.rank<=10){ for(const u of Object.values(DB.users)){ if(u&&u.id!==me.id&&u.rank>=1&&u.rank<=10&&!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } } }
+    /* Phil 10 Nov: "I should not be able to move the players by scrolling" / "the refresh button should refresh the players ... a rank 1 player should be able to see rank 1 when refreshing eventually": 5 at a time, a random 5 of the rest of the top 10 on every refresh */
+    if(me.rank<=10){ opps.length=0; chosen.clear(); const top=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>=1&&u.rank<=10); for(let i=top.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [top[i],top[j]]=[top[j],top[i]]; } top.slice(0,5).forEach(u=>{ chosen.add(u.id); opps.push(u); }); }
     opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
     // v327: preview the rank-milestone diamonds THIS player would ACTUALLY be paid for each opponent —
     // same step table, same loop and same fractional settle as /api/arena/result — so the client's
     // "diamonds +N" row can never promise more than the server pays.
     const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
     function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
-    const out=opps.slice(0,me.rank<=10?9:5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,arenaDefTeam(u)), gems:prevGems(u.rank) }));   /* v1213: the opponent's DEFENSE team */
+    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,arenaDefTeam(u)), gems:prevGems(u.rank) }));   /* v1213: the opponent's DEFENSE team */
     arenaOffered(me,out.map(o=>o.id));
     return send(res,200,{ rank:me.rank, opponents:out, arena:arenaAttView(ensureLedger(me)) }); }
 

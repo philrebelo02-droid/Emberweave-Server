@@ -2935,8 +2935,6 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arMedal,#arena .arDay{background:url('/assets/img/ui/building-main/panel-portrait.webp?v=1') center/100% 100%;border:0;border-radius:0;box-shadow:none;padding:20px 12px;flex-basis:124px}
 #arena .arDef,#arena .arOpp{border:0;border-image:none;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%;padding:20px 16px;box-shadow:0 5px 9px #0005}
 #arena .arOpps{flex-wrap:wrap;gap:8px}
-#arena .arOpps:has(.arOpp:nth-child(6)){flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin}   /* top 10: more than 5 opponents scroll sideways, five on screen */
-#arena .arOpps:has(.arOpp:nth-child(6))>.arOpp{flex:0 0 calc((100% - 32px) / 5);scroll-snap-align:start}
 #arena .arOpp{flex:1 1 135px;max-width:none;min-width:125px;justify-content:space-between;gap:10px}
 #arena .arOppNm{font-size:11px;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
 #arena .arOppNums{gap:5px}
@@ -3439,6 +3437,10 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arDay .arMini{min-height:25px!important;padding:2px 6px!important;font-size:12px!important}
 #arena .arDay .arMini:disabled,#arena .arDay .arMini:last-of-type{font-size:9px!important;line-height:1.1}
 #arena .arDayLbl{font-size:9px!important;white-space:nowrap}
+#arena .arDay{position:relative;overflow:visible!important}
+#arena .arDay #arenaRefresh{min-height:36px!important;width:100%;font-size:15px!important;padding:4px 8px!important}   /* Phil 10 Nov: "the refresh button needs to be a bit larger" */
+#arena .arDay .arMini.arClaim,#arena .arDay .arMini.arClaim:disabled{font-size:14px!important;line-height:1}
+#arena .arDay .arClaim{position:absolute;left:4px;right:4px;top:calc(100% + 8px);min-height:36px!important;font-size:14px!important;display:flex;align-items:center;justify-content:center;gap:5px}   /* Phil 10 Nov: "move the claim out of the refresh and reset box. Put it below that" */
 #arena .arDayNo{font-size:15px!important;line-height:17px}
 }
 @media (max-height:380px) and (min-width:701px){ #arena .arDay{padding:11px 13px!important} #arena .arDay .arMini{min-height:21px!important} #arena .arDayNo{font-size:13px!important;line-height:14px} #arena .arOppNm{font-size:10px!important} #arena .arOpp{padding:10px 19px 9px!important} }
@@ -26446,10 +26448,10 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     <div class="arBot">
       <div class="arDay">
         <button class="arMini" id="arenaRefresh" style="margin-top:2px">${t('arena.refresh')}</button>
-        <button class="arMini" id="claimDaily" ${dready?'':'disabled'} style="margin-top:2px">${uiIcon('gift')} ${t('common.claim')}</button>
         ${att?`<div class="arDayLbl" style="margin-top:4px">${t('arena.attempts_left')}</div><div class="arDayNo" id="arenaAttLeft" style="color:${att.attemptsLeft>0?'#7ef0b0':'#ff9a9a'}">${att.attemptsLeft|0}</div>
         <button class="arMini" id="arenaBuyAtt" ${((att.buys|0)>=(att.extraMaxPerDay|0)||(att.attemptsLeft|0)>=(att.freePerDay||5))?'disabled':''} style="margin-top:2px">${t('arena.buy_attempt',{n:att.extraCostGems|0,k:Math.max(1,att.refillN!=null?att.refillN:(att.freePerDay||5)-(att.attemptsLeft|0))})}</button>`:''}
         <div id="dailyMsg" style="font-size:9px;color:#ffd45e;min-height:10px"></div>
+        <button class="arMini arClaim" id="claimDaily" ${dready?'':'disabled'}>${uiIcon('gift')} ${t('common.claim')}</button>
       </div>
       <div class="arOpps" id="arenaOpps"></div>
     </div>
