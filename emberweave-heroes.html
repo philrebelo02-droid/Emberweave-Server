@@ -1372,7 +1372,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
    see-through smoked glass in the gold frame, so the painted backdrop shows through; cards and tiles are warm painted enamel - a deep
    bronze-to-midnight gradient lit by an ember glow from below - in the gold frame. */
 .panel{border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 16px stretch!important;background:linear-gradient(180deg,rgba(10,12,22,.52),rgba(12,8,6,.62))!important;
-  -webkit-backdrop-filter:blur(3px) saturate(1.2);backdrop-filter:blur(3px) saturate(1.2);}
+  }   /* Phil 10 Nov: "Make sure the frames dont blurr art like this": no panel frame blurs the art behind it */
 .templeClassTabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:10px 0 7px;}
 .templeClassTab{min-width:0;min-height:28px;padding:3px 1px;border:1px solid #76552f;border-radius:5px;background:#201810;color:#d9c7a5;font-size:clamp(8px,calc(var(--ew-game-width,100vw) * 0.023),11px);font-weight:700;white-space:nowrap;cursor:pointer;}
 .templeClassTab[aria-selected="true"]{border-color:#ffcf69;background:#654015;color:#fff4d4;box-shadow:inset 0 0 8px #ffb84b55;}
@@ -3059,7 +3059,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arHero{height:auto!important;aspect-ratio:1!important;width:calc(20% - 5px)!important;max-width:104px!important;flex:1 1 0!important}
 #dungeon #dungeonBody>div>div>div:nth-child(3):not(.panel){background-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1')!important;padding:30px 12%!important;min-height:125px}
 /* Phil 10 Nov (Vault screenshot on his phone): "Vault on phone has alot of wasted space" / "Fit it all to screen on mobile". On a landscape phone the Vault is one screen: header and stats across the top, the hero picker on the left, drops and sweep on the right. The vault door stays visible beside it. */
-@media(max-height:560px) and (min-width:701px){
+@media(min-width:701px) and (orientation:landscape){
 #dungeon #dungeonBody>div>div:has(.vtPick){display:grid!important;grid-template-columns:minmax(0,1fr) 170px;column-gap:8px;row-gap:0;align-content:start;width:66%!important;max-width:none!important;margin:5px 1% 4px auto!important}
 #dungeon #dungeonBody>div>div:has(.vtPick) .vtHead{position:absolute;left:96px;top:0;margin:0!important;padding:0!important;min-height:26px!important;line-height:1}
 #dungeon .vtHead .pill{display:none}
@@ -3088,7 +3088,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #dungeon .vtPick{position:relative;left:15px;z-index:1}
 #dungeon .vtDrops{position:relative;left:3px;z-index:1}   /* Phil 10 Nov: "Fit the reward and heroes panel to the right" */
 }
-@media(max-height:430px) and (min-width:701px){#dungeon #dungeonBody>div>div:has(.vtPick){zoom:.86}#dungeon #dungeonBody>div>div>div.vtDrops:nth-child(3):not(.panel){height:96px}}
+/* Phil 10 Nov: "The vault isnt setup the way we made it" / "Alot of it is out of the spot we made": the layout was only on at phone height. It is the same layout on every landscape screen, scaled to fit. */
+@media(min-width:701px) and (orientation:landscape){#dungeon #dungeonBody>div>div:has(.vtPick) .vtBoss{display:block;position:absolute;left:8px;top:84px;width:232px;margin:0!important;font-size:11px;line-height:1.3;z-index:3;box-sizing:border-box}}
+@media(max-height:430px) and (min-width:701px){#dungeon #dungeonBody>div>div>div.vtDrops:nth-child(3):not(.panel){height:96px}}
 
 @media(max-width:700px){#skyisland>.titlebar{max-width:62%!important;margin-left:auto!important;margin-right:10px!important;padding:9px 20px!important}#skyisland>.titlebar h1{font-size:16px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{padding:35px 16%!important}}
 
@@ -3190,6 +3192,77 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   #patScreen:has(.patLv:not(.edp)) .patArw{width:34px;height:34px;flex-basis:34px;margin-bottom:2px;}
   #patScreen:has(.patLv:not(.edp)) .patRow{padding:6px 2px;}
   #patScreen:has(.patLv:not(.edp)) .patSec{margin:8px 0 4px;padding-bottom:4px;}
+}
+/* Phil 10 Nov: "EDP is so lame man, it should be wayyyy more flashy then gold": ChatGPT's Diamond treatment, Archive Game Art/UI/EDP Panel 10NOV2026 */
+/* EDP ONLY paint override. Append after current fixed-size and EGP rules. */
+#patScreen:has(.patLv.edp) .patCard {
+  padding:18px 24px;color:#edf6ff;
+  border:12px solid transparent;border-radius:0;
+  border-image:url('/assets/img/ui/egp-display/edp-diamond-panel.webp?v=1') 96 fill / 12px stretch;
+  background:#080d20;
+  box-shadow:0 18px 80px #000b;
+  scrollbar-width:thin;scrollbar-color:#a2c8ff #0a1028;
+  scrollbar-gutter:stable;
+}
+#patScreen:has(.patLv.edp) .patCard>.patHead {
+  position:sticky;top:-6px;z-index:3;
+  margin:-6px -10px 12px;padding:0 52px 24px;
+  height:clamp(180px,26vw,220px);min-height:180px;box-sizing:border-box;
+  justify-content:center;align-items:flex-end;gap:16px;
+  background:#080d20 url('/assets/img/ui/egp-display/edp-diamond-phoenix.webp?v=1') center top/100% 100% no-repeat;
+  box-shadow:0 9px 12px #07121be6;
+}
+#patScreen:has(.patLv.edp) .patCard>.patHead::before{content:'';position:absolute;inset:-40px -12px auto;height:40px;background:#080d20;pointer-events:none;}
+#patScreen:has(.patLv.edp) .patMid {min-width:0;flex:0 1 310px;text-align:center;}
+#patScreen:has(.patLv.edp) .patLv {font:800 clamp(27px,3vw,36px)/1.1 Georgia,serif;letter-spacing:.035em;color:#f1fcff;text-shadow:0 2px 3px #000,0 0 16px #8f74ffbb;}
+#patScreen:has(.patLv.edp) .patSub {font:12px/1.4 system-ui,sans-serif;color:#c6c9ee;margin-top:4px;min-height:2.8em;}
+#patScreen:has(.patLv.edp) .patArw {width:40px;height:40px;flex:0 0 40px;margin-bottom:6px;border-radius:0;border:0;background:transparent url('/assets/img/ui/emberdraft-main/item-slot.webp?v=1') center/100% 100% no-repeat;color:#e9faff;font-size:17px;box-shadow:none;}
+#patScreen:has(.patLv.edp) .patArw:hover {filter:brightness(1.18);}
+#patScreen:has(.patLv.edp) .patHeadC #patX {top:12px;right:8px;transform:none;width:32px;height:32px;min-height:32px;padding:0;border:1px solid #a9bafa;border-radius:5px;background:#101a3a;color:#f0faff;font:22px/1 Georgia,serif;}
+#patScreen:has(.patLv.edp) .patSec {font:700 15px/1.4 Georgia,serif;letter-spacing:.05em;color:#d1edff;margin:16px 0 7px;padding:0 0 7px;border-bottom:1px solid #a58cff88;}
+#patScreen:has(.patLv.edp) .patRow {padding:9px 2px;gap:16px;border-bottom:1px solid #b2caff33;align-items:center;}
+#patScreen:has(.patLv.edp) .patRow:nth-of-type(even){background:#a0baff07;}
+#patScreen:has(.patLv.edp) .patRow span {min-width:0;overflow-wrap:anywhere;}
+#patScreen:has(.patLv.edp) .patRow b {flex:0 0 auto;max-width:48%;text-align:right;font-variant-numeric:tabular-nums;color:#d7f5ff;}
+#patScreen:has(.patLv.edp) .patBar {height:12px;border:1px solid #c8dcff;border-radius:7px;background:#030919;margin:4px 0 8px;box-shadow:inset 0 2px 4px #000b;}
+#patScreen:has(.patLv.edp) .patBar i {background:linear-gradient(90deg,#4830a0,#69cdff,#f1fbff);box-shadow:0 0 10px #97cdffaa;}
+#patScreen:has(.patLv.edp) .patBtns .btn {flex:0 1 300px;max-width:300px;margin:0 auto;min-height:72px;border:0;border-radius:0;background:transparent url('/assets/img/ui/emberdraft-main/play-button.webp?v=1') center/100% 100% no-repeat;color:#e7f7ff;font:700 15px/1.2 Georgia,serif;padding:22px 24px;text-shadow:0 1px 3px #3b1401;}
+#patScreen:has(.patLv.edp) .patList {padding:0 4px 0 20px;margin:8px 0 18px;line-height:1.65;}
+#patScreen:has(.patLv.edp) .patList li {padding:3px 0;}
+#patScreen:has(.patLv.edp) .patList li::marker {color:#95dcff;}
+#patScreen:has(.patLv.edp) .patList.next {color:#d8d7ff;}
+#patScreen:has(.patLv.edp) .patSoon {font:10px/1.4 system-ui,sans-serif;color:#a5a7ac;border:1px solid #77756366;border-radius:3px;padding:0 3px;white-space:nowrap;}
+@media(max-width:480px){
+  #patScreen:has(.patLv.edp) .patCard{padding:14px 18px;font-size:12px;}
+  #patScreen:has(.patLv.edp) .patCard>.patHead{top:-3px;margin:-3px -5px 10px;padding:0 36px 20px;gap:8px;}
+  #patScreen:has(.patLv.edp) .patArw{width:32px;height:36px;flex-basis:32px;font-size:14px;margin-bottom:7px;}
+  #patScreen:has(.patLv.edp) .patSub{font-size:10px;}
+  #patScreen:has(.patLv.edp) .patRow{padding:9px 0;gap:8px;}
+  #patScreen:has(.patLv.edp) .patSec{font-size:14px;}
+}
+@media(max-height:480px) and (min-width:481px){
+  #patScreen:has(.patLv.edp) .patCard>.patHead{height:160px;min-height:160px;padding-bottom:20px;}
+  #patScreen:has(.patLv.edp) .patLv{font-size:27px;}
+}
+
+#patScreen:has(.patLv.edp) .patCard{border-image-slice:96 fill;border-image-repeat:round;scrollbar-gutter:stable both-edges;box-shadow:0 18px 80px #000b,0 0 24px #8bd8ff88,0 0 65px #8c5bff55;}
+#patScreen:has(.patLv.edp) .patCard>.patHead{container-type:inline-size;background-image:linear-gradient(to bottom,transparent 55%,#080d20 82%),url(/assets/img/ui/egp-display/edp-diamond-phoenix.webp?v=1);background-size:100% calc(100cqw / 3),100% auto;background-color:#080d20;box-shadow:0 9px 12px #080d20e6,inset 0 -1px #9edfff88;}
+#patScreen:has(.patLv.edp) .patLv{text-shadow:0 1px 3px #000,0 0 8px #8beaff,0 0 20px #9279ff;}
+#patScreen:has(.patLv.edp) .patCard>.patHead{background-image:none;isolation:isolate;}
+#patScreen:has(.patLv.edp) .patHead::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(to bottom,transparent 55%,#080d20 82%),url('/assets/img/ui/egp-display/edp-diamond-phoenix.webp?v=1');background-size:100% calc(100cqw / 3),100% auto;background-position:center top;background-repeat:no-repeat;}
+#patScreen:has(.patLv.edp) .patHead>.patMid,#patScreen:has(.patLv.edp) .patHead>.patArw{position:relative;z-index:1;}
+#patScreen:has(.patLv.edp) .patHead #patX{z-index:2;}
+#patScreen:has(.patLv.edp) .patArw{background:#10182e;border:1px solid #b5dcff;border-radius:7px;box-shadow:inset 0 0 9px #8a9bff66,0 0 6px #7b7aff66;}
+#patScreen:has(.patLv.edp) .patBtns .btn{background:linear-gradient(120deg,#323675,#1f4b70 45%,#59427c);border:1px solid #aeeaff;border-radius:6px;box-shadow:inset 0 1px 5px #dbf7ff66,0 0 12px #9a7bff44;min-height:46px;padding:10px 16px;}
+#patScreen:has(.patLv.edp) .patArw.off{visibility:hidden;}
+@media(max-height:480px) and (min-width:481px){
+ #patScreen:has(.patLv.edp) .patCard>.patHead{height:128px;min-height:128px;padding-bottom:4px;background-size:calc(100% - 100px) calc((100cqw - 100px) / 3),calc(100% - 100px) auto;border-bottom:1px solid #c8dcff;margin-bottom:6px;}
+ #patScreen:has(.patLv.edp) .patLv{font-size:24px;line-height:1;}
+ #patScreen:has(.patLv.edp) .patSub{min-height:0;margin-top:2px;white-space:nowrap;font-size:11px;}
+ #patScreen:has(.patLv.edp) .patArw{width:34px;height:34px;flex-basis:34px;margin-bottom:2px;}
+ #patScreen:has(.patLv.edp) .patRow{padding:6px 2px;}
+ #patScreen:has(.patLv.edp) .patSec{margin:8px 0 4px;padding-bottom:4px;}
+ #patScreen:has(.patLv.edp) .patHead::after{background-size:calc(100% - 100px) calc((100cqw - 100px) / 3),calc(100% - 100px) auto;}
 }
 /* v1328 FORGE (Phil 9 Nov Forge screenshot: "the items are too spread and too thin"): the row art is only about half painted in height, so a row looked 30 px thin with 34 px of air between rows. */
 #forge{--fgH:clamp(58px,calc((var(--ew-game-height,100vh) - 72px) / 9.35),96px);--fgT:clamp(46px,3.6vw,62px)}
@@ -18705,8 +18778,8 @@ async function vaultStatus(){ await vaultResendPending(); const r=await api('/ap
      v364 'Vault is sealed' screen shows - it used to be flattened to 'disabled' and opened the legacy Challenge Dungeon instead. */
   VAULT.st=(r&&typeof r==='object'&&typeof r.enabled==='boolean')?((r.enabled||r.locked)?r:{enabled:false}):{enabled:false,unreachable:true}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-  return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
-    <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ '+t('vault.gatekeeper')+' — ':''}${uiIcon('crown')} ${nm}${rule.ascended?' ('+t('vault.ascended')+')':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
+  return `<div class="vtBoss" style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
+    <b style="color:#c9a2ff">${rule.gatekeeper?t('vault.gatekeeper')+' — ':''}${uiIcon('crown')} ${nm}${rule.ascended?' ('+t('vault.ascended')+')':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
 function vaultPickerHTML(){
   const sq=squadFor('vault'), fight=sq.slice(0,TEAM_SIZE), back=sq.slice(TEAM_SIZE,TEAM_SIZE*2);
   const chip=(k,col)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:58px">
@@ -18857,6 +18930,10 @@ function vaultSalvageHTML(){
       <button class="btn xs secondary" onclick="vaultSalvage('${k}',1)">1 → ${uiIcon('sparkle-new')}${rate(k)}</button>
       <button class="btn xs secondary" onclick="vaultSalvage('${k}',${n})">${t('vault.all')} → ${uiIcon('sparkle-new')}${rate(k)*n}</button></div>`).join(''):'<div style="color:#6f7d90;font-size:11px;padding:8px 0">'+t('vault.no_fragments')+'</div>'}</div>`;
 }
+/* Phil 10 Nov: "The vault isnt setup the way we made it": one layout on every landscape screen, scaled to the game frame (built at 1000x482) */
+function vtFit(){ const c=document.querySelector('#dungeon #dungeonBody>div>div:has(.vtPick)'); if(!c) return; const v=document.getElementById('dungeon').getBoundingClientRect(), W=v.width, H=v.height; if(!W) return;
+  c.style.zoom=(W>700&&W>H)?Math.min(W/1000,H/482).toFixed(3):''; }
+addEventListener('resize',()=>{ try{ vtFit(); }catch(e){} });
 function vaultScreenHTML(){
   const s=VAULT.st;
   // header row leaves room for the floating ◀ Base button (top-left) and pins the floor pill right
@@ -22063,7 +22140,7 @@ function renderDungeon(){
     if(!sq.length&&(VAULT.st.lastTeamHeroIds||[]).length){ (VAULT.st.lastTeamHeroIds||[]).filter(k=>G.unlocked&&G.unlocked[k]).slice(0,TEAM_SIZE*2).forEach(k=>sq.push(k)); }
     b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">${vaultScreenHTML()}</div></div>`;
-    return; }
+    vtFit(); return; }
   const startDg=()=>{ CUR={mode:'dungeon'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); };
   if(isAssetRef(DUNGEON_BG)){
     // full splash art with an invisible clickable hotspot over the drawn "Choose squad" button
@@ -33411,7 +33488,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794330113773';
+const BUILD_ID = '1794332231609';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
