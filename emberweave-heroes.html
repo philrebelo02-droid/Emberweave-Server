@@ -28142,7 +28142,7 @@ function guildLevel(){ return (G.guild&&G.guild.level)||1; }
 function guildExp(){ return (G.guild&&G.guild.exp)||0; }
 function guildMaxPlayers(){ return Math.min(GUILD_MAX_CAP, GUILD_BASE_CAP+(guildLevel()-1)*GUILD_CAP_PER_LEVEL); }
 function guildExpNeeded(lvl){ lvl=lvl||guildLevel(); return 1000*lvl; }        // Lv1 needs 1000, Lv2 needs 2000 …
-function guildShopSlots(){ return 4+(guildLevel()-1)*2; }
+function guildShopSlots(){ return Math.min(GUILD_SHOP.length, 4+(guildLevel()-1)*2); }   /* 10 Nov bug sweep: level 7 read "16 shop items" with 11 in the shop */
 function guildMaxed(){ return guildLevel()>=GUILD_MAX_LEVEL; }
 function addGuildExp(n){ if(!G.guild)return Promise.resolve(false);
   if(G.guild.type==='real'){ const before=(GS.guild&&GS.guild.level)||G.guild.level||1; return api('/api/guild/contribute','POST',{exp:n,requestId:uid8()}).then(function(d){ if(d&&d.error){ bannerMsg(langMsg(d.error)); return false; } if(d&&d.capped){ bannerMsg(ewT('gshop.daily_done')); return false; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); if(GS.guild.level>before) bannerMsg('&#127881; '+ewT('gshop.level_up',{n:GS.guild.level})); if(state==='guild')renderGuild(); return true; } return false; }).catch(function(){ return false; }); }   // v241: contributions cost 200 server gold — surface the refusal instead of silently eating it
@@ -33331,7 +33331,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794287340018';
+const BUILD_ID = '1794309769324';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

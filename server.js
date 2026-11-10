@@ -8134,6 +8134,7 @@ async function api(req,res,url){
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+1); me.marketShieldAt=Date.now(); ledTx(me,'shop:shield_market',{gems:-c,shields:1});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
       if(what==='arenacoins'){ const c=patronShadyPrice(me,led,'arenacoins',600), n=3000;   /* v1079 (scan #2): the Shady Market's Arena Coins x3,000 - was a diamond spend + a client-only grant */
+        if((me.coins|0)+n>ECON_CAP.arenaCoins) return {ok:false,error:'You are at the Arena Coin limit.'};   /* 10 Nov bug sweep: a buy at the cap took the diamonds and gave nothing */
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=c; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+n);
         ledTx(me,'shop:arenacoins',{gems:-c,arenaCoins:n});
@@ -10038,7 +10039,7 @@ async function api(req,res,url){
       led.gems-=ARENA_EXTRA_COST_GEMS; a.bought+=gap; a.buys=(a.buys|0)+1; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS,attempts:gap});
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok?200:400),out); }
-  if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me); arenaOffered(me,[o.id]);
+  if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaopp:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* 10 Nov sweep: same throttle as /api/arena/opponents */ const o=pickOpponent(me); arenaOffered(me,[o.id]);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,arenaDefTeam(o)), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaopp:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
