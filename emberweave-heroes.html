@@ -3158,9 +3158,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgRow{height:var(--fgH)!important;min-height:0!important;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgH) * 1.12) stretch!important;padding:0 calc(var(--fgH) * .6)!important;gap:10px!important;box-sizing:border-box}
 #forge .fgList{gap:5px!important;flex:0 1 80%!important;max-width:80%}   /* v1328 (Phil: "push the items left, and less long") */
 #forge .fgWrap{justify-content:flex-start!important}
-#forge .fgTabs{flex:0 0 clamp(124px,12vw,210px)!important;width:clamp(124px,12vw,210px)!important;gap:8px!important;top:0}
-#forge .fgTabs .fgQ{height:calc(var(--fgH) * .62)!important;min-height:34px!important;font-size:clamp(13px,calc(var(--fgH) * .2),19px)!important}
-@media (max-height:500px){ #forge .fgTabs{gap:2px!important} #forge .fgTabs .fgQ{height:33px!important;min-height:33px!important} }
+#forge .fgTabs{flex:0 0 clamp(136px,17vw,320px)!important;width:clamp(136px,17vw,320px)!important;gap:6px!important;top:0}
+#forge .fgTabs .fgQ{height:calc(var(--fgH) * .9)!important;min-height:36px!important;font-size:clamp(15px,calc(var(--fgH) * .27),26px)!important}
+@media (max-height:500px){ #forge .fgTabs{gap:2px!important} #forge .fgTabs .fgQ{height:calc((var(--ew-game-height,100vh) - 76px) / 9)!important;min-height:30px!important;font-size:15px!important} }
 @media (max-height:500px){ #forge:not(:has(#fgPop)) #forgeBody{width:97%!important;max-width:none!important;margin:6px 1.5% 0 auto!important} }
 #forge:not(:has(#fgPop)) #forgeBody{width:97%!important;max-width:none!important;margin:6px 1.5% 0 auto!important}
 #forge .fgItem{flex:0 0 calc(var(--fgH) - 12px)!important;width:calc(var(--fgH) - 12px)!important;height:calc(var(--fgH) - 12px)!important}
@@ -33302,7 +33302,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794272136664';
+const BUILD_ID = '1794272224556';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
