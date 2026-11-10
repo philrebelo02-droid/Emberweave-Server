@@ -3169,7 +3169,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arRecPop .arcRow.top .arcRib{flex-direction:column;gap:2px;background:linear-gradient(90deg,#6b4a12,#3e2a08);color:#ffd45e;font-size:18px}
 #arRecPop .arcRib small{font:800 11px system-ui,sans-serif;color:#f1e3c1}
 #arRecPop .arcVote{min-width:46px;height:34px;padding:0 8px;border:1px solid #6b5a2e;border-radius:17px;background:#0e1626;color:#dfe6f0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font:800 12px system-ui,sans-serif}
-#arRecPop .arcThumb{width:16px;height:16px;display:block}
+#arRecPop .arcThumb{width:20px;height:20px;display:block;object-fit:contain}
 #arRecPop .arcVote.up{color:#7ee0a6}
 #arRecPop .arcVote.down{color:#ff9a9a}
 #arRecPop .arcDown{display:block;transform:rotate(180deg)}
@@ -3417,6 +3417,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena:has(.arWrap){overflow:hidden!important}
 #arena:has(.arWrap)>.hdrbox{top:-6px!important;left:104px!important;width:auto!important;text-align:left!important}
 #arena:has(.arWrap) h1{font-size:24px!important;line-height:30px;margin:0!important}
+#arena:has(.arWrap) h1{font-size:0!important;line-height:0!important;text-shadow:none!important;width:min(175px,calc(var(--ew-game-width,100vw) * 0.245 - 112px));height:auto;aspect-ratio:2.85;display:inline-block;margin-left:-30px!important;margin-top:2px!important;background:url('/assets/img/ui/building-main/arena-title.webp?v=1') left center/contain no-repeat!important}   /* Phil 10 Nov: ChatGPT's Arena title, companion to the Vault and Forge */
 #arena:has(.arWrap) #arenaBody{zoom:1!important;width:97%!important;margin:5px auto 0!important}
 #arena .arWrap{gap:4px!important}
 #arena .arTop,#arena .arBot{gap:5px!important}
@@ -7495,7 +7496,7 @@ const DEFAULT_G = {
   eliteUsed:{}, eliteResetTS:0, eliteResetDay:'',              // daily elite-stage attempts (reset on 09:00 ET day key)
   tech:{academy:0,atk:0,hp:0,ap:0,heal:0,armor:0,mr:0,crit:0,critres:0},   // academy = the research building's own level (speeds all research)
   techLearn:{academy:0,atk:0,hp:0,ap:0,heal:0,armor:0,mr:0,crit:0,critres:0},   // 0 = idle; else timestamp (ms) research completes
-  stamina:60, staminaTS:0,        // stamina (⧗ from food): max = 59+level, regen 1 per 6 min, refills on level-up
+  stamina:60, staminaTS:0,        // stamina (<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> from food): max = 59+level, regen 1 per 6 min, refills on level-up
   wall:['vael','sylthaine','vireo'],
   arenaDef:['vael','sylthaine','vireo'], // auto-defense team shown to attackers
   arenaRank:5000,                 // local arena rank (climbs toward #1)
@@ -16944,7 +16945,7 @@ function endBattle(won){
         const ecount={}; (r.reward.gearFragments||[]).forEach(k=>{ ecount[k]=(ecount[k]||0)+1; });
         const eList=Object.keys(ecount).map(k=>k+' ×'+ecount[k]);
         msg=rewardPanel(gList,{dust:r.reward.dust},ewT('result.place_floor',{place:'Aether Vault',n:CUR.floor}),eList)
-          +(r.reward.heroXp?'<div style="margin-top:6px;font-size:12px;color:#5ee89b">'+uiIcon('star-filled')+' '+ewT('result.hero_xp_all',{n:r.reward.heroXp})+'</div>':'')
+          +(r.reward.heroXp?'<div style="margin-top:6px;font-size:12px;color:#5ee89b">'+uiIcon('res-hero-xp')+' '+ewT('result.hero_xp_all',{n:r.reward.heroXp})+'</div>':'')
           +(r.reward.firstClearDoubled?'<div style="margin-top:8px"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9">'+ewT('result.first_clear_bonus')+'</div><b style="color:#ffd45e">'+ewT('result.boss_floor_twice',{dust:ewT('gear.dust')})+'</b></div>':''); }
       else if(won&&_vPend){ let _disk=false; try{ _disk=!!localStorage.getItem(vaultPendingKey(ACC.id)); }catch(e){}
         msg=_disk?ewT('result.victory_saved_disk'):ewT('result.victory_saved_session'); }
@@ -17043,8 +17044,8 @@ function endBattle(won){
         ? `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">${escapeHTML(RB.name||ewT('result.raid_boss'))} · ${ewT('result.tier_caps',{n:RB.tier|0})}</div>`
           +`<div style="font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px">${ewT('result.damage_n',{n:dealt.toLocaleString()})}</div>`
           +(fell?`<div style="color:#ffd45e;font-weight:700">${statusIcon('crit-burst')} ${ewT('result.killing_blow',{n:(r.reward&&r.reward.tier)|0})}</div>`
-                 +`<div style="margin-top:3px">${hudIcon('gold')} ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · ${hudIcon('gem')} ${((r.reward&&r.reward.gems)|0)} · ${uiIcon('medal')} ${((r.reward&&r.reward.guildCoins)|0)}</div>`
-             :`<div style="margin-top:2px">${uiIcon('medal')} ${ewT('result.guild_coins',{n:((r.reward&&r.reward.guildCoins)|0)})}</div>`)
+                 +`<div style="margin-top:3px">${hudIcon('gold')} ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · ${hudIcon('gem')} ${((r.reward&&r.reward.gems)|0)} · ${uiIcon('res-guild-coins')} ${((r.reward&&r.reward.guildCoins)|0)}</div>`
+             :`<div style="margin-top:2px">${uiIcon('res-guild-coins')} ${ewT('result.guild_coins',{n:((r.reward&&r.reward.guildCoins)|0)})}</div>`)
           +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">${ewT('result.raid_boss_hp',{hp:(r.raid.hp|0).toLocaleString(),max:(r.raid.max|0).toLocaleString(),n:(r.raid.attemptsLeft|0)})}</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">${ewT('result.run_not_counted')}</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error&&langMsg(r.error))||ewT('result.no_realm')))}</span>`;
       document.getElementById('resultHint').textContent='';
@@ -18756,9 +18757,9 @@ function openProfile(){ if(rewardLocked()){ queueBehindReward(openProfile); retu
   renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
 /* v267 (80/20 §9): every currency's SOURCES, SINKS and CAPS, and the daily reset in BOTH server
    time and the player's own local time — read live from /api/manifest, never hard-coded here. */
-const CURRENCY_META={ gold:[hudIcon('gold'),'Gold','econ.gold'], gems:[hudIcon('gem'),'Diamonds','econ.diamonds'], stamina:['⧗','Stamina','econ.stamina'],
+const CURRENCY_META={ gold:[hudIcon('gold'),'Gold','econ.gold'], gems:[hudIcon('gem'),'Diamonds','econ.diamonds'], stamina:['<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt="">','Stamina','econ.stamina'],
   dust:[uiIcon('res-forge-dust'),'Forge Dust','econ.forge_dust'], glyphFragments:[iconImg('a','glyph-frag'),'Glyph Fragments','econ.glyph_fragments'], gearFragments:['<img class="stIc" src="/assets/img/gear/frags/rough-ore-fragment.webp?v=4" alt="">','Gear Fragments','econ.gear_fragments'],
-  cityResources:[hudIcon('food'),'City Resources','econ.city_resources'], guildCoins:[uiIcon('medal'),'Guild Coins','econ.guild_coins'], heroFragments:['','Hero Fragments','econ.hero_fragments'] };
+  cityResources:[hudIcon('food'),'City Resources','econ.city_resources'], guildCoins:[uiIcon('res-guild-coins'),'Guild Coins','econ.guild_coins'], heroFragments:['','Hero Fragments','econ.hero_fragments'] };
 async function openEconomy(){
   const sh=modalShell();
   sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">'+uiIcon('war-chest')+' '+t('econ.title')+'</div><div style="color:#8b98a9;font-size:12px">'+t('econ.loading')+'</div>';
@@ -18996,7 +18997,7 @@ function vaultWaveHTML(w){
 function vaultResultHTML(r){
   const won=r.result&&r.result.won;
   let rew='';
-  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">${uiIcon('res-forge-dust')} ${t('vault.plus_dust',{n:r.reward.dust})}${r.reward.fragments&&r.reward.fragments.length?'<br>'+r.reward.fragments.map(k=>glyphFragChip(k)+escapeHTML(k)).join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">'+uiIcon('star-filled')+' '+t('vault.hero_xp_each',{n:r.reward.heroXp})+'</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">'+t('vault.first_clear_doubled')+'</span>':''}</div>`; }
+  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">${uiIcon('res-forge-dust')} ${t('vault.plus_dust',{n:r.reward.dust})}${r.reward.fragments&&r.reward.fragments.length?'<br>'+r.reward.fragments.map(k=>glyphFragChip(k)+escapeHTML(k)).join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">'+uiIcon('res-hero-xp')+' '+t('vault.hero_xp_each',{n:r.reward.heroXp})+'</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">'+t('vault.first_clear_doubled')+'</span>':''}</div>`; }
   return `<div class="panel" style="border-color:${won?'#2b7a55':'#7a2b2b'}">
     <div style="text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?uiIcon('trophy')+' '+t('vault.floor_cleared'):statusIcon('death')+' '+t('vault.holds')}</div>${rew}
     ${(r.waveResults||[]).map(vaultWaveHTML).join('')}
@@ -19031,7 +19032,7 @@ function vaultSweepPopup(r){
   ov.innerHTML=`<div class="vsBox">
     <div class="vsHd">${uiIcon('sweep')} ${t('vault.swept_n',{n:r.floors})}</div>
     <div class="vsTotals"><div><b>${uiIcon('res-forge-dust')} +${(r.totalDust|0).toLocaleString()}</b><span>${t('econ.forge_dust')}</span></div>
-      ${r.heroXp?`<div><b>${uiIcon('star-filled')} +${(r.heroXp|0).toLocaleString()}</b><span>${t('vault.hero_xp_each_lbl')}</span><i>${team}</i></div>`:''}</div>
+      ${r.heroXp?`<div><b>${uiIcon('res-hero-xp')} +${(r.heroXp|0).toLocaleString()}</b><span>${t('vault.hero_xp_each_lbl')}</span><i>${team}</i></div>`:''}</div>
     <div class="vsScroll">
       ${fr.length?`<div class="vsSec">${t('vault.glyph_fragments')} <span>${fr.reduce((a,[,n])=>a+n,0)}</span></div><div class="vsGrid">${fr.map(([k,n])=>tile(glyphArt(k),n,k,'#c9a2ff')).join('')}</div>`:''}
       ${gf.length?`<div class="vsSec">${t('vault.gear_fragments')} <span>${gf.reduce((a,[,n])=>a+n,0)}</span></div><div class="vsGrid">${gf.map(([k,n])=>tile(gearFragImg(k,40),n,k,'#ffb37a')).join('')}</div>`:''}
@@ -22434,7 +22435,7 @@ function renderElite(){
         <div style="width:46px;height:46px;border-radius:9px;overflow:hidden;border:1px solid #2a3550;flex:none">${heroIcon(k,46)}</div>
         <div style="flex:1"><div style="font-weight:700">${t.name} <span style="color:#ffd45e;font-size:11px">${st}${uiIcon('star-filled')}</span></div>
           <div style="font-size:10px;color:#8b98a9">${fragCard(k,14)} ${ewT('elite.fragments',{n:frags})}${st<MAX_STARS?' · '+ewT('elite.next',{n:ncost}):' · '+ewT('elite.max')} · ${ewT('elite.attempts',{n:left+'/'+ELITE_DAILY})}${_locked?' · '+ewT('elite.locked_stage',{stage:_any?stageCode(_any):'?'}):''}</div></div>
-        <button class="btn sm" data-k="${k}" ${canGo?'':'disabled'}>${statusIcon('attack')} ${ELITE_STAM}⧗</button></div></div>`;
+        <button class="btn sm" data-k="${k}" ${canGo?'':'disabled'}>${statusIcon('attack')} ${ELITE_STAM}<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""></button></div></div>`;
     }).join('');
   b.querySelectorAll('button[data-k]').forEach(btn=>btn.onclick=()=>startElite(btn.dataset.k));
 }
@@ -22482,7 +22483,7 @@ const SHADY_SHOP=[
   {id:'gold',   get name(){ return t('shady.war_chest',{n:'80,000'}); },  icon:uiIcon('war-chest'),  cost:250,  server:'warchest', get desc(){ return t('shady.war_chest_desc',{n:'80,000'}); }},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
   {id:'shield', get name(){ return t('shady.shields',{n:3}); },    icon:statusIcon('shield'),  cost:550,  server:'shields3', get desc(){ return t('shady.shields_desc',{n:3}); }},   /* v1081: a server purchase */
   {id:'tele',   get name(){ return t('shady.scrolls',{n:5}); },      icon:uiIcon('sparkle-new'), img:'/assets/img/items/teleport-card-v1.webp?v=1',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, get desc(){ return t('shady.scrolls_desc',{n:5}); }},
-  {id:'arena',  get name(){ return t('shady.arena_coins',{n:'3,000'}); },       icon:uiIcon('ticket'), cost:600,  server:'arenacoins', get desc(){ return t('shady.arena_coins_desc',{n:'3,000'}); }},   /* v1079: a server purchase - the server holds arena coins */
+  {id:'arena',  get name(){ return t('shady.arena_coins',{n:'3,000'}); },       icon:uiIcon('res-arena-coins'), cost:600,  server:'arenacoins', get desc(){ return t('shady.arena_coins_desc',{n:'3,000'}); }},   /* v1079: a server purchase - the server holds arena coins */
 ];
 function shadyCost(it){ const P=(typeof patNow==='function')?patNow():null, key=it.server||(it.id==='tele'?'targeted5':''); const off=P&&P.rows?(P.rows.shadyOff|0):0;   /* v1093: EGP 9/12/15 discount on 2 items a day */
   return (off>0&&(P.shadyPicks||[]).includes(key))?Math.round(it.cost*(1-off/100)):it.cost; }
@@ -22678,7 +22679,7 @@ function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
   const tier=Math.floor(idx/4)+1, cyc=idx%4;
   const requestBase='stars:'+idx;   // stable even if the first response is lost before the ledger mirror arrives
   if(cyc===0) return {get desc(){ return hudIcon('gold')+' '+t('portal.n_gold',{n:(2000*tier).toLocaleString()}); }, give:()=>{ if(!ACC.token) G.gold=(G.gold||0)+2000*tier; return txEarnP('gold',2000*tier,'stars',{requestId:requestBase+':gold'}); }};
-  if(cyc===1) return {get desc(){ return '⧗ '+t('portal.n_stamina',{n:60*tier}); }, give:()=>{ if(!ACC.token) G.stamina=(G.stamina||0)+60*tier; return txEarnP('stamina',60*tier,'stars',{requestId:requestBase+':stamina'}); }};
+  if(cyc===1) return {get desc(){ return '<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> '+t('portal.n_stamina',{n:60*tier}); }, give:()=>{ if(!ACC.token) G.stamina=(G.stamina||0)+60*tier; return txEarnP('stamina',60*tier,'stars',{requestId:requestBase+':stamina'}); }};
   if(cyc===2) return {get desc(){ return hudIcon('gem')+' '+t('portal.n_diamonds',{n:100*tier}); }, give:()=>{ if(!ACC.token) G.gems=(G.gems||0)+100*tier; return txEarnP('gems',100*tier,'stars',{requestId:requestBase+':gems'}); }};
   return {get desc(){ return t('portal.n_random_frags',{n:5*tier}); }, give:()=>{ const cnt={}; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); if(!hk) continue; cnt[hk]=(cnt[hk]||0)+1; }
       const keys=Object.keys(cnt); if(!keys.length) return Promise.resolve(true);
@@ -22703,7 +22704,7 @@ function claimStarMilestone(){ if(!starTrackClaimable()||_starClaimBusy) return;
       if(!res||!res.ok){ bannerMsg(langMsg(res&&res.error)||t('portal.reward_failed')); renderStarTrack(); return; }
       if(res.claimed!=null) G.starMilestonesClaimed=res.claimed|0;
       const g=res.got||{}, fr=g.frags?Object.keys(g.frags).reduce(function(s,k){ return s+(g.frags[k]|0); },0):0;
-      const what=g.gold?(hudIcon('gold')+' '+t('portal.n_gold',{n:g.gold.toLocaleString()})):g.stamina?('⧗ '+t('portal.n_stamina',{n:g.stamina})):g.gems?(hudIcon('gem')+' '+t('portal.n_diamonds',{n:g.gems})):t('portal.n_hero_frags',{n:fr});
+      const what=g.gold?(hudIcon('gold')+' '+t('portal.n_gold',{n:g.gold.toLocaleString()})):g.stamina?('<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> '+t('portal.n_stamina',{n:g.stamina})):g.gems?(hudIcon('gem')+' '+t('portal.n_diamonds',{n:g.gems})):t('portal.n_hero_frags',{n:fr});
       saveG(); updateHubChrome(); bannerMsg(uiIcon('star-filled')+' '+t('portal.star_reward',{n:(res.idx+1)*15})+'\n'+what); renderStarTrack(); })
      .catch(function(){ _starClaimBusy=false; renderStarTrack(); });
     return; }
@@ -22955,7 +22956,7 @@ function stageDropsHTML(stg,node,mode){
     if(h) chips.push(chip(fragCard(hk,16), escapeHTML(h.name), '×'+(ELITE_FRAG_MIN*_fm)+'–'+(ELITE_FRAG_MAX*_fm), '#c9a0ff')); }
   b.forEach(f=>chips.push(fchip(f,true)));
   const _eb=(node!=null)&&(portalHardMode(mode)||isEliteStage(node)||isBossStage(node));
-  const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap">⧗ ${stageStamCost(node,mode)}${_eb?' · '+t('stage.runs')+' <span style="color:'+(stageRunsLeft(node,mode)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node,mode)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;
+  const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap"><img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> ${stageStamCost(node,mode)}${_eb?' · '+t('stage.runs')+' <span style="color:'+(stageRunsLeft(node,mode)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node,mode)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;
   return `<div style="border-top:1px solid #1c2434;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
     <span style="font-size:9px;letter-spacing:1px;color:#6f7d90">${vaelFirst?t('stage.first_clear_hero',{hero:'VAEL'}):randomized?t('stage.n_random',{n:2}):t('stage.drops')}</span>
     ${chips.length?chips.join(''):'<span style="font-size:10.5px;color:#6f7d90">'+t('stage.drops_loading')+'</span>'}${foot}</div>`;
@@ -23016,7 +23017,7 @@ function stageDetailHTML(stg,node,mode){ mode=mode||PORTAL||'normal';   /* v1211
     ${fragBonus?`<div class="smFragSummary" style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">${t('stage.bonus')}</span><br>${fragBonus}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px">
       <span style="font-size:11px;color:#8b98a9">${t('stage.stamina_sweep')}</span>
-      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node,mode)} · ${portalStars(mode,node)>=3?((mode==='elite'||mode==='veteran'||isEliteStage(node)||isBossStage(node))?t('stage.sweepable_runs',{n:stageRunsLeft(node,mode)}):t('stage.sweepable')):t('stage.sweep_unlocks_at',{stars:uiIcon('star-filled').repeat(3)})}</span></div>
+      <span style="font-size:11px;color:#c3ccd8"><img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> ${stageStamCost(node,mode)} · ${portalStars(mode,node)>=3?((mode==='elite'||mode==='veteran'||isEliteStage(node)||isBossStage(node))?t('stage.sweepable_runs',{n:stageRunsLeft(node,mode)}):t('stage.sweepable')):t('stage.sweep_unlocks_at',{stars:uiIcon('star-filled').repeat(3)})}</span></div>
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">${t('stage.star_rules',{s3:uiIcon('star-filled').repeat(3),s2:uiIcon('star-filled').repeat(2),s1:uiIcon('star-filled')})}</div>
   </div>${(typeof preBattleLineHTML==='function')?preBattleLineHTML('campaign'):''}`;
 }
@@ -23055,7 +23056,7 @@ function openStageModal(i,mode){
   const _starsHTML=[0,1,2].map(x=>`<span style="color:${x<_stars?'#ffd45e':'#465064'}">${uiIcon('star-filled')}</span>`).join('');
   body.innerHTML=`<div class="smStageCard"><div class="smStageScroll">
     <div class="smStageHead"><div><div class="smStageSub">${PORTAL_META[mode].icon} ${t('stage.mode_chapter',{mode:PORTAL_META[mode].label.toUpperCase(),n:chapterOf(i)})}</div><div class="smStageTitle">${_title}</div></div><div class="smStars">${_starsHTML}</div></div>
-    <div class="smMeta"><div><span>${t('stage.stamina')}</span><b>⧗ ${stageStamCost(i,mode)}</b></div><div><span>${_eb?t('stage.chances'):t('stage.status')}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?t('stage.cleared'):t('stage.new'))}</b></div><div><span>${t('stage.reward_xp')}</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
+    <div class="smMeta"><div><span>${t('stage.stamina')}</span><b><img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> ${stageStamCost(i,mode)}</b></div><div><span>${_eb?t('stage.chances'):t('stage.status')}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?t('stage.cleared'):t('stage.new'))}</b></div><div><span>${t('stage.reward_xp')}</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
     <div id="smDetails">${stageDetailHTML(_stg,i,mode)}</div>
     <div id="smFragTarget" style="margin-top:8px">${stageDropsHTML(_stg,i,mode)}</div>
     <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">${uiIcon('res-xp-potion')} ${t('stage.potion_per_run',{tier:xpPotionStageText(i,mode)})}</div>
@@ -23099,7 +23100,7 @@ function stageRewardItems(rw){ rw=rw||{}; const out=[];
   for(const [tier,n] of Object.entries(rw.xpPotions||{})) if(n>0) out.push({art:'<img src="/assets/img/icons/ui/res-xp-potion-v1.webp" alt="">', qty:n, name:tier[0].toUpperCase()+tier.slice(1)+' XP Potion'});
   if(rw.gems>0) out.push({art:'<img src="/assets/img/ui/hud-gem.webp?v=1" alt="">', qty:rw.gems, name:'Diamonds'});
   if(rw.gold>0) out.push({art:'<img src="/assets/img/ui/hud-gold.webp?v=1" alt="">', qty:rw.gold, name:'Gold'});
-  const px=rw.px||rw.playerXp||0; if(px>0) out.push({art:'<b style="font:900 24px Georgia,serif;color:#5ee89b;text-shadow:0 1px 3px #000">XP</b>', qty:px, name:'Player XP'});
+  const px=rw.px||rw.playerXp||0; if(px>0) out.push({art:'<img src="/assets/img/icons/ui/res-player-xp-v1.webp" alt="">', qty:px, name:'Player XP'});
   return out; }
 function stageRewardPop(items,title){ if(!items||!items.length) return null; const old=document.getElementById('stageRewPop'); if(old) old.remove();
   const ov=document.createElement('div'); ov.id='stageRewPop';
@@ -23118,8 +23119,8 @@ function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){
   const b=bonus||{};
   if(b.gold) out.push(tile('<img src="/assets/img/ui/hud-gold.webp?v=1" alt="">','x'+(+b.gold).toLocaleString('en-US'),'Gold'));
   if(b.dust) out.push(tile(uiIcon('res-forge-dust'),'x'+(+b.dust).toLocaleString('en-US'),'Forge Dust'));
-  if(b.px) out.push(tile('<b class="rpXp">XP</b>','x'+(+b.px).toLocaleString('en-US'),'Player XP'));
-  if(b.heroXp) out.push(tile('<b class="rpXp">XP</b>','x'+(+b.heroXp).toLocaleString('en-US'),'Hero XP each'));
+  if(b.px) out.push(tile('<img src="/assets/img/icons/ui/res-player-xp-v1.webp" alt="">','x'+(+b.px).toLocaleString('en-US'),'Player XP'));
+  if(b.heroXp) out.push(tile('<img src="/assets/img/icons/ui/res-hero-xp-v1.webp" alt="">','x'+(+b.heroXp).toLocaleString('en-US'),'Hero XP each'));
   return out.length?`<div class="rpTiles">${out.join('')}</div>`:'';
 }
 /* v253: turn the server's combat-core event log into one human line for the result screen. */
@@ -25327,7 +25328,7 @@ function renderRoster(){
     const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<stageStamCost(CUR.node,CUR.portal);
     const ok=full&&!lowStam;
     const sb=document.getElementById('startBtn'); if(!sb)return; sb.disabled=!ok;
-    sb.innerHTML=!full?(isVault?`${t('roster.pick_fighters',{n:TEAM_SIZE,have:teamArr.length})}`:t('roster.pick_one')):(lowStam?`${t('roster.need_stamina',{n:stageStamCost(CUR.node,CUR.portal),have:G.stamina,max:maxStamina()})}`:(isCampaign?`${t('roster.battle')} ${uiIcon('play')}  ⧗${stageStamCost(CUR.node,CUR.portal)}`:t('roster.battle')+' '+uiIcon('play')));
+    sb.innerHTML=!full?(isVault?`${t('roster.pick_fighters',{n:TEAM_SIZE,have:teamArr.length})}`:t('roster.pick_one')):(lowStam?`${t('roster.need_stamina',{n:stageStamCost(CUR.node,CUR.portal),have:G.stamina,max:maxStamina()})}`:(isCampaign?`${t('roster.battle')} ${uiIcon('play')}  <img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt="">${stageStamCost(CUR.node,CUR.portal)}`:t('roster.battle')+' '+uiIcon('play')));
   }
   syncStart();
   /* 30 Aug (Phil) — RESET COMP. Clears the picked heroes instantly so a fresh squad can be chosen,
@@ -26491,7 +26492,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     /* v983 (3 Oct Arena audit #11): signed in, the message and coins are the SERVER's reward, not the local table */
     const _finish=(rw,paid)=>{ rw=rw||dr; if(!paid) G.arenaCoins=(G.arenaCoins||0)+(rw.coins|0); G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();   /* v1097 (sweep #9): signed in, the server paid the coins and adoptLedger carries them */
       saveG(); updateHubChrome(); renderArena();
-      const dm=document.getElementById('dailyMsg'); if(dm) dm.innerHTML=`${t('arena.claimed')} ${hudIcon('gem')} +${rw.gems|0} · ${hudIcon('gold')} +${(rw.gold|0).toLocaleString()} · ${uiIcon('ticket')} +${rw.coins|0}`; };
+      const dm=document.getElementById('dailyMsg'); if(dm) dm.innerHTML=`${t('arena.claimed')} ${hudIcon('gem')} +${rw.gems|0} · ${hudIcon('gold')} +${(rw.gold|0).toLocaleString()} · ${uiIcon('res-arena-coins')} +${rw.coins|0}`; };
     /* v1015 (re-audit Arena N6): one requestId, re-sent on a lost reply (the server answers a paid claim with its receipt) - a new id
        per tap, and a lost reply told the player the paid daily was "still yours to claim" */
     if(ACC.token){ apiOnce('arenadaily','/api/arena/daily-claim',{}).then(r=>{ if(r&&r.busy) return;
@@ -26527,8 +26528,8 @@ function renderArenaTop(list,failed){
       <div class="arcMid"><div class="arcTop"><b>${escapeHTML(r.atkName||'')} <span class="arcVs">VS</span> ${escapeHTML(r.defName||'')}</b><span class="arcTime">${timeAgo(r.t)}</span></div>
         <div class="arcTeams"><div class="arcTeam">${team(r.mineSnap)}</div><span class="arcVs">VS</span><div class="arcTeam">${team(r.foe)}</div></div></div>
       <div class="arcBtns"><button class="arcWatch" data-atw="${i}">${uiIcon('play')} ${t('areport.watch')}</button>
-        <button class="arcVote up${r.mine>0?' on':''}" data-atv="${i}" data-v="1" aria-label="Like">${ARC_THUMB}<b>${r.up|0}</b></button>
-        <button class="arcVote down${r.mine<0?' on':''}" data-atv="${i}" data-v="-1" aria-label="Dislike"><span class="arcDown">${ARC_THUMB}</span><b>${r.down|0}</b></button></div></div>`).join('')
+        <button class="arcVote up${r.mine>0?' on':''}" data-atv="${i}" data-v="1" aria-label="Like"><img class="arcThumb" src="/assets/img/ui/arena/thumbs-up.webp?v=1" alt=""><b>${r.up|0}</b></button>
+        <button class="arcVote down${r.mine<0?' on':''}" data-atv="${i}" data-v="-1" aria-label="Dislike"><img class="arcThumb" src="/assets/img/ui/arena/thumbs-down.webp?v=1" alt=""><b>${r.down|0}</b></button></div></div>`).join('')
     : `<div class="arcEmpty">${failed?t('arena.top_offline'):t('arena.top_empty')}</div>`;
   let ov=document.getElementById('arRecPop'); const fresh=!ov;
   if(fresh){ ov=document.createElement('div'); ov.id='arRecPop'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); }; document.body.appendChild(ov); }
@@ -26569,18 +26570,18 @@ const ARENA_SHOP=[
   {id:'zahrifrag', get name(){ return t('ashop.frag_name',{hero:'Zahri Sunhorn',n:5}); }, icon:'', hero:'zahri', cost:500, earn:()=>({what:'frag',amount:5,reason:'arena',extra:{heroKey:'zahri'}}), give:()=>{giveHeroFrag('zahri',5);}, get desc(){ return t('ashop.frag_desc',{star:'3'+uiIcon('star-filled'),n:80}); }},   /* v1287: Zahri is Arena only (Phil 5 Nov) */
   {id:'gold1',  get name(){ return t('ashop.gold_cache'); },      icon:hudIcon('gold'), cost:120, earn:()=>({what:'gold',amount:5000,reason:'arenashop'}), give:()=>{G.gold+=5000;},    get desc(){ return t('ashop.gold_desc',{n:(5000).toLocaleString()}); }},
   {id:'gems1',  get name(){ return t('ashop.diamond_pouch'); },   icon:hudIcon('gem'), cost:300, earn:()=>({what:'gems',amount:40,reason:'arenashop'}), give:()=>{G.gems+=40;},      get desc(){ return t('ashop.gems_desc',{n:40}); }},
-  {id:'stam',   get name(){ return t('ashop.stamina_refill'); },   icon:'⧗', cost:200, earn:()=>({what:'stamina',amount:Math.max(0,maxStamina()-(G.stamina||0)),reason:'arenashop',empty:t('ashop.stamina_full')}), give:()=>{G.stamina=Math.max(G.stamina,maxStamina()); G.staminaTS=Date.now();}, get desc(){ return t('ashop.stamina_desc'); }},
+  {id:'stam',   get name(){ return t('ashop.stamina_refill'); },   icon:'<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt="">', cost:200, earn:()=>({what:'stamina',amount:Math.max(0,maxStamina()-(G.stamina||0)),reason:'arenashop',empty:t('ashop.stamina_full')}), give:()=>{G.stamina=Math.max(G.stamina,maxStamina()); G.staminaTS=Date.now();}, get desc(){ return t('ashop.stamina_desc'); }},
 ];
 function renderArenaShop(){
   const b=document.getElementById('arenaShopBody');
   b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-weight:800;font-size:16px">${uiIcon('shop')} ${t('title.arena_shop')}</div>
-      <div style="font-size:12px;color:#8b98a9;margin-top:4px">${t('ashop.spend',{coins:uiIcon('ticket')+' <b style="color:#ffd45e">'+(G.arenaCoins||0)+'</b>'})}</div></div>
+      <div style="font-size:12px;color:#8b98a9;margin-top:4px">${t('ashop.spend',{coins:uiIcon('res-arena-coins')+' <b style="color:#ffd45e">'+(G.arenaCoins||0)+'</b>'})}</div></div>
     <div class="panel" id="arenaShopList"></div>
     <div id="arenaShopMsg" style="font-size:12px;color:#ffd45e;text-align:center;min-height:16px"></div>`;
   const list=b.querySelector('#arenaShopList');
   ARENA_SHOP.forEach(it=>{ const can=(G.arenaCoins||0)>=it.cost;
     const row=document.createElement('div'); row.style='display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40';
-    row.innerHTML=`<div style="display:flex;align-items:center;gap:6px">${it.hero?`<span style="display:inline-block;vertical-align:middle">${heroIcon(it.hero,26)}</span>`:`<span style="font-size:20px">${it.icon}</span>`} <div><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div><button class="btn sm" ${can?'':'disabled'}>${uiIcon('ticket')} ${it.cost}</button>`;
+    row.innerHTML=`<div style="display:flex;align-items:center;gap:6px">${it.hero?`<span style="display:inline-block;vertical-align:middle">${heroIcon(it.hero,26)}</span>`:`<span style="font-size:20px">${it.icon}</span>`} <div><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div><button class="btn sm" ${can?'':'disabled'}>${uiIcon('res-arena-coins')} ${it.cost}</button>`;
     const _abtn=row.querySelector('button');
     /* 31 Aug — THE ARENA SHOP CHARGED COINS AND DELIVERED NOTHING. gold, diamonds, stamina and hero
        fragments are ALL ledger-owned: give() only wrote the local mirror, so the next ledgerSync
@@ -27742,7 +27743,7 @@ function resolveMarch(m){
     const mailV={from:m.tName,subj:'{i:s:attack} '+ewT('march.victory_vs',{name:m.tName}),body:ewT('march.loot_counting',{name:m.tName}),battle:rptBattle};
     marchSettle=function(gg,cc){ try{
       mailV.body=(gg>0||cc>0)?(cc>0?ewT('march.looted_coins',{name:m.tName,gold:'{i:h:gold} '+gg,coins:'{i:u:medal} '+cc}):ewT('march.looted',{name:m.tName,gold:'{i:h:gold} '+gg})):ewT('march.no_loot',{name:m.tName});
-      if(gg>0||cc>0) bannerMsg(statusIcon('attack')+' '+ewT('march.loot_from',{name:m.tName,loot:hudIcon('gold')+' '+gg+(cc>0?(' + '+uiIcon('medal')+' '+ewT('march.n_guild_coins',{n:cc})):'')}));
+      if(gg>0||cc>0) bannerMsg(statusIcon('attack')+' '+ewT('march.loot_from',{name:m.tName,loot:hudIcon('gold')+' '+gg+(cc>0?(' + '+uiIcon('res-guild-coins')+' '+ewT('march.n_guild_coins',{n:cc})):'')}));
       updateMailBadges(); }catch(e){} };
     addMail('war',mailV);
     marchReport('{i:s:attack} '+ewT('march.victory_at',{name:m.tName}),ewT('march.broke_their_wall'));
@@ -28492,10 +28493,10 @@ const GUILD_SHOP_TXT=[()=>[ewT('gshop.protection_shield'),ewT('gshop.d_shield')]
 function renderGuildShopInto(el){
   if(!G.guild){ el.innerHTML='<div class="panel" style="font-size:12px;color:#8b98a9">'+ewT('gshop.join_first')+'</div>'; return; }
   const coins=G.guildCoins||0, slots=guildShopSlots();
-  el.innerHTML=`<div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${ewT('gshop.spend',{coins:uiIcon('medal')+' <b style="color:#ffd45e">'+coins+'</b>',n:'<b>'+slots+'</b>',lv:guildLevel()})}</div>`+   /* v1014 (Guild #13): '(more each level)' hint removed */
+  el.innerHTML=`<div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${ewT('gshop.spend',{coins:uiIcon('res-guild-coins')+' <b style="color:#ffd45e">'+coins+'</b>',n:'<b>'+slots+'</b>',lv:guildLevel()})}</div>`+   /* v1014 (Guild #13): '(more each level)' hint removed */
     GUILD_SHOP.slice(0,slots).map((it,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px">
       <div><b>${GUILD_SHOP_TXT[i]?GUILD_SHOP_TXT[i]()[0]:it.name}</b><div style="font-size:11px;color:#8b98a9">${GUILD_SHOP_TXT[i]?GUILD_SHOP_TXT[i]()[1]:it.desc}</div></div>
-      <button class="btn sm" data-buy="${i}" ${coins>=it.cost?'':'disabled'}>${uiIcon('medal')} ${it.cost}</button></div>`).join('');
+      <button class="btn sm" data-buy="${i}" ${coins>=it.cost?'':'disabled'}>${uiIcon('res-guild-coins')} ${it.cost}</button></div>`).join('');
   /* 30 Aug — THE GUILD SHOP CHARGED NOTHING AND SOMETIMES GAVE NOTHING.
      guildCoins are ledger-owned and stripped from the save, but the cost was only ever deducted
      from the client mirror — so the next ledgerSync handed the coins straight back. Protection
@@ -28556,7 +28557,7 @@ function guildBossKillReward(gb, playerLanded){ const lv=gb.level;
   const cCoins=300*lv, cExp=250; G.guildCoins=(G.guildCoins||0)+cCoins; addGuildExp(cExp);
   let extra=''; if(playerLanded){ const cGold=800*lv, cGems=15+lv*3; G.gold=(G.gold||0)+cGold; G.gems=(G.gems||0)+cGems; txEarn('gold',cGold,'city'); txEarn('gems',cGems,'city'); extra=` · ${hudIcon('gold')} ${cGold} · ${hudIcon('gem')} ${cGems}`; }
   gb.level=lv+1; gb.max=guildBossMax(gb.level); gb.hp=gb.max; gb.dmg=0; gb.guildDmg=0; gb.kills=(gb.kills||0)+1; gb.lastTick=Date.now();
-  return `${uiIcon('medal')} ${cCoins} · ${ewT('gshop.plus_exp',{n:cExp})}${extra}`; }
+  return `${uiIcon('res-guild-coins')} ${cCoins} · ${ewT('gshop.plus_exp',{n:cExp})}${extra}`; }
 // passive: guildmates chip the boss down between your visits (catches up on elapsed time)
 function guildBossPassiveTick(){ const gb=guildBossEnsure(); if(!gb||gb.hp<=0) return null;
   const now=Date.now(), hrs=Math.max(0,(now-(gb.lastTick||now))/3600000); gb.lastTick=now;
@@ -30151,7 +30152,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   // but become ongoing items below every reward that is ready now.
   const cards=[];   // {ready, html}
   srvPlans().forEach((p,packOrder)=>{ const ready=!!p.ready;   /* v1050: the plans are server-owned (LED.st.plans) */
-    const rew=(p.type==='gems')?(hudIcon('gem')+' '+t('portal.n_diamonds',{n:p.amount})):('⧗ '+t('quest2.n_stamina',{n:p.amount}));
+    const rew=(p.type==='gems')?(hudIcon('gem')+' '+t('portal.n_diamonds',{n:p.amount})):('<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> '+t('quest2.n_stamina',{n:p.amount}));
     cards.push({ready,group:t('quest2.group_daily'),groupOrder:3,order:packOrder,html:`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
       <div class="qh"><div class="qt">${uiIcon('gift')} ${escapeHTML(p.name)}</div><div class="qrew">${t('quest2.per_day',{v:rew})}</div></div>
       <div class="qd">${t(p.daysLeft===1?'quest2.pack_day1':'quest2.pack_days',{n:`<b style="color:#ffd45e">${p.daysLeft}</b>`})}</div>
@@ -30204,7 +30205,7 @@ function isLastSaturday(y,m,day){ return day+7 > new Date(y,m+1,0).getDate(); }
    after the grant has been made. */
 const SIGNIN_DAILY=[
   {icon:hudIcon('gold'), get label(){ return t('signin2.n_gold',{n:300}); },     grant:()=>{ G.gold=(G.gold||0)+300; txEarn('gold',300,'signin'); }},
-  {icon:'⧗',  get label(){ return t('shop.plus_stamina_cap',{n:60}); },  grant:()=>{ G.stamina=(G.stamina||0)+60; txEarn('stamina',60,'signin'); }},
+  {icon:'<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt="">',  get label(){ return t('shop.plus_stamina_cap',{n:60}); },  grant:()=>{ G.stamina=(G.stamina||0)+60; txEarn('stamina',60,'signin'); }},
   {icon:hudIcon('gem'), get label(){ return t('shop.n_diamonds',{n:20}); },  grant:()=>{ G.gems=(G.gems||0)+20; txEarn('gems',20,'signin'); }},
   {icon:hudIcon('gold'), get label(){ return t('signin2.n_gold',{n:400}); },     grant:()=>{ G.gold=(G.gold||0)+400; txEarn('gold',400,'signin'); }},
   {icon:hudIcon('gold'), get label(){ return t('signin2.n_gold',{n:600}); },     grant:()=>{ G.gold=(G.gold||0)+600; txEarn('gold',600,'signin'); }},
@@ -30304,12 +30305,12 @@ function grantTutReward(r, stepId){
       const g=res.reward||{}; if(g.frag&&g.frag.qty) giveHeroFrag(g.frag.heroKey,g.frag.qty);
       saveG(); updateHubChrome();
       const q=(res.already||!res.reward)?r:res.reward; const p=[];
-      if(q.gold)p.push(hudIcon('gold')+' '+q.gold); if(q.gems)p.push(hudIcon('gem')+' '+q.gems); if(q.stam)p.push('⧗ '+q.stam); if(q.xpPotion)p.push(uiIcon('res-xp-potion')+' '+ewT('tut.got_potion',{n:q.xpPotion.qty,tier:q.xpPotion.tier}));
+      if(q.gold)p.push(hudIcon('gold')+' '+q.gold); if(q.gems)p.push(hudIcon('gem')+' '+q.gems); if(q.stam)p.push('<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> '+q.stam); if(q.xpPotion)p.push(uiIcon('res-xp-potion')+' '+ewT('tut.got_potion',{n:q.xpPotion.qty,tier:q.xpPotion.tier}));
       const fq=(q.frag&&q.frag.qty)||(typeof q.frag==='number'?q.frag:0); if(fq)p.push(((q.frag&&q.frag.heroKey)?fragCard(q.frag.heroKey,18):iconImg('a','glyph-frag'))+' '+ewT('tut.got_frags',{n:fq}));
       return p.join(' · ');
     });
   }
-  let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push(hudIcon('gold')+' '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push(hudIcon('gem')+' '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
+  let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push(hudIcon('gold')+' '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push(hudIcon('gem')+' '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> '+r.stam);}
   if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push(fragCard(hk,18)+' '+ewT('tut.got_hero_frags',{n:r.frag,hero:HERO_TYPES[hk].name})); } if(r.xpPotion){G.xpPotions=G.xpPotions||{};G.xpPotions[r.xpPotion]=(G.xpPotions[r.xpPotion]|0)+1;s.push(uiIcon('res-xp-potion')+' '+ewT('tut.got_potion',{n:1,tier:r.xpPotion}));} return s.join(' · '); }
 function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.every(s=>!!G.tutRewarded[s.id]); }
 function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
@@ -33037,7 +33038,7 @@ async function claimPlans(){ if(!ACC.token){ bannerMsg(t('shop.connect_to_claim'
   const r=await api('/api/shop/plan-claim','POST',{requestId:uid8()}); claimPlans._busy=false;
   if(!r||!r.ok){ bannerMsg((r&&r.error)||t('shop.claim_failed')); return; }
   adoptLedger(r.ledger); saveG(); updateHubChrome();
-  const pd=r.paid||{}; bannerMsg([pd.gems?t('shop.plus_diamonds',{icon:hudIcon('gem'),n:pd.gems}):'', pd.stamina?t('shop.plus_stamina',{icon:'⧗',n:pd.stamina}):''].filter(Boolean).join(' · '));
+  const pd=r.paid||{}; bannerMsg([pd.gems?t('shop.plus_diamonds',{icon:hudIcon('gem'),n:pd.gems}):'', pd.stamina?t('shop.plus_stamina',{icon:'<img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt="">',n:pd.stamina}):''].filter(Boolean).join(' · '));
   renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
 function dailyPacksReady(){ return srvPlans().some(p=>p.ready); }
 // day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at 09:00 ET, v1065,
@@ -33627,7 +33628,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794339642048';
+const BUILD_ID = '1794339888273';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
