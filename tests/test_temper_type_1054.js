@@ -24,7 +24,7 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   let h1,h2; const now=Date.now();
   await editDB(u=>{ const un=Object.keys(u.led.unlocked||{}).filter(k=>u.led.unlocked[k]); h1=un[0]; h2=un[1];
     u.dust=100000;
-    u.gear={revision:1,fragments:{},subs:{},seq:10,active:{},
+    u.gear={revision:1,heroGearV:1,fragments:{},subs:{},seq:10,active:{},   /* heroGearV: this fixture is about Temper, not the v1336 gear conversion */
       items:{ q1:{d:A.id,temper:5,prog:2,dustSpent:400,bound:true,createdAt:now}, q2:{d:A.id,temper:4,prog:7,dustSpent:300,bound:true,createdAt:now},
               q3:{d:B.id,temper:2,prog:0,dustSpent:50,bound:true,createdAt:now} },
       equipped:{ [h1]:{[A.slot]:'q1',[B.slot]:'q3'}, [h2]:{[A.slot]:'q2'} } }; });
