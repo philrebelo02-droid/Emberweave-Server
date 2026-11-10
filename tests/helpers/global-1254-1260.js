@@ -12,6 +12,13 @@
 //   undoText(s)    -> the same rewrite on a source string (safe on an older page, and on one already rewritten)
 const fs = require('fs'), path = require('path');
 const SWAPS = [
+  // v1342 (Phil 10 Nov: "Raff passive does nothing when upgraded. It should go up from like 50 at level 1 and raise to 200 at 100"): Rafe's Pirate's Instinct
+  //   bonus back to 0.45 x the passive multiplier and its old text (tests/test_arena_ui_rafe_1342.js checks v1342 itself)
+  ["function instinctDmg(u){ return instinctPct((u.skillLv||[])[3]||1); }", "function instinctDmg(u){ return 0.45*(u.passMul||1); }", /function instinctDmg\(u\)\{ return instinctPct/],
+  ["desc:\"Every fourth attack, melee or ranged, also deals bonus true damage that ignores Defense: 50% of the attack at level 1, rising to 200% at level 100.\"}", "desc:\"Every few shots, the next attack ignores part of the target's Defense.\"}", /desc:"Every fourth attack, melee or ranged, also deals bonus true damage/],
+  // v1343 (Phil 10 Nov: "Remove lifestyle off nameless admiral instead his passive will be every 4th attack ..."): the Nameless Admiral back on Lifesteal
+  //   (tests/test_admiral_dots_1343.js checks v1343 itself)
+  ["MONSTER_KITS['nameless admiral'].pass='knock4';", "MONSTER_KITS['nameless admiral'].pass='lifesteal';", /MONSTER_KITS\['nameless admiral'\]\.pass='knock4';/],
   ['const ENEMY_NERF=0.95,', 'const ENEMY_NERF=1,', /const ENEMY_NERF\s*=/],
   ['const UNIT_SIZE=1.15;', 'const UNIT_SIZE=1;', /const UNIT_SIZE\s*=/],
   ['const WAVE_READY_HOLD=0.7;', 'const WAVE_READY_HOLD=0;', /const WAVE_READY_HOLD\s*=/],
