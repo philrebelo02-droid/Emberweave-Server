@@ -10063,7 +10063,7 @@ async function api(req,res,url){
       if(m<=1000)b+=Math.min(18,Math.floor((1000-m)/100)*2); if(m<=100)b+=Math.min(15,Math.floor((100-m)/10)*3); if(m<=50)b+=Math.min(12,Math.floor((50-m)/10)*3); return b; }
     function targetRanks(m){ if(m<=1)return []; if(m<=10){ const o=[]; for(let r=1;r<m&&o.length<4;r++)o.push(r); return o; }
       const T=3.5+bandBonus(m), oneRank=100/m;
-      const bands=[[Math.min(T,oneRank),T],[Math.max(oneRank,T*0.26),T+4],[Math.max(oneRank,T*0.5),T+8],[Math.max(oneRank,T*0.75),T+12]];
+      const bands=[[Math.min(T,oneRank),T*1.25],[Math.max(oneRank,T*0.26),(T+4)*1.25],[Math.max(oneRank,T*0.5),(T+8)*1.25],[Math.max(oneRank,T*0.75),(T+12)*1.25]];   /* Phil 10 Nov: "the climb was really slow. Increase the max range each opponent found by 25%": each band's upper % is x1.25 */
       const used=new Set(), out=[];
       bands.forEach(bd=>{ const lo=bd[0], hi=Math.min(97,Math.max(bd[1],lo+0.5)), pct=lo+Math.random()*(hi-lo);
         let r=Math.max(1,Math.round(m*(1-pct/100))); while((used.has(r)||r>=m)&&r>1)r--; while(used.has(r)&&r<m-1)r++;
@@ -10072,13 +10072,18 @@ async function api(req,res,url){
     const targets=targetRanks(me.rank), chosen=new Set(), opps=[];
     for(const tr of targets){ let best=null,bd=1e9; for(const u of pool){ if(chosen.has(u.id))continue; const d=Math.abs(u.rank-tr); if(d<bd){bd=d;best=u;} } if(best){ chosen.add(best.id); opps.push(best); } }
     for(let k=pool.length-1; k>=0 && opps.length<5; k--){ const u=pool[k]; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } }   // fill remaining with the NEAREST ranks above you (pool is ascending → never the very top)
+    /* Phil 10 Nov: "I should always be able to see 4 opponents" / "No matter what rank I am": near the top there are not 4 players above you,
+       so the list fills with the nearest players below. A win against a lower rank keeps your rank (applyResult only swaps upward) and pays the win reward. */
+    if(opps.length<4){ const below=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>me.rank).sort((a,b)=>a.rank-b.rank); for(const u of below){ if(opps.length>=4) break; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } } }
+    /* Phil 10 Nov: "Rank 1 should be able to see the top 10 to fight": anyone in the top 10 is offered everyone else in the top 10 */
+    if(me.rank<=10){ for(const u of Object.values(DB.users)){ if(u&&u.id!==me.id&&u.rank>=1&&u.rank<=10&&!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } } }
     opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
     // v327: preview the rank-milestone diamonds THIS player would ACTUALLY be paid for each opponent —
     // same step table, same loop and same fractional settle as /api/arena/result — so the client's
     // "diamonds +N" row can never promise more than the server pays.
     const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
     function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
-    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,arenaDefTeam(u)), gems:prevGems(u.rank) }));   /* v1213: the opponent's DEFENSE team */
+    const out=opps.slice(0,me.rank<=10?9:5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,arenaDefTeam(u)), gems:prevGems(u.rank) }));   /* v1213: the opponent's DEFENSE team */
     arenaOffered(me,out.map(o=>o.id));
     return send(res,200,{ rank:me.rank, opponents:out, arena:arenaAttView(ensureLedger(me)) }); }
 

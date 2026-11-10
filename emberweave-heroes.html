@@ -2935,6 +2935,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arMedal,#arena .arDay{background:url('/assets/img/ui/building-main/panel-portrait.webp?v=1') center/100% 100%;border:0;border-radius:0;box-shadow:none;padding:20px 12px;flex-basis:124px}
 #arena .arDef,#arena .arOpp{border:0;border-image:none;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%;padding:20px 16px;box-shadow:0 5px 9px #0005}
 #arena .arOpps{flex-wrap:wrap;gap:8px}
+#arena .arOpps:has(.arOpp:nth-child(6)){flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin}   /* top 10: more than 5 opponents scroll sideways, five on screen */
+#arena .arOpps:has(.arOpp:nth-child(6))>.arOpp{flex:0 0 calc((100% - 32px) / 5);scroll-snap-align:start}
 #arena .arOpp{flex:1 1 135px;max-width:none;min-width:125px;justify-content:space-between;gap:10px}
 #arena .arOppNm{font-size:11px;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
 #arena .arOppNums{gap:5px}
@@ -26047,7 +26049,7 @@ function arenaTargetRanks(me){ if(me<=1) return [];
   // so refreshing can surface a small final-push target; higher slots have higher floors (usually bigger jumps). Randomised each refresh.
   const T=3.5+arenaBandBonus(me);
   const oneRank=100/me;   // one rank expressed as a % — lets the bottom band reach the very next rank at ANY rank
-  const bands=[ [Math.min(T,oneRank), T], [Math.max(oneRank,T*0.26), T+4], [Math.max(oneRank,T*0.5), T+8], [Math.max(oneRank,T*0.75), T+12] ];
+  const bands=[ [Math.min(T,oneRank), T*1.25], [Math.max(oneRank,T*0.26), (T+4)*1.25], [Math.max(oneRank,T*0.5), (T+8)*1.25], [Math.max(oneRank,T*0.75), (T+12)*1.25] ];   /* Phil 10 Nov: "the climb was really slow. Increase the max range each opponent found by 25%": each band's upper % is x1.25 */
   const used=new Set(), out=[];
   bands.forEach(bd=>{ const lo=bd[0], hi=Math.min(97,Math.max(bd[1],lo+0.5)), pct=lo+Math.random()*(hi-lo);
     let r=Math.max(1,Math.round(me*(1-pct/100)));
@@ -26417,7 +26419,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
         else bannerMsg((r&&r.error)||t('arena.attempt_fail'));
         if(state==='arena') renderArena(); }); }; }
   const el=b.querySelector('#arenaOpps');
-  if(!opps.length){ el.innerHTML=`<div style="flex:1;text-align:center;padding:14px 8px"><div style="color:#ffd45e;font-weight:700">\u{1F451} ${t('arena.rank_one')}</div></div>`; }
+  if(!opps.length){ el.innerHTML=`<div style="flex:1;text-align:center;padding:14px 8px"><div style="color:#ffd45e;font-weight:700">${uiIcon('crown')} ${t('arena.rank_one')}</div></div>`; }
   else el.innerHTML=opps.map(oppCard).join('');
   el.querySelectorAll('[data-opp]').forEach(btn=>{ const o=opps[+btn.dataset.opp]; if(!o) return;
     btn.onclick=()=>{ if(arenaNoAttempts()) return; G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); }; });
@@ -33512,7 +33514,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794335366213';
+const BUILD_ID = '1794337563161';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
