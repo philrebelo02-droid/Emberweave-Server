@@ -7,7 +7,7 @@ function problems(f, cur) { const old = JSON.parse(cp.execSync('git show 05196de
     s.waves.forEach((w, wi) => w.forEach((m, mi) => { const q = o.waves[wi][mi];
       if (Math.abs(m.hpMul - q.hpMul * k) > 1e-3 * Math.max(1, q.hpMul) || Math.abs(m.dmgMul - q.dmgMul * k) > 1e-3 * Math.max(1, q.dmgMul)) out.push(s.id); })); }
   return [...new Set(out)]; }
-for (const f of ['campaign-encounters.json', 'veteran-campaign-encounters.json']) {
+for (const f of ['campaign-encounters.json', 'veteran-campaign-encounters.json', 'elite-campaign-encounters.json']) {
   const cur = JSON.parse(fs.readFileSync(path.join(ROOT, 'server', f), 'utf8'));
   assert.deepStrictEqual(problems(f, cur), [], f + ' ' + problems(f, cur).join(','));
   // CONTROL: the un-eased table is caught

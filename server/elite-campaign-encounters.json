@@ -11245,60 +11245,60 @@
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     },
     {
      "key": "storm eel",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     }
    ],
    [
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741,
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -11306,27 +11306,27 @@
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 29.4627,
-     "dmgMul": 10.4741
+     "hpMul": 26.3397,
+     "dmgMul": 9.3638
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 29.4627,
-     "dmgMul": 10.4741
+     "hpMul": 26.3397,
+     "dmgMul": 9.3638
     },
     {
      "key": "nameless admiral",
      "lvl": 57,
-     "hpMul": 24.5523,
-     "dmgMul": 10.4741,
+     "hpMul": 21.9498,
+     "dmgMul": 9.3638,
      "boss": true
     },
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 29.4627,
-     "dmgMul": 10.4741
+     "hpMul": 26.3397,
+     "dmgMul": 9.3638
     }
    ]
   ],
