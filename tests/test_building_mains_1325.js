@@ -38,5 +38,6 @@ const cbp = html.slice(html.indexOf('function cbonusClearPlates('), html.indexOf
 ck('v1327: bonus plates clear the stages (Phil 9 Nov "arent stacked under other stages") - measured against every stage piece, the chapter banner and the mode tabs', ["querySelectorAll('.cnode')", "getElementById('cmapHdr')", "getElementById('portalTabs')"].every(x => cbp.includes(x)));
 ck('v1327: each moved plate blocks the next one, and it holds on a sideways phone', cbp.includes('obs.push({l:r.l+bx') && cbp.includes('EWViewport.state.rotated'));
 ck('v1327: renderRoadmap runs the plate check after the map is on screen, not before', /map\.appendChild\(_inner\);\r?\n\s*cbonusClearPlates\(_inner\);/.test(html));
+ck('v1328: Forge rows are thick and close (Phil 9 Nov "the items are too spread and too thin") - the row art fills the row, item art and faces grow with it', html.includes('#forge .fgRow{height:var(--fgH)!important') && html.includes('background-size:100% 172%!important') && html.includes('heroIcon(k,fgFacePx())'));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

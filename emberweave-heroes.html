@@ -3144,6 +3144,20 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   #patScreen:has(.patLv:not(.edp)) .patRow{padding:6px 2px;}
   #patScreen:has(.patLv:not(.edp)) .patSec{margin:8px 0 4px;padding-bottom:4px;}
 }
+/* v1328 FORGE (Phil 9 Nov Forge screenshot: "the items are too spread and too thin"): the row art is only about half painted in height, so a row looked 30 px thin with 34 px of air between rows.
+   The art now fills the row, rows sit close together, and the row height comes from the screen so the list fills it. Item art, name and faces grow with the row. */
+#forge{--fgH:clamp(58px,calc((var(--ew-game-height,100vh) - 104px) / 9.4),96px)}
+#forge:not(:has(#fgPop)) h1::after{display:none!important}   /* v1328 (Phil: "why does it say the forge twice" / "just taking unecesary space"): no empty plate under the title */
+#forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){padding:14px max(13%,84px)!important;margin:0 0 4px!important}
+@media (max-height:500px){ #forge .fgResLine{font-size:10px!important} #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){padding:14px max(9%,62px)!important} }
+#forge .fgResLine{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#forge .fgRow{height:var(--fgH)!important;min-height:0!important;background-size:100% 172%!important;background-position:center!important;padding:0 max(58px,9%)!important;gap:14px!important;box-sizing:border-box}
+#forge .fgList{gap:5px!important}
+@media (max-height:500px){ #forge:not(:has(#fgPop)) #forgeBody{width:70%!important;max-width:none!important} }
+#forge .fgItem{flex:0 0 calc(var(--fgH) - 12px)!important;width:calc(var(--fgH) - 12px)!important;height:calc(var(--fgH) - 12px)!important}
+#forge .fgItem img{width:100%!important;height:100%!important}
+#forge .fgName{font-size:clamp(14px,calc(var(--fgH) * .26),21px)!important;flex:0 0 clamp(165px,34%,330px)}
+#forge .fgFaces{gap:5px!important;align-items:center}
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -18895,6 +18909,8 @@ const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2
    Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
 const GEAR_ART_V='?v=4';   // v370: backgrounds keyed out, no fringe (Phil: "revert the white outline")
 function gearSlug(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+/* v1328: the Forge list's hero faces grow with the row (the same sum as the CSS --fgH) */
+function fgFacePx(){ const g=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ew-game-height'))||innerHeight; return Math.round(Math.min(96,Math.max(58,(g-104)/9.4))*.62); }
 function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.artId||d.id}.webp${GEAR_ART_V}" alt="" style="width:${px||40}px;height:${px||40}px;border-radius:6px;object-fit:cover;flex:none;background:transparent" loading="lazy">`:''; }
 function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 function gearSubImg(n,px){ return n?`<img src="/assets/img/gear/subs/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
@@ -19239,7 +19255,7 @@ function forgeItemsTabHTML(){
   const items=cat.items.filter(d=>d.quality===Q[q]);
   const rows=items.map(d=>{ const tp=forgeTypeTemper(d.id), col=FORGE_QCOLOR[d.quality]||'#e6edf3', users=forgeUsersOf(d.id);
     const worn=users.filter(k=>forgeWornBy(k,d.id)), rest=users.filter(k=>!forgeWornBy(k,d.id));
-    const face=(k,on)=>`<span class="fgFace${on?' on':''}" title="${escAttr((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,34)}</span>`;
+    const face=(k,on)=>`<span class="fgFace${on?' on':''}" title="${escAttr((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,fgFacePx())}</span>`;
     const open='';
     return `<div class="fgRow" onclick="forgeRow('${d.id}')">`+
       `<div class="fgItem" style="border-color:${col};box-shadow:0 0 8px ${col}66">${gearImg(d,56)}${tp?`<b class="fgT">+${tp}</b>`:''}</div>`+
@@ -19277,9 +19293,8 @@ function renderForge(){
   const st=FORGE.st, res=st.resonance||{rank:0,total:0,next:null};
   b.innerHTML=`<div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:13px">${uiIcon('mode-forge')} ${t('title.forge')}</b>
-        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">${uiIcon('res-forge-dust')} ${t('forge.n_dust',{n:st.dust||0})}</span></div>
-      <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 ${t('forge.resonance_line',{r:'<b style="color:#c9a2ff">'+t('forge.rank_n',{n:res.rank})+'</b>',n:res.rank,total:res.total})}${res.next!=null?' · '+t('forge.next_rank_at',{n:res.next}):''}</div></div>
+        <span class="fgResLine" style="font-size:12px;color:#aab3c2;min-width:0">${t('forge.resonance_line',{r:'<b style="color:#c9a2ff">'+t('forge.rank_n',{n:res.rank})+'</b>',n:res.rank,total:res.total})}${res.next!=null?' · '+t('forge.next_rank_at',{n:res.next}):''}</span>
+        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e;flex:none">${uiIcon('res-forge-dust')} ${t('forge.n_dust',{n:st.dust||0})}</span></div></div>
     <div class="panel" style="margin-top:8px">${forgeItemsTabHTML()}</div>`;   /* v1304 (Phil 7 Nov: "the temper heroes tabs arent needed"): the Forge is the item list only */   /* v994 (Pool+Forge audit #12): hint prose removed */
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
@@ -33278,7 +33293,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794265040841';
+const BUILD_ID = '1794271723793';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
