@@ -3004,7 +3004,10 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 
 #wishing .wpsCard>.btn:first-of-type{margin-top:auto!important}
 #campaign #cmapHdr{background:none!important}
-#campaign #cmapHdr::before{content:'';position:absolute;width:300px;max-width:80%;height:100%;background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%;z-index:-1;pointer-events:none}
+/* Phil 10 Nov: "Make the banner behind chapter + chapter name + left right [arrows] fit them": the banner wraps the arrows and both lines of text, so it is always their size. The art's painted band is 69 % of its height, hence the padding. */
+#campaign .chBanner{display:inline-flex;align-items:center;gap:8px;flex:none;padding:15px 42px;position:relative;top:-3px;background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%;pointer-events:none}
+#campaign .chBanner>*{pointer-events:auto}
+#campaign .chBanner .btn{min-height:21px!important;height:21px;padding:0 7px!important;display:inline-flex;align-items:center;justify-content:center}
 #skyisland>.titlebar{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;box-shadow:none!important;padding:10px 35px!important;max-width:90%;width:max-content!important;margin-inline:auto!important}
 #skyisland>.titlebar h1{-webkit-text-fill-color:#f0cc85!important;background:none!important;font-size:26px!important}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) .hdrbox{width:min(650px,75%)!important}
@@ -22506,9 +22509,9 @@ function renderRoadmap(){
   const first=(ch-1)*STAGES_PER_CH+1, last=ch*STAGES_PER_CH;
   // chapter header + nav
   const hdr=document.getElementById('cmapHdr');
-  if(hdr){ hdr.innerHTML=`<button class="btn xs secondary" id="chPrev" ${ch<=1?'disabled':''}>◀</button>
+  if(hdr){ hdr.innerHTML=`<div class="chBanner"><button class="btn xs secondary" id="chPrev" ${ch<=1?'disabled':''}>◀</button>
     <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} ${t('portal.chapter',{n:ch})}${locked?' '+hudIcon('lock'):''}</div><div style="font-size:11px;color:#c9a35e">${CHAPTER_NAMES[ch-1]||''}</div></div>
-    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>${uiIcon('play')}</button>`;
+    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>${uiIcon('play')}</button></div>`;
     const pv=hdr.querySelector('#chPrev'), nx=hdr.querySelector('#chNext');
     if(pv) pv.onclick=()=>{ campViewCh=ch-1; campViewUser=true; renderRoadmap(); };
     if(nx) nx.onclick=()=>{ campViewCh=ch+1; campViewUser=true; renderRoadmap(); }; }
@@ -33331,7 +33334,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794309769324';
+const BUILD_ID = '1794314499943';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
