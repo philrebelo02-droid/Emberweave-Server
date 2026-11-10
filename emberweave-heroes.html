@@ -3177,7 +3177,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arTop{flex:0 0 40%;min-height:0;align-items:stretch}
 #arena .arRight{flex:1 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px}
 #arena .arDef{flex:1 1 0;min-height:0;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 240 400 fill / 28px 46px / 0 13px stretch!important;padding:14px 30px!important;justify-content:center}
-#arena .arHero{max-width:calc(var(--ew-game-height,100vh) * .27)!important}
+/* Phil: "heroes dont fit their slots": every defender and empty slot is the largest square that fits the row, on any screen */
+#arena .arDefRow{flex:1 1 0!important;min-height:0;container-type:size;align-items:center!important;justify-content:space-between!important}
+#arena .arHero{height:min(100cqh,calc(20cqw - 6px))!important;width:min(100cqh,calc(20cqw - 6px))!important;max-width:none!important;flex:0 0 auto!important;aspect-ratio:1!important;box-sizing:border-box}
 #arena .arTabs{flex:none}
 #arena .arTabs>button{min-height:clamp(30px,5.4vh,46px)!important;font-size:clamp(12px,1.9vh,17px)!important}
 #arena .arBot{flex:1 1 0;min-height:0;align-items:stretch!important}
@@ -3191,7 +3193,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arOppNums{font-size:clamp(11px,1.7vh,15px)}
 #arena .arOpp .btn{min-height:clamp(30px,6vh,52px)!important;font-size:clamp(12px,2vh,18px)!important}
 }
-@media (min-width:701px) and (max-height:500px){ #arena .arOppArt{width:58px!important;height:58px!important} #arena .arOppNm{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%} #arena .arOpp{padding:9px 10px!important;gap:2px!important} #arena .arOppNums{gap:3px!important;font-size:10px!important} #arena .arOpp .btn{min-height:26px!important;padding:2px 6px!important;font-size:11px!important} #arena .arMedal,#arena .arDay{flex-basis:96px!important;padding:8px 6px!important;font-size:10px} #arena .arDef{padding:13px 26px 8px!important} #arena .arWrap{gap:4px!important} #arena .arDay .arMini{min-height:24px!important;padding:2px 6px!important;font-size:11px!important} #arena .arDay{gap:1px!important} }
+@media (min-width:701px) and (max-height:500px){ #arena .arOppArt{width:58px!important;height:58px!important} #arena .arOppNm{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%} #arena .arOpp{padding:9px 10px!important;gap:2px!important} #arena .arOppNums{gap:3px!important;font-size:10px!important} #arena .arOpp .btn{min-height:26px!important;padding:2px 6px!important;font-size:11px!important} #arena .arMedal,#arena .arDay{flex-basis:96px!important;padding:8px 6px!important;font-size:10px} #arena .arDef{padding:9px 24px 6px!important;gap:1px!important} #arena .arTop{flex-basis:45%!important} #arena .arRight{gap:3px!important} #arena .arWrap{gap:4px!important} #arena .arDay .arMini{min-height:24px!important;padding:2px 6px!important;font-size:11px!important} #arena .arDay{gap:1px!important} }
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -33329,7 +33331,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794272810928';
+const BUILD_ID = '1794273037608';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
