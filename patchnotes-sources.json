@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.43", "releases": "v1346", "items": [{"text": "Phil 10 Nov: \"Remove the gap between players\" / \"This recent one is perfect\""}]},
     {"ver": "1.5.42", "releases": "v1345", "items": [{"text": "Phil 10 Nov: \"Condense top pick, ranking, record shop banners closer together close the gaps\" / \"Closer\" / \"Thats too close now\" / \"Push that\""}]},
     {"ver": "1.5.41", "releases": "v1344", "items": [{"text": "Phil 10 Nov: \"I want the arena title to have a new art like the vault and the forge\" / \"Do thumbs up and thumbs down, not plus or minus\" / \"no emojis or generic items\" / \"Art is made\" / \"By gpt\""}]},
     {"ver": "1.5.40", "releases": "v1343", "items": [{"text": "Phil 10 Nov: \"Im being told 9-10 is pretty much impossible\" / \"Remove lifestyle off nameless admiral instead his passive will be every 4th attack he does makes the enemy hes attacking knocked back 15 meters doing bonus 100% ability power, anyone the knocked back hero passed through also receives the damage\" / \"The red dots that tells someone something is available to upgrade in hero panel make it a bit brighter\" / \"Push those\""}]},

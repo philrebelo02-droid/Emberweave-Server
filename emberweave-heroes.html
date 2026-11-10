@@ -3443,7 +3443,10 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 /* v1344 (Phil 10 Nov: "that change should be across all devices types"): the Arena title, button row, Refresh and Claim rules apply at every screen size */
 #arena:has(.arWrap) h1{font-size:0!important;line-height:0!important;text-shadow:none!important;width:min(175px,calc(var(--ew-game-width,100vw) * 0.245 - 112px));height:auto;aspect-ratio:2.85;display:inline-block;margin-left:-30px!important;margin-top:2px!important;background:url('/assets/img/ui/building-main/arena-title.webp?v=1') left center/contain no-repeat!important}   /* Phil 10 Nov: ChatGPT's Arena title, companion to the Vault and Forge */
 #arena .arTabs{justify-content:center!important;gap:0!important}
-#arena .arTabs>button+button{margin-left:-20px!important}   /* Phil 10 Nov: "Closer" / "Thats too close now" */
+#arena .arTabs>button+button{margin-left:-20px!important}
+#arena .arOpps{justify-content:center!important;gap:0!important}
+#arena .arOpps>.arOpp+.arOpp{margin-left:-26px!important}
+#arena .arOpps>.arOpp{flex:0 0 calc((100% - 16px) / 5)!important}   /* the cards keep their size; only the gaps close */   /* Phil 10 Nov: "Remove the gap between players" - the frame art's empty edges overlap */   /* Phil 10 Nov: "Closer" / "Thats too close now" */
 #arena .arTabs>button{flex:0 0 auto!important;width:clamp(120px,21%,280px)!important;box-shadow:none!important}   /* Phil 10 Nov: "Condense top pick, ranking, record shop banners closer together close the gaps" */
 #arena .arDay{position:relative;overflow:visible!important}
 #arena .arDay #arenaRefresh{min-height:36px!important;width:100%;font-size:15px!important;padding:4px 8px!important}   /* Phil 10 Nov: "the refresh button needs to be a bit larger" */
@@ -33632,7 +33635,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794340769079';
+const BUILD_ID = '1794341259943';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
