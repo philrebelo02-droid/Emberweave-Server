@@ -3152,16 +3152,20 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){width:62%!important;margin:0 0 3px auto!important;height:var(--fgT);box-sizing:border-box;padding:0 calc(var(--fgT) * 1.25)!important;display:flex;flex-direction:column;justify-content:center;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgT) * 1.12) stretch!important}
 #forge:not(:has(#fgPop))>.hdrbox,#forge:not(:has(#fgPop))>.titlebar{top:8px!important;left:clamp(108px,11%,220px)!important;width:auto!important;text-align:left}
 #forge:not(:has(#fgPop)) h1{font-size:clamp(22px,2.6vw,36px)!important;white-space:nowrap;line-height:38px}
-@media (max-height:500px){ #forge .fgResLine{font-size:10px!important} #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){width:72%!important;padding:0 44px!important} }
+@media (max-height:500px){ #forge .fgResLine{font-size:10px!important} #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){width:66%!important;padding:0 42px!important} #forge:not(:has(#fgPop)) h1{font-size:20px!important} }
 #forge .fgResLine{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* v1328 (Phil: "this looks poor quality" / "because its so stretched" / "or find a better way to stretch it"): the art is cut in three - the laurel ends keep their true shape, only the plain middle stretches */
-#forge .fgRow{height:var(--fgH)!important;min-height:0!important;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgH) * 1.12) stretch!important;padding:0 calc(var(--fgH) * .78)!important;gap:14px!important;box-sizing:border-box}
-#forge .fgList{gap:5px!important}
+#forge .fgRow{height:var(--fgH)!important;min-height:0!important;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgH) * 1.12) stretch!important;padding:0 calc(var(--fgH) * .6)!important;gap:10px!important;box-sizing:border-box}
+#forge .fgList{gap:5px!important;flex:0 1 80%!important;max-width:80%}   /* v1328 (Phil: "push the items left, and less long") */
+#forge .fgWrap{justify-content:flex-start!important}
+#forge .fgTabs{flex:0 0 clamp(124px,12vw,210px)!important;width:clamp(124px,12vw,210px)!important;gap:8px!important;top:0}
+#forge .fgTabs .fgQ{height:calc(var(--fgH) * .62)!important;min-height:34px!important;font-size:clamp(13px,calc(var(--fgH) * .2),19px)!important}
+@media (max-height:500px){ #forge .fgTabs{gap:2px!important} #forge .fgTabs .fgQ{height:33px!important;min-height:33px!important} }
 @media (max-height:500px){ #forge:not(:has(#fgPop)) #forgeBody{width:97%!important;max-width:none!important;margin:6px 1.5% 0 auto!important} }
 #forge:not(:has(#fgPop)) #forgeBody{width:97%!important;max-width:none!important;margin:6px 1.5% 0 auto!important}
 #forge .fgItem{flex:0 0 calc(var(--fgH) - 12px)!important;width:calc(var(--fgH) - 12px)!important;height:calc(var(--fgH) - 12px)!important}
 #forge .fgItem img{width:100%!important;height:100%!important}
-#forge .fgName{font-size:clamp(14px,calc(var(--fgH) * .26),21px)!important;flex:0 0 clamp(165px,34%,330px)}
+#forge .fgName{font-size:clamp(14px,calc(var(--fgH) * .26),21px)!important;flex:0 0 clamp(130px,calc(var(--fgH) * 2.9),250px)}
 #forge .fgFaces{gap:5px!important;align-items:center;height:100%}
 </style>
 <style id="ewLangCss">
@@ -33298,7 +33302,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794271885451';
+const BUILD_ID = '1794272136664';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
