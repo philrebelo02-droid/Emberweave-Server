@@ -39,5 +39,6 @@ ck('v1327: bonus plates clear the stages (Phil 9 Nov "arent stacked under other 
 ck('v1327: each moved plate blocks the next one, and it holds on a sideways phone', cbp.includes('obs.push({l:r.l+bx') && cbp.includes('EWViewport.state.rotated'));
 ck('v1327: renderRoadmap runs the plate check after the map is on screen, not before', /map\.appendChild\(_inner\);\r?\n\s*cbonusClearPlates\(_inner\);/.test(html));
 ck('v1328: Arena header sits above the banner on its own buttons, together and centred; defenders packed (Phil 9 Nov, step by step)', html.includes('#arena .arDefSp{display:none!important}') && html.includes('class="arDefPow"') && html.includes('#arena .arDefRow{justify-content:center!important'));
+ck('v1328: Arena fits one phone screen (Phil "it needs to fit to Mobile phone") and is 25% bigger on larger screens', html.includes('#arena:has(.arWrap){overflow:hidden!important}') && html.includes('#arenaBody{zoom:1.25;'));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);

@@ -3148,9 +3148,40 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arDef{background:none!important;padding:0!important;box-shadow:none!important}
 #arena .arDefHead{margin:0 0 5px!important;gap:6px!important;padding:0 6px;justify-content:center!important}
 #arena .arDefSp{display:none!important}
+#arena:has(.arWrap) #arenaBody{zoom:1.25;width:80%!important;margin-right:1%!important}
+@media (min-height:561px){ #arena:has(.arWrap)>.hdrbox{left:1%!important;width:18%!important} #arena:has(.arWrap) h1{font-size:clamp(26px,3vw,50px)!important} }   /* the 25% body must not cover the title */   /* Phil: "increase size of everything" / "25%" */
 #arena .arHero{flex:0 0 auto!important}
 #arena .arDefRow{justify-content:center!important;gap:6px!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%;padding:20px 16px;box-shadow:0 5px 9px #0005}
 #arena .arDefTtl,#arena .arDefPow,#arena .arDefHead .arMini{background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%!important;border:0!important;min-height:34px;display:inline-flex;align-items:center;justify-content:center;padding:4px 26px!important;font:700 13px Georgia,serif!important;color:#f4dfb4;flex:none}
+/* Phil 9 Nov: "condense a bit more why is everything so spaced out" / "it needs to fit to Mobile phone": on a phone the whole Arena is on one screen, no scrolling */
+@media (max-height:560px) and (min-width:701px){
+#arena:has(.arWrap){overflow:hidden!important}
+#arena:has(.arWrap)>.hdrbox{top:-6px!important;left:104px!important;width:auto!important;text-align:left!important}
+#arena:has(.arWrap) h1{font-size:24px!important;line-height:30px;margin:0!important}
+#arena:has(.arWrap) #arenaBody{zoom:1!important;width:97%!important;margin:5px auto 0!important}
+#arena .arWrap{gap:4px!important}
+#arena .arTop,#arena .arBot{gap:5px!important}
+#arena .arRight{gap:2px!important}
+#arena .arMedal,#arena .arDay{flex-basis:100px!important;padding:16px 13px!important;gap:0!important}
+#arena .arMedal{margin-top:38px}
+#arena .arMedalArt{width:34px!important;height:34px!important}
+#arena .arDefHead{margin:0 0 2px!important}
+#arena .arDefTtl,#arena .arDefPow,#arena .arDefHead .arMini{min-height:30px!important;font-size:13px!important}
+#arena .arDefRow{padding:9px 14px!important}
+#arena .arHero{width:calc(var(--ew-game-height,100vh) * .215)!important;height:calc(var(--ew-game-height,100vh) * .215)!important}
+#arena .arTabs>button{min-height:28px!important;padding:2px 8px!important}
+#arena .arOpps{gap:4px!important}
+#arena .arOpp{align-self:stretch!important;min-height:0!important;padding:11px 20px 10px!important;gap:1px!important;justify-content:space-between}
+#arena .arOppArt{width:calc(var(--ew-game-height,100vh) * .19)!important;height:calc(var(--ew-game-height,100vh) * .19)!important}
+#arena .arOppNm{margin-top:1px!important;font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#arena .arOppNums{flex-wrap:wrap!important;gap:0 5px!important;font-size:10px;white-space:nowrap;justify-content:center}
+#arena .arOpp .btn{min-height:27px!important;padding:2px 4px!important;font-size:12px!important;width:100%;box-sizing:border-box}
+#arena .arDay .arMini{min-height:25px!important;padding:2px 6px!important;font-size:12px!important}
+#arena .arDay .arMini:disabled,#arena .arDay .arMini:last-of-type{font-size:9px!important;line-height:1.1}
+#arena .arDayLbl{font-size:9px!important;white-space:nowrap}
+#arena .arDayNo{font-size:15px!important;line-height:17px}
+}
+@media (max-height:380px) and (min-width:701px){ #arena .arDay{padding:11px 13px!important} #arena .arDay .arMini{min-height:21px!important} #arena .arDayNo{font-size:13px!important;line-height:14px} #arena .arOppNm{font-size:10px!important} #arena .arOpp{padding:10px 19px 9px!important} }
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -33285,7 +33316,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794275371059';
+const BUILD_ID = '1794279578243';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
