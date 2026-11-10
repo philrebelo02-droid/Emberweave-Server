@@ -163,6 +163,9 @@
   #stageRewPop .srTitle{font:900 22px Georgia,serif;color:#ffd45e;letter-spacing:1px;text-shadow:0 2px 4px #000;margin-bottom:10px}
   #stageRewPop .srGrid{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:7px;padding:2px 4px;margin-bottom:10px}
   #stageRewPop .srItem{width:84px;box-sizing:border-box}
+  #stageRewPop .srStars{display:flex;justify-content:center;gap:4px;margin:-4px 0 8px}#stageRewPop .srStars .stIc{width:26px;height:26px}
+  #stageRewPop .srNote{font-size:11px;color:#ff9a9a;margin:-2px 0 6px}
+  #result.srUnder>*{visibility:hidden}   /* v1349: one victory screen - the old page waits hidden under the reward pop */
   #stageRewPop .srItem{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:8px 4px 7px;border-radius:11px;background:rgba(10,15,26,.82);border:1px solid #6b5a2e;opacity:0;transform:scale(.5) translateY(10px);transition:opacity .28s ease-out,transform .28s cubic-bezier(.3,1.6,.6,1)}
   #stageRewPop .srItem.on{opacity:1;transform:scale(1) translateY(0)}
   .rpTiles{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:6px auto 2px;max-width:620px}
@@ -2803,6 +2806,9 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #shadymarket .merc-info b+div{font-size:12px!important;line-height:1.4;color:#c1c6d0!important;margin-top:5px}
 #shadymarket .merc-offer button{min-height:44px;width:100%;padding:7px 16px;border:0;color:#fff0c9;background:url('/assets/img/ui/emberdraft-main/play-button.webp?v=1') center/100% 100%;text-shadow:0 2px 2px #000;font:bold 16px Georgia}
 #shadymarket .merc-offer button:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1');color:#b5ac99;cursor:default}
+/* v1349 (Phil 10 Nov: "Both of these shop item frames look bad"): the 1800x1050 frame was stretched whole into short wide cards (laurels squashed) and the generic .btn 9px radius + white inset/dark drop shadow drew thin arcs around the price art. Frame is now 9-sliced (corners keep their shape at every card size) and the price buttons drop the generic shadow. */
+#market .merc-offer,#shadymarket .merc-offer{background:none!important;border:0;--fw:clamp(40px,5.2vw,62px);border-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 270 fill/var(--fw)/0 stretch;padding:calc(var(--fw)*.42) calc(var(--fw)*.74) calc(var(--fw)*.3)!important}
+#market .merc-offer button,#shadymarket .merc-offer button{box-shadow:none!important;border-radius:0!important}
 #shadymarket button:focus-visible{outline:2px solid #ffe2a3;outline-offset:3px}
 @media(max-height:560px) and (min-width:701px){#shadymarket .titlebar{top:20%;width:30%}#shadymarket h1.merc-title-art{height:110px}#shadymarket>.sub{top:calc(20% + 115px);width:30%;font-size:13px}#shadymarket>.panel{top:14%;width:61%;margin-right:3%;gap:8px;margin-bottom:60px}#shadymarket .merc-wallet{padding:8px 17px;font-size:11px}#shadymarket .merc-offer{min-height:119px;padding:15px 18px 13px;gap:5px}#shadymarket .merc-info{flex-direction:row;gap:8px;text-align:left}#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:48px!important;height:48px!important;padding:5px}#shadymarket .merc-info>span>.stIc{width:36px;height:36px}#shadymarket .merc-info b{font-size:13px}#shadymarket .merc-info b+div{font-size:10px!important;margin-top:3px}#shadymarket .merc-offer button{min-height:34px;font-size:13px}}
 @media(max-width:700px){#shadymarket{background-position:32% top;background-attachment:fixed}#shadymarket .backbtn{left:10px;top:10px;width:92px;height:36px}#shadymarket .titlebar{left:10%;top:58px;width:80%}#shadymarket h1.merc-title-art{height:125px}#shadymarket>.sub{left:8%;top:182px;width:84%;font-size:14px}#shadymarket>.panel{top:0;width:94%;margin:270px auto 34px;gap:10px}#shadymarket .merc-wallet{padding:12px 16px;font-size:11px}#shadymarket .merc-offer{padding:22px 16px 17px;min-height:220px;gap:8px}#shadymarket .merc-info{gap:9px}#shadymarket .merc-info b{font-size:14px}#shadymarket .merc-info b+div{font-size:11px!important}#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:65px!important;height:65px!important}#shadymarket .merc-offer button{font-size:14px;min-height:40px}}
@@ -17154,7 +17160,9 @@ function endBattle(won){
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(langMsg(r.error))+'</span>'):ewT('result.squad_fell')));
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result');
-      if(sWon && r && r.reward) try{ stageRewardPop(stageRewardItems(r.reward), ewT('result.victory')); }catch(e){}   /* v1320 */
+      /* v1349 (Phil 10 Nov: "When I clear a stage there shouldnt be 2 rewards screens, instead just put the stage star amount on this victory reward screen. Then when you click collect it sends you to campaign map.") */
+      if(sWon && r && r.reward){ let _pop=null; try{ _pop=stageRewardPop(stageRewardItems(r.reward), ewT('result.victory'), {stars:Math.max(1,Math.min(3,r.stars||1)), note:r.reward.dailyCapped?ewT('result.daily_limit'):'', onGo:()=>{ document.getElementById('result').classList.remove('srUnder'); document.getElementById('resultBtn').click(); }}); }catch(e){}
+        if(_pop) document.getElementById('result').classList.add('srUnder'); }
     },800); return; }
   resultLater(()=>{
   if(won){ const msg=grantRewards();
@@ -23109,12 +23117,12 @@ function stageRewardItems(rw){ rw=rw||{}; const out=[];
   if(rw.gold>0) out.push({art:'<img src="/assets/img/ui/hud-gold.webp?v=1" alt="">', qty:rw.gold, name:'Gold'});
   const px=rw.px||rw.playerXp||0; if(px>0) out.push({art:'<img src="/assets/img/icons/ui/res-player-xp-v1.webp" alt="">', qty:px, name:'Player XP'});
   return out; }
-function stageRewardPop(items,title){ if(!items||!items.length) return null; const old=document.getElementById('stageRewPop'); if(old) old.remove();
+function stageRewardPop(items,title,opt){ opt=opt||{}; if(!items||!items.length) return null; const old=document.getElementById('stageRewPop'); if(old) old.remove();
   const ov=document.createElement('div'); ov.id='stageRewPop';
-  ov.innerHTML=`<div class="srCard"><div class="srTitle">${escapeHTML(title||'')}</div><div class="srGrid">${items.map(x=>`<div class="srItem"><div class="srArt">${x.art}</div><b>x${(+x.qty||0).toLocaleString('en-US')}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div><button class="srGo" type="button">${t('wish.collect_all')}</button></div>`;
+  ov.innerHTML=`<div class="srCard"><div class="srTitle">${escapeHTML(title||'')}</div>${opt.stars?`<div class="srStars">${uiIcon('star-filled').repeat(opt.stars)+uiIcon('star-empty').repeat(Math.max(0,3-opt.stars))}</div>`:''}${opt.note?`<div class="srNote">${escapeHTML(opt.note)}</div>`:''}<div class="srGrid">${items.map(x=>`<div class="srItem"><div class="srArt">${x.art}</div><b>x${(+x.qty||0).toLocaleString('en-US')}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div><button class="srGo" type="button">${t('wish.collect_all')}</button></div>`;
   document.body.appendChild(ov); requestAnimationFrame(()=>ov.classList.add('on'));
   [...ov.querySelectorAll('.srItem')].forEach((c,i)=>setTimeout(()=>c.classList.add('on'),260+i*180));   // dominoes, like the Wishing Pool x10
-  ov.querySelector('.srGo').onclick=()=>ov.remove();
+  ov.querySelector('.srGo').onclick=()=>{ ov.remove(); if(typeof opt.onGo==='function') try{ opt.onGo(); }catch(e){} };
   return ov; }
 /* Phil 10 Nov (Vault floor cleared screenshot): "The rewards should have a row showing the real items not just words": one tile per reward, its real art, the amount and its name. */
 function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){

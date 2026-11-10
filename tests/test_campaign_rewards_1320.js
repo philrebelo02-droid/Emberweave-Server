@@ -24,8 +24,8 @@ ck('one card per reward: 2 fragments, the hero fragment, the potion, diamonds, g
 ck('each glyph fragment shows its OWN art (quality + glyph slot), not a generic icon', /glyphs-v2\/Grey\/fragment-bulwark\.png/.test(items[0].a) && /glyphs-v2\/Grey\/fragment-vitality\.png/.test(items[1].a), [items[0].a.slice(0, 90), items[1].a.slice(0, 90)]);
 ck('quantities come from the receipt', items[1].q === 2 && items[5].q === 130 && items[6].q === 6);
 ck('a sweep receipt (px, no playerXp) reads the same way', R(`JSON.stringify(stageRewardItems({gold:10,px:4}).map(x=>x.qty))`).join(',') === '10,4');
-ck('the pop-out deals the cards one after another (domino) and Collect closes it', /forEach\(\(c,i\)=>setTimeout\(\(\)=>c\.classList\.add\('on'\),260\+i\*180\)\)/.test(html) && /ov\.querySelector\('\.srGo'\)\.onclick=\(\)=>ov\.remove\(\)/.test(html));
-ck('a won campaign fight opens it over the result screen', /show\('result'\);\r?\n\s*if\(sWon && r && r\.reward\) try\{ stageRewardPop\(stageRewardItems\(r\.reward\), ewT\('result\.victory'\)\); \}catch\(e\)\{\}/.test(html));
+ck('the pop-out deals the cards one after another (domino) and Collect closes it', /forEach\(\(c,i\)=>setTimeout\(\(\)=>c\.classList\.add\('on'\),260\+i\*180\)\)/.test(html) && /ov\.querySelector\('\.srGo'\)\.onclick=\(\)=>\{ ov\.remove\(\);/.test(html));
+ck('a won campaign fight opens it over the result screen', /show\('result'\);[\s\S]{0,400}if\(sWon && r && r\.reward\)\{ let _pop=null; try\{ _pop=stageRewardPop\(stageRewardItems\(r\.reward\), ewT\('result\.victory'\)/.test(html));
 ck('a sweep opens it too', /stageRewardPop\(stageRewardItems\(r\), t\('stage\.swept',\{n:r\.times\}\)\)/.test(html));
 ck('CONTROL: v1319 had no reward pop-out', !/function stageRewardPop/.test(old));
 
