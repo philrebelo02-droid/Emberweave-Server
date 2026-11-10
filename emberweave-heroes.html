@@ -68,7 +68,7 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<script src="/assets/ui/fold-viewport.js?v=1271"></script>
+<script src="/assets/ui/fold-viewport.js?v=1339"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -18931,7 +18931,7 @@ function vaultSalvageHTML(){
       <button class="btn xs secondary" onclick="vaultSalvage('${k}',${n})">${t('vault.all')} → ${uiIcon('sparkle-new')}${rate(k)*n}</button></div>`).join(''):'<div style="color:#6f7d90;font-size:11px;padding:8px 0">'+t('vault.no_fragments')+'</div>'}</div>`;
 }
 /* Phil 10 Nov: "The vault isnt setup the way we made it": one layout on every landscape screen, scaled to the game frame (built at 1000x482) */
-function vtFit(){ const c=document.querySelector('#dungeon #dungeonBody>div>div:has(.vtPick)'); if(!c) return; const v=document.getElementById('dungeon').getBoundingClientRect(), W=v.width, H=v.height; if(!W) return;
+function vtFit(){ const c=document.querySelector('#dungeon #dungeonBody>div>div:has(.vtPick)'); if(!c) return; const v=document.getElementById('dungeon'), W=v.offsetWidth, H=v.offsetHeight; if(!W) return;
   c.style.zoom=(W>700&&W>H)?Math.min(W/1000,H/482).toFixed(3):''; }
 addEventListener('resize',()=>{ try{ vtFit(); }catch(e){} });
 function vaultScreenHTML(){
@@ -26256,8 +26256,7 @@ function arenaNextResetMs(){ // ms until the next 09:00 Eastern
   let diff=9*3600-secsNow; if(diff<=0)diff+=24*3600; return diff*1000; }
 function arenaRefreshLeft(){ return G.arenaRefreshDay===arenaDayKey()? Math.max(0,ARENA_FREE_REFRESH-(G.arenaRefreshUsed||0)) : ARENA_FREE_REFRESH; }
 function genArenaOpps(){ if(ARENA.opps&&ARENA.oppsRank===G.arenaRank){ G.arenaOpps={rank:G.arenaRank,list:ARENA.opps}; return; } G.arenaOpps={rank:G.arenaRank,list:localOpponents()}; }
-function useArenaRefresh(){ const day=arenaDayKey(); if(G.arenaRefreshDay!==day){ G.arenaRefreshDay=day; G.arenaRefreshUsed=0; }
-  if((G.arenaRefreshUsed||0)>=ARENA_FREE_REFRESH) return false; G.arenaRefreshUsed=(G.arenaRefreshUsed||0)+1; genArenaOpps(); saveG(); return true; }
+function useArenaRefresh(){ genArenaOpps(); saveG(); return true; }   /* Phil 10 Nov: "Please make refreshes for what opponents are available free" / "Not 3 chances a day" */
 // ================= REAL server-backed Arena =================
 let ARENA={rank:null, opps:null, oppsRank:null, ladder:null, fetching:false, fetchingLad:false};
 function _arenaTeamPow(team){ try{ return teamPower((team||[]).map(e=>({key:e.key,level:e.level||1,rank:e.rank||0}))); }catch(e){ return 0; } }
@@ -26336,10 +26335,8 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     </div>
     <div class="arBot">
       <div class="arDay">
-        <div class="arDayLbl">${t('arena.today_refreshes')}</div>
-        <div class="arDayNo">${arenaRefreshLeft()}/${ARENA_FREE_REFRESH}</div>
         <button class="arMini" id="arenaRefresh" style="margin-top:2px">${t('arena.refresh')}</button>
-        <button class="arMini" id="claimDaily" ${dready?'':'disabled'} style="margin-top:2px">\u{1F381} ${t('common.claim')}</button>
+        <button class="arMini" id="claimDaily" ${dready?'':'disabled'} style="margin-top:2px">${uiIcon('gift')} ${t('common.claim')}</button>
         ${att?`<div class="arDayLbl" style="margin-top:4px">${t('arena.attempts_left')}</div><div class="arDayNo" id="arenaAttLeft" style="color:${att.attemptsLeft>0?'#7ef0b0':'#ff9a9a'}">${att.attemptsLeft|0}</div>
         <button class="arMini" id="arenaBuyAtt" ${((att.buys|0)>=(att.extraMaxPerDay|0)||(att.attemptsLeft|0)>=(att.freePerDay||5))?'disabled':''} style="margin-top:2px">${t('arena.buy_attempt',{n:att.extraCostGems|0,k:Math.max(1,att.refillN!=null?att.refillN:(att.freePerDay||5)-(att.attemptsLeft|0))})}</button>`:''}
         <div id="dailyMsg" style="font-size:9px;color:#ffd45e;min-height:10px"></div>
@@ -26364,7 +26361,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
       bannerMsg(beatable.length?(t('arena.top_pick_msg',{name:escapeHTML(String(pick.name||'')),n:pick.rank}))
                               :(t('arena.all_outgun',{name:pick.name}))); }; }
   b.querySelector('#arenaRulesBtn').onclick=arenaRules;
-  const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.disabled=arenaRefreshLeft()<=0; _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg(t('arena.no_refresh')); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
+  const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg(t('arena.no_refresh')); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
   b.querySelector('#setArenaDef').onclick=()=>{ teamCtx='arena'; menuReturn='arena'; show('menu'); };
   b.querySelector('#arenaShopBtn').onclick=()=>show('arenaShop');
   b.querySelector('#arenaReportsBtn').onclick=async()=>{ if(ACC.token){ try{ const d=await api('/api/arena/reports','GET'); if(d&&Array.isArray(d.defenses)){ if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]}; G.arenaReports.defenses=d.defenses.map(x=>({v:2,seed:x.seed,mineSnap:x.mineSnap,foe:x.foe,won:!!x.won,oppName:x.atkName,t:x.t})); } }catch(e){} } renderArenaReports(); };
@@ -33488,7 +33485,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794332231609';
+const BUILD_ID = '1794334257054';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

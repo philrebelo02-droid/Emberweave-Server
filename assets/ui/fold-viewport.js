@@ -14,11 +14,18 @@
   w.ewGameView=()=>({width:state.width||w.innerWidth,height:state.height||w.innerHeight});
   let focusRotation=null,big=null,since=0;
   const fullApp=()=>{try{if(w.matchMedia('(display-mode: fullscreen)').matches||w.matchMedia('(display-mode: standalone)').matches)return true;if(String(d.referrer).startsWith('android-app://')){w.sessionStorage.setItem('ewApp','1');return true}return w.sessionStorage.getItem('ewApp')==='1'}catch(e){return false}};
+  /* Phil 10 Nov: "that change should be across all devices types" / "Make sure all devices ui isnt messed up". When the game is turned sideways on an upright phone,
+     CSS @media still reads the physical screen, so every landscape layout switched off. While turned, each screen-size condition reads the game's own width and height. */
+  const mediaOrig=new WeakMap();let mediaRot=null,mediaSheets=-1;
+  const mediaSwap=t=>t.replace(/\b(min|max)-(width|height)\b/g,(m,a,c)=>a+'-'+(c==='width'?'height':'width')).replace(/\borientation\s*:\s*(landscape|portrait)/g,(m,o)=>'orientation:'+(o==='landscape'?'portrait':'landscape'));
+  const unitSwap=t=>t.replace(/(\d|\.)([dsl]?)v(w|h)\b/g,(m,a,q,c)=>a+q+'v'+(c==='w'?'h':'w'));   // screen-width units follow the game too: 1vw of a turned game is its height
+  function mediaWalk(rules,rot){for(const r of rules){if(r.style&&r.selectorText!==undefined){let o=mediaOrig.get(r);if(o===undefined){o=r.style.cssText;mediaOrig.set(r,/\d[dsl]?v[wh]\b/.test(o)?o:'');}if(o)r.style.cssText=rot?unitSwap(o):o;continue;}if(r.media&&r.cssRules){let o=mediaOrig.get(r);if(o===undefined){o=r.media.mediaText;mediaOrig.set(r,o);}if(/width|height|orientation/.test(o))r.media.mediaText=rot?mediaSwap(o):o;mediaWalk(r.cssRules,rot);}else if(r.cssRules)mediaWalk(r.cssRules,rot);}}
+  function flipMedia(rot){const s=d.styleSheets;if(!s||(mediaRot===rot&&mediaSheets===s.length))return;mediaRot=rot;mediaSheets=s.length;for(const x of s){let rules;try{rules=x.cssRules}catch(e){continue}if(rules)mediaWalk(rules,rot);}}
   function fit(){if(!d.body)return;const de=d.documentElement,vv=w.visualViewport;
    const layoutW=de.clientWidth||w.innerWidth,layoutH=de.clientHeight||w.innerHeight;
    const input=d.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(d.activeElement.tagName);
    if(!input)focusRotation=null;
-   const rotate=input&&focusRotation!=null?focusRotation:layoutW/layoutH<.8;
+   const rotate=input&&focusRotation!=null?focusRotation:layoutW/layoutH<1;   // Phil 10 Nov: "all art and ui needs to fit their device": an upright Fold (.83) gets the sideways game too, not a strip
    if(input&&focusRotation==null)focusRotation=rotate;
    let width=Math.min(layoutW,vv&&vv.width?Math.round(vv.width*(vv.scale||1)):layoutW),height=Math.min(layoutH,vv&&vv.height?Math.round(vv.height*(vv.scale||1)):layoutH);
    // v1243 (Phil 31 Oct, Android app: "when I swipe down it reduces the size of the game until the screen goes back to normal"): in the installed
@@ -31,7 +38,7 @@
    const b=d.body,square=!rotate&&layoutW/layoutH>=.8&&layoutW/layoutH<=1.25;
    if(b.classList.contains('ew-rotated')!==rotate)b.classList.toggle('ew-rotated',rotate);
    if(b.classList.contains('ew-square')!==square)b.classList.toggle('ew-square',square);
-   b.style.width=state.width+'px';b.style.height=state.height+'px';b.style.transform=rotate?'translateX('+width+'px) rotate(90deg)':'none';
+   flipMedia(rotate);b.style.width=state.width+'px';b.style.height=state.height+'px';b.style.transform=rotate?'translateX('+width+'px) rotate(90deg)':'none';
    d.documentElement.style.setProperty('--ew-game-width',state.width+'px');d.documentElement.style.setProperty('--ew-game-height',state.height+'px');
    background();
   }
