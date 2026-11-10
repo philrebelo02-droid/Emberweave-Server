@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.33", "date": "10 November 2026", "title": "Your gear, updated", "items": ["Gear your heroes are already wearing has been changed to their new items for free, and it keeps its Temper."]},
     {"ver": "1.5.32", "date": "10 November 2026", "title": "Gear for every hero", "items": ["Every piece of gear is now used: each hero has their own nine items, and heroes are spread evenly across the items that suit them.", "Five items had a stat changed to suit their heroes: Warden Circlet, Fluxwalk Sabatons, Ashstride Boots, Astral Carapace and Leyline Sash."]},
     {"ver": "1.5.31", "date": "10 November 2026", "title": "The Forge", "items": ["The Forge list has thicker rows, larger hero faces and bigger quality tabs, and the title no longer appears twice."]},
     {"ver": "1.5.30", "date": "10 November 2026", "title": "Rewards and the Vault", "items": ["Stage and sweep rewards now use the same art as the Bonus Stage claim.", "Clearing a Vault floor shows a row of the real items you won.", "The Vault now fits on one phone screen, with bigger hero cards."]},

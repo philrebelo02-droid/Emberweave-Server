@@ -5404,7 +5404,7 @@ let GEARCAT=null;
   GEARCAT=raw; console.log('Gear catalog compiled: 93 items / 9 slots / 9 qualities / '+Object.keys(acts).length+' item actives. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }catch(e){ console.error('FORGE DISABLED — server/gear-catalog.json problem: '+e.message); } })();
 function gearEnabledFor(u){ return !!GEARCAT && (GEAR_V2_ENABLED || isDev(u)); }
-function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1 }; return u.gear; }
+function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1, heroGearV:1 }; else if(u.gear.heroGearV!==1) gearConvertWorn(u.gear); return u.gear; }   /* v1336: an account that arrives after the boot pass (a world copy, a restore) converts here */
 function gearTemperBar(t){ return GEARCAT.meta.temper.startBar + t*GEARCAT.meta.temper.barGrowth; }
 function gearTemperCost(def,t){ return Math.round(GEARCAT.meta.temper.baseDust[def.quality]*Math.pow(1+GEARCAT.meta.temper.dustGrowth,t)); }
 /* v1054 (Phil 7 Oct 2026: "well temper should be item wide / not hero speciifc" - Vex and Carn wore the same Grey Skirmisher Axe at
@@ -5419,6 +5419,19 @@ function gearTT(g,d){ if(g.tt&&g.tt[d]) return g.tt[d];
 function gearTTSet(g,d,rec){ g.tt=g.tt||{}; g.tt[d]={temper:rec.temper|0, prog:rec.prog|0, dustSpent:rec.dustSpent|0};
   for(const id in (g.items||{})){ const it=g.items[id]; if(it&&it.d===d){ it.temper=rec.temper|0; it.prog=rec.prog|0; it.dustSpent=0; } } }
 function gearItemsView(g){ const out={}; for(const id in (g.items||{})){ const it=g.items[id]; const t=gearTT(g,it.d); out[id]=Object.assign({},it,{temper:t.temper,prog:t.prog}); } return out; }
+/* v1336 (Phil 10 Nov: "Convert the players items to the new one"): when each hero got its own nine items, what a hero already wore stayed on the old list. Once per account (g.heroGearV) a worn item not on its hero's list becomes
+   that hero's item of the same quality and slot: same item id, still bound, Temper the higher of the two types. Bag items are left alone; the gear skill points at the item id, so it follows. */
+let HERO_GEAR_LIST=null; try{ HERO_GEAR_LIST=require('./server/hero-gear.json'); }catch(e){ console.error('hero-gear.json failed to load:', e&&e.message); }
+function gearConvertWorn(g){ if(!g||g.heroGearV===1||!HERO_GEAR_LIST||!GEARCAT) return 0; let n=0;
+  for(const hero in (g.equipped||{})){ const list=HERO_GEAR_LIST[hero], eq=g.equipped[hero]; if(!list||!eq) continue;
+    for(const slot in eq){ const it=gearItemOf(g,eq[slot]), def=it&&GEARCAT.byId[it.d]; if(!def) continue; const to=list[def.qi], td=to&&GEARCAT.byId[to];
+      if(!td||td.id===def.id||td.slot!==def.slot) continue;
+      const a=gearTT(g,def.id), b=gearTT(g,td.id), best=((a.temper|0)>(b.temper|0)||((a.temper|0)===(b.temper|0)&&(a.prog|0)>(b.prog|0)))?a:b;
+      g.tt=g.tt||{}; g.tt[def.id]=g.tt[def.id]||{temper:a.temper|0,prog:a.prog|0,dustSpent:a.dustSpent|0};   // the old type keeps its Temper for any copy still in the bag
+      it.d=td.id; gearTTSet(g,td.id,best); n++; } }
+  g.heroGearV=1; if(n) g.revision=(g.revision|0)+1; return n; }
+function migrateGearToHeroLists(){ if(!GEARCAT||!HERO_GEAR_LIST) return; let acc=0, items=0; for(const id in (DB.users||{})){ const u=DB.users[id]; if(!u||!u.gear||u.gear.heroGearV===1) continue; const n=gearConvertWorn(u.gear); acc++; items+=n; }
+  if(acc){ console.log('gear convert: '+items+' worn items on '+acc+' accounts'); writeDB(); } }
 function gearResonanceRank(g){ let total=0; const seen=new Set();
   for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ const it=g.items[g.equipped[hero][slot]]; if(it&&!seen.has(it.d)){ seen.add(it.d); total+=gearTT(g,it.d).temper||0; } } }
   const th=GEARCAT.meta.resonance.thresholds; let r=0; for(let i=0;i<th.length;i++){ if(total>=th[i]) r=i+1; }
@@ -11103,6 +11116,7 @@ function bootFinish(){ if(_booted) return;
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
+  migrateGearToHeroLists();   /* v1336 */
   nameIdxRebuild();   /* v1184: the look-alike name index, built from the loaded world */
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   if(_store.layoutMismatch){ console.log('world store: '+_store.layout+' on disk, '+(_store.pieces?'pieces':'split-v1')+' configured - one full save converts it'); writeDB(); }   /* v1127: an old-format world (one file, split-v1) is converted by its first save; DB_STORE_PIECES=0 converts back (rollback) */
