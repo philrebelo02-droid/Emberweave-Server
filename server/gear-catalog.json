@@ -252,7 +252,7 @@
       "slot": "Helm",
       "slotFull": "Helm",
       "roles": "Tank / Magic / Front",
-      "passive": "Health, Magic Resist, Energy",
+      "passive": "Health, Magic Resist, Ability Power",
       "active": "Null Pulse",
       "effect": "Cleanse one control effect from yourself and nearby allies.",
       "frag": "Verdant Vitality Gem",
@@ -261,7 +261,7 @@
       "stats": {
         "hp": 90,
         "mr": 10.7,
-        "energy": 10.7,
+        "apow": 10.7,
         "defense": 48
       }
     },
@@ -411,7 +411,7 @@
       "slot": "Boots",
       "slotFull": "Boots",
       "roles": "Tank / Magic / Front",
-      "passive": "Health, Dodge, Magic Resist",
+      "passive": "Health, Haste, Magic Resist",
       "active": "Phase Step",
       "effect": "Blink a short distance away from the nearest enemy.",
       "frag": "Azure Vitality Gem",
@@ -419,7 +419,7 @@
       "subFragCost": 4,
       "stats": {
         "hp": 140,
-        "eva": 16.7,
+        "haste": 16.7,
         "mr": 16.7
       }
     },
@@ -450,7 +450,7 @@
       "slot": "Boots",
       "slotFull": "Boots",
       "roles": "Bruiser / Attack / Mid • Assassin / Mid / Mixed damage • Assassin / Other / Attack",
-      "passive": "Health, Haste, Tenacity",
+      "passive": "Health, Haste, Energy",
       "active": "Smoke Drift",
       "effect": "Gain move speed and become hard to target for 2 seconds.",
       "frag": "Azure Blade Shard",
@@ -459,7 +459,7 @@
       "stats": {
         "hp": 176,
         "haste": 16.7,
-        "ctrlRes": 16.7
+        "energy": 7.8
       }
     },
     {
@@ -591,7 +591,7 @@
       "slot": "Armor",
       "slotFull": "Armor",
       "roles": "Tank / Magic / Front",
-      "passive": "Health, Magic Resist, Barrier Strength",
+      "passive": "Health, Magic Resist, Ability Power",
       "active": "Mirror Shell",
       "effect": "Reflect the next targeted spell back at its caster.",
       "frag": "Runed Azure Vitality Gem",
@@ -600,7 +600,7 @@
       "stats": {
         "hp": 202,
         "mr": 24.0,
-        "shieldStr": 24.0,
+        "apow": 22.4,
         "defense": 107.8
       }
     },
@@ -951,14 +951,14 @@
       "slot": "Belt",
       "slotFull": "Belt",
       "roles": "Tank / Magic / Front",
-      "passive": "Energy, Barrier Strength, HP Regen",
+      "passive": "Health, Barrier Strength, HP Regen",
       "active": "Mana Draw",
       "effect": "Restore 30 energy immediately.",
       "frag": "Sovereign Amethyst Vitality Gem",
       "sub": "Leyline Sash Belt Harness",
       "subFragCost": 7,
       "stats": {
-        "energy": 46.7,
+        "hp": 547.5,
         "shieldStr": 46.7,
         "regen": 46.7
       }

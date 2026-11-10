@@ -18,6 +18,7 @@ const ok = (c, m) => { assert(c, m); pass++; console.log('  ok ' + m); };
 const show = f => execFileSync('git', ['show', BASE_REF + ':' + f], { cwd: ROOT, maxBuffer: 1 << 28 }).toString('utf8');
 const cur = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const TANK_GEAR = ['E09', 'E10', 'E26', 'E27'];
+const RESTAT_10NOV = ["E10", "E18", "E20", "E27", "E45"];   // Phil 10 Nov: "just change the stats on the item to match the heroes its paired with"
 
 function serverFns(srv, glyphRaw, gearCat) {
   const fn = name => { const a = srv.indexOf('function ' + name + '('); assert(a >= 0, name); let i = srv.indexOf('{', a), d = 0;
@@ -109,7 +110,7 @@ let liveAsc = null;
   const personal=glyphNow.filter(d=>d.id.startsWith('H61G'));
   ok(personal.length===96&&personal.every(d=>d.fragmentFamily&&glyphOld.some(o=>o.quality===d.quality&&o.family===d.fragmentFamily)
     && !/Defense/.test(d.passiveStats)), 'Hero61 adds 96 personal glyphs with existing fragment families and no extra Defense');
-  ok(gearOld.items.every((d, i) => { const n = gearNow.items[i]; if (!TANK_GEAR.includes(d.id)) return JSON.stringify(d) === JSON.stringify(n);
+  ok(gearOld.items.every((d, i) => { const n = gearNow.items[i]; if (RESTAT_10NOV.includes(d.id)) return TANK_GEAR.includes(d.id) ? n.stats.defense > 0 : true; if (!TANK_GEAR.includes(d.id)) return JSON.stringify(d) === JSON.stringify(n);
       const s = Object.assign({}, n.stats); delete s.defense; return JSON.stringify(s) === JSON.stringify(d.stats) && n.stats.defense > 0; })
     && gearNow.items.filter(d => d.stats.defense).every(d => TANK_GEAR.includes(d.id) && /^Tank \//.test(d.roles)),
     'equipment: only the Tank helms / armors (' + TANK_GEAR.join(' ') + ') gained Defense, every old stat kept; every other item unchanged');
