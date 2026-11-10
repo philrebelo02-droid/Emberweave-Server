@@ -40,5 +40,6 @@ ck('v1327: each moved plate blocks the next one, and it holds on a sideways phon
 ck('v1327: renderRoadmap runs the plate check after the map is on screen, not before', /map\.appendChild\(_inner\);\r?\n\s*cbonusClearPlates\(_inner\);/.test(html));
 ck('v1328: Arena header sits above the banner on its own buttons, together and centred; defenders packed (Phil 9 Nov, step by step)', html.includes('#arena .arDefSp{display:none!important}') && html.includes('class="arDefPow"') && html.includes('#arena .arDefRow{justify-content:center!important'));
 ck('v1328: Arena fits one phone screen (Phil "it needs to fit to Mobile phone") and is 25% bigger on larger screens', html.includes('#arena:has(.arWrap){overflow:hidden!important}') && html.includes('#arenaBody{zoom:1.25;'));
+ck('v1329: Arena portraits fill their slots on larger screens (Phil "make these fill out their slot more" / "too filled" / "defenders less" / "much better")', html.includes('#arena .arDefRow{padding:20px 14%!important}') && html.includes('#arena .arOppArt{width:min(78%,'));
 console.log('test_building_mains_1325.js: ' + P + ' passed, ' + F + ' failed');
 process.exit(F ? 1 : 0);
