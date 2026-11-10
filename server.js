@@ -5484,6 +5484,13 @@ function pickOpponent(me){
   const cand = above.length? above.slice(0, Math.min(8,above.length)) : pool;
   return cand[Math.floor(Math.random()*cand.length)] || pool[0];
 }
+/* the server-wide pool of watchable Arena battles (Top Pick): newest 200 are kept, plus any battle in the current top 10 */
+function arenaTopScore(x){ let s=0; for(const k in (x.votes||{})) s+=x.votes[k]; return s; }
+function arenaTopAdd(rec){ DB.arenaTop=Array.isArray(DB.arenaTop)?DB.arenaTop:[]; rec.id=Date.now().toString(36)+Math.random().toString(36).slice(2,8); rec.t=Date.now(); rec.votes={}; DB.arenaTop.unshift(rec);
+  if(DB.arenaTop.length>200){ const keep=new Set(arenaTopRanked().slice(0,10).map(x=>x.id)); DB.arenaTop=DB.arenaTop.filter((x,i)=>i<200||keep.has(x.id)); } }
+function arenaTopRanked(){ return (DB.arenaTop||[]).filter(Boolean).slice().sort((a,b)=>(arenaTopScore(b)-arenaTopScore(a))||(b.t-a.t)); }
+function arenaTopList(uid){ return arenaTopRanked().slice(0,10).map(x=>{ let up=0,down=0; for(const k in (x.votes||{})){ if(x.votes[k]>0)up++; else down++; }
+  return { id:x.id, seed:x.seed, mineSnap:x.mineSnap, foe:x.foe, won:x.won, atkName:x.atkName, defName:x.defName, atkRank:x.atkRank, defRank:x.defRank, t:x.t, up, down, mine:(x.votes||{})[uid]||0 }; }); }
 function applyResult(me, opp, won){
   const before=me.rank;
   if(won && opp && opp.rank < me.rank){
@@ -10148,7 +10155,8 @@ async function api(req,res,url){
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length && arenaDefOk(me,opp,b.def)){   /* v1078 (scan #6): only a report of the two real squads, size-capped */   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now() });
-      if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
+      if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10;
+      arenaTopAdd({ seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24), defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank }); }
     me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
     /* v267 (80/20 §9): rank-milestone diamonds are paid HERE, from the server's own rank record —
        the client used to award them itself through the generic earn endpoint. */
@@ -10172,6 +10180,14 @@ async function api(req,res,url){
     try{ pgSave(); }catch(e){}
     return send(res,200,aresp); } finally { _durableIdemActive=false; } }
 
+  /* Phil 10 Nov: "Top pick button should record the top 10 most liked battle across the server that pops up so the server can watch the battle. It also had likes or dislike button on the battle" */
+  if(p==='/api/arena/top'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenatop:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});
+    return send(res,200,{ ok:true, battles:arenaTopList(me.id) }); }
+  if(p==='/api/arena/vote' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenavote:'+me.id,40,60000)) return send(res,429,{error:'Slow down.'});
+    let b={}; try{ b=await body(req,1024); }catch(_){ return send(res,400,{error:'Bad request.'}); }
+    const bt=(DB.arenaTop||[]).find(x=>x&&x.id===String(b.id||'')); if(!bt) return send(res,404,{error:'That battle is gone.'});
+    const v=(b.v===1||b.v===-1)?b.v:0; bt.votes=bt.votes||{}; if(v) bt.votes[me.id]=v; else delete bt.votes[me.id]; writeDB();
+    return send(res,200,{ ok:true, battles:arenaTopList(me.id) }); }
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
     return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
 
