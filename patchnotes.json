@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.30", "date": "10 November 2026", "title": "Rewards and the Vault", "items": ["Stage and sweep rewards now use the same art as the Bonus Stage claim.", "Clearing a Vault floor shows a row of the real items you won.", "The Vault now fits on one phone screen, with bigger hero cards."]},
     {"ver": "1.5.29", "date": "10 November 2026", "title": "Campaign banner", "items": ["The Campaign chapter banner now fits the chapter name and arrows, and sits right under the top bar."]},
     {"ver": "1.5.28", "date": "10 November 2026", "title": "Small fixes", "items": ["Buying Arena Coins at the limit no longer takes your diamonds.", "The Guild shop now counts only the items it really has."]}, {"ver": "1.5.27", "date": "10 November 2026", "title": "Arena portraits", "items": ["Arena hero portraits are larger on bigger screens."]},
     {"ver": "1.5.26", "date": "9 November 2026", "title": "Arena", "items": ["In the Arena, Defenders, Rules, power and Adjust now sit above the defender banner, and your defenders sit closer together. The whole Arena now fits on one phone screen."]},
