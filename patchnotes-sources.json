@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.45", "releases": "v1348", "items": [{"text": "Phil 10 Nov: \"ease 9-10 so level 57 wins 75%\" (after a tester report via Phil: \"Im being told 9-10 is pretty much impossible\")"}]},
     {"ver": "1.5.44", "releases": "v1347", "items": [{"text": "Phil 10 Nov: \"That entire area i circled, move right but keeping the exact same alignment\" / \"Refresh isnt in its box, please shrink the word a bit\" / \"Go, push everything we have discussed and changed\""}]},
     {"ver": "1.5.43", "releases": "v1346", "items": [{"text": "Phil 10 Nov: \"Remove the gap between players\" / \"This recent one is perfect\""}]},
     {"ver": "1.5.42", "releases": "v1345", "items": [{"text": "Phil 10 Nov: \"Condense top pick, ranking, record shop banners closer together close the gaps\" / \"Closer\" / \"Thats too close now\" / \"Push that\""}]},

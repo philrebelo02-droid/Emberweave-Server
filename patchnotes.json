@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.45", "date": "10 November 2026", "title": "9-10 eased", "items": ["Campaign 9-10 (The Nameless Admiral) is easier: its enemies have about 11% less health and damage, on Normal and Veteran."]},
     {"ver": "1.5.44", "date": "10 November 2026", "title": "Arena layout tidy", "items": ["The Arena defenders, banners and opponents sit further right as one block.", "Refresh fits neatly in its frame."]},
     {"ver": "1.5.43", "date": "10 November 2026", "title": "Arena opponents side by side", "items": ["The five Arena opponents sit side by side with no gaps."]},
     {"ver": "1.5.42", "date": "10 November 2026", "title": "Tidier Arena", "items": ["The Top Pick, Ranking, Record and Shop banners sit closer together.", "The new Arena title, the bigger Refresh and the Claim button now show on every screen size."]},

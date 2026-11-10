@@ -10609,85 +10609,85 @@
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     },
     {
      "key": "storm eel",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     }
    ],
    [
     {
      "key": "mourn moth",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 34.9632,
-     "dmgMul": 15.6912
+     "hpMul": 31.2571,
+     "dmgMul": 14.0279
     },
     {
      "key": "nightgloom",
      "lvl": 57,
-     "hpMul": 34.9632,
-     "dmgMul": 15.6912
+     "hpMul": 31.2571,
+     "dmgMul": 14.0279
     },
     {
      "key": "reef prowler",
      "lvl": 57,
-     "hpMul": 34.9632,
-     "dmgMul": 15.6912
+     "hpMul": 31.2571,
+     "dmgMul": 14.0279
     },
     {
      "key": "nameless admiral",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912,
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279,
      "boss": true
     },
     {
      "key": "umbris",
      "lvl": 57,
-     "hpMul": 29.136,
-     "dmgMul": 15.6912,
+     "hpMul": 26.0476,
+     "dmgMul": 14.0279,
      "isHero": true,
      "rank": 3,
      "rewardHero": true

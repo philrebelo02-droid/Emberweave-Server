@@ -13,7 +13,7 @@ const old = f => JSON.parse(cp.execSync('git show 37ec5870:server/' + f, { cwd: 
 for (const f of ['campaign-encounters.json', 'elite-campaign-encounters.json']) {
   const N = cur(f), O = old(f), om = Object.fromEntries(O.map(s => [s.id, s]));
   const bad = [], same = [], rp = [];
-  for (const s of N) { const o = om[s.id], ch = +s.id.split('-')[0], k = K[ch] || 1;
+  for (const s of N) { const o = om[s.id], ch = +s.id.split('-')[0], k = (K[ch] || 1) * (f === 'campaign-encounters.json' && s.id === '9-10' ? 0.894 : 1);   // v1348 (Phil 10 Nov: "ease 9-10 so level 57 wins 75%"): Normal 9-10 x0.894 on top (tests/test_ease_910_1348.js)
     s.waves.forEach((w, wi) => w.forEach((m, mi) => { const q = o.waves[wi][mi];
       if (Math.abs(m.hpMul - q.hpMul * k) > 2e-3 * Math.max(1, q.hpMul) || Math.abs(m.dmgMul - q.dmgMul * k) > 2e-3 * Math.max(1, q.dmgMul)) (K[ch] ? bad : same).push(s.id); }));
     if (s.recommendedPower !== o.recommendedPower) rp.push(s.id); }
