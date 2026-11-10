@@ -2990,6 +2990,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arOppNums{padding:0;flex-direction:row;flex-wrap:wrap;justify-content:center}
 #arena:has(.arWrap)>.backbtn{background:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100%;border:0;border-image:none;color:#f0d9a9}
 #dungeon .panel{width:100%!important;max-width:none!important;border-image:none!important;padding:35px 12%!important}
+#dungeon .vtFloor{display:none}
+#dungeon .panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}   /* Phil 10 Nov: the blur showed in the see-through margin around the frame art */
 #dungeon #dungeonBody>div>div>div:nth-child(2)>div{background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-radius:0!important;padding:16px!important}
 #dungeon #dungeonBody>div>div>div:nth-child(3):not(.panel){background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-radius:0!important;padding:20px 30px!important}
 
@@ -3056,12 +3058,14 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #dungeon #dungeonBody>div>div>div:nth-child(3):not(.panel){background-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1')!important;padding:30px 12%!important;min-height:125px}
 /* Phil 10 Nov (Vault screenshot on his phone): "Vault on phone has alot of wasted space" / "Fit it all to screen on mobile". On a landscape phone the Vault is one screen: header and stats across the top, the hero picker on the left, drops and sweep on the right. The vault door stays visible beside it. */
 @media(max-height:560px) and (min-width:701px){
-#dungeon #dungeonBody>div>div:has(.vtPick){display:grid!important;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);column-gap:8px;row-gap:5px;align-content:start;width:76%!important;max-width:none!important;margin:5px 1% 4px auto!important}
-#dungeon .vtHead{grid-column:1/-1;margin:0!important;padding:0 6px!important;min-height:26px!important;line-height:1}
+#dungeon #dungeonBody>div>div:has(.vtPick){display:grid!important;grid-template-columns:minmax(0,1fr) 170px;column-gap:8px;row-gap:0;align-content:start;width:66%!important;max-width:none!important;margin:5px 1% 4px auto!important}
+#dungeon #dungeonBody>div>div:has(.vtPick) .vtHead{position:absolute;left:96px;top:9px;margin:0!important;padding:0!important;min-height:26px!important;line-height:1}
+#dungeon .vtHead .pill{display:none}
+#dungeon .vtFloor{display:block}
 #dungeon .vtPick .btn{padding:7px 0!important;min-height:36px}
-#dungeon .vtStats{grid-column:1/-1;margin:0!important;flex-wrap:nowrap!important}
-#dungeon #dungeonBody>div>div>.vtStats>div{padding:6px 34px 5px!important;min-width:0}
-#dungeon #dungeonBody>div>div>.panel.vtPick{grid-column:1;grid-row:3/span 4;align-self:start;height:auto!important;min-height:0!important;padding:32px 12% 38px!important;margin:0!important;min-width:0}
+#dungeon .vtStats{grid-column:1/-1;grid-row:2;margin:-14px 0 0!important;flex-wrap:nowrap!important;justify-content:flex-end;gap:4px!important}
+#dungeon #dungeonBody>div>div>.vtStats>div{flex:0 0 150px!important;padding:6px 26px 5px!important;min-width:0}
+#dungeon #dungeonBody>div>div>.panel.vtPick{grid-column:1/-1;grid-row:3;justify-self:end;width:530px!important;align-self:start;height:auto!important;min-height:0!important;padding:28px 66px 28px!important;margin:-12px 0 0!important;min-width:0}
 #dungeon .vtPick>div{flex-wrap:nowrap!important;gap:4px!important;justify-content:space-between!important}
 #dungeon .vtPick [style*="width:58px"]{width:68px!important}
 #dungeon .vtPick [style*="width:58px"] span{max-width:68px!important}
@@ -3070,12 +3074,18 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #dungeon .vtPick>div{margin-top:0!important}
 #dungeon .vtPick>div+div{margin-top:4px!important}
 #dungeon .vtPick>div:last-child{margin-top:6px!important}
-#dungeon #dungeonBody>div>div>div.vtDrops{grid-column:2;grid-row:3;margin:0!important;padding:26px 11% 24px!important;min-height:0!important;min-width:0}
-#dungeon .vtRow{grid-column:2;grid-row:4;margin:0!important;flex-direction:column;gap:5px!important}
-#dungeon .vtRow .btn{min-height:36px;padding:6px 10px}
+#dungeon #dungeonBody>div>div>div.vtDrops:nth-child(3):not(.panel){grid-column:1;grid-row:4;justify-self:end;width:304px;box-sizing:border-box;margin:-12px 0 0!important;height:112px;padding:6px 12%!important;min-height:0!important;min-width:0;background-image:url('/assets/img/ui/building-main/inset-card.webp?v=1')!important;background-size:100% 145%!important;background-position:center!important;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;align-content:center;gap:0;text-align:center}
+#dungeon .vtDrops>div:first-child{flex:0 0 100%;margin:0!important;font-size:10.5px!important}
+#dungeon .vtDrops>div>span[style*="8b98a9"]{display:none}
+#dungeon .vtDrops>div{flex:0 0 100%;font-size:12.5px!important;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dungeon .vtRow{grid-column:2;grid-row:4;align-self:center;margin:-12px 0 0!important;flex-direction:column;gap:8px!important}
+#dungeon .vtRow .btn{min-height:44px;padding:6px 10px;font-size:17px}
 #dungeon .vtFoot{display:none}
+#dungeon .vtRow{position:relative;left:-15px;z-index:2}
+#dungeon .vtPick{position:relative;left:15px;z-index:1}
+#dungeon .vtDrops{position:relative;left:3px;z-index:1}   /* Phil 10 Nov: "Fit the reward and heroes panel to the right" */
 }
-@media(max-height:430px) and (min-width:701px){#dungeon #dungeonBody>div>div:has(.vtPick){zoom:.86}}
+@media(max-height:430px) and (min-width:701px){#dungeon #dungeonBody>div>div:has(.vtPick){zoom:.86}#dungeon #dungeonBody>div>div>div.vtDrops:nth-child(3):not(.panel){height:96px}}
 
 @media(max-width:700px){#skyisland>.titlebar{max-width:62%!important;margin-left:auto!important;margin-right:10px!important;padding:9px 20px!important}#skyisland>.titlebar h1{font-size:16px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{padding:35px 16%!important}}
 
@@ -3113,7 +3123,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgTabs{gap:4px!important;top:4px}
 #forge .fgTabs .fgQ{min-height:28px!important;height:28px;padding:2px 6px!important;font-size:12px!important}
 @media (max-height:500px){ #forge .fgTabs .fgQ{min-height:24px!important;height:24px;font-size:11px!important} #forge .fgTabs{gap:3px!important} #forge .fgName{flex-basis:110px} }
-#forge .fgFaces>*{width:30px!important;height:30px!important;min-width:30px}
+#forge .fgFaces>*{width:calc(var(--fgH) * .74)!important;height:calc(var(--fgH) * .74)!important;min-width:calc(var(--fgH) * .74)}
 #forge .fgFaces img{width:100%!important;height:100%!important}
 /* v1326 (Phil 9 Nov: "the chat bounces from the other tabs. please put the chat to match the other tabs placement"): the rollout's 35 Guild Hall rules were scoped #guild:not(:has(#gInput)) - the chat tab holds #gInput, so it alone fell back to the old centred layout. They now apply to every guild tab. */
 /* v1326 (Phil 9 Nov: "make all the EGP pop outs the SAME size, so they dont bounce around when clicking left and right"): one fixed
@@ -3178,6 +3188,28 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   #patScreen:has(.patLv:not(.edp)) .patRow{padding:6px 2px;}
   #patScreen:has(.patLv:not(.edp)) .patSec{margin:8px 0 4px;padding-bottom:4px;}
 }
+/* v1328 FORGE (Phil 9 Nov Forge screenshot: "the items are too spread and too thin"): the row art is only about half painted in height, so a row looked 30 px thin with 34 px of air between rows. */
+#forge{--fgH:clamp(58px,calc((var(--ew-game-height,100vh) - 72px) / 9.35),96px);--fgT:clamp(46px,3.6vw,62px)}
+#forge:not(:has(#fgPop)) h1::after{display:none!important}   /* v1328 (Phil: "why does it say the forge twice" / "just taking unecesary space"): no empty plate under the title */
+#forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){width:fit-content!important;max-width:none;margin:0 0 3px auto!important;height:var(--fgT);box-sizing:border-box;padding:0 calc(var(--fgT) * 1.25)!important;display:flex;flex-direction:column;justify-content:center;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgT) * 1.12) stretch!important}
+#forge:not(:has(#fgPop))>.hdrbox,#forge:not(:has(#fgPop))>.titlebar{top:8px!important;left:clamp(108px,11%,220px)!important;width:auto!important;text-align:left}
+#forge:not(:has(#fgPop)) h1{font-size:clamp(22px,2.6vw,36px)!important;white-space:nowrap;line-height:38px}
+@media (max-height:500px){ #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){width:fit-content!important;padding:0 42px!important} #forge:not(:has(#fgPop)) h1{font-size:20px!important} }
+#forge .fgResLine{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(12px,calc(.62vw + 7px),18px)!important;margin-right:clamp(12px,1.6vw,30px)}
+#forge .fgResLine+.pill{font-size:clamp(11px,calc(.5vw + 7px),16px)!important}
+@media (max-height:500px){ #forge .fgResLine{font-size:11px!important;margin-right:8px} #forge:not(:has(#fgPop)) #forgeBody>.panel:not(:has(.fgRow)){padding:0 36px!important} }
+#forge .fgRow{height:var(--fgH)!important;min-height:0!important;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 calc(var(--fgH) * 1.12) stretch!important;padding:0 calc(var(--fgH) * .6)!important;gap:10px!important;box-sizing:border-box}
+#forge .fgList{gap:5px!important;flex:0 1 80%!important;max-width:80%}   /* v1328 (Phil: "push the items left, and less long") */
+#forge .fgWrap{justify-content:flex-start!important}
+#forge .fgTabs{flex:0 0 clamp(136px,17vw,320px)!important;width:clamp(136px,17vw,320px)!important;gap:6px!important;top:0}
+#forge .fgTabs .fgQ{height:calc(var(--fgH) * .9)!important;min-height:36px!important;font-size:clamp(15px,calc(var(--fgH) * .27),26px)!important}
+@media (max-height:500px){ #forge .fgTabs{gap:2px!important} #forge .fgTabs .fgQ{height:calc((var(--ew-game-height,100vh) - 76px) / 9)!important;min-height:30px!important;font-size:15px!important} }
+@media (max-height:500px){ #forge:not(:has(#fgPop)) #forgeBody{width:97%!important;max-width:none!important;margin:6px 1.5% 0 auto!important} }
+#forge:not(:has(#fgPop)) #forgeBody{width:97%!important;max-width:none!important;margin:6px 1.5% 0 auto!important}
+#forge .fgItem{flex:0 0 calc(var(--fgH) - 12px)!important;width:calc(var(--fgH) - 12px)!important;height:calc(var(--fgH) - 12px)!important}
+#forge .fgItem img{width:100%!important;height:100%!important}
+#forge .fgName{font-size:clamp(14px,calc(var(--fgH) * .26),21px)!important;flex:0 0 clamp(130px,calc(var(--fgH) * 2.9),250px)}
+#forge .fgFaces{gap:5px!important;align-items:center;height:100%}
 /* v1328 ARENA, guided by Phil 9 Nov: "raise the Defenders, rules, power adjust above the banner and give it its own buttons" */
 #arena .arDef{background:none!important;padding:0!important;box-shadow:none!important}
 #arena .arDefHead{margin:0 0 5px!important;gap:6px!important;padding:0 6px;justify-content:center!important}
@@ -18821,7 +18853,7 @@ function vaultScreenHTML(){
   const s=VAULT.st;
   // header row leaves room for the floating ◀ Base button (top-left) and pins the floor pill right
   const headBar=`<div class="vtHead" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px;padding-left:92px;min-height:34px">
-      <div style="font-weight:900;font-size:clamp(15px,calc(var(--ew-game-width,100vw) * 0.026),19px);letter-spacing:.5px;white-space:nowrap">${uiIcon('mode-vault')} ${t('vault.title_upper')}</div>
+      <div style="font-weight:900;font-size:clamp(15px,calc(var(--ew-game-width,100vw) * 0.026),19px);letter-spacing:.5px;white-space:nowrap">${t('vault.title_upper')}</div>
       <span class="pill" style="border:1px solid #7a5fb0;color:#c9a2ff;font-weight:800;white-space:nowrap">${t('vault.floor_of',{n:s.currentFloor,m:100})}</span></div>`;
   if(s.vaultStatus==='complete') return headBar+`<div class="panel" style="text-align:center;padding:26px">
       <div style="font-size:44px">${uiIcon('mode-vault')}</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">${t('vault.conquered')}</div>
@@ -18835,6 +18867,7 @@ function vaultScreenHTML(){
       ${stat(t('vault.highest_cleared'),`<span style="color:#e6edf3">${s.highestClearedFloor}</span>`)}
       ${stat(t('vault.fragment_band'),`<span style="color:#c9a2ff">${g2QualName(s.band)}</span>`)}
       ${stat(t('vault.floor_reward'),`<span style="color:#ffd45e">${uiIcon('res-forge-dust')}${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">'+t('vault.plus2_glyph')+'</span>':''}`)}
+      ${stat(String(t('vault.floor_of',{n:'',m:''})).replace(/[\s\/]+$/,''),`<span style="color:#c9a2ff">${s.currentFloor} / 100</span>`).replace('<div style="','<div class="vtFloor" style="')}
     </div>
     ${(s.targets&&((s.targets.glyphFragments||[]).length||(s.targets.gearFragments||[]).length))?`
     <div class="vtDrops" style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-bottom:10px;text-align:left">
@@ -18987,6 +19020,8 @@ const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2
    Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
 const GEAR_ART_V='?v=4';   // v370: backgrounds keyed out, no fringe (Phil: "revert the white outline")
 function gearSlug(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+/* v1328: the Forge list's hero faces grow with the row (the same sum as the CSS --fgH) */
+function fgFacePx(){ const g=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ew-game-height'))||innerHeight; return Math.round(Math.min(96,Math.max(58,(g-72)/9.35))*.74); }
 function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.artId||d.id}.webp${GEAR_ART_V}" alt="" style="width:${px||40}px;height:${px||40}px;border-radius:6px;object-fit:cover;flex:none;background:transparent" loading="lazy">`:''; }
 function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 function gearSubImg(n,px){ return n?`<img src="/assets/img/gear/subs/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
@@ -19331,7 +19366,7 @@ function forgeItemsTabHTML(){
   const items=cat.items.filter(d=>d.quality===Q[q]);
   const rows=items.map(d=>{ const tp=forgeTypeTemper(d.id), col=FORGE_QCOLOR[d.quality]||'#e6edf3', users=forgeUsersOf(d.id);
     const worn=users.filter(k=>forgeWornBy(k,d.id)), rest=users.filter(k=>!forgeWornBy(k,d.id));
-    const face=(k,on)=>`<span class="fgFace${on?' on':''}" title="${escAttr((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,34)}</span>`;
+    const face=(k,on)=>`<span class="fgFace${on?' on':''}" title="${escAttr((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,fgFacePx())}</span>`;
     const open='';
     return `<div class="fgRow" onclick="forgeRow('${d.id}')">`+
       `<div class="fgItem" style="border-color:${col};box-shadow:0 0 8px ${col}66">${gearImg(d,56)}${tp?`<b class="fgT">+${tp}</b>`:''}</div>`+
@@ -19369,9 +19404,8 @@ function renderForge(){
   const st=FORGE.st, res=st.resonance||{rank:0,total:0,next:null};
   b.innerHTML=`<div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:13px">${uiIcon('mode-forge')} ${t('title.forge')}</b>
-        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">${uiIcon('res-forge-dust')} ${t('forge.n_dust',{n:st.dust||0})}</span></div>
-      <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 ${t('forge.resonance_line',{r:'<b style="color:#c9a2ff">'+t('forge.rank_n',{n:res.rank})+'</b>',n:res.rank,total:res.total})}${res.next!=null?' · '+t('forge.next_rank_at',{n:res.next}):''}</div></div>
+        <span class="fgResLine" style="font-size:12px;color:#aab3c2;min-width:0">${t('forge.resonance_line',{r:'<b style="color:#c9a2ff">'+t('forge.rank_n',{n:res.rank})+'</b>',n:res.rank,total:res.total})}${res.next!=null?' · '+t('forge.next_rank_at',{n:res.next}):''}</span>
+        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e;flex:none">${uiIcon('res-forge-dust')} ${t('forge.n_dust',{n:st.dust||0})}</span></div></div>
     <div class="panel" style="margin-top:8px">${forgeItemsTabHTML()}</div>`;   /* v1304 (Phil 7 Nov: "the temper heroes tabs arent needed"): the Forge is the item list only */   /* v994 (Pool+Forge audit #12): hint prose removed */
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
@@ -33367,7 +33401,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794316408482';
+const BUILD_ID = '1794318670891';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

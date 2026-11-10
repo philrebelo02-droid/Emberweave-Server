@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.31", "releases": "v1333", "items": [{"text": "Phil 9 Nov Forge notes, shipped 10 Nov: \"Please push the fixes we did\""}]},
     {"ver": "1.5.30", "releases": "v1332", "items": [{"text": "Phil 10 Nov: \"The claim from bonus stage has nice art. Do that art for sweeps\" / \"The rewards should have a row showing the real items not just words\" / \"Vault on phone has alot of wasted space\" / \"Fit it all to screen on mobile\""}]},
     {"ver": "1.5.29", "releases": "v1331", "items": [{"text": "Phil 10 Nov: \"Make the banner behind chapter + chapter name + left right heroe fit them\" / \"raise it snug against the top banner\""}]},
     {"ver": "1.5.28", "releases": "v1330", "items": [{"text": "Phil 10 Nov: \"fix bugs as they come up if its an obvious flaw\", overnight bug sweep"}]},
