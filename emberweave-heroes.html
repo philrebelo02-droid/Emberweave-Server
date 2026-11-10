@@ -3169,6 +3169,29 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #forge .fgItem img{width:100%!important;height:100%!important}
 #forge .fgName{font-size:clamp(14px,calc(var(--fgH) * .26),21px)!important;flex:0 0 clamp(130px,calc(var(--fgH) * 2.9),250px)}
 #forge .fgFaces{gap:5px!important;align-items:center;height:100%}
+/* v1328 ARENA (Phil 9 Nov Arena screenshot, after the Forge's "you love to waste space" / "because its so stretched"): the screen fills top to bottom and the frames keep their corners. */
+@media (min-width:701px){
+#arena:has(.arWrap)>.hdrbox{position:absolute;top:14%!important;left:2%!important;width:24%!important;text-align:center}
+#arena:has(.arWrap) #arenaBody{width:73%!important;margin:10px 1.2% 0 auto!important;height:calc(var(--ew-game-height,100vh) - 20px)!important}
+#arena .arWrap{height:100%;gap:8px!important;flex-direction:column}
+#arena .arTop{flex:0 0 40%;min-height:0;align-items:stretch}
+#arena .arRight{flex:1 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px}
+#arena .arDef{flex:1 1 0;min-height:0;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 240 400 fill / 28px 46px / 0 13px stretch!important;padding:14px 30px!important;justify-content:center}
+#arena .arHero{max-width:calc(var(--ew-game-height,100vh) * .27)!important}
+#arena .arTabs{flex:none}
+#arena .arTabs>button{min-height:clamp(30px,5.4vh,46px)!important;font-size:clamp(12px,1.9vh,17px)!important}
+#arena .arBot{flex:1 1 0;min-height:0;align-items:stretch!important}
+#arena .arOpps{flex:1 1 0;min-width:0;flex-wrap:nowrap!important;align-items:stretch}
+#arena .arOpp{align-self:stretch!important;min-height:0!important;min-width:0!important;flex:1 1 0!important;background:none!important;border-style:solid!important;border-color:transparent!important;border-width:0!important;border-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 240 400 fill / 28px 46px / 0 13px stretch!important;padding:12px 18px!important;box-shadow:none!important;justify-content:space-evenly}
+#arena .arOppArt{width:calc(var(--ew-game-height,100vh) * .175)!important;height:calc(var(--ew-game-height,100vh) * .175)!important;max-width:88%}
+#arena .arOppArt>*:not(.arHeroLv){width:100%!important;height:100%!important}
+#arena .arOppArt img{width:100%!important;height:100%!important}
+#arena .arMedal,#arena .arDay{flex:0 0 clamp(120px,11vw,190px)!important;justify-content:center}
+#arena .arOppNm{font-size:clamp(12px,2.1vh,19px)!important}
+#arena .arOppNums{font-size:clamp(11px,1.7vh,15px)}
+#arena .arOpp .btn{min-height:clamp(30px,6vh,52px)!important;font-size:clamp(12px,2vh,18px)!important}
+}
+@media (min-width:701px) and (max-height:500px){ #arena .arOppArt{width:58px!important;height:58px!important} #arena .arOppNm{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%} #arena .arOpp{padding:9px 10px!important;gap:2px!important} #arena .arOppNums{gap:3px!important;font-size:10px!important} #arena .arOpp .btn{min-height:26px!important;padding:2px 6px!important;font-size:11px!important} #arena .arMedal,#arena .arDay{flex-basis:96px!important;padding:8px 6px!important;font-size:10px} #arena .arDef{padding:13px 26px 8px!important} #arena .arWrap{gap:4px!important} #arena .arDay .arMini{min-height:24px!important;padding:2px 6px!important;font-size:11px!important} #arena .arDay{gap:1px!important} }
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -26086,6 +26109,8 @@ async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.f
 async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true;
   try{ const d=await api('/api/arena/ladder?offset=0&limit=100'); if(d&&!d.error&&d.entries){ ARENA.ladderTotal=d.total; ARENA.ladder=d.entries.map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:e.power||0, region:'' })); } }
   catch(e){} finally{ ARENA.fetchingLad=false; } return true; }
+/* v1328: an Arena opponent's portrait grows with the screen */
+function arOppPx(){ const g=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ew-game-height'))||innerHeight; return Math.round(Math.max(56,Math.min(150,g*.17))); }
 function renderArena(){ const b=document.getElementById('arenaBody');
   if(ACC.token){ if(ARENA.oppsRank!==G.arenaRank||!ARENA.opps){ arenaSync().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } if(!ARENA.ladder){ arenaSyncLadder().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } }
   const myPower=myTeamPower(G.team);   /* v805 - your own heroes: the card */
@@ -26113,7 +26138,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     return `<div class="arOpp">
       <div class="arOppTop">
         <div class="arOppL">
-          <div class="arOppArt">${lead?heroIcon(lead.key,64):''}${lead?`<span class="arHeroLv">${t('arena.lv',{n:lead.level})}</span>`:''}</div>
+          <div class="arOppArt">${lead?heroIcon(lead.key,arOppPx()):''}${lead?`<span class="arHeroLv">${t('arena.lv',{n:lead.level})}</span>`:''}</div>
           <div class="arOppNm">${escapeHTML(o.name)}</div>
         </div>
         <div class="arOppNums">
@@ -33304,7 +33329,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794272348073';
+const BUILD_ID = '1794272810928';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
