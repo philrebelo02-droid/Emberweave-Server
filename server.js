@@ -917,6 +917,20 @@ function migrateGlyphDefenseAv2(){ let n=0;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
     g.defense1123=1; }
   if(n){ console.log('recomputed '+n+' glyph board(s) for the Academy v2 Ironwall Defense'); writeDB(); } }
+/* v1369 (Phil 11 Nov: "i dont know why aureths stats are so low" / "its like he got nothing from glyphs"): Aureth's onslaught slot (index 2) was
+   Sunder (armor pen + damage bonus) on 14 tiers and Cataclysm on Orange - v1022 put Ravager (Physical Attack) on every bruiser's onslaught slot but
+   missed him (damageProfile Hybrid). His banked glyph attack was 17-29 where every other bruiser has ~790. The path file now has Ravager on all 16;
+   this recomputes his ascended bank once per account and re-points a slot-3 glyph built on the old path. */
+function migrateAurethGlyphPath(){ let n=0;
+  for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.aurethPath11nov) continue;
+    const b=g.boards.aureth;
+    if(b){ const ai=b.ascensionIndex|0;
+      if(ai>0) b.ascended=glyphAscendedFromPlan('aureth',ai);
+      const iid=ai<GLYPH_MAX_ASC&&b.slots&&b.slots[2], inst=iid&&g.finished&&g.finished[iid], want=iid&&glyphPersonalPlan('aureth',ai)[2];
+      if(inst&&want&&inst.definitionId!==want.id){ inst.sourceDefinitionId=inst.definitionId; inst.definitionId=want.id; inst.pathMigratedAt=Date.now(); }
+      g.revision=(g.revision|0)+1; n++; }
+    g.aurethPath11nov=1; }
+  if(n){ console.log('recomputed '+n+' Aureth glyph board(s) on the Ravager path'); writeDB(); } }
 function migrateGlyphPaths1022(){ let n=0;
   for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.paths1022) continue;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
@@ -11199,7 +11213,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
 function bootFinish(){ if(_booted) return;
   if(_DB_LOAD_FAILED){ _worldLoadRefusal(_DB_LOAD_FAILED,['PostgreSQL had no world to restore either']); process.exit(1); }   // v1183: never seed over a world that did not load
   _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateLogins1253(); /* v1253 */ migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateLogins1253(); /* v1253 */ migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */ migrateAurethGlyphPath();   /* v1369 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
