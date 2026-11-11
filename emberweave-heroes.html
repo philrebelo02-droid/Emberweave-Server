@@ -18864,6 +18864,7 @@ function _showScreen(name){
   { const bg=document.getElementById('battleBg'); if(bg) bg.style.display = (name==='battle') ? 'block' : 'none';
     const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
   if(name==='result'){ renderResultExtras(); try{ updateGuestMarks(); }catch(e){} }
+  if(name!=='battle'&&name!=='result'&&typeof OL!=='undefined'&&OL.active){ OL.active=false; OL.host=false; OL.byId={}; }   /* v1367 memory audit (Phil 11 Nov: "Check to make sure no mode slips through"): a live PvP match set OL.active and nothing ever cleared it - after one match the phone never released battle art again that session, and a host could not start a second match. Leaving battle/result ends it. */
   if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} },0);   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
   /* v1365 (tester B 1.1, the phone crash after 30-40 min; Claude's diagnosis 11 Nov, section 3): on a phone the squad's sheets stayed loaded on the campaign
      map and every other menu between fights (Continue / Quit free only the foes) - ~1.16 GB of textures on a screen that draws no battle. On the phone art
