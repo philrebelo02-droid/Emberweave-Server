@@ -4443,8 +4443,8 @@ function questChainDurable(user,rid){
     const steps=questChainStepsSrv(),st=steps[index];if(!st)return {ok:false,error:'Chain complete.'};
     if(!Number.isSafeInteger(led.camp?.cleared)||led.camp.cleared<st.node)return {ok:false,error:'Clear stage '+st.node+' first.'};
     led.quests.chainStep=index+1;const got={};
-    if(st.frags){creditFrags(draft,led,'vex',st.frags,'quest-chain:'+st.node);got.vexFrags=st.frags;}
-    if(st.gems){creditGems(draft,led,st.gems,'quest-chain:'+st.node);got.gems=st.gems;}
+    if(st.frags){got.vexFrags=creditFrags(draft,led,'vex',st.frags,'quest-chain:'+st.node);}
+    if(st.gems){got.gems=creditGems(draft,led,st.gems,'quest-chain:'+st.node);}
     ledTx(draft,'quest-chain:'+st.node,got);reply={ok:true,step:led.quests.chainStep,got,ledger:ledgerView(draft)};
   }finally{_worldSettlementPlanning=null;}
   const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
@@ -8049,10 +8049,10 @@ async function api(req,res,url){
       if(led.signin.month!==mk) led.signin={month:mk,claimed:[]};
       if(led.signin.claimed.includes(c.day)) return {ok:false,error:'Already signed in today — back at 09:00.',ledger:ledgerView(me)};
       const rw=signinReward(c), got={};
-      if(rw.frag){ creditFrags(me,led,rw.hero,rw.frag,'signin:'+mk+':'+c.day); got.frags={[rw.hero]:rw.frag}; }
-      else if(rw.gold){ creditGold(me,led,rw.gold,'signin:'+mk+':'+c.day); got.gold=rw.gold; }
-      else if(rw.stamina){ creditStamina(me,led,rw.stamina,'signin:'+mk+':'+c.day); got.stamina=rw.stamina; }
-      else if(rw.gems){ creditGems(me,led,rw.gems,'signin:'+mk+':'+c.day); got.gems=rw.gems; }
+      if(rw.frag){ got.frags={[rw.hero]:creditFrags(me,led,rw.hero,rw.frag,'signin:'+mk+':'+c.day)}; }
+      else if(rw.gold){ got.gold=creditGold(me,led,rw.gold,'signin:'+mk+':'+c.day); }
+      else if(rw.stamina){ got.stamina=creditStamina(me,led,rw.stamina,'signin:'+mk+':'+c.day); }
+      else if(rw.gems){ got.gems=creditGems(me,led,rw.gems,'signin:'+mk+':'+c.day); }
       led.signin.claimed.push(c.day);
       ledTx(me,'signin:'+mk+':'+c.day,got);
       writeDB(); return {ok:true, day:c.day, month:mk, got, ledger:ledgerView(me)};
@@ -8067,13 +8067,13 @@ async function api(req,res,url){
       const idx=led.starClaimed|0;
       if(total<(idx+1)*15) return {ok:false,error:'The next star reward needs '+((idx+1)*15)+' campaign stars.',claimed:idx,ledger:ledgerView(me)};
       const tier=Math.floor(idx/4)+1, cyc=idx%4, got={};
-      if(cyc===0){ creditGold(me,led,2000*tier,'stars:'+idx); got.gold=2000*tier; }
-      else if(cyc===1){ creditStamina(me,led,60*tier,'stars:'+idx); got.stamina=60*tier; }
-      else if(cyc===2){ creditGems(me,led,100*tier,'stars:'+idx); got.gems=100*tier; }
+      if(cyc===0){ got.gold=creditGold(me,led,2000*tier,'stars:'+idx); }
+      else if(cyc===1){ got.stamina=creditStamina(me,led,60*tier,'stars:'+idx); }
+      else if(cyc===2){ got.gems=creditGems(me,led,100*tier,'stars:'+idx); }
       else { const all=Object.keys(SIM.HERO_BASE).filter(k=>!HERO_NOT_SOLD.has(k)), locked=all.filter(k=>!(led.unlocked||{})[k]), pool=locked.length?locked:all;
         const cnt={}; for(let i=0;i<5*tier;i++){ const hk=pool[crypto.randomInt(pool.length)]; cnt[hk]=(cnt[hk]|0)+1; }
-        for(const hk in cnt) creditFrags(me,led,hk,cnt[hk],'stars:'+idx);
-        got.frags=cnt; }
+        got.frags={};
+        for(const hk in cnt) got.frags[hk]=creditFrags(me,led,hk,cnt[hk],'stars:'+idx); }
       led.starClaimed=idx+1;
       ledTx(me,'stars:'+idx,got);
       writeDB(); return {ok:true, idx, got, claimed:led.starClaimed, ledger:ledgerView(me)};
@@ -8105,8 +8105,14 @@ async function api(req,res,url){
       const got={};
       if(it.refill){ ledStamRegen(led); const need=Math.max(0,ledStamMax(led)-led.stam.v); if(need<=0) return {ok:false,error:'Your stamina is already full.'};
         creditStamina(me,led,Math.min(it.refill,need),'arenashop'); got.stamina=Math.min(it.refill,need); }
-      else if(it.gold){ creditGold(me,led,it.gold,'arenashop'); got.gold=it.gold; }
-      else if(it.gems){ creditGems(me,led,it.gems,'arenashop'); got.gems=it.gems; }
+      else if(it.gold){
+        if(led.gold+it.gold>ECON_CAP.gold) return {ok:false,error:'You are at the gold limit.'};
+        got.gold=creditGold(me,led,it.gold,'arenashop');
+      }
+      else if(it.gems){
+        if(led.gems+it.gems>ECON_CAP.gems) return {ok:false,error:'You are at the diamond limit.'};
+        got.gems=creditGems(me,led,it.gems,'arenashop');
+      }
       else if(it.frag){ const k=it.frag, before=led.frags[k]|0; if(before+it.n>9999) return {ok:false,error:'You cannot hold more of those fragments.'};   /* v1082 */ led.frags[k]=Math.min(9999,before+it.n); resourceGain(me,'frags',led.frags[k]-before,'arenashop'); got.frags={[k]:it.n}; }
       me.coins=(me.coins|0)-it.cost; me.arenaShopDay[id]=used+1;
       ledTx(me,'arenashop:'+id,Object.assign({arenaCoins:-it.cost},got));
@@ -8265,8 +8271,7 @@ async function api(req,res,url){
       led.stam.v-=cost;
       if(elite) prog.runs['n'+node]=(prog.runs['n'+node]|0)+times;
       const rw=st.rewards;
-      const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
-      creditGold(me,led,gold,'campaign:sweep');
+      const gold=creditGold(me,led,rw.repeatGold*times,'campaign:sweep'), px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
       ledAddPlayerXP(led,px,me);
       const team=(Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[]).filter(k=>ownsHeroK(led,k));   /* 3 Oct Arena audit #3: duplicates multiplied hero XP */
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
@@ -8277,7 +8282,7 @@ async function api(req,res,url){
       // Guardian and boss reward stages grant the fragment of the hero fought in their final wave.
       let eliteFrag=null;
       if(portalPaysHeroFrag(mode,st,node)){ const hk=st.rewardHero||eliteHeroForSrv(node), q=times*(PORTAL_HERO_FRAG_MUL[mode]||1);
-        creditFrags(me,led,hk,q,'campaign:sweep'); eliteFrag={heroKey:hk, qty:q}; }
+        eliteFrag={heroKey:hk, qty:creditFrags(me,led,hk,q,'campaign:sweep')}; }
       writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, xpPotions, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
@@ -8828,7 +8833,7 @@ async function api(req,res,url){
         reward={ gold:rewarded?(first?rw.firstGold:rw.repeatGold):0, playerXp:rewarded?(first?rw.playerXpFirst:rw.playerXpRepeat):0,
                  heroXp:rewarded?(first?rw.heroXpFirst:rw.heroXpRepeat):0, first, dailyCapped:!rewarded, runCounted:(capStage&&!first&&rewarded),
                  xpPotions:rewarded?xpPotionGrant(led,mode,a.node,1,srvSeed('campxp-clear',me.id,mode,a.node,reqId)):{} };
-        creditGold(me,led,reward.gold,'campaign:clear');
+        reward.gold=creditGold(me,led,reward.gold,'campaign:clear');
         ledAddPlayerXP(led,reward.playerXp,me);
         for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
         if(first) prog.cleared=a.node;
@@ -8854,9 +8859,9 @@ async function api(req,res,url){
             const _amt=(first?(2+(srvSeed('efrag', me.id, a.node, reqId)%3)):1)*(PORTAL_HERO_FRAG_MUL[mode]||1);   /* v1149: Veteran x2 */   // first clear: the advertised 2-4 roll; farm runs: +1, same as a sweep run
             if(first) prog.runs['n'+a.node]=_used+1;   // repeats were counted once by the shared cap above
             led.frags=led.frags||{};
-            creditFrags(me,led,_hk,_amt,'campaign:clear');
-            reward.eliteFrag={heroKey:_hk, qty:_amt};
-            ledTx(me,mode+':elitefrag:'+a.node,{frag:_amt,hero:_hk});
+            const credited=creditFrags(me,led,_hk,_amt,'campaign:clear');
+            reward.eliteFrag={heroKey:_hk, qty:credited};
+            ledTx(me,mode+':elitefrag:'+a.node,{frag:credited,hero:_hk});
           }
         }
       } else ledTx(me,mode+':loss:'+st.id,{});
@@ -9285,14 +9290,14 @@ async function api(req,res,url){
         if(!q.cond(me,led)) return {ok:false,error:'Quest not complete.'};
         led.quests.claimed[id]=Date.now();
         const rw=q.reward, got={};
-        if(rw.gold){ creditGold(me,led,rw.gold,'quest:'+id); got.gold=rw.gold; }
-        if(rw.gems){ creditGems(me,led,rw.gems,'quest:'+id); got.gems=rw.gems; }
+        if(rw.gold){ got.gold=creditGold(me,led,rw.gold,'quest:'+id); }
+        if(rw.gems){ got.gems=creditGems(me,led,rw.gems,'quest:'+id); }
         /* 5 Nov 2026 (Phil: "Yes" - the sim bug checker found it): a hero reward the player already owns paid NOTHING (Blade in the Dark
            = Vex, while the starter chain hands out Vex fragments). Like a duplicate wish it now pays that hero's duplicate fragments. */
         if(rw.hero){ if(ownsHeroK(led,rw.hero)){ const f=POOL_DUPE_FRAG[POOL_START_STARS[rw.hero]||1]||7; creditFrags(me,led,rw.hero,f,'quest:'+id+':duplicate',{uncapped:true}); got.heroFrags=f; got.heroDup=rw.hero; }
           else { led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; } }
-        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)); const n=rw.randFrags;
-          for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; creditFrags(me,led,hk,1,'quest:'+id); } got.frags=n; }
+        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)); const n=rw.randFrags; let granted=0;
+          for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; granted+=creditFrags(me,led,hk,1,'quest:'+id); } got.frags=granted; }
         ledTx(me,'quest:'+id,got);
         writeDB(); return {ok:true, id, got, ledger:ledgerView(me)};
       }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
@@ -9309,6 +9314,7 @@ async function api(req,res,url){
         const price=pay==='gems'? 30*qty : 550*qty;                       // SERVER prices — the client displays these
         const dk=nyDayKey(); led.marketDay=led.marketDay&&led.marketDay.k===dk?led.marketDay:{k:dk,frags:0};
         if(led.marketDay.frags+qty>12) return {ok:false,error:'Daily market fragment limit reached.'};
+        if((led.frags[hk]|0)+qty>9999) return {ok:false,error:'You are at the hero fragment limit.'};
         if(pay==='gold'){ if(led.gold<price) return {ok:false,error:'Not enough gold.'}; led.gold-=price; }
         else { if(led.gems<price) return {ok:false,error:'Not enough diamonds.'}; led.gems-=price; }
         led.marketDay.frags+=qty; mk.bought.push(o.i); creditFrags(me,led,hk,qty,'market-frag');
@@ -9321,11 +9327,13 @@ async function api(req,res,url){
         if(me.arenaDaily.k===dk) return {ok:false,error:'Already claimed today.'};
         me.arenaDaily={k:dk};
         const rw=arenaDailyRewardSrv(Math.max(1,me.rank|0||15000));
-        creditGold(me,led,rw.gold,'arena-daily');
-        creditGems(me,led,rw.gems,'arena-daily');
-        me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+(rw.coins|0));   /* v1097 (sweep 9 Oct #9): the arena coins the claim shows are paid here, from the server's band table - the client used to add them locally and the next ledger sync took them away */
-        ledTx(me,'arena-daily',rw);
-        writeDB(); return {ok:true, reward:rw, ledger:ledgerView(me)};
+        const gold=creditGold(me,led,rw.gold,'arena-daily');
+        const gems=creditGems(me,led,rw.gems,'arena-daily');
+        const priorCoins=me.coins|0;
+        me.coins=Math.min(ECON_CAP.arenaCoins,priorCoins+(rw.coins|0));
+        const reward={gold,gems,coins:me.coins-priorCoins};
+        ledTx(me,'arena-daily',reward);
+        writeDB(); return {ok:true, reward, ledger:ledgerView(me)};
       }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   }
   /* =================== v249 (full-game audit P0): THE CITY LOOP IS SERVER-SIDE ===================
