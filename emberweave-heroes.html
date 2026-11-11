@@ -18790,7 +18790,7 @@ let _rewardQueue=[], _rewardLockOn=false;
    build if patchnotes.json holds one). Game words that start with Ember (Ember Roast, Ember Cleave, Ember Gold...) stay allowed. */
 const WHATSNEW_BLOCK = /\b(Claude|ChatGPT|GPT|OpenAI|Anthropic|Grok|xAI|Kimi|Vigil|Codex|Gemini|Copilot|Ember\s*(?:AI|bot|brain)|Emberweave Brain|AI|A\.I\.|Magic Rush|Fractalia|Dragon Prayer)\b/i;
 let _whatsNewDone = false;
-/* v1364 (Phil 11 Nov: "please make an option in settings \"Patch Notes\" where I can view the past 10 patch notes"): Settings > General >
+/* v1364 (Phil 11 Nov: "please make an option in settings \"Patch Notes\" where I can view the past 10 patch notes"): Settings > Support >
    Patch Notes opens the 10 newest entries of the site's /patchnotes.json in the What's New window (same WHATSNEW_BLOCK filter). */
 async function openPatchNotes(){ const old=document.getElementById('patchNotesOv'); if(old) old.remove();
   let notes=[];
@@ -31757,7 +31757,7 @@ function renderSettings(){
   const langCard = `<div class="set-sec">
       <div class="set-row"><span class="set-lbl">\u{1F310} ${t('set.language')}</span><select id="setLangSel" class="set-in set-sel" aria-label="${t('set.language')}">${langOptionsHTML()}</select></div>
     </div>`;
-  const notesCard = `<div class="set-sec"><button class="btn sm" id="setPatchNotes" style="width:100%">${uiIcon('quest-scroll')} Patch Notes</button></div>`;   /* v1364 (Phil 11 Nov) */
+  const notesCard = `<div class="set-sec"><button class="btn sm" id="setPatchNotes" style="width:100%">${uiIcon('quest-scroll')} Patch Notes</button></div>`;   /* v1364 (Phil 11 Nov: "put it under support") - shown signed in or not */
   const soundCard = `<div class="set-sec">
       <div class="set-h">${uiIcon('audio-on')} ${t('set.audio')}</div>
       <div class="set-row"><label class="set-chk"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> ${t('set.mute_all')}</label></div>
@@ -31773,10 +31773,10 @@ function renderSettings(){
   const _bid=(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
   b.innerHTML=`<div class="set-wrap">
     <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
-    ${pane('general',langCard+soundCard+notesCard)}
+    ${pane('general',langCard+soundCard)}
     ${pane('account',account+(account.indexOf('id="googleAuthPanel"')>=0?'':'<div class="set-sec set-links"><div id="googleAuthPanel" class="set-link" hidden></div><div id="facebookAuthPanel" class="set-link" hidden></div></div>'))}
     ${ACC.token?pane('storage',assetCard):''}
-    ${pane('support',reportCard+`<div class="set-legal set-sec">
+    ${pane('support',notesCard+reportCard+`<div class="set-legal set-sec">
       <a href="#" id="tosLink">${t('set.terms')}</a>
       <div>© 2026 Xanthyr Games · Emberweave Heroes™ · ${t('set.rights')}</div>
       <div class="set-ver">Emberweave Heroes ${BUILD_VERSION}${_bid?' · '+t('set.build')+' '+_bid:''}</div></div>`)}
