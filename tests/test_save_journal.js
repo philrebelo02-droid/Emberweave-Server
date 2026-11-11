@@ -131,7 +131,8 @@ async function killLoop(check) {
       for (let k = 0; k < 3; k++) for (let i = 0; i < 8; i++) { const def = targets[(round * 24 + k * 8 + i) % targets.length].id, p = B.players[i]; sent++;
         jobs.push(R.sleep(k * 120).then(() => S.req('POST', '/api/world/war/declare', { defId: def, requestId: 'jk-' + round + '-' + k + '-' + i }, p.token, p.ip)).then(r => { if (r.status === 200 && r.body.ok) acked.push({ p: p.id, def }); }).catch(() => {})); }
       await R.sleep(round % 2 ? 450 + Math.floor(Math.random() * 700) : 60 + Math.floor(Math.random() * 250));   // even rounds: saves still in flight; odd: a checkpoint under way
-      try { ckpts = Math.max(ckpts, ((await B.stat()).store.io.journal || {}).checkpoints || 0); } catch (_) {}
+      /* v1357 (flakes): one sample just before the kill saw 0 checkpoints on slow hosts (20 of 29 logged runs). On the checkpoint rounds, poll up to 8 s. */
+      { const t1 = Date.now(); do { try { ckpts = Math.max(ckpts, ((await B.stat()).store.io.journal || {}).checkpoints || 0); } catch (_) {} } while (round % 2 && !ckpts && Date.now() - t1 < 8000 && (await R.sleep(50), true)); }
       await S.kill(); await Promise.allSettled(jobs);
       const w = WS.readWorld(S.db), lost = acked.filter(a => !((w.users[a.p] || {}).worldWars || {})[a.def]);
       if (lost.length) throw Error('round ' + round + ': ' + lost.length + ' acknowledged declarations lost');

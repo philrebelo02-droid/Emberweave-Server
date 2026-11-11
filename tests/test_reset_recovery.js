@@ -20,10 +20,11 @@ const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
   const reg=await call('/api/register',{name:'resetOwner',pass:'password1'},'10.0.0.9'); id=reg.data.profile.id;
   await delay(400); await stop(); const d=disk(); d.users[id].email='owner@example.test'; fs.writeFileSync(dbFile,JSON.stringify(d)); await start();
   for(let i=0;i<3;i++) await call('/api/reset-request',{name:'resetOwner'},'10.0.0.66');   // a stranger's network asks three times
-  await delay(400); const r1=(disk().users[id].resetLog)||{};
+  const _log=async(want)=>{ let r={}; for(let i=0;i<40;i++){ try{ r=(disk().users[id].resetLog)||{}; }catch(_){ r={}; } if(want(r)) break; await delay(200); } return r; };   /* v1357 (flakes): the save had not reached the file after a fixed 400 ms on a loaded host */
+  const r1=await _log(r=>(r.codes|0)>=2);
   ok((r1.codes|0)===2,'one network gets 2 codes a day for this account ('+(r1.codes|0)+')');
   await call('/api/reset-request',{name:'resetOwner'},'10.0.0.9');   // the owner's own network still gets a code
-  await delay(400); const r2=(disk().users[id].resetLog)||{};
+  const r2=await _log(r=>(r.codes|0)>=3);
   ok((r2.codes|0)===3,'the owner\'s network still gets a code after a stranger used theirs ('+(r2.codes|0)+')');
   const outs=[]; for(let i=0;i<6;i++) outs.push((await call('/api/reset-verify',{name:'resetOwner',code:'000000',newPass:'newpassword1'},'10.0.0.66')).data.error||'');
   ok(/from this network/.test(outs[5]),'a 6th wrong guess from the same network is refused for that network ('+outs[5]+')');

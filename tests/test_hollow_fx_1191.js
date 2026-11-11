@@ -104,7 +104,7 @@ try {
   // 4 Nov 2026 (Claude): the Archive was reorganised - Hollow/clips is gone and the approved natural-draw clip (sha 61d90da2) now survives only in
   // BACKUP 21OCT2026 (Codex outputs); the old path is tried first, then that copy. Off Phil's PC (the cluster) there is no Archive at all: the
   // test used to crash there (ENOENT) and skip every later check - now it says so and checks everything else, as test_death_state.js does.
-  const ARCH = process.env.EW_ARCHIVE || 'C:/Users/Home/OneDrive/Desktop/Emberweave Archive', ARCH_OK = fs.existsSync(ARCH);
+  const ARCH = process.env.EW_ARCHIVE || 'C:/Users/Home/OneDrive/Desktop/Emberweave Archive', ARCH_OK = fs.existsSync(ARCH) && process.env.SUITE_SIDE !== 'cluster';   /* v1357 (flakes): the cluster's archive folder exists but never holds this clip - re-hash it on the PC only */
   const HOLLOW_SRC = [path.join(ARCH, 'Game Art/Heroes/Hollow/clips/Hollow-Fan-of-Knives-natural-draw-clean REVIEW 16OCT2026.mp4'), path.join(ARCH, 'BACKUP 21OCT2026/Documents-Codex/2026-10-07/hu/outputs/Hollow-Fan-of-Knives-natural-draw-clean-review.mp4')];
   { const A = JSON.parse(run('JSON.stringify(BATTLE_ANIM.hollow.green)')), A0 = JSON.parse(R0('JSON.stringify(BATTLE_ANIM.hollow.green)')), f = fileOf(A.u), sz = webpSize(f), ch = chunks(fs.readFileSync(f)), ct = +run("castTimeFor({key:'hollow',t:HERO_TYPES.hollow},'green')");
     const relReal = A.release / A.fps, castReal = ct / F.FX_RT, SRC = HOLLOW_SRC.find(x => fs.existsSync(x)), sha = SRC ? crypto.createHash('sha256').update(fs.readFileSync(SRC)).digest('hex') : (ARCH_OK ? 'missing' : '61d90da2338ca7f218c88abcb14400531d64fc9003b656915c80e3748238c01e');

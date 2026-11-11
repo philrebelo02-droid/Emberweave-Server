@@ -162,8 +162,10 @@ async function killLoop(check) {
     for (round = 0; round < 5; round++) {
       const target = await S.req('GET', '/api/world/cities?since=0&tiles=' + Array.from({ length: 25 }, (_, i) => (i % 5) + '_' + Math.floor(i / 5)).join(','), null, B.players[0].token, B.players[0].ip);
       const bots = (target.body.bots || []).slice(round * 6, round * 6 + 6);
-      const jobs = B.players.map((p, i) => bots[i] ? S.req('POST', '/api/world/war/declare', { defId: bots[i].id, requestId: 'kill-' + round + '-' + i }, p.token, p.ip).then(r => { if (r.status === 200 && r.body.ok) acked.push({ p: p.id, def: bots[i].id }); }).catch(() => {}) : null).filter(Boolean);
-      await R.sleep(5 + Math.floor(Math.random() * 60));
+      /* v1357 (flakes): the kill came 5-65 ms after the sends; on the cluster (nice 19) no declaration was acknowledged in any round, so 'acked > 0' failed. Wait for the first ack, then kill inside the burst. */
+      let first; const got = new Promise(r => { first = r; });
+      const jobs = B.players.map((p, i) => bots[i] ? S.req('POST', '/api/world/war/declare', { defId: bots[i].id, requestId: 'kill-' + round + '-' + i }, p.token, p.ip).then(r => { if (r.status === 200 && r.body.ok) { acked.push({ p: p.id, def: bots[i].id }); first(); } }).catch(() => {}) : null).filter(Boolean);
+      await Promise.race([got, R.sleep(5000)]); await R.sleep(Math.floor(Math.random() * 30));
       await S.kill(); await Promise.allSettled(jobs);
       await S.start(B.adminId);
     }

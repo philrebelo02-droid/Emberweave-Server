@@ -95,8 +95,12 @@ const SWAPS = [
   ];   // v1287: Zahri is an Arena hero (Phil 5 Nov)   // v1287: Oakmir Blue cd 9 -> 10   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
 const made = [];
 process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } catch (e) {} } });
+/* v1357 (flakes): several SWAPS carry \r\n. On the cluster's LF tree they were not found, the guard did not match either, and the back-out was
+   skipped without a word - test_debuff_feet_1141 and test_nox_grimsby_anims failed there in every run. Page, needles and guards are compared in LF. */
+const _LF = x => String(x).replace(/\r\n/g, '\n');
 function undoText(s) {
-  for (const [from, to, any] of SWAPS) {
+  s = _LF(s);
+  for (const [from0, to0, any0] of SWAPS) { const from = _LF(from0), to = _LF(to0), any = new RegExp(any0.source.replace(/\\r\\n/g, '\\n'), any0.flags);
     const n = s.split(from).length - 1;
     if (n === 0 && (!any.test(s) || s.split(to).length === 2)) continue;   /* a page from before the change, or one already undone */
     if (n !== 1) throw new Error('global-1254-1260: expected exactly one "' + from + '" in the page, found ' + n);

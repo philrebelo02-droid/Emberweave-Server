@@ -98,14 +98,14 @@ async function failedSave(check, env) {
     if (jl) fs.renameSync(blocker, blocker + '.away'); fs.mkdirSync(blocker);
     const failed = await S.req('POST', '/api/world/war/declare', { defId: target, requestId: 'sf-1' }, p.token, p.ip);
     check(failed.status === 503 && failed.body.storageFailed === true, 'a save that fails on the io worker answers 503 storageFailed (got ' + failed.status + ')');
-    if (jl) await R.sleep(1500);   // journal layout: the recovery save (a new base + journal, backing off from 250 ms) no longer names the blocked file
+    if (jl) { const t1 = Date.now(); for (;;) { let named = true; try { named = WS.namedFiles(S.db).has(path.basename(blocker)); } catch (_) {} if (!named || Date.now() - t1 > 15000) break; await R.sleep(150); } await R.sleep(300); }   // v1357 (flakes): was a fixed 1500 ms - wait until the recovery save (a new base + journal, backing off from 250 ms) no longer names the blocked file
     check(!((WS.readWorld(S.db).users[p.id] || {}).worldWars || {})[target], 'nothing of the failed action reached disk' + (jl ? ' (nor the recovery save after it)' : ''));
     const s1 = await B.stat();
     check(s1.failed > s0.failed && s1.store.io.failed >= 1 && s1.store.io.mode === 'worker', 'the failure is counted (group ' + (s1.failed - s0.failed) + ', io ' + s1.store.io.failed + ')');
     fs.rmdirSync(blocker); if (jl) fs.unlinkSync(blocker + '.away');   // journal layout: the recovery save (read above) no longer names that journal
     const retry = await S.req('POST', '/api/world/war/declare', { defId: target, requestId: 'sf-1' }, p.token, p.ip);
     check(retry.status === 200 && retry.body.ok === true && !retry.body.existing, 'the same request succeeds once the disk works, as a NEW war (the failed one was undone in memory)');
-    await R.sleep(600); await S.kill();
+    await R.sleep(process.env.SUITE_SIDE === 'cluster' ? 4000 : 600); await S.kill();   // v1357 (flakes): the sweep after the save needs longer on nice-19 hosts
     const w = WS.readWorld(S.db), named = WS.namedFiles(S.db);
     check(!!(w.users[p.id].worldWars || {})[target] && Object.keys(w.users).length >= 3, 'the retried war is on disk and the world loads whole');
     check(fs.readdirSync(S.db + '.d').filter(f => STORE_FILES.test(f)).every(f => named.has(f)), 'the save after the failure rewrote the world and swept every file its manifest does not name');

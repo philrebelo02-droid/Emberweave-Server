@@ -41,7 +41,9 @@ async function burst(url, fp, n, war) {
     ok(sN.filter(s => s === 200).length >= 1 && sN.filter(s => s === 503).length >= 1, 'normal mode: 6 at once -> ' + sN.filter(s => s === 200).length + ' fought, ' + sN.filter(s => s === 503).length + ' handed back (busy)');
 
     const h1 = await health(H.url, '?war=major');
-    ok(h1.mode === 'major' && h1.priority === P.PRIORITY_BELOW_NORMAL && h1.limit === 6, 'major ask: below-normal priority (' + h1.priority + '), 6 battles at once');
+    /* v1357 (flakes): the cluster runs jobs at nice 19 as an unprivileged user, and Linux never lets such a process raise its priority again */
+    const CAN_RAISE = process.platform === 'win32' || (typeof process.getuid === 'function' && process.getuid() === 0);
+    ok(h1.mode === 'major' && h1.limit === 6 && (CAN_RAISE ? h1.priority === P.PRIORITY_BELOW_NORMAL : h1.priority >= P.PRIORITY_BELOW_NORMAL), 'major ask: ' + (CAN_RAISE ? 'below-normal priority' : 'priority kept (this user cannot raise it)') + ' (' + h1.priority + '), 6 battles at once');
     const sM = await burst(H.url, FP, 6, 'major');
     ok(sM.every(s => s === 200), 'major mode: 6 at once -> all 6 fought');
     const back = await waitFor(async () => { const h = await health(H.url); return h.mode === 'normal' && h.priority === P.PRIORITY_LOW ? h : null; }, 6000);

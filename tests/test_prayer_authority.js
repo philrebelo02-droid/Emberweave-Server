@@ -11,10 +11,11 @@ function req(method,p,b,tok){return new Promise((resolve,reject)=>{const data=b?
   const q=http.request({host:'localhost',port:PORT,path:p,method,headers:Object.assign({'content-type':'application/json'},tok?{'x-token':tok}:{},data?{'content-length':Buffer.byteLength(data)}:{})},res=>{let s='';res.on('data',c=>s+=c);res.on('end',()=>{try{resolve(JSON.parse(s));}catch(e){resolve({raw:s});}});});
   q.on('error',reject);if(data)q.write(data);q.end();});}
 (async()=>{
-  boot(); await new Promise(r=>setTimeout(r,1200));
+  const up=async()=>{ for(let i=0;i<150;i++){ try{ await req('GET','/health'); return; }catch(e){ await new Promise(r=>setTimeout(r,200)); } } };   /* v1357 (flakes): a fixed 1.2 s was too short on a loaded host (ECONNREFUSED) */
+  boot(); await up();
   const reg=await req('POST','/api/register',{name:'prayertest',pass:'password1'}), tok=reg.token, id=reg.profile&&reg.profile.id;
   ck('test account registered',!!tok&&!!id);
-  await stop(); boot({ADMIN_IDS:id}); await new Promise(r=>setTimeout(r,1200));
+  await stop(); boot({ADMIN_IDS:id}); await up();
   const grant=await req('POST','/api/admin/led-grant',{px:99000000,gold:1000000,maxGlyphs:true,heroKeys:['vael']},tok);
   ck('fixture reaches level 50, owns Vael at Purple+, and has server-owned gold',
     grant.ok&&grant.ledger.playerLevel>=50&&grant.ledger.unlocked.vael&&grant.ledger.gold>=1000000);
