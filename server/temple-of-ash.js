@@ -201,6 +201,12 @@
        a drop with probability rising linearly from 0 at the reach to PRESSURE_MAX at the cap. PROPOSED. */
     REACH: { gold: 0.50, kindled: 0.65, stoked: 0.80, blazing: 0.90, inferno: 1.00 },
     PRESSURE_MAX: 0.6,
+    /* v1353 SUCCESS (Phil 10 Nov: "i need the rates of success lower" / "people are maxing too fast" / "the rate of success is meant to
+       reduce depending on the % of completion and temple level" / "go with strong"). ROLL 1 (gain or loss) for EVERY tier is now:
+       START (by Temple level, the cap bands) x (1 - (1 - END_FACTOR) x completion), completion = the open bars' average / the cap.
+       Temple 1-4 90%, 5-8 80%, 9-12 70%, 13-15 60%, 16-18 50%, 19+ 40%; a full hero prays at half its band's rate. Tiers still differ
+       in how much they gain or lose (PRAYER_AMOUNT) - gems never buy odds. REACH / PRESSURE_MAX / ROLL_TABLES no longer set roll 1. */
+    SUCCESS: { START: [[1, 0.90], [5, 0.80], [9, 0.70], [13, 0.60], [16, 0.50], [19, 0.40]], END_FACTOR: 0.5 },
     /* v1098 PRAYER ROLLS (Phil 9 Oct): "1st roll for +/-, 2nd roll for the prayers numbers. Lets say gold is 1-30 ... if it lands on 30 it
        randomly distributes 30 stats between the ones available" / "the amount you lose is higher with lower tier prayers, amount you lose
        is lower with higher tier prayers. And the amount you gain is higher with higher tier".  ROLL 1 = gain or loss for the whole prayer,
@@ -545,9 +551,16 @@
     Object.keys(t).forEach(function (k) { const n = Number(k); if (n > 0) up += t[k]; else if (n < 0) down += t[k]; });
     return up + down > 0 ? up / (up + down) : 1;
   }
-  function prayerDeltas(tierId, bars, cur, cap) {
+  /* v1353: the chance a prayer is a GAIN - lower at a higher Temple level, and falling as the hero fills up (see CONFIG.SUCCESS). */
+  function successChance(templeLevel, completion) {
+    const S = TEMPLE_CONFIG.SUCCESS; let start = S.START[0][1];
+    S.START.forEach(function (x) { if ((templeLevel | 0) >= x[0]) start = x[1]; });
+    const c = Math.max(0, Math.min(1, Number(completion) || 0));
+    return start * (1 - (1 - S.END_FACTOR) * c);
+  }
+  function prayerDeltas(tierId, bars, cur, cap, templeLevel) {
     const avg = bars.reduce(function (a, b) { return a + Math.min(cap, cur[b] | 0); }, 0) / Math.max(1, bars.length);
-    const pUp = tierUpShare(tierId) * (1 - pressureChance(tierId, avg, cap));
+    const pUp = successChance(templeLevel, cap > 0 ? avg / cap : 0);
     const gain = roll() < pUp;
     const R = (TEMPLE_CONFIG.PRAYER_AMOUNT[tierId] || TEMPLE_CONFIG.PRAYER_AMOUNT.gold)[gain ? 'gain' : 'loss'];
     let amount = R[0] + Math.floor(roll() * (R[1] - R[0] + 1)), breakout = 1;
@@ -594,7 +607,7 @@
     const session = { v2: true, heroId: heroId, tier: tierId, profile: profile, bars: bars, rolls: {}, net: 0, power: 0, cap: cap,
       completion: heroCompletion(heroState, L, heroId) };
     const open = bars.filter(function (b, i) { return L >= (TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i] || 1); });   // v1098: a locked bar cannot move
-    const deltas = prayerDeltas(tierId, open, cur, cap);                               // v1098: roll 1 (+/-) and roll 2 (how much), dealt across the bars
+    const deltas = prayerDeltas(tierId, open, cur, cap, L);                               // v1098: roll 1 (+/-) and roll 2 (how much), dealt across the bars
     bars.forEach(function (bar) {
       const from = Math.min(cap, cur[bar]);
       const to = Math.max(0, Math.min(cap, from + (deltas[bar] | 0)));
@@ -904,7 +917,7 @@
     capSteps: capSteps, profileOf: profileOf, stepValue: stepValue, barValue: barValue, heroSteps: heroSteps,
     heroBars: heroBars, alignSteps: alignSteps, kindStep: kindStep, kindTargets: kindTargets, barName: barName, barIcon: barIcon, barText: barText,
     heroCompletion: heroCompletion, barsOpen: barsOpen, migrateState: migrateState, effectMax: effectMax,
-    pressureChance: pressureChance, rollBar: rollBar, tiersOpen: tiersOpen, bonusPrayerChance: bonusPrayerChance,
+    pressureChance: pressureChance, successChance: successChance, rollBar: rollBar, tiersOpen: tiersOpen, bonusPrayerChance: bonusPrayerChance,
     pray: pray, saveSession: saveSession, discardSession: discardSession,
     freeRitualAvailable: freeRitualAvailable, freeDailyPray: freeDailyPray, useBonusPrayer: useBonusPrayer, grantLevelUps: grantLevelUps,
     claimFreeRitual: claimFreeRitual, nextGoldCost: nextGoldCost, tierGems: tierGems, discountFor: discountFor, prayerTiers: prayerTiers,

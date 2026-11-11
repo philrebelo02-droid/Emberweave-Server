@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.48", "releases": "v1353", "items": [{"text": "Phil 10 Nov: \"i need the rates of success lower\" / \"people are maxing too fast\" / \"the rate of success is meant to reduce depending on the % of completion and temple level\" / \"go with strong\""}]},
     {"ver": "1.5.47", "releases": "v1352", "items": [{"text": "Phil 10 Nov: \"how many buildings do we have to do before i stop reminding you guys\" / \"Show me the art wired\" / \"Push those\" (ChatGPT building packages; Campaign package rejected: \"I dont like the campaign change\")"}, {"text": "Phil 10 Nov: \"ask chatgpt to fix the frames and Guild hall title\" / \"they should all be combined\" / \"but with tabs\""}, {"text": "Phil 10 Nov: \"the panel that holds the items shouldnt look basic\" / \"also the items shouldnt be out of panel\""}]},
     {"ver": "1.5.46", "releases": "v1349", "items": [{"text": "Phil 10 Nov: \"When I clear a stage there shouldnt be 2 rewards screens, instead just put the stage star amount on this victory reward screen. Then when you click collect it sends you to campaign map.\""}, {"text": "Phil 10 Nov: \"Both of these shop item frames look bad\""}]},
     {"ver": "1.5.45", "releases": "v1348", "items": [{"text": "Phil 10 Nov: \"ease 9-10 so level 57 wins 75%\" (after a tester report via Phil: \"Im being told 9-10 is pretty much impossible\")"}]},
