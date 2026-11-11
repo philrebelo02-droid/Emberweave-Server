@@ -633,6 +633,7 @@
   .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
   .ascf-gem svg{width:100%;height:100%;display:block}
   .ascf-st svg{height:100%;width:auto;flex:0 1 auto;min-width:0;filter:drop-shadow(0 1px 1px #000)}
+  .ascf-st svg.hs-big{height:135%;flex-shrink:0}   /* v1369: the bronze 6th star makes the middle star large (REFINE_BIG_SCALE) */
   .rbn{position:absolute;left:0;right:0;bottom:-14.5%;height:36%;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size}
   .rbn span{font-family:Georgia,serif;font-weight:900;font-size:clamp(7px,9.5cqw,15px);color:#fff6e0;text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:74%;letter-spacing:.02em;line-height:1}
   .rbn-mythical span{color:#fff1c2;text-shadow:0 1px 2px #2a0a4a,0 0 6px #c38bff,0 0 2px #000}
@@ -7513,17 +7514,26 @@ function doStarStep(key){ if(!canStarStep(key))return false; if(!G.heroFrag)G.he
   else { G.starPip[key]=starPips(key)+1; }                                                // otherwise fill one pip
   return true; }
 // accumulated FLAT stats from stars: full totals for completed stars + per-pip shares of the in-progress star
-// ---- STAR STAT MULTIPLIER (total stat power vs the 1★ baseline; replaces the old flat per-star bonus) ----
-const STAR_MULT=[1.00,1.15,1.35,1.60,1.90];                    // 1★..5★ whole-star anchors
-const REFINE_ANCHORS=[1.90,2.25,2.65,2.90];                   // 5★ · Bronze-done · Silver-done · Gold-done  (5 refine steps per tier)
-/* v270 (PLAYER-TRUTH): the star/refine curve as a pure function of progression, so the SERVER can
-   compute a hero's multiplier from its own ledger with the client's exact formula. */
-function starMultFrom(lv,pip,rl){ lv=Math.max(1,lv|0); pip=Math.max(0,pip|0); rl=Math.max(0,rl|0);
-  if(lv<MAX_STARS){ const a=STAR_MULT[lv-1], b=STAR_MULT[lv]; return a+(b-a)*(pip/STAR_PIPS); }        // smooth across pips
-  if(rl>=REFINE_MAX) return REFINE_ANCHORS[3];                                                         // fully Gold
-  const seg=Math.floor(rl/5), within=(rl%5)/5; return REFINE_ANCHORS[seg]+(REFINE_ANCHORS[seg+1]-REFINE_ANCHORS[seg])*within; }   // smooth across refine steps
+// ---- v1369 STAR STATS ARE FLAT (Phil 11 Nov 2026: "make sure the stats they gain is flat, not percentage" / "should be pretty much Attack
+//      damage, Ability power, health" / "All flat damage" / "lets go 1000, 1500, 2500, 3500, 5000"; armor + MR "yes add it"). The old STAR_MULT 1.00-1.90 and the refine multiplier are gone: stars 1-5 (pips) and
+//      the star track (6th bronze star, then silver / gold / mythical) add FLAT Health / Attack damage / Ability power, cumulative (1★ = 200/20/20),
+//      linear across the pips / steps inside a stage. server/sim.js STAR_FLAT / REFINE_TIERS[].done mirror these numbers (ONE POWER).
+//      Phil's numbers 11 Nov - he may retune. ----
+const STAR_FLAT=[{hp:240,atk:24,apow:24,armor:24,mr:24},{hp:480,atk:48,apow:48,armor:48,mr:48},{hp:720,atk:72,apow:72,armor:72,mr:72},{hp:960,atk:96,apow:96,armor:96,mr:96},{hp:1200,atk:120,apow:120,armor:120,mr:120}];   // 1★..5★ totals (240 HP / 24 atk / 24 AP / 24 armor / 24 MR a star; Phil "increase the power slightly then" = +20%)
+const STAR_FLAT_KEYS=['hp','atk','apow','armor','mr'];   // Phil 11 Nov: "yes add it" - flat Armor and Magic resist join HP / atk / AP
+/* the flat stats a hero's stars give, as a pure function of progression (the server computes the same from its ledger) */
+function starFlatFrom(lv,pip,rl){ lv=Math.max(1,Math.min(MAX_STARS,lv|0)); pip=Math.max(0,Math.min(STAR_PIPS,pip|0)); rl=Math.max(0,Math.min(REFINE_MAX,rl|0));
+  const lerp=(a,b,f)=>{ const o={}; for(const k of STAR_FLAT_KEYS) o[k]=Math.round(a[k]+(b[k]-a[k])*f); return o; };
+  if(lv<MAX_STARS) return lerp(STAR_FLAT[lv-1],STAR_FLAT[lv],pip/STAR_PIPS);
+  const T5=STAR_FLAT[MAX_STARS-1]; if(rl<=0) return lerp(T5,T5,0);
+  for(let i=0;i<REFINE_ORDER.length;i++){ const T=REFINE_TIERS[REFINE_ORDER[i]], end=REFINE_START[i]+T.steps;
+    if(rl<=end) return lerp(i?REFINE_TIERS[REFINE_ORDER[i-1]].done:T5, T.done, (rl-REFINE_START[i])/T.steps); }
+  const L=REFINE_TIERS[REFINE_ORDER[REFINE_ORDER.length-1]].done; return lerp(L,L,0); }
+function starFlat(key){ return starFlatFrom(heroStars(key), starPips(key), refineLevel(key)); }
+/* v270 kept the name: callers multiply base stats by this. Since v1369 stars are flat, so it is 1 for every hero. */
+function starMultFrom(lv,pip,rl){ return 1; }
 function qualityFromGlyphRank(gr){ return G2_TIER16[Math.max(0,Math.min(15,gr|0))]; }
-function starMult(key){ return starMultFrom(heroStars(key), starPips(key), refineLevel(key)); }
+function starMult(key){ return 1; }   // v1369: stars are FLAT stats (starFlat, through heroFlatHp / heroFlatAtk / heroFlatApow), never a multiplier
 // AUDIT CR-3 (26 Aug): Forge gear now ACTS in battle. gearSockMul mirrors the server's gearHeroFlats
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
@@ -7541,12 +7551,12 @@ function gearSockMul(key){
   return z;
 }
 function sockStatTotal(key){ const g=glyphSockMul(key), f=gearSockMul(key), o={}; for(const k in g) o[k]=(g[k]||0)+(f[k]||0); return o; }
-function heroFlatAtk(key){ return (sockStatTotal(key).atk||0); }   // stars are a MULTIPLIER now (heroStat / makeUnit), not a flat add
-function heroFlatHp(key){ return (sockStatTotal(key).hp||0); }
-function heroFlatApow(key){ return (sockStatTotal(key).apow||0); }   // v241: Ability Power glyphs raise the ABILITY line only
+function heroFlatAtk(key){ return (sockStatTotal(key).atk||0)+starFlat(key).atk; }   // v1369: glyph + gear + STAR flats (stars are flat again, never a multiplier)
+function heroFlatHp(key){ return (sockStatTotal(key).hp||0)+starFlat(key).hp; }
+function heroFlatApow(key){ return (sockStatTotal(key).apow||0)+starFlat(key).apow; }   // v241: Ability Power glyphs raise the ABILITY line only; v1369 + star flats
 function heroPenRating(key){ return (sockStatTotal(key).pen||0); }   // v241: Magic/Armor Penetration rating (counters defense rating)
 function starRow(cur,max){ let s=''; for(let i=1;i<=max;i++) s+=`<span style="font-size:15px;filter:${i<=cur?'none':'grayscale(1) brightness(.5)'}">${uiIcon('star-filled')}</span>`; return s; }
-// SVG star filled left→right by `frac` (0..1) — used to show a star filling like a gauge
+// SVG star filled left→right by `frac` (0..1) — the code-drawn star (kept for any caller outside the hero star row)
 let _starUid=0;
 function starSVG(frac,size,col){ size=size||40; const fill=col||'#ffc23a', stroke=col||'#ffd45e'; const id='s'+(_starUid++); const path="M50 5 L61 38 L96 38 L68 59 L79 93 L50 72 L21 93 L32 59 L4 38 L39 38 Z";
   return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" style="display:inline-block;vertical-align:middle">
@@ -7554,22 +7564,52 @@ function starSVG(frac,size,col){ size=size||40; const fill=col||'#ffc23a', strok
     <path d="${path}" fill="#2a2410" stroke="#6b5a20" stroke-width="5" stroke-linejoin="round"/>
     <g clip-path="url(#c${id})"><rect x="0" y="0" width="${(frac*100).toFixed(1)}" height="100" fill="${fill}"/></g>
     <path d="${path}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linejoin="round" opacity="${frac>0?1:.5}"/></svg>`; }
-// a hero's full star row; the MIDDLE star, once refined, doubles in size and takes the refine tier's colour
-function starFillRow(key,size){ size=size||40; const lv=heroStars(key),pip=starPips(key); const rc=refineColorTier(refineLevel(key)); let s='';
-  for(let i=1;i<=MAX_STARS;i++){
-    if(i===3 && rc){ const lvl=refineLevel(key), base=(rc==='gold'?10:rc==='silver'?5:0), frac=Math.min(1,Math.max(0,(lvl-base)/5));
-      s+=starSVG(frac, Math.round(size*2), REFINE_TIERS[rc].col); continue; }   // refined middle star fills gradually within its tier (like pips before 5★)
-    const frac = i<=lv?1 : (i===lv+1 && lv<MAX_STARS ? pip/STAR_PIPS : 0); s+=starSVG(frac,size);
-  }
+// ---- v1369 STAR TRACK (Phil 11 Nov 2026: "the first 5 bronze is 100%, after 5 star the 6th Star unlocks, you can get the bronze 6th star" /
+//      "after that you can change all the stars to silver, but it takes 6 total pips" / "then again 6 pips of gold" / "then again 6 total pips for
+//      mythical"; chances "50, 35, 20, 10"; costs "50,70,90,110"). Stars 1-5 are BRONZE (star-up, 100%). At 5★ a 6th slot opens:
+//      step 1 = the bronze 6th star (the middle star grows); steps 2-6 turn the five stars silver left to right, 7-11 gold, 12-16 mythical
+//      ("the silver, gold, mythical stars will be only 5 pips"). A failed try still spends. G.starRefine[key] holds the step (0-16); the server owns it (/api/hero/refine) and mirrors this table in server/sim.js (ONE POWER).
+const HERO_STAR_V=1369;   // ?v= of the star art (Game Art/UI/Hero Stars 11NOV2026, ChatGPT 11 Nov) - bump when a file changes
+const HERO_STAR_ART={ empty:'star-empty-v2', bronze:'hero-star-bronze', silver:'hero-star-silver', gold:'hero-star-gold', mythical:'mythical-star-v2' };
+function heroStarUrl(t){ return '/assets/img/ui/hero-stars/'+(HERO_STAR_ART[t]||HERO_STAR_ART.empty)+'.webp?v='+HERO_STAR_V; }
+// one star of the row: `under` art with `top` art clipped to its left `frac` (frac 1 = a whole `top` star). An <svg>, so the card
+// plate's `.ascf-st svg` sizing applies as before.
+function heroStarArt(top,frac,size,under,big){ size=size||40; frac=Math.max(0,Math.min(1,frac)); const id='hs'+(_starUid++);
+  const img=t=>`<image href="${heroStarUrl(t)}" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid meet"/>`;
+  return `<svg${big?' class="hs-big"':''} width="${size}" height="${size}" viewBox="0 0 100 100" style="display:inline-block;vertical-align:middle${big?';filter:drop-shadow(0 0 3px #000) drop-shadow(0 0 2px #ffffff55)':''}">`+
+    (frac<1?img(under||'empty'):'')+
+    (frac>0?(frac<1?`<defs><clipPath id="${id}"><rect x="0" y="0" width="${(frac*100).toFixed(1)}" height="100"/></clipPath></defs><g clip-path="url(#${id})">${img(top)}</g>`:img(top)):'')+
+    `</svg>`; }
+// v1369 display (Phil: "5 stars is just 5 stars" / "the 6th star just makes the middle star BOLD" / "so larger"): the row is ALWAYS five stars.
+// The bronze 6th star (step 1) makes the MIDDLE star large (REFINE_BIG_SCALE) and it stays large. In each colour stage, pip k recolours the
+// star REFINE_PIP_ORDER[k-1]: the outer stars left to right, the large middle star last (pip 5 completes the stage).
+// The mapping is a table so Phil can change it.
+const REFINE_PIP_ORDER=[1,2,4,5,3];   // the star each pip 1..5 of a stage recolours (Phil: "the big star always gets raised last")
+const REFINE_BIG_STAR=3, REFINE_BIG_SCALE=1.35;   // the star that grows with the bronze 6th star, and how much (Phil's sketch 11 Nov: ~1.3-1.4x, sitting in the row)
+function refineStarTiers(lvl){ lvl=Math.max(0,Math.min(REFINE_MAX,lvl|0)); const out=[];
+  for(let s=1;s<=MAX_STARS;s++){ let t='bronze';
+    for(let i=0;i<REFINE_ORDER.length;i++){ const T=REFINE_TIERS[REFINE_ORDER[i]], done=Math.min(T.steps,lvl-REFINE_START[i]);
+      if(T.steps>1&&done>=1&&REFINE_PIP_ORDER.slice(0,done).indexOf(s)>=0) t=REFINE_ORDER[i]; }   // silver / gold / mythical: outer stars left to right, the big star last
+    out.push(t); }
+  return out; }
+// a hero's star row (hero window, Stars panel and the hero card's plate): below 5★ five bronze stars filling pip by pip over the empty star;
+// at 5★ five stars in their stage colours, the middle one large once the bronze 6th star is earned
+function starFillRow(key,size){ size=size||40; const lv=heroStars(key),pip=starPips(key); let s='';
+  if(lv<MAX_STARS){ for(let i=1;i<=MAX_STARS;i++){ const frac=i<=lv?1:(i===lv+1?pip/STAR_PIPS:0); s+=heroStarArt('bronze',frac,size,'empty'); } return s; }
+  const rl=refineLevel(key); refineStarTiers(rl).forEach((t,i)=>{ const big=rl>=1&&i+1===REFINE_BIG_STAR; s+=heroStarArt(t,1,big?Math.round(size*REFINE_BIG_SCALE):size,null,big); });
   return s; }
-// ---- REFINE: once a hero is 5★, its middle star can be refined through Bronze → Silver → Gold.
-//      Each tier needs 5 successful refines; each attempt costs hero fragments and can FAIL (fragments still spent). ----
-const REFINE_MAX=15;   // 1-5 bronze, 6-10 silver, 11-15 gold
-const REFINE_TIERS={ bronze:{get name(){ return ewT('arena.league_bronze'); },col:'#cd7f32',cost:50,chance:0.30}, silver:{get name(){ return ewT('arena.league_silver'); },col:'#cfd3dc',cost:70,chance:0.20}, gold:{get name(){ return ewT('arena.league_gold'); },col:'#ffcf40',cost:100,chance:0.10} };
+const REFINE_ORDER=['bronze','silver','gold','mythical'];
+const REFINE_TIERS={ bronze:{get name(){ return ewT('arena.league_bronze'); },col:'#cd7f32',steps:1,cost:50,chance:0.50,done:{hp:1800,atk:180,apow:180,armor:180,mr:180}},   // done = flat totals from 1★ when the stage is complete
+  silver:{get name(){ return ewT('arena.league_silver'); },col:'#cfd3dc',steps:5,cost:70,chance:0.35,done:{hp:3000,atk:300,apow:300,armor:300,mr:300}},
+  gold:{get name(){ return ewT('arena.league_gold'); },col:'#ffcf40',steps:5,cost:90,chance:0.20,done:{hp:4200,atk:420,apow:420,armor:420,mr:420}},
+  mythical:{get name(){ return ewT('herolist.rarity_mythical'); },col:'#b77de6',steps:5,cost:110,chance:0.10,done:{hp:6000,atk:600,apow:600,armor:600,mr:600}} };
+const REFINE_START=REFINE_ORDER.reduce((a,k,i)=>(a.push(i?a[i-1]+REFINE_TIERS[REFINE_ORDER[i-1]].steps:0),a),[]);   // [0,1,6,11]
+const REFINE_MAX=REFINE_START[REFINE_START.length-1]+REFINE_TIERS[REFINE_ORDER[REFINE_ORDER.length-1]].steps;      // 16
 function refineLevel(key){ return Math.max(0,Math.min(REFINE_MAX,(G.starRefine&&G.starRefine[key])||0)); }
-function refineColorTier(lvl){ return lvl>=11?'gold':lvl>=6?'silver':lvl>=1?'bronze':null; }   // the middle star's current colour
-function refineNextTier(lvl){ return lvl>=15?null:lvl>=10?'gold':lvl>=5?'silver':'bronze'; }     // the tier the NEXT attempt works on
-function refineStepInfo(lvl){ if(lvl>=15) return {tier:null,step:5,of:5}; if(lvl>=10) return {tier:'gold',step:lvl-10,of:5}; if(lvl>=5) return {tier:'silver',step:lvl-5,of:5}; return {tier:'bronze',step:lvl,of:5}; }
+function refineTierIndex(lvl){ lvl=Math.max(0,Math.min(REFINE_MAX,lvl|0)); for(let i=0;i<REFINE_ORDER.length;i++) if(lvl<REFINE_START[i]+REFINE_TIERS[REFINE_ORDER[i]].steps) return i; return -1; }
+function refineNextTier(lvl){ const i=refineTierIndex(lvl); return i<0?null:REFINE_ORDER[i]; }     // the tier the NEXT try works on
+function refineStepInfo(lvl){ const i=refineTierIndex(lvl); if(i<0){ const L=REFINE_TIERS[REFINE_ORDER[REFINE_ORDER.length-1]]; return {tier:null,step:L.steps,of:L.steps}; }
+  return {tier:REFINE_ORDER[i],step:Math.max(0,lvl|0)-REFINE_START[i],of:REFINE_TIERS[REFINE_ORDER[i]].steps}; }
 function canRefine(key){ return heroStars(key)>=MAX_STARS && refineLevel(key)<REFINE_MAX; }
 /* v273 (audit response P0): the old client-side doRefine() — which spent fragments and decided a
    PERMANENT power upgrade with a bare Math.random() in the browser — is DELETED. It was already
@@ -7715,8 +7755,9 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;
   const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat;
   const atkM = (t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0;   /* v1099: Academy AP is a flat */
-  const armor= heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + (tt.armor||0)*3 + TBF.armorFlat;
-  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + (tt.mr||0)*3 + TBF.mrFlat;
+  const _sf=starFlat(key);   // v1369: star Armor / MR are flat rating points (x1), = the server core's armorRating / mrRating
+  const armor= heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat;
+  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   let ehp    = hp/Math.max(0.15,1-mitig);
@@ -11704,8 +11745,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   // bonus, attack speed, haste (energy), shield strength. Same conversions as the server core.
   { const tt=S?(S.tt||{}):(owned?sockStatTotal(key):{});
     u.lvl=lvl;   // v401: mitigation constant scales with level, so the unit must carry it
-    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techArmorFlat():0)) + ((tt.armor||0)*3) + TBF.armorFlat;
-    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techMrFlat():0)) + ((tt.mr||0)*3) + TBF.mrFlat;
+    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techArmorFlat()+starFlat(key).armor:0)) + ((tt.armor||0)*3) + TBF.armorFlat;   // v1369: + star armor (the server spec's techArmor carries it)
+    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techMrFlat()+starFlat(key).mr:0)) + ((tt.mr||0)*3) + TBF.mrFlat;
     u.armorPen=(tt.armorPen||0)+TBF.armorPenFlat; u.magicPen=(tt.magicPen||0)+TBF.magicPenFlat;
     u.critDmg=0.6+((tt.critDmg||0)*0.0005); /* v1020 (Phil 4 Oct: 'all of them 20 = 1%') */
     u.defenseStat=Math.min(0.6,((tt.defense||0)+(TBF.defenseFlat||0))*0.0005);   /* Academy v2 (11 Oct, Phil): DEFENSE rating - 20 points = 1%, cap 60%, takes that much off an attacker's crit CHANCE ("defense = crit% reduction"); sources: glyphs, equipment, prayer, future - none give it yet */
@@ -26689,10 +26730,10 @@ function seededTeam(seed){ const arr=[]; const lv=Math.max(1,playerLevel()); for
    crit damage, damage bonus and the AP role weighting, and came out about 30% light. */
 function cardPowerFor(key, level, stars){
   const t=HERO_TYPES[key]; if(!t) return 0;
-  const lv=Math.max(1,level|0), b=baseAtLevel(t,lv), sm=starMultFrom(stars||t.stars||1,0,0);
-  const hp=Math.round(b.hp*sm), atkP=Math.round(b.dmg*sm);
-  const atkM=(b.apow||0)>0?Math.round(b.apow*sm):0;
-  const armor=(b.armor||0)*sm, mr=(b.mr||0)*sm;
+  const lv=Math.max(1,level|0), b=baseAtLevel(t,lv), sm=starMultFrom(stars||t.stars||1,0,0), SF=starFlatFrom(stars||t.stars||1,0,0);   // v1369: stars are flat
+  const hp=Math.round(b.hp*sm)+SF.hp, atkP=Math.round(b.dmg*sm)+SF.atk;
+  const atkM=(b.apow||0)>0?Math.round(b.apow*sm)+SF.apow:0;
+  const armor=(b.armor||0)*sm+SF.armor, mr=(b.mr||0)*sm+SF.mr;   // v1369: star armor / MR are flat
   const mitig=Math.min(0.85,(defToDR(armor,lv)+defToDR(mr,lv))/2 + (t.dr||0));
   const ehp=hp/Math.max(0.15,1-mitig);
   const apW=(t.role==='Mage'||t.role==='Support')?1.5:0.5;
@@ -29803,6 +29844,9 @@ function renderHeroList(){
 function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:13000;display:flex;align-items:stretch;justify-content:flex-end';
   const fIcon = fragCard(key,16);
+  /* v1369 (ChatGPT check, Fold 882x344: the Refine button was cut at the bottom on first view): after every render the drawer scrolls just
+     enough to show the action button whole (scrollIntoView 'nearest' - no move when it already fits) */
+  function spShowBtn(){ try{ const b=ov.querySelector('#spRefine')||ov.querySelector('#spStar'); if(b&&b.isConnected) b.scrollIntoView({block:'nearest',inline:'nearest'}); }catch(e){} }
   function render(pendingMsg,msgCol){
     const st=heroStars(key), pips=starPips(key), ncost=starNextCost(key), canStar=canStarStep(key), conf=starIsConfirm(key);
     const rl=refineLevel(key), si=refineStepInfo(rl), nextTier=refineNextTier(rl), frags=heroFrag(key);
@@ -29814,8 +29858,8 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       : `<div style="background:#0f1420;border-radius:10px;padding:10px;margin-bottom:10px;text-align:center"><span style="color:#ffd45e;font-weight:800">${uiIcon('star-filled')} ${ewT('hero.stars_max')} ${uiIcon('star-filled')}</span></div>`;
     let refineBlock='';
     if(st<MAX_STARS){ refineBlock=`<div style="font-size:11px;color:#6f7d90;text-align:center;padding:8px">${ewT('hero.reach_5_stars',{icon:uiIcon('star-filled')})}</div>`; }
-    else if(rl>=REFINE_MAX){ refineBlock=`<div style="background:linear-gradient(160deg,#3a2f12,#241d0c);border:1px solid #ffcf40;border-radius:10px;padding:12px;text-align:center">
-        <div style="font-weight:800;color:#ffcf40">${uiIcon('sparkle-new')} ${ewT('hero.fully_refined')}</div><div style="font-size:11px;color:#cdd6e4;margin-top:4px">${ewT('hero.middle_star_maxed')}</div></div>`; }
+    else if(rl>=REFINE_MAX){ const TM=REFINE_TIERS[REFINE_ORDER[REFINE_ORDER.length-1]]; refineBlock=`<div style="background:linear-gradient(160deg,#2c1a40,#1a1026);border:1px solid ${TM.col};border-radius:10px;padding:12px;text-align:center">
+        <div style="font-weight:800;color:${TM.col}">${uiIcon('sparkle-new')} ${ewT('hero.refinement',{tier:TM.name})} ${si.step}/${si.of}</div><div style="font-size:11px;color:#cdd6e4;margin-top:4px">${ewT('tech.fully_upgraded')}</div></div>`; }
     else { const T=REFINE_TIERS[nextTier], failPct=Math.round((1-T.chance)*100), sucPct=Math.round(T.chance*100), afford=frags>=T.cost;
       refineBlock=`<div style="background:#0f1420;border:1px solid ${T.col}66;border-radius:10px;padding:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:13px;color:${T.col}">${ewT('hero.refinement',{tier:T.name})}</b><span style="font-size:11px;color:#8b98a9">${si.step}/${si.of}</span></div>
@@ -29832,6 +29876,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       ${starBlock}${refineBlock}
       <div id="spMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${pendingMsg?`<span style="color:${msgCol||'#8b98a9'}">${pendingMsg}</span>`:''}</div></div>`;
     ov.querySelector('#spX').onclick=()=>ov.remove();
+    spShowBtn();
     const sp=ov.querySelector('#spStar'); if(sp) sp.onclick=async()=>{ if(!canStarStep(key))return;
       const r=await apiOnce('herospend','/api/hero/star-step',{heroKey:key}); if(r&&r.busy) return;
       if(r&&r.ok){ adoptLedger(r.ledger); render(); if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); }
@@ -29843,7 +29888,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       render(r.success?uiIcon('sparkle-new')+' '+ewT('hero.refine_success'):statusIcon('crit-burst')+' '+ewT('hero.refine_failed_lost'), r.success?'#5ee89b':'#ff8b8b');
       if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); };
   }
-  render(); document.body.appendChild(ov);
+  render(); document.body.appendChild(ov); spShowBtn();
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
 }
 /* ================= GLYPH ASCENSION v2 — client (render-only, server-authoritative) =================
@@ -30232,8 +30277,8 @@ function renderHeroDetail(){
        points ×3 (makeUnit) — and what it is worth as damage reduction. It used to ignore glyphs and gear
        entirely, so an Orange hero read "Armor 0". */
     const _tt=sockStatTotal(key);
-    const armorFlat=Math.round(heroStat(key,t.armor||0,'armor')+techArmorFlat()+(_tt.armor||0)*3);
-    const mrFlat=Math.round(heroStat(key,t.mr||0,'mr')+techMrFlat()+(_tt.mr||0)*3);
+    const armorFlat=Math.round(heroStat(key,t.armor||0,'armor')+techArmorFlat()+starFlat(key).armor+(_tt.armor||0)*3);   // v1369: + star armor / MR
+    const mrFlat=Math.round(heroStat(key,t.mr||0,'mr')+techMrFlat()+starFlat(key).mr+(_tt.mr||0)*3);
     const _pct=v=>' <span style="color:#8b98a9;font-weight:500">('+Math.round(defToDR(v,(typeof key!=='undefined'&&key)?heroLevel(key):1)*100)+'%)</span>';
     const regenStr=(mul.regen||0)>0?Math.round(S_HP*mul.regen)+' /s':'—';   // flat HP/s (tanks show a real number)
     const enrStr=(mul.energyReg||0)>0?'+'+(mul.energyReg).toFixed(1)+' /s':'—';   // flat energy/s

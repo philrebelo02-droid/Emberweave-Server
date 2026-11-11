@@ -7,15 +7,15 @@ function ck(name,ok,detail){ if(ok){pass++;console.log('  ✓ '+name);}else{fail
 
 const sim=require('../server/sim.js');
 const ref0=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:0});
-const ref15=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:15});
-const expected=2.90/1.90;
-for(const k of ['maxHp','atkP','armor','mr']){
-  const got=ref15[k]/ref0[k];
-  // atkP/maxHp are rounded integers: the honest tolerance is ONE rounding unit at the base value (v1022: Vael's base Attack is 170,
-  // so 170 x 2.90/1.90 = 259.47 rounds to 259 - a 0.0029 ratio miss that a fixed 0.002 called a wrong multiplier)
-  const tolerance=(k==='armor'||k==='mr')?1e-9:Math.max(0.002,0.5/ref0[k]+1e-9);
-  ck('refinement scales '+k+' with the same multiplier',Math.abs(got-expected)<tolerance,'got '+got+' expected '+expected);
-}
+const ref19=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:16});
+/* v1369 (Phil 11 Nov 2026: "make sure the stats they gain is flat, not percentage" / "All flat damage"): the star track (6th bronze star,
+   silver, gold, mythical) adds FLAT Health / Attack damage / Ability power - step 16 = 6000/600/600 total, 5 stars = 1200/120/120 -
+   and the same series of flat Armor / Magic Resist (Phil "yes add it"; +20% "increase the power slightly": 5 stars = 120, step 16 = 600). */
+{ const d=sim.starFlatFrom(5,0,16), c=sim.starFlatFrom(5,0,0);
+  ck('the star track adds flat Health (+'+(d.hp-c.hp)+')',ref19.maxHp-ref0.maxHp===d.hp-c.hp,'got '+(ref19.maxHp-ref0.maxHp));
+  ck('the star track adds flat Attack damage (+'+(d.atk-c.atk)+')',ref19.atkP-ref0.atkP===d.atk-c.atk,'got '+(ref19.atkP-ref0.atkP));
+  ck('the star track adds flat Armor (+'+(d.armor-c.armor)+')',Math.abs(ref19.armor-ref0.armor-(d.armor-c.armor))<1e-9,'got '+(ref19.armor-ref0.armor));
+  ck('the star track adds flat Magic Resist (+'+(d.mr-c.mr)+')',Math.abs(ref19.mr-ref0.mr-(d.mr-c.mr))<1e-9,'got '+(ref19.mr-ref0.mr)); }
 /* v1094 (Temple of Ash v2): the bars are FLAT stats on the glyph-flat ratings path (was +20 % of HP / Attack for a full class bar) */
 const temple=require('../server/temple-of-ash.js'),effects=require('../server/temple-effects.js');
 const templeHero={steps:{health:200,attack:200,armorMr:0,pen:0},boonsUnlocked:[false,false,false,false,false]};

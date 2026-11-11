@@ -99,7 +99,7 @@ if(Object.keys(HERO_PROFILES).length!==Object.keys(HERO_BASE).length) throw new 
 const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
   Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:22}, Support:{armor:22,mr:22} };   /* v1022 (Phil 4 Oct: squishies "certainly shouldnt be tanky"): Mage mr 40 -> 22, Support 38 -> 22 (40 is the Tank base) */
 for(const k in HERO_BASE){ const t=HERO_BASE[k], d=ROLE_BASE_DEF[t.role]||ROLE_BASE_DEF.Bruiser; if(t.armor==null) t.armor=d.armor; if(t.mr==null) t.mr=d.mr; }
-const STAR_MULT=[1,1.15,1.35,1.6,1.9], STAR_PIPS=5, MAX_STARS=5;
+const STAR_PIPS=5, MAX_STARS=5;   // v1369: no star multiplier any more - stars add FLAT stats (starFlatFrom below)
 const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Assassin:2,Marksman:3,Mage:4,Support:5,Control:5};
 
 // ---- deterministic PRNG (same mulberry32 the client uses) ----
@@ -109,9 +109,41 @@ function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.
 function seedFrom(str){ // FNV-1a → uint32; stable across processes
   let h=0x811c9dc5; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,0x01000193); } return h>>>0; }
 
-function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0)), p=Math.max(0,Math.min(STAR_PIPS,pips|0));
-  if(lv>=MAX_STARS) return STAR_MULT[MAX_STARS-1];
-  const a=STAR_MULT[lv-1], b=STAR_MULT[lv]; return a+(b-a)*(p/STAR_PIPS); }
+/* v1369 STAR TRACK (Phil 11 Nov 2026: "the first 5 bronze is 100%, after 5 star the 6th Star unlocks, you can get the bronze 6th star" /
+   "after that you can change all the stars to silver, but it takes 6 total pips" / "then again 6 pips of gold" / "then again 6 total pips for
+   mythical"; chances "50, 35, 20, 10"; costs "50,70,90,110"; "make sure the stats they gain is flat, not percentage" / "should be pretty much
+   Attack damage, Ability power, health" / "All flat damage" / armor + MR: "yes add it" / "first 5 stars should be like 1k HP 100 attack damage and ability power" /
+   "lets go 1000, 1500, 2500, 3500, 5000").
+   "I guess this means the silver, gold, mythical stars will be only 5 pips".
+   Stars 1-5 (star-up pips) and the star track (led.hero[k].ref = STEP 0..16: 1 = the bronze 6th star; 2-6 turn the five stars silver left to
+   right, 7-11 gold, 12-16 mythical) add FLAT Health / Attack damage / Ability power / Armor / Magic resist - no multiplier anywhere. The tables are the CUMULATIVE
+   totals (1★ = 200/20/20); linear across the pips / steps inside a stage. They go in beside gear flats (R.hpFlat / atkFlat / apowFlat).
+   Mirrors the client's STAR_FLAT / REFINE_TIERS in emberweave-heroes.html exactly (ONE POWER). Phil's numbers 11 Nov - he may retune. */
+const STAR_FLAT=[ {hp:240,atk:24,apow:24,armor:24,mr:24}, {hp:480,atk:48,apow:48,armor:48,mr:48}, {hp:720,atk:72,apow:72,armor:72,mr:72}, {hp:960,atk:96,apow:96,armor:96,mr:96}, {hp:1200,atk:120,apow:120,armor:120,mr:120} ];   // 1★..5★ totals (240 HP / 24 atk / 24 AP / 24 armor / 24 MR a star; Phil "increase the power slightly then" = +20%)
+const REFINE_TIERS=[
+  {tier:'bronze',  steps:1, cost:50,  chance:0.50, done:{hp:1800,atk:180,apow:180,armor:180,mr:180}},    // the bronze 6th star
+  {tier:'silver',  steps:5, cost:70,  chance:0.35, done:{hp:3000,atk:300,apow:300,armor:300,mr:300}},
+  {tier:'gold',    steps:5, cost:90,  chance:0.20, done:{hp:4200,atk:420,apow:420,armor:420,mr:420}},
+  {tier:'mythical',steps:5, cost:110, chance:0.10, done:{hp:6000,atk:600,apow:600,armor:600,mr:600}} ];
+const STAR_FLAT_KEYS=['hp','atk','apow','armor','mr'];   // Phil 11 Nov: "yes add it" - flat Armor and Magic resist join HP / atk / AP
+const REFINE_START=REFINE_TIERS.reduce((a,t,i)=>(a.push(i?a[i-1]+REFINE_TIERS[i-1].steps:0),a),[]);   // [0,1,6,11]
+const REFINE_MAX=REFINE_START[REFINE_START.length-1]+REFINE_TIERS[REFINE_TIERS.length-1].steps;          // 16
+const REFINE_TRACK_V=2;                              // led.refTrack: ledgers on this track (old ref 0-15 = middle-star refine, migrated once)
+function refineClamp(r){ return Math.max(0,Math.min(REFINE_MAX,r|0)); }
+function refineTierIndex(lvl){ lvl=refineClamp(lvl); for(let i=0;i<REFINE_TIERS.length;i++) if(lvl<REFINE_START[i]+REFINE_TIERS[i].steps) return i; return -1; }
+function refineTierAt(lvl){ const i=refineTierIndex(lvl); return i<0?null:REFINE_TIERS[i]; }   // the tier the NEXT try works on (null = fully upgraded)
+/* the flat Health / Attack damage / Ability power a hero's stars give (whole numbers) */
+function starFlatFrom(stars,pips,ref){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0)), p=Math.max(0,Math.min(STAR_PIPS,pips|0)), r=refineClamp(ref);
+  const lerp=(a,b,f)=>{ const o={}; for(const k of STAR_FLAT_KEYS) o[k]=Math.round(a[k]+(b[k]-a[k])*f); return o; };
+  if(lv<MAX_STARS) return lerp(STAR_FLAT[lv-1],STAR_FLAT[lv],p/STAR_PIPS);
+  if(r<=0) return lerp(STAR_FLAT[MAX_STARS-1],STAR_FLAT[MAX_STARS-1],0);
+  for(let i=0;i<REFINE_TIERS.length;i++){ const T=REFINE_TIERS[i], end=REFINE_START[i]+T.steps;
+    if(r<=end) return lerp(i?REFINE_TIERS[i-1].done:STAR_FLAT[MAX_STARS-1], T.done, (r-REFINE_START[i])/T.steps); }
+  return lerp(REFINE_TIERS[REFINE_TIERS.length-1].done,REFINE_TIERS[REFINE_TIERS.length-1].done,0); }
+/* old middle-star refine (0-15: 1-5 bronze, 6-10 silver, 11-15 gold) -> a step on the new track; nobody loses tier progress
+   (old 5 -> 1 bronze 6th star, old 10 -> 6 silver done, old 15 -> 11 gold done) */
+function refineFromOld(r){ r=Math.max(0,Math.min(15,r|0)); if(r<=0) return 0; if(r<=5) return 1;
+  if(r<=10) return 1+(r-5); return 6+(r-10); }
 
 /* Resolve one hero's server-owned combat stats.
    opts: { level, stars, pips, glyph:{hp,atk,heal}, dr, crit, critRes, energyReg } — server-derived.
@@ -153,22 +185,17 @@ function heroCombatStats(key, opts){
   const b=HERO_BASE[key]; if(!b) return null;
   opts=opts||{};
   const level=Math.max(1,Math.min(200,(opts.level|0)||1));
-  const stars=(opts.stars|0)||b.stars, pips=(opts.pips|0)||0, ref=Math.max(0,Math.min(15,opts.ref|0));
-  let smul=starMultFor(stars,pips);
-  if(stars>=5&&ref>0){ const A=[1.90,2.25,2.65,2.90];
-    smul = ref>=15 ? A[3] : A[Math.floor(ref/5)]+(A[Math.floor(ref/5)+1]-A[Math.floor(ref/5)])*((ref%5)/5); }
-  // v401: growth is baked into the base by baseAtLevel(); the only multiplier left is the star mult,
-  // exactly as the client does it (heroStat = baseAtLevel(t,lvl) * starMult(key)).
+  const stars=(opts.stars|0)||b.stars, pips=(opts.pips|0)||0, ref=refineClamp(opts.ref);
+  // v1369 (Phil: "All flat damage"): no star multiplier - stars and the star track are FLAT stats (starFlatFrom), added to the ratings below
   const bl=baseAtLevel(b,level);
-  const mul=smul;
-  // Refinement is part of the same progression multiplier as stars/pips. The client applies the
-  // refined multiplier to Armor and Magic Resist too; using the unrefined star multiplier here made
-  // authoritative Arena, city and Guild War snapshots weaker than the playable client battle.
-  const defScale=smul;
+  const mul=1, defScale=1;
   // v242: RAW TYPED RATINGS in (snapshotHeroFromServer), typed core unit out. Legacy callers that
   // still pass {glyph:{hp,atk,apow,heal}} get those as flats with no ratings.
-  const R=opts.ratings || (opts.glyph?{hpFlat:opts.glyph.hp|0,atkFlat:opts.glyph.atk|0,apowFlat:opts.glyph.apow|0,healFlat:opts.glyph.heal|0}:{});
-  const u=CORE.buildUnit(key, bl, mul, defScale, R, Object.assign({level:level, gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null}, opts.extra||{}));
+  let R=opts.ratings || (opts.glyph?{hpFlat:opts.glyph.hp|0,atkFlat:opts.glyph.atk|0,apowFlat:opts.glyph.apow|0,healFlat:opts.glyph.heal|0}:{});
+  const SF=starFlatFrom(stars,pips,ref); R=Object.assign({},R,{ hpFlat:(R.hpFlat||0)+SF.hp, atkFlat:(R.atkFlat||0)+SF.atk, apowFlat:(R.apowFlat||0)+SF.apow });   // v1369: star flats, beside gear
+  const EX=Object.assign({level:level, gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null}, opts.extra||{});
+  EX.armorRating=(EX.armorRating||0)+SF.armor; EX.mrRating=(EX.mrRating||0)+SF.mr;   // v1369: star Armor / MR are flat RATING points (x1, like Academy armor), not glyph points (x3)
+  const u=CORE.buildUnit(key, bl, mul, defScale, R, EX);
   u.level=level;
   /* v726 - the star rating travels with the unit. heroCombatStats knows it (it is what builds the
      star multiplier) but was throwing it away, and the war log needs it to draw a hero card with
@@ -225,5 +252,6 @@ function resolveTwoWaveBattle(teamSnaps, enemyWaveSnaps, seed){
   return { result:{won:true}, waveResults };
 }
 
-module.exports={ HERO_BASE, HERO_PROFILES, PURPLE_FURY, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
+module.exports={ HERO_BASE, HERO_PROFILES, PURPLE_FURY, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE,
+  STAR_FLAT, STAR_FLAT_KEYS, REFINE_TIERS, REFINE_START, REFINE_MAX, REFINE_TRACK_V, refineClamp, refineTierIndex, refineTierAt, starFlatFrom, refineFromOld };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
 

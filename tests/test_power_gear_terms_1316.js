@@ -36,13 +36,19 @@ const SNEW = loadServer(fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8'));
 const SOLD = loadServer(show('server.js').toString('utf8'));
 const host = f => require(path.join(ROOT, 'server', 'sim-host.js')).load(f);
 const CNEW = host(path.join(ROOT, 'emberweave-heroes.html'));
-const oldHtml = path.join(ROOT, '.test-1316-power-live.html'); temps.push(oldHtml); fs.writeFileSync(oldHtml, show('emberweave-heroes.html'));
+/* v1369 (Phil 11 Nov 2026, star track approved): stars are FLAT stats now, not a multiplier. The live baseline is given the same flat star
+   track (tests/helpers/star-track-1369.js, numbers from server/sim.js), so every check below still isolates its own term; the in-process
+   live server already prices with this build's server/sim.js (it requires the worktree's sim). COLD_RAW = the untouched live page (CONTROL). */
+const STAR1369 = require('./helpers/star-track-1369.js');
+const oldHtml = path.join(ROOT, '.test-1316-power-live.html'); temps.push(oldHtml); fs.writeFileSync(oldHtml, STAR1369.starTrackPage(show('emberweave-heroes.html').toString('utf8')));
 const COLD = host(oldHtml);
+const rawHtml = path.join(ROOT, '.test-1316-power-live-raw.html'); temps.push(rawHtml); fs.writeFileSync(rawHtml, show('emberweave-heroes.html'));
+const COLD_RAW = host(rawHtml);
 const R = (h, c) => vm.runInContext(c, h.ctx);
 const SIM = require('../server/sim.js');
 const CAT = JSON.parse(fs.readFileSync(path.join(ROOT, 'server', 'gear-catalog.json'), 'utf8'));
 const KEYS = Object.keys(SIM.HERO_BASE);
-for (const C of [CNEW, COLD]) R(C, 'FORGE.cat=' + JSON.stringify({ items: CAT.items }) + ';');
+for (const C of [CNEW, COLD, COLD_RAW]) R(C, 'FORGE.cat=' + JSON.stringify({ items: CAT.items }) + ';');
 
 /* gear loadouts (slot -> catalog id); every item at TEMPER, resonance rank from the catalog thresholds (= server gearResonanceRank) */
 const THREE = ['critRes', 'healPow', 'armorPen', 'magicPen'];
@@ -100,6 +106,10 @@ const states = key => { const out = [], b = SIM.HERO_BASE[key].stars || 1;
   for (const level of LEVELS) for (const ac of [0, 60]) for (const gear of Object.keys(SETS)) out.push({ level, stars: level === 1 ? b : 5, ac, gear });
   return out; };
 
+console.log('== 0. star track baseline (v1369) ==');
+{ const st = { level: 100, stars: 5, passive: 1, asc: 0, heal: 0, critres: 0, ac: 0, gear: 'none' }, c = cPow(CNEW, 'vael', st), o = cPow(COLD, 'vael', st), r = cPow(COLD_RAW, 'vael', st);
+  ck('CONTROL: the untouched live page prices a 5-star hero differently (star multiplier 1.9x, no flats): ' + r + ' vs this build ' + c, r !== c && R(COLD_RAW, 'starMultFrom(5,0,0)') === 1.9);
+  ck('the baseline carries this build flat star track: starMult = 1 and the same 5-star flats (' + o + ')', R(COLD, 'starMultFrom(5,0,0)') === 1 && R(COLD, 'JSON.stringify(starFlat1369("vael"))') === R(CNEW, 'JSON.stringify(starFlat("vael"))')); }
 console.log('== 1. client card = server card ==');
 const CACHE = new Map();   // key|state -> [cNew, sNew, cOld, sOld]
 const all = (key, st) => { const k = key + '|' + JSON.stringify(st); if (!CACHE.has(k)) CACHE.set(k, [cPow(CNEW, key, st), sPow(SNEW, key, st), cPow(COLD, key, st), sPow(SOLD, key, st)]); return CACHE.get(k); };

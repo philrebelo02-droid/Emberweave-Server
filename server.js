@@ -1988,9 +1988,9 @@ function snapshotHeroFromServer(u, key, save, sOpts){
   try{ if(u && !(u.led && u.led.migratedAt)) ensureLedger(u); }catch(e){}
   let lvl,stars,pips;
   let refLvl=0;
-  if(u&&u.led&&u.led.migratedAt){ const led=u.led, h=led.hero[key]||{xp:0,stars:base.stars,pips:0};
+  if(u&&u.led&&u.led.migratedAt){ ledRefTrack(u.led); const led=u.led, h=led.hero[key]||{xp:0,stars:base.stars,pips:0};
     lvl=ledHeroLevel(led,key);
-    stars=Math.max(base.stars,Math.min(5,h.stars|0)); pips=Math.max(0,Math.min(5,h.pips|0)); refLvl=Math.max(0,Math.min(15,h.ref|0));
+    stars=Math.max(base.stars,Math.min(5,h.stars|0)); pips=Math.max(0,Math.min(5,h.pips|0)); refLvl=SIM.refineClamp(h.ref);
   } else {
     /* v274 (hardening directive §2.5) — THE FALLBACK IS DELETED, NOT LEFT UNREACHABLE.
        This branch used to rebuild a hero from the uploaded browser save. It was unreachable in
@@ -3569,7 +3569,7 @@ function banInfo(u){
    A WHITELIST built field by field from the server's ledger: no hash / salt / token / email / IP / device / save blob ever leaves. */
 function adminNodeLabel(n){ n=n|0; return n>0?(Math.ceil(n/10)+'-'+(((n-1)%10)+1)):'none'; }
 function adminPlayerInfo(u){
-  const now=Date.now(), led=(u.led&&u.led.migratedAt)?u.led:null;
+  const now=Date.now(), led=(u.led&&u.led.migratedAt)?u.led:null; if(led) ledRefTrack(led);
   const out={ identity:{ id:u.id, name:u.name, server:SERVER_ID||String(process.env.SERVER_NAME||''), created:u.created||0, lastSeen:u.lastSeen||0,
       signedIn:!u.guest, guest:!!u.guest, hasEmail:!!u.email, dev:isDev(u), ban:banInfo(u) }, ledger:!!led };
   const g=u.guildId&&(DB.guilds||{})[u.guildId];
@@ -3630,10 +3630,17 @@ function liftBan(u, by){ u.bannedUntil=0; u.banReason=''; u.ban=null;
   u.banLog=Array.isArray(u.banLog)?u.banLog:[]; u.banLog.push({t:Date.now(),lift:true,by:String(by||'').slice(0,60)}); if(u.banLog.length>50) u.banLog=u.banLog.slice(-50); }
 function isBanned(u){ return !!(u && (u.bannedUntil||0) > Date.now()); }
 
+/* v1369 STAR TRACK: a ledger from before the track holds the OLD middle-star refine (0-15: 1-5 bronze, 6-10 silver, 11-15 gold).
+   Moved ONCE onto the new 0-19 track (SIM.refineFromOld) and marked led.refTrack, so it can never run twice. Every reader of
+   led.hero[k].ref goes through ensureLedger or calls this first. */
+function ledRefTrack(led){ if(!led||!led.hero||led.refTrack===SIM.REFINE_TRACK_V) return false;
+  for(const k of Object.keys(led.hero)){ const h=led.hero[k]; if(h&&typeof h==='object'&&h.ref!=null){ const was=h.ref|0, now=SIM.refineFromOld(was); if(now!==was) h.ref=now; } }
+  led.refTrack=SIM.REFINE_TRACK_V; return true; }
 function ensureLedger(u){
 
   if(u.led && u.led.migratedAt){
     if(!u.led.temple) u.led.temple=TEMPLE.newState();
+    if(ledRefTrack(u.led)) try{ _touch(u.id); }catch(e){}
     return u.led;
   }
   // AUDIT v229 (P0): only accounts that EXISTED before the v227 transformation may seed their
@@ -3662,7 +3669,7 @@ function ensureLedger(u){
      the starter instead: a fresh player gets the starter, a guest who earned keeps their earnings,
      and a guest who spent down is topped back up (harmless, and in the player's favour). */
   const STARTER_GOLD=1000, STARTER_GEMS=300;
-  const led={ v:1, migratedAt:Date.now(), rev:1,
+  const led={ v:1, migratedAt:Date.now(), rev:1, refTrack:SIM.REFINE_TRACK_V,
     gold:Math.max(0,Math.min(ECON_CAP.gold, Math.floor(Number(sv.gold)||0))),
     gems:Math.max(0,Math.min(ECON_CAP.gems, Math.floor(Number(sv.gems)||0))),
     px:Math.max(0,Math.min(99000000,(sv.playerXP|0)||0)),
@@ -3676,7 +3683,7 @@ function ensureLedger(u){
     if(anyx>0||un[k]||STARTER_HEROES.includes(k)) led.unlocked[k]=true;
     led.hero[k]={ xp:Math.max(0,Math.min(99000000,anyx)),
       stars:Math.max(SIM.HERO_BASE[k].stars,Math.min(5,(st[k]|0)||SIM.HERO_BASE[k].stars)),
-      pips:Math.max(0,Math.min(5,(sp[k]|0)||0)), ref:Math.max(0,Math.min(15,(rf[k]|0)||0)) };
+      pips:Math.max(0,Math.min(5,(sp[k]|0)||0)), ref:SIM.refineFromOld((rf[k]|0)||0) };   // v1369: a pre-ledger save holds the OLD 0-15 middle-star refine - moved onto the star track (tops out at gold done, 11)
     if((fr[k]|0)>0) led.frags[k]=Math.min(9999,fr[k]|0);
   }
   const ss=sv.stageStars||{}; for(const n in ss){ const v=ss[n]|0; if(v>=1&&v<=3) led.camp.stars[n]=v; }
@@ -4229,6 +4236,7 @@ function campaignHeroSpec(u,key){
   const led=ensureLedger(u); ledSkillImport(u);
   const base=SIM.HERO_BASE[key]; if(!base) return null;
   const h=led.hero[key]||{xp:0,stars:base.stars,pips:0,ref:0};
+  const SF=SIM.starFlatFrom(Math.max(base.stars,Math.min(5,h.stars|0)),Math.max(0,Math.min(5,h.pips|0)),SIM.refineClamp(h.ref));   // v1369: stars are FLAT (= the core's ratings, the client's heroFlat*)
   glyphPersonalMigrate(u);
   const glyphStats=glyphFlatStats(u,key),personalStats=personalAscensionFlatStats(u,key);
   const fl=Object.assign({},glyphStats);
@@ -4255,7 +4263,7 @@ function campaignHeroSpec(u,key){
       params:d.activeParams||null, desc:d.effect||'' }; }
   return {
     key, level:ledHeroLevel(led,key),
-    stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:Math.max(0,Math.min(15,h.ref|0)),
+    stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:SIM.refineClamp(h.ref),
     glyphRank:Math.max(0,Math.min(16,(board&&board.ascensionIndex)|0)),
     tt,
     /* Academy research and Temple effects are server-owned and reach the frozen fight spec.
@@ -4263,8 +4271,8 @@ function campaignHeroSpec(u,key){
     ex:{ techCrit:AC?AC.critRating:0, techCritRes:AC?AC.critResRating:0,   /* v1099: crit / crit resist RATINGS (mulsFromTotals x 0.0005) */
          techHeal:AC?(AC.healRating||0):0,   /* Academy v2 (11 Oct): Healing & Shielding rating -> healPow (mulsFromTotals); techHeal below -> shieldStrMul */
          equip:{} },
-    fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow+((AC&&(((SIM.HERO_BASE[key]||{}).apow||0)>0||ledHeroLevel(led,key)>1))?AC.apFlat:0),   /* = the core: AP flats only where the hero has an ability line (base or level growth) */
-    techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0, techHeal:AC?(AC.healRating||0):0,
+    fAtk:tt.atk+SF.atk+(AC?AC.atkFlat:0), fHp:tt.hp+SF.hp+(AC?AC.hpFlat:0), fApow:tt.apow+((((SIM.HERO_BASE[key]||{}).apow||0)>0||ledHeroLevel(led,key)>1)?SF.apow:0)+((AC&&(((SIM.HERO_BASE[key]||{}).apow||0)>0||ledHeroLevel(led,key)>1))?AC.apFlat:0),   /* = the core: AP flats only where the hero has an ability line (base or level growth) */
+    techArmor:(AC?AC.armorRating:0)+SF.armor, techMr:(AC?AC.mrRating:0)+SF.mr, techHeal:AC?(AC.healRating||0):0,   /* v1369: + star Armor / MR (flat rating, = the core's armorRating) */
     apMul:1,
     skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses:templeBonusesFor(u,key)
   };
@@ -6470,7 +6478,7 @@ async function api(req,res,url){
     delete me.glyphs; delete me.gear; me.dust=0;
     if(DB.dungeonProgress) delete DB.dungeonProgress[me.id];
     // rebuild the ledger at its starter state — the same shape a brand-new account is given
-    const led={ v:1, migratedAt:Date.now(), rev:1, gold:0, gems:0, px:0,
+    const led={ v:1, migratedAt:Date.now(), rev:1, refTrack:SIM.REFINE_TRACK_V, gold:0, gems:0, px:0,
       hero:{}, unlocked:{}, frags:{},
       camp:{ cleared:0, stars:{}, att:null },
       stam:{ v:60, ts:Date.now() },
@@ -8952,9 +8960,9 @@ async function api(req,res,url){
     const out=idem(me.id+':refine:'+reqId,()=>{
       const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
       const h=led.hero[k]; if(!h||h.stars<5) return {ok:false,error:'Refine opens at 5 stars.'};
-      const lvl=Math.max(0,Math.min(15,h.ref|0));
-      if(lvl>=15) return {ok:false,error:'Fully refined.'};
-      const tier=lvl>=10?{cost:100,chance:0.10}:lvl>=5?{cost:70,chance:0.20}:{cost:50,chance:0.30};
+      const lvl=SIM.refineClamp(h.ref);
+      const tier=SIM.refineTierAt(lvl);   // v1369 star track: bronze 6th star 50 frags/50% · silver pips 80/35% · gold 90/20% · mythical 100/10% (server/sim.js REFINE_TIERS)
+      if(!tier) return {ok:false,error:'Fully refined.'};
       if((led.frags[k]|0)<tier.cost) return {ok:false,error:'Need '+tier.cost+' fragments.'};
       led.frags[k]-=tier.cost;
       const success=srvRoll('refine',me.id,reqId)<tier.chance;   // SERVER roll (v993: HMAC-seeded per request so it can be re-derived for an audit; same odds) — persisted with the idempotency record
