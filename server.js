@@ -8950,7 +8950,7 @@ async function api(req,res,url){
       const need=summonSpecSrv(k).cost;   /* v1097 (sweep 9 Oct #7): one table - /api/hero/summon-table serves this same spec to the client */
       if((led.frags[k]|0)<need) return {ok:false,error:'Need '+need+' fragments to summon.'};
       led.frags[k]-=need; led.unlocked[k]=true;
-      if(!led.hero[k]) led.hero[k]={xp:0,stars:base.stars,pips:0};
+      if(!led.hero[k]) led.hero[k]={xp:0,stars:base.stars||1,pips:0};   /* v1362 (Ember bug sweep 3): the summon table shows base.stars||1; the grant had no fallback */
       ledTx(me,'hero:summon:'+k,{frags:-need});
       writeDB(); return {ok:true, ledger:ledgerView(me)};
     });
@@ -9158,7 +9158,7 @@ async function api(req,res,url){
         const inputLog=sanitizeInputLog(b.inputLog), host=simHost();
         let rep=null, replayFailure=null;
         if(!host || !Array.isArray(a.snaps) || !a.snaps.length) replayFailure='replay-unavailable';
-        else try{ rep=host.campaign(a.snaps, st.waves, a.seed>>>0, inputLog); }
+        else try{ rep=host.campaign(a.snaps, st.waves, a.seed>>>0, inputLog, 'province'); }
           catch(e){ replayFailure='replay-error'; console.error('sim-host replay failed (province):',e.message); }
         const serverEndDigest=rep?String(rep.digest||''):'';
         const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);

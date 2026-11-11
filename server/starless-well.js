@@ -276,7 +276,7 @@ async function handle(p, method, ctx) {
       } catch (e) {}
       if (!witnessed) { ctx.writeDB(); return no('Battle result was incomplete - nothing was spent.'); }
       const inputLog = ctx.sanitizeInputLog(b.inputLog), host = ctx.simHost(); let rep = null;
-      try { if (host && a.snaps && a.snaps.length) rep = host.campaign(a.snaps, a.waves, a.seed >>> 0, inputLog); } catch (e) { console.error('sim-host replay failed (well2):', e.message); }
+      try { if (host && a.snaps && a.snaps.length) rep = host.campaign(a.snaps, a.waves, a.seed >>> 0, inputLog, 'well'); } catch (e) { console.error('sim-host replay failed (well2):', e.message); }
       const srv = rep ? String(rep.digest || '') : '', match = !!srv && ctx.sha256hex(clientEnd) === ctx.sha256hex(srv), led = ctx.led;
        /* A replay difference is an incident for review; the witnessed result remains the payout truth. */
       if (!match) { led.battleIncidents = (led.battleIncidents || []).concat([{ t: Date.now(), stage: 'well-' + R.map + '-' + a.col, mode: 'well:' + (R.path || 'standard'),

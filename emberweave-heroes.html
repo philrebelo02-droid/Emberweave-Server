@@ -11485,14 +11485,14 @@ function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
   REPLAY_IN=null; window._p2guard=false;
   return dmg;
 }
-function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
+function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual, mode='campaign'){
   const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
   const svAuto=autoUlt;
   window._p2guard=true;
   REPLAY_IN=Array.isArray(inputLog)?inputLog.slice().sort((a,b)=>a[0]-b[0]):null;
   const keep=REPLAY_IN;
   ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
-  CUR={mode:'campaign', node:1, seed, cwaves:cwaves, manualReplay:!!manual, headless:true};
+  CUR={mode, node:1, seed, cwaves:cwaves, manualReplay:!!manual, headless:true};
   if(manual) autoUlt=false;            // the transcript fires the ultimates, not the AI
   try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){}
   waveXfer=null; chapterWaves=Math.max(1,(cwaves||[]).length); waveIdx=0;
@@ -11502,7 +11502,7 @@ function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
   units=[];                                 // startBattle() clears the field first — so does this
   spawnTeamFromSnaps(allySnaps);
   buildEnemyWave();
-  introSetup();   /* v1255: the scripted 1-1 replays exactly as the player saw it */
+  if(mode==='campaign') introSetup();   /* v1255: the scripted 1-1 replays exactly as the player saw it */
   beginWaveEnter();
   REPLAY_IN=keep; _riIdx=0;
   for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
@@ -19425,8 +19425,10 @@ async function forgeSync1(){
 }
 function forgeDef(id){ return (FORGE.cat&&FORGE.cat.items.find(i=>i.id===id))||null; }
 async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
-  const r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload));
-  FORGE.busy=false;
+  let r;
+  try{ r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload)); }
+  catch(e){ bannerMsg(t('forge.cold')); return; }
+  finally{ FORGE.busy=false; }
   if(!r||r.error){ bannerMsg((r&&r.error)||t('forge.cold')); }
   else if(msg){ try{ bannerMsg(iconize(msg(r))); }catch(e){} }
   await forgeSync(); renderForge();
@@ -19473,8 +19475,10 @@ const GEAR_STAT_LABEL={hp:'Health',atk:'Attack',apow:'Ability Power',armor:'Armo
 let gearSlotSel='Weapon';
 function gearSlotSelect(sl){ gearSlotSel=sl; renderHeroDetail(); }
 async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
-  const r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload));
-  FORGE.busy=false;
+  let r;
+  try{ r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload)); }
+  catch(e){ bannerMsg(t('forge.cold')); return; }
+  finally{ FORGE.busy=false; }
   if(!r||r.error){ bannerMsg((r&&r.error)||t('forge.cold')); } else if(msg){ try{ bannerMsg(iconize(msg(r))); }catch(e){} }
   await forgeSync(); renderHeroDetail();
 }
@@ -19538,7 +19542,10 @@ async function gearPlanRun(plan,equipHero){ if(FORGE.busy) return; FORGE.busy=tr
   const done=n===plan.steps.length;
   if(!done) bannerMsg((n?t('gear.stopped_at',{n:n,m:plan.steps.length})+' ':'')+err);
   else if(last&&last.crafted){ bannerMsg(uiIcon('mode-forge')+' '+t('gear.built_steps',{name:last.name,n:n}));
-    if(equipHero){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:last.crafted}); FORGE.busy=false;
+    if(equipHero){ FORGE.busy=true; let e;
+      try{ e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:last.crafted}); }
+      catch(err){ e={error:t('gear.equip_failed')}; }
+      finally{ FORGE.busy=false; }
       if(e&&!e.error) bannerMsg(statusIcon('shield')+' '+t('gear.equipped_name',{name:last.name})); else bannerMsg((e&&e.error==='offline')?t('net.connection_lost'):((e&&e.error)||t('gear.equip_failed'))); } }
   await forgeSync(); renderHeroDetail(); }
 function gearConfirmQuick(gearId,equipHero,role){ const d=forgeDef(gearId); if(!d) return; const plan=gearPlan(FORGE.st,d,role); if(!plan.ok){ bannerMsg((plan.missing?t('gear.missing_frag',{n:plan.missing.need,frag:plan.missing.frag,h:plan.missing.have}):t('gear.missing_materials_msg'))); return; }
@@ -19547,10 +19554,16 @@ let GEAR_BUILD=null;   // {hero, gearId, open:{}}
 function gearBuildOpen(key,gearId){ GEAR_BUILD={hero:key,gearId,stack:[]}; renderHeroDetail(); }
 function gearBuildCancel(){ GEAR_BUILD=null; renderHeroDetail(); }
 async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=true;
-  const r=await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId}); FORGE.busy=false;
+  let r;
+  try{ r=await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId}); }
+  catch(e){ r={error:t('forge.cold')}; }
+  finally{ FORGE.busy=false; }
   if(!r||r.error){ bannerMsg((r&&r.error)||t('forge.cold')); await forgeSync(); renderHeroDetail(); return; }
   bannerMsg(uiIcon('mode-forge')+' '+t('gear.built_name',{name:r.name})); await forgeSync();
-  if(equipHero&&r.crafted){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:r.crafted}); FORGE.busy=false;
+  if(equipHero&&r.crafted){ FORGE.busy=true; let e;
+    try{ e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:r.crafted}); }
+    catch(err){ e={error:t('gear.equip_failed')}; }
+    finally{ FORGE.busy=false; }
     if(e&&!e.error) bannerMsg(statusIcon('shield')+' '+t('gear.equipped_name',{name:r.name})); else bannerMsg((e&&e.error==='offline')?t('net.connection_lost'):((e&&e.error)||t('gear.equip_failed'))); await forgeSync(); }   /* v994 (audit #9): a failed equip says so */
   renderHeroDetail();
 }
@@ -20070,7 +20083,11 @@ function skyMoveLane(r, side, fromLane, toLane){
 }
 async function skyAssign(memberId,lane){ const r=await api('/api/guild-war/assign','POST',{memberId,lane}); if(r&&r.error)bannerMsg(r.error); await skyStatus(); renderGuild(); }
 async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
-  const r=await apiOnce('skymarch','/api/guild-war/assault',{fromLane:lane}); SKY.busy=false;   /* v1009: one requestId, re-sent on a lost reply */
+  let r;
+  try{ r=await apiOnce('skymarch','/api/guild-war/assault',{fromLane:lane}); }
+  catch(e){ bannerMsg(t('skyfall.march_failed')); return; }
+  finally{ SKY.busy=false; }
+  if(r&&r.busy) return;
   if(!r||r.error){ bannerMsg((r&&r.error==='offline')?t('net.connection_lost'):((r&&r.error)||t('skyfall.march_failed'))); }
   else if(r.captured){ bannerMsg(uiIcon('surrender-flag')+' '+t('skyfall.captured')); }
   else bannerMsg(r.won?(uiIcon('trophy')+' '+t('skyfall.bridge_victory')+(r.citadelFell?'\n'+statusIcon('crit-burst')+' '+t('skyfall.citadel_falls'):'')) : statusIcon('death')+' '+t('skyfall.driven_back'));
@@ -22645,8 +22662,13 @@ function tp2AutoWire(b,act,key){ if(!templeAuto) return; const a=templeAuto, q=s
   if(q('#tp2AutoMinus')) q('#tp2AutoMinus').onclick=()=>{ a.n=Math.max(1,a.n-1); re(); };
   if(q('#tp2AutoPlus')) q('#tp2AutoPlus').onclick=()=>{ a.n=Math.min(max,a.n+1); re(); };
   if(q('#tp2AutoGo')) q('#tp2AutoGo').onclick=async()=>{ const _go=q('#tp2AutoGo'); if(_go.disabled) return; _go.disabled=true;   /* v1355: a second tap got 'busy', nulled the dialog and the paid result never showed */
-    const r=await act('/api/temple/auto',{heroKey:key,tier:a.tiers[a.i],count:a.n}); if(!r){ return; }
-    adoptLedger(r.ledger); updateHubChrome(); a.result=r; re(); };
+    try{
+      const r=await act('/api/temple/auto',{heroKey:key,tier:a.tiers[a.i],count:a.n});
+      if(!r) return; adoptLedger(r.ledger); updateHubChrome();
+      if(templeAuto===a&&q('#tp2AutoGo')===_go){ a.result=r; re(); }
+    }catch(e){
+      if(templeAuto===a&&q('#tp2AutoGo')===_go) bannerMsg(ewT('temple.pray_failed'));
+    }finally{ _go.disabled=false; } };
 }
 function startDungeon(){
   syncActiveSquad();   // per-mode squad
@@ -26734,12 +26756,20 @@ function renderArena(){ const b=document.getElementById('arenaBody');
         else { bannerMsg((r&&r.error)||t('arena.daily_fail')); if(r&&/already claimed/i.test(String(r.error||''))){ G.arenaDailyDay=arenaDayKey(); saveGLocalOnly(); if(state==='arena') renderArena(); }   /* v1355 (audit): claimed on another device - the stale Claim button goes */ ledgerSync(); } }); }
     else _finish();
   };
-  { const ba=b.querySelector('#arenaBuyAtt'); if(ba) ba.onclick=()=>{ ba.disabled=true;
-      apiOnce('arenabuy','/api/arena/buy-attempt',{}).then(r=>{ if(r&&r.busy) return;
+  { const ba=b.querySelector('#arenaBuyAtt'); if(ba) ba.onclick=async()=>{ if(ba.disabled) return;
+      const token=ACC.token, account=ACC.id;
+      const owns=()=>ba.isConnected&&state==='arena'&&ACC.token===token&&ACC.id===account;
+      ba.disabled=true;
+      try{
+        const r=await apiOnce('arenabuy','/api/arena/buy-attempt',{});
+        if(!owns()||(r&&r.busy)) return;
         if(r&&r.arena) ARENA.att=r.arena;
-        if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg(t('arena.attempts_left')+': '+((r.arena&&r.arena.attemptsLeft)|0)); }   /* v1286: a refill to 5 */
+        if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg(t('arena.attempts_left')+': '+((r.arena&&r.arena.attemptsLeft)|0)); }
         else bannerMsg((r&&r.error)||t('arena.attempt_fail'));
-        if(state==='arena') renderArena(); }); }; }
+        renderArena();
+      }catch(e){ if(owns()) bannerMsg(t('arena.attempt_fail')); }
+      finally{ ba.disabled=false; }
+    }; }
   const el=b.querySelector('#arenaOpps');
   if(!opps.length){ el.innerHTML=`<div style="flex:1;text-align:center;padding:14px 8px"><div style="color:#ffd45e;font-weight:700">${uiIcon('crown')} ${t('arena.rank_one')}</div></div>`; }
   else el.innerHTML=opps.map(oppCard).join('');
@@ -28654,10 +28684,11 @@ function openShield(){ const s=modalShell(), active=shieldActive();
       :`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:8px"><span>${ewT('gshop.shields_owned')}</span><b>${G.shieldItems||0}</b></div>
         <button class="btn" id="shUse" ${(G.shieldItems||0)>0?'':'disabled'} style="width:100%">${ewT('gshop.activate_shield')}</button>
         <button class="btn secondary sm" id="shBuy" style="width:100%;margin-top:8px">${ewT('gshop.buy_in_shop')} →</button>`}`;
-  const u=s.body.querySelector('#shUse'); if(u&&ACC.token)u.onclick=async()=>{ u.disabled=true;   /* v1081: the server activates it (and refuses attacks on it) */
-    const r=await api('/api/world/shield','POST',{requestId:uid8()}); if(r&&r.ledger) adoptLedger(r.ledger);
-    if(!r||!r.ok){ bannerMsg(langMsg(r&&r.error)||ewT('gshop.shield_fail')); u.disabled=false; return; }
-    saveG(); updateHubChrome(); s.close(); bannerMsg(statusIcon('shield')+' '+ewT('gshop.shield_on')); if(document.getElementById('wzone'))renderWorldMap(true); };
+  const u=s.body.querySelector('#shUse'); if(u&&ACC.token)u.onclick=async()=>{ if(u.disabled) return; u.disabled=true;   /* v1081: the server activates it (and refuses attacks on it) */
+    try{ const r=await api('/api/world/shield','POST',{requestId:uid8()}); if(r&&r.ledger) adoptLedger(r.ledger);
+    if(!r||!r.ok){ bannerMsg(langMsg(r&&r.error)||ewT('gshop.shield_fail')); return; }
+    saveG(); updateHubChrome(); s.close(); bannerMsg(statusIcon('shield')+' '+ewT('gshop.shield_on')); if(document.getElementById('wzone'))renderWorldMap(true); }catch(e){ bannerMsg(ewT('gshop.shield_fail')); }
+    finally{ u.disabled=false; } };
   else if(u)u.onclick=()=>{ if(useShieldItem()){ s.close(); bannerMsg(statusIcon('shield')+' '+ewT('gshop.shield_on')); if(document.getElementById('wzone'))renderWorldMap(true); } };
   const b=s.body.querySelector('#shBuy'); if(b)b.onclick=openGuildShop;
 }
@@ -29099,8 +29130,21 @@ function renderGuildRequests(el,g){
       <div style="width:30px;height:30px;border-radius:50%;background:#1a2338;display:flex;align-items:center;justify-content:center;font-size:14px">&#129485;</div>
       <div style="flex:1"><div style="font-weight:700;font-size:13px">${escapeHTML(r.name)}</div><div style="font-size:10px;color:#8b98a9">${t('guild.rank',{n:r.rank})}</div></div>
       <button class="btn sm" data-appr="${r.id}">${t('guild.accept')}</button><button class="btn sm secondary" data-deny="${r.id}">${t('guild.deny')}</button></div>`).join('');
-  list.querySelectorAll('[data-appr]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; const d=await guildAct('approve',{id:btn.dataset.appr}); if(d&&d.error)bannerMsg('&#9888; '+d.error); renderGuild(); });
-  list.querySelectorAll('[data-deny]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; await guildAct('deny',{id:btn.dataset.deny}); renderGuild(); });
+  const wireDecision=(selector, action, key)=>{
+    list.querySelectorAll(selector).forEach(btn=>btn.onclick=async()=>{
+      if(btn.disabled) return;
+      btn.disabled=true;
+      try{
+        const d=await guildAct(action,{id:btn.dataset[key]});
+        if(!el.contains(btn)) return;
+        if(!d||d.error) bannerMsg(d?.error||t('net.connection_lost'));
+        renderGuild();
+      }catch(e){ if(el.contains(btn)) bannerMsg(t('net.connection_lost')); }
+      finally{ btn.disabled=false; }
+    });
+  };
+  wireDecision('[data-appr]','approve','appr');
+  wireDecision('[data-deny]','deny','deny');
 }
 // ---- EMBASSY tab: guild-wide perks that grow with guild level ----
 function renderGuildEmbassy(el){
@@ -31309,9 +31353,13 @@ function openTower(){ const ov=isleOverlay();
       <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#twX').onclick=()=>ov.remove();
     ov.querySelector('#twGo').onclick=async()=>{ const bt=ov.querySelector('#twGo'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;   /* v1151: one climb in flight */
-      const r=await towerAscend(); render(r.win?((r.elite?uiIcon('crown')+' '+ewT('isle.warden_felled')+' ':statusIcon('attack')+' ')+ewT('isle.floor_conquered',{n:r.floor})+' '+r.reward):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):ewT('isle.too_weak_floor')), r.win?'#5ee89b':'#ff8b8b'); };
+      try{ const r=await towerAscend(); render(r.win?((r.elite?uiIcon('crown')+' '+ewT('isle.warden_felled')+' ':statusIcon('attack')+' ')+ewT('isle.floor_conquered',{n:r.floor})+' '+r.reward):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):ewT('isle.too_weak_floor')), r.win?'#5ee89b':'#ff8b8b'); }
+      catch(e){ render(escapeHTML(RESULT_LOST_MSG),'#ff8b8b'); }
+      finally{ delete bt.dataset.busy; bt.disabled=false; } };
     ov.querySelector('#twTrib').onclick=async()=>{ const bt=ov.querySelector('#twTrib'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;
-      const r=await towerTribute(); render(r.none?ewT('isle.already_claimed'):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):uiIcon('medal')+' '+ewT('isle.tribute_claimed')+' '+hudIcon('gold')+' '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); };
+      try{ const r=await towerTribute(); render(r.none?ewT('isle.already_claimed'):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):uiIcon('medal')+' '+ewT('isle.tribute_claimed')+' '+hudIcon('gold')+' '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); }
+      catch(e){ render(escapeHTML(RESULT_LOST_MSG),'#ff8b8b'); }
+      finally{ delete bt.dataset.busy; bt.disabled=false; } };
   }
   render(); towerSync().then(r=>{ if(r&&r.ok&&document.body.contains(ov)) render(); });
 }

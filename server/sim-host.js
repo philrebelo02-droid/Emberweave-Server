@@ -164,9 +164,9 @@ function load(htmlPath){
       const won=sandbox.simFightReplay(allySnaps, foeTeam, seed>>>0, inputLog||[], true);
       return { won:!!won, digest:sandbox._p2digest||null };
     },
-    /* THE campaign entry: the authored waves, the server's seed, and the player's own transcript. */
-    campaign(allySnaps, cwaves, seed, inputLog){
-      const won=sandbox.simCampaignReplay(allySnaps, cwaves, seed>>>0, inputLog||[], true);
+    /* Replay authored waves with the server's seed, transcript and fight mode. */
+    campaign(allySnaps, cwaves, seed, inputLog, mode='campaign'){
+      const won=sandbox.simCampaignReplay(allySnaps, cwaves, seed>>>0, inputLog||[], true, mode);
       return { won:!!won, stars:sandbox._p2stars|0, alive:sandbox._p2alive|0, total:sandbox._p2total|0,
         hpFrac:+(sandbox._p2hpf||0), digest:sandbox._p2digest||null };
     },
