@@ -11,7 +11,9 @@ const fs = require('fs'), path = require('path'), os = require('os'), vm = requi
 const ROOT = path.join(__dirname, '..');
 let PASS = 0, FAIL = 0;
 const ck = (n, c, x) => { if (c) { PASS++; console.log('  ok   ' + n); } else { FAIL++; console.log('  FAIL ' + n + (x !== undefined ? ' - ' + JSON.stringify(x) : '')); } };
-const LIVE = '67ecbab6', show = f => cp.execSync('git show ' + LIVE + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 });
+const LIVE = '67ecbab6', show = f => Buffer.from(TICK1367(cp.execSync('git show ' + LIVE + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 }).toString('utf8')), 'utf8');
+// v1367 (Phil 11 Nov "yes buff tick"): Tick's base damage 28 -> 34 on purpose - the live baseline is given the same Tick so every OTHER hero still compares byte for byte
+function TICK1367(s){ return s.replace("stars:1,hp:360,dmg:28,", "stars:1,hp:360,dmg:34,").replace("tick:{swing:2.2,hp:360,dmg:28,", "tick:{swing:2.2,hp:360,dmg:34,").replace("name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,", "name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,"); }
 const temps = [], dirs = [];
 process.on('exit', () => { for (const f of temps) try { fs.unlinkSync(f); } catch (e) {} for (const d of dirs) try { fs.rmSync(d, { recursive: true, force: true }); } catch (e) {} });
 

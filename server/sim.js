@@ -43,7 +43,7 @@ const HERO_BASE={
   konwu:{swing:1.9,hp:380,dmg:34,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.15},
   grosk:{swing:2.6,hp:620,dmg:18,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.85},
   vulmar:{swing:2,hp:175,dmg:26,apow:30,role:'Mage',stars:3,healer:false,atkSpeed:0.85},   // v484: Vulmar gets Ability Power (casters scale off AP now)
-  tick:{swing:2.2,hp:360,dmg:28,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:1.1},
+  tick:{swing:2.2,hp:360,dmg:34,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:1.1},
   sylthaine:{swing:2,hp:150,dmg:14,apow:32,role:'Mage',stars:1,healer:false,atkSpeed:0.85},
   aureth:{swing:1.8,hp:460,dmg:24,apow:24,role:'Bruiser',stars:3,healer:false,atkSpeed:0.9},
   bloatus:{swing:2.4,hp:540,dmg:24,apow:28,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
