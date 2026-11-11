@@ -3585,14 +3585,6 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arenaShop #arenaShopBody .btn:disabled::before{filter:grayscale(.85) brightness(.55);}
 @media(max-height:560px){#arenaShop .titlebar h1{height:74px;}#arenaShop #arenaShopBody>.panel{border-image-width:32px!important;padding:24px 26px!important;}}
 @media(max-width:560px){#arenaShop #arenaShopBody>.panel{padding:28px 24px!important;}#arenaShop #arenaShopList>div{flex-wrap:wrap;}#arenaShop #arenaShopList>div>div:first-child{flex:1 1 150px;}#arenaShop #arenaShopList .btn{margin-left:auto;}}
-/* Campaign */
-#campaign{--cp-title:url('/assets/img/ui/building-titles/campaign-title.webp?v=1');--cp-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
-#campaign::after{content:'';position:absolute;left:50%;top:76px;transform:translateX(-50%);width:min(220px,28%);height:72px;background:var(--cp-title) center/contain no-repeat;pointer-events:none;z-index:12;}
-#campaign :is(.campPill,.chBanner,#starTrack>div,#portalTabs){isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;}
-#campaign :is(.campPill,.chBanner,#starTrack>div,#portalTabs)::before{content:'';position:absolute;inset:-3px;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--cp-panel) 25% fill / 14px / 0 stretch;}
-#campaign #starTrack>div{position:relative;}
-#campaign #portalTabs::before{border-image-width:18px;}
-@media(max-height:560px){#campaign::after{height:60px;top:76px;}}
 /* Watchtower */
 #watchtower{--wt-title:url('/assets/img/ui/building-titles/watch-tower-title.webp?v=1');--wt-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
 #watchtower h1{height:110px!important;width:100%;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;background:var(--wt-title) center/contain no-repeat!important;}
