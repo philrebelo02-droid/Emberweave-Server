@@ -18816,7 +18816,7 @@ function flushRewardQueue(){ const q=_rewardQueue.slice(); _rewardQueue=[];
 function bannerMsg(t){ if(window._p2guard) return;   // headless sim (arena seed search / server replay): never write the live #banner
   if(rewardLocked()){ queueBehindReward(()=>bannerMsg(t)); return; }
   t=String(langMsg(t==null?'':t)).replace(/^((?:&#9888;|⚠)\s*)?offline$/,(m,p)=>(p||'')+ewT('net.connection_lost'));   /* v1014 (re-audit Guild #8, Market #10): api()'s internal 'offline' never reaches a player as a raw word - one fix for every bannerMsg(d.error) site */
-  const b=document.getElementById('banner');b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
+  const b=document.getElementById('banner');  /* v1364 (tester report 11 Nov, 2.6): a message fired from inside a hero window (Stars 13000, glyph / gear windows 12000-13000) sat behind it at 9600 - the craft result was never seen. It now sits one layer above the highest open window (capped under the update notice, 15000). */ try{ let zt=9600; for(const d of document.body.children){ if(d===b||d.id==='updateNotice') continue; const cs=getComputedStyle(d); if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden') continue; const z=parseInt(cs.zIndex,10); if(z>=zt&&z<15000) zt=z+1; } b.style.zIndex=zt>9600?String(zt):''; }catch(e){}b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
 // (matIcon deleted with MATS)
 
 /* v1321 (Phil 9 Nov: "Move the commander plate on the top left of the screen, egp under commander plate. Keep menu on the top right of the
@@ -26457,7 +26457,7 @@ function arenaRules(){
   ov.innerHTML='<div style="width:100%;max-width:400px;padding:14px;border-radius:14px;background:rgba(9,13,22,.97);border:1px solid #6b5628;box-shadow:0 12px 34px rgba(0,0,0,.65)">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
     +'<b style="font-family:Georgia,serif;font-size:15px;color:#ffe9b8">'+t('arena.rules_title')+'</b>'
-    +'<button class="btn sm secondary" onclick="this.closest(\'div\').parentNode.remove()">\u2715</button></div>'
+    +'<button class="btn sm secondary" id="arRulesX">\u2715</button></div>'   /* v1364 (tester report 11 Nov, P13): the close button removed only the card (closest('div') is the header row) - the dark backdrop stayed until a second tap */
     +'<div style="font-size:12px;color:#c9b78d;line-height:1.55">'
     +'<p style="margin:0 0 8px">'+t('arena.rules_auto',{b:'<b style="color:#ffd45e">'+t('arena.rules_auto_b')+'</b>'})+'</p>'
     +'<p style="margin:0 0 8px">'+t('arena.rules_above',{b:'<b style="color:#ffd45e">'+t('arena.rules_above_b')+'</b>'})+'</p>'
@@ -26465,7 +26465,7 @@ function arenaRules(){
     +'<p style="margin:0 0 8px">'+t('arena.rules_daily',{b:'<b style="color:#ffd45e">'+t('arena.rules_daily_b')+'</b>'})+'</p>'
     +'<p style="margin:0">'+t('arena.rules_bounty',{gem:'\u{1F48E}'})+'</p>'
     +'</div></div>';
-  document.body.appendChild(ov); }
+  document.body.appendChild(ov); ov.querySelector('#arRulesX').onclick=()=>ov.remove(); }
 function rankTier(rank){ return rank===1?{name:t('arena.rank_gold'),medal:uiIcon('rank-gold'),col:'#ffd45e'}:rank===2?{name:t('arena.rank_silver'),medal:uiIcon('rank-silver'),col:'#c8d2e0'}:rank===3?{name:t('arena.rank_bronze'),medal:uiIcon('rank-bronze'),col:'#e0a06a'}:null; }
 function _rkRow(e){ const t=rankTier(e.rank), medal=t?t.medal:'#'+e.rank, col=t?t.col:'#8b98a9';
   return `<div style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #1f2740;${e.me||e.you?'background:rgba(255,212,94,.12);border-radius:8px':''}">
