@@ -1296,6 +1296,9 @@ body:has(#home.active) #chatWidget.min{left:calc(max(3px,env(safe-area-inset-lef
 #home #townHud .resframe:has(#resStamina) .resicon img{content:url(/assets/img/ui/hud2/food-icon.webp?v=1)}
 #home #townHud .resframe:has(#resGold) .resicon img{content:url(/assets/img/ui/hud2/gold-icon.webp?v=1)}
 #home #townHud .resframe:has(#resGems) .resicon img{content:url(/assets/img/ui/hud2/diamond-icon.webp?v=1)}
+/* v1364 (tester B 2.3: the Market sat partly under the diamond display; Phil 11 Nov: "move right, near menu"): the food / gold / diamond counters leave the
+   top centre, where they covered the Market tents, and stack on the right under MENU (right edges in line with MENU; the + buttons stay inside the screen). */
+#home #townHud{left:auto;right:calc(0.5% + 22px);top:50px;transform:none;flex-direction:column;align-items:flex-end;gap:5px}
 #home #pfFrame{content:url(/assets/img/ui/hud2/commander-ring.webp?v=1)}
 #home #pfLvBadge{background:url(/assets/img/ui/hud2/level-badge.webp?v=1) center/contain no-repeat;aspect-ratio:5/6;top:0}
 #home #pfName .pname{border:0;border-image:none;background:url(/assets/img/ui/hud2/commander-plate.webp?v=1) center/100% 100% no-repeat;padding:6px 24px 7px;display:inline-block}
@@ -19071,14 +19074,21 @@ function renderHome(){
   ];
   // Anchors measured against the wide city painting; all sixteen tap targets retain their destination.
   const wideHomePositions=[
-    [20,15,28,27,19,30], [15,47,14,45,15,47],
-    [48,15.25,18,8.5,48,20], [35,20,12,14,35,29],   /* v1364 (tester B 2.3: Market partly under the diamond display): the Market box began at 2.5% and ran under the food / gold / diamond strip (35% of it on a phone, 41% on a Fold cover); it now starts at 11%, below the strip (33 px = 9.6% on a 344 px screen) */
-    [58,15,14,20,58,27], [73,15,15,26,73,31],
-    [46,31,20,26,46,46], [61,35,13,15,61,46],
-    [75,38,14,22,81,52], [56,53,10,16,56,64],   /* v1322 (Phil 9 Nov: "move the plate for the vault right so it doesnt cover the arena art"): Vault label x 75 -> 81 */
-    [72,56,15,20,72,69], [9,70,11,25,9,82],
-    [38,68,17,23,38,83], [63,75,17,23,63,94],
-    [30,36,12,16,30,45], [28,54,12,16,28,64], [90,70,16,34,90,88]
+    /* v1364 (Phil 11 Nov: "double check all click hit boxes for buildings, sometimes when i click shady market it opens academy"): every box refitted to
+       its painted building on townbg-wide-temple-of-ash-v1 so that NO two boxes overlap (Academy had covered 27% of Shady Market's box, Temple 28% of
+       Market's, and nine smaller overlaps). Name plates are unchanged and stay their own buttons above every box (v1322); no art or plate moved. Boxes stay
+       clear of the food / gold / diamond counters under MENU (Vault ends at x 80.5%). Edges in %: Wall 8-31.5 x 0-29 | long wall 13.5-21 x 29-70 | Market
+       40.5-54.5 x 0-18.5 | Shady 31.5-40.5 x 13-27.5 | Temple 54.5-63 x 1-25 | Campaign 66-79.5 x 0-27 | Academy 40.5-54.5 x 18.5-44.5 | Bulletin 55.5-65.5 x 27-43
+       | Vault 69-80.5 x 28-48 | Wishing 53-60.5 x 44.5-61 | Arena 64.5-77 x 48-65.5 | Watch Tower 4-11.5 x 60-83 | Guild 32.5-47 x 59-84 | Island 56.5-71 x 65.5-90.5
+       | Witches 24.5-37 x 29-44 | Forge 21.5-32.5 x 45-62 | Well 82-98 x 50-87 */
+    [19.75,14.5,23.5,29,19,30], [17.25,49.5,7.5,41,15,47],
+    [47.5,9.25,14,18.5,48,20], [36,20.25,9,14.5,35,29],
+    [58.75,13,8.5,24,58,27], [72.75,13.5,13.5,27,73,31],
+    [47.5,31.5,14,26,46,46], [60.5,35,10,16,61,46],
+    [74.75,38,11.5,20,81,52], [56.75,52.75,7.5,16.5,56,64],   /* v1322 (Phil 9 Nov: "move the plate for the vault right so it doesnt cover the arena art"): Vault label x 75 -> 81 */
+    [70.75,56.75,12.5,17.5,72,69], [7.75,71.5,7.5,23,9,82],
+    [39.75,71.5,14.5,25,38,83], [63.75,78,14.5,25,63,94],
+    [30.75,36.5,12.5,15,30,45], [27,53.5,11,17,28,64], [90,68.5,16,37,90,88]
   ];
   hots.forEach((h,i)=>{ const p=wideHomePositions[i]; [h.x,h.y,h.w,h.h,h.lx,h.ly]=p; });
   const box=document.getElementById('townHots'); box.innerHTML='';
