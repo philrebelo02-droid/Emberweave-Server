@@ -31,7 +31,7 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
   /* ---- server ---- */
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-netgate-')), port=await freePort(), base='http://127.0.0.1:'+port;
   child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:path.join(dir,'db.json')},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok) break; }catch(_){} await delay(100); }
+  for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);){ try{ if((await fetch(base+'/health')).ok) break; }catch(_){} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
   const h=await fetch(base+'/api/health'); let hj={}; try{ hj=await h.json(); }catch(_){}
   ok(h.status===200&&hj.ok===true,'/api/health answers ('+h.status+')');
   const forged=JSON.stringify({gold:5000,gems:250,playerXP:40000,heroXP:{vael:30000,sylthaine:30000,vireo:30000},campaignCleared:40,unlocked:{korvux:true}});

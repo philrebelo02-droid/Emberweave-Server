@@ -15,7 +15,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
   try {
     const log = fs.openSync(path.join(tmp, 'srv.log'), 'a');
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0' }, stdio: ['ignore', log, log], windowsHide: true });
-    for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     // (3) junk handling over HTTP
     await fetch(base + '/api/boot-step', { method: 'POST', body: JSON.stringify({ st: 'nosid' }) });
     await fetch(base + '/api/boot-step', { method: 'POST', body: 'x'.repeat(5000) });

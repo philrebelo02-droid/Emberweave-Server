@@ -13,7 +13,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
   try {
     const log = fs.openSync(logF, 'a');
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0', GOOGLE_OAUTH_CLIENT_ID: 'test-client.apps.googleusercontent.com', ACCOUNT_AUTHORITY: '' }, stdio: ['ignore', log, log], windowsHide: true });
-    for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     const post = (u, b) => fetch(base + u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(async r => ({ s: r.status, b: await r.json().catch(() => ({})) }));
     const r1 = await post('/api/auth/google', { credential: 'x', nonce: 'never-issued', deviceId: 'd1' });
     ck(r1.s === 403 && /expired/i.test(r1.b.error || ''), 'an unknown sign-in token is refused (403, "Sign-in expired")', JSON.stringify(r1));

@@ -25,7 +25,7 @@ async function freePort() { const s = net.createServer(); await new Promise(r =>
     for (let i = 0; i < 200; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await new Promise(r => setTimeout(r, 100)); }
     throw Error('server not ready');
   };
-  const stop = async () => { if (!child) return; const c = child; child = null; c.kill(); await Promise.race([new Promise(r => c.once('exit', r)), new Promise(r => setTimeout(r, 3000))]); };
+  const stop = async () => { if (!child) return; const c = child; child = null; c.kill(); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 3000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; };
   try {
     await start('');
     const adm = await req('POST', '/api/register', { name: 'gsAdmin', pass: 'password1' });

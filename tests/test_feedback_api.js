@@ -17,7 +17,7 @@ async function start(){
   for(let i=0;i<100;i++){if(child.exitCode!==null)throw new Error('throwaway server exited');try{if((await fetch(base+'/health')).ok)return;}catch(_){} await delay(100);}
   throw new Error('throwaway server did not start');
 }
-async function stop(){if(!child)return;child.kill();for(let i=0;i<40&&child.exitCode===null;i++)await delay(50);child=null;}
+async function stop(){if(!child)return;child.kill();for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */child=null;}
 async function call(route,method='GET',data){
   const response=await fetch(base+route,{method,headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined});
   return {status:response.status,data:await response.json()};

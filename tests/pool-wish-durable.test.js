@@ -13,22 +13,26 @@ async function stop(){if(child&&child.exitCode===null)await new Promise(r=>{chil
 async function fault(fail='',t=now,random=0.5){now=t;await new Promise((r,j)=>{const timer=setTimeout(()=>j(Error('fault timeout')),3000);child.once('message',()=>{clearTimeout(timer);r();});child.send({now,fail,random});});}
 async function call(p,b,auth=token){const r=await fetch('http://127.0.0.1:'+port+p,{method:b?'POST':'GET',headers:{'content-type':'application/json',...(auth?{'x-token':auth}:{})},body:b?JSON.stringify(b):undefined});return {status:r.status,data:await r.json()};}
 const disk=()=>JSON.parse(fs.readFileSync(file,'utf8'));
+/* 11 Nov 2026 (flakes, cluster run 154912: the baseline deepEqual failed with the user's lastSeen + led.acad present on disk at the end but not in the baseline):
+   'let the pre-existing saves finish' was a fixed 250-300 ms. On a loaded CT the warm-up reads' debounced save landed AFTER the baseline was read (and
+   before the 'before' copy, so the byte check still passed). settled() waits until the world file has not changed for 1 s (20 s at most). */
+const settled=async()=>{let prev=null,since=Date.now();for(const t0=Date.now();Date.now()-t0<20000;){let cur=null;try{cur=fs.readFileSync(file,'utf8');}catch{}if(cur!==prev){prev=cur;since=Date.now();}else if(Date.now()-since>=1000)return;await new Promise(r=>setTimeout(r,100));}};
 const relevant=d=>({user:d.users[u.id],foreign:d.users[foreign.id],idem:d.idem,feedback:d.feedback,reports:d.reports});
 (async()=>{try{
 await launch();await fault();assert.equal((await call('/api/pool/wish',{pool:'gem',requestId:'auth'},null)).status,401);
 assert.equal((await call('/api/pool/wish',{pool:'gem'})).status,400);
 // Warm ordinary read initializers and let their pre-existing saves finish before injection.
-await call('/api/ledger');await call('/api/pool/state');await new Promise(r=>setTimeout(r,300));
+await call('/api/ledger');await call('/api/pool/state');await settled();
 const packet={pool:'gem',n:1,requestId:'paid-pity-rename',id:foreign.id,gems:0,results:[{type:'hero',hero:'konwu'}]};
-const baseline=relevant(disk()),memory=(await call('/api/pool/state')).data;await new Promise(r=>setTimeout(r,250));
-const before=fs.readFileSync(file,'utf8');await fault('rename');const failed=await call('/api/pool/wish',packet),after=(await call('/api/pool/state')).data;
+const memory=(await call('/api/pool/state')).data;await settled();
+const before=fs.readFileSync(file,'utf8'),baseline=relevant(JSON.parse(before));   /* 11 Nov: the baseline is the very file the failed wish must leave alone (it was read before the last read's save could land) */await fault('rename');const failed=await call('/api/pool/wish',packet),after=(await call('/api/pool/state')).data;
 await new Promise(r=>setTimeout(r,300));
 console.log(JSON.stringify({failure:failed.status,ok:failed.data.ok,diskUnchanged:before===fs.readFileSync(file,'utf8'),memoryUnchanged:JSON.stringify(memory)===JSON.stringify(after)}));
 assert.equal(failed.status,503,'Paid pity wish failed rename must not acknowledge200');assert.equal(failed.data.storageFailed,true);assert.equal(fs.readFileSync(file,'utf8'),before);assert.deepEqual(after,memory,'Failed wish must not expose spend/pity/reward in memory');assert.deepEqual(relevant(disk()),baseline);
 await fault();const paid=await call('/api/pool/wish',packet);assert.equal(paid.status,200);assert.equal(paid.data.cost,300);assert.equal(paid.data.free,false);assert.equal(paid.data.results[0].pity,true);assert.equal(disk().users[u.id].qc.wish,1);assert.equal(disk().users[u.id].led.pool.history.length,1);assert.deepEqual(disk().users[foreign.id],baseline.foreign);
 const committed=relevant(disk());assert.deepEqual((await call('/api/pool/wish',packet)).data,paid.data);assert.deepEqual(relevant(disk()),committed);
 await stop();await launch();assert.deepEqual((await call('/api/pool/wish',packet)).data,paid.data);assert.deepEqual(relevant(disk()),committed);
-const second={pool:'gold',n:10,requestId:'gold-ten-write'};await call('/api/pool/state');await new Promise(r=>setTimeout(r,250));const b2=fs.readFileSync(file,'utf8'),m2=(await call('/api/pool/state')).data;await new Promise(r=>setTimeout(r,250));await fault('write');assert.equal((await call('/api/pool/wish',second)).status,503);assert.deepEqual((await call('/api/pool/state')).data,m2);assert.equal(fs.readFileSync(file,'utf8'),b2);
+const second={pool:'gold',n:10,requestId:'gold-ten-write'};await call('/api/pool/state');await settled();const m2=(await call('/api/pool/state')).data;await settled();const b2=fs.readFileSync(file,'utf8');await fault('write');assert.equal((await call('/api/pool/wish',second)).status,503);assert.deepEqual((await call('/api/pool/state')).data,m2);assert.equal(fs.readFileSync(file,'utf8'),b2);
 await fault();const ten=await call('/api/pool/wish',second);assert.equal(ten.status,200);assert.equal(ten.data.cost,9000);assert.equal(ten.data.results.length,10);assert.equal(disk().users[u.id].qc.wish,11);assert.equal(disk().users[u.id].led.pool.history.length,2);
 const invalid={pool:'unknown',requestId:'invalid'};assert.equal((await call('/api/pool/wish',invalid)).status,400);assert.equal(disk().idem[u.id+':wish:invalid'],undefined);
 // Force the ordinary Diamond glyph branch, not just a guaranteed pity hero.
@@ -37,7 +41,7 @@ assert.equal((await call('/api/pool/wish',glyph)).status,503);assert.deepEqual((
 await fault('',now,0.6);const g=await call('/api/pool/wish',glyph);assert.equal(g.status,200);assert.ok(['glyphFrag','glyphFull'].includes(g.data.results[0].type),g.data.results[0].type);assert.deepEqual((await call('/api/pool/wish',glyph)).data,g.data);
 // Seed a legitimate prior gem gain so the forced currency roll crosses the existing
 // detector threshold. The signal/report must commit with the reward, never leak on503.
-await stop();const alarmSeed=disk();alarmSeed.users[u.id].gainLog=[{t:now,res:'gems',n:2000,r:'fixture-prior'}];alarmSeed.users[u.id].gainDay={k:'2026-10-02',gems:2000};alarmSeed.feedback=[];alarmSeed.reports=[];fs.writeFileSync(file,JSON.stringify(alarmSeed));await launch();await fault('',now,0.99);await call('/api/pool/state');await new Promise(r=>setTimeout(r,250));const alarmBefore=fs.readFileSync(file,'utf8'),alarmMemory=(await call('/api/ledger')).data;await new Promise(r=>setTimeout(r,250));await fault('rename',now,0.99);
+await stop();const alarmSeed=disk();alarmSeed.users[u.id].gainLog=[{t:now,res:'gems',n:2000,r:'fixture-prior'}];alarmSeed.users[u.id].gainDay={k:'2026-10-02',gems:2000};alarmSeed.feedback=[];alarmSeed.reports=[];fs.writeFileSync(file,JSON.stringify(alarmSeed));await launch();await fault('',now,0.99);await call('/api/pool/state');await settled();const alarmMemory=(await call('/api/ledger')).data;await settled();const alarmBefore=fs.readFileSync(file,'utf8');   /* 11 Nov: the file is read after the read's save, as above */await fault('rename',now,0.99);
 const alarm={pool:'gold',n:1,requestId:'currency-detector'};   /* v1142: the Diamond Pool no longer pays diamonds; the Gold Pool's 0.99 roll is its diamond prize */assert.equal((await call('/api/pool/wish',alarm)).status,503);assert.deepEqual((await call('/api/ledger')).data,alarmMemory);assert.equal(fs.readFileSync(file,'utf8'),alarmBefore);
 assert.equal((await call('/api/ember/feedback',null,foreignToken)).data.items.length,0,'Failed wish must not publish diagnostic feedback');
 assert.equal((await call('/api/admin/reports',null,foreignToken)).data.reports.length,0,'Failed wish must not publish a detector report');

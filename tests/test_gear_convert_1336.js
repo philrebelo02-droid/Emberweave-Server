@@ -10,8 +10,8 @@ const cat = JSON.parse(fs.readFileSync(path.join(root, 'server', 'gear-catalog.j
 const client = fs.readFileSync(path.join(root, 'emberweave-heroes.html'), 'utf8').match(/const HERO_GEAR=Object\.freeze\((\{[^;]*?\})\);/);
 let child, port, base, id, token, pass = 0; const ok = (c, m) => { assert(c, m); pass++; console.log('  ok', m); }, delay = ms => new Promise(r => setTimeout(r, ms));
 const free = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
-async function start() { child = spawn(process.execPath, [srv], { cwd: root, env: { ...process.env, ALLOW_NEW_GUESTS: '1', DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true }); for (let i = 0; i < 150; i++) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); } throw Error('no start'); }
-async function stop() { if (!child) return; child.kill(); for (let i = 0; i < 80 && child.exitCode === null; i++) await delay(50); child = null; }
+async function start() { child = spawn(process.execPath, [srv], { cwd: root, env: { ...process.env, ALLOW_NEW_GUESTS: '1', DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true }); for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); }
+async function stop() { if (!child) return; child.kill(); for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ child = null; }
 const read = () => JSON.parse(fs.readFileSync(dbFile, 'utf8'));
 (async () => { try {
   ok(client && JSON.stringify(JSON.parse(client[1])) === JSON.stringify(G), 'the server list and the client list are the same');

@@ -153,7 +153,7 @@ else {
   const srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT: String(port), DB_FILE: path.join(tmp, 'db.json'), REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200' }, stdio: 'ignore', windowsHide: true });
   let browser;
   try {
-    for (let i = 0; i < 200; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await delay(150); }
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await delay(150); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] });
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
       userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' });

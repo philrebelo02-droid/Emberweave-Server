@@ -23,7 +23,7 @@ const port = await freePort(), base = 'http://127.0.0.1:' + port, tmp = fs.mkdte
 const srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT: String(port), DB_FILE: path.join(tmp, 'db.json'), REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200' }, stdio: 'ignore', windowsHide: true });
 let browser;
 try {
-  for (let i = 0; i < 200; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await delay(150); }
+  for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await delay(150); }   /* 11 Nov: a 60 s deadline, not an iteration count */
   if (!chromium) throw new Error('playwright missing');
   const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets;
   const sizes = (await (await fetch(base + '/api/asset-sizes')).json()).sizes;

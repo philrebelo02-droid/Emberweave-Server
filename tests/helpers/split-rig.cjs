@@ -31,8 +31,8 @@ async function server(opts) {
     for (let i = 0; i < 300; i++) { if (c.exitCode !== null) throw Error('server exited: ' + log); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); }
     throw Error('server not ready: ' + log);
   };
-  const kill = async () => { if (!child) return; const c = child; child = null; c.kill('SIGKILL'); await Promise.race([new Promise(r => c.once('exit', r)), sleep(3000)]); };
-  const stop = async () => { if (!child) return; const c = child; child = null; c.kill('SIGTERM'); await Promise.race([new Promise(r => c.once('exit', r)), sleep(8000)]); };
+  const kill = async () => { if (!child) return; const c = child; child = null; c.kill('SIGKILL'); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 3000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; };
+  const stop = async () => { if (!child) return; const c = child; child = null; c.kill('SIGTERM'); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 8000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; };
   return { dir, temp, db, port, base, req, start, kill, stop, log: () => log, get child() { return child; } };
 }
 

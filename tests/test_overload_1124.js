@@ -32,7 +32,7 @@ async function server(script, db) {
     for (let i = 0; i < 300; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await sleep(100); }
     await sleep(3000);   // the battle worker loads the engine
   };
-  const kill = async () => { if (!child) return; const c = child; child = null; c.kill('SIGKILL'); await Promise.race([new Promise(r => c.once('exit', r)), sleep(3000)]); };
+  const kill = async () => { if (!child) return; const c = child; child = null; c.kill('SIGKILL'); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 3000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; };
   const S = { req, start, kill }; servers.push(S); return S;
 }
 async function world(dir) {   // N players with full stamina and tokens, cloned from one registered account

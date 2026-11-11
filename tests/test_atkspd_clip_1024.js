@@ -26,7 +26,7 @@ const fs=require('fs'),os=require('os'),net=require('net'),{spawn}=require('chil
 let child,base;
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
 async function start(admin,dbFile,port){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,ADMIN_IDS:admin||''},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
+  for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); }
 async function stop(){ if(child){ child.kill(); await delay(600); child=null; } }
 const call=async(p,b,tok)=>{ const r=await fetch(base+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',...(tok?{'x-token':tok}:{})},body:b?JSON.stringify(b):undefined}); return r.json(); };
 (async()=>{ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-asprobe-')), dbFile=path.join(dir,'db.json'), port=await freePort(); base='http://127.0.0.1:'+port;

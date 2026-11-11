@@ -9,8 +9,16 @@
 // steers the duty from the same measure the server sheds by (perf_hooks event-loop utilisation, burn + request work together), so
 // the main thread sits at BURN_PCT % on an idle PC and on a loaded CT alike, i.e. in the middle of the shed band, which is what
 // the test means to put it in. BURN_FIXED=1 = the old fixed duty.
+// v1368b (flakes, 11 Nov): BURN_REQ_MS=n makes every HTTP request cost n ms more main-thread work, the way the same request costs more on
+// a slow or loaded cluster CT. Used only to show the test's CONTROL (a burst of 120 requests at once drives the server's own load to 1.0 on
+// a slow host; one request at a time does not). Unset = no change.
 const fs = require('fs');
 const { performance } = require('perf_hooks');
+const reqMs = Math.max(0, +process.env.BURN_REQ_MS || 0);
+if (reqMs > 0) {
+  const http = require('http'), emit = http.Server.prototype.emit;
+  http.Server.prototype.emit = function (ev, ...a) { if (ev === 'request') { const t = Date.now(); while (Date.now() - t < reqMs) {} } return emit.call(this, ev, ...a); };
+}
 const on = process.env.BURN_ON, pct = Math.min(99, Math.max(1, +process.env.BURN_PCT || 93)), target = pct / 100, fixed = process.env.BURN_FIXED === '1';
 if (on) {
   let last = Date.now(), live = false, checkedAt = 0, duty = target;

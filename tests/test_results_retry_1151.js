@@ -24,7 +24,7 @@ async function start() { const env = { ...process.env, ALLOW_NEW_GUESTS: '1', PO
   child = spawn(process.execPath, ['server.js'], { cwd: root, env, stdio: 'ignore', windowsHide: true });
   for (let i = 0; i < 300; i++) { if (child.exitCode !== null) throw new Error('throwaway server exited'); try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); }
   throw new Error('server did not start'); }
-async function stop() { if (!child) return; child.kill(); for (let i = 0; i < 40 && child.exitCode === null; i++) await delay(50); child = null; }
+async function stop() { if (!child) return; child.kill(); for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ child = null; }
 async function call(route, data) { const r = await fetch(base + route, { method: data ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', 'x-token': token }, body: data ? JSON.stringify(data) : undefined });
   return { status: r.status, data: await r.json().catch(() => null) }; }
 const gold = async () => { const l = (await call('/api/ledger')).data; return (l.ledger || l).gold; };

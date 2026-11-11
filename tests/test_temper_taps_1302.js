@@ -10,7 +10,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-t20-')), dbFile = path.join(tmp, 'db.json'); let srv, br; const port = await freePort(), base = 'http://127.0.0.1:' + port;
   const env = { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, SIM_WORKERS: '0' };   // real rate limits (no RL_MUL)
-  const start = async () => { srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env, stdio: 'ignore', windowsHide: true }); for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); } };
+  const start = async () => { srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env, stdio: 'ignore', windowsHide: true }); for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */ };
   try {
     await start();
     const name = 't20' + Date.now().toString(36);

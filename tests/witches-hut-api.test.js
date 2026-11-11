@@ -22,8 +22,17 @@ async function run() {
     for(const [c0,r0] of [[0,0],[5,0],[0,5],[5,5]]){ const t=[]; for(let c=c0;c<c0+5;c++)for(let r=r0;r<r0+5;r++)t.push(c+'_'+r);
       const d=await request('GET','/api/world/cities?since=0&tiles='+t.join(','),null,token); out.cities.push(...(d.cities||[])); out.bots.push(...(d.bots||[])); }
     return out; }
+  /* 11 Nov 2026 (flakes - "TypeError: fetch failed ... SocketError: other side closed" at the GET /api/witch/state after the bot fight, 10 cluster
+     runs 8-11 Nov, reported under the batch's first file mine-no-daily-cap.test.js): the test replays the bot fight with the real-time engine
+     (mineHost.auto) right before that GET - synchronous work that holds this process's event loop. On a loaded CT it ran past the server's
+     5 s keep-alive timeout (Node's default), so the server closed the pooled connection while this process could not see the FIN; fetch then
+     reused the dead socket and got 'other side closed'. The request never reached the server (an idle connection is closed only with no
+     request on it), so it is sent again on a fresh connection, once - a server that really died still fails (connection refused). */
   async function request(method,route,data,token) {
-    const response=await fetch(base+route,{method,headers:{...(token?{'x-token':token}:{}),...(data?{'content-type':'application/json'}:{})},body:data?JSON.stringify(data):undefined});
+    const send=()=>fetch(base+route,{method,headers:{...(token?{'x-token':token}:{}),...(data?{'content-type':'application/json'}:{})},body:data?JSON.stringify(data):undefined});
+    let response;
+    try { response=await send(); }
+    catch (e) { const c=e&&e.cause; if(!(c&&c.code==='UND_ERR_SOCKET')||child===null) throw e; response=await send(); }
     return response.json();
   }
   async function start(adminId, mineTestMs='20', cityTestMs='20', warTestMs='200') {
@@ -40,7 +49,7 @@ async function run() {
   async function stop() {
     if(!child) return;
     const c=child; child=null; c.kill();
-    await Promise.race([new Promise(resolve=>c.once('exit',resolve)),new Promise(resolve=>setTimeout(resolve,2000))]);
+    await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 2000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */;
   }
   try {
     await start();
@@ -158,7 +167,7 @@ async function run() {
       const d2=JSON.parse(fs.readFileSync(db,'utf8')); const cm=((d2.users[admin.profile.id].worldCityMarches)||[]).find(m=>m.id===capMarch.marchId);
       assert.ok(!cm||cm.resolved,'the capped march is closed on disk: '+JSON.stringify(cm||{}).slice(0,120));
       await stop(); const d3=JSON.parse(fs.readFileSync(db,'utf8')); for(const m of (d3.users[admin.profile.id].worldCityMarches||[])) m.homeAt=0;   /* that army is home before the rest of the suite */
-      fs.writeFileSync(db,JSON.stringify(d3)); await start(admin.profile.id,'20','1500'); }   /* 10 Oct 2026: a 1.5 s city march (home at 3 s) so the double-booking check below runs while the march is surely out - at 20 ms it landed and came home under suite load before the mine request arrived */
+      fs.writeFileSync(db,JSON.stringify(d3)); await start(admin.profile.id,'20','4000'); }   /* 11 Nov 2026 (flakes, cluster run 154912: the fixture guard below failed - the march was home before the double-booking answer came back): a 4 s march (home at 8 s), not 1.5 s (home at 3 s); the double-booking request needed > 3 s on a loaded CT */   /* 10 Oct 2026: a 1.5 s city march (home at 3 s) so the double-booking check below runs while the march is surely out - at 20 ms it landed and came home under suite load before the mine request arrived */
     const botRaider=await request('POST','/api/register',{name:'witchBotRaider',pass:'password1'});
     assert.ok(botRaider.token);
     const botGrant=await request('POST','/api/admin/led-grant',{
@@ -197,9 +206,10 @@ async function run() {
       defId:targetBot.id,marchId:botMarch.marchId,heroIds:['hollow'],requestId:'bot-verified-fight'
     },botRaider.token);
     assert.equal(botFight.ok,true,JSON.stringify(botFight));
-    assert.equal(mineHost.auto(botFight.replay.snaps,botFight.replay.foe,botFight.replay.seed).won,botFight.won,
+    const botReplay=mineHost.auto(botFight.replay.snaps,botFight.replay.foe,botFight.replay.seed);   // one replay (it was run twice, back to back)
+    assert.equal(botReplay.won,botFight.won,
       'bot receipt replays with the real-time fight engine');
-    const botDigest=JSON.parse(mineHost.auto(botFight.replay.snaps,botFight.replay.foe,botFight.replay.seed).digest);
+    const botDigest=JSON.parse(botReplay.digest);
     const botWounds=await request('GET','/api/witch/state',null,botRaider.token);
     for(const snap of botFight.replay.snaps){
       const row=botDigest.u.find(u=>u[0]===snap.key&&u[1]==='ally');

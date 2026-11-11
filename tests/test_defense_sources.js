@@ -62,8 +62,8 @@ async function liveBanked() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-ds-')), dbFile = path.join(dir, 'db.json'), port = await freePort(), base = 'http://127.0.0.1:' + port;
   let child = null;
   const start = async () => { child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, ALLOW_NEW_GUESTS:'1', DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true });
-    for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); } throw Error('no start'); };
-  const stop = async () => { if (!child) return; await delay(400); child.kill(); for (let i = 0; i < 60 && child.exitCode === null; i++) await delay(50); child = null; };
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); };
+  const stop = async () => { if (!child) return; await delay(400); child.kill(); for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ child = null; };
   try {
     await start(); const g = await (await fetch(base + '/api/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: 'ds-' + Date.now() }) })).json();
     await fetch(base + '/api/ledger', { headers: { 'x-token': g.token } }); await stop();

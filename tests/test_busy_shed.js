@@ -20,12 +20,22 @@ async function run(dir, tag, check, env) {
   const [p0] = B.players, out = { busyGet: 0, busyPost: 0, sent: 0, health: 0, healthOk: 0, idleBusy: 0 };
   try {
     fs.writeFileSync(flag, '1'); await R.sleep(4500);   // the 2 s window fills with the burn
-    const st0 = (await B.stat());
-    const jobs = [];
-    for (let i = 0; i < 80; i++) jobs.push(S.req('GET', '/api/profile', null, p0.token, p0.ip).then(r => { out.sent++; if (r.status === 503 && r.body.busy) { out.busyGet++; out.lastBusy = r.body; } }));
-    for (let i = 0; i < 40; i++) jobs.push(S.req('POST', '/api/pvp/reports', {}, p0.token, p0.ip).then(r => { out.sent++; if (r.status === 503 && r.body.busy) out.busyPost++; }));
-    for (let i = 0; i < 10; i++) jobs.push(S.req('GET', '/api/health', null, null, p0.ip).then(r => { out.health++; if (r.status === 200) out.healthOk++; }));
-    await Promise.all(jobs);
+    /* v1368b (flakes, 11 Nov - still 39 of 40 POSTs refused on the cluster after the steered burn): the 120 requests went out AT ONCE, all 80
+       GETs queued ahead of all 40 POSTs. Serving that burst is itself main-thread work the burn cannot take back (it is already queued), so
+       on a slower or shared CT the server's 2 s utilisation climbed to 1.000 while the burst was served: the GETs met p ~0.8 and the POSTs,
+       served last, met p ~1, where actions are refused as often as polls. The check compared two refusal rates measured at two different
+       loads. Now (1) with shedding on, the test waits until the server reports its shed share p inside the band (not a fixed sleep), and
+       (2) the requests go one at a time, paced, interleaved GET, GET, POST, health - the test adds almost no load of its own, and every
+       POST meets the same p as the GETs beside it. CONTROL: BURN_REQ_MS=15 (each request 15 ms dearer, a slow CT) - the old burst
+       refused 39 of 40 POSTs (the cluster's failure); this version holds p in the band. The policy under test (GET refused with p, POST with 2p-1) is unchanged. */
+    if (env && env.BUSY_SHED === '1') { for (let t0 = Date.now(); Date.now() - t0 < 20000; await R.sleep(250)) { const s = (await B.stat()).shed; if (s && s.p > 0.1 && s.p < 0.95) break; } }
+    for (let i = 0; i < 130; i++) {
+      await R.sleep(25);   // paced: on a slow host back-to-back requests alone keep the loop ~95% busy; the burn, not the test, sets the load
+      if (i % 13 === 12) { const r = await S.req('GET', '/api/health', null, null, p0.ip); out.health++; if (r.status === 200) out.healthOk++; }
+      else if (i % 3 === 2) { const r = await S.req('POST', '/api/pvp/reports', {}, p0.token, p0.ip); out.sent++; if (r.status === 503 && r.body.busy) out.busyPost++; }
+      else { const r = await S.req('GET', '/api/profile', null, p0.token, p0.ip); out.sent++; if (r.status === 503 && r.body.busy) { out.busyGet++; out.lastBusy = r.body; } }
+    }
+    // 130 slots = 80 GETs, 40 POSTs, 10 health checks, as before
     const st1 = await B.stat();
     out.stat = st1.shed;
     // a refused cloud save changes nothing: send saves until one is refused, check it is not stored, send it again idle

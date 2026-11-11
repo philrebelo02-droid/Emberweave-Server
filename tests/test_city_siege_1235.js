@@ -35,7 +35,7 @@ async function server(dir) {
       NODE_ENV: 'test', SIM_WORKERS: '0', DATABASE_URL: '', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', SERVER_SECRET: 'v1235-test', WORLD_CITY_TEST_MS: '1500' } });
     const c = child; c.stderr.on('data', d => { log = (log + d).slice(-4000); });
     for (let i = 0; i < 400; i++) { if (c.exitCode !== null) throw Error('server exited: ' + log); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); } throw Error('server not ready: ' + log); };
-  const stop = async () => { if (!child) return; const c = child; child = null; c.kill('SIGTERM'); await Promise.race([new Promise(r => c.once('exit', r)), sleep(8000)]); if (c.exitCode === null) c.kill('SIGKILL'); await sleep(300); };
+  const stop = async () => { if (!child) return; const c = child; child = null; c.kill('SIGTERM'); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 8000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; if (c.exitCode === null) c.kill('SIGKILL'); await sleep(300); };
   return { base, db, req, start, stop, log: () => log };
 }
 async function player(S, A, name, ip) {

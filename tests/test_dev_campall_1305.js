@@ -9,7 +9,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-ca1305-')), dbFile = path.join(tmp, 'db.json'); let srv = null, br = null; const port = await freePort(), base = 'http://127.0.0.1:' + port;
   const env = { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0' };
-  const start = async () => { srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env, stdio: 'ignore', windowsHide: true }); for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); } };
+  const start = async () => { srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env, stdio: 'ignore', windowsHide: true }); for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */ };
   const post = (u, b, tok) => fetch(base + u, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(tok ? { 'x-token': tok } : {}) }, body: JSON.stringify(b) }).then(r => r.json().catch(() => ({})));
   try {
     await start();

@@ -34,7 +34,7 @@ async function helper(dir, workers) {
     for (let i = 0; i < 200; i++) { try { const j = await (await fetch(url + '/health')).json(); if (j.ready > 0) return; } catch (e) {} await sleep(150); }
     throw Error('helper did not start'); };
   await start();
-  return { url, start, stats: async () => (await fetch(url + '/health')).json(), close: async () => { if (child) { const c = child; child = null; c.kill(); await Promise.race([new Promise(r => c.once('exit', r)), sleep(3000)]); } } };
+  return { url, start, stats: async () => (await fetch(url + '/health')).json(), close: async () => { if (child) { const c = child; child = null; c.kill(); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 3000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; } } };
 }
 const probeOf = dir => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'status.json'), 'utf8')); } catch (e) { return null; } };
 const liveLog = dir => { const f = path.join(dir, 'live.jsonl'); return fs.existsSync(f) ? fs.readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : []; };

@@ -178,7 +178,7 @@ try {
     let browser;
     try {
       for (let i = 0; i < 120; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 200)); }
-      browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+      browser = await chromium.launch({ headless: true, args: ['--disable-audio-output', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'], ignoreDefaultArgs: ['--mute-audio'] });   /* v1368b: no audio session, never --mute-audio */
       const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block',
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
       await ctx.addInitScript(() => { window.AudioContext = undefined; window.webkitAudioContext = undefined; });

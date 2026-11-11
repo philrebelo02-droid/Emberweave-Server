@@ -13,7 +13,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-al1306-')); let srv = null, br = null; const port = await freePort(), base = 'http://127.0.0.1:' + port;
   try {
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: path.join(tmp, 'db.json'), RL_MUL: '1000', SIM_WORKERS: '0' }, stdio: 'ignore', windowsHide: true });
-    for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
     br = await chromium.launch({ args: ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
     const pg = await (await br.newContext({ viewport: { width: 1280, height: 720 }, serviceWorkers: 'block' })).newPage();

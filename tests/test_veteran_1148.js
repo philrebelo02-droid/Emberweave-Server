@@ -90,14 +90,14 @@ let port,base,child,token,id;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
 async function start(){ child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,RL_MUL:'1000',ADMIN_IDS:''},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
-async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }
+  for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); }
+async function stop(){ if(!child)return; child.kill(); for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ child=null; }
 async function call(route,data){ const r=await fetch(base+route,{method:data?'POST':'GET',headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined});
   let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
 const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
 async function editDBWith(file,fn){ await delay(400); await stop(); const db=disk(); fn(db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db));
   child=spawn(process.execPath,[file],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,RL_MUL:'1000',ADMIN_IDS:''},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
+  for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); }
 async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
 let rq=0; const R=()=>'v1148-'+(rq++);
 (async()=>{ try{
@@ -171,7 +171,7 @@ let rq=0; const R=()=>'v1148-'+(rq++);
   if(!process.env.AUD_SERVER){ const ctlFile='.ctl_v1148_server_'+process.pid+'.js';
     try{ fs.writeFileSync(path.join(root,ctlFile), require('./helpers/veteran-1148-control')());
       const keep=srvFile; child=spawn(process.execPath,[ctlFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,RL_MUL:'1000',ADMIN_IDS:''},stdio:'ignore',windowsHide:true});
-      for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)break; }catch(_){} await delay(100); }
+      for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);){ try{ if((await fetch(base+'/health')).ok)break; }catch(_){} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
       await editDBWith(ctlFile,u=>{ u.led.stam={v:999,t:Date.now()}; u.led.portals.veteran={cleared:160,stars:{34:3},att:null,runs:{}}; });
       const cs=(await call('/api/campaign/sweep',{mode:'veteran',node:34,times:1,requestId:R()})).data;
       ok(cs.ok===true&&!cs.eliteFrag,'control: the v1148 server (e94e80a4) sweeps Veteran '+hs.id+' and pays NO hero fragments ('+JSON.stringify(cs.eliteFrag||cs.error||null)+')');

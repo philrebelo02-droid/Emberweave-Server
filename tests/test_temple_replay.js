@@ -15,7 +15,7 @@ async function run(){
   const port=await freePort(),base='http://127.0.0.1:'+port;
   const start=async()=>{
     server=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});
-    for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)return;}catch(_){}await delay(100);}
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(server&&server.exitCode!==null);){try{if((await fetch(base+'/health')).ok)return;}catch(_){}await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count */
     throw new Error('throwaway server did not start');
   };
   try{

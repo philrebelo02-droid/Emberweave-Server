@@ -15,7 +15,7 @@ const ART = ['forge/forge-bg', 'forge/forge-popup', 'forge/forge-row', 'forge/fo
   try {
     const log = fs.openSync(path.join(tmp, 'srv.log'), 'a');
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0' }, stdio: ['ignore', log, log], windowsHide: true });
-    for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     for (const a of ART) { const r = await fetch(base + '/assets/img/ui/' + a + '.webp?v=1'); ck(r.ok && /image\/webp/.test(r.headers.get('content-type') || ''), 'served: ' + a + '.webp', r.status); }
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
     const args = ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];

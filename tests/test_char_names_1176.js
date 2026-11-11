@@ -24,8 +24,8 @@ const EVIL = '<b class=pwn>x</b>&"\'', EVIL2 = '<img src=x onerror=__xss=1>', EV
   let srv = null, browser = null; const port = await freePort(), base = 'http://127.0.0.1:' + port;
   const start = async admin => { const log = fs.openSync(path.join(tmp, 'srv.log'), 'a');
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0', ADMIN_IDS: admin || '' }, stdio: ['ignore', log, log], windowsHide: true });
-    for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); } throw new Error('server did not start'); };
-  const stop = async () => { if (!srv) return; srv.kill(); for (let i = 0; i < 60 && srv.exitCode === null; i++) await delay(50); srv = null; };
+    for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) return; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */ throw new Error('server did not start'); };
+  const stop = async () => { if (!srv) return; srv.kill(); for(let i=0;i<400&&srv.exitCode===null&&srv.signalCode===null;i++){ if(i===200) try{ srv.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ srv = null; };
   const call = async (r, b, t) => { const x = await fetch(base + r, { method: b ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(t ? { 'x-token': t } : {}) }, body: b ? JSON.stringify(b) : undefined }); let j = {}; try { j = await x.json(); } catch (_) {} return { status: x.status, data: j }; };
   const reg = n => call('/api/register', { name: n, pass: 'password1' });
   try {

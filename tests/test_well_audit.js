@@ -13,7 +13,7 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
 async function start(){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile},stdio:['ignore','pipe','pipe'],windowsHide:true});
   child.stdout.on('data',x=>log+=x); child.stderr.on('data',x=>log+=x);
   for(let i=0;i<150;i++){ if(child.exitCode!==null)throw Error('server exited'); try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
-async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }
+async function stop(){ if(!child)return; child.kill(); for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ child=null; }
 async function call(route,data){ const r=await fetch(base+route,{method:data?'POST':'GET',headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined}); let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
 const win=(att,ids)=>({requestId:rid(),attemptId:att,won:true,stars:3,digest:JSON.stringify({won:true,t:1,u:ids.map(k=>[k,'ally',1,999999,100])}),inputLog:[]});
 const gold=async()=>{ const r=(await call('/api/ledger')).data; return (r.ledger||r).gold; };

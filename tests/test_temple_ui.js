@@ -38,7 +38,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
       u.led.temple.heroes[key]={steps:{health:40+i,attack:30+i,armorMr:20+i,pen:10+i},boonsUnlocked:[true,true,false,false,false]};   /* v1094: Temple v2 steps (flat stats + blessings) - the card power parity below covers them */
     }
     fs.writeFileSync(dbFile,JSON.stringify(db));start();
-    for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)break;}catch(_){}await delay(100);}
+    for(const _t0=Date.now();Date.now()-_t0<60000;){try{if((await fetch(base+'/health')).ok)break;}catch(_){}await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count */
     try{browser=await chromium.launch();}catch(_){browser=await chromium.launch({channel:'chrome'});}
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
