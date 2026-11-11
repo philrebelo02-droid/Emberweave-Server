@@ -21160,6 +21160,7 @@ function skyTeamFromBoard(){
 }
 
 async function skyTeamLoad(){
+  if(SKYTEAM.saving) return;
   SKYTEAM.loading=true; skyTeamRender();
   let j=null;
   try{ j=await api('/api/guild-war/lines'); }catch(e){ j=null; }
@@ -21173,7 +21174,7 @@ async function skyTeamLoad(){
 function skyTeamAdjust(i){ if(!SKYTEAM.editable) return; if(!SKYTEAM.lines[i]) return;
   SKYTEAM.pick=i; SKYTEAM.slot=0; SKYTEAM.msg=''; SKYTEAM.bad=false; skyTeamRender(); }
 
-function skyTeamDisband(i){ if(!SKYTEAM.editable) return;
+function skyTeamDisband(i){ if(SKYTEAM.saving||!SKYTEAM.editable) return;
   const L=SKYTEAM.lines[i]; if(!L) return;
   SKYTEAM.bench=SKYTEAM.bench.concat(L).sort((a,b)=>((SKYTEAM.meta[b]||{}).power|0)-((SKYTEAM.meta[a]||{}).power|0));
   SKYTEAM.lines.splice(i,1);
@@ -21181,7 +21182,7 @@ function skyTeamDisband(i){ if(!SKYTEAM.editable) return;
   SKYTEAM.dirty=true; SKYTEAM.msg=t('skyfall.team_disbanded'); SKYTEAM.bad=false;
   skyTeamRender(); }
 
-function skyTeamAddLine(){ if(!SKYTEAM.editable) return;
+function skyTeamAddLine(){ if(SKYTEAM.saving||!SKYTEAM.editable) return;
   if(SKYTEAM.lines.length>=SKYTEAM.cap){ SKYTEAM.msg=t('skyfall.team_max',{n:SKYTEAM.cap}); SKYTEAM.bad=true; return skyTeamRender(); }
   if(SKYTEAM.bench.length<5){ SKYTEAM.msg=t('skyfall.team_need5',{n:SKYTEAM.bench.length}); SKYTEAM.bad=true; return skyTeamRender(); }
   SKYTEAM.lines.push(SKYTEAM.bench.slice(0,5));
@@ -21191,7 +21192,7 @@ function skyTeamAddLine(){ if(!SKYTEAM.editable) return;
   skyTeamRender(); }
 
 /* swap a bench hero into the selected slot; the one it replaces goes back to the bench */
-function skyTeamPut(key){ const i=SKYTEAM.pick; if(i==null) return;
+function skyTeamPut(key){ if(SKYTEAM.saving) return; const i=SKYTEAM.pick; if(i==null) return;
   const L=SKYTEAM.lines[i]; if(!L) return;
   const slot=Math.max(0,Math.min(4,SKYTEAM.slot|0));
   const out=L[slot];
@@ -21204,13 +21205,15 @@ function skyTeamPut(key){ const i=SKYTEAM.pick; if(i==null) return;
   SKYTEAM.dirty=true; SKYTEAM.msg=''; SKYTEAM.bad=false;
   skyTeamRender(); }
 
-async function skyTeamSave(){ if(!SKYTEAM.editable||!SKYTEAM.dirty) return;
-  SKYTEAM.msg=t('skyfall.team_saving'); SKYTEAM.bad=false; skyTeamRender();
-  let j=null;
-  try{ j=await api('/api/guild-war/lines','POST',{lines:SKYTEAM.lines}); }catch(e){ j=null; }
-  if(j && j.ok){ skyTeamIngest(j); SKYTEAM.msg=t('skyfall.team_saved'); SKYTEAM.bad=false; }
-  else { SKYTEAM.msg=(j&&j.error)?j.error:t('skyfall.team_save_failed'); SKYTEAM.bad=true; }
-  skyTeamRender(); }
+async function skyTeamSave(){ if(SKYTEAM.saving||SKYTEAM.loading||!SKYTEAM.editable||!SKYTEAM.dirty) return;
+  SKYTEAM.saving=true;
+  try{
+    SKYTEAM.msg=t('skyfall.team_saving'); SKYTEAM.bad=false; skyTeamRender();
+    let j=null;
+    try{ j=await api('/api/guild-war/lines','POST',{lines:SKYTEAM.lines}); }catch(e){ j=null; }
+    if(j && j.ok){ skyTeamIngest(j); SKYTEAM.msg=t('skyfall.team_saved'); SKYTEAM.bad=false; }
+    else { SKYTEAM.msg=(j&&j.error)?j.error:t('skyfall.team_save_failed'); SKYTEAM.bad=true; }
+  }finally{ SKYTEAM.saving=false; skyTeamRender(); } }
 
 /* ------------------------------------------------------------------ drawing */
 /* v811 (Phil: "things like vault, campaign, province dont show power") - and the Skyfall tile
@@ -21295,7 +21298,7 @@ function skyTeamBodyHTML(){
       +'<span class="sp"></span>'
       +'<div class="skyTroopBtns" style="flex-direction:row">'
         +'<button data-act="add"'+(canAdd?'':' disabled')+'>'+t('skyfall.add_line')+'</button>'
-        +'<button class="go" data-act="save"'+((SKYTEAM.editable&&SKYTEAM.dirty)?'':' disabled')+'>'+t('common.save')+'</button>'
+        +'<button class="go" data-act="save"'+((SKYTEAM.editable&&SKYTEAM.dirty&&!SKYTEAM.saving)?'':' disabled')+'>'+t('common.save')+'</button>'
       +'</div></div>'
     /* v766 - only a real message (an error, or "Saved.") earns a line. The standing explanation of
        what is not wired lives on the disabled buttons' own titles, read when they are reached. */
@@ -21311,7 +21314,7 @@ function skyTeamRender(){
   el.classList.toggle('picking', SKYTEAM.pick!=null);
   try{ skyLayoutBoard(document.getElementById('skyStage')); }catch(e){}
 
-  el.querySelectorAll('[data-act]').forEach(btn=>{ if(btn.disabled) return;
+  el.querySelectorAll('[data-act]').forEach(btn=>{ if(btn.disabled||SKYTEAM.saving) return;
     const act=btn.dataset.act, i=btn.dataset.i|0;
     btn.onclick=(ev)=>{ ev.stopPropagation();
       if(act==='adjust') return skyTeamAdjust(i);
@@ -31367,6 +31370,7 @@ function openSurvivors(){ if(document.getElementById('survFrame')) return;
   f.addEventListener('load',()=>{ try{ f.focus(); f.contentWindow.focus(); }catch(_){} });   /* WASD goes to the run without a click first */
   addEventListener('message',onMsg); document.body.appendChild(f); try{ muteBtnPlace(true); }catch(_){} }
 function openTower(){ const ov=isleOverlay();
+  let actionPending=false;
   function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
     ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">Ascendant Spire</div><button class="btn sm secondary" id="twX">${uiIcon('close')}</button></div>
       <div style="text-align:center;margin-bottom:12px"><div style="font-size:11px;color:#8b98a9">The Ascendant Spire · ${ewT('isle.your_record')}</div><div style="font-weight:800;font-size:30px;color:#ffd45e">${ewT('isle.floor_n',{n:st.floor})}</div><div style="font-size:11px;color:#8b98a9">${ewT('isle.your_power')} ${statusIcon('attack')} ${pow.toLocaleString()}</div></div>
@@ -31380,16 +31384,16 @@ function openTower(){ const ov=isleOverlay();
         <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?uiIcon('medal')+' '+ewT('isle.claim_tribute'):(st.floor>0?uiIcon('check')+' '+ewT('isle.claimed_today'):ewT('common.locked'))}</button></div>
       <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#twX').onclick=()=>ov.remove();
-    ov.querySelector('#twGo').onclick=async()=>{ const bt=ov.querySelector('#twGo'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;   /* v1151: one climb in flight */
+    ov.querySelector('#twGo').onclick=async()=>{ const bt=ov.querySelector('#twGo'); if(actionPending) return; actionPending=true; bt.disabled=true;   /* v1151: one climb in flight */
       try{ const r=await towerAscend(); render(r.win?((r.elite?uiIcon('crown')+' '+ewT('isle.warden_felled')+' ':statusIcon('attack')+' ')+ewT('isle.floor_conquered',{n:r.floor})+' '+r.reward):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):ewT('isle.too_weak_floor')), r.win?'#5ee89b':'#ff8b8b'); }
       catch(e){ render(escapeHTML(RESULT_LOST_MSG),'#ff8b8b'); }
-      finally{ delete bt.dataset.busy; bt.disabled=false; } };
-    ov.querySelector('#twTrib').onclick=async()=>{ const bt=ov.querySelector('#twTrib'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;
+      finally{ actionPending=false; bt.disabled=false; } };
+    ov.querySelector('#twTrib').onclick=async()=>{ const bt=ov.querySelector('#twTrib'); if(actionPending) return; actionPending=true; bt.disabled=true;
       try{ const r=await towerTribute(); render(r.none?ewT('isle.already_claimed'):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):uiIcon('medal')+' '+ewT('isle.tribute_claimed')+' '+hudIcon('gold')+' '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); }
       catch(e){ render(escapeHTML(RESULT_LOST_MSG),'#ff8b8b'); }
-      finally{ delete bt.dataset.busy; bt.disabled=false; } };
+      finally{ actionPending=false; bt.disabled=false; } };
   }
-  render(); towerSync().then(r=>{ if(r&&r.ok&&document.body.contains(ov)) render(); });
+  render(); towerSync().then(r=>{ if(r&&r.ok&&!actionPending&&document.body.contains(ov)) render(); });
 }
 
 /* ============================ MAIL ============================ */
@@ -33994,7 +33998,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088799';
+const BUILD_ID = '1794347088800';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -34097,8 +34101,7 @@ function chatSend(){ const inp=document.getElementById('cwInput'); if(!inp)retur
     } else if(G.guild){ if(!G.guildLog)G.guildLog=[]; G.guildLog.push(v); if(G.guildLog.length>50)G.guildLog=G.guildLog.slice(-50); saveG(); }
     else return; }
   else if(chatTab.indexOf('w:')===0){ const n=chatTab.slice(2); if(!G.whispers)G.whispers={}; if(!G.whispers[n])G.whispers[n]=[]; G.whispers[n].push({who:me,txt:v,me:true}); chatCap(G.whispers[n]); saveG();
-    if(live){ chatNetSend({t:'whisper',to:n,text:v}); }   // delivered to that player if they're online
-    else { G.whispers[n].push({who:'{i:u:warning} '+t('chat.offline'),txt:t('chat.not_delivered'),sys:true}); chatCap(G.whispers[n]); saveG(); } }
+    if(!live || !chatNetSend({t:'whisper',to:n,text:v})){ G.whispers[n].push({who:'{i:u:warning} '+t('chat.offline'),txt:t('chat.not_delivered'),sys:true}); chatCap(G.whispers[n]); saveG(); } }
   renderChat();
 }
 function renderChat(){ initChat(); const w=document.getElementById('chatWidget'); if(!w||w.classList.contains('min'))return;

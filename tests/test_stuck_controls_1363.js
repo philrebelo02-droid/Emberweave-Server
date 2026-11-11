@@ -11,7 +11,7 @@ fs.mkdirSync(path.join(tmp, 'server'));
 for (const t of TARGETS) { if (t === '.') { ctl[t] = tmp; continue; } ctl[t] = path.join(tmp, t); fs.writeFileSync(ctl[t], cp.execSync('git show c522bbbb:' + t, { cwd: ROOT, maxBuffer: 64 << 20 })); }
 const run = (f, target) => cp.spawnSync(process.execPath, [path.join(FX, f), target], { encoding: 'utf8' });
 const list = fs.readdirSync(FX).filter(f => f.endsWith('.test.cjs')).sort();
-ck('five fixtures present', list.length === 5, String(list.length));
+ck('eight fixtures present (batch 4 + whisper not delivered, Skyfall team save single flight, Ascendant Spire pending controls)', list.length === 8, String(list.length));
 for (const f of list) { const t = TARGETS.find(t => run(f, path.join(ROOT, t)).status === 0);
   ck(f.replace('.test.cjs', '') + ': passes on this tree' + (t ? ' (' + t + ')' : ''), !!t);
   ck(f.replace('.test.cjs', '') + ': CONTROL fails on v1362', !!t && run(f, ctl[t]).status !== 0); }
