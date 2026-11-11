@@ -996,7 +996,9 @@ function sanitizeSave(u, roster){
   if(!roster || typeof roster.__save!=='string') return roster;
   let g; try{ g=JSON.parse(roster.__save); }catch(e){ return roster; }   // unparseable → store as-is, nothing to validate
   let clamped=false;
-  if(migrateHeroIdsBlob(g)) clamped=true;   // v926: translate old hero ids from not-yet-updated clients (idempotent)
+  migrateHeroIdsBlob(g);   // v926: translate old hero ids from not-yet-updated clients (idempotent)
+  /* v1368 (Claude 11 Nov, save-clamp false flags): translating an old hero id is a migration, not a clamp - it no longer sets clamped, so it
+     files no integrity flag and no save-clamp cheat signal. Only an ECON_CAP / MAP_CAP clamp below does. */
   for(const k in ECON_CAP){ if(typeof g[k]==='number'){ const nv=clampNum(g[k],ECON_CAP[k]); if(nv!==g[k]){ g[k]=nv; clamped=true; } } }
   for(const map of ['mats','eqMats','starShards','heroFrag','glyphRank','eqInv']){ const o=g[map]; if(o&&typeof o==='object'){ for(const k in o){ if(typeof o[k]==='number'){ const nv=clampNum(o[k],MAP_CAP); if(nv!==o[k]){ o[k]=nv; clamped=true; } } } } }
   const prev=u.econ||{}, now=Date.now(); const dGems=(g.gems||0)-(prev.gems||0), dGold=(g.gold||0)-(prev.gold||0);
