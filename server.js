@@ -1762,11 +1762,13 @@ function acadTrackMax(track){ return track==='academy'?ACADEMY_ECON.MAX_LEVEL:TE
 function acadIncome(A,until){
   if(!(A.incAt>0)){ A.incAt=until; return true; }
   if(A.incAt>=until) return false;
-  const lv=A.lv.academy|0;
-  if(!(ACADEMY_ECON.ratePerHour(lv)>0)){ const moved=A.incAt!==until; A.incAt=until; return moved; }
-  const e=ACADEMY_ECON.earned(lv,A.incAt,until); if(!(e.units>0)) return false;
-  for(const r of ACADEMY_ECON.RESOURCES) A.res[r]=(A.res[r]|0)+e.units;
-  A.incAt+=e.usedMs; return true; }
+  const rate=ACADEMY_ECON.ratePerHour(A.lv.academy|0);
+  if(!(rate>0)){ A.incAt=until; A.incCarry=0; return true; }
+  const raw=(+A.incCarry||0)+rate*(until-A.incAt)/3600000, units=Math.floor(raw);
+  if(!(units>0)) return false;
+  for(const r of ACADEMY_ECON.RESOURCES) A.res[r]=(A.res[r]|0)+units;
+  A.incCarry=raw-units; A.incAt=until; return true;
+}
 /* 3 Oct 2026 release review (ChatGPT): a READ that pays Academy income (or settles the Hut) commits like a purchase - the work is done on a
    copy, saved with durableUserCommit, and only then adopted and answered; a refused save answers 503 and the live account is untouched. */
 function durableReadCommit(u,tag,work){
@@ -1779,7 +1781,13 @@ function durableReadCommit(u,tag,work){
 }
 function acadCollect(A){ let changed=false; const now=Date.now();
   if(!(A.incAt>0)){ A.incAt=now; changed=true; }   // income starts the first time the Academy is touched - never back-paid
-  const ad=A.learn&&A.learn.academy; if(ad&&now>=ad) changed=acadIncome(A,ad)||changed;   // the old level earns up to the moment it finished
+  const ad=A.learn&&A.learn.academy;
+  if(ad&&now>=ad){
+    changed=acadIncome(A,ad)||changed;
+    // Carry fractional RESOURCE units across a rate change, never old-level elapsed time.
+    A.incCarry=(+A.incCarry||0)+ACADEMY_ECON.ratePerHour(A.lv.academy|0)*Math.max(0,ad-A.incAt)/3600000;
+    A.incAt=Math.max(A.incAt,ad);
+  }
   for(const k in A.learn){ if(!ACAD_TRACKS.includes(k)){ delete A.learn[k]; changed=true; continue; }   /* Academy v2: a retired track (def) is cancelled */
     const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(acadTrackMax(k),(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
   changed=acadIncome(A,now)||changed;
@@ -7262,7 +7270,6 @@ async function api(req,res,url){
       return send(res,200,Object.assign({ok:true, enabled:true},dungeonView(prog)));
     }
     if(p==='/api/dungeon/start-battle'){
-      if(prog.activeAttempt) prog.activeAttempt=null;   // an unresolved attempt (closed the app mid-fight) is abandoned = a loss; floors only advance through a resolved win
       if(prog.vaultStatus==='complete'||prog.currentFloor>DUNGEON_MAX_FLOOR) return send(res,400,{error:'You have cleared the Aether Vault. Its extension is coming soon.'});
       // Vault teams: 5 fighters + up to 5 backups (a backup steps in when a fighter falls)
       const ids=Array.isArray(b.heroIds)?b.heroIds.map(String):[];
@@ -7274,6 +7281,7 @@ async function api(req,res,url){
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
       const floor=prog.currentFloor;
       const attempt={ id:uid(), floor, heroIds:ids, teamSnapshot:snaps, power:{ fighters:ids.slice(0,5).map(k=>vaultHeroPowerRow(me,k)), backups:ids.slice(5).map(k=>vaultHeroPowerRow(me,k)) }, enemyWaves:buildDungeonWaves(floor), startedAt:Date.now() };
+      // Only a validated replacement start abandons the previous attempt.
       prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDBNow([me.id]);   // Wait for the Vault attempt's shared-world save before acknowledging; a debounced worker write can still be pending at a hard kill.
       return send(res,200,{ ok:true, attemptId:attempt.id, floor, bossRule:bossRuleForFloor(floor),
         waves:attempt.enemyWaves });   // fixed monster lineup for this floor — the fight happens in the client

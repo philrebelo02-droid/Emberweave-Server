@@ -7722,13 +7722,24 @@ function academySpeedup(){ return Math.min(0.6, academyLevel()*0.02); }   // Aca
 function learnDur(lvl){ return Math.round((120 + lvl*lvl*45) * 1000 * (1-academySpeedup())); } // ms — sped up by the Academy's level
 function fmtDur(ms){ ms=Math.max(0,ms); let s=Math.ceil(ms/1000); const h=Math.floor(s/3600); s-=h*3600; const m=Math.floor(s/60); s-=m*60; const p=n=>String(n).padStart(2,'0'); return h>0?`${h}:${p(m)}:${p(s)}`:`${m}:${p(s)}`; }
 // finish any research whose timer has elapsed (applies the level, clears the timer)
-function collectLearns(){ let changed=false; for(const k in G.techLearn){ const done=G.techLearn[k]; if(done&&Date.now()>=done){ G.tech[k]=Math.min((k==='academy'?ACADEMY_MAX:(typeof TECH_MAX!=='undefined'?TECH_MAX:60)),(G.tech[k]||0)+1); G.techLearn[k]=0; changed=true; } }
-  if(changed){ saveG(); if(ACC.token) api('/api/academy/collect','POST',{requestId:uid8()}).then(r=>{ if(r&&r.lv){ G.tech=Object.assign({},G.tech,r.lv); saveGLocalOnly(); } }).catch(()=>{}); }   // v249: the server applies the level too
-  return changed; }
+function collectLearns(){
+  if(ACC.token){
+    if(collectLearns.waiting||!Object.values(G.techLearn).some(done=>done&&Date.now()>=done)) return false;
+    const accountToken=ACC.token; collectLearns.waiting=true;
+    api('/api/academy/collect','POST',{requestId:uid8()}).then(r=>{
+      if(ACC.token!==accountToken||!(r&&r.lv)) return;
+      G.tech=Object.assign({},G.tech,r.lv); G.techLearn=Object.assign({},r.learn||{}); saveGLocalOnly();
+      if(typeof state!=='undefined'&&state==='tech'&&typeof renderTech==='function') renderTech();
+    }).catch(()=>{}).finally(()=>{collectLearns.waiting=false;});
+    return false; // A local clock cannot finish signed-in research. Retain timers on failure.
+  }
+  let changed=false; for(const k in G.techLearn){ const done=G.techLearn[k]; if(done&&Date.now()>=done){ G.tech[k]=Math.min((k==='academy'?ACADEMY_MAX:(typeof TECH_MAX!=='undefined'?TECH_MAX:60)),(G.tech[k]||0)+1); G.techLearn[k]=0; changed=true; } }
+  if(changed) saveG(); return changed;
+}
 // soonest-completing active research, or null
 function nextLearn(){ let best=null; for(const k in G.techLearn){ const d=G.techLearn[k]; if(d&&(best===null||d<best))best=d; } return best; }
 // is any research currently running?
-function learnBusy(){ for(const k in G.techLearn){ if(G.techLearn[k]>Date.now()) return k; } return null; }
+function learnBusy(){ for(const k in G.techLearn){ if(G.techLearn[k]&&(ACC.token||G.techLearn[k]>Date.now())) return k; } return null; }
 // resource cost to research a track at its current level (needs world-map resources)
 /* Phil 3 Oct 2026 - copy of server/academy-economy.js (tests/test_academy_economy.js holds them equal): the Academy level costs all four,
    equal, to level 120; it pays its next upgrade's cost over 24 + 2(N-1) hours, never less than the level below. */
@@ -19362,18 +19373,26 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
 /* v1302 (Phil 7 Nov: "Try doing like 20+ tempers"): Temper taps are QUEUED, never dropped (FORGE.busy used to swallow a tap while the last
    one was in flight), sent in batches of up to 60, and each reply (revision, dust, temper, progress) updates the Forge here - one full state
    read 0.9 s after the last tap instead of one per tap. A STALE reply takes the server's revision and resends once. */
-function forgeTemper(itemId,uses){ FORGE.tq=(FORGE.tq||0)+(uses|0||1); FORGE.tItem=itemId; if(!FORGE.tRun) forgeTemperRun(); }
+function forgeTemper(itemId,uses){
+  const jobs=FORGE.tJobs||(FORGE.tJobs=[]), n=Math.max(1,uses|0||1), last=jobs[jobs.length-1];
+  if(last&&last.itemId===itemId) last.uses+=n; else jobs.push({itemId,uses:n});
+  if(!FORGE.tRun) forgeTemperRun();
+}
 async function forgeTemperRun(){ FORGE.tRun=true; let stale=0;
-  try{ while(FORGE.tq>0){ const n=Math.min(60,FORGE.tq); FORGE.tq-=n;
-    const r=await api('/api/gear/temper','POST',{expectedRevision:FORGE.st.revision,itemId:FORGE.tItem,uses:n});
-    if(r&&r.error==='STALE'&&r.revision!=null&&stale<1){ stale++; FORGE.st.revision=r.revision; FORGE.tq+=n; continue; }
-    if(!r||r.error){ FORGE.tq=0; bannerMsg((r&&r.error)||t('forge.cold')); break; } stale=0;
+  try{ while(FORGE.tJobs&&FORGE.tJobs.length){
+    const job=FORGE.tJobs.shift(), itemId=job.itemId, n=Math.min(60,job.uses);
+    if(job.uses>n) FORGE.tJobs.unshift({itemId,uses:job.uses-n});
+    const r=await api('/api/gear/temper','POST',{expectedRevision:FORGE.st.revision,itemId,uses:n});
+    if(r&&r.error==='STALE'&&r.revision!=null&&stale<1){ stale++; FORGE.st.revision=r.revision; FORGE.tJobs.unshift({itemId,uses:n}); continue; }
+    if(!r||r.error){ FORGE.tJobs=[]; bannerMsg((r&&r.error)||t('forge.cold')); break; } stale=0;
     FORGE.st.revision=r.revision; if(r.dust!=null) FORGE.st.dust=r.dust;
-    const tt=(FORGE.st.temperByType=FORGE.st.temperByType||{}), was=tt[r.gearId]||{}; tt[r.gearId]=Object.assign({},was,{temper:r.temper,prog:r.prog,dustSpent:(was.dustSpent||0)+(r.dustSpent||0)});
-    const it=(FORGE.st.items||{})[FORGE.tItem]; if(it) it.temper=r.temper; FORGE.stAt=Date.now();
+    const tt=(FORGE.st.temperByType=FORGE.st.temperByType||{}), was=tt[r.gearId]||{};
+    tt[r.gearId]=Object.assign({},was,{temper:r.temper,prog:r.prog,dustSpent:(was.dustSpent||0)+(r.dustSpent||0)});
+    const it=(FORGE.st.items||{})[itemId]; if(it){it.temper=r.temper;it.prog=r.prog;} FORGE.stAt=Date.now();
     try{ bannerMsg(iconize('{i:s:burn} '+((r.uses||1)>1?t('forge.tempered_x',{n:r.uses,d:r.dustSpent}):(r.levelsGained?t('forge.temper_up',{d:r.dustSpent}):t('forge.temper_progress',{d:r.dustSpent}))))); }catch(e){}
-    try{ renderForge(); }catch(e){} }
-  } finally{ FORGE.tRun=false; clearTimeout(FORGE.tSync); FORGE.tSync=setTimeout(()=>{ if(!FORGE.tRun) forgeSync().then(()=>{ try{ renderForge(); }catch(e){} }); },900); } }
+    try{ renderForge(); }catch(e){}
+  }}finally{ FORGE.tRun=false; clearTimeout(FORGE.tSync); FORGE.tSync=setTimeout(()=>{ if(!FORGE.tRun) forgeSync().then(()=>{ try{ renderForge(); }catch(e){} }); },900); }
+}
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
 /* v365 (Phil): the Gear Compendium art — every finished item, fragment and sub-component (Emberweave
    Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
@@ -25561,7 +25580,7 @@ function renderTech(){
   const _amt=v=>{ const b='<b style="color:#5ee89b">'+v+'</b>'; return k==='critres'?t('tech.critres_amount',{n:b}):t('tech.amount',{n:b,stat:desc}); }; if(k==='critres'){ perStr=perStr.replace('+','-'); nowStr=nowStr.replace('+','-'); }
   let btn;
   if(maxed){ btn=`<button class="btn secondary" disabled>${t('tech.max_lv',{n:tmax})}</button>`; }
-  else if(learning&&remain>0){ btn=`<button class="btn" disabled>${uiIcon('timer')} ${t('tech.upgrading',{t:fmtDur(remain),n:lvl+1})}</button>`; }
+  else if(learning&&(ACC.token||remain>0)){ btn=`<button class="btn" disabled>${uiIcon('timer')} ${t('tech.upgrading',{t:fmtDur(remain),n:lvl+1})}</button>`; }
   else if(acadLocked){ btn=`<button class="btn secondary" disabled>${hudIcon('lock')} ${t('tech.raise_academy',{n:lvl+1})}</button>`; }
   else if(blocked){ btn=`<button class="btn secondary" disabled>${t('tech.busy_elsewhere')}</button>`; }
   else { btn=`<button class="btn" id="techLearnBtn" ${affordable?'':'disabled'}><span class="ac-learn-label">${isAcad?t('tech.upgrade_lv',{n:lvl+1}):t('tech.learn_lv',{n:lvl+1})}</span><span class="ac-cost">${hudIcon('gold')} ${cost} ${resCostStr(rc)}</span></button>`; }
@@ -33784,7 +33803,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088791';
+const BUILD_ID = '1794347088792';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
