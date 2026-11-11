@@ -21,4 +21,9 @@ both(H, H0, 'a finished lesson glows nothing more', /if\(_c&&_c\.id===id&&_c\.do
 both(H, H0, 'the tutorial target is brought into view', /target\.scrollIntoView\(\{block:'center',inline:'nearest'\}\)/);
 both(H, H0, 'Academy: short screens take the compact layout at any width', /@media\(max-width:1100px\) and \(min-width:701px\),\(max-height:620px\) and \(min-width:701px\)\{\n #tech #techPanel\{height:100%\}/);
 both(H, H0, 'Arena: Buy +1 keeps its small size when enabled on short screens', /#arena \.arDay #arenaBuyAtt\{font-size:9px!important;line-height:1\.1!important;min-height:25px!important/);
+both(H, H0, 'Stage panel: the Fight / Sweep row stays at the bottom of the panel (Fold cover had no buttons)', /#stageModal \.smActions\{position:sticky;bottom:-7px;z-index:4;/);
+both(H, H0, 'Stage panel stars: empty positions use the empty star', /uiIcon\(x<_stars\?'star-filled':'star-empty'\)/);
+both(H, H0, 'Map node stars: empty positions use the empty star', /uiIcon\(x<_sst\?'star-filled':'star-empty'\)/);
+both(H, H0, 'Sweep x10 sends the number the stamina covers', /sweepStage\(i,Math\.max\(1,Math\.min\(10,\+sw10\.dataset\.n\|\|10\)\),mode\)/);
+both(H, H0, 'Reward pop: one row of smaller tiles on short screens', /@media \(max-height:500px\)\{#stageRewPop \.srCard\{width:min\(680px,94vw\)\}#stageRewPop \.srItem\{width:78px/);
 console.log('test_night_audit_1360.js: ' + P + ' passed, ' + F + ' failed'); process.exit(F ? 1 : 0);

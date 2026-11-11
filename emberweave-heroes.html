@@ -181,6 +181,8 @@
   #stageRewPop .srItem span{font-size:10px;color:#cdd6e4;line-height:1.15}
   #stageRewPop .srGo{flex:none;width:100%;min-height:46px;border:0;border-radius:0;background:url(/assets/img/ui/bonus/claim-button.webp?v=1) center/100% 100% no-repeat;color:#24170a;font:900 15px Georgia,serif;text-shadow:0 1px 0 #ffe9a8;cursor:pointer}   /* Phil 10 Nov: the sweep and stage rewards use the Bonus Stage panel's art */
   @media (max-height:500px){#stageRewPop .srCard{padding-bottom:18px}#stageRewPop .srTitle{font-size:17px;margin-bottom:6px}#stageRewPop .srGo{min-height:40px}}
+  /* v1360 (night smoke, campaign): on a phone / Fold cover the second row of rewards sat hidden behind Collect (a x10 sweep has 7 tiles; Fold showed 39 of 103 px). Short screens get a wider card and smaller tiles so every reward is on one row. */
+  @media (max-height:500px){#stageRewPop .srCard{width:min(680px,94vw)}#stageRewPop .srItem{width:78px;padding:6px 3px 5px}#stageRewPop .srArt{width:44px;height:44px}#stageRewPop .srArt img{max-width:44px;max-height:44px}#stageRewPop .srGrid{gap:6px;margin-bottom:8px}}
   #bonusFragPanel .bfList{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
   @media (max-height:500px){ #bonusFragPanel{padding:8px!important} #bonusFragPanel .bfCard{padding-bottom:18px} #bonusFragPanel .bfTitle{font-size:17px!important;margin-bottom:6px!important}
     #bonusFragPanel .bfPlaques{margin-bottom:6px!important} #bonusFragPanel .bfPlaque{padding:5px 8px 7px} #bonusFragPanel .bfPlaque .bfN{font-size:17px!important}
@@ -1158,6 +1160,8 @@
     #stageModal .pm{box-sizing:border-box;width:calc(100% - 16px);max-width:1100px;max-height:calc(calc(var(--ew-game-height,100vh) * 1) - 12px);padding:7px 10px;overflow-y:auto;overflow-x:hidden}
     #stageModal .smStageCard{max-width:none;margin:0}
     #stageModal .smStageScroll{max-height:none;overflow:visible;padding:0}
+    /* v1360 (night smoke, campaign, P1): on a Fold cover the Fight / Sweep / Back row was below the panel on EVERY stage (379-406 px of content in 322), on a phone on boss stages - and nothing shows that the panel scrolls. The row stays at the bottom of the panel. */
+    #stageModal .smActions{position:sticky;bottom:-7px;z-index:4;padding:5px 0 7px;background:linear-gradient(180deg,rgba(18,14,22,0),rgba(18,14,22,.96) 9px,#120e16)}
     #stageModal .smStageHead{padding:5px 9px;min-height:29px}
     #stageModal .smStageTitle{font-size:17px}
     #stageModal .smStars{font-size:19px}
@@ -23073,7 +23077,7 @@ function renderRoadmap(){
       el.style.left=_wideX(nd[0])+'%'; el.style.top=nd[1]+'%';
       el.dataset.code=stageCode(g);
       const _sst=cleared?portalStars(MODE,g):null;
-      const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon('star-filled')}</span>`).join('')}</div>`;
+      const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon(x<_sst?'star-filled':'star-empty')}</span>`).join('')}</div>`;
       const _hk=boss?CHAPTER_MAP_BOSS_KEYS[ch]:((MODE==='normal'&&elite)?eliteHeroFor(g):null);
       const _anim=_hk&&BATTLE_ANIM[_hk], _idle=_anim&&(boss?(_anim.walk||_anim.idle):_anim.idle);
       const _ih=boss?56:36, _iw=_idle?Math.max(boss?28:18,Math.min(boss?74:34,_ih*_idle.fw/_idle.fh)):28;
@@ -23108,7 +23112,7 @@ function renderRoadmap(){
     el.dataset.code=stageCode(g);
     const face=cleared?uiIcon('check'):(boss?uiIcon('crown'):(elite?uiIcon('star-filled'):p.s));
     const _sst=cleared?portalStars(MODE,g):null;
-    const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon('star-filled')}</span>`).join('')}</div>`;
+    const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon(x<_sst?'star-filled':'star-empty')}</span>`).join('')}</div>`;
     el.innerHTML=`${clickable?'':hudIcon('lock')}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' '+uiIcon('crown'):(elite?' '+uiIcon('star-filled'):'')}${_sstH}</div>`;
     if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
     if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
@@ -23278,7 +23282,7 @@ function openStageModal(i,mode){
   // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
   const _stars=portalStars(mode,i), _threeStar=_stars>=3;
   const _title=boss?t('stage.boss_title',{code:stageCode(i)}):(elite?t('stage.guardian_title',{code:stageCode(i)}):t('stage.title',{code:stageCode(i)}));
-  const _starsHTML=[0,1,2].map(x=>`<span style="color:${x<_stars?'#ffd45e':'#465064'}">${uiIcon('star-filled')}</span>`).join('');
+  const _starsHTML=[0,1,2].map(x=>`<span style="color:${x<_stars?'#ffd45e':'#465064'}">${uiIcon(x<_stars?'star-filled':'star-empty')}</span>`).join('');   /* v1360 (night smoke, campaign): every position drew the FILLED star image (the colour does not tint an image) - an unplayed stage and a 2-star stage both showed three full stars */
   body.innerHTML=`<div class="smStageCard"><div class="smStageScroll">
     <div class="smStageHead"><div><div class="smStageSub">${PORTAL_META[mode].icon} ${t('stage.mode_chapter',{mode:PORTAL_META[mode].label.toUpperCase(),n:chapterOf(i)})}</div><div class="smStageTitle">${_title}</div></div><div class="smStars">${_starsHTML}</div></div>
     <div class="smMeta"><div><span>${t('stage.stamina')}</span><b><img class="stIc" src="/assets/img/icons/ui/res-stamina-v1.webp" alt=""> ${stageStamCost(i,mode)}</b></div><div><span>${_eb?t('stage.chances'):t('stage.status')}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?t('stage.cleared'):t('stage.new'))}</b></div><div><span>${t('stage.reward_xp')}</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
@@ -23288,7 +23292,7 @@ function openStageModal(i,mode){
     ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">'+t('stage.no_stamina')+'</div>'}
     <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?statusIcon('attack')+' '+(cleared?t('stage.fight_again'):t('stage.fight_now')):hudIcon('lock')+' '+t('stage.reach_level',{n:_gate})}</button>
       ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep'):hudIcon('lock')+' '+t('stage.needs',{stars:uiIcon('star-filled').repeat(3)})}</button>`:'<button class="btn secondary" disabled>'+statusIcon('dash')+' '+t('stage.sweep')+'</button>'}
-      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep_x10'):hudIcon('lock')+' ×10'}</button>`
+      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" data-n="${Math.max(1,Math.min(10,Math.floor((G.stamina||0)/Math.max(1,stageStamCost(i,mode)))))}" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep')+' ×'+Math.max(1,Math.min(10,Math.floor((G.stamina||0)/Math.max(1,stageStamCost(i,mode))))):hudIcon('lock')+' ×10'}</button>`
         :(cleared&&_eb)?(()=>{ const n=Math.max(0,Math.min(_left,Math.floor((G.stamina||0)/Math.max(1,stageStamCost(i,mode)))));   /* v1321 (Phil 9 Nov: "elite staged that have 3 chances. Allow x3 sweep for it instead of having the x10 sweep there") */
             return `<button class="btn secondary" id="smSweepN" data-n="${n}" ${(n>0&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' '+t('stage.sweep')+' ×'+(n>0?n:ELITE_BOSS_DAILY):hudIcon('lock')+' ×'+ELITE_BOSS_DAILY}</button>`; })()
         :'<button class="btn secondary" disabled>'+statusIcon('dash')+' '+t('stage.sweep_x10')+'</button>'}
@@ -23304,7 +23308,7 @@ function openStageModal(i,mode){
     if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); try{ const sd=stageDaily(); delete sd.n[mode+':'+i]; }catch(e){} updateHubChrome(); bannerMsg(t('stage.runs_reset')); try{ openStageModal(i,mode); }catch(e){ closeStageModal(); } }
     else { document.getElementById('smMsg').textContent=langMsg(r&&r.error)||t('stage.no_server'); rs.disabled=false; } };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i,1,mode);
-  const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10,mode);
+  const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,Math.max(1,Math.min(10,+sw10.dataset.n||10)),mode);   /* v1360 (night smoke): with stamina for fewer than 10 runs the button was live but always sent 10 and the server refused the batch. It shows and sends the number the stamina covers. */
   const swN=body.querySelector('#smSweepN'); if(swN) swN.onclick=()=>{ const n=+swN.dataset.n||0; if(n>0) sweepStage(i,n,mode); };
 }
 function closeStageModal(){ window.SM_KEY=null; window._smReceipt=null; document.getElementById('stageModal').classList.remove('active'); }
