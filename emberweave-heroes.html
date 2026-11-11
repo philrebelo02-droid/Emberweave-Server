@@ -19666,7 +19666,11 @@ function heroGearCanUp(key){ try{ const st=(typeof FORGE!=='undefined')&&FORGE.s
   for(const gid of ids){ const d=forgeDef(gid); if(!d) continue; const iid=eq[d.slot], it=iid&&st.items[iid]; if(it&&it.d===gid) continue;
     if(gearCanCraft(st,d)||gearOwnedFresh(st,d.id)||gearPlan(st,d,role).ok) return true; } }catch(e){} return false; }
 const HUP_GLY={}; const _hupQ=[]; let _hupBusy=0;
-function _hupPump(){ while(_hupBusy<2&&_hupQ.length){ const f=_hupQ.shift(); _hupBusy++; Promise.resolve().then(f).catch(()=>{}).then(()=>{ _hupBusy--; _hupPump(); }); } }
+/* v1364 (night smoke, heroes): a refused build-tree read (429) forgot the hero at once, so the next redraw (every filter change) asked again for
+   every hero - a burst of 429s. A failed read is not asked again for 15 s and the queue rests 3 s after a failure. */
+let _hupHold=0;
+function _hupPump(){ if(Date.now()<_hupHold){ if(!_hupPump._t) _hupPump._t=setTimeout(function(){ _hupPump._t=0; _hupPump(); },_hupHold-Date.now()+20); return; }
+  while(_hupBusy<2&&_hupQ.length){ const f=_hupQ.shift(); _hupBusy++; Promise.resolve().then(f).catch(()=>{}).then(()=>{ _hupBusy--; _hupPump(); }); } }
 function heroGlyphCanUp(key){ try{ if(typeof RUNE2==='undefined'||!RUNE2.st||!RUNE2.cat||RUNE2.enabled===false||!heroOwned(key)||!(ACC&&ACC.token)) return false;
   const b=g2board(key), idx=b.ascensionIndex; if(idx>=RUNE2.cat.ladder.length) return false;
   let sl=-1; for(let i=0;i<6;i++){ if(!b.slots[i]){ sl=i; break; } }
@@ -19674,7 +19678,7 @@ function heroGlyphCanUp(key){ try{ if(typeof RUNE2==='undefined'||!RUNE2.st||!RU
   const lvNeed=(b.levelRequired!=null)?b.levelRequired:((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1); if(heroLevel(key)<lvNeed) return false;
   const k=key+'|'+(RUNE2.st.revision||0); if(k in HUP_GLY) return !!HUP_GLY[k];
   HUP_GLY[k]=null;
-  _hupQ.push(()=>api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(key)+'&slot='+sl).then(r=>{ if(!r||r.error){ delete HUP_GLY[k]; return; }
+  _hupQ.push(()=>api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(key)+'&slot='+sl).then(r=>{ if(!r||r.error){ _hupHold=Date.now()+3000; setTimeout(function(){ if(HUP_GLY[k]===null) delete HUP_GLY[k]; },15000); return; }
     HUP_GLY[k]=!!(r.canBuild||r.canBuildAll); if(HUP_GLY[k]) heroUpDotsRefresh(key); }));
   _hupPump(); return false; }catch(e){ return false; } }
 function heroUpgrades(key){ return { skills:heroSkillsCanUp(key), glyphs:heroGlyphCanUp(key), equip:heroGearCanUp(key) }; }
@@ -30289,11 +30293,20 @@ async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st
   const mo=st.mythOdds||null; if(mo) setTimeout(()=>bannerMsg(uiIcon('mythical-star')+' '+t('wish2.myth_odds',{pool:'<b>'+t('wish.mythical_pool')+'</b>',egp:(st.mythUnlockEgp||11),cost:hudIcon('gem')+(st.mythCost||400),a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)})),4200);
   bannerMsg(uiIcon('chart')+' '+t('wish2.diamond_odds',{pool:'<b>'+t('wish2.diamond_odds_title')+'</b>',star:uiIcon('star-filled'),a:pct(o.full3||0),b:pct(o.full2||0),c:pct(o.frag3||0),d:pct(o.frag2||0),e:pct(o.glyphFull||0),f:pct(o.glyphNext||0),item:STAM_ITEM_NAME,stam:120,g:pct(o.stamItem||0)})+'<br>'+hudIcon('gold')+' '+t('wish2.gold_odds',{pool:'<b>'+t('wish.gold_pool')+'</b>',a:pct(o.goldHero||0),b:pct(o.goldFrag||0)})+'<br>'+statusIcon('mark')+' '+t('wish2.pity',{pity:'<b>'+t('wish2.pity_label')+'</b>',n:((st.pity&&st.pity.at)||40),c:((st.pity&&st.pity.count)||0)})); }
 function wishResultLabel(code){ const p=String(code||'').split(':'), t=p[0], k=p[1], nm=k?escapeHTML((HERO_TYPES[k]||{}).name||k):'';
-  if(t==='hero') return ewT('wish.label_new_hero',{hero:nm}); if(t==='frags') return ewT('wish.label_frags',{hero:nm}); if(t==='glyphFrag') return ewT('wish.glyph_fragments'); return escapeHTML(t+(nm?' '+nm:'')); }
+  if(t==='hero') return ewT('wish.label_new_hero',{hero:nm}); if(t==='frags') return ewT('wish.label_frags',{hero:nm}); if(t==='glyphFrag') return ewT('wish.glyph_fragments');
+  /* v1364 (night smoke, shops + Grok EYES): the history showed raw codes (shield, teleport, attackCard, glyphFull, gold, dupe:key) */
+  if(t==='dupe') return ewT('wish.owned',{hero:nm}); if(t==='shield') return ewT('wish.shield'); if(t==='teleport') return ewT('wish.teleport_card'); if(t==='attackCard') return ewT('wish.attack_card');
+  if(t==='gold') return ewT('econ.gold'); if(t==='gems') return ewT('econ.diamonds'); if(t==='glyphFull') return ewT('hero.glyph'); if(t==='stamItem') return escapeHTML(STAM_ITEM_NAME); if(t==='prayer') return 'Prayer';
+  return escapeHTML(t+(nm?' '+nm:'')); }
 async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg(t('wish.no_history')); return; }
   const rows=h.history.slice(0,12).map(e=>{ const d=new Date(e.t); const hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
     return hh+' · '+(e.pool==='gold'?hudIcon('gold'):'🔮')+'×'+e.n+' → '+(e.results||[]).map(wishResultLabel).join(', '); }).join('<br>');   // v994 (audit #11): names, not codes
-  bannerMsg(uiIcon('quest-scroll')+' <b>'+t('wish.last_wishes')+'</b><br>'+rows); }
+  /* v1364 (night smoke, shops + Grok EYES 01:32 "wishing roll history is broken on phone"): the list went out as a banner - a block of text up to 675 px tall
+     over the pool that vanished in 2 s. It opens in the Wishing info card (same card as the ? button), scrolls, and stays until closed. */
+  const old=document.getElementById('wishInfo'); if(old) old.remove();
+  const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+  ov.innerHTML='<div class="wishInfoCard"><div class="wishInfoHead"><b>'+uiIcon('quest-scroll')+' '+t('wish.last_wishes')+'</b><button class="btn sm secondary" id="wishInfoX">'+uiIcon('close')+'</button></div><div id="wishHistRows" style="line-height:1.7;overflow-wrap:anywhere">'+rows+'</div></div>';
+  document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   // first paint of a visit asks the server what is actually free, then repaints with the truth
   /* Refetch when the cache is missing OR stale. The gold pool's free wish returns on a timer
