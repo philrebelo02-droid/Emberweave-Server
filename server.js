@@ -8194,7 +8194,12 @@ async function api(req,res,url){
          diamonds, and the debit happens HERE so the coins and the materials move in one write:
          the client used to spend the coins via /api/tx/spend and then land on the branch above,
          paying 450 diamonds as well (or losing the coins outright when it had none). */
-      if(what==='pieces_guild'){ const c=450; if((led.guildCoins|0)<c) return {ok:false,error:'Not enough guild coins.'};
+      if(what==='pieces_guild'){ const c=450;
+        /* v1359 (night smoke): this is Guild Shop slot 5 (unlocks at guild level 2) but only the coin balance was checked - a level-1 guild member, or a player in no guild, could buy it through the API */
+        { const gg=me.guildId&&(DB.guilds||{})[me.guildId];
+          if(!gg||!(gg.members||[]).includes(me.id)) return {ok:false,error:'Join a guild to use the Guild Shop.'};
+          if(5>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'}; }
+        if((led.guildCoins|0)<c) return {ok:false,error:'Not enough guild coins.'};
         led.guildCoins=(led.guildCoins|0)-c; led.eqMats=led.eqMats||{};
         const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }
         ledTx(me,'guildshop:pieces',{guildCoins:-c, mats:got});
