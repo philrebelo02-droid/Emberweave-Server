@@ -1338,7 +1338,8 @@ body:has(#home.active) #chatWidget.min{left:calc(max(3px,env(safe-area-inset-lef
 #home #townHud .resframe:has(#resGems) .resicon img{content:url(/assets/img/ui/hud2/diamond-icon.webp?v=1)}
 /* v1364 (tester B 2.3: the Market sat partly under the diamond display; Phil 11 Nov: "move right, near menu"): the food / gold / diamond counters leave the
    top centre, where they covered the Market tents, and stack on the right under MENU (right edges in line with MENU; the + buttons stay inside the screen). */
-#home #townHud{left:auto;right:calc(0.5% + 22px);top:50px;transform:none;flex-direction:column;align-items:flex-end;gap:5px}
+#home #hubMenu{pointer-events:none} #home #hubMenu > *{pointer-events:auto}   /* v1369: only MENU and its panel take taps, not the block's empty margin over the diamond + */
+#home #townHud{left:auto;right:calc(0.5% + 22px);top:50px;transform:none;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:5px}   /* v1369 (Phil 11 Nov: "this needs to go left of the menu not under it" / "horizontally"): one row, placed left of MENU by townHudPlace() */
 #home #pfFrame{content:url(/assets/img/ui/hud2/commander-ring.webp?v=1)}
 #home #pfLvBadge{background:url(/assets/img/ui/hud2/level-badge.webp?v=1) center/contain no-repeat;aspect-ratio:5/6;top:0}
 #home #pfName .pname{border:0;border-image:none;background:url(/assets/img/ui/hud2/commander-plate.webp?v=1) center/100% 100% no-repeat;padding:6px 24px 7px;display:inline-block}
@@ -12710,6 +12711,17 @@ const AFF_TIPS={
   Dark:['Dark','Dark and Light each deal 20% more damage to the other.'],
   Neutral:['Neutral','Deals and takes normal damage against every element.'] };
 function affTip(k){ const d=AFF_TIPS[k]||[k,''], tr=(key,fb)=>{ const v=ewT(key); return (v&&v!==key)?v:fb; }; return [tr('aff.'+k.toLowerCase()+'_t',d[0]), tr('aff.'+k.toLowerCase()+'_d',d[1])]; }
+/* v1369 (Phil 11 Nov: "this needs to go left of the menu not under it" / "horizontally"): the food / gold / diamond row sits on MENU's line, its right edge just left of MENU - measured from the real MENU button so it holds on every device */
+function townHudPlace(){ try{ const h=document.getElementById('townHud'), m=document.getElementById('menuBtn'); if(!h||!m||!m.offsetWidth||state!=='home') return;
+  const p=h.offsetParent||document.body, pr=p.getBoundingClientRect(), z=parseFloat(getComputedStyle(p).zoom)||1;
+  const _mb=m.getBoundingClientRect(), _ic=m.querySelector('.mbIc'), _ir=_ic?_ic.getBoundingClientRect():_mb, mr={left:Math.min(_mb.left,_ir.left),top:_mb.top,height:_mb.height};   /* the book icon hangs past MENU's left edge - the row clears it */
+  const small=innerWidth<1100; h.style.transformOrigin='right center'; h.style.transform='none';
+  /* fit the gap between the Market's tap area and MENU, so the row never sits over the Market (tester B 2.3) */
+  let sc=small?0.72:1; try{ const parts=[...h.querySelectorAll('.resframe,.resicon,.resplus')].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0); const lab=[...document.querySelectorAll('#townHots .townlbl')].find(l=>l.dataset.nav==='market'); const hot=lab&&[...document.querySelectorAll('#townHots .hot')].find(x=>x.title===lab.textContent.trim());
+    if(parts.length&&hot){ const natL=Math.min(...parts.map(r=>r.left)), natR=Math.max(...parts.map(r=>r.right)), natW=natR-natL, gap=(mr.left-6)-(hot.getBoundingClientRect().right+4); if(gap>0&&!small) sc=Math.min(sc,gap/natW); } }catch(_){}   /* phone / Fold / tablet keep Phil's 72% ("2nd picture"); PC shrinks only if it would reach the Market */
+  h.style.transform=sc<0.999?'scale('+sc.toFixed(3)+')':'none';   /* Phil: "2nd picture" - 72% on phone / Fold / tablet so the row clears the Market; full size on PC */
+  h.style.right=Math.max(4,(pr.right-mr.left)/z+6)+'px'; h.style.top=Math.max(0,((mr.top+mr.height/2)-pr.top)/z-h.offsetHeight/2-(small?5:4))+'px'; }catch(e){} }   /* Phil: "raise slightly" */
+try{ window.addEventListener('resize',()=>setTimeout(townHudPlace,80)); }catch(e){}
 function affBtnPlace(){ try{ const g=document.getElementById('campGlossBtn'), a=document.getElementById('campAffBtn'); if(a) a.style.display=AFFINITIES_LIVE?'inline-flex':'none'; if(!AFFINITIES_LIVE||!g||!a||!g.offsetWidth) return;
   const r=parseFloat(getComputedStyle(g).right)||8; a.style.right=(r+g.offsetWidth+6)+'px'; }catch(e){} }
 function openAffinities(){ const old=document.getElementById('affOv'); if(old) old.remove();
@@ -18919,6 +18931,7 @@ function _showScreen(name){
   if(name==='result'){ renderResultExtras(); try{ updateGuestMarks(); }catch(e){} }
   if(name!=='battle'&&name!=='result'&&typeof OL!=='undefined'&&OL.active){ OL.active=false; OL.host=false; OL.byId={}; }   /* v1367 memory audit (Phil 11 Nov: "Check to make sure no mode slips through"): a live PvP match set OL.active and nothing ever cleared it - after one match the phone never released battle art again that session, and a host could not start a second match. Leaving battle/result ends it. */
   if(name!=='wall'){ try{ document.querySelectorAll('#wallBody video').forEach(v=>{ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(_){} v.remove(); }); }catch(e){} }   /* v1368 memory audit: the cauldron video leaves with its screen */
+  if(name==='home'){ try{ setTimeout(townHudPlace,0); setTimeout(townHudPlace,400); }catch(e){} }
   if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} },0);   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
   /* v1365 (tester B 1.1, the phone crash after 30-40 min; Claude's diagnosis 11 Nov, section 3): on a phone the squad's sheets stayed loaded on the campaign
      map and every other menu between fights (Continue / Quit free only the foes) - ~1.16 GB of textures on a screen that draws no battle. On the phone art

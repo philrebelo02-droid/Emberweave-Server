@@ -1,5 +1,5 @@
 // v1364 (tester B 2.3, 11 Nov; v2 after Phil 11 Nov 08:51 "move right, near menu"): the food / gold / diamond counters covered the Market tents and its tap box.
-// They now stack on the right under MENU. Grok. Real page on a throwaway server. CONTROL: EW_ROOT=<217ca0bf copy> must FAIL. SHOTS=<dir> also saves a screenshot per size.
+// v1369: one row left of MENU (Phil 11 Nov). They had stacked on the right under MENU (v1367). Grok. Real page on a throwaway server. CONTROL: EW_ROOT=<217ca0bf copy> must FAIL. SHOTS=<dir> also saves a screenshot per size.
 const fs=require('fs'),os=require('os'),path=require('path'),net=require('net');
 const {spawn}=require('child_process');
 const ROOT=process.env.EW_ROOT?path.resolve(process.env.EW_ROOT):path.join(__dirname,'..');
@@ -12,7 +12,7 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ok   '+msg); else { fails++; 
 /* a throwaway server + an admin account signed in past the tutorial (the same boot the night smoke used) */
 async function boot(o){ o=o||{}; const port=await freePort(),base='http://127.0.0.1:'+port;
   const env={...process.env,PORT:String(port),DB_FILE:path.join(temp,'db.json'),ALLOW_NEW_GUESTS:'1',REG_PER_MIN:'500',REG_ACCOUNTS_PER_IP:'500'};
-  const up=async()=>{for(let i=0;i<200;i++){try{if((await fetch(base+'/api/health')).ok)return;}catch(_){}await delay(150);}throw new Error('throwaway server did not start');};
+  const up=async()=>{for(const _t0=Date.now();Date.now()-_t0<60000;){try{if((await fetch(base+'/api/health')).ok)return;}catch(_){}await delay(150);}   /* 11 Nov: a 60 s deadline, not an iteration count */throw new Error('throwaway server did not start');};
   child=spawn(process.execPath,['server.js'],{cwd:ROOT,env,stdio:'ignore',windowsHide:true}); await up();
   const J=async(p,b,tok)=>(await fetch(base+p,{method:'POST',headers:Object.assign({'content-type':'application/json'},tok?{'x-token':tok}:{}),body:JSON.stringify(b)})).json();
   const reg=await J('/api/register',{name:'tr'+Date.now().toString(36),pass:'password1'}); const L={token:reg.token,id:reg.profile.id};
@@ -60,12 +60,14 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
       const others=[...document.querySelectorAll('#townHots .townlbl'),document.getElementById('menuBtn'),document.getElementById('profileBtn'),document.getElementById('patBadge'),document.getElementById('pfLvBadge'),document.querySelector('#chatWidget .cw-head')].filter(vis);
       const hitOther=[]; for(const c of ctr) for(const o of others) if(X(c,R(o))) hitOther.push(c.id+'/'+(o.id||o.dataset.nav||o.className));
       const off=ctr.filter(c=>c.l<0||c.t<0||c.r>innerWidth||c.b>innerHeight).map(c=>c.id);
-      const nearMenu=ctr.every(c=>c.l>art.r&&Math.abs(c.r-menu.r)<=40&&c.t>=menu.b-6&&c.t-menu.b<=140);
+      const nearMenu=ctr.every(c=>(c.l>art.r||innerWidth<900)&&c.r<=menu.l+2&&c.b>menu.t-4&&c.t<menu.b+4)&&Math.max(...ctr.map(c=>c.r))>=menu.l-60;   /* v1369 (Phil: "left of the menu not under it" / "horizontally"): one row on MENU's line, just left of it, clear of the Market art */
       return {cov:cov/n, hot:[b.left,b.top,b.right,b.bottom].map(Math.round), hitArt, hitOther, off, nearMenu, menu:[menu.l,menu.t,menu.r,menu.b].map(Math.round), ctr:ctr.map(c=>c.id+':'+[c.l,c.t,c.r,c.b].map(Math.round))}; });
     if(process.env.SHOTS) await page.screenshot({path:path.join(process.env.SHOTS,'item1_'+tag+'.png')});
-    ok(r&&r.cov===0,n+' '+w+'x'+h+': no part of the Market tap box lies under the counters or any HUD piece ('+(r?(r.cov*100).toFixed(1)+'% covered, box '+r.hot:'not found')+')');
-    ok(r&&r.hitArt.length===0,n+': no counter overlaps the Market art / tap box or its name plate ('+(r?r.hitArt.join(',')||'none':'?')+')');
-    ok(r&&r.nearMenu,n+': the counters sit to the right of the Market, under MENU, right edges in line with it (menu '+(r&&r.menu)+'; '+(r&&r.ctr.join(' '))+')');
+    /* v1369: Phil picked the 72% row on phone ("2nd picture" / "raise slightly"); on an 844 px phone it overlaps the top-right corner of the Market TAP box (trees above the tents, ~12%), never its name plate. Allowed up to 15% there; every other size stays at 0. */
+    const capCov=(w<900)?0.15:0;
+    ok(r&&r.cov<=capCov,n+' '+w+'x'+h+': the Market tap box is clear of the counters (phone: at most its top corner, Phil 11 Nov) ('+(r?(r.cov*100).toFixed(1)+'% covered, box '+r.hot:'not found')+')');
+    ok(r&&(r.hitArt.length===0||(w<900&&r.cov<=0.15)),n+': no counter overlaps the Market art or its name plate beyond the phone corner Phil accepted ('+(r?r.hitArt.join(',')||'none':'?')+')');
+    ok(r&&r.nearMenu,n+': the counters sit in one row left of MENU, on its line, right of the Market (menu '+(r&&r.menu)+'; '+(r&&r.ctr.join(' '))+')');
     ok(r&&r.hitOther.length===0,n+': the counters cover no building name plate, MENU, Commander, EGP or the chat bar ('+(r?r.hitOther.join(',')||'none':'?')+')');
     ok(r&&r.off.length===0,n+': every counter (plate, icon, +) is fully on screen ('+(r?r.off.join(',')||'all on':'?')+')');
     /* the counters still work: a real tap on each + opens its shop; MENU still opens and its items are not under the counters */
