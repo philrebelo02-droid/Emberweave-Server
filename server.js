@@ -7641,6 +7641,8 @@ async function api(req,res,url){
       const offer=WITCH.shopOffer(w.state);
       if(!offer || b.tier!==offer.tier) return {ok:false,error:'That brew offer is not available.'};
       if(w.state.brew>=w.capacity-1e-9) return {ok:false,error:'The cauldron is full.'};
+      /* v1360 (night audit, currency W1): the button sells +20% brew, but a nearly full cauldron took the full price for the missing sliver (50 diamonds for 20 brew of the 1,122 promised, three times in ordinary play). Refused, before any charge, unless the whole amount fits. */
+      if(w.capacity-w.state.brew < w.capacity*offer.brewFraction-1e-6) return {ok:false,error:'The cauldron cannot hold that much brew yet.'};
       if((led.gems|0)<offer.gems) return {ok:false,error:'Not enough diamonds.'};
       const bought=WITCH.buy(w.state,offer.tier,w.capacity);
       if(!bought || !(bought.added>0)) return {ok:false,error:'The cauldron is full.'};
@@ -9112,7 +9114,7 @@ async function api(req,res,url){
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (province):',e.message); } }
       const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
       pr.att={ id:uid(), stage, heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId };
-      writeDB([me.id]);   // v1124: led.prov is this player's
+      writeDBNow([me.id]);   // v1124: led.prov is this player's   /* v1360 (night audit R2): saved before the ok - a stop right after it lost the attempt and resolve answered "No matching province battle." */
       return send(res,200,{ ok:true, attemptId:pr.att.id, type:t, stage, seed, snaps:fightSnaps, waves:st.waves, boss:st.boss,
         levelGate:st.levelGate, engine:pr.att.engine, reward:provReward(t,stage) }); }
     if(p==='/api/province/resolve'){ const _ak='p:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7); v1085: wait, not 409 */
@@ -9301,7 +9303,8 @@ async function api(req,res,url){
            = Vex, while the starter chain hands out Vex fragments). Like a duplicate wish it now pays that hero's duplicate fragments. */
         if(rw.hero){ if(ownsHeroK(led,rw.hero)){ const f=POOL_DUPE_FRAG[POOL_START_STARS[rw.hero]||1]||7; creditFrags(me,led,rw.hero,f,'quest:'+id+':duplicate',{uncapped:true}); got.heroFrags=f; got.heroDup=rw.hero; }
           else { led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; } }
-        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)); const n=rw.randFrags; let granted=0;
+        /* v1360 (night audit, unlocks): the pool had no not-sold filter - 10 of 12 fresh accounts were paid a single fragment of a Mythical or Arena-only hero they can never finish (80 needed). Same filter as the Market, the star track and the sign-in calendar. */
+        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)&&!heroNotSold(k)); const n=rw.randFrags; let granted=0;
           for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; granted+=creditFrags(me,led,hk,1,'quest:'+id); } got.frags=granted; }
         ledTx(me,'quest:'+id,got);
         writeDB(); return {ok:true, id, got, ledger:ledgerView(me)};
@@ -10158,7 +10161,9 @@ async function api(req,res,url){
     let won=false, simRes=null;
     if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
       const myLed=ensureLedger(me);
-      let myKeys=rosterKeys(me.team).filter(k=>ownsHeroK(myLed,k)).slice(0,5);
+      /* v1360 (night smoke): the squad the player just picked comes with the result (the saved team could be up to ~10 s stale). Same rule as before: only OWNED heroes, at most 5; no usable team in the body = the saved team. */
+      let myKeys=(Array.isArray(b.team)&&b.team.length&&b.team.length<=8)?rosterKeys(b.team.map(x=>String(x||'').slice(0,40))).filter(k=>ownsHeroK(myLed,k)).slice(0,5):[];
+      if(!myKeys.length) myKeys=rosterKeys(me.team).filter(k=>ownsHeroK(myLed,k)).slice(0,5);
       if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>ownsHeroK(myLed,k)&&SIM.HERO_BASE[k]).slice(0,5);   // v327: a player who never pressed save still fields a squad (ledgerTeamPower:312 does the same)
       const mySnaps=myKeys.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       const opLed=opp.isNpc?null:ensureLedger(opp);
@@ -10539,7 +10544,7 @@ async function api(req,res,url){
       { const bad=badNewName(name); if(bad) return send(res,400,{error:bad}); }   /* v982 (3 Oct Guild audit #11): the same name rules as a player name (hidden characters, stacked accents, reserved names) */
       if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase()||(nameSkeleton(name)&&nameSkeleton(g.name)===nameSkeleton(name)))) return send(res,409,{error:'That guild name is already taken'});   /* v1085: two symbol-only names both fold to '' */   /* v1080: look-alikes too */
       const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
-      DB.guilds[id]=g; me.guildId=id; writeDB([me.id]);
+      DB.guilds[id]=g; me.guildId=id; writeDBNow([me.id]);   /* v1360 (night audit, currency R1): the debounced save lost the new guild when the server stopped right after the ok (2 of 2 kills) */
       return send(res,200,{ guild:guildView(g) }); }
 
     if((p==='/api/guild/request'||p==='/api/guild/cancelRequest')&&rateLimited(req,'greq:'+me.id,20,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */

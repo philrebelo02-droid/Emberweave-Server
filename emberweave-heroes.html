@@ -2744,7 +2744,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #tech .ac-learn-label{display:block}
 #tech .ac-cost{display:block;font:600 10px/1.8 system-ui,sans-serif;word-spacing:2px}
 #tech [role=button]:focus-visible,#tech button:focus-visible{outline:2px solid #fff1c5;outline-offset:4px}
-@media(max-width:1100px) and (min-width:701px){
+/* v1360 (Grok EYES 11 Nov, phone-big 1142x514): the compact Academy was keyed on width only, so a wide phone got the desktop layout in a 514 px frame - the detail plate and the level plate covered Crit / Crit Resist. Short screens take the compact layout at any width. */
+@media(max-width:1100px) and (min-width:701px),(max-height:620px) and (min-width:701px){
  #tech #techPanel{height:100%}
  #tech .hdrbox{left:3%;top:24%;width:27%}#tech h1{height:98px}#tech .sub{font-size:13px;line-height:1.45;margin-top:0}
  #tech .ac-wallet{right:3%;top:12px;gap:4px}#tech .pill{min-width:54px;min-height:34px;padding:6px 10px!important;font-size:10px}#tech .pill img{width:17px!important;height:17px!important}
@@ -3537,6 +3538,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arDay .arMini.arClaim,#arena .arDay .arMini.arClaim:disabled{font-size:14px!important;line-height:1}
 #arena .arDay .arClaim{position:absolute;left:4px;right:4px;top:calc(100% + 8px);min-height:36px!important;font-size:14px!important;display:flex;align-items:center;justify-content:center;gap:5px}   /* Phil 10 Nov: "move the claim out of the refresh and reset box. Put it below that" */
 @media (max-height:380px) and (min-width:701px){ #arena .arDay{padding:11px 13px!important} #arena .arDay .arMini{min-height:21px!important} #arena .arDayNo{font-size:13px!important;line-height:14px} #arena .arOppNm{font-size:10px!important} #arena .arOpp{padding:10px 19px 9px!important} }
+/* v1360 (night smoke, world): once an attempt is used the Buy +1 button is enabled and took the 12 px size - it wrapped to three lines, the plate grew 30 px and pushed Claim below the frame (Fold cover: unpressable). Enabled or not, it keeps the small two-line size on short screens. */
+@media (max-height:560px) and (min-width:701px){ #arena .arDay #arenaBuyAtt{font-size:9px!important;line-height:1.1!important;min-height:25px!important;padding:2px 6px!important} }
 /* v1359 (Phil 10 Nov, desktop Arena screenshot: "desktop version of arena has the rank and refresh plates in the middle of the art, it should be left side,
    also arena should be largers and right of base"): on tall screens (PC, tablet, open Fold) the two plates slide to the left edge of the game frame
    (a transform: the defenders and opponents keep their place), the ARENA title is larger and sits right of the Base button, and the body starts below it. */
@@ -17083,8 +17086,11 @@ function endBattle(won){
       if(ACC.token && CUR.oppId){
         /* v977 (3 Oct Arena audit #8): ONE requestId per fight; a lost reply is re-sent with the SAME id (the route keeps a receipt) */
         const _rid=uid8();
-        for(let _try=0;_try<3;_try++){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:_rid});
-          if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }   // v981: a refused save is re-sent too
+        /* v1360 (night smoke, world, P2): the attack squad reached the server only through the cloud save, which can leave ~10 s after BATTLE. In that window the server fought the OLD saved team - a fight won on screen with three Lv 94 heroes came back ARENA LOSS (it had fielded Vael Lv 1), the attempt was spent, and Record still said Victory. The squad that fought is sent with the result; the server keeps only heroes the account owns. */
+        const _ateam=(Array.isArray(G.team)?G.team:[]).map(h=>(h&&typeof h==='object')?h.key:h).filter(k=>typeof k==='string'&&k).slice(0,5);
+        for(let _try=0;_try<3;_try++){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,team:_ateam,requestId:_rid});
+          if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
+        try{ if(d&&typeof d.won==='boolean'&&typeof _arepMine!=='undefined'&&_arepMine&&_arepMine.won!==d.won){ _arepMine.won=d.won; saveG(); } }catch(e){}   /* the Record row follows the server's verdict */   // v981: a refused save is re-sent too
         if(d&&d.arena) ARENA.att=d.arena;   /* v1097 (sweep #10) */
         if(resultStale(ep)){ if(d) ledgerSync(); return; }
         /* v977 (3 Oct Arena audit #5, #8): a signed-in fight the server refused (no attempts left, level, opponent) or never
@@ -26864,7 +26870,7 @@ async function renderCauldron(body){
     <div class="whBrewTxt" style="font-size:12px;color:#aeb8c8;margin:6px 0">${t('hut.brew_of',{n:Math.floor(w.brew).toLocaleString(),cap:w.capacity.toLocaleString()})}</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div class="whBrewBar" style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${canHeal&&w.brew>0?'':'disabled'}>${t('hut.heal_all')}</button>
-    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>${t('hut.buy_brew',{pct:20})} · ${hudIcon('gem')} ${offer.gems}</button>`:''}${upBtn}</div>
+    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>w.capacity*0.8+1e-6?'disabled':''}>${t('hut.buy_brew',{pct:20})} · ${hudIcon('gem')} ${offer.gems}</button>`:''}${upBtn}</div>
     <div style="font-size:12px;font-weight:700;margin-bottom:5px">${t('hut.damaged')}</div>${rows||'<div style="font-size:12px;color:#aeb8c8">'+t('hut.all_healthy')+'</div>'}`;
   const act=async(btn,path,extra)=>{ if(btn.disabled)return; btn.disabled=true;
     const rk=path+'|'+JSON.stringify(extra||{}), rid=WITCH_RID[rk]||(WITCH_RID[rk]=uid8());
@@ -29899,7 +29905,8 @@ function renderHeroDetail(){
   body.querySelectorAll('[data-equip]').forEach(el=>el.onclick=()=>{ const ti=+el.dataset.equip, id=eqId(eqGroup(key),eqSlotSel,ti); if(eqSlotUnlocked(key,eqSlotSel)&&equipItem(key,eqSlotSel,id)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
   const uneq=body.querySelector('#eqUnequip'); if(uneq) uneq.onclick=()=>{ unequipItem(key,eqSlotSel); saveG(); updateHubChrome(); renderHeroDetail(); };
   // skill leveling
-  body.querySelectorAll('[data-skillup]').forEach(el=>el.onclick=async()=>{ if(await skillUpgrade(key,+el.dataset.skillup)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
+  /* v1360 (night smoke, new player): the skill lesson did not go back to the lesson list after the upgrade - the glow moved to the NEXT upgrade (612 gold spent instead of 300) and then parked on the Skills tab */
+  body.querySelectorAll('[data-skillup]').forEach(el=>el.onclick=async()=>{ if(await skillUpgrade(key,+el.dataset.skillup)){ saveG(); updateHubChrome(); renderHeroDetail(); try{ if(G.tutStarted&&!G.tutDone&&G.tutFocusStep==='skill'){ checkTutorial(); tutReturnAfterAction(); } }catch(e){} } });
   /* v1164 skill preview: hover (desktop) previews a slot silently; a tap / click plays it WITH its sound (never on opening the tab: a phone's
      audio unlocks on the first tap, and a tab that opened shouting would be a bad surprise). Another slot stops the last one's sound. */
   const _stgCv=(heroTab==='skills')?document.getElementById('skStage'):null;
@@ -30589,6 +30596,7 @@ function highlightTutorialTarget(){
   document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
   if(!G.tutStarted||G.tutDone||['tutorial','battle','result'].includes(state))return;
   const id=G.tutFocusStep; if(!id||G.tutRewarded?.[id])return;
+  try{ const _g=TUTORIAL_GROUPS.find(g=>g.ids.includes(id)), _c=_g&&tutGroupCurrent(_g); if(_c&&_c.id===id&&_c.done()) return; }catch(e){}   /* v1360: a lesson that is done (waiting for its Claim) glows nothing more */
   const visible=el=>el&&!el.disabled&&el.getClientRects().length>0;
   const pick=sel=>[...document.querySelectorAll(sel)].find(visible);
   let target=null;
@@ -30602,7 +30610,9 @@ function highlightTutorialTarget(){
   else if(id==='vexxp')target=pick('#heroDetail [data-xp-potion="minor"]')||pick('#heroesPanel .hero-card[data-hero-key="vex"]');
   else if(id==='wish')target=pick('#wpGold');
   else if(id==='gemwish')target=pick('#wpGem');
-  if(target)target.classList.add('tut-target-glow');
+  if(target){ target.classList.add('tut-target-glow');
+    /* v1360 (night smoke): in the hero window the glowing target sat below the bottom edge on every size - it is brought into view once per target */
+    try{ if(highlightTutorialTarget._last!==target){ highlightTutorialTarget._last=target; const r=target.getBoundingClientRect(), F=document.getElementById('app').getBoundingClientRect(); if(r.bottom>F.bottom-4||r.top<F.top+4) target.scrollIntoView({block:'center',inline:'nearest'}); } }catch(e){} }
 }
 document.addEventListener('click',()=>{if(G.tutStarted&&!G.tutDone&&G.tutFocusStep){setTimeout(highlightTutorialTarget,80);setTimeout(highlightTutorialTarget,500);}},true);
 // Completion unlocks Claim; it never grants a reward or advances the lesson by itself.
