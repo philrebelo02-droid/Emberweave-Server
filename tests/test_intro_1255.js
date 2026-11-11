@@ -41,3 +41,8 @@ const other = run(`JSON.stringify(snapAllySquad(['vael','vireo','lumi']))`);
 run(`simCampaignReplay(${other}, ${JSON.stringify(W)}, 11, [], false)`);
 ok(JSON.parse(run('JSON.stringify(globalThis._ib)')).length === 0, 'a different squad gets no script (the intro needs the starter trio)');
 console.log('test_intro_1255.js: ' + pass + ' checks passed');
+
+if (!/if\(held&&last\) introContinueButton\(bx,by,w\)/.test(html) || !/CUR\._introSay\.read=true/.test(html)) {
+  console.error('Coach-held final bubble requires an explicit continue action');
+  process.exitCode=1;
+}

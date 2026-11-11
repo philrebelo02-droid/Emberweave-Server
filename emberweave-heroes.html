@@ -1137,6 +1137,18 @@
   .tut-next-glow{outline:2px solid #ffd45e!important;outline-offset:2px;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
   .tut-target-glow{outline:3px solid #ffd45e!important;outline-offset:3px;box-shadow:0 0 0 2px #fff1a5,0 0 24px #ffcf5e!important;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
   .cnode.tut-target-glow{position:absolute!important;z-index:6!important;}
+/* v1368 (Phil 11 Nov: "make the glowing lights on where to go, more exxagerated"): a much stronger pulse, a halo that ripples out from the target and a
+   bouncing arrow pointing at it - in town (the building / MENU to open) and inside screens. Halo + arrow are one overlay (#tutFx), never take taps. */
+@keyframes tutBigPulse{0%,100%{box-shadow:0 0 0 3px #ffdd74,0 0 18px 6px rgba(255,200,80,.75);}50%{box-shadow:0 0 0 6px #fff2ad,0 0 46px 18px rgba(255,190,60,.95);}}
+.tut-target-glow{outline-width:4px!important;animation:tutBigPulse 1s ease-in-out infinite!important;}
+.tut-town-glow{outline:4px solid #ffd45e!important;outline-offset:3px;animation:tutBigPulse 1s ease-in-out infinite!important;}
+#tutFx{position:absolute;inset:0;pointer-events:none;z-index:9000;display:none;overflow:hidden;}
+#tutFx .tfHalo{position:absolute;border-radius:50%;border:4px solid #ffd45e;box-shadow:0 0 18px 6px rgba(255,207,94,.85),inset 0 0 18px 4px rgba(255,207,94,.6);animation:tfHalo 1.3s ease-out infinite;}
+#tutFx .tfHalo2{animation-delay:.65s;}
+@keyframes tfHalo{0%{transform:scale(.85);opacity:1;}100%{transform:scale(1.4);opacity:0;}}
+#tutFx .tfArrow{position:absolute;width:clamp(40px,8vh,62px);aspect-ratio:48/60;filter:drop-shadow(0 0 8px rgba(255,200,80,.95)) drop-shadow(0 3px 3px rgba(0,0,0,.7));animation:tfBob .6s ease-in-out infinite alternate;}
+#tutFx .tfArrow svg{width:100%;height:100%;display:block;} #tutFx .tfArrow.up svg{transform:rotate(180deg);}
+@keyframes tfBob{from{translate:0 -7px;}to{translate:0 7px;}}
   .portrait.ult-coach-glow{outline:3px solid #ffd45e;outline-offset:2px;animation:tutGoldPulse 1.0s ease-in-out infinite;z-index:5;}
   /* v1255 scripted 1-1: a SLOW flash on the coached portrait (Phil: "the ult glowing light flashes over and over slowly") */
   body.intro11 .portrait.ult-coach-glow{animation-duration:2.2s}
@@ -3664,6 +3676,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <div id="three"></div>
   <canvas id="overlay"></canvas>
   <canvas id="introOv"></canvas>
+  <button id="introContinue" type="button" class="btn sm" hidden onclick="introContinue()"
+    style="position:absolute;z-index:17;display:none;white-space:nowrap"></button>
 
   <!-- HOME BASE -->
   <div class="screen hub active" id="home">
@@ -18468,7 +18482,7 @@ const BAR_FRAME={img:null,W:1088,H:64,T:14,R:31,B:13,L:30};
 function barFrameReady(){ if(!BAR_FRAME.img){ try{ BAR_FRAME.img=new Image(); BAR_FRAME.img.src='/assets/ui/bars/bar_overhead.png?v=1'; }catch(e){ return false; } } return BAR_FRAME.img.complete&&BAR_FRAME.img.naturalWidth>0; }
 function drawBarFrame(g,x,y,w,h){ const F=BAR_FRAME, im=F.img, s=h/(F.H-F.T-F.B), top=y-F.T*s, H=F.H*s, lw=F.L*s, rw=F.R*s;
   g.drawImage(im,0,0,F.L,F.H, x-lw,top,lw,H); g.drawImage(im,F.L,0,F.W-F.L-F.R,F.H, x,top,w,H); g.drawImage(im,F.W-F.R,0,F.R,F.H, x+w,top,rw,H); }
-function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='battle'){ try{ const ic=document.getElementById('introOv'); if(ic&&ic.width) ic.getContext('2d').clearRect(0,0,ic.width,ic.height); }catch(e){} }   /* v1260: no bubble left on screen after the fight */ if(state==='battle'){ try{ ultCoachDraw(); }catch(e){} }
+function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='battle'){ introContinueButton(); try{ const ic=document.getElementById('introOv'); if(ic&&ic.width) ic.getContext('2d').clearRect(0,0,ic.width,ic.height); }catch(e){} }   /* v1260: no bubble left on screen after the fight */ if(state==='battle'){ try{ ultCoachDraw(); }catch(e){} }
   if(state==='battle' && typeof CUR!=='undefined' && CUR && CUR.mode==='emberdraft' && window.ED && ED.active){ try{ edAvFrame(_olDt); }catch(e){} }   /* v648: your avatar + loot orbs */
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
   { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
@@ -18831,7 +18845,9 @@ function _showScreen(name){
   /* v1144: with no session nothing but the sign-in gate is reachable - any navigation lands on the (covered) town and opens the gate */
   if(!(ACC&&ACC.token)&&online()&&!window._p2guard&&name!=='home'){ name='home'; }
   try{ setTimeout(authGateRefresh,0); }catch(e){}
-  if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token) name='tutorial';
+  /* v1368 (Phil 11 Nov: "yes make the tutorial freedom but make the glowing lights on where to go, more exxagerated"): Base during the tutorial goes to
+     town - it used to send you back to Start Here (both testers read Base as broken). The tutorial keeps its place and its Start Here entry, and the
+     next place to go glows in town (highlightTutorialTarget). */
   const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
   if(_popout) closePopout();   // any full navigation closes an open pop-out
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
@@ -19153,6 +19169,7 @@ function renderHome(){
     if(_restoreHomeScroll){ _restoreHomeScroll=false; wrap.scrollLeft = (_homeScroll!=null? _homeScroll : (wrap.scrollWidth-wrap.clientWidth)*0.5); }
   });
   if(typeof maybeOfferTutorial==='function') maybeOfferTutorial();
+  try{ if(G.tutStarted&&!G.tutDone) setTimeout(highlightTutorialTarget,60); }catch(e){}   /* v1368: the next place to go glows in town */
 }
 let _homeScroll=null, _restoreHomeScroll=true;   // town scroll memory (first load centers)
 /* ---- player profile (name / avatar / xp) ---- */
@@ -30924,10 +30941,49 @@ function tutReturnAfterAction(){
   if(!G.tutStarted||G.tutDone||state==='tutorial'||state==='result'||state==='battle')return;
   setTimeout(()=>{ if(G.tutStarted&&!G.tutDone&&state!=='tutorial'&&state!=='result'&&state!=='battle')show('tutorial'); },0);
 }
+/* v1368: the halo + arrow overlay on the current tutorial target (t); the halo rings h (a building's box in town, else t). Follows the target every
+   frame, hides while something covers it, goes when the target loses its glow. */
+function tutFxShow(t,h){ if(typeof document==='undefined') return; let fx=document.getElementById('tutFx');
+  if(!t){ if(fx) fx.style.display='none'; tutFxShow._t=null; return; }
+  if(!fx){ fx=document.createElement('div'); fx.id='tutFx'; fx.setAttribute('aria-hidden','true');
+    fx.innerHTML='<div class="tfHalo"></div><div class="tfHalo tfHalo2"></div><div class="tfArrow"><svg viewBox="0 0 48 60"><path d="M14 2h20v28h12L24 58 2 30h12z" fill="#ffd45e" stroke="#7a4c14" stroke-width="3" stroke-linejoin="round"/></svg></div>';
+    (document.getElementById('app')||document.body).appendChild(fx); }
+  tutFxShow._t=t; tutFxShow._h=h||t; fx.style.display='block'; if(!tutFxShow._raf) tutFxLoop(); }
+function tutFxLoop(){ tutFxShow._raf=requestAnimationFrame(()=>{ tutFxShow._raf=0; const fx=document.getElementById('tutFx'), t=tutFxShow._t, h=tutFxShow._h||t; if(!fx||!t) return;
+  if(!(t.isConnected&&t.getClientRects().length&&(t.classList.contains('tut-target-glow')||t.classList.contains('tut-town-glow')))){ fx.style.display='none'; tutFxShow._t=null; return; }
+  const rc=e=>(typeof e.ewGameRect==='function')?e.ewGameRect():e.getBoundingClientRect(), F=rc(fx), r=rc(t), hr=(h&&h.isConnected)?rc(h):r;
+  let covered=false; try{ const b=t.getBoundingClientRect(), top=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2); covered=!!top&&!(t.contains(top)||top.contains(t)||(h&&h.contains(top))); }catch(e){}
+  fx.style.visibility=covered?'hidden':'visible';
+  const hw=Math.max(hr.width+30,58), hh=Math.max(hr.height+30,58);
+  fx.querySelectorAll('.tfHalo').forEach(e=>{ e.style.left=(hr.left-F.left+hr.width/2-hw/2)+'px'; e.style.top=(hr.top-F.top+hr.height/2-hh/2)+'px'; e.style.width=hw+'px'; e.style.height=hh+'px'; });
+  const a=fx.querySelector('.tfArrow'), aw=a.offsetWidth||44, ah=a.offsetHeight||56, up=(r.top-F.top)<ah+14;
+  a.classList.toggle('up',up); a.style.left=Math.max(2,Math.min(F.width-aw-2,r.left-F.left+r.width/2-aw/2))+'px'; a.style.top=(up?(r.bottom-F.top+8):(r.top-F.top-ah-8))+'px';
+  tutFxLoop(); }); }
+/* v1368: the lesson to point at - the one the player chose (Go), else the one Start Here lists first */
+function tutNextStep(){ let id=G.tutFocusStep;
+  if(id&&!G.tutRewarded?.[id]){ const g=TUTORIAL_GROUPS.find(g=>g.ids.includes(id)), c=g&&tutGroupCurrent(g); if(c&&c.id===id) return {id, ready:!!c.done()}; }
+  const open=TUTORIAL_GROUPS.map((g,i)=>({i,s:tutGroupCurrent(g)})).filter(x=>x.s); open.sort((a,z)=>(z.s.done()?1:0)-(a.s.done()?1:0)||a.i-z.i);
+  return open[0]?{id:open[0].s.id, ready:!!open[0].s.done()}:null; }
+/* v1368: in town the next place to go glows - the building (its name plate glows, the halo rings the building, the arrow points at the plate) for a
+   fight (Campaign) or a wish (Wishing Pool); MENU, then its entry, for quests and heroes; MENU, then Start Here, when a reward is waiting. */
+function tutTownTarget(){ const n=tutNextStep(); if(!n) return null;
+  const vis=e=>e&&e.getClientRects().length>0, q=sel=>{ const e=document.querySelector(sel); return vis(e)?e:null; };
+  let nav=null, item=null; const id=n.id;
+  if(n.ready) item='tutorial'; else if(/^win1/.test(id)) nav='campaign'; else if(id==='wish'||id==='gemwish') nav='wishing';
+  else if(/^quest1[1-3]$/.test(id)||(id==='quest14'&&(G.questChainStep||0)<4)) item='quest'; else item='heroesPanel';
+  let t=null, h=null;
+  if(nav){ t=q('#townHots .townlbl[data-nav="'+nav+'"]'); const b=t&&t.previousElementSibling; h=(b&&b.classList.contains('hot'))?b:t;
+    try{ const w=document.getElementById('townWrap'); if(t&&w&&tutTownTarget._last!==t){ tutTownTarget._last=t; const tr=t.getBoundingClientRect(), wr=w.getBoundingClientRect(); if(tr.left<wr.left+20||tr.right>wr.right-20) w.scrollLeft+=(tr.left+tr.width/2)-(wr.left+wr.width/2); } }catch(e){} }
+  else { t=q('#hubMenu .mitem[data-nav="'+item+'"]')||q('#menuBtn'); h=t; }
+  if(t){ t.classList.add('tut-town-glow'); tutFxShow(t,h); }
+  return t; }
 function highlightTutorialTarget(){
   document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
+  document.querySelectorAll('.tut-town-glow').forEach(el=>el.classList.remove('tut-town-glow')); tutFxShow(null);   /* v1368 */
   if(!G.tutStarted||G.tutDone||['tutorial','battle','result'].includes(state))return;
-  const id=G.tutFocusStep; if(!id||G.tutRewarded?.[id])return;
+  if(state==='home'){ tutTownTarget(); return; }   /* v1368: town */
+  let id=G.tutFocusStep; if(!id||G.tutRewarded?.[id]){ const n=tutNextStep(); id=(n&&!n.ready)?n.id:null; }   /* v1368: walked in from town (no Go) - the next lesson still glows */
+  if(!id) return;
   try{ const _g=TUTORIAL_GROUPS.find(g=>g.ids.includes(id)), _c=_g&&tutGroupCurrent(_g); if(_c&&_c.id===id&&_c.done()) return; }catch(e){}   /* v1360: a lesson that is done (waiting for its Claim) glows nothing more */
   const visible=el=>el&&!el.disabled&&el.getClientRects().length>0;
   const pick=sel=>[...document.querySelectorAll(sel)].find(visible);
@@ -30950,11 +31006,11 @@ function highlightTutorialTarget(){
   else if(id==='vexxp')target=pick('#heroDetail [data-xp-potion="minor"]')||pick('#heroesPanel .hero-card[data-hero-key="vex"]');
   else if(id==='wish')target=pick('#wpGold');
   else if(id==='gemwish')target=pick('#wpGem');
-  if(target){ target.classList.add('tut-target-glow');
+  if(target){ target.classList.add('tut-target-glow'); tutFxShow(target,target);   /* v1368: halo + arrow */
     /* v1360 (night smoke): in the hero window the glowing target sat below the bottom edge on every size - it is brought into view once per target */
     try{ if(highlightTutorialTarget._last!==target){ highlightTutorialTarget._last=target; const r=target.getBoundingClientRect(), F=document.getElementById('app').getBoundingClientRect(); if(r.bottom>F.bottom-4||r.top<F.top+4) target.scrollIntoView({block:'center',inline:'nearest'}); } }catch(e){} }
 }
-document.addEventListener('click',()=>{if(G.tutStarted&&!G.tutDone&&G.tutFocusStep){setTimeout(highlightTutorialTarget,80);setTimeout(highlightTutorialTarget,500);}},true);
+document.addEventListener('click',()=>{if(G.tutStarted&&!G.tutDone){setTimeout(highlightTutorialTarget,80);setTimeout(highlightTutorialTarget,500);}},true);   // v1368: glows without a chosen lesson too (town, or a screen walked into)
 // Completion unlocks Claim; it never grants a reward or advances the lesson by itself.
 function checkTutorial(){ if(!G.tutRewarded)G.tutRewarded={}; if(!G.tutDone&&tutComplete()){ G.tutDone=true; saveG(); } }
 async function claimTutorialStep(id){ if(G.tutDone)return;
@@ -33251,6 +33307,7 @@ const INTRO_LINES={ vael_ready:["Vael","You won't strike me down. Not today!"], 
      his approved take is in; then they come from the audio. */
   vael_kill:["Vael",[["Kill....",1.3],["Kill everything!!",1.5],["KILL!!!",1.1],["RAHHHH!!!",1.7]]] };
 /* v1271 LANGUAGES: the line shown is the key's text in the player's language; the English above stays the fallback */
+EW_LANG_EN['intro11.tap_continue']='Tap to continue';
 const INTRO_KEYS={ vael_ready:['intro11.vael_ready'], vael_after:['intro11.vael_after'], vireo_in:['intro11.vireo_in'], vael_reply:['intro11.vael_reply'],
   vireo_ready:['intro11.vireo_ready'], syl_in:['intro11.syl_in'], syl_ready:['intro11.syl_ready'],
   vael_kill:['intro11.vael_kill_1','intro11.vael_kill_2','intro11.vael_kill_3','intro11.vael_kill_4'] };
@@ -33258,6 +33315,26 @@ function introSay(k,u){ if(window._p2guard||!CUR||!CUR._introUI||!INTRO_LINES[k]
   const L=INTRO_LINES[k], parts=Array.isArray(L[1])?L[1]:[[L[1],3.8]]; let at=0; const segs=parts.map((p,i)=>{ const g={txt:(INTRO_KEYS[k]&&INTRO_KEYS[k][i]&&t(INTRO_KEYS[k][i]))||p[0],a:at,b:at+p[1]}; at+=p[1]; return g; });
   CUR._introSay={k,uid:u&&u.uid,t0:performance.now(),who:L[0],segs,end:at}; }
 /* Phil 2 Nov: "Actually go back to the bubble, remove the bottom text box" - the line is a speech bubble over the speaker only. */
+function introContinue(){
+  if(state!=='battle'||ended||!CUR?._introSay) return;
+  CUR._introSay.read=true;
+  introContinueButton();
+}
+function introContinueButton(x,y,w){
+  const button=document.getElementById('introContinue');
+  if(!button) return;
+  const visible=x!==undefined;
+  button.hidden=!visible;
+  button.style.display=visible?'block':'none';
+  if(!visible) return;
+  const label=t('intro11.tap_continue');
+  if(button.textContent!==label) button.textContent=label;
+  const bw=button.offsetWidth;
+  const right=x+w+8, left=x-bw-8;
+  const side=right+bw<=CW-4?right:left>=4?left:null;
+  button.style.left=(side??Math.max(4,Math.min(CW-bw-4,x)))+'px';
+  button.style.top=(side!==null?y:y+46+button.offsetHeight<=CH?y+46:Math.max(4,y-button.offsetHeight-8))+'px';
+}
 function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='battle'&&!ended);
   /* v1260 (Phil 2 Nov: "Also it should appear above the timer above"): the bubble is drawn on its own canvas over the HUD, so the wave
      timer, pause, speed and AUTO never hide it. Same size and pixel ratio as the battle overlay; cleared every frame. */
@@ -33266,12 +33343,14 @@ function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='batt
   octx.setTransform(overlay.width/Math.max(1,CW),0,0,overlay.height/Math.max(1,CH),0,0); octx.clearRect(0,0,CW,CH);
   try{ document.body.classList.toggle('intro11', !!(CUR&&CUR._introUI&&state==='battle')); }catch(e){}
   const held=live&&ULTCOACH.hold&&ULTCOACH.u&&ULTCOACH.u.uid===S.uid, age=live?(performance.now()-S.t0)/1000:99;
+  if(!held||S.read) introContinueButton();
+  if(S?.read) return;
   if(!live||(age>S.end&&!held)) return;
   /* the part on screen now: each pops in (0.12 s scale-up) and fades over its last 0.15 s; a coach pause holds the last part up */
   let seg=S.segs.find(g=>age>=g.a&&age<g.b)||(held?S.segs[S.segs.length-1]:null); if(!seg) return;
   const sa=age-seg.a, last=seg===S.segs[S.segs.length-1], pop=Math.min(1,0.6+0.4*sa/0.12), fade=(held&&last)?1:Math.max(0,Math.min(1,(seg.b-age)/0.15));
   const TXT=seg.txt;
-  const u=unitByUid(S.uid); if(!u||!u.alive) return;
+  const u=unitByUid(S.uid); if(!u||!u.alive){ introContinueButton(); return; }
   /* Phil 2 Nov: "Make sure the bubble isnt covering anyone" - every live unit's on-screen box (feet to head, sprite height) is kept
      clear: the bubble sits above the speaker's head and steps up / sideways until it touches nobody. */
   const ux=v=>v.x, uy=v=>v.y,   /* the sim position: a hero who joined mid-fight kept a stale render position (Sylthaine's bubble sat at the off-screen corner) */ hz=v=>(v.sprH!=null?v.sprH:(v.boss?3.2:2.0)*(v.r/18));
@@ -33285,7 +33364,7 @@ function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='batt
      unit's HP bar is placed from (this frame's, drawn just before); the mesh box is only a fallback when no bar was drawn. The bubble is
      on its own layer above the HUD and the bars. */
   const barTop=v=>{ const b=v._barTop; return (b&&performance.now()-b.t<250)?{x:b.x,y:b.y,vis:true}:null; };
-  const head=barTop(u)||topOf(u); if(!head.vis) return;
+  const head=barTop(u)||topOf(u); if(!head.vis){ introContinueButton(); return; }
   const boxes=units.filter(v=>v.alive&&!v._dropHidden).map(v=>{ const t=barTop(v)||topOf(v), f=project(ux(v),uy(v),0); const hgt=Math.max(20,f.y-t.y);
     return {x0:t.x-hgt*0.32, x1:t.x+hgt*0.32, y0:t.y-4, y1:f.y}; });
   octx.save(); octx.globalAlpha=Math.min(1,sa*6)*fade; octx.font='800 15px Georgia,serif';
@@ -33297,6 +33376,7 @@ function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='batt
   const hitsO=(x,y)=>others.some(b=>x<b.x1&&x+w>b.x0&&y<b.y1&&y+hh+10>b.y0);
   let bx=head.x-w/2, by=head.y-hh-10;   /* v1260 (Phil: "Thats too high"): the tail tip (10 px) on the top of the head, never raised */
   bx=Math.max(4,Math.min(CW-w-4,bx)); by=Math.max(4,by);
+  if(held&&last) introContinueButton(bx,by,w); else introContinueButton();
   const tx=Math.max(bx+12,Math.min(bx+w-12,head.x));   // the tail points back at the speaker
   octx.translate(tx,by+hh+10); octx.scale(pop,pop); octx.translate(-tx,-(by+hh+10));   // pops out of the speaker (scale from the tail tip)
   octx.fillStyle='rgba(250,242,222,.96)'; octx.strokeStyle='#b8913f'; octx.lineWidth=2;
