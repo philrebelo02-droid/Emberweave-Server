@@ -65,6 +65,13 @@
   .pzI.empty { border-style:dashed; border-color:#8a6b2e88; background:transparent; justify-content:center; min-height:min(9vh,64px); }
   .pzI.empty b { color:#8a7a62; font-weight:600; }
   .pzT { color:var(--gold); font-size:min(5vh,26px); font-weight:700; text-align:center; letter-spacing:.1em; text-transform:uppercase; }
+  /* v1358: the game's sound panel inside the pause (drawn by the hosting page: sndPanelHTML) */
+  .pzSnd { margin-top:1.4vh; padding-top:1.2vh; border-top:1px solid #6b5a2e; color:#e8dcc2; font:600 min(2.8vh,13px) system-ui,sans-serif; }
+  .pzSnd:empty { display:none; }
+  .pzSnd .set-h { color:var(--gold); font-weight:700; margin-bottom:.6vh; display:flex; align-items:center; gap:6px; } .pzSnd .set-h img { width:16px; height:16px; }
+  .pzSnd .set-row { display:flex; align-items:center; gap:8px; min-height:min(5vh,28px); }
+  .pzSnd .set-row.set-snd { display:grid; grid-template-columns:minmax(78px,auto) minmax(60px,1fr) 38px; }
+  .pzSnd .set-chk { display:flex; align-items:center; gap:6px; } .pzSnd input[type=checkbox] { width:16px; height:16px; } .pzSnd .set-pct { text-align:right; color:#b9a88c; }
   .pzS { color:#b9a88c; text-align:center; font:600 min(2.6vh,12px) system-ui,sans-serif; font-variant-numeric:tabular-nums; }
   .pzBox button { font:700 min(3.4vh,16px) Georgia,serif; color:#ffe9b8; background:linear-gradient(#1b2338,#0f1422); border:1px solid #8a6b2e; border-radius:9px; padding:1.4vh 1vw; }
   .pzBox .pzMain { color:#1a0d05; background:linear-gradient(#ffb15a,#ff7a2a 55%,#c2481a); border-color:#ffd9a0; }
@@ -128,6 +135,7 @@
 <!-- the pause (in the game): Resume, Save and quit (the run is kept on this device; Continue in the lobby brings it back), Quit (the run is lost) -->
 <div id="pause" hidden><div class="pzBox"><div class="pzCol"><div class="pzT">Paused</div><div class="pzS" id="pzInfo"></div>
   <div class="pzBtns" id="pzBtns"><button id="pzResume" class="pzMain">Resume</button><button id="pzSave">Save and quit</button><button id="pzQuit">Quit</button></div>
+  <div id="pzSnd" class="pzSnd"></div>
   <div class="pzBtns" id="pzSure" hidden><div class="pzQ">Quit this run? It will be lost.</div><button id="pzQuitYes" class="pzWarn">Quit run</button><button id="pzQuitNo">Back</button></div></div>
   <div class="pzBuild" id="pzBuild"></div></div></div>
 <!-- v1220 the lobby (in the game): a hero to pick from 20 (only those with a 3D model can play for now), the mode, the stage, PLAY -->
@@ -285,7 +293,9 @@
   const fmtT = t => { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
   function setPause(on) { if (!S || S.ended) return; paused = on; document.getElementById('pause').hidden = !on;
     document.getElementById('pzBtns').hidden = false; document.getElementById('pzSure').hidden = true;
-    if (on) { document.getElementById('pzInfo').textContent = fmtT(S.t) + '  ·  Lv ' + S.hero.level + '  ·  ' + S.kills + ' kills'; pauseBuild(); }
+    if (on) { document.getElementById('pzInfo').textContent = fmtT(S.t) + '  ·  Lv ' + S.hero.level + '  ·  ' + S.kills + ' kills'; pauseBuild();
+      /* v1358 (Phil 10 Nov: "add sound settings to every pause menu in game modes"): the game's own sound panel (the page that hosts this frame owns the audio) */
+      try { const G0 = window.parent, h = document.getElementById('pzSnd'); if (h && G0 && G0 !== window && typeof G0.sndPanelHTML === 'function') { h.innerHTML = G0.sndPanelHTML('zsnd'); G0.sndPanelWire(h, 'zsnd'); } } catch (e) {} }
     if (!on) { last = performance.now(); if (H3) H3.clock.getDelta(); } }
   const toGame = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
   document.getElementById('quit').onclick = () => setPause(true);

@@ -1,4 +1,7 @@
-/* v1159 - MASTER MUTE BUTTON + MUSIC (Phil 15 Oct 2026: "put a sound symbol in the top right so someone can mute all volume whenever
+/* v1358 (Phil 10 Nov 2026: "just remove the mute button from the game" / "instead add sound settings to every pause menu in game modes"):
+   THE FLOATING BUTTON IS GONE. This test now asserts no #muteBtn on any screen, window or size, and flips Mute all from the pause menu's
+   sound panel (#psnd_mute). The music checks are unchanged. The older notes below describe the button as it was.
+   v1159 - MASTER MUTE BUTTON + MUSIC (Phil 15 Oct 2026: "put a sound symbol in the top right so someone can mute all volume whenever
    they want and unmute. put it on every window"; the button sits "left of the profile portrait"; city / map / battle / skyfall
    playlists; "I want the first song to continue even when you are clicking in and out of buildings" / "not pause and restart").
    Real page (Chromium, phone 844x390 landscape) on a real local server with a temp DB. EVERY RIG IS SILENT: --mute-audio, and every
@@ -77,7 +80,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' });
     await pg.waitForFunction(() => typeof show === 'function' && typeof api === 'function', null, { timeout: 90000 }); await delay(2500);
     await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await delay(1500);
-    const MAIN = ['home', 'campaign', 'world'];
+    const MAIN = [];   /* v1358: no screen has the button */
     const probe = () => pg.evaluate(() => { const b = document.getElementById('muteBtn'); if (!b) return { none: true };
       try { muteBtnPlace(true); } catch (e) {} if (b.style.display === 'none' || !b.getClientRects().length || getComputedStyle(b).display === 'none') return { none: true, hidden: true, why: b.dataset.why, state: (typeof state !== 'undefined' ? state : '') };
       const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
@@ -100,18 +103,15 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     await delay(2500);
 
     /* ---- (2) the hub: immediately left of the portrait, centred on it ---- */
-    const hub = await pg.evaluate(() => { muteBtnPlace(); const b = document.getElementById('muteBtn').getBoundingClientRect(), p = document.getElementById('profileBtn').getBoundingClientRect();
-      /* v1163: measured from the portrait as drawn - its ring frame (#pfFrame) reaches past the box; within 8 px of centred (the name plate under it) */
-      const f = document.getElementById('pfFrame').getBoundingClientRect(), L = Math.min(p.left, f.width ? f.left : p.left);
-      return { gap: Math.round(L - b.right), dy: Math.round((b.top + b.height / 2) - (p.top + p.height / 2)), b: [Math.round(b.left), Math.round(b.top)], p: [Math.round(p.left), Math.round(p.top), Math.round(p.width)] }; }).catch(() => null);
-    ck(hub && hub.gap >= 2 && hub.gap <= 12 && Math.abs(hub.dy) <= 8, 'hub: the button sits immediately left of the profile portrait, centred on it (' + JSON.stringify(hub) + ')');
+    const hub = await pg.evaluate(() => { try { muteBtnPlace(true); } catch (e) {} return { btn: !!document.getElementById('muteBtn'), off: typeof MUTE_BTN_OFF !== 'undefined' && MUTE_BTN_OFF === true }; }).catch(() => null);
+    ck(hub && !hub.btn && hub.off, 'v1358: the town has no mute button (MUTE_BTN_OFF) (' + JSON.stringify(hub) + ')');
     const screens = [];
     let n = 1;
     for (const s of SCREENS) {
       await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(1200);
       const r = await probe(); screens.push([s, r]);
       if (MAIN.includes(s)) ck(!r.none && r.onTop && !r.hits.length && r.w >= 40, 'main screen ' + s + ': button shown, on top, covers no control', JSON.stringify(r));
-      else ck(r.none, 'screen ' + s + ': no button (only the town, World map and campaign map have it)', JSON.stringify(r));
+      else ck(r.none, 'screen ' + s + ': no mute button', JSON.stringify(r));
       if (['home', 'campaign', 'world', 'temple', 'wishing', 'forge', 'guild', 'settings', 'heroesPanel', 'arena', 'skyfall', 'mail', 'quest'].includes(s)) await shot(String(n++).padStart(2, '0') + '-' + s);
     }
     // modals and windows over the hub
@@ -121,15 +121,14 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
       ['profile window', () => { document.getElementById('profileBtn').click(); }, () => { try { document.getElementById('profClose').click(); } catch (e) {} }],
       ['food shop window', () => { document.getElementById('staminaPlus').click(); }, () => { try { document.getElementById('hudShopClose').click(); } catch (e) {} }] ]) {
       await pg.evaluate(open); await delay(700); const r = await probe();
-      if (name === 'hub menu (open)') ck(!r.none && r.onTop && !r.hits.length, 'the town MENU dropdown open: the button stays (part of the town screen), covers no control', JSON.stringify(r));
-      else ck(r.none, 'window ' + name + ' open over the town: no button', JSON.stringify(r)); await shot(String(n++).padStart(2, '0') + '-' + name.replace(/\W+/g, '-'));
+      ck(r.none, 'window ' + name + ' open over the town: no button', JSON.stringify(r)); await shot(String(n++).padStart(2, '0') + '-' + name.replace(/\W+/g, '-'));
       await pg.evaluate(close); await delay(300);
     }
     // v1230: the Training Province panel (Phil's screenshot: the button sat on its top-right corner) - none
     await pg.evaluate(() => { show('skyisland'); try { openTrainingProvince(); } catch (e) {} }); await delay(1500);
     const tp = await probe(); ck(tp.none, 'v1230: no button on the Training Province panel', JSON.stringify(tp)); await shot(String(n++).padStart(2, '0') + '-training-province');
     await pg.evaluate(() => { document.querySelectorAll('.provScene').forEach(e => e.remove()); show('home'); }); await delay(800);
-    const hb = await probe(); ck(!hb.none && hb.onTop, 'v1230: back on the town the button is shown again', JSON.stringify(hb));
+    const hb = await probe(); ck(hb.none, 'v1358: back on the town there is still no button', JSON.stringify(hb));
 
     /* ---- desktop 1920x1080 and phone portrait 390x844 ---- */
     for (const [w, h, list] of [[1920, 1080, ['home', 'campaign', 'world', 'menu', 'temple', 'wall', 'skyfall', 'settings', 'guild']], [390, 844, ['home', 'campaign', 'settings']]]) {
@@ -141,26 +140,25 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
         if (s === 'home' || s === 'campaign') await shot(String(n++).padStart(2, '0') + '-' + s + '-' + w + 'x' + h); }
     }
     await pg.setViewportSize({ width: 844, height: 390 }); await pg.evaluate(() => show('home')); await delay(900);
-    /* ---- (3) tap = mute / unmute, through the real pointer; the game sees nothing ---- */
-    const btnC = async () => pg.evaluate(() => { const r = document.getElementById('muteBtn').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
-    const tap = async () => { const [x, y] = await btnC(); await pg.mouse.click(x, y); await delay(250); };
+    /* ---- (3) v1358: Mute all in the pause menu's sound panel = mute / unmute ---- */
+    const tap = async () => { await pg.evaluate(() => { pauseSndRender(); const c = document.getElementById('psnd_mute'); c.checked = !c.checked; c.onchange(); }); await delay(250); };
     await pg.evaluate(() => { window.__gameHits.click = 0; window.__gameHits.down = 0; });
     const cfg0 = await pg.evaluate(() => JSON.stringify(SND.cfg));
     await tap();   // first tap: unlocks audio AND mutes
-    const m1 = await pg.evaluate(() => ({ on: SND_MUTE.on, gain: SND.out && SND.out.gain.value, cfg: JSON.stringify(SND.cfg), ls: localStorage.getItem('ew_mute'), img: document.querySelector('#muteBtn img').src, hits: window.__gameHits }));
-    ck(m1.on && m1.gain === 0 && m1.cfg === cfg0 && m1.ls === '1' && /audio-off/.test(m1.img), 'a tap mutes: master gain 0, FX/Music/Voices untouched, saved, muted icon', JSON.stringify(m1));
-    ck(m1.hits.click === 0 && m1.hits.down === 0, 'the tap reached no game listener', JSON.stringify(m1.hits));
+    const m1 = await pg.evaluate(() => ({ on: SND_MUTE.on, gain: SND.out && SND.out.gain.value, cfg: JSON.stringify(SND.cfg), ls: localStorage.getItem('ew_mute'), btn: !!document.getElementById('muteBtn'), hits: window.__gameHits }));
+    ck(m1.on && m1.gain === 0 && m1.cfg === cfg0 && m1.ls === '1' && !m1.btn, 'Mute all in the pause panel mutes: master gain 0, FX/Music/Voices untouched, saved, no button made', JSON.stringify(m1));
+    ck(m1.hits.click === 0 && m1.hits.down === 0, 'the switch reached no game listener', JSON.stringify(m1.hits));
     await shot(String(n++).padStart(2, '0') + '-home-muted');
     await pg.evaluate(() => sndSet('music', { vol: 0.42 }));
     const cfgB = await pg.evaluate(() => JSON.stringify(SND.cfg));
     await tap();
     const m2 = await pg.evaluate(() => ({ on: SND_MUTE.on, gain: SND.out.gain.value, cfg: JSON.stringify(SND.cfg), bus: +SND.bus.music.gain.value.toFixed(3), ls: localStorage.getItem('ew_mute') }));
-    ck(!m2.on && m2.gain === 1 && m2.cfg === cfgB && m2.bus === 0.42 && m2.ls === '0', 'a second tap unmutes and gives back exactly the Settings levels', JSON.stringify(m2));
+    ck(!m2.on && m2.gain === 1 && m2.cfg === cfgB && m2.bus === 0.42 && m2.ls === '0', 'switching it off unmutes and gives back exactly the Settings levels', JSON.stringify(m2));
     await pg.evaluate(() => sndSet('music', { vol: 0.6 }));
     // the Settings row shows the same flag
     const chk = async () => { await pg.evaluate(() => show('settings')); await delay(600); const c = await pg.evaluate(() => { const c = document.getElementById('snd_mute'); return c ? c.checked : null; }); await pg.evaluate(() => show('home')); await delay(700); return c; };
     await tap(); const st1 = await chk(); await tap(); const st2 = await chk();
-    ck(st1 === true && st2 === false, 'Settings "Mute all" follows the button', st1 + '/' + st2);
+    ck(st1 === true && st2 === false, 'Settings "Mute all" follows the pause panel', st1 + '/' + st2);
 
     /* ---- (5)(6) music per screen; the city song plays straight through the buildings ---- */
     await pg.evaluate(() => show('home')); await delay(1500);
@@ -295,11 +293,11 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     await pg.evaluate(() => sndMuteSet(true));
     await pg.reload({ waitUntil: 'domcontentloaded' });
     await pg.waitForFunction(() => typeof show === 'function' && typeof SND_MUTE !== 'undefined', null, { timeout: 90000 }); await delay(2500);
-    const pr0 = await pg.evaluate(() => ({ on: SND_MUTE.on, ctx: !!SND.ctx, img: (document.querySelector('#muteBtn img') || {}).src || '' }));
+    const pr0 = await pg.evaluate(() => ({ on: SND_MUTE.on, ctx: !!SND.ctx, btn: !!document.getElementById('muteBtn') }));
     await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await delay(800);
     await pg.mouse.click(5, 385); await delay(400);
     const pr1 = await pg.evaluate(() => ({ on: SND_MUTE.on, gain: SND.out ? SND.out.gain.value : null }));
-    ck(pr0.on && /audio-off/.test(pr0.img) && pr1.on && pr1.gain === 0, 'mute persists over a reload and holds from the first unlock (gain ' + pr1.gain + ')', JSON.stringify([pr0, pr1]));
+    ck(pr0.on && !pr0.btn && pr1.on && pr1.gain === 0, 'mute persists over a reload and holds from the first unlock (gain ' + pr1.gain + ')', JSON.stringify([pr0, pr1]));
     await pg.evaluate(() => sndMuteSet(false));
 
     ck(errs.length === 0, 'no page errors', errs.slice(0, 3).join(' | '));

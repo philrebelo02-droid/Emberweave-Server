@@ -515,6 +515,13 @@
   #pauseModal{position:absolute;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.7);}
   #pauseModal.active{display:flex;}
   #pauseModal .pm{background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:22px;width:80%;max-width:320px;text-align:center;}
+  /* v1358 (Phil 10 Nov: sound settings in every pause menu): the panel never leaves the game frame; on a short screen (a landscape phone) the
+     buttons sit on the left and the sound controls on the right */
+  #pauseModal .pm{max-height:calc(var(--ew-game-height,100vh) - 14px);overflow:auto;box-sizing:border-box}
+  #pauseSnd .set-row{min-height:28px}
+  @media (max-height:560px){#pauseModal .pm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:18px;align-items:start;max-width:560px!important;width:92%!important;padding:14px 18px!important}
+    #pauseModal .pm>div:first-child{grid-column:1/-1;margin-bottom:8px!important}#pauseModal .pm>.btn{grid-column:1;margin-top:8px!important}#pauseModal .pm>#resumeBtn{margin-top:0!important}
+    #pauseModal .pm>#pauseSnd{grid-column:2;grid-row:2/span 3;margin-top:0!important}}
 
   /* medieval hub menu (top-right dropdown) */
   #hubMenu{position:relative;z-index:30;display:none;}
@@ -820,8 +827,7 @@
     background:rgba(8,12,22,.58)!important;background-image:none!important;border:1px solid rgba(201,162,78,.6)!important;box-shadow:none!important;border-radius:8px;}
   .wmhud-top .btn::after{content:'';position:absolute;left:-2px;right:-2px;top:-7px;bottom:-7px;}   /* 40 px tap target behind the 26 px button */
   .wmhud-top .btn img,.wmhud-top .pill img{max-height:16px;}
-  body:has(#world.active) #muteBtn{left:auto!important;right:max(8px,env(safe-area-inset-right,0px))!important;top:max(4px,env(safe-area-inset-top,0px))!important;
-    width:40px!important;height:40px!important;border-width:1px!important;background:rgba(8,12,22,.58)!important;box-shadow:none!important;}   /* 40 px = the tap-target rule (test_mute_music_1159) */
+  /* v1358: no mute button (its World-map rule is gone with it) */
   body:has(#world.active) #mapCtl{bottom:max(6px,env(safe-area-inset-bottom,0px));right:max(6px,env(safe-area-inset-right,0px));padding:2px 6px;gap:4px;border-radius:9px;
     background:rgba(8,12,22,.55);border:1px solid rgba(201,162,78,.45);box-shadow:none;}
   body:has(#world.active) #mapCtl .btn{min-width:30px;min-height:26px;height:26px;padding:0 7px;position:relative;font-size:13px;}
@@ -3944,6 +3950,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
     <button class="btn wide" id="resumeBtn"><img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""> <span data-i18n="hud.resume">Resume</span></button>
     <button class="btn wide secondary" id="restartBtn" style="margin-top:10px">↻ <span data-i18n="hud.restart_stage">Restart Stage</span></button>
     <button class="btn wide secondary" id="exitBtn" style="margin-top:10px"><span data-i18n="hud.quit">Quit</span></button>
+    <div id="pauseSnd" class="set-sec" style="margin-top:14px;text-align:left"></div>   <!-- v1358: sound settings in the pause menu -->
   </div></div>
   <div id="hud"><div id="abilityTip"></div><div id="ultHint"></div><div id="portraitBar"></div></div>
 </div>
@@ -12227,7 +12234,12 @@ function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), s
 const MUTE_UNDER = { campaign:'#campGlossBtn', menu:'#glossaryBtn', wall:'#wall>[data-nav="world"]', skyfall:'#skyMenuBtn' };
 const MUTE_LISTED = ['home','result','temple','wishing','forge','guild','arena','arenaShop','market','shadymarket','dungeon','elite','quest','signin','mail',
   'tech','world','skyisland','rankings','glossary','watchtower','account','online','heroesPanel','heroDetail','bag','settings','tutorial','campaign','menu','wall','skyfall','battle'];
-function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
+/* v1358 (Phil 10 Nov: "just remove the mute button from the game" / "instead add sound settings to every pause menu in game modes"): the floating
+   mute button is gone on every screen. Sound lives in Settings > General and in every pause menu (the battle pause and the Swarm Spire pause):
+   Mute all + FX / Music / Voices (sndPanelHTML / sndPanelWire). The placement code below is kept but never runs. */
+const MUTE_BTN_OFF=true;
+function muteBtnPlaceNow(){ try{ if(MUTE_BTN_OFF){ const ob=document.getElementById('muteBtn'); if(ob) ob.remove(); return; }
+    let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
     if(splashOn()){ b.style.display='none'; b.dataset.why='splash'; MUTE_DBG.last={ why:'splash', x:0, y:0, s:0, ms:0, st:(typeof state!=='undefined'&&state)||'' }; return; }   /* v1197: no mute button on the splash */
     /* v1220 (Phil 24 Oct: "remove the mute button from here"): none on the Tower of Trials chooser ([data-nomute]) or over Hero Survivors (#survFrame) */
     if(document.getElementById('survFrame')||document.querySelector('[data-nomute]')){ b.style.display='none'; b.dataset.why='nomute'; MUTE_DBG.last={ why:'nomute', x:0, y:0, s:0, ms:0, st:(typeof state!=='undefined'&&state)||'' }; return; }
@@ -12313,7 +12325,7 @@ let _muteT=0, _muteLast=0, _muteF=false;
 function muteSoon(force){ if(force&&_muteF!==true) _muteF=force; if(_muteT) return; const wait=Math.max(60,300-(Date.now()-_muteLast));
   _muteT=setTimeout(()=>{ _muteT=0; _muteLast=Date.now(); const f=_muteF; _muteF=false; muteBtnPlace(f); },wait); }
 let _muteRz=0; function muteResize(){ clearTimeout(_muteRz); _muteRz=setTimeout(()=>{ _muteRz=0; muteBtnPlace(true); },150); }
-function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.body) return;
+function muteBtnMake(){ try{ if(MUTE_BTN_OFF) return; if(document.getElementById('muteBtn')||!document.body) return;
     if(!document.getElementById('muteBtnCss')){ const st=document.createElement('style'); st.id='muteBtnCss'; st.textContent=
       '#muteBtn{position:fixed;z-index:2147483000;left:min(var(--mx,0px),calc(calc(var(--ew-game-width,100vw) * 1) - var(--ms,'+MUTE_SZ+'px) - env(safe-area-inset-right,0px)));'+
       'top:max(var(--my,8px),env(safe-area-inset-top,0px));width:var(--ms,'+MUTE_SZ+'px);height:var(--ms,'+MUTE_SZ+'px);margin:0;padding:0;box-sizing:border-box;'+
@@ -26046,7 +26058,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
             the other player is still fighting. */
          try{ if(state==='battle' && !ended && !paused && CUR.mode!=='online' && !(typeof OL!=='undefined'&&OL.active)
                  && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province'||CUR.mode==='well')){
-           paused=true; document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
+           paused=true; try{ pauseSndRender(); }catch(e){} document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
 // load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
 // the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
 // game paints instantly before the profile fetch returns; it is never trusted over the cloud.
@@ -31359,6 +31371,17 @@ function requireTos(onAccept,onDecline){
   ov.querySelector('#tosDecline').onclick=()=>{ ov.remove(); onDecline&&onDecline(); };
 }
 
+/* v1358: the sound controls for a pause menu - Mute all + one row per channel, wired to the same functions as Settings (sndMuteSet / sndSet). p = id prefix. */
+function sndPanelHTML(p){ const row=(ch,name)=>`<div class="set-row set-snd"><label class="set-chk"><input type="checkbox" id="${p}_${ch}_on" ${SND.cfg[ch].on?'checked':''}> ${name}</label>`+
+    `<input type="range" id="${p}_${ch}_vol" min="0" max="100" value="${Math.round(SND.cfg[ch].vol*100)}" aria-label="${name}" style="width:100%;min-width:0" ${SND.cfg[ch].on?'':'disabled'}>`+
+    `<span id="${p}_${ch}_pct" class="set-pct">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
+  return `<div class="set-h">${uiIcon('audio-on')} ${t('set.audio')}</div><div class="set-row"><label class="set-chk"><input type="checkbox" id="${p}_mute" ${SND_MUTE.on?'checked':''}> ${t('set.mute_all')}</label></div>`+row('fx',t('set.fx'))+row('music',t('set.music'))+row('voice',t('set.voices')); }
+function sndPanelWire(root,p){ if(!root) return; const q=s=>root.querySelector('#'+p+'_'+s);
+  { const sm=q('mute'); if(sm) sm.onchange=()=>{ sndMuteSet(sm.checked); sndUnlock(); }; }
+  SND_CH.forEach(ch=>{ const so=q(ch+'_on'), sv=q(ch+'_vol'), sp=q(ch+'_pct');
+    if(so) so.onchange=()=>{ sndSet(ch,{on:so.checked}); if(sv) sv.disabled=!so.checked; if(so.checked) sndUnlock(); };
+    if(sv) sv.oninput=()=>{ const v=Math.max(0,Math.min(1,(+sv.value||0)/100)); sndSet(ch,{vol:v}); if(sp) sp.textContent=Math.round(v*100)+'%'; }; }); }
+function pauseSndRender(){ try{ const h=document.getElementById('pauseSnd'); if(!h) return; h.innerHTML=sndPanelHTML('psnd'); sndPanelWire(h,'psnd'); }catch(e){} }
 function renderSettings(){
   const b=document.getElementById('settingsBody');
   DEV.on = isDevAcct();   // dev tools are unlocked purely by which cloud account is signed in
@@ -33562,7 +33585,7 @@ async function _startBtnGo(_ctx){
     } else { bannerMsg(ewT('battle.connect_campaign')); return; } }
   if(state!=='menu' || _ctx!==_startCtx()) return;   // v328: never land in a fight the player already backed out of
   startBattle(); }
-document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
+document.getElementById('pauseBtn').onclick=()=>{ paused=true; pauseSndRender(); document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active');
   /* Tell the server this fight is over BEFORE the new one begins, so its partial transcript can never
@@ -33814,7 +33837,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088794';
+const BUILD_ID = '1794347088795';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
