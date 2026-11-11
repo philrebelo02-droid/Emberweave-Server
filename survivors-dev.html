@@ -296,7 +296,8 @@
   // Quit asks first (Phil 24 Oct: "make sure there is a confirm prompt incase they hit the wrong quit")
   document.getElementById('pzQuit').onclick = () => { document.getElementById('pzBtns').hidden = true; document.getElementById('pzSure').hidden = false; };
   document.getElementById('pzQuitNo').onclick = () => { document.getElementById('pzBtns').hidden = false; document.getElementById('pzSure').hidden = true; };
-  document.getElementById('pzQuitYes').onclick = () => { leaving = true; saveDrop().then(() => toGame('survivors-close')); };   // the delete lands before the frame goes
+  document.getElementById('pzQuitYes').onclick = () => { leaving = true; const _b = document.getElementById('pzQuitYes'); SAVE = null; try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    idbDo('readwrite', st => st.delete('run')).then(() => toGame('survivors-close'), () => { leaving = false; _b.textContent = 'Could not clear the run - tap to retry'; }); };   /* v1355 (audit): a failed delete closed the frame and the run came back */   // the delete lands before the frame goes
   /* the build on the pause (Phil 24 Oct: "show the Current Skills/Spells/Passives you have, their level, and how many empty slots you have left"):
      skills, then spells (their art, Lv n/10), then passives (Lv n/5), each row filled out with its empty slots */
   function pauseBuild() { const box = document.getElementById('pzBuild'), h = S.hero, el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };

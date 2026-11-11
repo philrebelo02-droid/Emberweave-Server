@@ -7724,9 +7724,10 @@ function fmtDur(ms){ ms=Math.max(0,ms); let s=Math.ceil(ms/1000); const h=Math.f
 // finish any research whose timer has elapsed (applies the level, clears the timer)
 function collectLearns(){
   if(ACC.token){
-    if(collectLearns.waiting||!Object.values(G.techLearn).some(done=>done&&Date.now()>=done)) return false;
+    if(collectLearns.waiting||Date.now()<(collectLearns.nextAt||0)||!Object.values(G.techLearn).some(done=>done&&Date.now()>=done)) return false;
     const accountToken=ACC.token; collectLearns.waiting=true;
     api('/api/academy/collect','POST',{requestId:uid8()}).then(r=>{
+      collectLearns.nextAt=Date.now()+((r&&r.lv)?5000:15000);   /* v1355: offline or a fast phone clock re-posted this every second */
       if(ACC.token!==accountToken||!(r&&r.lv)) return;
       G.tech=Object.assign({},G.tech,r.lv); G.techLearn=Object.assign({},r.learn||{}); saveGLocalOnly();
       if(typeof state!=='undefined'&&state==='tech'&&typeof renderTech==='function') renderTech();
@@ -19964,7 +19965,7 @@ async function skyMarchAnim(i){ if(SKY.busy)return;
   if(mm){ mm.style.opacity='1'; requestAnimationFrame(()=>{ mm.style.left='46%'; }); await new Promise(r=>setTimeout(r,1150)); }
   await skyMarch(i);
 }
-async function skyStatus(){ const r=await api('/api/guild-war/status'); SKY.st=(r&&r.enabled)?r:{enabled:false}; return SKY.st; }
+async function skyStatus(){ const r=await api('/api/guild-war/status'); if(!r||r.error){ SKY.st=null; return {enabled:false,failed:true}; }   /* v1355 (audit): a transport failure stays retryable - it was cached as 'moved' until reload */ SKY.st=r.enabled?r:{enabled:false}; return SKY.st; }
 function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
 function skyLaneIcon(i){ return [statusIcon('shield'),statusIcon('energy'),uiIcon('crown'),uiIcon('herbs'),'🔮'][i]||'🏰'; }
 /* v803 - the placement block off the status payload: the window, the tower this member holds and
@@ -22417,6 +22418,7 @@ function renderDungeon(){
   const b=document.getElementById('dungeonBody');
   // AETHER VAULT (v2): server-authoritative. When the server enables it (or for dev accounts),
   // this screen becomes the Vault; otherwise the legacy Challenge Dungeon below renders unchanged.
+  if(VAULT.st&&VAULT.st.enabled&&VAULT.st.sweep&&VAULT.st.sweep.nextResetAt&&Date.now()>=VAULT.st.sweep.nextResetAt) VAULT.st=null;   /* v1355: past the daily reset the cached status kept 'no sweeps' until a reload */
   if(VAULT.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">'+t('dungeon.entering')+'</div>';
     vaultStatus().then(()=>renderDungeon()); return; }
   if(VAULT.st.unreachable){ b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto"><div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">
@@ -22582,7 +22584,8 @@ function tp2AutoWire(b,act,key){ if(!templeAuto) return; const a=templeAuto, q=s
   if(q('#tp2AutoNext')) q('#tp2AutoNext').onclick=()=>{ a.i=(a.i+1)%a.tiers.length; re(); };
   if(q('#tp2AutoMinus')) q('#tp2AutoMinus').onclick=()=>{ a.n=Math.max(1,a.n-1); re(); };
   if(q('#tp2AutoPlus')) q('#tp2AutoPlus').onclick=()=>{ a.n=Math.min(max,a.n+1); re(); };
-  if(q('#tp2AutoGo')) q('#tp2AutoGo').onclick=async()=>{ const r=await act('/api/temple/auto',{heroKey:key,tier:a.tiers[a.i],count:a.n}); if(!r){ templeAuto=null; return; }
+  if(q('#tp2AutoGo')) q('#tp2AutoGo').onclick=async()=>{ const _go=q('#tp2AutoGo'); if(_go.disabled) return; _go.disabled=true;   /* v1355: a second tap got 'busy', nulled the dialog and the paid result never showed */
+    const r=await act('/api/temple/auto',{heroKey:key,tier:a.tiers[a.i],count:a.n}); if(!r){ return; }
     adoptLedger(r.ledger); updateHubChrome(); a.result=r; re(); };
 }
 function startDungeon(){
@@ -22735,7 +22738,8 @@ async function renderWatchTower(){
     api('/api/watch').catch(()=>null),api('/api/watch/world','GET').catch(()=>null)
   ]);
   if(sequence!==_watchRenderSequence||token!==ACC.token||tab!==_watchTab)return;
-  const mates=Array.isArray(reported?.mates)?reported.mates:[];
+  const reportsAvailable=Array.isArray(reported?.mates)&&!reported.error;   /* v1355 (audit): {error:'offline'} is truthy - it showed an empty list instead of 'unavailable' */
+  const mates=reportsAvailable?reported.mates:[];
   const scoutedBy=Array.isArray(reported?.scoutedBy)?reported.scoutedBy:[];
   const line=(who,target,status,you)=>`<div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:6px 8px;${you?'background:#1a2b1f;':''}"><span><b>${escapeHTML(who)}</b>${you?' '+t('watch.you'):''} → ${escapeHTML(target)}</span><span>${escapeHTML(status)}</span></div>`;
   const reportLine=(who,a,you)=>line(who,a.name||'?',a.ret?t('watch.returning_reported'):a.eta!=null?t('watch.reported_eta',{t:fmtDur(a.eta)}):t('watch.reported'),you);
@@ -22763,12 +22767,12 @@ async function renderWatchTower(){
     const rows=mine.defends.map(a=>reportLine(ACC.name||t('watch.you_name'),a,true));
     mates.filter(w=>!w.you).forEach(w=>(w.defends||[]).forEach(a=>rows.push(reportLine(w.name,a,false))));
     html='<div class="panel"><b>'+t('watch.reported_defenses')+'</b>'+(rows.join('')||'<div>'+t('watch.no_defenses')+'</div>')+'</div>';
-    if(!reported)html+=empty(t('watch.unavailable'));
+    if(!reportsAvailable)html+=empty(t('watch.unavailable'));
   }else{
     const outgoing=mine.scouts.map(a=>reportLine(ACC.name||t('watch.you_name'),a,true));
     const incoming=scoutedBy.map(s=>line(s.by||t('watch.player'),t('watch.scouting_you'),s.eta!=null?t('watch.reported_eta',{t:fmtDur(s.eta)}):t('watch.reported'),false));
     html='<div class="panel"><b>'+t('watch.your_scouts')+'</b>'+(outgoing.join('')||'<div>'+t('watch.no_scouts')+'</div>')+'</div><div class="panel"><b>'+t('watch.incoming')+'</b>'+(incoming.join('')||'<div>'+t('watch.no_incoming')+'</div>')+'</div>';
-    if(!reported)html+=empty(t('watch.unavailable'));
+    if(!reportsAvailable)html+=empty(t('watch.unavailable'));
   }
   b.innerHTML='<button class="btn sm secondary" data-watch-refresh>'+t('watch.refresh')+'</button>'+html;
   const refresh=b.querySelector('[data-watch-refresh]');if(refresh)refresh.onclick=()=>renderWatchTower();
@@ -26554,15 +26558,15 @@ function useArenaRefresh(){ genArenaOpps(); saveG(); return true; }   /* Phil 10
 // ================= REAL server-backed Arena =================
 let ARENA={rank:null, opps:null, oppsRank:null, ladder:null, fetching:false, fetchingLad:false};
 function _arenaTeamPow(team){ try{ return teamPower((team||[]).map(e=>({key:e.key,level:e.level||1,rank:e.rank||0}))); }catch(e){ return 0; } }
-async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.fetching=true;
+async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.fetching=true; let _ok=false;
   try{ const d=await api('/api/arena/opponents'); if(d&&!d.error){ ARENA.rank=d.rank; G.arenaRank=d.rank;
       if(G.bestArenaRank==null||d.rank<G.bestArenaRank)G.bestArenaRank=d.rank;
       ARENA.opps=(d.opponents||[]).filter(o=>o&&o.team&&o.team.length).map(o=>({ id:o.id, name:o.name, rank:o.rank, isNpc:!!o.isNpc, team:o.team.filter(e=>e&&HERO_TYPES[e.key]).map(e=>({key:e.key,level:e.level||1,rank:e.rank||0})), power:_arenaTeamPow(o.team), gems:(typeof o.gems==='number')?o.gems:null }));
-      ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; if(d.arena) ARENA.att=d.arena; saveG(); } }
-  catch(e){} finally{ ARENA.fetching=false; } return true; }
-async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true;
-  try{ const d=await api('/api/arena/ladder?offset=0&limit=100'); if(d&&!d.error&&d.entries){ ARENA.ladderTotal=d.total; ARENA.ladder=d.entries.map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:e.power||0, region:'' })); } }
-  catch(e){} finally{ ARENA.fetchingLad=false; } return true; }
+      ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; if(d.arena) ARENA.att=d.arena; saveG(); _ok=true; } }
+  catch(e){} finally{ ARENA.fetching=false; } return _ok; }   /* v1355 (audit): false on an error reply - no re-render + refetch loop */
+async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true; let _ok=false;
+  try{ const d=await api('/api/arena/ladder?offset=0&limit=100'); if(d&&!d.error&&d.entries){ ARENA.ladderTotal=d.total; ARENA.ladder=d.entries.map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:e.power||0, region:'' })); _ok=true; } }
+  catch(e){} finally{ ARENA.fetchingLad=false; } return _ok; }
 function renderArena(){ const b=document.getElementById('arenaBody');
   if(ACC.token){ if(ARENA.oppsRank!==G.arenaRank||!ARENA.opps){ arenaSync().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } if(!ARENA.ladder){ arenaSyncLadder().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } }
   const myPower=myTeamPower(G.team);   /* v805 - your own heroes: the card */
@@ -26665,7 +26669,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
        per tap, and a lost reply told the player the paid daily was "still yours to claim" */
     if(ACC.token){ apiOnce('arenadaily','/api/arena/daily-claim',{}).then(r=>{ if(r&&r.busy) return;
         if(r&&r.ok){ adoptLedger(r.ledger); _finish(r.reward,true); }
-        else { bannerMsg((r&&r.error)||t('arena.daily_fail')); ledgerSync(); } }); }
+        else { bannerMsg((r&&r.error)||t('arena.daily_fail')); if(r&&/already claimed/i.test(String(r.error||''))){ G.arenaDailyDay=arenaDayKey(); saveGLocalOnly(); if(state==='arena') renderArena(); }   /* v1355 (audit): claimed on another device - the stale Claim button goes */ ledgerSync(); } }); }
     else _finish();
   };
   { const ba=b.querySelector('#arenaBuyAtt'); if(ba) ba.onclick=()=>{ ba.disabled=true;
@@ -26707,7 +26711,7 @@ function renderArenaTop(list,failed){
   ov.querySelector('.arcClose').onclick=()=>ov.remove();
   ov.querySelectorAll('[data-atw]').forEach(btn=>btn.onclick=()=>{ const r=list[+btn.dataset.atw]; if(r){ ov.remove(); _replayReturn=()=>{ show('arena'); openArenaTop(); }; watchBattle({v:2,seed:r.seed,mineSnap:r.mineSnap,foe:r.foe,won:!!r.won,oppName:r.defName,t:r.t}); } });
   ov.querySelectorAll('[data-atv]').forEach(btn=>btn.onclick=async()=>{ const r=list[+btn.dataset.atv]; if(!r||btn.disabled) return; btn.disabled=true; const want=+btn.dataset.v, v=(r.mine===want)?0:want;
-    try{ const d=await api('/api/arena/vote','POST',{id:r.id,v}); if(d&&d.ok&&d.battles){ renderArenaTop(d.battles,false); return; } bannerMsg((d&&d.error)||t('arena.top_offline')); }catch(e){ bannerMsg(t('arena.top_offline')); } btn.disabled=false; });
+    try{ const d=await api('/api/arena/vote','POST',{id:r.id,v}); if(!ov.isConnected||!ov.contains(btn)) return;   /* v1355 (audit): closed while the vote was in flight - do not reopen */ if(d&&d.ok&&d.battles){ renderArenaTop(d.battles,false); return; } bannerMsg((d&&d.error)||t('arena.top_offline')); }catch(e){ if(ov.isConnected&&ov.contains(btn)) bannerMsg(t('arena.top_offline')); } btn.disabled=false; });
 }
 /* Phil 10 Nov: "That entire area i circled, move right but keeping the exact same alignment": the Defenders block, the four banners and the
    opponents move right together by the free space at the right end of the opponent row, so nothing moves relative to anything else. */
@@ -29059,7 +29063,7 @@ async function renderGuildWar(el){
   if(!ACC.token){ el.innerHTML='<div class="panel" style="text-align:center;padding:20px;color:#8b98a9">'+t('gwar.sign_in')+'</div>'; return; }
   // SKYFALL (v2): when the server enables the tournament (or for dev accounts) the war tab becomes
   // the bracket UI; otherwise the legacy weekly war below renders unchanged.
-  if(SKY.st===null){ el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">'+t('gwar.scanning')+'</div>'; await skyStatus(); }
+  if(SKY.st===null){ el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">'+t('gwar.scanning')+'</div>'; const _ss=await skyStatus(); if(_ss&&_ss.failed){ el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">'+ewT('net.connection_lost')+'</div>'; return; } }
   if(SKY.st&&SKY.st.enabled){ el.innerHTML=skyPanelHTML(); return; }
   // AUDIT C9: the legacy weekly war is RETIRED — Skyfall is the only competitive Guild War.
   el.innerHTML='<div class="panel" style="text-align:center;padding:26px 16px"><div style="font-size:34px">'+uiIcon('cloud-sync')+'</div><b style="font-size:14px">'+t('gwar.moved_title')+'</b><div style="font-size:11px;color:#8b98a9;margin-top:6px">'+t('gwar.moved_desc1')+'<br>'+t('gwar.moved_desc2')+'</div></div>';
@@ -29140,6 +29144,7 @@ async function renderGuildRaid(el){
     const live=await api('/api/guild/raid');
     if(!live||!live.raid||state!=='guild'||guildTab!=='raid'||gen!==_raidGen) return;
     const q=live.raid, p2=Math.round(q.hp/q.max*100), host=document.getElementById('gTabBody')||el;
+    if(q.level!==r.level||q.name!==r.name||q.bossKey!==r.bossKey){ clearInterval(window._raidPoll); window._raidPoll=null; renderGuild(); return; }   /* v1355 (audit): the boss changed under the poll */
     const txt=host.querySelector('#gbHpTxt');
     if(txt){ txt.textContent=t('graid.hp_line',{hp:q.hp.toLocaleString(),max:q.max.toLocaleString(),pct:p2});
       const fill=txt.previousElementSibling; if(fill) fill.style.width=p2+'%'; }
@@ -30697,7 +30702,7 @@ function provReceiptHTML(t,rw,compact){ if(!rw) return '';
   return `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">${ewT('isle.glyph_frags_upper')}</div>`+fr.map(provFragLine).join('')
     +(fg?`<div style="font-size:10.5px;color:#8b98a9;margin-top:2px">${ewT('isle.toward_glyph',{hero:escapeHTML(String((HERO_TYPES[fg.hero]||{}).name||fg.hero)),glyph:escapeHTML(String(fg.name||'glyph')),q:escapeHTML(String(fg.quality||''))})}</div>`:'')
     +`<div style="margin-top:4px">${xp.replace(/^ · /,'')}</div>`; }
-async function provSync(){ if(!ACC.token) return null; try{ const r=await api('/api/province/state'); if(r&&r.ok){ PROV_SRV=r; provAdopt(r.types); return r; } }catch(e){} return null; }
+async function provSync(){ if(!ACC.token) return null; const _tk=ACC.token; try{ const r=await api('/api/province/state'); if(ACC.token!==_tk) return null;   /* v1355 (audit): signed out or switched while it was in flight */ if(r&&r.ok){ PROV_SRV=r; provAdopt(r.types); return r; } }catch(e){} return null; }
 /* CHALLENGE: pick the squad on the normal squad screen (the campaign squad), then BATTLE → provLaunch */
 function provChallenge(t){
   if(!ACC.token){ bannerMsg(ewT('isle.prov_connect')); return false; }
@@ -30752,6 +30757,7 @@ async function openWell(){
   ov.innerHTML='<div class="wlTop"><button class="btn secondary sm wlBackB">◀</button><div class="wlTtl"><h1 class="wlH1">'+ewT('bld.starless_well')+'</h1></div></div>';
   ov.querySelector('.wlBackB').onclick=()=>ov.remove();
   const S=await wellRefresh();
+  if(document.getElementById('wlMap')!==ov) return;   /* v1355 (audit): closed or reopened while the state was loading - this reply is stale */
   if(!S){ ov.insertAdjacentHTML('beforeend','<div class="wlMsg">'+ewT('isle.well_connect',{name:ewT('bld.starless_well')})+'</div>'); return; }
   wellDraw(S); }
 /* THE MAP LAYOUT (Phil 25 Sep ~16:0x: "The boss should be a center tile seperate from the end ones, all 3 end tiles should connect
@@ -33803,7 +33809,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088792';
+const BUILD_ID = '1794347088793';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -34799,7 +34805,7 @@ function openEmberdraft(){   /* v1324 (Phil 9 Nov, via ChatGPT: "Emberdraft MAIN
     buy.hidden = !(v.left<=0 && v.nextCost!=null); if(v.nextCost!=null){ buy.innerHTML=`${hudIcon('gem')} ${v.nextCost} — ${ewT('draft.more_attempts',{n:v.pack})}`; buy.dataset.cost=v.nextCost; buy.dataset.pack=v.pack; }
     if(err) attEl.textContent=err; };
   const _claimP = signed ? edResendClaim() : Promise.resolve();   /* v646: a saved unclaimed reward goes first */
-  if(signed){ solo.disabled=true; _claimP.then(()=>api('/api/emberdraft/state','POST',{god})).then(d=>{ solo.disabled=false; show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,ewT('draft.err_server'))); }); }
+  if(signed){ solo.disabled=true; _claimP.then(()=>api('/api/emberdraft/state','POST',{god})).then(d=>{ solo.disabled=!(d&&d.edraft);   /* v1355 (audit): no attempts view = Solo stays off (it was enabled on a failed fetch) */ show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,ewT('draft.err_server'))); }); }
   else attEl.textContent=ewT('draft.practice');
   buy.onclick=()=>gameConfirm(ewT('draft.buy_confirm',{b:'<b>',eb:'</b>',n:buy.dataset.pack||3,name:'Emberdraft',cost:`<b style="color:#c9b6ff">${hudIcon('gem')}${buy.dataset.cost||''}</b>`}), ()=>{ buy.disabled=true;   /* v646: one tap spent diamonds */
     /* 3 Oct audit: one requestId per purchase until a definite answer - a lost reply (offline) or a refused save (storageFailed) re-sends the SAME id, even after the overlay is reopened */
