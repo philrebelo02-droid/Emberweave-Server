@@ -12576,7 +12576,16 @@ function musTick(){ try{
     if(w==='battle'&&MUS.cur==='battle'){ if(st==='result'||(st==='battle'&&ended)) MUS.over=true;
       else if(MUS.over&&st==='battle'&&!ended){ MUS.over=false; const B=musLane('battle'); musLog(['refight',performance.now()|0]); musLeave(B,MUS_XF_SCENE,true); musEnter(B,MUS_XF_SCENE); } }
     else MUS.over=false;
-    musSwitch(w); const L=MUS.cur&&MUS.lanes[MUS.cur]; if(L) musWatch(L); }catch(e){} }
+    musSwitch(w); const L=MUS.cur&&MUS.lanes[MUS.cur]; if(L){ musHeal(L); musWatch(L); } }catch(e){} }
+function musHeal(L){
+  const s=L.slot, now=performance.now();
+  if(L.xf||L.seamT||now-(L.healAt||0)<2000) return;
+  if(s&&!s.el.error&&!(s.el.paused&&!s.el.ended)) return;
+  L.healAt=now;
+  musLog(['heal',L.name,s?(s.el.error?'error':'paused'):'noslot',now|0]);
+  if(s){ L.slot=null; musFree(s); }
+  musEnter(L,0.3);
+}
 function musBoot(){ if(MUS.timer||!SND.ctx||window._p2guard) return; musPrime(); MUS.timer=setInterval(musTick,250); musTick(); }
 try{ if(typeof document!=='undefined'&&document.addEventListener) document.addEventListener('visibilitychange',()=>{ try{
     if(document.visibilityState==='hidden'){ MUS.hidden=true; MUS.held=MUS.pool.filter(s=>s.lane&&!s.el.paused); MUS.held.forEach(s=>s.el.pause()); }
