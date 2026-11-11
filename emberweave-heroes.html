@@ -18781,6 +18781,24 @@ let _rewardQueue=[], _rewardLockOn=false;
    build if patchnotes.json holds one). Game words that start with Ember (Ember Roast, Ember Cleave, Ember Gold...) stay allowed. */
 const WHATSNEW_BLOCK = /\b(Claude|ChatGPT|GPT|OpenAI|Anthropic|Grok|xAI|Kimi|Vigil|Codex|Gemini|Copilot|Ember\s*(?:AI|bot|brain)|Emberweave Brain|AI|A\.I\.|Magic Rush|Fractalia|Dragon Prayer)\b/i;
 let _whatsNewDone = false;
+/* v1364 (Phil 11 Nov: "please make an option in settings \"Patch Notes\" where I can view the past 10 patch notes"): Settings > General >
+   Patch Notes opens the 10 newest entries of the site's /patchnotes.json in the What's New window (same WHATSNEW_BLOCK filter). */
+async function openPatchNotes(){ const old=document.getElementById('patchNotesOv'); if(old) old.remove();
+  let notes=[];
+  try{ const r=await fetch('/patchnotes.json?v='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:''),{cache:'no-store'});
+    notes=((await r.json()).patches||[]).filter(p=>p&&p.ver); }catch(e){ bannerMsg(ewT('net.connection_lost')); return; }
+  const list=notes.slice(0,10).map(p=>({ver:p.ver,date:(p.date||'')+(p.time?' · '+p.time:''),title:WHATSNEW_BLOCK.test(p.title||'')?'':(p.title||''),
+    items:(p.items||[]).filter(x=>typeof x==='string'&&!WHATSNEW_BLOCK.test(x))})).filter(p=>p.items.length);
+  const ov=document.createElement('div'); ov.id='patchNotesOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
+  ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:20px 18px;width:100%;max-width:420px;max-height:calc(var(--ew-game-height,100vh) * .86);display:flex;flex-direction:column;box-shadow:0 14px 44px #000b">
+      <div style="font-family:Georgia,serif;font-weight:900;font-size:21px;color:#ffd45e;text-shadow:0 1px 4px #000;text-align:center;margin-bottom:10px">Patch Notes</div>
+      <div style="overflow-y:auto;flex:1;min-height:0;text-align:left">${list.length?list.map(p=>`<div style="margin:0 0 14px">
+        <div style="font-weight:800;color:#e6edf3;font-size:14px">${escapeHTML(p.title||('Update '+p.ver))}</div>
+        <div style="font-size:11px;color:#8b98a9;margin:2px 0 6px">${escapeHTML((p.date?p.date+' \u00b7 ':'')+'v'+p.ver)}</div>
+        <ul style="margin:0;padding-left:18px;color:#cdd6e4;font-size:13px;line-height:1.45">${p.items.map(x=>`<li style="margin:3px 0">${escapeHTML(x)}</li>`).join('')}</ul></div>`).join(''):''}</div>
+      <button class="btn" style="width:100%;margin-top:10px" id="_pnOk">${t('common.close')||'Close'}</button></div>`;
+  document.body.appendChild(ov); ov.querySelector('#_pnOk').onclick=()=>ov.remove(); ov.onclick=e=>{ if(e.target===ov) ov.remove(); }; }
 async function whatsNewMaybe(){
   if(_whatsNewDone || !(ACC&&ACC.token) || (G.tutStarted&&!G.tutDone) || state!=='home') return;
   _whatsNewDone = true;
@@ -18794,7 +18812,7 @@ async function whatsNewMaybe(){
   if(!seen && !G.tutDone){ mark(); return; }                       // a brand-new player: nothing to catch up on
   const at = seen ? notes.findIndex(p=>p.ver===seen) : -1;
   let fresh = notes.slice(0,3);   /* v1296 (Phil 6 Nov: "Include the past 2 patches worth" / "Actually show the last 3 deploy patches"): always the 3 latest updates */
-  fresh = fresh.map(p=>({ver:p.ver, date:p.date||'', title:WHATSNEW_BLOCK.test(p.title||'')?'':(p.title||''),
+  fresh = fresh.map(p=>({ver:p.ver, date:(p.date||'')+(p.time?' · '+p.time:''), title:WHATSNEW_BLOCK.test(p.title||'')?'':(p.title||''),
                          items:(p.items||[]).filter(t=>typeof t==='string'&&!WHATSNEW_BLOCK.test(t))})).filter(p=>p.items.length);
   if(!fresh.length){ mark(); return; }
   const show = ()=>{ if(state!=='home'){ _whatsNewDone=false; return; }
@@ -31730,6 +31748,7 @@ function renderSettings(){
   const langCard = `<div class="set-sec">
       <div class="set-row"><span class="set-lbl">\u{1F310} ${t('set.language')}</span><select id="setLangSel" class="set-in set-sel" aria-label="${t('set.language')}">${langOptionsHTML()}</select></div>
     </div>`;
+  const notesCard = `<div class="set-sec"><button class="btn sm" id="setPatchNotes" style="width:100%">${uiIcon('quest-scroll')} Patch Notes</button></div>`;   /* v1364 (Phil 11 Nov) */
   const soundCard = `<div class="set-sec">
       <div class="set-h">${uiIcon('audio-on')} ${t('set.audio')}</div>
       <div class="set-row"><label class="set-chk"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> ${t('set.mute_all')}</label></div>
@@ -31745,7 +31764,7 @@ function renderSettings(){
   const _bid=(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
   b.innerHTML=`<div class="set-wrap">
     <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
-    ${pane('general',langCard+soundCard)}
+    ${pane('general',langCard+soundCard+notesCard)}
     ${pane('account',account+(account.indexOf('id="googleAuthPanel"')>=0?'':'<div class="set-sec set-links"><div id="googleAuthPanel" class="set-link" hidden></div><div id="facebookAuthPanel" class="set-link" hidden></div></div>'))}
     ${ACC.token?pane('storage',assetCard):''}
     ${pane('support',reportCard+`<div class="set-legal set-sec">
@@ -31798,6 +31817,7 @@ function renderSettings(){
   const rpK=b.querySelector('#rpKind'); if(rpK){ const paint=()=>rpK.querySelectorAll('button').forEach(x=>{ const on=x.dataset.k===(window._rpKind||'bug');
       x.style.background=on?'#2f6fd1':'#1c2434'; x.style.color=on?'#fff':'#8b98a9'; x.style.fontWeight=on?'800':'600'; });
     rpK.querySelectorAll('button').forEach(x=>x.onclick=()=>{ window._rpKind=x.dataset.k; paint(); }); paint(); }
+  { const pn=b.querySelector('#setPatchNotes'); if(pn) pn.onclick=openPatchNotes; }
   const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const rpT=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
     if(rpT.length<3){ m.style.color='#ff8b8b'; m.textContent=t('set.report_short'); return; }
     m.style.color='#8b98a9'; m.textContent=t('set.sending');
