@@ -19720,11 +19720,11 @@ function gearPlanBillHTML(plan){ const parts=Object.entries(plan.bill).map(([k,n
   const crafts=plan.steps.filter(s=>s.kind==='craft').length, subs=plan.steps.filter(s=>s.kind==='sub').length;
   return (parts.length?parts.join(', '):t('gear.nothing'))+`<br><span style="color:#6f7d90">${t('gear.bill_steps',{c:(crafts!==1?t('gear.crafts_n',{n:crafts}):t('gear.craft_1',{n:crafts})),s:subs?' + '+(subs!==1?t('gear.subs_n',{n:subs}):t('gear.sub_1',{n:subs})):''})}</span>`; }
 async function gearPlanRun(plan,equipHero){ if(FORGE.busy) return; FORGE.busy=true; let last=null, n=0, err='';
-  try{ for(const s of plan.steps){
-      const r=(s.kind==='sub')?await api('/api/gear/craft-sub','POST',{expectedRevision:FORGE.st.revision,gearId:s.gearId})
-                             :await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId:s.gearId});
-      if(!r||r.error){ err=(r&&r.error==='offline')?t('net.connection_lost'):((r&&r.error)||t('forge.cold')); break; }
-      last=r; n++; FORGE.busy=false; await forgeSync(); FORGE.busy=true; }
+  /* v1367 (tester via Phil: "takes approximately 10 seconds" / "should be instant"): the whole plan is ONE request - it was one craft
+     request plus a full Forge read per step, and an Orange piece is hundreds of steps */
+  try{ const r=await api('/api/gear/craft-plan','POST',{expectedRevision:FORGE.st.revision,steps:plan.steps.map(s=>({kind:s.kind,gearId:s.gearId}))});
+      if(!r||(r.error&&!r.done)){ err=(r&&r.error==='offline')?t('net.connection_lost'):((r&&r.error)||t('forge.cold')); }
+      else { n=r.done|0; if(r.error) err=r.error; if(r.crafted) last=r; if(r.revision) FORGE.st.revision=r.revision; }
   } finally { FORGE.busy=false; }
   /* v1008 (re-audit Forge #1 #9): a plan that stopped partway equips nothing - it used to equip and bind the last INTERMEDIATE
      piece - and says where it stopped; a failed equip says so */

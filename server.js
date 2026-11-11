@@ -6540,38 +6540,46 @@ async function api(req,res,url){
     const ok=(extra)=>{ g.revision++; writeDB(); return Object.assign({ok:true, revision:g.revision, dust:me.dust||0},extra||{}); };
     const bad=(msg)=>{status=400;return {error:msg, revision:g.revision};};
 
-    if(p==='/api/gear/craft-sub'){
-      const def=GEARCAT.byId[String(b.gearId||'')]; if(!def) return bad('Unknown gear.');
-      if(!def.sub) return bad('Grey gear needs no sub-component.');
-      if((g.fragments[def.frag]||0)<def.subFragCost) return bad('Need '+def.subFragCost+' × '+def.frag+'.');
+    /* v1367 (tester via Phil: the quick build "takes approximately 10 seconds" / "should be instant"): the sub and craft steps are shared
+       code, so /craft-plan runs a whole quick-build plan in ONE request under exactly the rules of /craft-sub and /craft. */
+    const gearSubStep=(gearId)=>{ const def=GEARCAT.byId[String(gearId||'')]; if(!def) return {err:'Unknown gear.'};
+      if(!def.sub) return {err:'Grey gear needs no sub-component.'};
+      if((g.fragments[def.frag]||0)<def.subFragCost) return {err:'Need '+def.subFragCost+' × '+def.frag+'.'};
       g.fragments[def.frag]-=def.subFragCost; if(g.fragments[def.frag]<=0) delete g.fragments[def.frag];
       g.subs[def.sub]=(g.subs[def.sub]||0)+1;
-      return ok({ sub:def.sub, count:g.subs[def.sub] });
-    }
-    if(p==='/api/gear/craft'){
-      const def=GEARCAT.byId[String(b.gearId||'')]; if(!def) return bad('Unknown gear.');
+      return { sub:def.sub, count:g.subs[def.sub] }; };
+    const gearCraftStep=(gearId,ingredients)=>{ const def=GEARCAT.byId[String(gearId||'')]; if(!def) return {err:'Unknown gear.'};
       if(def.qi===0){ // Grey: direct from its own fragments
         const cost=GEARCAT.meta.greyFragCost;
-        if((g.fragments[def.frag]||0)<cost) return bad('Need '+cost+' × '+def.frag+'.');
+        if((g.fragments[def.frag]||0)<cost) return {err:'Need '+cost+' × '+def.frag+'.'};
         g.fragments[def.frag]-=cost; if(g.fragments[def.frag]<=0) delete g.fragments[def.frag];
       } else {
-        if((g.subs[def.sub]||0)<1) return bad('Need the '+def.sub+' (craft it from '+def.subFragCost+' × '+def.frag+').');
+        if((g.subs[def.sub]||0)<1) return {err:'Need the '+def.sub+' (craft it from '+def.subFragCost+' × '+def.frag+').'};
         // 2 FRESH UNBOUND previous-tier items (the previous tier is a single slot by design)
         const prevQ=GEARCAT.meta.qualities[def.qi-1];
         const feed=Object.entries(g.items).filter(([id,it])=>{ const d=GEARCAT.byId[it.d];
           return d && d.quality===prevQ && !it.bound && !gearItemEquippedBy(g,id); })
           .sort((a,bb)=>((a[1].temper||0)-(bb[1].temper||0))||((a[1].dustSpent||0)-(bb[1].dustSpent||0))||((a[1].createdAt||0)-(bb[1].createdAt||0)));   // auto-fill fallback consumes the LEAST-invested items (was oldest-first, which ate heavily tempered gear)
-        const pick=Array.isArray(b.ingredients)?b.ingredients.map(String):[];
+        const pick=Array.isArray(ingredients)?ingredients.map(String):[];
         const chosen=[];
         for(const iid of pick){ const e=feed.find(([id])=>id===iid); if(e&&!chosen.includes(iid)) chosen.push(iid); if(chosen.length===2) break; }
         for(const [id] of feed){ if(chosen.length>=2) break; if(!chosen.includes(id)) chosen.push(id); }
-        if(chosen.length<2) return bad('Need 2 fresh unbound '+prevQ+' items (bound gear can never be an ingredient).');
+        if(chosen.length<2) return {err:'Need 2 fresh unbound '+prevQ+' items (bound gear can never be an ingredient).'};
         g.subs[def.sub]-=1; if(g.subs[def.sub]<=0) delete g.subs[def.sub];
         for(const iid of chosen) delete g.items[iid];   // consumed
       }
       const t0=gearTT(g,def.id);   /* v1054: a new copy arrives at its type's Temper */
       const nid='q'+(g.seq++); g.items[nid]={ d:def.id, temper:t0.temper|0, prog:t0.prog|0, dustSpent:0, bound:false, createdAt:Date.now() };
-      return ok({ crafted:nid, gearId:def.id, name:def.name });
+      return { crafted:nid, gearId:def.id, name:def.name }; };
+    if(p==='/api/gear/craft-sub'){ const r=gearSubStep(b.gearId); return r.err?bad(r.err):ok(r); }
+    if(p==='/api/gear/craft'){ const r=gearCraftStep(b.gearId,b.ingredients); return r.err?bad(r.err):ok(r); }
+    if(p==='/api/gear/craft-plan'){
+      const steps=Array.isArray(b.steps)?b.steps.slice(0,1200):[]; if(!steps.length) return bad('Nothing to build.');
+      let n=0, last=null, err='';
+      for(const s of steps){ const r=(s&&s.kind==='sub')?gearSubStep(s&&s.gearId):gearCraftStep(s&&s.gearId,null);
+        if(r.err){ err=r.err; break; } n++; if(r.crafted) last=r; }
+      if(!n) return bad(err||'Nothing built.');
+      return ok({ done:n, of:steps.length, error:err||null, crafted:last&&last.crafted, gearId:last&&last.gearId, name:last&&last.name });   // steps that ran are kept, like the old step-by-step run
     }
     if(p==='/api/gear/equip'){
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');

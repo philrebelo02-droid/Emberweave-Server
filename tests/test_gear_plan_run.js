@@ -8,15 +8,20 @@ const _EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),
 let pass=0, missed=[]; const ok=(c,m)=>{ if(process.env.AUD_PAGE&&!c){ missed.push(m); return; } assert(c,m); pass++; };
 async function run(failAt){ const calls=[], msgs=[]; let i=0;
   const ctx={...require('./helpers/page-icons.js')(src), ...LANG, FORGE:{busy:false,st:{revision:1}}, forgeSync:async()=>{}, renderHeroDetail:()=>{}, bannerMsg:m=>msgs.push(m),
-    api:async(p)=>{ calls.push(p); if(p.includes('equip')) return {ok:true}; i++; return i===failAt?{error:'Not enough materials.'}:{crafted:'it'+i,name:'Piece'+i}; }};
+    api:async(p,m,body)=>{ calls.push(p); if(p.includes('equip')) return {ok:true};
+      if(p.includes('craft-plan')){ /* v1367: the whole plan is one request; the stub answers like server.js /craft-plan */ const N=body.steps.length; let d=0, last=null, err=null;
+        for(let s=1;s<=N;s++){ if(s===failAt){ err='Not enough materials.'; break; } d++; last={crafted:'it'+s,name:'Piece'+s}; }
+        if(!d) return {error:err}; return Object.assign({ok:true,revision:2,done:d,of:N,error:err},last); }
+      i++; return i===failAt?{error:'Not enough materials.'}:{crafted:'it'+i,name:'Piece'+i}; }};
   vm.createContext(ctx); vm.runInContext(src.slice(a,b)+';this.g=gearPlanRun;',ctx);
-  await ctx.g({steps:[{kind:'sub'},{},{}]},'vael'); return {equip:calls.filter(c=>c.includes('equip')).length, msgs:msgs.join(' | ')}; }
+  await ctx.g({steps:[{kind:'sub'},{},{}]},'vael'); return {equip:calls.filter(c=>c.includes('equip')).length, gearCalls:calls.filter(c=>!c.includes('equip')).length, msgs:msgs.join(' | ')}; }
 (async()=>{ try{
   const p=await run(2);
   ok(p.equip===0,'a plan that fails at step 2 of 3 equips nothing ('+p.msgs+')');
   ok(/Stopped at step 1 of 3: Not enough materials/.test(p.msgs),'and says where it stopped and why ('+p.msgs+')');
   const f=await run(0);
   ok(f.equip===1&&/Piece3 equipped/.test(f.msgs),'a finished plan equips the end item ('+f.msgs+')');
+  ok(f.gearCalls===1,'v1367: the whole 3-step plan is ONE server request, not one per step ('+f.gearCalls+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_gear_plan_run.js: '+pass+' checks passed, '+missed.length+' failed (page '+path.basename(page)+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } })();
