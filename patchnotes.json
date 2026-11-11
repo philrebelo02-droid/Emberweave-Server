@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.47", "date": "10 November 2026", "title": "New building art", "items": ["New title art and carved gold panels for the Guild Hall, Temple of Ash, Wishing Pool, Skyfall, Island of Trials, Elite Stages, Arena Shop and Watch Tower.", "The Guild Hall is one combined panel with its tabs.", "Market and Shady Market have a new holder panel, item frames and price bars, and every item sits inside the panel."]},
     {"ver": "1.5.46", "date": "10 November 2026", "title": "One victory screen, cleaner shop frames", "items": ["Clearing a stage now shows one victory screen with your stage stars; Collect All takes you back to the campaign map.", "Market and Shady Market item frames keep their gold corners at every screen size, with no stray lines around the price."]},
     {"ver": "1.5.45", "date": "10 November 2026", "title": "9-10 eased", "items": ["Campaign 9-10 (The Nameless Admiral) is easier: its enemies have about 11% less health and damage, on Normal, Elite and Veteran."]},
     {"ver": "1.5.44", "date": "10 November 2026", "title": "Arena layout tidy", "items": ["The Arena defenders, banners and opponents sit further right as one block.", "Refresh fits neatly in its frame."]},
