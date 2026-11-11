@@ -28568,7 +28568,7 @@ function mineEpoch(){ return Math.floor(Date.now()/MINE_EPOCH_MS); }
 function mineEpochEndsIn(){ return (mineEpoch()+1)*MINE_EPOCH_MS - Date.now(); }
 function mineSignedIn(){ try{ return !!(typeof ACC!=='undefined' && ACC && ACC.token); }catch(e){ return false; } }
 function mineYieldShown(res,level,m){ const full=mineYield(res,level);   /* v1368 (Ember BUG SWEEP 10-1): a mine with less than one haul of stock left pays only what is left (server.js take*minerMul) - show that, not the full haul */
-  if(m&&Number.isFinite(m.left)&&Number.isFinite(m.total)&&m.total>0){ const base=m.total/3; if(m.left<base) return Math.max(0,Math.round(full*m.left/base)); } return full; }   // v1210 (Phil 22 Oct: "Remove the cap"): the server pays the designed yield x Miner's Charter, as shown
+  if(m&&Number.isFinite(m.left)&&Number.isFinite(m.total)&&m.total>0){ const base=m.total/3; if(m.left<base) return Math.max(0,Math.round(m.left*(typeof embassyMineMul==='function'?embassyMineMul():1))); } return full; }   /* rounded like server.js: Math.round(take*minerMul) (ChatGPT check) */   // v1210 (Phil 22 Oct: "Remove the cap"): the server pays the designed yield x Miner's Charter, as shown
 function mineYield(res,level){ return Math.round((40+level*55) * (1 + (level-1)*0.18) * (typeof embassyMineMul==='function'?embassyMineMul():1)); }   // L1≈95 … L5≈ ~610 (× guild Embassy bonus)
 /* v809 - POWER_SCALE is the measured gap between the old reading and the card for a hero carrying
    NOTHING: 1.33x at level 1 rising to 1.51x at 100 across the whole roster, median 1.4276
