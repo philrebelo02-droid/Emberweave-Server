@@ -77,8 +77,8 @@ const PROBE = async () => { const b = document.getElementById('muteBtn'); let bt
         '(4) the player\'s own settings are untouched (' + b.cfg + ', mute ' + b.mute + ', channel gains ' + b.gains.join('/') + ')', JSON.stringify({ a: [a.cfg, a.mute, a.ls], b: [b.cfg, b.mute, b.ls] }));
       await pg.evaluate(() => { enterGame = window.__enter; enterGame(); });
       let c = null; for (let i = 0; i < 40; i++) { await delay(250); c = await pg.evaluate(PROBE); if (!c.splash && c.pool.length) break; }
-      ck(c && c.splash === false && c.gate === 'none' && (c.btn === 'visible-top' || (c.btn === 'hidden' && c.why === 'offmain')) &&   /* v1230 mute rule: hidden while a popup is open over the town */ c.pool.length >= 1 && /^(city|map)$/.test(c.mus || '') && c.sfx === true && c.sfx2 === true,
-        '(5) the splash lifts: the button is back on top (' + (c && c.why) + '), the ' + (c && c.mus) + ' music plays (' + (c && c.pool.join(',')) + '), sndPlay and sfxPlay play', JSON.stringify(c));
+      ck(c && c.splash === false && c.gate === 'none' && c.btn === 'none' /* v1358: the mute button is removed from the game */ &&   /* v1230 mute rule: hidden while a popup is open over the town */ c.pool.length >= 1 && /^(city|map)$/.test(c.mus || '') && c.sfx === true && c.sfx2 === true,
+        '(5) the splash lifts: no mute button (v1358) (' + (c && c.why) + '), the ' + (c && c.mus) + ' music plays (' + (c && c.pool.join(',')) + '), sndPlay and sfxPlay play', JSON.stringify(c));
       ck(!errs.length, 'no page errors', errs.join(' | '));
       await ctx.close(); }
     /* ---- CONTROL: the same held splash with the silence switched off ---- */
@@ -86,8 +86,8 @@ const PROBE = async () => { const b = document.getElementById('muteBtn'); let bt
       await pg.evaluate(() => { enterGame = function () {}; });
       await pg.tap('.splashPlay'); let d = null; for (let i = 0; i < 20; i++) { await delay(250); d = await pg.evaluate(PROBE); if (d.pool.length) break; }
       const gate = await pg.evaluate(() => window.__realSplashOn());
-      ck(gate === true && d.pool.length >= 1 && (d.btn === 'visible-top' || (d.btn === 'hidden' && d.why === 'offmain')) && d.sfx === true && d.sfx2 === true,   /* v1230 mute rule */
-        'CONTROL: on the same held splash with splashOn() forced false the music plays (' + d.pool.join(',') + ') and the sounds, and the button shows (' + d.btn + ') - the checks above see both', JSON.stringify(d));
+      ck(gate === true && d.pool.length >= 1 && d.btn === 'none' /* v1358 */ && d.sfx === true && d.sfx2 === true,   /* v1230 mute rule */
+        'CONTROL: on the same held splash with splashOn() forced false the music plays (' + d.pool.join(',') + ') and the sounds (no button, v1358: ' + d.btn + ') - the checks above see both', JSON.stringify(d));
       await ctx.close(); }
   } catch (e) { fail++; console.log('  FAIL ' + (e.stack || e.message)); }
   finally { try { if (browser) await browser.close(); } catch (e) {} try { if (srv) srv.kill(); } catch (e) {} }
