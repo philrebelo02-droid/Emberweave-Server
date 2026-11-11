@@ -8987,7 +8987,7 @@ async function api(req,res,url){
      attempt (quitting does not refund it). A match against the AI is played in the browser, so the result route cannot
      replay it: it guards with the server-issued attempt (one claim each) and a plausible length (rounds and time).
      Multiplayer (not built yet) will add Phil's 50-diamond entry, 200 / 150 / refund prizes and its own 3 a day. */
-  if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'||p==='/api/emberdraft/round'){
+  if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'||p==='/api/emberdraft/round'||p==='/api/emberdraft/resume'){
     if(!me) return send(res,401,{error:'auth'});
     if(req.method!=='POST' && !(req.method==='GET' && p==='/api/emberdraft/state')) return send(res,404,{error:'emberdraft'});   /* 3 Oct audit (Trials #9): state is readable by GET */
     const b=await body(req); const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
@@ -9048,9 +9048,33 @@ async function api(req,res,url){
        2 x the daily maximum, so ED_OPEN_MAX is a fence that refuses BEFORE spending, never a silent drop. */
     const ED_OPEN_MS=24*3600000, ED_OPEN_MAX=2*(ED_FREE+ED_PACK*ED_PACK_COST.length);
     const edAttFor=id=>{ id=String(id||''); return (E.att&&E.att.id===id)?E.att:(E.open.find(x=>x&&x.id===id)||null); };
+    /* v1369 SAVE AND EXIT (Phil 11 Nov: "Do it like spire" / "Save and exit option"). A match against the AI can be saved on the device and
+       continued. The server keeps it honest:
+        - /round {fight:r} records that round r's fight has begun (att.fightR). A continued save from before that fight can only take the
+          fight's result (or a loss) on the client - the server tells it fightR;
+        - /resume refuses a save the attempt has moved past: claimed, gone, or behind its own round reports (a rewind); a save of round r
+          has posted r-1 rounds, and only a save taken after round r's fight (stage 'after' / 'fight') may trail one report (r) - the
+          reports are posted the instant a round ends, before the next save lands;
+        - every Continue takes a LEASE (att.lease): from then on /round and /result must carry it, so a second copy of the match (another
+          tab, an old device copy) is refused (stale) - one attempt is played once and claimed once.
+       peek:true answers the same question without taking the lease (the lobby's Continue button). */
+    const edResumeVerdict=(att,r,stage)=>{ if(!att) return {ok:false,drop:true,error:'This saved match is no longer open.'};
+      if(att.claimed) return {ok:false,drop:true,error:'This match was already claimed.'};
+      const cp=att.cp||{}, have=Object.keys(cp).map(Number).reduce((a,x)=>Math.max(a,x),0), done=Math.max(0,(r|0)-1), late=(stage==='after'||stage==='fight');
+      if((r|0)<1||(r|0)>200) return {ok:false,drop:true,error:'Bad saved match.'};
+      if(have>done+1 || (have===done+1 && !late)) return {ok:false,drop:true,error:'This saved match is older than the match itself.'};
+      if(Object.keys(cp).some(k=>(cp[k].pl|0)>0)) return {ok:false,drop:true,error:'This match already ended.'};
+      return {ok:true,have,fightR:att.fightR|0}; };
+    const edLeaseOk=att=>!att.lease || String(b.lease||'')===att.lease;
+    const ED_STALE='This match was continued on another screen.';
+    if(p==='/api/emberdraft/resume'){ const att=edAttFor(b.attemptId), v=edResumeVerdict(att,b.round|0,String(b.stage||''));
+      if(!v.ok || b.peek===true) return send(res,200,v);
+      att.lease='l'+Date.now().toString(36)+Math.floor(Math.random()*1e9).toString(36); att.resumes=(att.resumes|0)+1;
+      writeDB([me.id]); return send(res,200,Object.assign(v,{lease:att.lease})); }
     if(p==='/api/emberdraft/round'){ const att=edAttFor(b.attemptId);
       if(!att) return send(res,400,{ok:false,error:'No Emberdraft match in progress.'});
-      if(!att.claimed){ edCpIngest(att,b.cps,false); writeDB([me.id]); }   // v1124: led.edraft is this player's
+      if(!edLeaseOk(att)) return send(res,409,{ok:false,stale:true,error:ED_STALE});   // v1369
+      if(!att.claimed){ edCpIngest(att,b.cps,false); if(b.fight!=null){ const f=Math.max(0,Math.min(200,b.fight|0)); if(f>(att.fightR|0)) att.fightR=f; } writeDB([me.id]); }   // v1124: led.edraft is this player's; v1369: + the fight that began
       const have=Object.keys(att.cp||{}).map(Number).reduce((a,x)=>Math.max(a,x),0);
       return send(res,200,{ok:true,have}); }
     const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -9075,6 +9099,7 @@ async function api(req,res,url){
     const out=idem(me.id+':edresult:'+reqId,()=>{
       const att=edAttFor(b.attemptId); if(!att) return {ok:false,error:'No Emberdraft match in progress.'};
       if(att.claimed) return {ok:false,error:'This match was already claimed.'};
+      if(!edLeaseOk(att)) return {ok:false,stale:true,error:ED_STALE};   // v1369: only the copy holding the lease claims
       const claimed=b.place|0, rounds=b.rounds|0;
       if(claimed<1||claimed>8) return {ok:false,error:'Bad placement.'};
       att.claimed=true;
