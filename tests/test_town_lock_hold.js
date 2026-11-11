@@ -1,6 +1,6 @@
 // v1228 (Phil 30 Oct 2026: "please make it so that locked buildings no longer need to double click the lock to see what level it opens,
 // all they need to do is click and hold the name of the building to see what level it unlocks"). Runs the page's own townLockHold on a
-// small fake label: a locked label held 300 ms shows its 'Unlocks at Lv N' tip, letting go hides it 1.4 s later, a drag past 8 px
+// small fake label: a locked label held 300 ms shows its 'Unlocks at Lv N' tip, letting go hides it 1.4 s later (v1368: a quick tap shows it for 2.2 s), a drag past 8 px
 // cancels the hold (the town still scrolls), and an unlocked label (no lock) never gets the hold class.
 // Asserts, exits non-zero.
 'use strict';
@@ -22,8 +22,11 @@ lab.fire('pointerdown');advance(250);ok(!w.classList.contains('show'),'not yet a
 advance(60);ok(w.classList.contains('show'),'the tip shows after a 300 ms hold');
 lab.fire('pointerup');advance(1300);ok(w.classList.contains('show'),'still up 1.3 s after letting go');
 advance(150);ok(!w.classList.contains('show'),'gone 1.4 s after letting go');
-// a quick tap: down + up at 100 ms -> never shows
-lab.fire('pointerdown');advance(100);lab.fire('pointerup');advance(2000);ok(!w.classList.contains('show'),'a quick tap never shows the tip');
+// a quick tap: down + up at 100 ms (before v1368 it never showed)
+// v1368 (tester A P7/P8: a tap on a locked plate's name did nothing): a quick tap now shows the tip too, for 2.2 s
+lab.fire('pointerdown');advance(100);lab.fire('pointerup');ok(w.classList.contains('show'),'a quick tap shows the tip (v1368)');
+lab.fire('pointerleave');advance(2100);ok(w.classList.contains('show'),'a tap tip is still up 2.1 s later, even after the touch pointerleave');
+advance(200);ok(!w.classList.contains('show'),'and gone 2.2 s after the tap');
 // a drag across the name (scrolling the town) cancels the hold
 lab.fire('pointerdown',{clientX:10,clientY:10});lab.fire('pointermove',{clientX:14,clientY:12});advance(100);
 lab.fire('pointermove',{clientX:30,clientY:10});advance(500);ok(!w.classList.contains('show'),'a drag past 8 px cancels the hold');

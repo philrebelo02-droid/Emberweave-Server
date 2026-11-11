@@ -277,7 +277,10 @@
   .townlbl .lockwrap{position:relative;pointer-events:auto;cursor:pointer;font-size:.92em;color:#ffcf6b;}
   .townlbl .locktip{position:absolute;left:50%;bottom:130%;transform:translateX(-50%);display:none;background:#0e1626;border:1px solid #3a6df0;color:#ffe6a8;
     font-family:sans-serif;font-weight:800;font-size:11px;padding:2px 7px;border-radius:7px;white-space:nowrap;box-shadow:0 2px 8px #000a;}
-  .townlbl .lockwrap:hover .locktip,.townlbl .lockwrap.show .locktip{display:block;}
+  .townlbl .lockwrap.show .locktip{display:block;}
+  /* v1368: hover shows the level only for a real mouse - on a phone a tap leaves :hover stuck on the plate, so a tip shown by a tap stayed up
+     after its timer (measured: tap, repaint, tap again - still up 3.65 s later). Taps use the .show timer above. */
+  @media (hover:hover) and (pointer:fine){ .townlbl .lockwrap:hover .locktip{display:block;} }
   /* 30 Oct 2026 (Phil): press and hold the NAME of a locked building to see its unlock level (no double tap on the small lock) */
   .townlbl.tl-locked{pointer-events:auto;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation;}
   /* zoom buttons overlay */
@@ -19051,10 +19054,17 @@ function updateHubChrome(){
 function townLockHold(lab, w){ if(!lab||!w) return; lab.classList.add('tl-locked'); let hold=null, hide=null;
   const show=()=>{ clearTimeout(hide); w.classList.add('show'); clampLockTip(w); };
   let sx=0, sy=0;   // a drag across the label scrolls the town: moving past 8 px cancels the hold (nothing is prevented)
-  lab.addEventListener('pointerdown',e=>{ sx=e.clientX; sy=e.clientY; clearTimeout(hold); hold=setTimeout(show,300); });
+  lab.addEventListener('pointerdown',e=>{ sx=e.clientX; sy=e.clientY; clearTimeout(hold); hold=setTimeout(()=>{ hold=null; show(); },300); });   /* v1368: a hold that has fired is done - its release is not a tap */
   lab.addEventListener('pointermove',e=>{ if(hold&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){ clearTimeout(hold); hold=null; } });
-  const end=()=>{ clearTimeout(hold); clearTimeout(hide); hide=setTimeout(()=>w.classList.remove('show'),1400); };
-  ['pointerup','pointercancel','pointerleave'].forEach(ev=>lab.addEventListener(ev,end));
+  const end=()=>{ clearTimeout(hold); clearTimeout(hide); lab._tipUntil=Date.now()+1400; hide=setTimeout(()=>w.classList.remove('show'),1400); };
+  /* v1368 (tester A P7/P8, Claude 11 Nov: "a tap on a locked plate acts like a tap on the lock"): a quick tap on the name of a locked building
+     did nothing - only a 0.3 s hold or the small padlock showed the level. A tap (no drag) now shows 'Unlocks at Lv N' too, for 2.2 s. */
+  lab.addEventListener('pointerup',e=>{ const tap=hold&&Math.hypot(e.clientX-sx,e.clientY-sy)<=8; clearTimeout(hold); hold=null; clearTimeout(hide);
+    if(tap){ show(); lab._tapAt=Date.now(); lab._tipUntil=lab._tapAt+2200; hide=setTimeout(()=>w.classList.remove('show'),2200); } else { lab._tipUntil=Date.now()+1400; hide=setTimeout(()=>w.classList.remove('show'),1400); } });
+  ['pointercancel','pointerleave'].forEach(ev=>lab.addEventListener(ev,()=>{ if(Date.now()-(lab._tapAt||0)<2200) return; end(); }));   // a touch tap is followed by pointerleave
+  /* v1368: a town repaint rebuilds the plate - the tip it was showing comes back through THIS label's own timer (hide), so a later tap or hold
+     on the rebuilt plate cancels it like any other (ChatGPT 13:36: a separate restore timer hid a fresh tap's tip early) */
+  lab._tipRestore=(until,tapAt)=>{ clearTimeout(hold); hold=null; clearTimeout(hide); w.classList.add('show'); lab._tapAt=tapAt||0; lab._tipUntil=until; hide=setTimeout(()=>w.classList.remove('show'),Math.max(0,until-Date.now())); };
   lab.addEventListener('contextmenu',e=>e.preventDefault()); }
 function clampLockTip(w){ const tip=w&&w.querySelector('.locktip'), box=document.getElementById('townWrap'); if(!tip||!box) return;
   tip.style.marginLeft='0px'; const r=tip.ewGameRect(), b=box.ewGameRect(); if(!r.width) return;
@@ -19111,7 +19121,11 @@ function renderHome(){
     [30.75,36.5,12.5,15,30,45], [27,53.5,11,17,28,64], [90,68.5,16,37,90,88]
   ];
   hots.forEach((h,i)=>{ const p=wideHomePositions[i]; [h.x,h.y,h.w,h.h,h.lx,h.ly]=p; });
-  const box=document.getElementById('townHots'); box.innerHTML='';
+  const box=document.getElementById('townHots');
+  /* v1368: a ledger sync landing while the town is open repaints it (rebuilding every plate) - a level tip that was showing vanished mid-read
+     (measured: tap a plate's name, the tip gone 1 s later). The plate showing its tip keeps it through the repaint. */
+  let _tipKeep=null; try{ const sh=box.querySelector('.townlbl .lockwrap.show'); if(sh){ const ol=sh.closest('.townlbl'); _tipKeep={text:ol.textContent, until:ol._tipUntil||(Date.now()+1400), tapAt:ol._tapAt||0}; } }catch(e){}
+  box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
     el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%;z-index:${h.z||2}`;
     el.title=h.label;
@@ -19132,6 +19146,7 @@ function renderHome(){
     lab.innerHTML=inner;
     const wrapEl=lab.querySelector('.lockwrap');
     if(wrapEl && !wrapEl.classList.contains('acatimer')) townLockHold(lab, wrapEl);   // hold the name (not just the lock) to see the level
+    if(_tipKeep && wrapEl && lab._tipRestore && lab.textContent===_tipKeep.text && _tipKeep.until>Date.now()){ lab._tipRestore(_tipKeep.until,_tipKeep.tapAt); requestAnimationFrame(()=>clampLockTip(wrapEl)); }   /* keeps the ORIGINAL end time: a repaint never extends or shortens it */
     /* v1322 (Phil 9 Nov: "Fix the click boxes on the buildings. If i click on the word market it shouldnt be opening the academy"): a name label
        used to let the tap fall through to whichever building box lay under it (Academy's box reaches under the Market label). Every label is now
        its own building's button, drawn above all the boxes; a locked one only shows its level (hold) and opens nothing. */
