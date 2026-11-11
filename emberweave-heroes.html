@@ -3527,6 +3527,79 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arDay .arMini.arClaim,#arena .arDay .arMini.arClaim:disabled{font-size:14px!important;line-height:1}
 #arena .arDay .arClaim{position:absolute;left:4px;right:4px;top:calc(100% + 8px);min-height:36px!important;font-size:14px!important;display:flex;align-items:center;justify-content:center;gap:5px}   /* Phil 10 Nov: "move the claim out of the refresh and reset box. Put it below that" */
 @media (max-height:380px) and (min-width:701px){ #arena .arDay{padding:11px 13px!important} #arena .arDay .arMini{min-height:21px!important} #arena .arDayNo{font-size:13px!important;line-height:14px} #arena .arOppNm{font-size:10px!important} #arena .arOpp{padding:10px 19px 9px!important} }
+/* v1352 (Phil 10 Nov: "how many buildings do we have to do before i stop reminding you guys" / "Show me the art wired"): ChatGPT's standing building packages (Game Art/UI/<Building> main 10NOV2026) - title art + carved panels for Temple of Ash, Wishing Pool, Skyfall, Sky Island, Elite, Arena Shop, Campaign, Watchtower. Shared frames reuse guild-ornate-panel / market-price-rail / market-item-frame (byte-identical sources). */
+/* Temple of Ash */
+#temple #tp2Stage::after{content:'';position:absolute;left:26.5%;top:2%;width:47%;height:17%;background:url('/assets/img/ui/building-titles/temple-title.webp?v=1') center/contain no-repeat;pointer-events:none;z-index:5;}
+/* Wishing Pool */
+#wishing{--wp-title:url('/assets/img/ui/building-titles/wishing-pool-title.webp?v=1');--wp-frame:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
+#wishing .wpsTitle{position:relative;font-size:0!important;padding:0 45px!important;width:min(350px,94%)!important;height:100px!important;min-height:100px!important;background:none!important;letter-spacing:0!important;}
+#wishing .wpsTitle::before{content:'';position:absolute;inset:0 40px 0 0;pointer-events:none;background:var(--wp-title) center/contain no-repeat;}
+#wishing .wpsHelp{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:22px!important;color:#ffe7a7!important;}
+#wishing .wpsCard{background:none!important;border:0!important;border-radius:0!important;border-image:var(--wp-frame) 25% fill / 44px / 0 stretch!important;}
+@media(max-height:560px) and (min-width:701px){#wishing .wpsTitle{width:250px!important;height:70px!important;min-height:70px!important;}#wishing .wpsCard{border-image-width:32px!important;}}
+@media(max-width:700px){#wishing .wpsTitle{width:min(290px,94%)!important;height:80px!important;min-height:80px!important;}#wishing .wpsCard{border-image-width:36px!important;}}
+/* Skyfall */
+#skyfall{--sk-title:url('/assets/img/ui/building-titles/skyfall-title.webp?v=1');--sk-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');--sk-button:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
+#skyfall .skyHud::before{content:'';position:absolute;left:50%;top:3px;transform:translateX(-50%);width:min(240px,28%);height:70px;background:var(--sk-title) center/contain no-repeat;pointer-events:none;}
+#skyfall .skyStatus{top:80px;border:0;border-radius:0;background:none;isolation:isolate;}
+#skyfall .skyStatus>b:first-child,#skyfall .skyStatus>.dot:first-of-type{display:none;}
+#skyfall :is(.skyStatus,.skyMenu)::before{content:'';position:absolute;inset:-5px;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--sk-panel) 25% fill / 18px / 0 stretch;}
+#skyfall .skyMenu{position:relative;isolation:isolate;background:none;border:0;border-radius:0;padding:10px;}
+#skyfall :is(.skyHudBtns button,.skyEditTeam,.skyBegin){isolation:isolate;background:none;border:0;border-radius:0;box-shadow:none;padding-left:24px;padding-right:24px;}
+#skyfall :is(.skyHudBtns button,.skyEditTeam,.skyBegin)::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--sk-button) 25% fill / 8px 24px / 0 stretch;}
+#skyfall .skyHudBtns button{position:relative;}
+#skyfall .skyPhase{top:120px;}
+#skyfall .skyEvent{top:148px;}
+@media(max-height:560px){#skyfall .skyHud::before{width:min(200px,27%);height:58px;}#skyfall .skyStatus{top:66px;}#skyfall .skyPhase{top:104px;}#skyfall .skyEvent{top:130px;}}
+/* Sky Island */
+#skyisland{--it-title:url('/assets/img/ui/building-titles/island-of-trials-title.webp?v=1');--it-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
+#skyisland>.titlebar{background:none!important;border:0!important;padding:0!important;width:min(360px,70%)!important;height:90px!important;max-width:90%!important;}
+#skyisland>.titlebar h1{height:100%;width:100%;font-size:0!important;-webkit-text-fill-color:transparent!important;background:var(--it-title) center/contain no-repeat!important;text-shadow:none!important;margin:0!important;}
+#skyIslandBody .islespot>div{position:relative;isolation:isolate;border-image:none!important;background:none!important;}
+#skyIslandBody .islespot>div::before{content:'';position:absolute;inset:-4px;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--it-panel) 25% fill / 16px / 0 stretch;}
+@media(max-height:560px){#skyisland>.titlebar{height:68px!important;width:min(300px,50%)!important;}}
+@media(max-width:700px){#skyisland>.titlebar{height:75px!important;width:62%!important;padding:0!important;}}
+/* Elite portal */
+#elite{--el-title:url('/assets/img/ui/building-titles/elite-stages-title.webp?v=1');--el-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');--el-button:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
+#elite>.hdrbox{background:none!important;border:0!important;border-image:none!important;box-shadow:none!important;padding:0!important;}
+#elite .titlebar h1{background:var(--el-title) center/contain no-repeat!important;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;width:min(360px,80vw);height:100px;margin:0 auto!important;}
+#elite #eliteBody>.panel{background:none!important;border:0!important;border-radius:0!important;border-image:var(--el-panel) 25% fill / 36px / 0 stretch!important;padding:22px 26px!important;}
+#elite #eliteBody>.panel>div>div:nth-child(2){min-width:0;overflow-wrap:anywhere;}
+#elite #eliteBody .btn{position:relative;isolation:isolate;flex-shrink:0;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;padding:8px 24px!important;color:#fff0cd!important;}
+#elite #eliteBody .btn::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--el-button) 25% fill / 8px 24px / 0 stretch;}
+#elite #eliteBody .btn:disabled{opacity:1!important;}
+#elite #eliteBody .btn:disabled::before{filter:grayscale(.85) brightness(.55);}
+@media(max-height:560px){#elite .titlebar h1{height:74px;}#elite #eliteBody>.panel{border-image-width:30px!important;padding:18px 24px!important;}}
+@media(max-width:560px){#elite #eliteBody>.panel>div[style*="display:flex"]{flex-wrap:wrap;}#elite #eliteBody>.panel>div>div:nth-child(2){flex:1 1 150px!important;}#elite #eliteBody .btn{margin-left:auto;}}
+/* Arena Shop */
+#arenaShop{--as-title:url('/assets/img/ui/building-titles/arena-shop-title.webp?v=1');--as-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');--as-item:url('/assets/img/ui/merchant-main/market-item-frame.webp?v=1');--as-button:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
+#arenaShop>.hdrbox{background:none!important;border:0!important;border-image:none!important;box-shadow:none!important;padding:0!important;}
+#arenaShop .titlebar h1{background:var(--as-title) center/contain no-repeat!important;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;width:min(360px,80vw);height:100px;margin:0 auto!important;}
+#arenaShop #arenaShopBody>.panel{background:none!important;border:0!important;border-radius:0!important;border-image:var(--as-panel) 25% fill / 40px / 0 stretch!important;padding:28px 32px!important;}
+#arenaShop #arenaShopList>div{border:0!important;border-image:var(--as-item) 25% fill / 20px / 0 stretch!important;padding:12px 18px!important;margin:8px 0;gap:10px;}
+#arenaShop #arenaShopList>div>div:first-child{flex:1;min-width:0;}
+#arenaShop #arenaShopList>div>div:first-child>div{min-width:0;overflow-wrap:anywhere;}
+#arenaShop #arenaShopBody .btn{position:relative;isolation:isolate;flex-shrink:0;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;padding:8px 20px!important;color:#fff0cd!important;}
+#arenaShop #arenaShopBody .btn::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--as-button) 25% fill / 8px 24px / 0 stretch;}
+#arenaShop #arenaShopBody .btn:disabled{opacity:1!important;}
+#arenaShop #arenaShopBody .btn:disabled::before{filter:grayscale(.85) brightness(.55);}
+@media(max-height:560px){#arenaShop .titlebar h1{height:74px;}#arenaShop #arenaShopBody>.panel{border-image-width:32px!important;padding:24px 26px!important;}}
+@media(max-width:560px){#arenaShop #arenaShopBody>.panel{padding:28px 24px!important;}#arenaShop #arenaShopList>div{flex-wrap:wrap;}#arenaShop #arenaShopList>div>div:first-child{flex:1 1 150px;}#arenaShop #arenaShopList .btn{margin-left:auto;}}
+/* Campaign */
+#campaign{--cp-title:url('/assets/img/ui/building-titles/campaign-title.webp?v=1');--cp-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
+#campaign::after{content:'';position:absolute;left:50%;top:76px;transform:translateX(-50%);width:min(220px,28%);height:72px;background:var(--cp-title) center/contain no-repeat;pointer-events:none;z-index:12;}
+#campaign :is(.campPill,.chBanner,#starTrack>div,#portalTabs){isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;}
+#campaign :is(.campPill,.chBanner,#starTrack>div,#portalTabs)::before{content:'';position:absolute;inset:-3px;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--cp-panel) 25% fill / 14px / 0 stretch;}
+#campaign #starTrack>div{position:relative;}
+#campaign #portalTabs::before{border-image-width:18px;}
+@media(max-height:560px){#campaign::after{height:60px;top:76px;}}
+/* Watchtower */
+#watchtower{--wt-title:url('/assets/img/ui/building-titles/watch-tower-title.webp?v=1');--wt-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
+#watchtower h1{height:110px!important;width:100%;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;background:var(--wt-title) center/contain no-repeat!important;}
+#watchtower h1::after{display:none!important;}#watchtower .hdrbox>.titlebar{flex:1 1 auto!important;width:100%!important;min-width:0}
+#watchtower #watchBody>.panel,#watchtower #watchBody>.panel:only-child{background:none!important;border:0!important;border-radius:0!important;border-image:var(--wt-panel) 25% fill / 44px / 0 stretch!important;padding:40px 48px!important;}
+@media(max-height:560px) and (min-width:701px){#watchtower h1{height:90px!important;}#watchtower #watchBody>.panel,#watchtower #watchBody>.panel:only-child{border-image-width:36px!important;padding:32px 38px!important;}}
+@media(max-width:700px){#watchtower h1{height:100px!important;}#watchtower #watchBody>.panel,#watchtower #watchBody>.panel:only-child{border-image-width:36px!important;padding:32px 36px!important;}}
 </style>
 <style id="ewLangCss">
   /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
@@ -22460,7 +22533,7 @@ function renderTemple(){
           <button type="button" class="tp2Btn gold" id="templePray" style="${tp2Box(2030,1150,270,100)}" ${blocked||!templeSelectedTier?'disabled':''}>${ewT('temple.pray')}</button>${payHtml}
           ${key&&!elig(key)?`<div class="tp2Note" style="${tp2Box(2010,1060,300,80)}">${ewT('temple.purple_required')}</div>`:''}`}`;
   }
-  b.innerHTML=`<div class="tp2Stage" id="tp2Stage"><img class="tp2Plate" src="${TP2}plate-v1.webp" alt="">${inner}
+  b.innerHTML=`<div class="tp2Stage" id="tp2Stage"><img class="tp2Plate" src="${TP2}plate-v2.webp" alt="">${inner}
     <div id="templeMsg" class="tp2Toast" style="${tp2Box(900,190,760,60)}"></div>${templeAuto?tp2AutoHtml():''}${templeFx?`<div class="tp2Fx" style="${tp2Box(733,380,800,520)}"><img src="${TP2}flare-v1.webp" alt=""><b class="${templeFx>0?'up':'down'}">${ewT('temple.power',{n:(templeFx>0?'+':'')+templeFx})}</b></div>`:''}</div>`;
   tp2Fit();
   b.querySelectorAll('[data-tp2-hero]').forEach(t=>t.onclick=()=>{ templeSelectedHero=t.dataset.tp2Hero; templeView='pray'; templeLastRolls=null; renderTemple(); });
