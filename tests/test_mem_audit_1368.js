@@ -12,6 +12,7 @@ const checks=[
  ['B the GPU tally forgets a forced context loss', "/lose_context/i.test(n)&&!e.__ewTally"],
  ['C aimed-ult tint canvases leave with the battle art', "try{ aimArtFree(); }catch(_){} return evictUnusedArt([]);"],
  ['the Witch\'s Hut cauldron video leaves with its screen', "document.querySelectorAll('#wallBody video')"],
+ ['a set Emberdraft half-freed (not _loaded) still has its sheets released', "      if(!set) continue;   /* v1368 memory audit"],
  ['the splash video stops once the game is entered', "const sv=document.getElementById('splashVid'); if(sv){ sv.pause();"]];
 for(const [n,s] of checks){ ck(n, src.indexOf(s)>=0); }
 ck('CONTROL: v1367 had none of them', checks.every(([n,s])=>old.indexOf(s)<0));

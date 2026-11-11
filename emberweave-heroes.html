@@ -6292,7 +6292,7 @@ function evictUnusedArt(keepKeys){
     for(const key in BATTLE_ANIM){
       if(keep.has(key)) continue;
       const set = BATTLE_ANIM[key];
-      if(!set || !set._loaded) continue;
+      if(!set) continue;   /* v1368 memory audit: a set Emberdraft half-freed (edEvictArt clears _loaded but keeps the idle sheets) still holds textures - free whatever any set holds */
       let any = false;
       for(const st in set){
         if(st[0]==='_') continue;
