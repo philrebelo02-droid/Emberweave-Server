@@ -122,15 +122,31 @@ function sweepPrize(ctx, W, path) { const t = { gold: 0, gems: 0, potions: 0 }, 
       const pr = prizeFor(ctx, sub, { type: boss ? 'boss' : 'fight', mode: p.mode }, col); t.gold += pr.gold; t.gems += pr.gems; t.potions += pr.potions; }
     t.gold += 400 + lvl * 60; t.gems += 5; t.potions += 1; }
   return { gold: Math.round(t.gold * SWEEP_SHARE), gems: Math.round(t.gems * SWEEP_SHARE), potions: Math.round(t.potions * SWEEP_SHARE) }; }
-function payPrize(ctx, W, pr, tag) { const led = ctx.led, out = Object.assign({}, pr);
+function creditWellPrize(ctx, prize, reason) {
+  const led = ctx.led;
+  if (prize.gold) prize.gold = ctx.creditGold(ctx.me, led, prize.gold, reason);
+  if (prize.gems) prize.gems = ctx.creditGems(ctx.me, led, prize.gems, reason);
+  if (prize.potions) {
+    led.xpPotions = led.xpPotions || {};
+    const before = led.xpPotions.superior | 0;
+    prize.potions = Math.min(prize.potions, Math.max(0, 999999 - before));
+    led.xpPotions.superior = before + prize.potions;
+  }
+}
+function payPrize(ctx, W, pr, tag) { const out = Object.assign({}, pr);
   const bonus = W.cleared[W.run.path || 'normal'] && W.run.path ? ['gems', 'gold', 'potions'][Math.floor(rng(ctx.srvSeed('well2bonus', ctx.me.id, tag))() * 3)] : null;
   if (bonus && out[bonus] > 0) { const pct = 0.10 + rng(ctx.srvSeed('well2pct', ctx.me.id, tag))() * 0.05; out[bonus] = Math.round(out[bonus] * (1 + pct) + (bonus === 'potions' ? 0.5 : 0)); out.bonus = bonus; }
-  ctx.creditGold(ctx.me, led, out.gold | 0, 'well:prize');
-  if (out.gems) ctx.creditGems(ctx.me, led, out.gems, 'well:prize');
-  if (out.potions) { led.xpPotions = led.xpPotions || {}; led.xpPotions.superior = Math.min(999999, (led.xpPotions.superior | 0) + out.potions); }
+  creditWellPrize(ctx, out, 'well:prize');
   ctx.ledTx(ctx.me, 'well2:prize:' + tag, { gold: out.gold, gems: out.gems || 0, xpPotions: out.potions || 0 });
   W.run.prizes.push(out); return out; }
 function endXP(ctx, mode) { const L = ctx.playerLevel(); if (L >= 100) return 0; return Math.round(PCT[mode] * (ctx.D_TROOP_INC[L - 1] || 0)); }
+function creditEndXP(ctx, mode) {
+  const xp = endXP(ctx, mode);
+  if (xp <= 0) return 0;
+  const before = ctx.led.px || 0;
+  ctx.ledAddPlayerXP(ctx.led, xp, ctx.me);
+  return Math.max(0, (ctx.led.px || 0) - before);
+}
 
 /* ---- the squad: own heroes + loans, with carried HP/energy and the run's buffs ---- */
 function loanSpec(ctx, key) {   // "tent heroes are loaned maxed for your level": your level, 5 stars, your best hero's board/gear totals, full skills
@@ -221,14 +237,12 @@ async function handle(p, method, ctx) {
       if (!Object.prototype.hasOwnProperty.call(W.cleared, path) || !W.cleared[path]) return no('Clear the ' + path + ' path once before sweeping it.');
       if (R.started) return no('This run has already started - finish it instead.');
       if (path === 'hard' && !dev && lvl < OPEN.hard) return no('The Hard path opens at account level ' + OPEN.hard + '.');
-      const xp = endXP(ctx, path); if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp, ctx.me);
+      const xp = creditEndXP(ctx, path);
       // v1110 (Phil 10 Oct: "sweeping gives about 15% less raw rewards than doing it flat out, like diamonds gold and exp pots. Exp is the
       // same" / "Thats good for starless"): a sweep used to pay the end XP only. It now also pays 80% of a standard run's gold, diamonds
       // and XP potions (sweepPrize) - the same end XP; a played run keeps every prize plus its +10-15% roll.
       const sp = sweepPrize(ctx, W, path);
-      if (sp.gold) ctx.creditGold(ctx.me, ctx.led, sp.gold, 'well:sweep');
-      if (sp.gems) ctx.creditGems(ctx.me, ctx.led, sp.gems, 'well:sweep');
-      if (sp.potions) { ctx.led.xpPotions = ctx.led.xpPotions || {}; ctx.led.xpPotions.superior = Math.min(999999, (ctx.led.xpPotions.superior | 0) + sp.potions); }
+      creditWellPrize(ctx, sp, 'well:sweep');
       R.done = true; R.path = path; ctx.ledTx(ctx.me, 'well2:sweep:' + path, { px: xp, gold: sp.gold, gems: sp.gems, xpPotions: sp.potions }); ctx.writeDB();
       return { status: 200, body: Object.assign(view(ctx, W), { reward: { xp, gold: sp.gold, gems: sp.gems, potions: sp.potions, swept: true } }) };
     }
@@ -299,8 +313,8 @@ async function handle(p, method, ctx) {
         const r = rng(ctx.srvSeed('well2buff', ctx.me.id, R.cycle, R.map, a.col, a.row)), pool = BUFFS.map(x => x.id), pick = [];
         while (pick.length < 3) { const id = pool[Math.floor(r() * pool.length)]; if (pick.indexOf(id) < 0) pick.push(id); }
         R.offer = pick;
-        if (sq.type === 'boss') { if (R.map === 3) { R.done = true; W.cleared[R.path] = (W.cleared[R.path] | 0) + 1; const xp = endXP(ctx, R.path);
-            if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp, ctx.me); reward.endXP = xp; ctx.ledTx(ctx.me, 'well2:complete:' + R.path, { px: xp }); R.offer = null; }
+        if (sq.type === 'boss') { if (R.map === 3) { R.done = true; W.cleared[R.path] = (W.cleared[R.path] | 0) + 1; const xp = creditEndXP(ctx, R.path);
+            reward.endXP = xp; ctx.ledTx(ctx.me, 'well2:complete:' + R.path, { px: xp }); R.offer = null; }
         }
       }
       ctx.ledTx(ctx.me, 'well2:' + (witnessed.won ? 'win' : 'loss'), { match });

@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const s=fs.readFileSync(process.argv[2],'utf8');
+const p=s.indexOf('function payPrize('),a=s.indexOf('function creditWellPrize('),b=s.indexOf('function endXP(',p);
+assert(p>=0&&b>p);
+const pay=vm.runInNewContext(s.slice(a<0?p:a,b)+'\npayPrize;');
+const led={xpPotions:{superior:999998}}, W={cleared:{},run:{prizes:[]}};
+let logged;
+const result=pay({led,me:{},creditGold:()=>2,creditGems:()=>0,ledTx:(_,__,delta)=>{logged=delta;}},W,{gold:10,gems:5,potions:5},'fixture');
+assert.deepEqual({...result},{gold:2,gems:0,potions:1});
+assert.deepEqual({...logged},{gold:2,gems:0,xpPotions:1});
+assert.equal(led.xpPotions.superior,999999);

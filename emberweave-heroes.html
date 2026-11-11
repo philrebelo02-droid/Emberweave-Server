@@ -30119,7 +30119,7 @@ function serverWishToRes(r){
   if(!r) return {icon:'❔',name:'…'};
   /* v1092: heroes and their fragments show the hero card; glyph prizes show the glyph art; the Mythical Pool's cards */
   if(r.type==='glyphFull'){ const art=wishGlyphArt(r.q,r.fam,'finished',110); return {icon:'🔮', art, big:true, name:ewT('wish.full_glyph',{tier:r.tier||'',name:r.name||''}), extra:(r.hero&&HERO_TYPES[r.hero]?ewT('wish.glyph_pieces_on',{hero:HERO_TYPES[r.hero].name}):ewT('wish.glyph_pieces'))}; }
-  if(r.type==='stamItem') return {icon:hudIcon('food'), art:STAM_ITEM_ART(110), big:true, name:STAM_ITEM_NAME+' '+ewT('wish.stamina_paren',{n:r.stamina||STAM_ITEM_STAMINA}), extra:ewT('wish.kept_in_bag')};
+  if(r.type==='stamItem') return {icon:hudIcon('food'), art:STAM_ITEM_ART(110), big:true, name:r.n===0?'0 × '+STAM_ITEM_NAME:STAM_ITEM_NAME+' '+ewT('wish.stamina_paren',{n:r.stamina||STAM_ITEM_STAMINA}), extra:r.n===0?'':ewT('wish.kept_in_bag')};
   if(r.type==='attackCard') return {icon:'⚔️', art:'<img src="/assets/img/items/attack-card-v1.webp?v=1" alt="" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">', big:true, name:ewT('wish.attack_card'), extra:ewT('wish.attack_card_desc')};
   if(r.type==='teleport') return {icon:'🌀', art:'<img src="/assets/img/items/teleport-card-v1.webp?v=1" alt="" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">', name:ewT('wish.teleport_card'), extra:ewT('wish.teleport_desc')};
   if(r.type==='shield') return {icon:'🛡️', name:ewT('wish.shield'), extra:ewT('wish.shield_desc')};
@@ -31822,9 +31822,22 @@ function renderSettings(){
         bannerMsg(d.pending&&d.wipeAt?t('set2.del_requested',{date:new Date(d.wipeAt).toLocaleDateString()}):t('set2.deleted')); }); }; }   /* v1232: the 7-day grace */
   /* v1097 (sweep #18): blocked players, read from the server; Unblock */
   const acBlocks=b.querySelector('#acBlocks');
-  const wireBlocks=(el)=>{ el.querySelectorAll('[data-unblock]').forEach(bt=>bt.onclick=()=>{ bt.disabled=true;
-      api('/api/chat/unblock','POST',{id:bt.dataset.unblock}).then(d=>{ if(d&&d.ok){ _blocksCache=d.blocked||[]; } else { bt.disabled=false; bannerMsg(escapeHTML((d&&d.error)||t('set2.err_unblock'))); return; }
-        const e2=document.getElementById('acBlocks'); if(e2){ e2.innerHTML=_blocksHTML(); wireBlocks(e2); } }); }); };
+  const wireBlocks=(el)=>{ el.querySelectorAll('[data-unblock]').forEach(bt=>bt.onclick=async()=>{
+      if(bt.disabled) return;
+      bt.disabled=true;
+      const token=ACC.token, accountId=ACC.id;
+      const current=()=>ACC.token===token&&ACC.id===accountId;
+      try{
+        const d=await api('/api/chat/unblock','POST',{id:bt.dataset.unblock});
+        if(!current()) return;
+        if(d&&d.ok){
+          _blocksCache=d.blocked||[];
+          if(el.isConnected){ el.innerHTML=_blocksHTML(); wireBlocks(el); }
+        }else if(el.isConnected) bannerMsg(escapeHTML((d&&d.error)||t('set2.err_unblock')));
+      }catch(e){
+        if(current()&&el.isConnected) bannerMsg(escapeHTML(t('set2.err_unblock')));
+      }finally{ bt.disabled=false; }
+    }); };
   if(acBlocks){ wireBlocks(acBlocks);
     if(_blocksCache===null&&!_blocksLoading){ _blocksLoading=true;
       api('/api/chat/blocks').then(d=>{ _blocksLoading=false; _blocksCache=(d&&Array.isArray(d.blocked))?d.blocked:[];
