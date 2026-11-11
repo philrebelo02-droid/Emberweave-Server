@@ -167,10 +167,14 @@ async function wholeMap(S, token, since) {
     console.log('  --  viewport refresh: first ' + (v0.bytes / 1024).toFixed(1) + ' KB / ' + v0.ms.toFixed(1) + ' ms; quiet ' + vq0.bytes + ' B / ' + (vms.reduce((x, r) => x + r.ms, 0) / vms.length).toFixed(1) + ' ms (old full list ' + (old.bytes / 1024).toFixed(1) + ' KB)');
 
     // a restart: new epoch -> an old rev gets the full list
+    /* v1368 (flakes, 11 Nov run 101256: "after a restart an old rev gets every castle in view again" failed): the two admin deletes above are
+       saved by the debounced save, and the hard kill came a fixed REFRESH + 200 ms later; on a loaded CT a delete was not on disk yet, so the
+       restarted world held another castle than 297. This check is about a restart, not a crash: wait until the saves are quiet first. */
+    await require('./helpers/split-rig.cjs').quiet(async () => (await S.req('GET', '/api/dev/save-stats', null, ta)).body);
     await S.kill(); await S.start(W.adm);
     const tv2 = await login('mdView');
     const r2 = await wholeMap(S, tv2, rev);
-    ok(r2.body.full === true && r2.body.cities.length === 297 && r2.body.rev.split('.')[0] !== rev.split('.')[0], 'after a restart an old rev gets every castle in view again (new epoch)');
+    ok(r2.body.full === true && r2.body.cities.length === 297 && r2.body.rev.split('.')[0] !== rev.split('.')[0], 'after a restart an old rev gets every castle in view again (new epoch): full ' + r2.body.full + ', ' + r2.body.cities.length + ' of 297 castles, epoch ' + rev.split('.')[0] + ' -> ' + String(r2.body.rev).split('.')[0]);
     await S.kill();
 
     // control: 59eaefba answers the whole-map list (the zoom gate check above fails there)

@@ -17,7 +17,7 @@ const ctx = { ...require('./helpers/page-icons.js')(html), ...LANG,
   ledCapture: () => { calls.capture++; throw new Error('signed-in claim must not run ledCapture'); },
   adoptLedger: () => { calls.adopt++; },
   saveG: () => {}, updateHubChrome: () => {}, updateMailBadges: () => {},
-  bannerMsg: msg => calls.messages.push(msg), renderQuests: () => {}, tutReturnAfterAction: () => {},
+  bannerMsg: msg => calls.messages.push(msg), showQuestClaim: msg => calls.messages.push(msg),   // v1366 (tester B 2.7): the claim message shows in the quest screen's own notice line renderQuests: () => {}, tutReturnAfterAction: () => {},
 };
 vm.runInNewContext(html.slice(start, end), ctx);
 ctx.claimQuest({ id: 'q_name', ready: true, title: 'Make a Name', reward: '💎 20 diamonds', claim: () => { calls.claim++; } });

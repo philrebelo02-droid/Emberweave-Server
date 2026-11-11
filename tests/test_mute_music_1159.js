@@ -34,6 +34,11 @@ const control = !!process.env.AUD_ROOT;
 const SHOTS = process.env.SHOT_DIR || (control ? '' : 'C:\\Users\\Home\\Downloads\\ew-sweep\\mute');
 let pass = 0, fail = 0; const ck = (c, m, d) => { if (c) { pass++; console.log('  ok   ' + m); } else { fail++; console.log('  FAIL ' + m + (d ? ' - ' + d : '')); } };
 const delay = ms => new Promise(r => setTimeout(r, ms));
+/* v1368 (flakes, 11 Nov: "battle: the next song in the cycle ... starts at its start" failed in 6 of 9 cluster runs with cityPaused false and the
+   battle song still at its start): a scene change fades the old song for MUS_XF_SCENE (1 s) and pauses it 60 ms after, on a timer, and the new
+   song begins once its element starts playing. A fixed 1.5 s after the switch did not cover that on a loaded host. settle() waits (up to 12 s)
+   until the switch has finished by the page's own state, at least `min` ms, then the same checks run on what the page shows. */
+const settle = async (pg, fn, min) => { const t0 = Date.now(); await delay(min || 0); while (Date.now() - t0 < 12000) { if (await pg.evaluate(fn).catch(() => false)) break; await delay(100); } };
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
 const SILENT = () => {   // every path to the speakers goes through a gain of 0
   const oc = AudioNode.prototype.connect;
@@ -69,8 +74,10 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
     let chromium; try { ({ chromium } = require(path.join(ROOT, 'node_modules', 'playwright'))); } catch (e) { ({ chromium } = require('playwright')); }   // (a worktree without node_modules: NODE_PATH)
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    /* v1368: --disable-audio-output (no audio session at all) instead of --mute-audio, which Playwright also adds by default in headless and which
+       Windows keeps per program - a channel:'chrome' fallback with it muted Phil's own Chrome (9 Nov). The page is silent anyway (SILENT). */
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ args, ignoreDefaultArgs: ['--mute-audio'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args, ignoreDefaultArgs: ['--mute-audio'] }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
     await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));
@@ -173,22 +180,24 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
       'city song through 5 buildings opened and closed quickly: no pause, no restart, currentTime only forward', JSON.stringify(walk));
     // the map
     const tCity = await pg.evaluate(() => MUS.lanes.city.slot.el.currentTime);
-    await pg.evaluate(() => show('campaign')); await delay(1800);
+    await pg.evaluate(() => show('campaign')); await settle(pg, () => { const s = MUS.lanes.map && MUS.lanes.map.slot, c = MUS.lanes.city.slot; return MUS.cur === 'map' && s && !s.el.paused && c && c.el.paused; }, 1000);
     const mp = await pg.evaluate(() => { const s = MUS.lanes.map && MUS.lanes.map.slot, c = MUS.lanes.city.slot; return { cur: MUS.cur, f: s && s.song.f, playing: s && !s.el.paused, cityPaused: c && c.el.paused, cityT: c && c.el.currentTime }; });
     ck(mp.cur === 'map' && /music\/map-/.test(mp.f || '') && mp.playing && mp.cityPaused, 'campaign map: a map song plays, the city song is paused where it was', JSON.stringify(mp));
     await shot(String(n++).padStart(2, '0') + '-campaign-map-music');
-    await pg.evaluate(() => show('home')); await delay(1500);
+    await pg.evaluate(() => show('home')); await settle(pg, () => { const c = MUS.lanes.city.slot, m = MUS.lanes.map.slot; return MUS.cur === 'city' && c && !c.el.paused && (!m || m.el.paused); }, 1000);
     const back1 = await pg.evaluate(() => { const c = MUS.lanes.city.slot; return { cur: MUS.cur, t: c && c.el.currentTime, playing: c && !c.el.paused, mapPaused: MUS.lanes.map.slot && MUS.lanes.map.slot.el.paused }; });
     ck(back1.cur === 'city' && back1.playing && back1.t >= mp.cityT - 0.05 && back1.t < mp.cityT + 3 && back1.mapPaused, 'back on the hub: the city song resumes where it paused (' + mp.cityT.toFixed(2) + ' -> ' + (back1.t || 0).toFixed(2) + ')', JSON.stringify(back1));
 
     /* ---- (7) battle ---- */
     const startFight = () => pg.evaluate(() => { CUR = { node: 1, mode: 'arena' }; _startVersusNow([{ key: 'grosk', level: 5, rank: 1 }, { key: 'gruel', level: 5, rank: 1 }], true); paused = true; });
     const k0 = await pg.evaluate(() => { try { return localStorage.getItem('ew_battle_track'); } catch (e) { return null; } });
-    await startFight(); await delay(1500);
-    const b1 = await pg.evaluate(() => { const s = MUS.lanes.battle && MUS.lanes.battle.slot; return { cur: MUS.cur, f: s && s.song.f, t: s && s.el.currentTime, start: s && s.song.start, k: localStorage.getItem('ew_battle_track'), cityPaused: MUS.lanes.city.slot.el.paused }; });
+    await startFight(); await settle(pg, () => { const s = MUS.lanes.battle && MUS.lanes.battle.slot; return MUS.cur === 'battle' && s && !s.el.paused && s.el.currentTime > s.song.start && MUS.lanes.city.slot.el.paused; }, 300);
+    const b1 = await pg.evaluate(() => { const s = MUS.lanes.battle && MUS.lanes.battle.slot, st = MUS.log.filter(x => x[0] === 'start' && x[1] === 'battle').pop();
+      return { cur: MUS.cur, f: s && s.song.f, t: s && s.el.currentTime, start: s && s.song.start, k: localStorage.getItem('ew_battle_track'), cityPaused: MUS.lanes.city.slot.el.paused, since: st ? +((performance.now() - st[4]) / 1000).toFixed(2) : null }; });
     const list = await pg.evaluate(() => MUSIC_LISTS.battle.map(x => x.f));
     const kExp = k0 == null ? 0 : (+k0 + 1) % list.length;
-    ck(b1.cur === 'battle' && b1.f === list[kExp] && b1.t >= b1.start && b1.t < b1.start + 2.5 && b1.cityPaused, 'battle: the next song in the cycle (' + b1.f + ') starts at its start (' + b1.start + ' s)', JSON.stringify(b1));
+    // v1368: "from its start" = no further into the song than the time since it started (+0.5 s), at least the old 2.5 s window
+    ck(b1.cur === 'battle' && b1.f === list[kExp] && b1.t >= b1.start && b1.t < b1.start + Math.max(2.5, (b1.since || 0) + 0.5) && b1.cityPaused, 'battle: the next song in the cycle (' + b1.f + ') starts at its start (' + b1.start + ' s)', JSON.stringify(b1));
     await shot(String(n++).padStart(2, '0') + '-battle');
     const br = await probe(); ck(br.none, 'v1230: no button in a battle', JSON.stringify(br));
     // 2x: real time, rate 1
@@ -230,7 +239,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     const back2 = await pg.evaluate(() => ({ cur: MUS.cur, t: MUS.lanes.city.slot.el.currentTime, playing: !MUS.lanes.city.slot.el.paused }));
     ck(back2.cur === 'city' && back2.playing && back2.t >= back1.t, 'after the battle the city song resumes (not from the start)', JSON.stringify(back2));
     // the next fight plays the next song
-    await startFight(); await delay(1200);
+    await startFight(); await settle(pg, () => MUS.cur === 'battle' && !!MUS.lanes.battle.slot && MUS.pool.filter(x => x.lane === 'battle').length === 1, 1200);
     const b2 = await pg.evaluate(() => MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f);
     ck(b2 === list[(kExp + 1) % list.length], 'the next fight plays the next song in the cycle (' + b2 + ')');
     // a defeat: the same - the song plays on over the DEFEAT screen
@@ -239,7 +248,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     const d1 = await onResult();
     ck(d1.st === 'result' && d1.cur === 'battle' && d1.f === b2 && d1.playing && d1.gain > 0.9 && d1.k === kB2, 'defeat screen: the same battle song plays on, the cycle index unchanged', JSON.stringify(d1));
     // a new fight straight from the result screen (Retry / Next): the NEXT song, the old one released
-    await startFight(); await delay(1800);
+    await startFight(); await settle(pg, () => MUS.cur === 'battle' && !!MUS.lanes.battle.slot && MUS.pool.filter(x => x.lane === 'battle').length === 1, 1800);
     const b3 = await pg.evaluate(() => ({ f: MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f, busy: MUS.pool.filter(x => x.lane === 'battle').length, cur: MUS.cur }));
     ck(b3.cur === 'battle' && b3.f === list[(kExp + 2) % list.length] && b3.busy === 1, 'a new fight started from the result screen plays the next song (' + b3.f + '), the held one released', JSON.stringify(b3));
     // CONTROL: v1159's end-of-fight fade put back (musWant -> no music once the fight has ended) must fail the result-screen check

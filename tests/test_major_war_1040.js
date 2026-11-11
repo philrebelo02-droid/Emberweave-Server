@@ -41,11 +41,15 @@ async function burst(url, fp, n, war) {
     ok(sN.filter(s => s === 200).length >= 1 && sN.filter(s => s === 503).length >= 1, 'normal mode: 6 at once -> ' + sN.filter(s => s === 200).length + ' fought, ' + sN.filter(s => s === 503).length + ' handed back (busy)');
 
     const h1 = await health(H.url, '?war=major');
+    /* v1368 (flakes, 11 Nov run 010033: "major ask: priority kept (19), 6 battles at once" failed on one CT): sim-helper.js caps a mode's battles
+       at the machine's CPU count (Math.min(majorWorkers, cpus)); a CT with fewer than 6 CPUs gives fewer. The test expects what the helper
+       is told to give on THIS machine - still more than normal mode's 2 whenever the machine has more than 2 CPUs. */
+    const MAJOR = Math.min(6, os.cpus().length);
     /* v1357 (flakes): the cluster runs jobs at nice 19 as an unprivileged user, and Linux never lets such a process raise its priority again */
     const CAN_RAISE = process.platform === 'win32' || (typeof process.getuid === 'function' && process.getuid() === 0);
-    ok(h1.mode === 'major' && h1.limit === 6 && (CAN_RAISE ? h1.priority === P.PRIORITY_BELOW_NORMAL : h1.priority >= P.PRIORITY_BELOW_NORMAL), 'major ask: ' + (CAN_RAISE ? 'below-normal priority' : 'priority kept (this user cannot raise it)') + ' (' + h1.priority + '), 6 battles at once');
-    const sM = await burst(H.url, FP, 6, 'major');
-    ok(sM.every(s => s === 200), 'major mode: 6 at once -> all 6 fought');
+    ok(h1.mode === 'major' && h1.limit === MAJOR && (MAJOR <= 2 || h1.limit > h0.limit) && (CAN_RAISE ? h1.priority === P.PRIORITY_BELOW_NORMAL : h1.priority >= P.PRIORITY_BELOW_NORMAL), 'major ask: ' + (CAN_RAISE ? 'below-normal priority' : 'priority kept (this user cannot raise it)') + ' (' + h1.priority + '), ' + h1.limit + ' battles at once (mode ' + h1.mode + ', ' + os.cpus().length + ' CPUs: expected ' + MAJOR + ')');
+    const sM = await burst(H.url, FP, MAJOR, 'major');
+    ok(sM.every(s => s === 200), 'major mode: ' + MAJOR + ' at once -> all ' + MAJOR + ' fought');
     const back = await waitFor(async () => { const h = await health(H.url); return h.mode === 'normal' && h.priority === P.PRIORITY_LOW ? h : null; }, 6000);
     ok(!!back, 'no further asks: back to normal and lowest priority after the hold');
 

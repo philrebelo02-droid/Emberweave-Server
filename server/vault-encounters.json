@@ -4113,58 +4113,58 @@
      {
       "key": "graveclaw ghoul",
       "lvl": 32,
-      "hpMul": 3.1827,
-      "dmgMul": 3.8072
+      "hpMul": 3.4373,
+      "dmgMul": 4.1118
      },
      {
       "key": "nightgloom",
       "lvl": 32,
-      "hpMul": 3.1827,
-      "dmgMul": 3.8072
+      "hpMul": 3.4373,
+      "dmgMul": 4.1118
      },
      {
       "key": "mourn moth",
       "lvl": 32,
-      "hpMul": 3.1827,
-      "dmgMul": 3.8072
+      "hpMul": 3.4373,
+      "dmgMul": 4.1118
      },
      {
       "key": "skyroot dryad",
       "lvl": 32,
-      "hpMul": 3.1827,
-      "dmgMul": 3.8072
+      "hpMul": 3.4373,
+      "dmgMul": 4.1118
      }
     ],
     [
      {
       "key": "wispweaver shade",
       "lvl": 32,
-      "hpMul": 4.7738,
-      "dmgMul": 4.7587
+      "hpMul": 5.1557,
+      "dmgMul": 5.1394
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 32,
-      "hpMul": 4.7738,
-      "dmgMul": 4.7587
+      "hpMul": 5.1557,
+      "dmgMul": 5.1394
      },
      {
       "key": "mourn moth",
       "lvl": 32,
-      "hpMul": 4.7738,
-      "dmgMul": 4.7587
+      "hpMul": 5.1557,
+      "dmgMul": 5.1394
      },
      {
       "key": "trapjaw",
       "lvl": 32,
-      "hpMul": 4.7738,
-      "dmgMul": 4.7587
+      "hpMul": 5.1557,
+      "dmgMul": 5.1394
      },
      {
       "key": "nerissa",
       "lvl": 35,
-      "hpMul": 30.89,
-      "dmgMul": 20.5229,
+      "hpMul": 33.3612,
+      "dmgMul": 22.1647,
       "boss": true
      }
     ]

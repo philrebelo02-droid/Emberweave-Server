@@ -7,7 +7,7 @@ const ROOT = path.join(__dirname, '..'), BASE = process.env.BASE || 'db7e16fb';
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; console.log('  ok   ' + m); };
 const load = file => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(file); return s => vm.runInContext(s, h.ctx); };
 const NEW = load(path.join(ROOT, 'emberweave-heroes.html'));
-const tmp = path.join(ROOT, '.size1258-base.html'); fs.writeFileSync(tmp, cp.execSync('git show ' + BASE + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
+const tmp = path.join(ROOT, '.size1258-base.html'); fs.writeFileSync(tmp, String(cp.execSync('git show ' + BASE + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 })).replace("stars:1,hp:360,dmg:28,", "stars:1,hp:360,dmg:34,").replace("name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,", "name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,"));   // v1366 Tick buff (Phil "yes buff tick"): the BASE gets the same Tick so only the resize is compared
 let OLD; try { OLD = load(tmp); } finally { try { fs.unlinkSync(tmp); } catch (e) {} }
 const S = +NEW('UNIT_SIZE'); ok(Math.abs(S - 1.15) < 1e-9, 'UNIT_SIZE is 1.15');
 ok(Math.abs(NEW('METER') / OLD('METER') - S) < 1e-9, 'the metre is x1.15 (every METER-written radius, dash, reach and row hold follows)');

@@ -12,6 +12,9 @@
 //   undoText(s)    -> the same rewrite on a source string (safe on an older page, and on one already rewritten)
 const fs = require('fs'), path = require('path');
 const SWAPS = [
+  // v1366 (Phil 11 Nov: "yes buff tick"): Tick's base damage 34 -> 28 and Mainspring 0.36 -> 0.28 back to BASE (tests/test_power_terms_1311 + test_affinities_1367 check v1366 itself)
+  ["stars:1,hp:360,dmg:34,", "stars:1,hp:360,dmg:28,", /stars:1,hp:360,dmg:(34|28),/],
+  ["name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,", "name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,", /name:'Mainspring',type:'punchflurry',hits:5,mul:0\.(36|28),/],
   // v1342 (Phil 10 Nov: "Raff passive does nothing when upgraded. It should go up from like 50 at level 1 and raise to 200 at 100"): Rafe's Pirate's Instinct
   //   bonus back to 0.45 x the passive multiplier and its old text (tests/test_arena_ui_rafe_1342.js checks v1342 itself)
   ["function instinctDmg(u){ return instinctPct((u.skillLv||[])[3]||1); }", "function instinctDmg(u){ return 0.45*(u.passMul||1); }", /function instinctDmg\(u\)\{ return instinctPct/],

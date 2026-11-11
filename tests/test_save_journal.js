@@ -131,8 +131,17 @@ async function killLoop(check) {
       for (let k = 0; k < 3; k++) for (let i = 0; i < 8; i++) { const def = targets[(round * 24 + k * 8 + i) % targets.length].id, p = B.players[i]; sent++;
         jobs.push(R.sleep(k * 120).then(() => S.req('POST', '/api/world/war/declare', { defId: def, requestId: 'jk-' + round + '-' + k + '-' + i }, p.token, p.ip)).then(r => { if (r.status === 200 && r.body.ok) acked.push({ p: p.id, def }); }).catch(() => {})); }
       await R.sleep(round % 2 ? 450 + Math.floor(Math.random() * 700) : 60 + Math.floor(Math.random() * 250));   // even rounds: saves still in flight; odd: a checkpoint under way
-      /* v1357 (flakes): one sample just before the kill saw 0 checkpoints on slow hosts (20 of 29 logged runs). On the checkpoint rounds, poll up to 8 s. */
-      { const t1 = Date.now(); do { try { ckpts = Math.max(ckpts, ((await B.stat()).store.io.journal || {}).checkpoints || 0); } catch (_) {} } while (round % 2 && !ckpts && Date.now() - t1 < 8000 && (await R.sleep(50), true)); }
+      /* v1357 (flakes): one sample just before the kill saw 0 checkpoints on slow hosts (20 of 29 logged runs). On the checkpoint rounds, poll up to 8 s.
+         v1368 (still 0 checkpoints in 7 of 9 cluster runs on 11 Nov): the io worker reports its journal stats only in its answer to a SAVE
+         (server/store-io.js: stats.journal = m.journal). A checkpoint that finishes after the round's last save - every time on a slow CT -
+         stays invisible to save-stats however long it is polled. While none is seen, one more acknowledged declaration every 400 ms makes a
+         save whose answer carries the count (it joins `acked`, so it must survive the kill like the others). */
+      { const t1 = Date.now(); let poke = 0, pokeAt = 0;
+        do { try { ckpts = Math.max(ckpts, ((await B.stat()).store.io.journal || {}).checkpoints || 0); } catch (_) {}
+          if (round % 2 && !ckpts && Date.now() - pokeAt > 400) { pokeAt = Date.now(); const i = poke % 8, p = B.players[i], def = targets[(round * 24 + 24 + poke++) % targets.length].id; sent++;
+            const r = await S.req('POST', '/api/world/war/declare', { defId: def, requestId: 'jk-' + round + '-poke-' + poke }, p.token, p.ip).catch(() => ({}));
+            if (r.status === 200 && r.body && r.body.ok) acked.push({ p: p.id, def }); }
+        } while (round % 2 && !ckpts && Date.now() - t1 < 8000 && (await R.sleep(50), true)); }
       await S.kill(); await Promise.allSettled(jobs);
       const w = WS.readWorld(S.db), lost = acked.filter(a => !((w.users[a.p] || {}).worldWars || {})[a.def]);
       if (lost.length) throw Error('round ' + round + ': ' + lost.length + ' acknowledged declarations lost');
@@ -144,13 +153,19 @@ async function killLoop(check) {
   } finally { await S.kill(); }
 }
 
+/* v1368 (flakes): the migration checks waited a fixed 2 s for the boot save. Wait (up to 20 s) for the layout the boot save writes, then for
+   quiet saves; the checks still read the disk afterwards. */
+async function bootSaved(S, B, layout) {
+  const t0 = Date.now(); while (Date.now() - t0 < 20000) { let l = null; try { l = WS.layoutOf(S.db); } catch (_) {} if (l === layout) break; await R.sleep(100); }
+  await R.quiet(B.stat, { ms: 10000 });
+}
 async function migrateRollback(check) {
   const S = await R.server({ env: { DB_STORE_JOURNAL: '0' } });
   try {
     const B = await R.boot(S, 'jm', 3);
-    await R.sleep(800); await S.kill();
+    await R.sleep(200); await R.quiet(B.stat, { ms: 10000 }); await S.kill();   // v1368: quiet saves, not a fixed 800 ms
     const w0 = WS.readWorld(S.db); check(WS.layoutOf(S.db) === 'pieces', 'setup: a v1127 pieces world (DB_STORE_JOURNAL=0)');
-    await S.start(B.adminId, { DB_STORE_JOURNAL: '' }); await R.sleep(2000);
+    await S.start(B.adminId, { DB_STORE_JOURNAL: '' }); await bootSaved(S, B, 'journal');
     const lg = await S.req('POST', '/api/login', { name: 'jmP1', pass: 'password1' }, null, '10.96.1.1');
     await S.kill();
     check(WS.layoutOf(S.db) === 'journal' && deepEq(WS.readWorld(S.db).users, Object.assign(clone(w0.users), { [B.players[1].id]: WS.readWorld(S.db).users[B.players[1].id] })) && lg.status === 200 && orphans(S.db).length === 0,
@@ -158,7 +173,7 @@ async function migrateRollback(check) {
     const C = await R.server({ dir: R.controlTree(CONTROL), db: S.db, temp: S.temp });
     let refused = false; try { await C.start(B.adminId); } catch (e) { refused = /exited/.test(e.message); } await C.kill();
     check(refused && WS.layoutOf(S.db) === 'journal', CONTROL + ' refuses to start on the journal layout and leaves it untouched');
-    await S.start(B.adminId, { DB_STORE_JOURNAL: '0' }); await R.sleep(2000); await S.kill();
+    await S.start(B.adminId, { DB_STORE_JOURNAL: '0' }); await bootSaved(S, B, 'pieces'); await S.kill();
     check(WS.layoutOf(S.db) === 'pieces' && orphans(S.db).length === 0, 'rollback step 1: DB_STORE_JOURNAL=0 + one restart writes the pieces layout (journals gone)');
     const C2 = await R.server({ dir: R.controlTree(CONTROL), db: S.db, temp: S.temp });
     await C2.start(B.adminId);

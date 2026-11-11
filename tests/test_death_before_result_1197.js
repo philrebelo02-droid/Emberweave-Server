@@ -29,8 +29,8 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(ROOT, 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];   // v1368: no audio session (never --mute-audio: Windows keeps it per program)
+    try { browser = await chromium.launch({ args, ignoreDefaultArgs: ['--mute-audio'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args, ignoreDefaultArgs: ['--mute-audio'] }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true, serviceWorkers: 'block' });
     await ctx.addInitScript(() => { window.AudioContext = undefined; window.webkitAudioContext = undefined; HTMLMediaElement.prototype.play = function () { return Promise.resolve(); }; });
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));
@@ -55,7 +55,11 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
         v.maxHp = 1e6; v.hp = 0.2 * v.maxHp; o.maxHp = o.hp = 1e9;   /* under 30%: his death sheet loads */
         const A = v.anim && v.anim.death; window.__ev.clip = A ? { n: A.dn || A.n, fps: A.fps || 8 } : null;
         const _eb = endBattle; endBattle = function (won) { const first = !window.__ev.end; if (first) { window.__ev.end = performance.now(); window.__ev.won = won; window._p2lastDigest = null; } const r = _eb.apply(this, arguments); if (first) { window.__ev.digest = window._p2lastDigest || null; window.__ev.wonAfter = resultWon; window.__ev.shownAtEnd = state === 'result'; } return r; };
-        const _sh = show; show = function (s) { if (s === 'result' && window.__ev.end && !window.__ev.shown) window.__ev.shown = performance.now(); return _sh.apply(this, arguments); };
+        /* v1368 (flakes, 11 Nov run 084017: "(3) LOSS ... the defeat screen 6.10 s after he fell, after his death clip ended (6.10 s)" failed with
+           shown 2.8 ms BEFORE dieEnd): dieEnd was only sampled by the 20 ms watch below, so on a loaded host it was stamped one late tick after the
+           clip had really ended - after the result it came before. The moment the result is shown, the clip's state is read as well: ended by
+           then = ended before it (a clip still playing is still stamped later by the watch, and the check fails as it must). */
+        const _sh = show; show = function (s) { if (s === 'result' && window.__ev.end && !window.__ev.shown) { const now = performance.now(); if (v._die && v._die.end && !window.__ev.dieEnd) window.__ev.dieEnd = now; window.__ev.shown = now; } return _sh.apply(this, arguments); };
         window.__watch = setInterval(() => { const ev = window.__ev; if (!v.alive && !ev.fell) { ev.fell = performance.now(); try { ev.atFell = { pre: v._dPre || 0, clip: !!deathClip(v), ready: deathReady(v), mesh: !!v.mesh, sprH: v.sprH }; } catch (e) { ev.atFell = String(e); } } if (v._die && v._die.end && !ev.dieEnd) ev.dieEnd = performance.now(); if (ev.fell && (ev.tr = ev.tr || []).length < 40 && Math.random() < 0.1) ev.tr.push([+(v.deathT || 0).toFixed(2), v._die === undefined ? 'u' : v._die === null ? 'n' : v._die === false ? 'f' : (v._die.end ? 'E' : +v._die.t.toFixed(2)), !!(v.mesh && v.mesh.parent), state, units.indexOf(v)]); }, 20); }, dies);
       await delay(2500);   /* the death sheet arrives */
       await pg.evaluate(() => { window.__v.hp = 1; });

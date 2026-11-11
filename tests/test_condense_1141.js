@@ -142,7 +142,7 @@ try {
 
     if (!chromium) { ck('playwright is available for the browser half', false); }
     else {
-      try { browser = await chromium.launch({ args: ['--mute-audio', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args: ['--mute-audio', '--js-flags=--expose-gc'] }); }
+      try { browser = await chromium.launch({ args: ['--disable-audio-output', '--js-flags=--expose-gc'], ignoreDefaultArgs: ['--mute-audio'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args: ['--disable-audio-output', '--js-flags=--expose-gc'], ignoreDefaultArgs: ['--mute-audio'] });   /* v1368: no audio session, never --mute-audio */ }
       const PHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' };
       const DESK = { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 };
@@ -166,7 +166,10 @@ try {
           await pg.evaluate(() => { window.__T = (typeof last === 'number' && isFinite(last)) ? last : performance.now(); }); }
         await pg.evaluate(({ k, seed }) => {
           window.__fetched.length = 0; CUR = { mode: 'replay', seed, oppName: 'T' }; startVersus(k.f.map(x => ({ key: x, level: 60, rank: 3 })), true, k.a); }, { k: fightKeys, seed });
-        for (let i = 0; i < 240; i++) { if (await pg.evaluate(() => state === 'battle' && units.length > 0)) break; await pg.waitForTimeout(250); } await pg.waitForTimeout(600); };
+        /* v1368 (flakes, 11 Nov run 070005: "going home frees every battle sheet (49 -> 49)"): state is 'battle' with units built while the battle
+           LOADING SCREEN is still up (_blLoading); on a loaded host the test went home inside it and the loader then finished the fight's start,
+           so nothing had been left. A fight counts as started once its loading screen is gone too (as test_death_before_result_1197 waits). */
+        for (let i = 0; i < 240; i++) { if (await pg.evaluate(() => state === 'battle' && units.length > 0 && !(typeof _blLoading !== 'undefined' && _blLoading))) break; await pg.waitForTimeout(250); } await pg.waitForTimeout(600); };
       const sheetState = pg => pg.evaluate(keys => { const o = {}; keys.forEach(k => { const s = BATTLE_ANIM[k]; for (const st in s) { const c = s[st]; if (st[0] !== '_' && c && c.tex && c.tex.image) o[k + '.' + st] = { u: c.u, fu: c._fu || c.u, w: c.tex.image.width, h: c.tex.image.height, lay: c._lay || null }; } }); return o; }, fightKeys.a.concat(fightKeys.f));
       const P = await open(PHONE); await enter(P.pg); await fight(P.pg, 7, false);
       const ps = await sheetState(P.pg), fetchedP = await P.pg.evaluate(() => window.__fetched.filter(u => /\/assets\/anim\//.test(u)));
@@ -210,6 +213,7 @@ try {
       const held = pg => pg.evaluate(() => { let n = 0; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) n++; } return n; });
       const h0 = await held(P.pg); await P.pg.evaluate(() => { ended = true; show('home'); }); await P.pg.waitForTimeout(1500); const h1 = await held(P.pg);
       const heldK = h1 ? await P.pg.evaluate(() => { const o = []; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) o.push(k + '.' + st); } return o; }) : [];
+      if (h1) heldK.unshift(await P.pg.evaluate(() => 'state ' + state + ', loading ' + (typeof _blLoading !== 'undefined' && _blLoading) + ', dying ' + units.filter(u => u._die && !u._die.end).map(u => u.key + '@' + u._die.pi).join('/') + ':'));   // v1368: what held them
       ck('going home frees every battle sheet, tier files included (' + h0 + ' -> ' + h1 + ')', h0 > 20 && h1 === 0, heldK.join(','));
       ck('no page error on either tier', P.errs.length === 0 && D.errs.length === 0, P.errs.concat(D.errs).slice(0, 3).join(' | '));
       await P.ctx.close(); await D.ctx.close();

@@ -126,7 +126,10 @@ async function chatSave(dir, check) {
     const so = await sock(S, B.players[0], '10.95.0.1'); await R.sleep(200);
     so.send({ t: 'chat', channel: 'world', text: 'one line' });
     for (let i = 0; i < 80; i++) { await R.sleep(500); const s = (await B.stat()).store; if (s.partial + s.full > s0.partial + s0.full) break; }   // 59eaefba saves chat after 30 s
-    await R.sleep(500); so.ws.terminate();
+    /* v1368 (flakes, 11 Nov runs 022040 + 084017: "the line is on disk; the verifier saw no undeclared piece" failed): the save counter moves when
+       the save is handed to the io worker; a fixed 500 ms then read the world before the worker had written it on a loaded CT. Wait until the
+       saves are quiet (nothing in flight) - the checks below still decide. */
+    await R.sleep(200); await R.quiet(B.stat); so.ws.terminate();
     const s1 = (await B.stat()).store, wr = writes(log, at), bytes = wr.reduce((x, y) => x + y.b, 0), m1 = man(S.db);
     const coreKB = JSON.stringify(Object.assign({}, WS.readWorld(S.db), { users: undefined })).length / 1024;
     check(s1.partial - s0.partial === 1 && s1.full === s0.full, 'one chat line: one partial save (' + (s1.partial - s0.partial) + ' partial, ' + (s1.full - s0.full) + ' full)');
@@ -176,6 +179,13 @@ async function killLoop(check) {
   } finally { await S.kill(); }
 }
 
+/* v1368 (flakes, 11 Nov run 094401: "rollback step 1: DB_STORE_PIECES=0 + one restart writes split-v1" failed): a fixed 1.5 s after the start
+   was not always enough for the boot save on a loaded CT. Wait (up to 20 s) for the layout the boot save writes, then for quiet saves - the
+   checks still read the disk afterwards. */
+async function bootSaved(S, B, layout) {
+  const t0 = Date.now(); while (Date.now() - t0 < 20000) { let l = null; try { l = WS.layoutOf(S.db); } catch (_) {} if (l === layout) break; await R.sleep(100); }
+  await R.quiet(B.stat, { ms: 10000 });
+}
 // an old-format world boots and is converted; DB_STORE_PIECES=0 converts it back for a 59eaefba server; 59eaefba refuses pieces
 async function migrateRollback(check) {
   const S = await R.server({ env: { DB_STORE_JOURNAL: '0' } });
@@ -184,7 +194,7 @@ async function migrateRollback(check) {
     await S.kill();
     execFileSync(process.execPath, [path.join(R.root, 'server/world-store.js'), 'downgrade', S.db]);
     const w0 = WS.readWorld(S.db); check(WS.layoutOf(S.db) === 'split-v1', 'setup: the world is split-v1 (as 59eaefba writes it)');
-    await S.start(B.adminId); await R.sleep(1500);
+    await S.start(B.adminId); await bootSaved(S, B, 'pieces');
     check(WS.layoutOf(S.db) === 'pieces' && deepEq(WS.readWorld(S.db).users, w0.users), 'a v1127 server boots on the split-v1 world, keeps every player and its boot save converts it to pieces');
     const lg = await S.req('POST', '/api/login', { name: 'wmP1', pass: 'password1' }, null, '10.96.0.1');
     check(lg.status === 200, 'players sign in after the migration');
@@ -192,7 +202,7 @@ async function migrateRollback(check) {
     const C = await R.server({ dir: R.controlTree(), db: S.db, temp: S.temp });
     let refused = false; try { await C.start(B.adminId); } catch (e) { refused = /exited/.test(e.message); } await C.kill();
     check(refused && WS.layoutOf(S.db) === 'pieces' && deepEq(WS.readWorld(S.db).users, w0.users), R.CONTROL_SHA + ' refuses to start on the pieces layout and leaves it untouched');
-    await S.start(B.adminId, { DB_STORE_PIECES: '0' }); await R.sleep(1500); await S.kill();
+    await S.start(B.adminId, { DB_STORE_PIECES: '0' }); await bootSaved(S, B, 'split-v1'); await S.kill();
     check(WS.layoutOf(S.db) === 'split-v1', 'rollback step 1: DB_STORE_PIECES=0 + one restart writes split-v1');
     const C2 = await R.server({ dir: R.controlTree(), db: S.db, temp: S.temp });
     await C2.start(B.adminId);

@@ -64,22 +64,51 @@ async function boot(S, tag, n, opts) {
 }
 
 // the control tree: CONTROL_SHA's files (no assets - they are linked) in a folder under the repo, so node_modules resolves
+/* v1368 (flakes): the tree was one folder per commit (.ctl-<sha>) shared by every test in the checkout. The cluster runs several jobs at once in
+   ONE slot, so two tests on the same control commit (busy_shed + piece_flags on f2043269; save_journal / save_io / save_dirty / chat_fanout on
+   c9f40cd8; world_pieces / chat_cap / attack_copy / zoom_gate / check_backlog on 59eaefba) shared it: one test's finally removed it under
+   the other's running control server, or a second test saw server.js of a tree still being unpacked. Each process now has its own tree
+   (.ctl-<sha>-<pid>), unpacked under a temporary name and renamed into place when complete, removed when the process exits. */
+const _myTrees = new Set();
+const _treeDir = sha => path.join(root, '.ctl-' + sha + '-' + process.pid);
+function _rmTree(dir) {
+  try { fs.unlinkSync(path.join(dir, 'assets')); } catch (_) { try { fs.rmdirSync(path.join(dir, 'assets')); } catch (_) {} }   // the assets link first: never through it
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+process.on('exit', () => { for (const d of _myTrees) { try { _rmTree(d); } catch (_) {} } });
 function controlTree(sha) {
   sha = sha || CONTROL_SHA;
-  const dir = path.join(root, '.ctl-' + sha);
+  const dir = _treeDir(sha);
   if (fs.existsSync(path.join(dir, 'server.js'))) return dir;
-  fs.mkdirSync(dir, { recursive: true });
+  const tmp = dir + '.part'; if (fs.existsSync(tmp)) _rmTree(tmp);
+  fs.mkdirSync(tmp, { recursive: true }); _myTrees.add(tmp);
   const tar = execFileSync('git', ['archive', '--format=tar', sha, '--', '.', ':!assets'], { cwd: root, maxBuffer: 1 << 30 });
-  execFileSync('tar', ['-x', '-C', dir.split(path.sep).join('/')], { input: tar, maxBuffer: 1 << 30 });
-  fs.symlinkSync(path.join(root, 'assets'), path.join(dir, 'assets'), 'junction');
+  execFileSync('tar', ['-x', '-C', tmp.split(path.sep).join('/')], { input: tar, maxBuffer: 1 << 30 });
+  fs.symlinkSync(path.join(root, 'assets'), path.join(tmp, 'assets'), 'junction');
+  fs.renameSync(tmp, dir); _myTrees.delete(tmp); _myTrees.add(dir);
   return dir;
 }
 function removeControlTree(sha) {
-  const dir = path.join(root, '.ctl-' + (sha || CONTROL_SHA)); if (!fs.existsSync(dir)) return;
-  try { fs.unlinkSync(path.join(dir, 'assets')); } catch (_) { try { fs.rmdirSync(path.join(dir, 'assets')); } catch (_) {} }
-  fs.rmSync(dir, { recursive: true, force: true });
+  const dir = _treeDir(sha || CONTROL_SHA); _myTrees.delete(dir); if (!fs.existsSync(dir)) return;
+  _rmTree(dir);
 }
 
+/* v1368 (flakes): wait until the server's saves are quiet - nothing with the io worker, no dirty player, and the save counters unchanged over
+   `still` ms of answered polls (a debounced save is a 200 ms timer; while polls are answered the event loop turns, so a due timer has run).
+   Replaces fixed sleeps before a baseline or a check on a loaded host; it returns the last stats (or null after `ms`) and asserts nothing. */
+async function quiet(stat, opts) {
+  opts = opts || {}; const ms = opts.ms || 20000, still = opts.still || 700, t0 = Date.now();
+  let sig = null, since = 0, last = null;
+  while (Date.now() - t0 < ms) {
+    try { last = await stat(); } catch (_) { last = null; }
+    const st = last && (last.store || (last.full !== undefined ? last : null)), io = st && st.io;   // save-stats, or its .store
+    const now = st ? [st.full, st.partial, st.slices, io ? io.jobs : 0, io ? io.inFlight : 0, st.dirtyNow].join('/') : null;
+    const idle = st && (!io || io.inFlight === 0) && !st.dirtyNow;
+    if (idle && now === sig) { if (Date.now() - since >= still) return last; } else { sig = idle ? now : null; since = Date.now(); }
+    await sleep(100);
+  }
+  return null;
+}
 let passN = 0;
 const ok = (c, m) => { assert.ok(c, m); passN++; console.log('  ok  ' + m); };
-module.exports = { root, CONTROL_SHA, sleep, freePort, server, boot, controlTree, removeControlTree, ok, passed: () => passN };
+module.exports = { root, CONTROL_SHA, sleep, freePort, server, boot, controlTree, removeControlTree, quiet, ok, passed: () => passN };

@@ -15,6 +15,7 @@ const fs = require('node:fs'), os = require('node:os'), path = require('node:pat
 const { spawn, execFileSync } = require('node:child_process');
 const root = path.join(__dirname, '..');
 const WS = require(path.join(root, 'server/world-store.js'));
+const { quiet } = require('./helpers/split-rig.cjs');   // v1368: wait for quiet saves instead of fixed sleeps
 const V1123 = '216c328cf4f061ad17965af6ad223416f2c0dc12';
 const servers = [];   // every spawned server is killed at the end, pass or fail
 async function freePort() { const s = net.createServer(); await new Promise(r => s.listen(0, '127.0.0.1', r)); const n = s.address().port; await new Promise(r => s.close(r)); return n; }
@@ -56,7 +57,7 @@ async function boot(S, tag) {
 }
 async function settle(S, B) {   // warm each player's ledger (first touch migrates it), then let every debounced save land
   for (const p of [B.p1, B.p2]) await S.req('GET', '/api/ledger', null, p.token, p.ip);
-  await sleep(500);
+  await sleep(200); await quiet(B.stat);   // v1368 (flakes): until the saves are quiet, not a fixed 500 ms
 }
 async function campaignPair(S, p, node, rid) {
   const st = await S.req('POST', '/api/campaign/start', { mode: 'normal', node, heroIds: SQUAD, requestId: rid + '-s' }, p.token, p.ip);
@@ -156,16 +157,18 @@ async function campaignPair(S, p, node, rid) {
     // (f) shared systems save the players they touch + the shared world, never every player:
     //     guild create / request / approve / chat, a Skyfall line change
     await S.req('GET', '/api/guild-war/status', null, t1, B.p1.ip);   // the week's tournament is created here (a full save) - not measured
-    await sleep(400);
     const t2 = (await S.req('POST', '/api/login', { name: 'spTwo', pass: 'password1' }, null, B.p2.ip)).body.token;
-    await sleep(400);
+    /* v1368 (flakes, 11 Nov cluster run 101256: "(f) they made 2 partial and 0 full saves; only the two players' shards changed (336)"): two
+       fixed 400 ms sleeps let the tournament's debounced full save / the login's save land inside the measured window on a loaded CT.
+       The baseline is taken once the saves are quiet, and the check below once they are quiet again. */
+    await sleep(200); await quiet(B.stat);
     const f0 = await B.stat(), fm0 = manifest(S.db);
     const gc = await S.req('POST', '/api/guild/create', { name: 'Partial Guild' }, t2, B.p2.ip);
     const gr = await S.req('POST', '/api/guild/request', { guildId: gc.body.guild && gc.body.guild.id }, t1, B.p1.ip);
     const ga = await S.req('POST', '/api/guild/approve', { id: B.p1.id }, t2, B.p2.ip);
     const gch = await S.req('POST', '/api/guild/chat', { tx: 'partial saves' }, t1, B.p1.ip);
     const wl = await S.req('POST', '/api/guild-war/lines', { lines: [] }, t1, B.p1.ip);
-    await sleep(400);
+    await sleep(200); await quiet(B.stat);
     const f1 = await B.stat(), fch = changedShards(fm0, manifest(S.db)), two = [...new Set([WS.shardOf(B.p1.id), WS.shardOf(B.p2.id)])].sort((x, y) => x - y);
     ok([gc, gr, ga, gch, wl].every(x => x.status === 200), '(f) guild create/request/approve/chat and a Skyfall line change answered (' + [gc, gr, ga, gch, wl].map(x => x.status).join('/') + ')');
     ok(f1.full === f0.full && f1.partial > f0.partial && JSON.stringify(fch) === JSON.stringify(two),

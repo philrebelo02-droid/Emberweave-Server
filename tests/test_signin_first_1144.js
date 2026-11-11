@@ -73,8 +73,9 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
     ok(rs.status === 200 && rs.j.profile && rs.j.profile.id === gB.profile.id, '/api/guest still RESUMES an existing guest by its device (got ' + rs.status + ')');
     gB.token = rs.j.token || gB.token;   // resuming re-issues the guest's token
 
-    try { browser = await require(path.join(ROOT, 'node_modules', 'playwright')).chromium.launch({ args: ['--mute-audio', '--autoplay-policy=user-gesture-required'] }); }
-    catch (_) { browser = await require('playwright').chromium.launch({ args: ['--mute-audio'] }); }
+    /* v1368: --disable-audio-output instead of --mute-audio (Playwright's headless default, dropped here): no audio session for Windows to mute */
+    try { browser = await require(path.join(ROOT, 'node_modules', 'playwright')).chromium.launch({ args: ['--disable-audio-output', '--autoplay-policy=user-gesture-required'], ignoreDefaultArgs: ['--mute-audio'] }); }
+    catch (_) { browser = await require('playwright').chromium.launch({ args: ['--disable-audio-output'], ignoreDefaultArgs: ['--mute-audio'] }); }
     const open = async (storage) => {
       const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
       await ctx.addInitScript(AUDIO_STUB);
@@ -91,7 +92,11 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
     };
     const gateOpen = page => page.evaluate(() => { const g = document.getElementById('authGate'); return !!(g && getComputedStyle(g).display !== 'none' && g.getBoundingClientRect().width > 0); });
     const visible = (page, sel) => page.evaluate(s => { const e = document.querySelector(s); if (!e || e.hidden) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden'; }, sel);
-    const acceptTos = async page => { await page.waitForTimeout(300); const b = await page.$('#tosAccept'); if (b) { await b.click(); await page.waitForTimeout(300); } };
+    /* v1368: a fixed 300 ms look for the terms step is a wait for an event - it now waits (up to 20 s) until the terms step is there or the
+       session is already signed in with the gate closed. */
+    const acceptTos = async page => { await page.waitForFunction(() => { if (document.getElementById('tosAccept')) return true; const g = document.getElementById('authGate');
+        const open = !!(g && getComputedStyle(g).display !== 'none' && g.getBoundingClientRect().width > 0); return typeof ACC !== 'undefined' && !!(ACC && ACC.token && !ACC.guest) && !open; }, null, { timeout: 20000 }).catch(() => {});
+      const b = await page.$('#tosAccept'); if (b) { await b.click(); await page.waitForTimeout(300); } };
     /* 22 Oct 2026 (v1213 suite): a fixed 2.5 s wait after the account step raced a loaded suite host (the checks ran before the gate
        closed). Wait until the session is a real account and the gate is gone, up to 20 s; the checks below still decide pass/fail. */
     const waitSignedIn = page => page.waitForFunction(() => { const g = document.getElementById('authGate'); const open = !!(g && getComputedStyle(g).display !== 'none' && g.getBoundingClientRect().width > 0); return typeof ACC !== 'undefined' && !!(ACC && ACC.token && !ACC.guest) && !open; }, null, { timeout: 20000 }).catch(() => {});
@@ -154,9 +159,12 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
       ok(st.id === gA.profile.id && !st.guest && st.name === nm, 'upgrading keeps the SAME account id and makes it a real account (' + JSON.stringify({ id: st.id === gA.profile.id, guest: st.guest, name: st.name }) + ')');
       const led = st.tok ? (await call(P1, '/api/ledger', null, st.tok)).j : {}, L = led.ledger || led;
       ok(L.gold === 43210 && L.gems === 777, 'the upgraded account keeps the guest\'s ledger (gold ' + L.gold + ', gems ' + L.gems + ')');
+      /* v1368 (flakes, 11 Nov run 101256): this page check ran AFTER the sign-in below, and a sign-in is single-session (server.js /api/login:
+         dropTokens - "signing in here kicks any other device"). On a loaded host the page's next call (its upgrade save) reached the server
+         after the kick, got 401 and put the page back on the sign-in gate. The page is checked first; the sign-in proof follows. */
+      ok(!(await gateOpen(page)) && !(await visible(page, '#guestMark')), 'after upgrading: no gate, no GUEST marker');
       const lg = await call(P1, '/api/login', { name: nm, pass: 'password1144' });
       ok(lg.status === 200 && lg.j.profile && lg.j.profile.id === gA.profile.id, 'the new name + password sign in to that same account');
-      ok(!(await gateOpen(page)) && !(await visible(page, '#guestMark')), 'after upgrading: no gate, no GUEST marker');
       const again = await call(P1, '/api/guest', { deviceId: devA });
       ok(again.status === 403 && !again.j.token, 'the upgraded device can no longer get a fresh guest (got ' + again.status + ')');
       ok(!calls.some(c => c.includes('/api/guest')), 'the guest device made no /api/guest call (its token was valid)');
