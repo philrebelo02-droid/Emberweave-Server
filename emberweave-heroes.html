@@ -28567,7 +28567,8 @@ function mnResColor(k){ const r=RES.find(x=>x[0]===k); return r?r[3]:'#ffd45e'; 
 function mineEpoch(){ return Math.floor(Date.now()/MINE_EPOCH_MS); }
 function mineEpochEndsIn(){ return (mineEpoch()+1)*MINE_EPOCH_MS - Date.now(); }
 function mineSignedIn(){ try{ return !!(typeof ACC!=='undefined' && ACC && ACC.token); }catch(e){ return false; } }
-function mineYieldShown(res,level){ return mineYield(res,level); }   // v1210 (Phil 22 Oct: "Remove the cap"): the server pays the designed yield x Miner's Charter, as shown
+function mineYieldShown(res,level,m){ const full=mineYield(res,level);   /* v1368 (Ember BUG SWEEP 10-1): a mine with less than one haul of stock left pays only what is left (server.js take*minerMul) - show that, not the full haul */
+  if(m&&Number.isFinite(m.left)&&Number.isFinite(m.total)&&m.total>0){ const base=m.total/3; if(m.left<base) return Math.max(0,Math.round(full*m.left/base)); } return full; }   // v1210 (Phil 22 Oct: "Remove the cap"): the server pays the designed yield x Miner's Charter, as shown
 function mineYield(res,level){ return Math.round((40+level*55) * (1 + (level-1)*0.18) * (typeof embassyMineMul==='function'?embassyMineMul():1)); }   // L1≈95 … L5≈ ~610 (× guild Embassy bonus)
 /* v809 - POWER_SCALE is the measured gap between the old reading and the card for a hero carrying
    NOTHING: 1.33x at level 1 rising to 1.51x at 100 across the whole roster, median 1.4276
@@ -28618,7 +28619,7 @@ function drawMines(inner){ if(!inner)return;
     inner.appendChild(el); }); }
 // mine info popup
 function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
-  const reqP=mineReqPower(m.level), reqL=mineReqLevel(m.level), y=mineYieldShown(m.res,m.level), gm=mineGatherMs(m.level), travel=marchOutMs('mine',m.x,m.y);
+  const reqP=mineReqPower(m.level), reqL=mineReqLevel(m.level), y=mineYieldShown(m.res,m.level,m), gm=mineGatherMs(m.level), travel=marchOutMs('mine',m.x,m.y);
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left=m.x+'%'; pop.style.top=m.y+'%'; pop.style.transform='translate(-50%,-135%)'; pop.style.zoom=(1/worldZoom);
   pop.innerHTML=`<div class="cm-t">${resIconHtml(m.res,18)} ${ewT('mine.lv_res_mine',{n:m.level,res:escapeHTML(mnResName(m.res))})}</div>
     <div style="font-size:10px;color:#cdd6e4;padding:3px 6px 5px;line-height:1.6">
@@ -28664,7 +28665,7 @@ function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(
   function render(){ const pow=marchPower([...sel])||0, okP=pow>=reqP, okL=[...sel].some(k=>heroLevel(k)>=reqL), ok=sel.size&&okP&&okL;
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:calc(var(--ew-game-height,100vh) * 0.86);overflow:auto;max-width:600px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${uiIcon('mode-mine')} ${ewT('mine.mine')} · ${escapeHTML(mineLabel(m))}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${ewT('mine.send_up',{res:'<b style="color:'+mnResColor(m.res)+'">'+resIconHtml(m.res,15)+' '+mineYieldShown(m.res,m.level)+' '+escapeHTML(mnResName(m.res))+'</b>',p:'<b>'+reqP+'</b>',lv:'<b>'+ewT('wmap.lv',{n:reqL})+'+</b>'})}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${ewT('mine.send_up',{res:'<b style="color:'+mnResColor(m.res)+'">'+resIconHtml(m.res,15)+' '+mineYieldShown(m.res,m.level,m)+' '+escapeHTML(mnResName(m.res))+'</b>',p:'<b>'+reqP+'</b>',lv:'<b>'+ewT('wmap.lv',{n:reqL})+'+</b>'})}</div>
       ${rsPickerHTML(heroes,sel,blocked,k=>`<span style="color:${blocked(k)?'#ff8b8b':(heroLevel(k)>=reqL?'#5ee89b':'#8b98a9')};font-weight:700">${busy.has(k)?ewT('march.marching'):fallen(k)?pickerHpLine(hp,k):statusIcon('attack')+' '+myHeroPower(k).toLocaleString()+pickerHpLine(hp,k)}</span>`)}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ${statusIcon('attack')} <b style="color:${okP?'#5ee89b':'#ff8b8b'}">${pow}</b>/${reqP} · ${okL?'<span style="color:#5ee89b">'+ewT('wmap.lv',{n:uiIcon('check')})+'</span>':'<span style="color:#ff8b8b">'+ewT('mine.need_lv',{n:reqL})+'</span>'}</div>
