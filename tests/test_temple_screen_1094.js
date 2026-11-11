@@ -9,7 +9,7 @@ let pass=0,missed=[]; const ok=(c,m)=>{ if(process.env.AUD_PAGE&&!c){ missed.pus
 const fn=page.slice(page.indexOf('function renderTemple(){'),page.indexOf('function startDungeon(){'));
 // v1270+ LANGUAGES: the words go through ewT('temple.*',vars); lang/en.json with the same vars must still give the old English
 const EN=JSON.parse(fs.readFileSync(path.join(root,'lang','en.json'),'utf8')), enT=(k,v)=>String(EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):'');
-ok(/class="tp2Stage" id="tp2Stage"/.test(fn)&&/plate-v1\.webp/.test(fn),'the screen is one stage on the Temple plate');
+ok(/class="tp2Stage" id="tp2Stage"/.test(fn)&&/plate-v2\.webp/.test(fn),'the screen is one stage on the Temple plate');
 ok(/templeView==='grid'/.test(fn)&&/ewT\('temple\.purple_can_pray'\)/.test(fn)&&EN['temple.purple_can_pray']==='Purple heroes and above can pray.'&&/sort\(\(a,b\)=>b\.s\.pct-a\.s\.pct/.test(fn),'the hero grid: Purple heroes and above, sorted by %');
 ok(!/'All'/.test(fn)&&!/templeClassTabs/.test(fn),'no class tabs and no All button');
 ok(/heroes\/\$\{key\}-v2\.webp/.test(fn)&&/hero-window-v1\.webp/.test(fn),'the selected hero stands in the Temple window');
@@ -22,7 +22,7 @@ ok(/ewT\('temple\.save_or_cancel'\)/.test(fn)&&EN['temple.save_or_cancel']==='Sa
 ok(/\/api\/temple\/auto/.test(page)&&/ewT\('temple\.auto_save'\)/.test(page)&&EN['temple.auto_save']==='Auto save if power goes up!','Auto pray dialog calls /api/temple/auto');
 ok(!/priest|dragon prayer|magic rush/i.test(fn+page.slice(page.indexOf('/* v1094 TEMPLE OF ASH v2 SCREEN'),page.indexOf('/* v1094 TEMPLE OF ASH v2 SCREEN')+400)),'our names only (no reference names)');
 const A=path.join(root,'assets/img/temple/v2');
-const need=['plate-v1.webp','hero-window-v1.webp','flame-keeper-v1.webp','bar-fill-v1.webp','lock-v1.webp','flare-v1.webp','button-navy-v1.webp','button-red-v1.webp','button-gold-v1.webp',
+const need=['plate-v2.webp','hero-window-v1.webp','flame-keeper-v1.webp','bar-fill-v1.webp','lock-v1.webp','flare-v1.webp','button-navy-v1.webp','button-red-v1.webp','button-gold-v1.webp',
   'stat-health-v1.webp','stat-attack-v1.webp','stat-armor-v1.webp','stat-penetration-v1.webp','prayer-daily-free-v1.webp','prayer-gold-ritual-v1.webp','prayer-kindled-v1.webp','prayer-stoked-v1.webp','prayer-blazing-v1.webp','prayer-inferno-v1.webp'];
 ok(need.every(f=>fs.existsSync(path.join(A,f))),'every Temple art file is on disk ('+need.filter(f=>!fs.existsSync(path.join(A,f))).join(',')+')');
 const keys=fs.readdirSync(path.join(root,'assets/img/hero-cards')).map(f=>f.slice(5,-5));
