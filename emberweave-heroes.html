@@ -23547,11 +23547,11 @@ function openStageModal(i,mode){
         :'<button class="btn secondary" disabled>'+statusIcon('dash')+' '+t('stage.sweep_x10')+'</button>'}
       ${(()=>{ const P=patNow(); if(!_eb||_left>0||!P||!P.rows||!(P.rows.eliteResets>0)) return ''; const u=(P.used&&P.used.eliteResets)|0, mx=P.rows.eliteResets, c=(P.costs&&P.costs.eliteReset)||50;   /* v1093: EGP Elite stage reset */
         return `<button class="btn secondary" id="smReset" ${u>=mx||(G.gems||0)<c?'disabled':''}>↺ ${t('stage.reset_runs')} · ${hudIcon('gem')}${c} (${u}/${mx})</button>`; })()}
-      <button class="btn sm secondary smCancel" id="smClose">${t('stage.back_to_map')}</button></div>
+      <button class="btn sm secondary smCancel" id="smClose">${(typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN&&HERO_TYPES[CAMP_RETURN.hero])?'◀ '+escapeHTML(HERO_TYPES[CAMP_RETURN.hero].name):t('stage.back_to_map')}</button></div>
     <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px;text-align:center"></div>
   </div></div>`;
   document.getElementById('stageModal').classList.add('active');
-  body.querySelector('#smClose').onclick=closeStageModal;
+  body.querySelector('#smClose').onclick=()=>{ if(typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ closeStageModal(); campReturnGo(); return; } closeStageModal(); };   /* v1367 (Phil: "when you are sent to a stage to sweep for the glyphs" / "In campaign"): after sweeping, the stage window's own button goes straight back to the hero */
   body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i,mode))return; if(i<=portalCleared(mode) && stageRunsLeft(i,mode)<1 && !(typeof DEV!=='undefined'&&DEV.on)){ document.getElementById('smMsg').textContent=t('stage.daily_limit',{n:3}); return; }   /* dev accounts remain exempt for repeated balance testing */ G.lastStage=i; G.lastPortal=mode; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; CUR.portal=mode; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
   const rs=body.querySelector('#smReset'); if(rs) rs.onclick=async()=>{ rs.disabled=true; let r=null; try{ r=await api('/api/patron/elite-reset','POST',{mode,node:i,requestId:'er:'+Date.now()+':'+i}); }catch(e){}
     if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); try{ const sd=stageDaily(); delete sd.n[mode+':'+i]; }catch(e){} updateHubChrome(); bannerMsg(t('stage.runs_reset')); try{ openStageModal(i,mode); }catch(e){ closeStageModal(); } }

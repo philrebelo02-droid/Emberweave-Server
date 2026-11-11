@@ -21,6 +21,7 @@ ctx.lab(); ck('the campaign Back button names the hero', span.textContent==='Vae
   ck('the tree comes back where it was', JSON.stringify(ctx.RUNE2.build.stack)==='[[0,1]]');
   ck('after the return the button is Base again', ctx.CR()===null&&span.textContent==='Base'&&span.attrs['data-i18n']==='nav.base');
   ck('going Home clears a pending return', /if\(name==='home'&&typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN\)\{ CAMP_RETURN=null;/.test(src));
+  ck('after a sweep, the stage window's own button names the hero and goes straight back (Phil: "when you are sent to a stage to sweep for the glyphs")', src.indexOf("if(typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ closeStageModal(); campReturnGo(); return; }")>0 && /id=\"smClose\">\$\{\(typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN&&HERO_TYPES\[CAMP_RETURN.hero\]\)\?'◀ '/.test(src));
   const old=cp.execSync('git show 7e49f874:emberweave-heroes.html',{cwd:ROOT,maxBuffer:64<<20}).toString();
   ck('CONTROL: v1365 had no return trip', old.indexOf('CAMP_RETURN')<0);
   console.log('test_camp_return_1367.js: '+P+' passed, '+F+' failed'); process.exit(F?1:0); })();
