@@ -99,7 +99,7 @@
   #rotateGate .splashStudio{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(27px + env(safe-area-inset-bottom,0px));right:auto;top:auto;display:flex;align-items:center;gap:5px;font-weight:600;font-size:clamp(9px,calc(var(--ew-game-width,100vw) * 0.0135),11px);letter-spacing:.3px;color:#c9b78d;opacity:.72;text-shadow:0 1px 4px #000;pointer-events:none;z-index:10001;}
   #rotateGate .splashStudio svg{width:13px;height:13px;opacity:.9;flex:0 0 auto}
   /* v1298: the Bonus Stage claim on the campaign map, bottom left - opens the fragments panel; the badge is what is saved */
-  #campBonusBtn{position:fixed!important;top:auto!important;right:auto!important;left:calc(10px + env(safe-area-inset-left,0px))!important;bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;transform:none!important;z-index:30;width:54px;height:54px;padding:0;border-radius:50%;border:2px solid #d9a64a;background:#0b1220;cursor:pointer;box-shadow:0 0 0 1px #5a3d12,0 3px 10px #000b,0 0 12px #3a8bff66;overflow:visible}   /* v1298 (Phil: "Just make this symbol in the bottom left by itself"): ChatGPT's glyph bowl, nothing else */
+  #campBonusBtn{position:fixed!important;top:auto!important;right:auto!important;left:calc(10px + var(--ew-bar-x,0px) + env(safe-area-inset-left,0px))!important;bottom:calc(8px + var(--ew-bar-y,0px) + env(safe-area-inset-bottom,0px))!important;transform:none!important;z-index:30;width:54px;height:54px;padding:0;border-radius:50%;border:2px solid #d9a64a;background:#0b1220;cursor:pointer;box-shadow:0 0 0 1px #5a3d12,0 3px 10px #000b,0 0 12px #3a8bff66;overflow:visible}   /* v1298 (Phil: "Just make this symbol in the bottom left by itself"): ChatGPT's glyph bowl, nothing else */
   #campBonusBtn[hidden],.screen:not(.active) #campBonusBtn{display:none}
   #campBonusBtn img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;pointer-events:none}
   #campBonusBtn:active{transform:scale(.94)!important}
@@ -886,7 +886,7 @@
   .citymenu .cm-b:active{transform:scale(.97);}
   #marchVeh>div{will-change:left,top;}
   /* floating world chat widget */
-  #chatWidget{position:fixed;left:10px;bottom:10px;z-index:8000;width:min(300px,calc(var(--ew-game-width,100vw) * 0.72));font-size:12px;}
+  #chatWidget{position:fixed;left:calc(10px + var(--ew-bar-x,0px));bottom:calc(10px + var(--ew-bar-y,0px));z-index:8000;width:min(300px,calc(var(--ew-game-width,100vw) * 0.72));font-size:12px;}
   #chatWidget.min .cw-body{display:none;}
   #chatWidget.min{width:auto;}
   #chatWidget .cw-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#141b2b;border:1px solid #2a3550;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,.5);}
@@ -1286,7 +1286,7 @@
 body:has(#campaign.active) #muteBtn{display:none!important}
 #home #leftHud{top:2px;left:calc(0.5% + 37px)}
 #home #cornerHud{top:2px;right:3px}
-body:has(#home.active) #chatWidget.min{left:max(3px,env(safe-area-inset-left,0px));bottom:max(2px,env(safe-area-inset-bottom,0px))}
+body:has(#home.active) #chatWidget.min{left:calc(max(3px,env(safe-area-inset-left,0px)) + var(--ew-bar-x,0px));bottom:calc(max(2px,env(safe-area-inset-bottom,0px)) + var(--ew-bar-y,0px))}
 #home #townHud .resframe{position:relative;height:30px;padding:0;margin-left:6px;border-style:solid;border-color:transparent;border-width:7px 26px 6px 26px;border-image:url(/assets/img/ui/hud2/resource-pill.webp?v=1) 36 150 30 150 fill / 7px 26px 6px 26px stretch;background:none;box-sizing:border-box;display:flex;align-items:center}
 #home #townHud .resframe .resval{margin:-7px 0 -6px;padding:0 3px 0 7px;font-size:13px;line-height:30px}
 #home #townHud .resframe .resicon{left:-32px;width:34px;height:34px;z-index:2}
@@ -3586,6 +3586,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #wishing .wpsCard{background:none!important;border:0!important;border-radius:0!important;border-image:var(--wp-frame) 25% fill / 44px / 0 stretch!important;}
 @media(max-height:560px) and (min-width:701px){#wishing .wpsTitle{width:250px!important;height:70px!important;min-height:70px!important;}#wishing .wpsCard{border-image-width:32px!important;}}
 @media(max-width:700px){#wishing .wpsTitle{width:min(290px,94%)!important;height:80px!important;min-height:80px!important;}#wishing .wpsCard{border-image-width:36px!important;}}
+/* v1361 (Grok EYES + night smoke): on a Fold cover (344 px high) the 10 Wishes row sat below the frame with a 3 px cue. Screens under 370 px high get a tighter pool card so both rows are on screen (a 390 px phone already fits and keeps its look). */
+@media(max-height:370px) and (min-width:701px){#wishing #wpsStage{padding:4px 3% 6px!important;gap:2px!important}#wishing .wpsTitle{width:170px!important;height:44px!important;min-height:44px!important}#wishing .wpsCard,#wishing .wpsStage.tall .wpsCard{padding:12px 12% 30px!important;min-height:0!important;gap:0!important}#wishing .wpsOrb,#wishing .wpsStage.tall .wpsOrb{width:28px!important;height:28px!important}#wishing .wpsName{font-size:16px!important;margin:0!important;line-height:1.1!important}#wishing .wpsOdds{min-height:0!important;margin:1px 0!important;font-size:8.5px!important;line-height:1.25!important}#wishing .wpsCard .btn,#wishing .wpsStage.tall .wpsCard .btn{height:26px!important;min-height:26px!important;margin-top:3px!important}}
 /* Skyfall */
 #skyfall{--sk-title:url('/assets/img/ui/building-titles/skyfall-title.webp?v=1');--sk-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');--sk-button:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
 #skyfall .skyHud::before{content:'';position:absolute;left:50%;top:3px;transform:translateX(-50%);width:min(240px,28%);height:70px;background:var(--sk-title) center/contain no-repeat;pointer-events:none;}
@@ -18692,7 +18694,7 @@ function _showScreen(name){
   ['hud','topStatus','battleCtrls','battleBanner'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('active');});
   { const hm=document.getElementById('hubMenu'); hm.classList.toggle('active', name==='home'); hm.classList.remove('open'); }
   if(name==='battle'){document.getElementById('hud').classList.add('active');document.getElementById('battleCtrls').classList.add('active');const bb=document.getElementById('battleBanner');if(bb)bb.classList.add('active');}
-  else if(document.getElementById(name)){ const target=document.getElementById(name); target.scrollTop=0; target.classList.add('active'); }
+  else if(document.getElementById(name)){ const target=document.getElementById(name); target.classList.add('active'); target.scrollTop=0; }   /* v1361: the scroll reset ran while the screen was still display:none and did nothing - Start Here, Quests, Guild, Glossary, Sign-in, Rankings reopened scrolled, Base off the top (every device) */
   { const bg=document.getElementById('battleBg'); if(bg) bg.style.display = (name==='battle') ? 'block' : 'none';
     const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
   if(name==='result'){ renderResultExtras(); try{ updateGuestMarks(); }catch(e){} }
@@ -23042,7 +23044,9 @@ function renderRoadmap(){
      darkened, until the wide image exists. Wide chapters keep their 1.65 switch-over unchanged. */
   const _scrAR=_app?_app.clientWidth/Math.max(1,_app.clientHeight):0, _mapAR=(CH_MAP_DIMS[ch]||[3,2])[0]/(CH_MAP_DIMS[ch]||[3,2])[1];
   const _hasWide=!!CH_WIDE_MAPS[ch];
-  const _wideCampaign=window.matchMedia('(orientation:landscape)').matches && !!_app && !!CH_MAP_DIMS[ch] && (_hasWide?_scrAR>1.65:_scrAR>_mapAR);
+  /* v1361 (Grok EYES + verification, P1): a phone / Fold cover held UPRIGHT plays the game turned, but this check read the physical (portrait) screen, so the map fell back to width-fit and its bottom third was cut - BONUS 1-7 / 1-9 / 1-10 were off the frame and could not be pressed. The turned game counts as landscape (the same fault v1147 fixed for landscape devices). */
+  const _land=!!(window.EWViewport&&EWViewport.state&&EWViewport.state.rotated)||window.matchMedia('(orientation:landscape)').matches;
+  const _wideCampaign=_land && !!_app && !!CH_MAP_DIMS[ch] && (_hasWide?_scrAR>1.65:_scrAR>_mapAR);
   const _wideX=x=>_wideCampaign?50+(x-50)*(CH_MAP_DIMS[ch][0]/CH_MAP_DIMS[ch][1])/(_app.clientWidth/Math.max(1,_app.clientHeight)):x;
   if(_mapUrl&&_nodes){
     map.style.height=_wideCampaign?'100%':''; map.style.aspectRatio=''; map.style.background='none'; map.style.textAlign='center'; map.innerHTML='';
@@ -33575,6 +33579,8 @@ function _fitApp(){ try{ const app=document.getElementById('app');if(!app)return
  const FILL_WIDE={campaign:1,home:1,skyisland:1,arena:1,skyfall:1,forge:1,tech:1,market:1,shadymarket:1,wall:1,rankings:1,dungeon:1,watchtower:1,guild:1,wishing:1};
  const fillWide=EWViewport.state.rotated||(FILL_WIDE[state]&&vw>vh&&vh<=700&&vw/vh>1.85);
  const w=fillWide?vw:Math.min(vw,vh*1024/572),h=fillWide?vh:Math.min(vh,vw*572/1024);
+ /* v1361 (Grok EYES): the black bars beside / under a letterboxed game frame, for the two controls fixed to the window (campaign orb, town chat bar) - they sat in the bar on an open Fold, a tablet and a wide PC */
+ try{ const de=document.documentElement; de.style.setProperty('--ew-bar-x',Math.max(0,Math.round((vw-Math.floor(w))/2))+'px'); de.style.setProperty('--ew-bar-y',Math.max(0,Math.round((vh-Math.floor(h))/2))+'px'); }catch(e){}
  if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){app.style.width=Math.floor(w)+'px';app.style.height=Math.floor(h)+'px';_refitAll();}}catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
     m.setAttribute('content', c.replace(/maximum-scale=[\d.]+/,'maximum-scale=1.0001')); setTimeout(()=>{ m.setAttribute('content',c); _fitApp(); },40); }catch(e){} }
