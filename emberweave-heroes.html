@@ -2811,57 +2811,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #market .merc-offer button,#shadymarket .merc-offer button{box-shadow:none!important;border-radius:0!important}
 /* v1350 (Phil 10 Nov: "also the items shouldnt be out of panel"): the 2x2 cards filled the holder to its edge and drew over its 22px gold frame; the holder now keeps the cards inside its frame on every size (the wallet bar stays full width). */
 #market>.panel,#shadymarket>.panel{padding:0 16px 16px!important}#market>.panel>.merc-wallet,#shadymarket>.panel>.merc-wallet{margin:0 -16px}
-/* v1350 (Phil 10 Nov: "ask chatgpt to fix the frames and Guild hall title"): ChatGPT's Guild Hall package (Game Art/UI/Guild Hall frames 10NOV2026) - new GUILD HALL title art; header, tabs, chat, roster and input in the gold laurel frame, 9-sliced */
-#guild{--gh-frame:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1');--gh-title:url('/assets/img/ui/guild-main/guild-hall-title.webp?v=1');}
-#guild .titlebar h1{height:clamp(80px,19vh,170px)!important;width:100%;background:var(--gh-title) center/contain no-repeat!important;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;}
-#guild .titlebar h1::after{display:none!important;}#guild .hdrbox>.titlebar{flex:1 1 auto!important;width:100%!important;min-width:0}
-/* v1351 (Phil 10 Nov: "the panel that holds the items shouldnt look basic" / "guild hall panels" "is wrong"): ChatGPT's painted Market/Shady holder, item card and price rail (Game Art/UI/Market frames 10NOV2026) and the Guild Hall ornate panel redo (Guild Hall frames 10NOV2026/ornate-panel-redo), 9-sliced, no whole-image stretch */
-:is(#market,#shadymarket){--mf-holder:url('/assets/img/ui/merchant-main/market-holder-frame.webp?v=1');--mf-card:url('/assets/img/ui/merchant-main/market-item-frame.webp?v=1');--mf-price:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
-:is(#market,#shadymarket)>.panel{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;padding:0 24px 44px!important;}
-:is(#market,#shadymarket)>.panel::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;border:0 solid transparent;border-image:var(--mf-holder) 25% fill / 44px / 0 stretch;}
-:is(#market,#shadymarket) .merc-wallet{background:none!important;border:0!important;box-shadow:inset 0 -1px #ae844c66!important;border-radius:0!important;margin:0 -24px;}
-:is(#market,#shadymarket) .merc-offer{box-sizing:border-box;background:none!important;border:0!important;border-radius:0!important;border-image:var(--mf-card) 25% fill / 24px / 0 stretch!important;padding:18px 18px 20px!important;gap:8px;filter:none!important;min-width:0;}
-:is(#market,#shadymarket) .merc-info{min-width:0;}
-:is(#market,#shadymarket) .merc-info>div{min-width:0;}
-:is(#market,#shadymarket) .merc-info b{overflow-wrap:anywhere;}
-:is(#market,#shadymarket) .merc-offer button{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;flex-shrink:0;min-width:0;white-space:normal;line-height:1.1;color:#fff0c9!important;padding:7px 16px!important;}
-:is(#market,#shadymarket) .merc-offer button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--mf-price) 25% fill / 10px 30px / 0 stretch;}
-:is(#market,#shadymarket) .merc-offer button:disabled{color:#d6cfc0!important;opacity:1!important;cursor:default;}
-:is(#market,#shadymarket) .merc-offer button:disabled::before{filter:grayscale(.85) brightness(.55);}
-:is(#market,#shadymarket) .merc-offer button:focus-visible{outline:2px solid #ffe1a0;outline-offset:2px;}
-@media(max-height:560px) and (min-width:701px){:is(#market,#shadymarket) .merc-offer{padding:12px 18px 18px!important;gap:5px;} :is(#market,#shadymarket)>.panel{padding:0 14px 28px!important;}:is(#market,#shadymarket) .merc-wallet{margin:0 -14px;}:is(#market,#shadymarket)>.panel::before{border-image-width:28px;}}
-@media(max-width:700px){:is(#market,#shadymarket) .merc-offer{padding:18px 16px 20px!important;}:is(#market,#shadymarket)>.panel{padding:0 16px 36px!important;}:is(#market,#shadymarket) .merc-wallet{margin:0 -16px;}:is(#market,#shadymarket)>.panel::before{border-image-width:36px;}}
-#guild{--gh-frame:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
-#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol)::before{border-image-source:var(--gh-frame);border-image-slice:25% fill;}
-#guild #guildBody .gHead{--gh-y:24px;--gh-x:24px;padding-left:32px;padding-right:32px;}
-#guild #guildBody .gTabStrip{--gh-y:22px;--gh-x:22px;padding:4px 6px;scrollbar-width:thin;scrollbar-color:#b88a3e #091422;}
-#guild #guildBody .gTab{--gh-y:14px;--gh-x:14px;padding:5px 8px 4px;gap:2px;min-height:48px;}
-#guild #guildBody .gTab :is(.gIco,.gGly){width:18px;height:18px;font-size:13px;}
-#guild #guildBody .gcol{--gh-y:56px;--gh-x:56px;}
-#guild #guildBody .gbar{padding:38px 56px 12px;background:transparent!important;border-bottom-color:#ad843d!important;}
-#guild #gChat{padding:12px 10px 12px 40px;margin-right:38px;}
-#guild #gRoster{padding:12px 8px 12px 40px;margin-right:38px;margin-bottom:40px;}
-#guild #gInputRow{background:none!important;padding:12px 0 0;margin:0 40px 40px;}
-#guild #gInput{border-image:var(--gh-frame) 25% fill / 8px / 0 stretch!important;}
-#guild :is(#guildBody,#gTabBody)>.panel{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;padding:52px 48px!important;}
-#guild :is(#guildBody,#gTabBody)>.panel::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--gh-frame) 25% fill / 56px / 0 stretch;}
-@media(max-width:700px){#guild #guildBody .gHead{padding-left:24px;padding-right:24px;}#guild #guildBody .gcol{--gh-y:44px;--gh-x:44px;}#guild #guildBody .gbar{padding:30px 44px 10px;}#guild #gChat,#guild #gRoster{padding:10px 8px 10px 32px;margin-right:30px;}#guild #gRoster{margin-bottom:32px;}#guild #gInputRow{margin:0 32px 32px;padding-top:10px;}}
-@media(max-width:700px){#guild :is(#guildBody,#gTabBody)>.panel{padding:42px 36px!important;}#guild :is(#guildBody,#gTabBody)>.panel::before{border-image-width:44px;}}
-#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol){position:relative;isolation:isolate;border-color:transparent!important;border-image:none!important;border-radius:0!important;background:#091422!important;box-shadow:0 4px 12px #0005;}
-#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol)::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-style:solid;border-color:transparent;border-width:0;border-image-source:var(--gh-frame);border-image-slice:270 480 fill;border-image-width:var(--gh-y,12px) var(--gh-x,21.3333px);border-image-repeat:stretch;}
-#guild #guildBody .gHead{--gh-y:12px;--gh-x:21.3333px;padding-left:22px;padding-right:22px;gap:10px;}
-#guild #guildBody .gHead .gName{min-width:0;overflow-wrap:anywhere;}
-#guild #guildBody .gTabStrip{--gh-y:10px;--gh-x:17.7778px;padding:2px 6px;}
-#guild #guildBody .gTab{--gh-y:8px;--gh-x:14.2222px;color:#dfcda6;}
-#guild #guildBody .gTab.on{color:#fff2bc!important;box-shadow:inset 0 0 14px #dfa22766,0 0 0 1px #dfba63;}
-#guild #guildBody .gTab.on::before{filter:brightness(1.25);}
-#guild #guildBody .gcol{--gh-y:22px;--gh-x:39.1111px;}
-#guild #guildBody .gbar{background:transparent!important;border-color:#a87d3a!important;padding:10px 22px;color:#ffebbc;gap:8px;}
-#guild #gChat{padding:10px 22px;min-height:0;margin-right:12px;overflow-wrap:anywhere;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#ae8545 #091422;}
-#guild #gRoster{padding:10px 12px;min-height:0;margin-right:6px;overflow-wrap:break-word;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#ae8545 #091422;}
-#guild #gInputRow{background:#091422!important;border-top-color:#a87d3a!important;padding:10px 16px;align-items:center;}
-#guild #gInput{min-width:0!important;border:1px solid transparent!important;border-image:var(--gh-frame) 270 480 fill / 7px 12.4444px stretch!important;border-radius:0!important;background:#091422!important;padding:10px 16px!important;}
-@media(max-width:700px){#guild #guildBody .gHead{flex-wrap:wrap;}#guild #guildBody .gcol{--gh-y:16px;--gh-x:28.4444px;}#guild #guildBody .gbar{padding:9px 18px;}#guild #gChat,#guild #gRoster{padding:10px 18px;}#guild #gInputRow{padding:8px 12px;}}
+
 #shadymarket button:focus-visible{outline:2px solid #ffe2a3;outline-offset:3px}
 @media(max-height:560px) and (min-width:701px){#shadymarket .titlebar{top:20%;width:30%}#shadymarket h1.merc-title-art{height:110px}#shadymarket>.sub{top:calc(20% + 115px);width:30%;font-size:13px}#shadymarket>.panel{top:14%;width:61%;margin-right:3%;gap:8px;margin-bottom:60px}#shadymarket .merc-wallet{padding:8px 17px;font-size:11px}#shadymarket .merc-offer{min-height:119px;padding:15px 18px 13px;gap:5px}#shadymarket .merc-info{flex-direction:row;gap:8px;text-align:left}#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:48px!important;height:48px!important;padding:5px}#shadymarket .merc-info>span>.stIc{width:36px;height:36px}#shadymarket .merc-info b{font-size:13px}#shadymarket .merc-info b+div{font-size:10px!important;margin-top:3px}#shadymarket .merc-offer button{min-height:34px;font-size:13px}}
 @media(max-width:700px){#shadymarket{background-position:32% top;background-attachment:fixed}#shadymarket .backbtn{left:10px;top:10px;width:92px;height:36px}#shadymarket .titlebar{left:10%;top:58px;width:80%}#shadymarket h1.merc-title-art{height:125px}#shadymarket>.sub{left:8%;top:182px;width:84%;font-size:14px}#shadymarket>.panel{top:0;width:94%;margin:270px auto 34px;gap:10px}#shadymarket .merc-wallet{padding:12px 16px;font-size:11px}#shadymarket .merc-offer{padding:22px 16px 17px;min-height:220px;gap:8px}#shadymarket .merc-info{gap:9px}#shadymarket .merc-info b{font-size:14px}#shadymarket .merc-info b+div{font-size:11px!important}#shadymarket .merc-info>.ascw,#shadymarket .merc-info>img,#shadymarket .merc-info>span{width:65px!important;height:65px!important}#shadymarket .merc-offer button{font-size:14px;min-height:40px}}
@@ -2943,6 +2893,71 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #guild input{min-width:0;background:#0a1321!important;color:#eee0c4!important;border:1px solid #967140!important;border-radius:2px!important;box-shadow:inset 0 2px 6px #0008;padding:10px!important}
 @media(max-height:560px) and (min-width:701px){#guild>.hdrbox,#guild>.titlebar{top:25%;left:2%;width:27%!important}#guild h1{font-size:26px!important}#guild #guildBody{width:66%!important;margin-top:62px!important;margin-right:2%!important}#guild #guildBody>.panel{padding:30px 12%!important}#guild .btn{font-size:12px;min-height:32px;padding:7px 12px!important}}
 @media(max-width:700px){#guild{background-position:30% top!important;background-attachment:fixed!important}#guild>.hdrbox,#guild>.titlebar{position:relative!important;top:0!important;left:0!important;width:92%!important;margin:80px auto 0!important}#guild h1{font-size:33px!important}#guild #guildBody{width:94%!important;margin:130px auto 28px!important}#guild #guildBody>.panel{padding:32px 12%!important}#guild .btn{min-height:40px}}
+/* v1350 (Phil 10 Nov: "ask chatgpt to fix the frames and Guild hall title"): ChatGPT's Guild Hall package (Game Art/UI/Guild Hall frames 10NOV2026) - new GUILD HALL title art; header, tabs, chat, roster and input in the gold laurel frame, 9-sliced */
+#guild{--gh-frame:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1');--gh-title:url('/assets/img/ui/guild-main/guild-hall-title.webp?v=1');}
+#guild .titlebar h1{height:clamp(80px,19vh,170px)!important;width:100%;background:var(--gh-title) center/contain no-repeat!important;font-size:0!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;}
+#guild .titlebar h1::after{display:none!important;}#guild .hdrbox>.titlebar{flex:1 1 auto!important;width:100%!important;min-width:0}
+#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol){position:relative;isolation:isolate;border-color:transparent!important;border-image:none!important;border-radius:0!important;background:#091422!important;box-shadow:0 4px 12px #0005;}
+#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol)::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-style:solid;border-color:transparent;border-width:0;border-image-source:var(--gh-frame);border-image-slice:270 480 fill;border-image-width:var(--gh-y,12px) var(--gh-x,21.3333px);border-image-repeat:stretch;}
+#guild #guildBody .gHead{--gh-y:12px;--gh-x:21.3333px;padding-left:22px;padding-right:22px;gap:10px;}
+#guild #guildBody .gHead .gName{min-width:0;overflow-wrap:anywhere;}
+#guild #guildBody .gTabStrip{--gh-y:10px;--gh-x:17.7778px;padding:2px 6px;}
+#guild #guildBody .gTab{--gh-y:8px;--gh-x:14.2222px;color:#dfcda6;}
+#guild #guildBody .gTab.on{color:#fff2bc!important;box-shadow:inset 0 0 14px #dfa22766,0 0 0 1px #dfba63;}
+#guild #guildBody .gTab.on::before{filter:brightness(1.25);}
+#guild #guildBody .gcol{--gh-y:22px;--gh-x:39.1111px;}
+#guild #guildBody .gbar{background:transparent!important;border-color:#a87d3a!important;padding:10px 22px;color:#ffebbc;gap:8px;}
+#guild #gChat{padding:10px 22px;min-height:0;margin-right:12px;overflow-wrap:anywhere;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#ae8545 #091422;}
+#guild #gRoster{padding:10px 12px;min-height:0;margin-right:6px;overflow-wrap:break-word;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#ae8545 #091422;}
+#guild #gInputRow{background:#091422!important;border-top-color:#a87d3a!important;padding:10px 16px;align-items:center;}
+#guild #gInput{min-width:0!important;border:1px solid transparent!important;border-image:var(--gh-frame) 270 480 fill / 7px 12.4444px stretch!important;border-radius:0!important;background:#091422!important;padding:10px 16px!important;}
+@media(max-width:700px){#guild #guildBody .gHead{flex-wrap:wrap;}#guild #guildBody .gcol{--gh-y:16px;--gh-x:28.4444px;}#guild #guildBody .gbar{padding:9px 18px;}#guild #gChat,#guild #gRoster{padding:10px 18px;}#guild #gInputRow{padding:8px 12px;}}
+/* v1351 (Phil 10 Nov: "the panel that holds the items shouldnt look basic" / "guild hall panels" "is wrong"): ChatGPT's painted Market/Shady holder, item card and price rail (Game Art/UI/Market frames 10NOV2026) and the Guild Hall ornate panel redo (Guild Hall frames 10NOV2026/ornate-panel-redo), 9-sliced, no whole-image stretch */
+:is(#market,#shadymarket){--mf-holder:url('/assets/img/ui/merchant-main/market-holder-frame.webp?v=1');--mf-card:url('/assets/img/ui/merchant-main/market-item-frame.webp?v=1');--mf-price:url('/assets/img/ui/merchant-main/market-price-rail.webp?v=1');}
+:is(#market,#shadymarket)>.panel{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;padding:0 24px 44px!important;}
+:is(#market,#shadymarket)>.panel::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;border:0 solid transparent;border-image:var(--mf-holder) 25% fill / 44px / 0 stretch;}
+:is(#market,#shadymarket) .merc-wallet{background:none!important;border:0!important;box-shadow:inset 0 -1px #ae844c66!important;border-radius:0!important;margin:0 -24px;}
+:is(#market,#shadymarket) .merc-offer{box-sizing:border-box;background:none!important;border:0!important;border-radius:0!important;border-image:var(--mf-card) 25% fill / 24px / 0 stretch!important;padding:18px 18px 20px!important;gap:8px;filter:none!important;min-width:0;}
+:is(#market,#shadymarket) .merc-info{min-width:0;}
+:is(#market,#shadymarket) .merc-info>div{min-width:0;}
+:is(#market,#shadymarket) .merc-info b{overflow-wrap:anywhere;}
+:is(#market,#shadymarket) .merc-offer button{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;box-shadow:none!important;flex-shrink:0;min-width:0;white-space:normal;line-height:1.1;color:#fff0c9!important;padding:7px 16px!important;}
+:is(#market,#shadymarket) .merc-offer button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--mf-price) 25% fill / 10px 30px / 0 stretch;}
+:is(#market,#shadymarket) .merc-offer button:disabled{color:#d6cfc0!important;opacity:1!important;cursor:default;}
+:is(#market,#shadymarket) .merc-offer button:disabled::before{filter:grayscale(.85) brightness(.55);}
+:is(#market,#shadymarket) .merc-offer button:focus-visible{outline:2px solid #ffe1a0;outline-offset:2px;}
+@media(max-height:560px) and (min-width:701px){:is(#market,#shadymarket) .merc-offer{padding:12px 18px 18px!important;gap:5px;} :is(#market,#shadymarket)>.panel{padding:0 14px 28px!important;}:is(#market,#shadymarket) .merc-wallet{margin:0 -14px;}:is(#market,#shadymarket)>.panel::before{border-image-width:28px;}}
+@media(max-width:700px){:is(#market,#shadymarket) .merc-offer{padding:18px 16px 20px!important;}:is(#market,#shadymarket)>.panel{padding:0 16px 36px!important;}:is(#market,#shadymarket) .merc-wallet{margin:0 -16px;}:is(#market,#shadymarket)>.panel::before{border-image-width:36px;}}
+#guild{--gh-frame:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
+#guild #guildBody :is(.gHead,.gTabStrip,.gTab,.gcol)::before{border-image-source:var(--gh-frame);border-image-slice:25% fill;}
+#guild #guildBody .gHead{--gh-y:24px;--gh-x:24px;padding-left:32px;padding-right:32px;}
+#guild #guildBody .gTabStrip{--gh-y:22px;--gh-x:22px;padding:4px 6px;scrollbar-width:thin;scrollbar-color:#b88a3e #091422;}
+#guild #guildBody .gTab{--gh-y:14px;--gh-x:14px;padding:5px 8px 4px;gap:2px;min-height:48px;}
+#guild #guildBody .gTab :is(.gIco,.gGly){width:18px;height:18px;font-size:13px;}
+#guild #guildBody .gcol{--gh-y:56px;--gh-x:56px;}
+#guild #guildBody .gbar{padding:38px 56px 12px;background:transparent!important;border-bottom-color:#ad843d!important;}
+#guild #gChat{padding:12px 10px 12px 40px;margin-right:38px;}
+#guild #gRoster{padding:12px 8px 12px 40px;margin-right:38px;margin-bottom:40px;}
+#guild #gInputRow{background:none!important;padding:12px 0 0;margin:0 40px 40px;}
+#guild #gInput{border-image:var(--gh-frame) 25% fill / 8px / 0 stretch!important;}
+#guild :is(#guildBody,#gTabBody)>.panel{position:relative;isolation:isolate;background:none!important;border:0!important;border-image:none!important;border-radius:0!important;padding:52px 48px!important;}
+#guild :is(#guildBody,#gTabBody)>.panel::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--gh-frame) 25% fill / 56px / 0 stretch;}
+@media(max-width:700px){#guild #guildBody .gHead{padding-left:24px;padding-right:24px;}#guild #guildBody .gcol{--gh-y:44px;--gh-x:44px;}#guild #guildBody .gbar{padding:30px 44px 10px;}#guild #gChat,#guild #gRoster{padding:10px 8px 10px 32px;margin-right:30px;}#guild #gRoster{margin-bottom:32px;}#guild #gInputRow{margin:0 32px 32px;padding-top:10px;}}
+@media(max-width:700px){#guild :is(#guildBody,#gTabBody)>.panel{padding:42px 36px!important;}#guild :is(#guildBody,#gTabBody)>.panel::before{border-image-width:44px;}}
+/* v1351 (Phil 10 Nov: "I dont like the seperation of panels in guild" / "they should all be combined" / "but with tabs"): ONE carved frame around the whole Guild Hall body; header, tabs, chat and roster sit inside it split by thin gold lines; the tabs keep their own frames */
+#guild #guildBody{position:relative;isolation:isolate;padding:30px 34px 34px!important}
+#guild #guildBody::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--gh-frame) 25% fill/52px/0 stretch}
+#guild #guildBody :is(.gHead,.gTabStrip,.gcol)::before{display:none!important}
+#guild #guildBody :is(.gHead,.gTabStrip,.gcol){background:transparent!important;box-shadow:none!important;border:0!important}
+#guild #guildBody .gHead{margin:0!important;padding:2px 6px 10px!important;border-bottom:1px solid #b88a3e88!important}
+#guild #guildBody .gTabStrip{margin:0!important;padding:10px 0!important;border-bottom:1px solid #b88a3e88!important}
+#guild #guildWrap{gap:0!important}#guild #guildBody .gcol+.gcol{border-left:1px solid #b88a3e88!important}
+#guild #guildBody .gbar{padding:10px 14px 8px!important}
+#guild #gChat{padding:10px 14px!important;margin:0!important}#guild #gRoster{padding:10px 12px!important;margin:0!important}
+#guild #gInputRow{margin:0!important;padding:10px 12px 0!important}
+#guild #gTabBody>.panel{padding:14px 10px!important}#guild #gTabBody>.panel::before{display:none!important}
+@media(max-width:700px){#guild #guildBody{padding:22px 22px 24px!important}#guild #guildBody::before{border-image-width:38px}}
+@media(max-height:560px) and (min-width:701px){#guild #guildBody{padding:22px 24px 24px!important}#guild #guildBody::before{border-image-width:38px}}
 
 #forge:not(:has(#fgPop)){position:relative;display:none;min-height:100%;height:100%;padding:0!important;overflow-y:auto!important;align-items:initial!important;justify-content:initial!important;color:#eee0c4}
 #forge:not(:has(#fgPop)).active{display:block}
