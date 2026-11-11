@@ -28,8 +28,9 @@ for (const [L, p] of [[61, 'normal'], [75, 'normal'], [75, 'hard'], [90, 'hard']
 const s75 = W.sweepPrize({ playerLevel: () => 75 }, { run: { level: 0 } }, 'hard');
 ok(s75.gold > 0 && s75.gems > 0 && s75.potions > 0, 'control: a sweep is no longer end-XP only');
 // the sweep handler credits gold, diamonds and potions and still pays the full end XP
-ok(/creditGold\(ctx\.me, ctx\.led, sp\.gold, 'well:sweep'\)/.test(src) && /creditGems\(ctx\.me, ctx\.led, sp\.gems, 'well:sweep'\)/.test(src), 'the sweep credits gold and diamonds');
-ok(/const xp = endXP\(ctx, path\); if \(xp > 0\) ctx\.ledAddPlayerXP/.test(src), 'the sweep still pays the full end XP');
+/* v1361: the credit moved into creditWellPrize / creditEndXP (they report the amount actually credited); same payout */
+ok(/creditWellPrize\(ctx, sp, 'well:sweep'\)/.test(src) && /if \(prize\.gold\) prize\.gold = ctx\.creditGold\(ctx\.me, led, prize\.gold, reason\);/.test(src) && /if \(prize\.gems\) prize\.gems = ctx\.creditGems\(ctx\.me, led, prize\.gems, reason\);/.test(src), 'the sweep credits gold and diamonds');
+ok(/const xp = creditEndXP\(ctx, path\);/.test(src) && /function creditEndXP\(ctx, mode\) \{\s+const xp = endXP\(ctx, mode\);\s+if \(xp <= 0\) return 0;\s+const before = ctx\.led\.px \|\| 0;\s+ctx\.ledAddPlayerXP\(ctx\.led, xp, ctx\.me\);/.test(src), 'the sweep still pays the full end XP');
 // every fight won pays an XP potion; every chest has diamonds
 ok(/potions: boss \? 2 : 1 \}/.test(src), 'every fight won pays at least 1 XP potion (boss 2)');
 ok(/gems: sq\.big \? 15 : 5,/.test(src), 'every chest pays diamonds (small 5, big 15)');
