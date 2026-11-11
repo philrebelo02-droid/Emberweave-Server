@@ -5638,9 +5638,10 @@ const _glTally={on:false, T:new Map(), b:0, mb(){ return this.b/1048576; }};
     P.bindTexture=function(t,x){ if(t===this.TEXTURE_2D||t===this.TEXTURE_CUBE_MAP){ const B=t===this.TEXTURE_CUBE_MAP?(this.__ewBc||(this.__ewBc=[])):(this.__ewB2||(this.__ewB2=[])); B[this.__ewU||0]=x; } return bt.apply(this,arguments); };
     P.texImage2D=function(target,level){ const r=ti.apply(this,arguments); try{ if(level===0){ const cube=target!==this.TEXTURE_2D, x=cur(this,cube?this.TEXTURE_CUBE_MAP:this.TEXTURE_2D);
       if(x){ let w,h; if(arguments.length>=9){ w=arguments[3]; h=arguments[4]; } else { const q=arguments[arguments.length-1]; w=q&&(q.width||q.videoWidth||0); h=q&&(q.height||q.videoHeight||0); }
-        const p=T.get(x); put(x,{w:w|0,h:h|0,mip:false,f:cube?Math.min(6,((p&&p.cube&&p.f)||0)+1):1,cube}); _glTally.on=true; } } }catch(e){} return r; };
-    if(ts) P.texStorage2D=function(t,levels,fmt,w,h){ const r=ts.apply(this,arguments); try{ const x=cur(this,t); if(x){ put(x,{w:w|0,h:h|0,mip:levels>1,f:t===this.TEXTURE_CUBE_MAP?6:1}); _glTally.on=true; } }catch(e){} return r; };
+        const p=T.get(x); put(x,{w:w|0,h:h|0,mip:false,f:cube?Math.min(6,((p&&p.cube&&p.f)||0)+1):1,cube,g:this}); _glTally.on=true; } } }catch(e){} return r; };
+    if(ts) P.texStorage2D=function(t,levels,fmt,w,h){ const r=ts.apply(this,arguments); try{ const x=cur(this,t); if(x){ put(x,{w:w|0,h:h|0,mip:levels>1,f:t===this.TEXTURE_CUBE_MAP?6:1,g:this}); _glTally.on=true; } }catch(e){} return r; };
     P.generateMipmap=function(t){ const r=gm.apply(this,arguments); try{ const x=cur(this,t), o=x&&T.get(x); if(o&&!o.mip) put(x,Object.assign({},o,{mip:true})); }catch(e){} return r; };
+    { const ge=P.getExtension; P.getExtension=function(n){ const e=ge.apply(this,arguments); try{ if(e&&/lose_context/i.test(n)&&!e.__ewTally){ e.__ewTally=1; const g=this, lc=e.loseContext; e.loseContext=function(){ for(const [x,o] of T) if(o.g===g){ _glTally.b-=sz(o); T.delete(x); } return lc.apply(this,arguments); }; } }catch(_){} return e; }; }   /* v1368 memory audit: a forced context loss frees its textures in the tally too */
     P.deleteTexture=function(x){ try{ const o=T.get(x); if(o){ _glTally.b-=sz(o); T.delete(x); } }catch(e){} return dt.apply(this,arguments); }; }
 }catch(e){} })();
 const _texReg=[];
@@ -6307,9 +6308,9 @@ function evictUnusedArt(keepKeys){
 }
 /* v1140: back on the hub nothing of a battle is drawn - free every battle sheet (squad included; the next fight reloads it from the
    device cache behind its loading screen). Not during Emberdraft, an online match or the Gauntlet, which manage their own art. */
-function evictBattleArtAll(){ try{ if((typeof ED!=='undefined'&&ED&&ED.active) || (typeof OL!=='undefined'&&OL&&OL.active) || (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)) return 0;
+function evictBattleArtAll(){ try{ if((typeof ED!=='undefined'&&ED&&ED.active&&!((ED.round|0)>0&&typeof state!=='undefined'&&state!=='battle'&&state!=='result')) || (typeof OL!=='undefined'&&OL&&OL.active) || (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)) return 0;
   if(typeof state!=='undefined' && (state==='battle'||state==='result')) return 0; try{ corpseClear(); }catch(_){} try{ for(const u of units) if(u&&u._die&&!u._die.end) u._die.end=true; }catch(_){}   /* v1367 (memory, checked by ChatGPT): a death clip mid-play when the art leaves ends with it - its next draw never asks for the sheet again */   /* v1182+: a held body (death end:'hold') leaves with the fight - no corpse outlives it on the hub */
-  return evictUnusedArt([]); }catch(e){ return 0; } }
+  try{ aimArtFree(); }catch(_){} return evictUnusedArt([]); }catch(e){ return 0; } }
 function fmtMB(b){ return (b/1048576).toFixed(1)+' MB'; }
 function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
   const keys=[];
@@ -6720,6 +6721,7 @@ function _tintAimTex(src,tint){ try{ const c=document.createElement('canvas'); c
     for(let i=0;i<q.length;i+=4){ if(!q[i+3]) continue; const I=q[i+3]/255, w=0.35*I*I*I*I;   // after keying the light's intensity IS the alpha; w: only the hottest core leans white (additive over a bright field whitens fast, so the tint stays deep)
       q[i]=Math.round(tr*(1-w)+255*w); q[i+1]=Math.round(tg*(1-w)+255*w); q[i+2]=Math.round(tb*(1-w)+255*w); }
     x.putImageData(d,0,0); return c; }catch(e){ return src; } }
+function aimArtFree(){ try{ for(const u in _aimImg){ const im=_aimImg[u]; if(im&&im._tints){ for(const k in im._tints){ const c=im._tints[k]; if(c&&c.getContext){ c.width=0; c.height=0; } } im._tints=null; } } }catch(e){} }   /* v1368 memory audit: aimed-ult tint canvases leave with the battle art (rebuilt lazily) */
 function aimArt(kind,hero){ const url=(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind])||AIM_ART[kind]; if(!url) return null;
   let im=_aimImg[url]; if(im===undefined){ im=new Image(); im._ok=false; im.crossOrigin='anonymous'; im.onload=()=>{ im._keyed=_keyAimTex(im,kind==='blood'); im._ok=true; }; im.onerror=()=>{ im._ok=false; }; im.src=url; _aimImg[url]=im; }
   if(im&&im._ok){ const base=im._keyed||im; const tint=(kind!=='blood')?heroAimTint(hero):null; if(!tint) return base;
@@ -18868,6 +18870,7 @@ function _showScreen(name){
     const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
   if(name==='result'){ renderResultExtras(); try{ updateGuestMarks(); }catch(e){} }
   if(name!=='battle'&&name!=='result'&&typeof OL!=='undefined'&&OL.active){ OL.active=false; OL.host=false; OL.byId={}; }   /* v1367 memory audit (Phil 11 Nov: "Check to make sure no mode slips through"): a live PvP match set OL.active and nothing ever cleared it - after one match the phone never released battle art again that session, and a host could not start a second match. Leaving battle/result ends it. */
+  if(name!=='wall'){ try{ document.querySelectorAll('#wallBody video').forEach(v=>{ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(_){} v.remove(); }); }catch(e){} }   /* v1368 memory audit: the cauldron video leaves with its screen */
   if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} },0);   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
   /* v1365 (tester B 1.1, the phone crash after 30-40 min; Claude's diagnosis 11 Nov, section 3): on a phone the squad's sheets stayed loaded on the campaign
      map and every other menu between fights (Continue / Quit free only the foes) - ~1.16 GB of textures on a screen that draws no battle. On the phone art
@@ -34266,7 +34269,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     if(_wasLive){ _wasLive=false;                                  // leaving the battlefield: wipe it once
       try{ if(octx&&overlay) octx.clearRect(0,0,overlay.width,overlay.height); }catch(e){}
       try{ if(renderer&&scene&&camera) renderer.render(scene,camera); }catch(e){}   // one last clean frame
-      if(!(typeof ED!=='undefined' && ED.active)) fxFreeAll();      // v944: spell sheets leave graphics memory with the battle
+      if(!(typeof ED!=='undefined' && ED.active && (ED.round|0)===0)) fxFreeAll();   /* v1368 memory audit: only the Emberdraft start loader keeps its spell sheets */      // v944: spell sheets leave graphics memory with the battle
     }
     requestAnimationFrame(loop); return; }
   if(!_wasLive){ _wasLive=true; CW=0; }                            // re-entering: force one resize//rebuild
@@ -34649,7 +34652,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true; try{ ewStep
   const _capped = Promise.race([ _boot.catch(()=>null), new Promise(r=>setTimeout(r,5000)) ]);
   _capped.then(()=>{
     // lift only after a few clean frames have rendered behind it → no distorted first-frame flash
-    let _f=0; const _lift=()=>{ if(++_f<4){ resize3D(); requestAnimationFrame(_lift); } else if(gate) gate.style.display='none'; };
+    let _f=0; const _lift=()=>{ if(++_f<4){ resize3D(); requestAnimationFrame(_lift); } else if(gate){ gate.style.display='none'; try{ const sv=document.getElementById('splashVid'); if(sv){ sv.pause(); sv.removeAttribute('src'); sv.load(); } }catch(e){} } };   /* v1368 memory audit: the splash video stops once the game is entered */
     requestAnimationFrame(_lift);
     setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
     if(!ACC.token){ try{ authGateRefresh(); }catch(e){} }   // v1144: no session = the sign-in gate, first thing (2 Sep: a deliberate sign-out never lands on a guest's town)
@@ -36285,7 +36288,7 @@ function edEvictArt(all){
       if(!all && full.has(k)) continue;
       const set=BATTLE_ANIM[k]; if(!set) continue; let any=false; const onlyIdle=!all && idleOnly.has(k);
       for(const st in set){ if(st[0]==='_') continue; if(onlyIdle && st==='idle') continue; const c=set[st]; if(!c || !c.tex) continue;
-        try{ const tx=c.tex, im=tx.image; tx.dispose(); if(im && typeof im.close==='function') im.close(); const i=_texReg.indexOf(tx); if(i>=0) _texReg.splice(i,1); }catch(e){}
+        try{ const tx=c.tex, im=tx.image; tx._ewFreed=1; tx.dispose(); if(im && typeof im.close==='function') im.close(); const i=_texReg.indexOf(tx); if(i>=0) _texReg.splice(i,1); }catch(e){}
         c.tex=null; any=true; freed++; }
       if(any){ set._loaded=false; try{ delete _artWarmed['k:'+k]; }catch(e){} }
     }
@@ -36378,7 +36381,7 @@ function edCpSend(retries){ const q=edCpQueue(); if(!q.attemptId || !q.cps.lengt
   api('/api/emberdraft/round','POST',{ attemptId:att, cps:sent }).then(d=>{ ED._cpBusy=false;
     if(d && (d.ok || (d.error && d.error!=='offline' && d.error!=='auth'))){ const q2=edCpQueue(); if(q2.attemptId===att){ q2.cps=q2.cps.filter(c=>!sent.some(x=>x.r===c.r)); edCpSave(q2); } return; }   /* stored, or refused for good (the match was replaced) */
     if(retries>0) setTimeout(()=>edCpSend(retries-1), 3000); }, ()=>{ ED._cpBusy=false; }); }
-function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} try{ edAvGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); const _v=document.getElementById('edBgVid'); if(_v){ _v.removeAttribute('src'); try{ _v.load(); }catch(_){} _v.remove(); } }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} try{ edAvGfxStop(); }catch(e){} try{ edClearDecor(); }catch(e){} try{ edEvictArt(true); }catch(e){} ED.active=false; try{ fxFreeAll(); }catch(e){} ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); const _v=document.getElementById('edBgVid'); if(_v){ _v.removeAttribute('src'); try{ _v.load(); }catch(_){} _v.remove(); } }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
