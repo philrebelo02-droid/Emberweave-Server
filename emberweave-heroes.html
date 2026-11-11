@@ -27646,7 +27646,15 @@ function drawServerMarchInfo(body,local){
     if(!extra.length){const line=document.createElement('div');line.textContent=ewT('march.no_extra_trips');box.appendChild(line);}
     for(const m of extra){const line=document.createElement('div');const name=m.kind==='mine'?ewT('march.srv_mine',{n:m.level,res:m.resource}):ewT('march.city_march');
       const status=m.resultPending&&s.now>=m.arriveAt?ewT('march.awaiting_result'):s.now<m.arriveAt?ewT('march.ready_in',{t:fmtDur(m.arriveAt-s.now)}):ewT('march.returning_dot',{t:fmtDur(Math.max(0,m.homeAt-s.now))});
-      line.textContent=name+' — '+status;line.style.padding='5px 0';box.appendChild(line);if(m.kind==='city'&&m.resultPending&&s.now<m.arriveAt){const btn=document.createElement('button');btn.textContent='↩ '+ewT('march.retreat');btn.className='btn xs secondary';btn.style.minHeight='44px';btn.onclick=async()=>{btn.disabled=true;await recallServerCity(m.id);if(box.isConnected)render();};line.appendChild(btn);}}
+      line.textContent=name+' — '+status;line.style.padding='5px 0';box.appendChild(line);if(m.kind==='city'&&m.resultPending&&s.now<m.arriveAt){const btn=document.createElement('button');btn.textContent='↩ '+ewT('march.retreat');btn.className='btn xs secondary';btn.style.minHeight='44px';btn.onclick=async()=>{
+        if(btn.disabled) return;
+        btn.disabled=true;
+        try{
+          const recalled=await recallServerCity(m.id);
+          if(recalled&&box.isConnected) render();
+        }catch(e){ if(box.isConnected) bannerMsg(ewT('march.recall_unconfirmed')); }
+        finally{ btn.disabled=false; }
+      };line.appendChild(btn);}}
     if(s.failed){const line=document.createElement('div');line.textContent=ewT('march.refresh_failed');box.appendChild(line);}
   };render();syncWorldMarches(true).then(render);
 }
@@ -28536,7 +28544,16 @@ async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const 
       row.querySelector('.sgPow').innerHTML=statusIcon('attack')+' '+((l.power|0).toLocaleString())+(l.arriveAt>now?' · '+ewT('siege.arriving',{t:fmtDur(l.arriveAt-now)}):'');
       row.querySelector('.sgHeroes').textContent=(l.heroIds||[]).map(hn).join(', ');
       if(l.mine){ const b=document.createElement('button'); b.className='btn xs secondary'; b.dataset.return=l.marchId; b.textContent=ewT('siege.return');
-        b.onclick=async()=>{ b.disabled=true; await recallServerCity(l.marchId); await siegeRefresh(); viewGarrison(); }; row.appendChild(b); }
+        b.onclick=async()=>{
+          if(b.disabled) return;
+          b.disabled=true;
+          try{
+            if(!await recallServerCity(l.marchId)||!b.isConnected) return;
+            await siegeRefresh();
+            if(b.isConnected) viewGarrison();
+          }catch(e){ if(b.isConnected) bannerMsg(ewT('march.refresh_failed')); }
+          finally{ b.disabled=false; }
+        }; row.appendChild(b); }
       list.appendChild(row); }
     ov.querySelector('#sgBack').onclick=()=>render(); };
   ov._viewGarrison=viewGarrison;
@@ -28677,7 +28694,15 @@ function openMarchInfo(){ const s=modalShell(), now=Date.now();
     <div style="font-size:11px;color:#8b98a9;margin:12px 0 4px">${ewT('march.your_marches',{n:out.length})}</div>
     ${out.length?out.map(row).join(''):'<div style="font-size:11px;color:#6f7d90;padding:4px 0">'+ewT('march.no_active')+'</div>'}`;
   drawServerMarchInfo(s.body,out);
-  s.body.querySelectorAll('[data-retreat]').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;await retreatMarch(btn.dataset.retreat);openMarchInfo();});
+  s.body.querySelectorAll('[data-retreat]').forEach(btn=>btn.onclick=async()=>{
+    if(btn.disabled) return;
+    btn.disabled=true;
+    try{
+      const recalled=await retreatMarch(btn.dataset.retreat);
+      if(recalled&&s.ov.isConnected) openMarchInfo();
+    }catch(e){ if(s.ov.isConnected) bannerMsg(ewT('march.recall_unconfirmed')); }
+    finally{ btn.disabled=false; }
+  });
 }
 // Shield: activate a 12h protection consumable (bought in the guild shop)
 function openShield(){ const s=modalShell(), active=shieldActive();
@@ -34968,15 +34993,37 @@ function openEmberdraft(){   /* v1324 (Phil 9 Nov, via ChatGPT: "Emberdraft MAIN
   const _claimP = signed ? edResendClaim() : Promise.resolve();   /* v646: a saved unclaimed reward goes first */
   if(signed){ solo.disabled=true; _claimP.then(()=>api('/api/emberdraft/state','POST',{god})).then(d=>{ solo.disabled=!(d&&d.edraft);   /* v1355 (audit): no attempts view = Solo stays off (it was enabled on a failed fetch) */ show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,ewT('draft.err_server'))); }); }
   else attEl.textContent=ewT('draft.practice');
-  buy.onclick=()=>gameConfirm(ewT('draft.buy_confirm',{b:'<b>',eb:'</b>',n:buy.dataset.pack||3,name:'Emberdraft',cost:`<b style="color:#c9b6ff">${hudIcon('gem')}${buy.dataset.cost||''}</b>`}), ()=>{ buy.disabled=true;   /* v646: one tap spent diamonds */
+  buy.onclick=()=>gameConfirm(ewT('draft.buy_confirm',{b:'<b>',eb:'</b>',n:buy.dataset.pack||3,name:'Emberdraft',cost:`<b style="color:#c9b6ff">${hudIcon('gem')}${buy.dataset.cost||''}</b>`}), async()=>{ if(buy.disabled) return; buy.disabled=true;   /* v646: one tap spent diamonds */
     /* 3 Oct audit: one requestId per purchase until a definite answer - a lost reply (offline) or a refused save (storageFailed) re-sends the SAME id, even after the overlay is reopened */
     if(ED_BUY_RID.acct!==ACC.id){ ED_BUY_RID.id=null; ED_BUY_RID.acct=ACC.id; } const rid=ED_BUY_RID.id||(ED_BUY_RID.id=uid8()), _ea=ACC.id, _et=ACC.token;
-    api('/api/emberdraft/buy','POST',{requestId:rid}).then(d=>{ buy.disabled=false; if(ACC.id!==_ea) return; if(pendingDefinite(d)) ED_BUY_RID.id=null; if(ACC.token!==_et) return;
-    try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,ewT('draft.err_buy'))); }); });
-  solo.onclick=()=>{ if(!signed){ ov.remove(); edNewGame(null); return; }
-    solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();   /* v646: one request id until the server answers - a lost reply can't spend a second attempt */
-    _claimP.then(()=>api('/api/emberdraft/start','POST',{requestId:ov._startReq, god})).then(d=>{ delete ov.dataset.busy;
-      if(d&&d.ok){ ov._startReq=null; ov.remove(); edNewGame(d.attemptId); } else { if(!(d&&d.error==='offline')) ov._startReq=null; solo.disabled=false; show(d&&d.edraft, edNiceErr(d&&d.error,ewT('draft.err_start'))); } }); };
+    try{
+      const d=await api('/api/emberdraft/buy','POST',{requestId:rid});
+      if(ACC.id!==_ea) return;
+      if(pendingDefinite(d)) ED_BUY_RID.id=null;
+      if(ACC.token!==_et) return;
+      try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){}
+      show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,ewT('draft.err_buy')));
+    }catch(e){ if(ACC.id===_ea&&ACC.token===_et&&ov.isConnected) show(null,ewT('draft.err_buy')); }
+    finally{ buy.disabled=false; }
+  });
+  solo.onclick=async()=>{
+    if(solo.disabled||ov.dataset.busy) return;
+    if(!signed){ ov.remove(); edNewGame(null); return; }
+    const token=ACC.token, account=ACC.id;
+    const owns=()=>ov.isConnected&&ACC.token===token&&ACC.id===account;
+    solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();
+    let d;
+    try{
+      await _claimP;
+      if(!owns()) return;
+      d=await api('/api/emberdraft/start','POST',{requestId:ov._startReq,god});
+    }catch(e){ d={error:'offline'}; }
+    finally{ delete ov.dataset.busy; solo.disabled=false; }
+    if(!owns()) return;
+    if(pendingDefinite(d)) ov._startReq=null;
+    if(d&&d.ok){ ov.remove(); edNewGame(d.attemptId); return; }
+    show(d&&d.edraft,edNiceErr(d&&d.error,ewT('draft.err_start')));
+  };
 }
 
 /* where the painted pedestal lands on screen under background-size:cover, then stand the model there at the painted size */
