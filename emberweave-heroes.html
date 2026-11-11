@@ -3930,6 +3930,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
     <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
     <div class="titlebar"><h1 data-i18n="menu.quests" data-i18n-upper>QUESTS</h1></div>
     <div class="sub" data-i18n="quest.screen_sub">Complete objectives to earn hero fragments, gold and diamonds.</div>
+    <div id="questClaimNotice" role="status" style="color:#ffd45e;text-align:center"></div>
     <div class="panel" id="questBody"></div>
   </div>
   <div class="screen hub" id="signin">
@@ -10172,14 +10173,14 @@ function gsplitPickerRender(){
         width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${on?'#c9a35e':'#333'};
         background:${on?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer;touch-action:manipulation">
         <img src="${artOf(k)}" alt="${gsplitEsc(nameOf(k))}" style="width:54px;height:62px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${gsplitEsc(nameOf(k))}</span>
-        <span style="color:#c9a35e;font-weight:800">${on?uiIcon('check'):statusIcon('attack')+' '+powOf(k)}</span></button>`; }).join('');
+        <span style="display:flex;align-items:center;justify-content:center;gap:2px;width:100%;min-width:0;color:#c9a35e;font-weight:800;white-space:nowrap">${on?uiIcon('check'):'<span style="font-size:8px;overflow:hidden;text-overflow:ellipsis" title="'+gsplitEsc(t('hero.power'))+'">'+gsplitEsc(t('hero.power'))+'</span><span>'+powOf(k)+'</span>'}</span></button>`; }).join('');
     /* v585: the count and NEXT ride in a bar pinned to the bottom of the card - on a landscape phone they
        used to sit below every hero, a long scroll away. BEST picks the strongest heroes in one tap. */
     el.innerHTML = head + `
       <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${t('bonuspick.pick_hint',{n:'<b style="color:#e6edf3">'+CAP+'</b>'})}${info.tutorial?' '+t('bonuspick.tutorial'):''}</div>
       ${gsplitPresetRow(E)}
       <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${chips || '<div style="color:#8b98a9;font-size:12px">'+t('bonuspick.no_heroes')+'</div>'}</div>
-      <div class="gsplitBar"><div class="gsplitCount">${t('bonuspick.selected',{n:'<b>'+E.picked.length+'</b>',cap:CAP})}<div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
+      <div class="gsplitBar"><div class="gsplitCount">${t('bonuspick.selected',{n:'<b>'+E.picked.length+'</b>',cap:Math.min(CAP,owned.length)})}<div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
         <button type="button" id="gsplitAuto" class="btn secondary">${t('bonuspick.best',{n:Math.min(CAP,owned.length)})}</button>
         <button type="button" id="gsplitNext" class="btn" ${E.picked.length?'':'disabled'}>${t('bonuspick.next')} ${uiIcon('play')}</button></div>`;
     gsplitPresetWire(el, E);
@@ -18876,7 +18877,14 @@ function flushRewardQueue(){ const q=_rewardQueue.slice(); _rewardQueue=[];
 function bannerMsg(t){ if(window._p2guard) return;   // headless sim (arena seed search / server replay): never write the live #banner
   if(rewardLocked()){ queueBehindReward(()=>bannerMsg(t)); return; }
   t=String(langMsg(t==null?'':t)).replace(/^((?:&#9888;|⚠)\s*)?offline$/,(m,p)=>(p||'')+ewT('net.connection_lost'));   /* v1014 (re-audit Guild #8, Market #10): api()'s internal 'offline' never reaches a player as a raw word - one fix for every bannerMsg(d.error) site */
-  const b=document.getElementById('banner');  /* v1364 (tester report 11 Nov, 2.6): a message fired from inside a hero window (Stars 13000, glyph / gear windows 12000-13000) sat behind it at 9600 - the craft result was never seen. It now sits one layer above the highest open window (capped under the update notice, 15000). */ try{ let zt=9600; for(const d of document.body.children){ if(d===b||d.id==='updateNotice') continue; const cs=getComputedStyle(d); if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden') continue; const z=parseInt(cs.zIndex,10); if(z>=zt&&z<15000) zt=z+1; } b.style.zIndex=zt>9600?String(zt):''; }catch(e){}b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
+  const b=document.getElementById('banner');  /* v1364 (tester report 11 Nov, 2.6): a message fired from inside a hero window (Stars 13000, glyph / gear windows 12000-13000) sat behind it at 9600 - the craft result was never seen. It now sits one layer above the highest open window (capped under the update notice, 15000). */ try{ let zt=9600; for(const d of document.body.children){ if(d===b||d.id==='updateNotice') continue; const cs=getComputedStyle(d); if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden') continue; const z=parseInt(cs.zIndex,10); if(z>=zt&&z<15000) zt=z+1; } b.style.zIndex=zt>9600?String(zt):''; }catch(e){}const html=t.replace(/\n/g,'<br>');
+  if(bannerMsg._html!==html||!b.classList.contains('show')){
+    b.innerHTML=html; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+  }
+  bannerMsg._html=html;
+  clearTimeout(bannerMsg._hide);
+  bannerMsg._hide=setTimeout(()=>b.classList.remove('show'),1500);
+}
 // (matIcon deleted with MATS)
 
 /* v1321 (Phil 9 Nov: "Move the commander plate on the top left of the screen, egp under commander plate. Keep menu on the top right of the
@@ -29793,7 +29801,7 @@ function g2info(slot){ const bd=g2board(detailHero); const so=bd.slots[slot]; if
   bannerMsg(hudIcon('lock')+' <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')); }
 async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
   const r=await api('/api/glyphs/build-in-slot','POST',{ heroKey:detailHero, slot:RUNE2.build&&RUNE2.build.slot,
-    blueprintId:bpId, expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
+    blueprintId:bpId, expectedRevision:RUNE2.build?.data?.revision ?? (RUNE2.st?.revision||1), requestId:uid8() });
   RUNE2.busy=false;
   if(r&&r.error==='STALE'){ await glyphV2Sync(); if(RUNE2.build) g2buildOpen(RUNE2.build.slot); return; }
   if(!r||r.error){ bannerMsg((r&&r.error)||ewT('hero.build_failed')); await glyphV2Sync(); renderHeroDetail(); return; }
@@ -29860,7 +29868,7 @@ function glyphV2Tab(key){
     // clicked (lit only when its materials are there). "Quick Slot" (all six) lives on the board.
     const lvBlock=(D.levelOk===false)?`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:8px">${hudIcon('lock')} ${ewT('hero.needs_level',{b1:'<b>',b2:'</b>',n:D.levelRequired,h:D.heroLevel})}</div>`:'';
     const actions=!D.locked?`${lvBlock}<div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">${statusIcon('energy')} ${ewT('hero.quick_build')}</button>
+        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${D.canBuild?'':'disabled'} data-tut-glyph-build onclick="g2buildDo('${D.blueprintId}')">${statusIcon('energy')} ${ewT('hero.quick_build')}</button>
       </div>`:'';
     setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
     return `<div class="panel">${ancHead}
@@ -30504,11 +30512,18 @@ function questStateSync(force){
   }).catch(function(){ if(_questStateAt) _questStateReady=true; return null; }).then(function(sr){ _questStatePending=null; return sr; });
   return _questStatePending;
 }
+function showQuestClaim(message){
+  const notice=document.getElementById('questClaimNotice');
+  if(state!=='quest'||!notice){ bannerMsg(message); return; }
+  notice.innerHTML=message.replace(/\n/g,'<br>');
+  clearTimeout(showQuestClaim._hide);
+  showQuestClaim._hide=setTimeout(()=>{ notice.innerHTML=''; },2500);
+}
 function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
   if(ACC.token){ apiOnce('quest:'+q.id,'/api/quest/claim',{id:q.id}).then(sr=>{ if(sr&&sr.busy) return;   // v250: the SERVER validates + pays quests
-      if(sr&&sr.ok){ const r=(sr.got&&sr.got.heroFrags&&sr.got.heroDup)?t('quest2.plus_hero_n_frags',{n:sr.got.heroFrags,hero:(HERO_TYPES[sr.got.heroDup]||{}).name||sr.got.heroDup}):(q.reward||''); G.questClaimed[q.id]=true;   /* 5 Nov: an owned hero reward pays fragments - the banner says so */ adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); tutReturnAfterAction(); }
+      if(sr&&sr.ok){ const r=(sr.got&&sr.got.heroFrags&&sr.got.heroDup)?t('quest2.plus_hero_n_frags',{n:sr.got.heroFrags,hero:(HERO_TYPES[sr.got.heroDup]||{}).name||sr.got.heroDup}):(q.reward||''); G.questClaimed[q.id]=true;   /* 5 Nov: an owned hero reward pays fragments - the banner says so */ adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); showQuestClaim(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); tutReturnAfterAction(); }
       else if(sr&&sr.error){ bannerMsg(sr.error==='offline'?t('net.connection_lost'):(langMsg(sr.error)||sr.error)); ledgerSync(); } }).catch(()=>{}); return; }
-  const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); }
+  const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); showQuestClaim(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\n'+r); renderQuests(); }
 /* 30 Aug — THE STAGE-QUEST CHAIN BURNED THE STEP AND PAID NOTHING.
    /api/quest/chain-claim exists, is idempotent, validates the stage requirement and grants both the
    diamonds and the Vex fragments — the client simply never called it. It granted locally instead, so
@@ -30761,8 +30776,16 @@ function highlightTutorialTarget(){
     target=pick('#smBattle')||(state==='campaign'?pick(`.cnode[data-tut-stage="${n}"]`):null)||(state==='menu'?pick('#startBtn'):null);
     if(id==='win11'&&state==='menu')target=pick('#roster .hero-card:not(.selected)')||target;
   }else if(/^quest1[1-4]$/.test(id))target=pick('#qcClaim')||pick('#hdSummon')||pick('#heroesPanel .hero-card[data-hero-key="vex"]');
-  else if(id==='skill')target=pick('#heroDetail [data-skillup]:not([disabled])')||pick('#heroDetail [data-tab="skills"]')||pick('#heroesPanel .hero-card[data-hero-key="vael"]');
-  else if(id==='rune')target=[...document.querySelectorAll('#heroDetail button')].find(el=>visible(el)&&/Quick Build/.test(el.textContent))||pick('#heroDetail [data-tab="glyphs"]')||pick('#heroesPanel .hero-card[data-hero-key="vael"]');
+  else if(id==='skill'||id==='rune'){
+    if(G.unlocked?.vael){
+      if(detailHero==='vael'){
+        target=id==='skill'
+          ? pick('#heroDetail [data-skillup]:not([disabled])')||pick('#heroDetail [data-tab="skills"]')
+          : pick('#heroDetail [data-tut-glyph-build]')||pick('#heroDetail [data-tab="glyphs"]');
+      }
+      target=target||pick('#heroesPanel .hero-card[data-hero-key="vael"]');
+    }
+  }
   else if(id==='vexxp')target=pick('#heroDetail [data-xp-potion="minor"]')||pick('#heroesPanel .hero-card[data-hero-key="vex"]');
   else if(id==='wish')target=pick('#wpGold');
   else if(id==='gemwish')target=pick('#wpGem');
