@@ -8733,6 +8733,7 @@ function gsplitEnd(){
   gsplitBoundsExit(); FX_SIZE=2;
   GSPLIT.window = null; GSPLIT._winSig = ''; GSPLIT._tutorialSwapDone = false;
   GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null;
+  GSPLIT._finishing = false; GSPLIT._verdictPending = null;   /* v1364 (tester reports 11 Nov: bonus stage frozen at the gate, Retreat dead): a finished run left _finishing set, so the NEXT run never ticked and its Retreat returned at once */
   try{ evictUnusedArt(G.team); }catch(e){}   // game-speed/memory fix, 17 Sep 2026: whole Gauntlet run finished, not mid-run
 }
 
@@ -10299,6 +10300,8 @@ function gsplitEnterBattle(data, assign, id){
   // Clear a previous fight before spawning any lane. This also handles a re-entry
   // after an interrupted exit and prevents old sprites from sharing the new scene.
   clearBattle();
+  GSPLIT._finishing = false; GSPLIT._verdictPending = null;
+  battleInputsReset();   /* v1364 (tester report: "Connection slow" on a bonus stage): the last campaign fight's live action stream was still on, so the first tap went to a dead session and gave up with the banner */
   const seed = (data.attemptId||id).split('').reduce((a,c)=>((a*31+c.charCodeAt(0))>>>0), 7);
   GSPLIT.active = true;
   GSPLIT.stage = id;
@@ -10625,6 +10628,7 @@ function gsplitResendMissingWindows(){
 function gsplitFinish(verdict){
   if(GSPLIT._finishing) return;
   GSPLIT._finishing = true;
+  try{ bannerMsg('◆ '+ewT('gauntlet.retrying')); }catch(e){}   /* v1364: the field holds while the result is confirmed - say so */
   GSPLIT._verdictPending = verdict;   // the REAL, earned verdict - kept so a later manual retry (see
                                        // gsplitHudEnter's RETREAT/RETRY button below) can confirm the
                                        // actual result instead of RETREAT silently converting it to a loss
@@ -10708,7 +10712,8 @@ function gsplitShowResult(won, data, _afterDeath){
 }
 
 function gsplitRetreat(){
-  if(!GSPLIT.active || GSPLIT._finishing) return;
+  if(!GSPLIT.active) return;
+  if(GSPLIT._finishing){ bannerMsg('◆ '+ewT('gauntlet.retrying')); return; }   /* v1364: never a silent no-op - the result is being confirmed */
   for(const L of GSPLIT.lanes) if(L.state === 'walking') L.state = 'lost';
   gsplitFinish('lost');
 }
