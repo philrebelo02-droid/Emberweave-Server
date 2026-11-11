@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.58", "releases": "v1364", "items": [{"text": "Tester reports 11 Nov (Tester A + Tester B): bonus stage freeze, music silence, Arena Rules backdrop, messages behind windows (Claude; music by ChatGPT); each checked by Grok"}, {"text": "Night smoke + Grok EYES: Wishing roll history; Heroes glyph-dot backoff"}, {"text": "Phil 11 Nov: \"please make an option in settings Patch Notes where I can view the past 10 patch notes\" / \"include date and time\" / \"put it under support\""}]},
     {"ver": "1.5.57", "releases": "v1363", "items": [{"text": "ChatGPT audit round 5 (stuck-control sweep D batch 4 and batch 5 part: whisper, Skyfall team save, Ascendant Spire)"}]},
     {"ver": "1.5.56", "releases": "v1362", "items": [{"text": "ChatGPT audit round 5 (stuck-control sweep D batches 2-3; Province / Well replay mode)"}, {"text": "Claude night audit 11 Nov (stage audit side finding; machine button audit of every button at five sizes)"}, {"text": "Ember bug sweep 3 (hero summon)"}]},
     {"ver": "1.5.55", "releases": "v1361", "items": [{"text": "ChatGPT audit round 5 (17 cap-edge diffs + Unblock button) and Claude ledger-diff currency audit C1-C11"}, {"text": "Grok EYES 11 Nov (screenshots at 12 device sizes), each verified in the live page"}]},
