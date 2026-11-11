@@ -707,6 +707,7 @@
   .rsSlots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:8px}
   .rsSlotLbl{grid-column:1/-1;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8b98a9;margin:2px 0 -2px}
   .rsSlot{min-width:0;border:2px dashed #3a4a6e;border-radius:10px;padding:4px 4px 6px;background:rgba(20,27,43,.6);text-align:center;cursor:pointer;position:relative}
+  .rsSlot:not(.full){cursor:default}   /* v1362 (button audit): an empty team slot has no action - it no longer shows the tap cursor */
   .rsSlot.full{border-style:solid;border-color:#ffb347;background:#2a3350}
   .rsSlot .rsEmpty{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#4a5a7e;font-size:22px;font-weight:300}
   .rsImg{position:relative;width:100%;aspect-ratio:1/1}
@@ -2538,6 +2539,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 /* match the rest of the game (Phil 25 Sep: "I want the ui to match the rest of the game"): the squad screen's back button, the gold
    h1 on the HUD plaque, hud-panel frames, hero-card colours, Georgia gold labels, the HUD gold/gem icons */
 .wlTop{background:linear-gradient(#05070dcc,#05070d00)}
+/* v1362 (button audit): the Well's transparent title bar lay over the top half of every top-row tile on a Fold cover - a tap on the tile centre did nothing. The bar takes no taps; its own controls still do. */
+.wlTop{pointer-events:none}.wlTop>*{pointer-events:auto}
 .wlTtl{flex:0 1 auto;margin:0 auto;display:flex;flex-direction:column;align-items:center;border:0 solid transparent;border-width:0 16px;
   border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 16px stretch;padding:2px 14px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));text-shadow:none}
 .wlH1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:clamp(13px,2cqw,18px);letter-spacing:2px;text-transform:uppercase;line-height:1.2}
@@ -30218,7 +30221,7 @@ function wishGold10Cost(){ return WISH_GOLD_COST*WISH10_MULT; }
 function wishGem10Cost(){ return WISH_GEM_COST*WISH10_MULT; }
 function showWishResults10(list,pool){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
-  ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 12px 46px #000b">
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:20px;width:100%;max-width:420px;max-height:calc(var(--ew-game-height,100vh) - 16px);overflow:auto;box-sizing:border-box;text-align:center;box-shadow:0 12px 46px #000b">
     <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='myth'?'🌟 '+t('wish.mythical_x10'):pool==='gem'?'🔮 '+t('wish.diamond_x10'):'⛲ '+t('wish.gold_x10')}</div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:14px 0">
       ${list.map((r,i)=>{ const ic = r.hero ? `<div style="width:52px;height:52px;margin:0 auto">${heroIcon(r.hero,52)}</div>`
