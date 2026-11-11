@@ -3533,6 +3533,37 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena .arDay .arMini.arClaim,#arena .arDay .arMini.arClaim:disabled{font-size:14px!important;line-height:1}
 #arena .arDay .arClaim{position:absolute;left:4px;right:4px;top:calc(100% + 8px);min-height:36px!important;font-size:14px!important;display:flex;align-items:center;justify-content:center;gap:5px}   /* Phil 10 Nov: "move the claim out of the refresh and reset box. Put it below that" */
 @media (max-height:380px) and (min-width:701px){ #arena .arDay{padding:11px 13px!important} #arena .arDay .arMini{min-height:21px!important} #arena .arDayNo{font-size:13px!important;line-height:14px} #arena .arOppNm{font-size:10px!important} #arena .arOpp{padding:10px 19px 9px!important} }
+/* v1359 (Phil 10 Nov, desktop Arena screenshot: "desktop version of arena has the rank and refresh plates in the middle of the art, it should be left side,
+   also arena should be largers and right of base"): on tall screens (PC, tablet, open Fold) the two plates slide to the left edge of the game frame
+   (a transform: the defenders and opponents keep their place), the ARENA title is larger and sits right of the Base button, and the body starts below it. */
+@media (min-height:561px) and (min-width:701px){
+#arena:has(.arWrap)>.hdrbox{top:6px!important;left:96px!important;width:auto!important;text-align:left!important}
+#arena:has(.arWrap) h1{width:clamp(260px,calc(var(--ew-game-width,100vw) * .2),380px)!important;margin:0!important}
+#arena:has(.arWrap) #arenaBody{margin-top:120px!important}
+#arena .arMedal,#arena .arDay{transform:translateX(calc(var(--ew-game-width,100vw) * -.14))}
+}
+@media (min-height:561px) and (max-height:759px) and (min-width:701px){
+#arena:has(.arWrap) #arenaBody{margin-top:104px!important}
+#arena .arMedal,#arena .arDay{transform:translateX(calc(var(--ew-game-width,100vw) * -.24))}
+}
+/* v1359: tablets and the open Fold - the game frame is a 16:9 band shorter than the window, so the viewport-height rules above misjudge it. They take the
+   short-laptop Arena (one screen), scaled to the frame's width: about 1024 px wide = 82%, about 840 px wide = 67%. */
+@media (min-height:561px) and (min-width:701px) and (max-aspect-ratio:3/2) and (min-width:997px){
+#arena:has(.arWrap) #arenaBody{zoom:0.82!important;width:73%!important;margin:122px 1.5% 0 auto!important}
+#arena .arWrap{gap:8px!important}
+#arena .arOppArt{width:min(78%,calc(var(--ew-game-height,100vh) * 0.207))!important}
+#arena .arHero{width:min(calc(20% - 5px),calc(var(--ew-game-height,100vh) * 0.207))!important}
+#arena .arOpp{min-height:0!important;padding:16px 20px 14px!important}
+#arena .arMedal,#arena .arDay{transform:translateX(calc(var(--ew-game-width,100vw) * -0.293))}
+}
+@media (min-height:561px) and (min-width:701px) and (max-aspect-ratio:3/2) and (max-width:996px){
+#arena:has(.arWrap) #arenaBody{zoom:0.67!important;width:73%!important;margin:149px 1.5% 0 auto!important}
+#arena .arWrap{gap:8px!important}
+#arena .arOppArt{width:min(78%,calc(var(--ew-game-height,100vh) * 0.254))!important}
+#arena .arHero{width:min(calc(20% - 5px),calc(var(--ew-game-height,100vh) * 0.254))!important}
+#arena .arOpp{min-height:0!important;padding:16px 20px 14px!important}
+#arena .arMedal,#arena .arDay{transform:translateX(calc(var(--ew-game-width,100vw) * -0.358))}
+}
 /* v1352 (Phil 10 Nov: "how many buildings do we have to do before i stop reminding you guys" / "Show me the art wired"): ChatGPT's standing building packages (Game Art/UI/<Building> main 10NOV2026) - title art + carved panels for Temple of Ash, Wishing Pool, Skyfall, Sky Island, Elite, Arena Shop, Campaign, Watchtower. Shared frames reuse guild-ornate-panel / market-price-rail / market-item-frame (byte-identical sources). */
 /* Temple of Ash */
 #temple #tp2Stage::after{content:'';position:absolute;left:26.5%;top:2%;width:47%;height:17%;background:url('/assets/img/ui/building-titles/temple-title.webp?v=1') center/contain no-repeat;pointer-events:none;z-index:5;}
