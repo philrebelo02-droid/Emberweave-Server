@@ -30317,7 +30317,11 @@ function questsAvailable(){ let n=0; if(questChainReady())n++; questDefs().forEa
 function renderQuests(){ const b=document.getElementById('questBody'); if(!b)return;
   if(ACC.token && !_questStateReady){
     b.innerHTML='<div style="text-align:center;color:#8b98a9;padding:30px 12px">'+t('quest2.syncing')+'</div>';
-    questStateSync(true).then(function(){ if(document.getElementById('questBody')===b) renderQuests(); });
+    const _qtk=ACC.token;
+    questStateSync(true).then(function(){ if(document.getElementById('questBody')!==b||ACC.token!==_qtk) return;
+      if(_questStateReady){ renderQuests(); return; }   /* v1356 (audit): a failed first load re-entered this branch and fetched again without a throttle */
+      b.innerHTML='<div style="text-align:center;color:#8b98a9;padding:30px 12px">'+t('net.connection_lost')+'<div style="margin-top:12px"><button class="btn secondary sm" id="questRetry">'+t('common.retry')+'</button></div></div>';
+      const rb=b.querySelector('#questRetry'); if(rb) rb.onclick=renderQuests; });
     return;
   }
   /* smoke 5 Nov (ChatGPT): the server's ready map was read only at sign-in, so a quest finished later (5/5 heroes, 3/3 wishes,
@@ -30417,7 +30421,8 @@ function signinClaimToday(){ signinEnsure(); const d=signinNow(), day=d.getDate(
       if(r&&r.ledger) adoptLedger(r.ledger);
       if(!r||!r.ok){ bannerMsg(langMsg(r&&r.error)||ewT('signin.not_recorded')); renderSignin(); return; }
       saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges();
-      showSigninReward(rew, rew.hero); renderSignin(); }).catch(function(){ _signinBusy=false; renderSignin(); });
+      let _shown=rew; try{ const mm=String(r.month||'').split('-'), sy=+mm[0], sm=(+mm[1])-1, sd=r.day|0; if(sy>2000&&sm>=0&&sm<12&&sd>=1&&(sd!==day||sm!==d.getMonth())) _shown=signinDayReward(sy,sm,sd); }catch(e){}   /* v1356 (audit): near the 09:00 reset the client's day can differ from the day the server paid */
+      showSigninReward(_shown, _shown.hero); renderSignin(); }).catch(function(){ _signinBusy=false; renderSignin(); });
     return; }
   rew.grant(); G.signinClaimed.push(day); saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges();
   showSigninReward(rew, rew.hero); renderSignin(); }
@@ -33809,7 +33814,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088793';
+const BUILD_ID = '1794347088794';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

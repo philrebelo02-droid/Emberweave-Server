@@ -6577,9 +6577,14 @@ async function api(req,res,url){
       if(!hero||!it||!def) return bad('Unknown item.');
       const where=gearItemEquippedBy(g,iid);
       if(where) return bad('Already equipped on '+heroDisplayName(where.hero)+'.');   /* v994 (audit #11): the hero's name, not its id */
+      /* v1356 (Phil 10 Nov: "block it"): a bound item belongs to the hero it was first equipped on. Before, equipping another item in the
+         same slot dropped it out of g.equipped and nothing remembered its hero, so it could be equipped on a different hero. it.hero is
+         written on every equip; an item bound before v1356 with no recorded hero takes the first hero it is equipped on from now. */
+      if(it.bound&&it.hero&&it.hero!==hero) return bad('That item is bound to '+heroDisplayName(it.hero)+'.');
       g.equipped[hero]=g.equipped[hero]||{};
+      { const prev=g.equipped[hero][def.slot], pit=prev&&gearItemOf(g,prev); if(pit&&!pit.hero) pit.hero=hero; }   // the item being displaced keeps its hero
       g.equipped[hero][def.slot]=iid;   // replaces the slot's occupant (which stays bound, unequipped)
-      it.bound=true;                    // bound-item rule: once equipped, never a crafting ingredient
+      it.bound=true; it.hero=hero;      // bound-item rule: once equipped, never a crafting ingredient, never another hero's
       return ok({ hero, slot:def.slot, itemId:iid });
     }
     if(p==='/api/gear/unequip'){
@@ -8146,7 +8151,7 @@ async function api(req,res,url){
           for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
         else if(it.shields){ if((me.shields|0)+it.shields>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 */
           led.guildCoins=(led.guildCoins|0)-it.cost; me.shields=Math.min(99,(me.shields|0)+it.shields); got.shields=it.shields; }   /* v1081: guild-shop shields are the server's */
-        else if(it.arenaCoins){ led.guildCoins=(led.guildCoins|0)-it.cost; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+it.arenaCoins); got.arenaCoins=it.arenaCoins; }   /* v1079 */
+        else if(it.arenaCoins){ if((me.coins|0)+it.arenaCoins>ECON_CAP.arenaCoins) return {ok:false,error:'You cannot hold more of those arena coins.'};   /* v1356 (Ember sweep 2): it took the guild coins and clamped the grant */ led.guildCoins=(led.guildCoins|0)-it.cost; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+it.arenaCoins); got.arenaCoins=it.arenaCoins; }   /* v1079 */
         else { led.guildCoins=(led.guildCoins|0)-it.cost;
           if(it.gold){ creditGold(me,led,it.gold,'gshop:'+idx); got.gold=it.gold; } else { creditGems(me,led,it.gems,'gshop:'+idx); got.gems=it.gems; } }
         ledTx(me,'gshop:'+idx,Object.assign({guildCoins:-it.cost},got));
@@ -8439,7 +8444,7 @@ async function api(req,res,url){
           const s=TEMPLE.pray(state,key,tier,{profile:info.damageProfile});
           if(!s||s.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(iterSnap)); led.gold+=g; led.gems+=d; gold-=g; gems-=d; stopped='The prayer failed.'; break; }   /* v1097: a failed prayer is refunded */
           if(s.power>0){TEMPLE.saveSession(state);saved++;power+=s.power;for(const x of TEMPLE.earnBlessings(state,key,info))unlocked.push(x);}
-          else{TEMPLE.discardSession(state);cancelled++;}
+          else{TEMPLE.discardSession(state);cancelled++;for(const x of TEMPLE.earnBlessings(state,key,info))unlocked.push(x);}   /* v1356: dots were only checked on a SAVED prayer - at the cap Multi pray always discards */
           results.push({power:s.power,saved:s.power>0,rolls:s.rolls,bonusWon:!!s.bonusPrayer,levelUps:s.levelUps||0});
         }
         if(!results.length)return {ok:false,error:stopped||'Auto pray did not run.'};
@@ -8497,6 +8502,7 @@ async function api(req,res,url){
       if(!pending)return {ok:false,error:'No prayer is pending.'};
       if(p==='/api/temple/discard'){
         TEMPLE.discardSession(state);
+        try{ TEMPLE.earnBlessings(state,pending.heroId,templeHeroInfo(led,pending.heroId)); }catch(e){}   /* v1356: see /api/temple/auto */
         const tx=ledTx(me,'temple:discard',{hero:pending.heroId,tier:pending.tier||null});
         return {ok:true,tx,ledger:ledgerView(me)};
       }
@@ -9337,7 +9343,7 @@ async function api(req,res,url){
         return { lv:DA.lv, learn:DA.learn, res:DA.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(DA.lv.academy|0) }; });
       return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error}); }
     if(req.method!=='POST') return send(res,404,{error:'academy'});   /* v991 (audit #14): checked BEFORE the income pass, which changed the account on a 404 */
-    if(A)acadCollect(A);   // finished research and hourly income apply on every touch (the POST routes save through idem)
+    if(A&&p!=='/api/academy/collect')acadCollect(A);   // finished research and hourly income apply on every touch (the POST routes save through idem); v1356: collect applies it inside its own durable commit
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'}); if(p!=='/api/pvp/attack'){ led=ensureLedger(me); A=ensureAcad(me); }   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
         if(ledPlayerLevel(led)<ACADEMY_UNLOCK_LEVEL) return {ok:false,error:'The Academy opens at player level '+ACADEMY_UNLOCK_LEVEL+'.'};   /* v988 (Temple+Academy audit #4): the client's lock, now on the server */
