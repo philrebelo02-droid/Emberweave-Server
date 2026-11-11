@@ -7,10 +7,13 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tf1364-'));
 fs.writeFileSync(path.join(tmp, 'emberweave-heroes.html'), cp.execSync('git show e68f7437:emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
 fs.mkdirSync(path.join(tmp, 'server'), { recursive: true });
 try { fs.writeFileSync(path.join(tmp, 'server.js'), cp.execSync('git show e68f7437:server.js', { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) {}
-const run = (f, root) => cp.spawnSync(process.execPath, [path.join(FX, f), root], { encoding: 'utf8' });
+const run = (f, root) => cp.spawnSync(process.execPath, [path.join(FX, f), root, ROOT], { encoding: 'utf8' });   // argv[3] = repo root (node_modules for browser fixtures)
 for (const f of fs.readdirSync(FX).filter(f => f.endsWith('.test.cjs')).sort()) {
   const n = f.replace('.test.cjs', ''), now = run(f, ROOT), old = run(f, tmp);
   ck(n + ': passes on this tree', now.status === 0, (now.stderr || '').split('\n').slice(0, 3).join(' '));
   ck(n + ': CONTROL fails on v1363', old.status !== 0);
 }
+// *.guard.cjs = regression guards: must PASS on this tree AND on v1363 (e.g. a touch tap must not close the overlay it opened)
+for (const f of fs.readdirSync(FX).filter(f => f.endsWith('.guard.cjs')).sort()) {
+  const n = f.replace('.guard.cjs', ''); ck(n + ': guard passes on this tree', run(f, ROOT).status === 0); ck(n + ': guard passes on v1363', run(f, tmp).status === 0); }
 console.log('test_tester_fixtures_1364.js: ' + P + ' passed, ' + F + ' failed'); process.exit(F ? 1 : 0);

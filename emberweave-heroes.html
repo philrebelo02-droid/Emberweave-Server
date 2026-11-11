@@ -7962,7 +7962,14 @@ function gameConfirm(msg,onYes,opts){ const ov=document.createElement('div'); op
   document.body.appendChild(ov); const close=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
   /* v1359 (night smoke, town): the Confirm button opens under the finger on a phone - a double tap on "Rename · 50" paid for the rename unread (4 of 4). Confirm takes no tap for its first 450 ms. */
-  const _gcT=Date.now(); ov.querySelector('#_gcNo').onclick=close; ov.querySelector('#_gcYes').onclick=(e)=>{ if(e&&e.isTrusted&&Date.now()-_gcT<450) return; close(); onYes&&onYes(); }; }
+  let readyAt=Infinity, confirmed=false;
+  requestAnimationFrame(()=>{ readyAt=performance.now()+450; });
+  ov.querySelector('#_gcNo').onclick=close;
+  ov.querySelector('#_gcYes').onclick=(e)=>{
+    if(confirmed||(e&&e.isTrusted&&e.timeStamp<readyAt)) return;
+    confirmed=true;
+    close(); onYes&&onYes();
+  }; }
 function playerLevel(){ return levelForXP(G.playerXP, TROOP_CUM); }
 // add player XP and award +30 stamina for each level gained (may overflow the cap, like a stamina item)
 function addPlayerXP(xp){ const before=playerLevel(); G.playerXP=(G.playerXP||0)+xp; const after=playerLevel();
@@ -25505,7 +25512,7 @@ function syncActiveSquad(){ const k=squadModeKey(); G.team=pruneSquadArr(squadFo
    stage modal — so the trailing click landed on the newly opened modal's backdrop (or a button
    inside it) and shut it again. A mouse fires click on the element it pressed, which is why every
    desktop harness passed while every phone was dead. Fix: for a short window after a pointer-driven
-   tap, swallow the one stray click at the document level before it can reach anything. */
+   tap, swallow the trailing click before it can hit a new overlay. */
 let _tapSwallowUntil=0;
 document.addEventListener('click',(e)=>{ if(_tapSwallowUntil && Date.now()<_tapSwallowUntil){ _tapSwallowUntil=0; e.stopPropagation(); e.preventDefault(); } },true);
 function swallowNextClick(){ _tapSwallowUntil=Date.now()+600; }
@@ -25513,10 +25520,10 @@ function wireTap(el, fn){
   if(!el || el._tapWired) return; el._tapWired=1;
   let down=null, last=0;
   const fire=()=>{ const now=Date.now(); if(now-last<400) return; last=now; try{ fn(); }catch(e){ console&&console.error&&console.error(e); } };
-  el.addEventListener('pointerdown',(e)=>{ down={x:e.ewGameX,y:e.ewGameY,t:Date.now()}; },{passive:true});
+  el.addEventListener('pointerdown',(e)=>{ down={x:e.ewGameX,y:e.ewGameY,t:e.timeStamp}; },{passive:true});
   el.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
     if(Math.abs(e.ewGameX-d.x)>16 || Math.abs(e.ewGameY-d.y)>16) return;   // that was a scroll, not a tap
-    if(Date.now()-d.t>900) return;                                         // that was a long press
+    if(e.timeStamp-d.t>900) return;                                         // that was a long press
     swallowNextClick(); fire(); },{passive:true});
   el.addEventListener('pointercancel',()=>{ down=null; },{passive:true});
   el.addEventListener('click',()=>fire());
@@ -25530,11 +25537,11 @@ function wireRosterTaps(r){
     const now=Date.now(); if(card===lastCard && now-lastAt<400) return; lastCard=card; lastAt=now;
     try{ card._pick(); }catch(e){ if(r&&r.id==='roster'){ try{ reRenderRoster(); }catch(_){} } } };
   r.addEventListener('pointerdown',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card');
-    down = c ? {c, x:e.ewGameX, y:e.ewGameY, t:Date.now()} : null; }, {passive:true});
+    down = c ? {c, x:e.ewGameX, y:e.ewGameY, t:e.timeStamp} : null; }, {passive:true});
   r.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
     const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c!==d.c)return;
     if(Math.abs(e.ewGameX-d.x)>16 || Math.abs(e.ewGameY-d.y)>16) return;   // that was a scroll, not a tap
-    if(Date.now()-d.t>900) return;                                        // that was a long press
+    if(e.timeStamp-d.t>900) return;                                        // that was a long press
     swallowNextClick(); fire(d.c); }, {passive:true});
   r.addEventListener('pointercancel',()=>{ down=null; }, {passive:true});
   r.addEventListener('click',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c) fire(c); });
