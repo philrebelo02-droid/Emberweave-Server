@@ -18821,7 +18821,7 @@ function _ensureScreen(){ try{ if(typeof state==='undefined'||state==='battle'||
     if(el){ el.classList.remove('popout'); el.classList.add('active'); try{ _fitApp(); }catch(e){} try{ muteBtnPlace(true); }catch(e){} }
     else if(!_ensureScreen.busy){ _ensureScreen.busy=true; try{ show('home'); }finally{ _ensureScreen.busy=false; } }
   }catch(e){} }
-function show(name){ try{ ewStep('screen:'+name); }catch(e){} show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
+function show(name){ try{ ewStep('screen:'+name); }catch(e){} if(name==='home'&&typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ CAMP_RETURN=null; try{ campBackLabel(); }catch(e){} } show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
 function _showScreen(name){
   try{ if(name!==state) loreStop(); }catch(e){}
   try{ if(name!==state && window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164: leaving a screen lets the Skills-tab preview's sheets + sounds go */
@@ -18859,7 +18859,7 @@ function _showScreen(name){
   if(name==='glossary') renderGlossary();
   _fitApp();
   if(name==='home') renderHome();
-  if(name==='campaign'){ try{ campBonusBtnRefresh(); }catch(e){} try{ setTimeout(affBtnPlace,0); }catch(e){}   // v1298: the bottom-left Bonus Stage claim
+  if(name==='campaign'){ try{ campBonusBtnRefresh(); }catch(e){} try{ setTimeout(affBtnPlace,0); }catch(e){} try{ campBackLabel(); }catch(e){}   // v1298: the bottom-left Bonus Stage claim
     // 27 Aug (Phil): clearing a stage returns you to THAT stage, not to your furthest one.
     if(G.lastPortal && PORTAL_META[G.lastPortal] && !portalLockMsg(G.lastPortal)) PORTAL=G.lastPortal;
     campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), portalChapters(PORTAL)) : 0; campViewUser=false;
@@ -29848,7 +29848,22 @@ function g2SrcGo(stageId, mode){ const m=/^(\d+)-(\d+)$/.exec(String(stageId||''
   const node=(+m[1]-1)*10 + (+m[2]); mode=mode||'normal';
   const lock=portalLockMsg(mode); if(lock){ bannerMsg(hudIcon('lock')+' '+lock); return; }
   const chLock=portalChapterLockMsg(mode,+m[1]); if(chLock){ bannerMsg(hudIcon('lock')+' '+chLock); return; }
+  try{ const _bd=RUNE2.build; CAMP_RETURN={hero:detailHero, under:state, slot:_bd?_bd.slot:null, stack:_bd&&_bd.stack?_bd.stack.slice():null}; }catch(e){ CAMP_RETURN=null; }   /* v1367 Back returns to this hero */
   RUNE2.build=null; g2RenderOverlays(); PORTAL=mode; campViewCh=0; campViewUser=false; show('campaign'); openStageModal(node, mode); }
+/* v1367 (Phil 11 Nov: "Yes do that"; tester: Back from a stage opened by a glyph source went to the main screen "not to the hero's window
+   where it had directed you to find the fragments"): while CAMP_RETURN is set, the campaign's own Back button names that hero and returns to
+   the hero window, glyph tab, the build tree reopened at the same glyph. Cleared on that return and whenever the player goes Home. */
+var CAMP_RETURN=null;
+function campBackLabel(){ try{ const b=document.querySelector('#campaign>.backbtn'); const sp=b&&b.querySelector('span'); if(!sp) return;
+  const h=CAMP_RETURN&&HERO_TYPES[CAMP_RETURN.hero];
+  if(h){ sp.removeAttribute('data-i18n'); sp.textContent=h.name; } else { sp.setAttribute('data-i18n','nav.base'); sp.textContent=ewT('nav.base'); } }catch(e){} }
+async function campReturnGo(){ const r=CAMP_RETURN; CAMP_RETURN=null; campBackLabel(); try{ closeStageModal(); }catch(e){} if(!r||!r.hero) return show('home');
+  show((r.under&&r.under!=='campaign'&&r.under!=='heroDetail'&&document.getElementById(r.under))?r.under:'heroes');
+  detailHero=r.hero; heroTab='glyphs'; popoutScreen('heroDetail');
+  if(r.slot!=null){ try{ await g2buildOpen(r.slot); if(RUNE2.build&&RUNE2.build.slot===r.slot&&r.stack&&r.stack.length){ RUNE2.build.stack=r.stack; renderHeroDetail(); g2RenderOverlays(); } }catch(e){} }
+  setTimeout(()=>{ try{ const q=document.querySelector('#heroDetail [data-tut-glyph-build]')||document.querySelector('#heroDetail [data-tab="glyphs"]'); if(q) q.scrollIntoView({block:'center'}); }catch(e){} },350); }
+try{ document.addEventListener('click',e=>{ const bb=e.target&&e.target.closest&&e.target.closest('#campaign>.backbtn');
+  if(bb&&CAMP_RETURN){ e.stopImmediatePropagation(); e.preventDefault(); campReturnGo(); } },true); }catch(e){}
 function g2NodeArtSrc(n){ if(n.kind==='fragment'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/fragment-${g2slotOfFam(p.fam)}.png?v=4`; }
   if(n.kind==='subGlyph'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/sub-${g2slotOfFam(p.fam)}.png?v=4`; }
   return `/assets/img/glyphs-v2/${g2qdir(n.quality)}/finished-${g2slotOfFam(n.family)}.png?v=4`; }
