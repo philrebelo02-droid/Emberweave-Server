@@ -1023,6 +1023,31 @@
   .ctrlBtn.pending{background:rgba(21,27,43,.92);border-color:#ffd45e;color:#ffe49c;font-size:10px;cursor:wait;}
   #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:9600;text-align:center;letter-spacing:2px;padding:20px;}   /* v1320 (Phil 9 Nov: "The prompt in the back of the glyph screen should be infront"): over the pop-out panels (9000-9200), under the reward pop-out (9800) */
   #banner.show{display:flex;animation:pop 1.4s ease-out forwards;}
+/* v1368 (tester B 4.6 "Standardize boss warnings and a top boss health bar"; Claude 11 Nov: "a stylized ribbon with the boss portrait and a large boss
+   HP bar at the top, display only"): the plain BOSS INCOMING text becomes a ribbon across the field with the boss's portrait, and while a boss is up a
+   large HP bar sits under the wave timer. Display only - nothing here reads or changes the fight. */
+#bossRibbon{position:absolute;left:0;right:0;top:36%;height:clamp(74px,23vh,120px);display:none;z-index:9601;pointer-events:none;overflow:visible;}
+#bossRibbon.show{display:block;animation:brSlide 2.6s cubic-bezier(.2,.8,.2,1) forwards;}
+#bossRibbon .brBand{position:absolute;inset:0;background:linear-gradient(90deg,rgba(60,6,6,0) 0,rgba(96,10,10,.93) 14%,rgba(128,16,14,.96) 50%,rgba(96,10,10,.93) 86%,rgba(60,6,6,0) 100%);border-top:2px solid #d9a441;border-bottom:2px solid #d9a441;box-shadow:0 0 26px rgba(255,70,30,.45),inset 0 0 18px rgba(0,0,0,.5);}
+#bossRibbon .brBand::before,#bossRibbon .brBand::after{content:"";position:absolute;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,#ffd45e,transparent);}
+#bossRibbon .brBand::before{top:5px;} #bossRibbon .brBand::after{bottom:5px;}
+#bossRibbon .brIn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:clamp(10px,2.4vw,22px);padding:0 7%;}
+#bossRibbon .brPort{height:124%;aspect-ratio:1;border-radius:50%;border:3px solid #ffd45e;background:#2a0b0b center 14%/cover no-repeat;box-shadow:0 0 0 3px rgba(80,10,10,.9),0 0 22px rgba(255,190,80,.65);flex:none;display:flex;align-items:center;justify-content:center;font-size:30px;}
+#bossRibbon .brTxt{text-align:left;min-width:0;max-width:min(64vw,620px);}
+#bossRibbon .brWarn{font-size:12px;letter-spacing:3px;color:#ffb37a;font-weight:900;text-shadow:0 1px 3px #000;animation:brBlink .45s steps(2) 5;}
+#bossRibbon .brName{font-size:clamp(20px,7vh,34px);font-weight:900;color:#ffd45e;line-height:1.1;margin:1px 0 2px;text-shadow:0 2px 8px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#bossRibbon .brCue{font-size:12px;color:#f3e6d2;line-height:1.25;text-shadow:0 1px 2px #000;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+@keyframes brSlide{0%{transform:translateX(-105%);opacity:1}11%{transform:translateX(0)}86%{transform:translateX(0);opacity:1}100%{transform:translateX(35%);opacity:0}}
+@keyframes brBlink{50%{opacity:.3}}
+#bossTopBar{position:absolute;top:60px;left:50%;transform:translateX(-50%);width:min(54%,520px);display:none;z-index:14;pointer-events:none;align-items:center;gap:7px;}
+#bossTopBar.on{display:flex;}
+#bossTopBar .btPort{width:32px;height:32px;border-radius:50%;border:2px solid #ffd45e;background:#2a0b0b center 14%/cover no-repeat;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.6);}
+#bossTopBar .btMain{flex:1;min-width:0;}
+#bossTopBar .btName{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:900;color:#ffd45e;text-shadow:0 1px 2px #000,0 0 3px #000;line-height:1.2;}
+#bossTopBar .btN{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} #bossTopBar .btPct{color:#fff;flex:none;}
+#bossTopBar .btTrack{position:relative;height:12px;margin-top:1px;border:1.5px solid #d9a441;border-radius:7px;background:rgba(22,6,6,.88);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.6);}
+#bossTopBar .btLag{position:absolute;left:0;top:0;bottom:0;width:100%;background:#f5e6c8;transition:width .6s ease-out .25s;}
+#bossTopBar .btFill{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(180deg,#ff6a55,#c0180f 60%,#8a0e09);}
   @keyframes pop{0%{opacity:0;transform:scale(2.2);}20%{opacity:1;transform:scale(1);}72%{opacity:1;}100%{opacity:0;transform:scale(1.1);}}
 
   .result-big{font-size:38px;font-weight:900;margin:10px 0;} .win{color:#5ee89b;} .lose{color:#ff6b6b;}
@@ -4013,6 +4038,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <div id="enemyBar"></div>
   <div id="ultCancel"><img class="stIc" src="/assets/img/icons/ui/close-v1.webp" alt=""> <span data-i18n="common.cancel">Cancel</span></div>
   <div id="banner"></div>
+  <div id="bossRibbon" aria-hidden="true"><div class="brBand"></div><div class="brIn"><div class="brPort"></div><div class="brTxt"><div class="brWarn"></div><div class="brName"></div><div class="brCue"></div></div></div></div>
+  <div id="bossTopBar" aria-hidden="true"><div class="btPort"></div><div class="btMain"><div class="btName"><span class="btN"></span><span class="btPct"></span></div><div class="btTrack"><div class="btLag"></div><div class="btFill"></div></div></div></div>
   <button id="pauseBtn">⏸</button>
   <div id="pauseModal"><div class="pm">
     <div style="font-size:20px;font-weight:900;margin-bottom:14px" data-i18n="hud.paused">Paused</div>
@@ -17010,9 +17037,29 @@ function bossCueFor(u){
   }catch(e){}
   return (u&&BOSS_CUES[u.key])?(ewT(('bosscue.'+u.key))||BOSS_CUES[u.key]):null;
 }
+/* v1368 B 4.6: the boss's painted art (the Glossary's), for the ribbon and the top bar's portrait */
+function bossArt(b){ try{ if(!b) return ''; const k=b.key; return (typeof GLOSSARY_ART!=='undefined'&&(GLOSSARY_ART['bosses/'+k]||GLOSSARY_ART['monsters/'+k]))||(typeof HERO_CARD_ART!=='undefined'&&HERO_CARD_ART[k])||(typeof HERO_PORTRAITS!=='undefined'&&HERO_PORTRAITS[k])||''; }catch(e){ return ''; } }
+/* v1368 B 4.6: the large boss HP bar under the wave timer - shown while a boss is alive in the fight, every frame, DOM written only when the
+   whole percent changes. Several bosses share one bar (their HP summed, "x2" on the name). */
+function bossBarTick(){ if(typeof document==='undefined') return; const el=document.getElementById('bossTopBar'); if(!el) return;
+  let bs=null; if(state==='battle'&&!ended&&typeof units!=='undefined'){ for(let i=0;i<units.length;i++){ const u=units[i]; if(u.team==='enemy'&&u.boss&&u.alive&&!u._dropHidden) (bs||(bs=[])).push(u); } }
+  if(!bs){ if(el._on){ el._on=0; el._k=null; el._pc=-1; el.classList.remove('on'); } return; }
+  let lead=bs[0], hp=0, mx=0; bs.forEach(u=>{ if(u.maxHp>lead.maxHp) lead=u; hp+=Math.max(0,u.hp); mx+=Math.max(1,u.maxHp); });
+  const f=Math.max(0,Math.min(1,hp/mx)), pc=Math.ceil(f*100), key=lead.uid+'|'+bs.length;
+  if(!el._on){ el._on=1; el.classList.add('on'); }
+  if(el._k!==key){ el._k=key; el.querySelector('.btN').textContent=((lead.t&&lead.t.name)||'')+(bs.length>1?' x'+bs.length:''); const a=bossArt(lead); el.querySelector('.btPort').style.backgroundImage=a?'url("'+a+'")':''; }
+  if(el._pc!==pc){ el._pc=pc; el.querySelector('.btFill').style.width=(f*100).toFixed(1)+'%'; el.querySelector('.btLag').style.width=(f*100).toFixed(1)+'%'; el.querySelector('.btPct').textContent=pc+'%'; } }
 function bossIntro(){ const b=units.find(u=>u.team==='enemy'&&u.alive&&u.boss)||units.find(u=>u.team==='enemy'&&u.alive);
   const nm=(b&&b.t&&b.t.name)?b.t.name:ewT('battle.the_guardian');
   const cue=bossCueFor(b)||ewT('bosscue.default');
+  /* v1368 B 4.6: the ribbon with the boss's portrait (the old centred text stays as the fallback) */
+  const rb=document.getElementById('bossRibbon');
+  if(rb){ rb.querySelector('.brWarn').innerHTML=uiIcon('warning')+' '+ewT('battle.boss_incoming');
+    rb.querySelector('.brName').innerHTML=uiIcon('crown')+' '+escapeHTML(nm); rb.querySelector('.brCue').textContent=cue;
+    const art=bossArt(b), pt=rb.querySelector('.brPort'); pt.style.backgroundImage=art?'url("'+art+'")':''; pt.innerHTML=art?'':uiIcon('crown');
+    rb.classList.remove('show'); void rb.offsetWidth; rb.classList.add('show');
+    { const ne=rb.querySelector('.brName'); ne.style.fontSize=''; let f=parseFloat(getComputedStyle(ne).fontSize)||24; while(ne.scrollWidth>ne.clientWidth+1&&f>14){ f-=1; ne.style.fontSize=f+'px'; } }   /* a long name shrinks to fit on one line (Fold cover) */
+    clearTimeout(bossIntro._t); bossIntro._t=setTimeout(()=>rb.classList.remove('show'),2700); return; }
   const el=document.getElementById('banner'); if(!el){ bannerMsg(uiIcon('warning')+' '+ewT('battle.boss')); return; }
   el.innerHTML='<div style="font-size:12px;letter-spacing:2px;color:#ffb37a">'+uiIcon('warning')+' '+ewT('battle.boss_incoming')+'</div>'
     +'<div style="font-size:26px;font-weight:900;color:#ffd45e;line-height:1.15;margin:2px 0">'+uiIcon('crown')+' '+escapeHTML(nm)+'</div>'
@@ -18867,7 +18914,8 @@ function _showScreen(name){
   if(name==='battle'){document.getElementById('hud').classList.add('active');document.getElementById('battleCtrls').classList.add('active');const bb=document.getElementById('battleBanner');if(bb)bb.classList.add('active');}
   else if(document.getElementById(name)){ const target=document.getElementById(name); target.classList.add('active'); target.scrollTop=0; }   /* v1361: the scroll reset ran while the screen was still display:none and did nothing - Start Here, Quests, Guild, Glossary, Sign-in, Rankings reopened scrolled, Base off the top (every device) */
   { const bg=document.getElementById('battleBg'); if(bg) bg.style.display = (name==='battle') ? 'block' : 'none';
-    const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
+    const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active');
+  if(name!=='battle'){ const bt=document.getElementById('bossTopBar'), br=document.getElementById('bossRibbon'); if(bt){ bt.classList.remove('on'); bt._on=0; bt._k=null; bt._pc=-1; } if(br) br.classList.remove('show'); } }   /* v1368 B 4.6 */
   if(name==='result'){ renderResultExtras(); try{ updateGuestMarks(); }catch(e){} }
   if(name!=='battle'&&name!=='result'&&typeof OL!=='undefined'&&OL.active){ OL.active=false; OL.host=false; OL.byId={}; }   /* v1367 memory audit (Phil 11 Nov: "Check to make sure no mode slips through"): a live PvP match set OL.active and nothing ever cleared it - after one match the phone never released battle art again that session, and a host could not start a second match. Leaving battle/result ends it. */
   if(name!=='wall'){ try{ document.querySelectorAll('#wallBody video').forEach(v=>{ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(_){} v.remove(); }); }catch(e){} }   /* v1368 memory audit: the cauldron video leaves with its screen */
@@ -27146,7 +27194,7 @@ async function renderCauldron(body){
   if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center"><button class="btn" data-nav="account">'+t('hut.sign_in_register')+'</button></div>'; bindNav(body); return; }
   const panel=document.createElement('div'); panel.className='panel'; panel.innerHTML=t('hut.loading'); body.appendChild(panel);
   const w=await api('/api/witch/state');
-  if(!panel.isConnected || WALL_TAB!=='cauldron') return;
+  if(!panel.isConnected || WALL_TAB!=='cauldron' || (typeof state!=='undefined'&&state!=='wall')) return;   /* v1368 (ChatGPT, memory review): a late reply after the player left must not rebuild the cauldron video under the hidden screen */
   if(!w||w.error){ panel.textContent=t('hut.unreachable'); return; }   /* v1200: api() answers {error} on a lost or timed-out reply, never null */
   if(w.locked){ panel.textContent=t('hut.locked',{hut:t('bld.witches_hut'),n:WALL_UNLOCK_LEVEL}); return; }
   const pct=Math.max(0,Math.min(100,w.capacity?100*w.brew/w.capacity:0));
@@ -34291,7 +34339,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     if(s.trailC!==undefined){ s._tacc=(s._tacc||0)+dt; if(s._tacc>=.022){ s._tacc=0;
       try{ fxParticle(s.mesh.position.x,s.mesh.position.y,s.mesh.position.z,(Math.random()-.5)*.3,.35,(Math.random()-.5)*.3,s.trailC,.34,.34); }catch(e){} } }
   });{ const _t0=perfMark(); renderer.render(scene,camera); if(PERF.on)PERF.ren+=performance.now()-_t0; }}
-  { const _t0=perfMark(); drawOverlay(); if(PERF.on)PERF.ovl+=performance.now()-_t0; }
+  { const _t0=perfMark(); drawOverlay(); try{ bossBarTick(); }catch(e){} if(PERF.on)PERF.ovl+=performance.now()-_t0; }
   requestAnimationFrame(loop);
 }
 
