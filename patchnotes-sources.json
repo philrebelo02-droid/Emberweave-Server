@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.60", "releases": "v1366", "items": [{"text": "Tester reports 11 Nov: Claude diagnosis -> Grok fixes (campaign-open freeze, memory), checked by ChatGPT; ChatGPT batch 3 (B 4.3, B 4.4, A P3/P4, A P2, A P14, B 2.7), checked by Grok"}, {"text": "Spanish tester via Phil (WhatsApp 11 Nov): Tick \"currently completely useless\" - Phil: \"yes buff tick\""}]},
     {"ver": "1.5.59", "releases": "v1365", "items": [{"text": "Tester reports 11 Nov: Grok's visual packet (B 2.3, B 2.4, A P10, B 2.5, A P6; B 2.2 guard) checked by ChatGPT; ChatGPT's dropped / late taps (Tester A Performance) checked by Grok"}]},
     {"ver": "1.5.58", "releases": "v1364", "items": [{"text": "Tester reports 11 Nov (Tester A + Tester B): bonus stage freeze, music silence, Arena Rules backdrop, messages behind windows (Claude; music by ChatGPT); each checked by Grok"}, {"text": "Night smoke + Grok EYES: Wishing roll history; Heroes glyph-dot backoff"}, {"text": "Phil 11 Nov: \"please make an option in settings Patch Notes where I can view the past 10 patch notes\" / \"include date and time\" / \"put it under support\""}]},
     {"ver": "1.5.57", "releases": "v1363", "items": [{"text": "ChatGPT audit round 5 (stuck-control sweep D batch 4 and batch 5 part: whisper, Skyfall team save, Ascendant Spire)"}]},

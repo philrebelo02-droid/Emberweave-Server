@@ -6,7 +6,8 @@ let P = 0, F = 0; const ck = (n, c, x) => { if (c) { P++; console.log('  ok   ' 
 const src = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
 const a = src.indexOf('const AFF_ELEMENT='), b = src.indexOf('function dealDamage(', a);
 ck('affinity rules present', a > 0 && b > a);
-const ctx = {}; vm.runInNewContext(src.slice(a, b) + '\nthis.e=elemMul; this.c=classEdge; this.ue=unitElement; this.AFF=AFF_ELEMENT;', ctx);
+ck('the release switch exists (AFFINITIES_LIVE)', /const AFFINITIES_LIVE=(true|false);/.test(src));
+const ctx = {}; vm.runInNewContext('var AFFINITIES_LIVE=true;' + src.slice(a, b) + '\nthis.e=elemMul; this.c=classEdge; this.ue=unitElement; this.AFF=AFF_ELEMENT;', ctx);
 const U = (key, team, role) => ({ key, team, t: { role } });
 const ofEl = el => Object.keys(ctx.AFF).find(k => ctx.AFF[k] === el && k !== 'aureth');
 for (const [x, y] of [['Water', 'Fire'], ['Fire', 'Ice'], ['Ice', 'Nature'], ['Nature', 'Lightning'], ['Lightning', 'Water']]) {
