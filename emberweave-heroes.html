@@ -19663,7 +19663,7 @@ function gearStatLabel(k){ return statIcon(k)+(GEAR_STAT_LABEL[k]?(t('gear.'+'st
 const GEAR_STAT_LABEL={hp:'Health',atk:'Attack',apow:'Ability Power',armor:'Armor',mr:'Magic Resist',crit:'Crit',critDmg:'Crit Dmg',critRes:'Crit Resist',defense:'Defense',energy:'Energy Regen',regen:'HP Regen',ctrlRes:'Tenacity',ctrlHit:'Control Hit',startEnergy:'Start Energy',healPow:'Healing',lifesteal:'Lifesteal',atkSpd:'Attack Speed',haste:'Haste',eva:'Evasion',acc:'Accuracy',block:'Block',dmgBonus:'Damage Bonus',dmgRed:'Damage Reduction',shieldStr:'Shield Strength',armorPen:'Armor Pen',magicPen:'Magic Pen',heal:'Heal'};
 let gearSlotSel='Weapon';
 function gearSlotSelect(sl){ gearSlotSel=sl; renderHeroDetail(); }
-async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
+async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;   /* v1366 (tester via Phil: "should be instant"): Set active shows on the card the moment it is tapped; the server confirms behind it */ if(path==='/select-active'&&FORGE.st&&payload&&payload.heroKey){ try{ FORGE.st.active=Object.assign({},FORGE.st.active||{}); FORGE.st.active[payload.heroKey]=payload.itemId; renderHeroDetail(); }catch(e){} }
   let r;
   try{ r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload)); }
   catch(e){ bannerMsg(t('forge.cold')); return; }

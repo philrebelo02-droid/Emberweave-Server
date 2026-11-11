@@ -73,7 +73,8 @@ assert.equal(defs.length,96);for(const d of defs){assert.equal(d.passiveStats.sp
 for(const s of require('../server/hero-ascension-bonuses.json').heroes.hero61.steps)assert.ok(allowed.has(s.stat));
 const gear=require('../server/gear-catalog.json').items,heroGear=gear.filter(d=>d.id.startsWith('H61E'));
 assert.equal(heroGear.length,9);
-for(const d of heroGear){assert.equal(d.active,null);assert.equal(Object.keys(d.stats).length,3);assert.ok(Object.keys(d.stats).every(k=>['hp','armor','mr','healPow','apow','energy'].includes(k)));
+const acts=require('../server/gear-actives.json');   // v1366 Phil 11 Nov: "make sure all equipment has an active option" - each piece takes its artId twin's active
+for(const d of heroGear){const tw=gear.find(x=>x.id===d.artId);assert.ok(d.active&&d.active===tw.active&&d.effect===tw.effect);assert.ok(acts.some(a=>a.id===d.id&&a.type===acts.find(z=>z.id===tw.id).type));assert.equal(Object.keys(d.stats).length,3);assert.ok(Object.keys(d.stats).every(k=>['hp','armor','mr','healPow','apow','energy'].includes(k)));
  const original=gear.find(x=>x.id===d.artId);
  assert.ok(original&&d.frag===original.frag&&d.sub===original.sub&&d.subFragCost===original.subFragCost,'personal gear retains existing recipe ingredients');
  assert.ok(require('../server/vault-encounters.json').floors.some(f=>f.gearFragments.includes(d.frag)),'each Hero61 gear ingredient has a real Vault floor');
