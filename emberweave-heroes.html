@@ -7220,6 +7220,14 @@ const ICON_SRC={s:n=>`/assets/img/icons/status/${n}-v1.webp`, t:n=>`/assets/img/
 const ART_ICON={'glyph-frag':'/assets/img/glyphs-v2/Grey/fragment-vitality.png?v=4', 'wish-gold':'/assets/img/wishing/pool-gold-v1.webp?v=1', 'wish-diamond':'/assets/img/wishing/pool-diamond-v1.webp?v=1', 'wish-myth':'/assets/img/wishing/pool-mythical-v1.webp?v=1'};
 function iconImg(k,n,cls){ return `<img class="stIc${cls?' '+cls:''}" src="${ICON_SRC[k](n)}" alt="">`; }
 function uiIcon(n,cls){ return iconImg('u',n,cls); }
+/* v1364 (tester A P10: the close / back X on every menu and Vael's Play Voice icon are off centre): .stIc carries margin-right .25em and vertical-align -.28em
+   for an icon that sits before a word. In a button that holds ONLY the icon, that margin pushed the art ~1.9 px left and the drop ~0.8 px down. Such a button is
+   marked .icOnly (on creation and on every redraw) and its icon is centred; buttons with a word beside the icon are untouched. */
+(function(){ const st=document.createElement('style'); st.id='icOnlyCss'; st.textContent='.icOnly>img.stIc{display:block!important;margin:0 auto!important;vertical-align:top!important}'; document.head.appendChild(st);
+  const mark=b=>{ if(b.children.length===1&&b.firstElementChild.matches('img.stIc')&&!(b.textContent||'').trim()) b.classList.add('icOnly'); else b.classList.remove('icOnly'); };
+  const scan=n=>{ if(!n||n.nodeType!==1) return; if(n.matches('button,.popoutClose')) mark(n); else if(n.matches('img.stIc')&&n.parentElement&&n.parentElement.matches('button,.popoutClose')) mark(n.parentElement); if(n.firstElementChild) n.querySelectorAll('button,.popoutClose').forEach(mark); };
+  const go=()=>{ scan(document.body); new MutationObserver(ms=>{ for(const m of ms){ if(m.target.nodeType===1&&m.target.matches('button,.popoutClose')) mark(m.target); for(const n of m.addedNodes) scan(n); } }).observe(document.body,{childList:true,subtree:true}); };
+  if(document.body) go(); else document.addEventListener('DOMContentLoaded',go); })();
 /* v1100 (Phil 9 Oct: 'the hero fragment should be their hero card'): a hero's fragments show that hero's own card, the way the reference
    shows a hero's soulstones - never a generic fragment picture. Vault fragments are GLYPH fragments and show their glyph art. */
 function fragCard(key,px){ px=px||18; return `<span class="fragCard" style="width:${px}px;height:${px}px">${heroIcon(key,px)}</span>`; }
@@ -9815,7 +9823,9 @@ function gsplitPromptMove(from, to){
 
 function gsplitWindowDraw(){
   const el=gsplitWindowEl();
-  if(!gsplitWindowOpen()){el.className='';el.innerHTML='';return;}
+  if(!gsplitWindowOpen()){el.className='';el.innerHTML='';   /* v1364 (tester A P6): START with a hero picked up left the three road highlights on the field for the whole wave -
+       they live outside this panel (#gwLaneOverlays), so emptying the panel never removed them */
+    const ov=document.getElementById('gwLaneOverlays'); if(ov) ov.remove(); return;}
   const W=GSPLIT.window,station=(W.station|0)+1;
   if(W.phase==='boon'){
     let html='<div class="gw-head">'+t('gswin.boon_head',{n:station,total:4})+'</div><div class="gw-roads">';
@@ -10911,7 +10921,7 @@ gsplitPickerRender = function(){
     const required=rails.steps.some(s=>s.key===b.dataset.k);
     if(step){
       b.disabled=b.dataset.k!==step.key;
-      if(!b.disabled){ b.style.boxShadow='0 0 12px 4px #ffd36b'; b.onclick=()=>{
+      if(!b.disabled){ gsTutGlow(b); b.onclick=()=>{
         /* v579 (Phil: "the tutorial has me click the heroes but doesnt highlight them"): the rails wrote laneOf only,
            and the v576 two-screen picker keys the highlight and the road screen off E.picked - so the tap showed nothing
            and the place screen dropped the lane. Now the tap PICKS the hero as well; after the last step the map screen
@@ -10927,6 +10937,13 @@ gsplitPickerRender = function(){
   if(start){ start.disabled=!!step; if(step)start.style.opacity='0.45'; }
 };
 
+/* v1364 (tester B 2.5: "Tap the glowing hero" - the glow was a dim orange-brown, lost on the dark card): the hero to tap now wears the game's gold #ffd45e
+   as a solid border with a pulsing halo. Used for the picker hero and the firebreak's Top Road hero / Middle button on the teaching run. */
+function gsTutGlow(b){ if(!b) return; if(!document.getElementById('gsTutGlowCss')){ const st=document.createElement('style'); st.id='gsTutGlowCss';
+    st.textContent='@keyframes gsTutPulse{0%,100%{box-shadow:0 0 0 2px #ffd45e,0 0 10px 3px rgba(255,212,94,.7)}50%{box-shadow:0 0 0 3px #ffd45e,0 0 24px 9px rgba(255,212,94,.95)}}'+
+      '#gsplitPicker .gsTutGlow,#gsplitWindow .gsTutGlow{border-color:#ffd45e!important;border-style:solid!important;animation:gsTutPulse 1.1s ease-in-out infinite!important;position:relative;z-index:1}';
+    document.head.appendChild(st); }
+  b.style.boxShadow=''; b.classList.add('gsTutGlow'); }
 const _bonusStartRun = gsplitStartRun;
 gsplitStartRun = function(){
   if(GSPLIT_ENTRY && GSPLIT_ENTRY._rails && GSPLIT_ENTRY._rails.next<GSPLIT_ENTRY._rails.steps.length) return;
@@ -10991,12 +11008,12 @@ gsplitWindowDraw=function(){
     root.querySelectorAll('[data-gw="move"]').forEach(b=>{
       const required=b.dataset.lane==='0'&&b.dataset.to==='1';
       b.disabled=!required || GSPLIT._tutorialSwapDone;
-      if(required&&!b.disabled) b.style.boxShadow='0 0 8px 2px #ffd36b';
+      if(required&&!b.disabled) gsTutGlow(b);
     });
     /* v585: the hint says "the glowing hero" - make one glow. Top Road heroes, and the Middle button once one is picked up. */
     if(!GSPLIT._tutorialSwapDone){
-      root.querySelectorAll('.gw-hero[data-lane="0"]').forEach(b=>{ b.style.boxShadow='0 0 10px 3px #ffd36b'; b.style.borderColor='#ffd36b'; });
-      root.querySelectorAll('.gw-dest[data-lane="1"]:not([disabled])').forEach(b=>{ b.style.boxShadow='0 0 10px 3px #ffd36b'; });
+      root.querySelectorAll('.gw-hero[data-lane="0"]').forEach(gsTutGlow);
+      root.querySelectorAll('.gw-dest[data-lane="1"]:not([disabled])').forEach(gsTutGlow);
     }
   }
   const why=root.querySelector('.gw-why');
@@ -18390,7 +18407,11 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='ba
       const nm=(u.t&&u.t.name)?String(u.t.name).toUpperCase():'BOSS';
       octx.font='900 12px sans-serif'; octx.lineWidth=3.5; octx.strokeStyle='rgba(0,0,0,.9)';
       octx.strokeText('👑 '+nm,p.x,y-13); octx.fillStyle='#ffd45e'; octx.fillText('👑 '+nm,p.x,y-13); }
-    if(u===selected){octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11);}
+    if(u===selected){ if(_bn){   /* v1364 (tester B 2.4: a square box over the hero in the three-roads run): the campaign's 11 px frame round the bar is taller than a bonus
+        hero's whole head, so it read as a box on the hero. A bonus hero gets a clean gold ring at its feet instead (display only). */
+        const _f=project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,0.01); if(_f.vis){ const _rr=Math.max(6,_ebw*0.62); octx.save(); octx.strokeStyle='#ffd45e'; octx.lineWidth=1.5; octx.shadowColor='rgba(255,212,94,.8)'; octx.shadowBlur=4;
+          octx.beginPath(); octx.ellipse(_f.x,_f.y,_rr,_rr*0.42,0,0,Math.PI*2); octx.stroke(); octx.restore(); } }
+      else { octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11); } }
     if(u._edIdle && u._edId!=null) edBadgeAt(u, p.x, p.y-12);   // v642: the planning item badge sits on top of the bar
     // over-head status icons (~2 m above head): silence mask, then stun mask
     { const si={x:p.x, y:p.y-(_bn?3:(u.boss?9:6))}, isz=_bn?Math.max(10,Math.round(_ebw*1.3)):(u.boss?32:23);   // status icons stack directly above the bar (v587: bonus icons scale with the bar)
@@ -18931,7 +18952,7 @@ function renderHome(){
   // Anchors measured against the wide city painting; all sixteen tap targets retain their destination.
   const wideHomePositions=[
     [20,15,28,27,19,30], [15,47,14,45,15,47],
-    [48,11,18,17,48,20], [35,20,12,14,35,29],
+    [48,15.25,18,8.5,48,20], [35,20,12,14,35,29],   /* v1364 (tester B 2.3: Market partly under the diamond display): the Market box began at 2.5% and ran under the food / gold / diamond strip (35% of it on a phone, 41% on a Fold cover); it now starts at 11%, below the strip (33 px = 9.6% on a 344 px screen) */
     [58,15,14,20,58,27], [73,15,15,26,73,31],
     [46,31,20,26,46,46], [61,35,13,15,61,46],
     [75,38,14,22,81,52], [56,53,10,16,56,64],   /* v1322 (Phil 9 Nov: "move the plate for the vault right so it doesnt cover the arena art"): Vault label x 75 -> 81 */
