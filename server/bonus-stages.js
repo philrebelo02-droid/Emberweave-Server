@@ -377,12 +377,17 @@ function monsterPool(CAMP_ENC, ch){
    `CHAPTER_MAP_BOSS_KEYS` mirrors client-side, not a second guess at the key. Returns null if a
    chapter has no boss-flagged monster yet (shouldn't happen for 1-10, but a bad chapter shouldn't
    crash a bonus-stage build). */
+/* v1372 (coordinator 12 Nov 2026): the Normal 1-10 spike nerf must not make Bonus 1-6 easier as a side effect - the bonus keeps the
+   chapter boss multipliers it had before v1372 (c8d8f962 Normal 1-10 Brukk). Only the multipliers are pinned; key / level still come from the table. */
+const BONUS_BOSS_PIN = Object.freeze({ 1: Object.freeze({ key:'brukk', hpMul:3.4262, dmgMul:2.5326 }) });
 function bossFor(CAMP_ENC, ch){
   for(const st of encList(CAMP_ENC)){
     if(((st.node-1)/10|0)+1 !== ch) continue;
     if(st.checkpoint!=='boss') continue;
     for(const w of (st.waves||[])) for(const m of (w||[])){
-      if(m&&m.boss) return { key:m.key, lvl:m.lvl|0, hpMul:+m.hpMul||1, dmgMul:+m.dmgMul||1 };
+      if(m&&m.boss){ const pin=BONUS_BOSS_PIN[ch];
+        if(pin&&pin.key===m.key) return { key:m.key, lvl:m.lvl|0, hpMul:pin.hpMul, dmgMul:pin.dmgMul };
+        return { key:m.key, lvl:m.lvl|0, hpMul:+m.hpMul||1, dmgMul:+m.dmgMul||1 }; }
     }
   }
   return null;
@@ -1094,7 +1099,7 @@ function rulesSettled(){ return [
 module.exports = { handle, resolveRun, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLOTS, CHAPTERS,
   LANES, WAVES, WINDOWS, MAX_HEROES, MAX_PER_LANE, STAR_DEATH_LIMIT_2, starExplain,
   BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending,
-  bossFor,
+  bossFor, BONUS_BOSS_PIN,
   claimList, advanceClock, buildLanes, boonOffer, starsFor, clearReward, families,
   resetFamilyCache, checkSquad, checkSquadStrict, checkSwap, laneMoveOK, lanesReachableFrom,
   CROSSING_GATE, SUMMONS_DIE_AT_WAVE_END, EVERLASTING_SUMMON_POWER, EVERLASTING_FLAG, BONUS_UNIT_SCALE, BONUS_ROAD_USE, BONUS_ZOOM_CEILING, BONUS_ZOOM_LEVELS, BONUS_HUD_KEEPOUT, BONUS_HERO_FOOTPRINT,

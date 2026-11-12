@@ -554,7 +554,7 @@
   "node": 7,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 1592,
+  "recommendedPower": 3018,
   "targetLevel": 5,
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 5,
@@ -582,54 +582,54 @@
     {
      "key": "vexmite",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     },
     {
      "key": "cindertusk",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     },
     {
      "key": "shellwark",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     },
     {
      "key": "skarrn",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     },
     {
      "key": "shellwark",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     },
     {
      "key": "ooznik",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     }
    ],
    [
     {
      "key": "vireo",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452,
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762,
      "isHero": true,
      "rewardHero": true,
      "rank": 1
@@ -637,14 +637,14 @@
     {
      "key": "cindertusk",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     },
     {
      "key": "sootwing imp",
      "lvl": 7,
-     "hpMul": 7.7542,
-     "dmgMul": 6.8452
+     "hpMul": 0.9072,
+     "dmgMul": 5.4762
     }
    ]
   ],
@@ -662,7 +662,7 @@
   "node": 8,
   "mode": "elite",
   "checkpoint": "normal",
-  "recommendedPower": 1592,
+  "recommendedPower": 3106,
   "targetLevel": 5,
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 5,
@@ -690,90 +690,90 @@
     {
      "key": "sootwing imp",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "skulk",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "skarrn",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "ooznik",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "cindertusk",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     }
    ],
    [
     {
      "key": "cindertusk",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "grushak",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "skarrn",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "vexmite",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     }
    ],
    [
     {
      "key": "grushak",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "vexmite",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "cindertusk",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "skulk",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     },
     {
      "key": "skarrn",
      "lvl": 8,
-     "hpMul": 6.3825,
-     "dmgMul": 5.6342
+     "hpMul": 1.1999,
+     "dmgMul": 4.5074
     }
    ]
   ],
@@ -790,7 +790,7 @@
   "node": 9,
   "mode": "elite",
   "checkpoint": "guardian",
-  "recommendedPower": 1592,
+  "recommendedPower": 3154,
   "targetLevel": 5,
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 5,
@@ -818,72 +818,72 @@
     {
      "key": "cindertusk",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "vexmite",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "grushak",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "cinder skulk",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     }
    ],
    [
     {
      "key": "skarrn",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "shellwark",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "ooznik",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "ooznik",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "skulk",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     },
     {
      "key": "cindertusk",
      "lvl": 9,
-     "hpMul": 7.8975,
-     "dmgMul": 7.1075
+     "hpMul": 1.7769,
+     "dmgMul": 5.686
     }
    ]
   ],
@@ -900,7 +900,7 @@
   "node": 10,
   "mode": "elite",
   "checkpoint": "boss",
-  "recommendedPower": 1592,
+  "recommendedPower": 3154,
   "targetLevel": 5,
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 5,
@@ -928,66 +928,66 @@
     {
      "key": "vexmite",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "cindertusk",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "shellwark",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "skarrn",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "ooznik",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     }
    ],
    [
     {
      "key": "shellwark",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "ooznik",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "sootwing imp",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     },
     {
      "key": "grushak",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983
     }
    ],
    [
     {
      "key": "vael",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203,
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983,
      "isHero": true,
      "rewardHero": true,
      "rank": 1
@@ -995,32 +995,32 @@
     {
      "key": "ooznik",
      "lvl": 10,
-     "hpMul": 5.5515,
-     "dmgMul": 4.2203
+     "hpMul": 2.1429,
+     "dmgMul": 3.7983
     },
     {
      "key": "skarrn",
      "lvl": 10,
-     "hpMul": 5.5515,
-     "dmgMul": 4.2203
+     "hpMul": 2.1429,
+     "dmgMul": 3.7983
     },
     {
      "key": "cinder skulk",
      "lvl": 10,
-     "hpMul": 5.5515,
-     "dmgMul": 4.2203
+     "hpMul": 2.1429,
+     "dmgMul": 3.7983
     },
     {
      "key": "vexmite",
      "lvl": 10,
-     "hpMul": 5.5515,
-     "dmgMul": 4.2203
+     "hpMul": 2.1429,
+     "dmgMul": 3.7983
     },
     {
      "key": "brukk",
      "lvl": 10,
-     "hpMul": 4.6262,
-     "dmgMul": 4.2203,
+     "hpMul": 1.7857,
+     "dmgMul": 3.7983,
      "boss": true
     }
    ]

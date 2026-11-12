@@ -668,7 +668,7 @@
     "id": "1-7",
     "node": 7,
     "checkpoint": "normal",
-    "recommendedPower": 1062,
+    "recommendedPower": 2012,
     "rewards": {
       "firstGold": 330,
       "repeatGold": 250,
@@ -713,66 +713,66 @@
         {
           "key": "vexmite",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "cindertusk",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "shellwark",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         }
       ],
       [
         {
           "key": "sootwing imp",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "skarrn",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "shellwark",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "ooznik",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         }
       ],
       [
         {
           "key": "ooznik",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "cindertusk",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         },
         {
           "key": "sootwing imp",
           "lvl": 7,
-          "hpMul": 4.9992,
-          "dmgMul": 4.7189
+          "hpMul": 0.5849,
+          "dmgMul": 3.7751
         }
       ]
     ],
@@ -781,7 +781,7 @@
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 0,
-    "difficultyTune": 2.8834,
+    "difficultyTune": 0.3374,
     "baselineHp": 1.3023,
     "baselineDmg": 1.2293,
     "portalMode": "normal",
@@ -800,7 +800,7 @@
     "id": "1-8",
     "node": 8,
     "checkpoint": "normal",
-    "recommendedPower": 1062,
+    "recommendedPower": 2071,
     "rewards": {
       "firstGold": 360,
       "repeatGold": 280,
@@ -845,90 +845,90 @@
         {
           "key": "sootwing imp",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "skulk",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "skarrn",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "ooznik",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "cindertusk",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         }
       ],
       [
         {
           "key": "cindertusk",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "grushak",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "skarrn",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "vexmite",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         }
       ],
       [
         {
           "key": "grushak",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "vexmite",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "cindertusk",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "skulk",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         },
         {
           "key": "skarrn",
           "lvl": 8,
-          "hpMul": 4.1347,
-          "dmgMul": 3.8655
+          "hpMul": 0.7773,
+          "dmgMul": 3.0924
         }
       ]
     ],
@@ -937,7 +937,7 @@
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 0,
-    "difficultyTune": 2.3699,
+    "difficultyTune": 0.4455,
     "baselineHp": 1.3609,
     "baselineDmg": 1.2723,
     "portalMode": "normal",
@@ -956,7 +956,7 @@
     "id": "1-9",
     "node": 9,
     "checkpoint": "guardian",
-    "recommendedPower": 1062,
+    "recommendedPower": 2103,
     "rewards": {
       "firstGold": 390,
       "repeatGold": 310,
@@ -979,72 +979,72 @@
         {
           "key": "cindertusk",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "vexmite",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "grushak",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "cinder skulk",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         }
       ],
       [
         {
           "key": "skarrn",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "shellwark",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "ooznik",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         }
       ],
       [
         {
           "key": "sootwing imp",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "ooznik",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "skulk",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913
         },
         {
           "key": "vireo",
           "lvl": 9,
-          "hpMul": 5.2642,
-          "dmgMul": 4.7391,
+          "hpMul": 1.1844,
+          "dmgMul": 3.7913,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
@@ -1056,7 +1056,7 @@
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 0,
-    "difficultyTune": 2.7725,
+    "difficultyTune": 0.6238,
     "baselineHp": 1.5359,
     "baselineDmg": 1.3826,
     "portalMode": "normal",
@@ -1070,7 +1070,7 @@
     "id": "1-10",
     "node": 10,
     "checkpoint": "boss",
-    "recommendedPower": 1062,
+    "recommendedPower": 2103,
     "rewards": {
       "firstGold": 420,
       "repeatGold": 340,
@@ -1093,90 +1093,90 @@
         {
           "key": "vexmite",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "cindertusk",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "shellwark",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "skarrn",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "ooznik",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         }
       ],
       [
         {
           "key": "shellwark",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "ooznik",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "sootwing imp",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         },
         {
           "key": "grushak",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793
         }
       ],
       [
         {
           "key": "vexmite",
           "lvl": 10,
-          "hpMul": 4.1114,
-          "dmgMul": 2.5326
+          "hpMul": 1.587,
+          "dmgMul": 2.2793
         },
         {
           "key": "ooznik",
           "lvl": 10,
-          "hpMul": 4.1114,
-          "dmgMul": 2.5326
+          "hpMul": 1.587,
+          "dmgMul": 2.2793
         },
         {
           "key": "skarrn",
           "lvl": 10,
-          "hpMul": 4.1114,
-          "dmgMul": 2.5326
+          "hpMul": 1.587,
+          "dmgMul": 2.2793
         },
         {
           "key": "cinder skulk",
           "lvl": 10,
-          "hpMul": 4.1114,
-          "dmgMul": 2.5326
+          "hpMul": 1.587,
+          "dmgMul": 2.2793
         },
         {
           "key": "vael",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326,
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
@@ -1184,8 +1184,8 @@
         {
           "key": "brukk",
           "lvl": 10,
-          "hpMul": 3.4262,
-          "dmgMul": 2.5326,
+          "hpMul": 1.3225,
+          "dmgMul": 2.2793,
           "boss": true
         }
       ]
@@ -1195,7 +1195,7 @@
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 5,
-    "difficultyTune": 1.6651,
+    "difficultyTune": 0.6427,
     "baselineHp": 1.7239,
     "baselineDmg": 1.4992,
     "portalMode": "normal",
