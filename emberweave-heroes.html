@@ -719,6 +719,10 @@
   /* v1374 affinity badges (class + element) in a hero card's top-right corner, and the enemy card */
   .afbW{position:absolute;top:7%;right:7%;width:20%;min-width:13px;max-width:24px;display:flex;flex-direction:column;gap:2px;z-index:6;pointer-events:none}
   .afbW.afbSm{top:4%;right:4%;width:30%;max-width:17px;min-width:11px;gap:1px}
+  /* v1374 (Phil 12 Nov: "No reason to write SUPPORT under their card if they have a support symbol" / "Instead put the power then the affinities under it"): the Heroes list shows power, then the class + element icons in a row */
+  .afbW.afbRow{position:static;flex-direction:row;justify-content:center;width:auto;max-width:none;min-width:0;gap:4px;margin-top:1px}
+  .afbW.afbRow .afbI{width:19px;height:19px;flex:0 0 19px} .afbW.afbRow .afbC{padding:2px}
+  .hero-card .hc-info{height:auto;min-height:30px}
   .afbI{display:block;width:100%;aspect-ratio:1/1;border-radius:50%;line-height:0;box-sizing:border-box;font-style:normal}
   .afbI img{display:block;width:100%;height:100%}
   .afbC{background:radial-gradient(circle,#2b2236 0,#0c0a12 78%);border:1px solid #c9a35e;padding:7%;box-shadow:0 1px 3px #000c}
@@ -24020,10 +24024,10 @@ function mcardOpen(chip,how){ const id=chip&&chip.dataset.mc, rec=id&&MCARD_REG.
   card.querySelector('.mcX').addEventListener('click',e=>{ e.stopPropagation(); mcardClose(); });
   L.addEventListener('pointerdown',e=>{ if(e.target===L&&Date.now()-L._t0>300) mcardClose(); });
   if(how==='hover'){ card.addEventListener('pointerleave',e=>{ if(e.pointerType==='mouse'&&!(e.relatedTarget&&chip.contains(e.relatedTarget))) mcardClose(); }); card.addEventListener('pointerenter',()=>{ clearTimeout(L._lt); }); }
-  /* placed beside the chip in game space (the Fold rotates the whole page), always inside the screen */
+  /* placed in game space (the Fold rotates the whole page), always inside the screen */
   const gv=ewGameView(), W=gv.width, H=gv.height, r=chip.ewGameRect?chip.ewGameRect():chip.getBoundingClientRect();
   const cw=card.offsetWidth, ch=card.offsetHeight, m=8;
-  let x=(r.right+m+cw<=W-m)?r.right+m:((r.left-m-cw>=m)?r.left-m-cw:(W-cw)/2), y=r.top+r.height/2-ch/2;
+  let x=(W-cw)/2, y=(H-ch)/2;   /* v1374 (Phil 12 Nov: "Center the monster cards"): centred on the screen */ void r;
   x=Math.max(m,Math.min(W-cw-m,x)); y=Math.max(m,Math.min(H-ch-m,y));
   card.style.left=Math.round(x)+'px'; card.style.top=Math.round(y)+'px'; }
 (function(){ if(typeof document==='undefined'||!document.addEventListener) return;   /* the server's headless replay loads this script with no page */
@@ -30329,11 +30333,11 @@ function renderHeroList(){
     /* v612 (Phil: "Go review [the reference] hero card" / "And so it similar"): one square art card for every
        hero, the ascension border round it, Lv in the top-left, the stars ON the border's bottom edge, the mythical banner across
        the bottom of the art; name, role and power underneath. Every card is the same size, mythical or not. */
-    card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${affBadgesHTML(key)}${unlocked?`<span class="hc-lv">${ewT('hero.lv',{n:heroLevel(key)})}</span>`:''}</div>
+    card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">${ewT('hero.lv',{n:heroLevel(key)})}</span>`:''}</div>
         <div class="hc-info">
           ${RARITY_READY?'':`<div class="hc-name${myth?' hc-mythn':''}">${t.name}</div>`}
-          ${t.role?`<div class="hc-role">${ewT(('herolist.role_'+String(t.role).toLowerCase()))||t.role}</div>`:''}
           <div class="hc-sub">${unlocked?`${statusIcon('attack')} ${heroPower(key).toLocaleString()}`:lockedLine}</div>
+          ${affBadgesHTML(key,'afbRow')}
         </div>`;
     card._pick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);

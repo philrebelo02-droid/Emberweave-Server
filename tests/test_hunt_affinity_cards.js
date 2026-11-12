@@ -47,7 +47,10 @@ const readBadges=(page,sel,lvSel)=>page.evaluate(([sel,lvSel])=>{ const out=[];
     const imgs=w?[...w.querySelectorAll('img')].map(i=>i.getAttribute('src')):[];
     const art=card.querySelector('.hc-imgwrap,.rsImg'), lv=lvSel?card.querySelector(lvSel):null;
     const wr=w&&w.getBoundingClientRect(), ar=art&&art.getBoundingClientRect(), lr=lv&&lv.getBoundingClientRect();
-    const inside=!!(wr&&ar&&wr.width>6&&wr.left>=ar.left-0.5&&wr.right<=ar.right+0.5&&wr.top>=ar.top-0.5&&wr.bottom<=ar.bottom+0.5);
+    /* v1374 (Phil 12 Nov: "Instead put the power then the affinities under it"): on the Heroes list the pair sits under the power line, inside the card, and no class word */
+    const sub=card.querySelector('.hc-sub'), sr=sub&&sub.getBoundingClientRect(), cr=card.getBoundingClientRect();
+    const inside=w&&w.classList.contains('afbRow') ? !!(sr&&wr.width>6&&wr.top>=sr.bottom-1&&wr.bottom<=cr.bottom+0.5&&wr.left>=cr.left&&wr.right<=cr.right&&!card.querySelector('.hc-role'))
+      : !!(wr&&ar&&wr.width>6&&wr.left>=ar.left-0.5&&wr.right<=ar.right+0.5&&wr.top>=ar.top-0.5&&wr.bottom<=ar.bottom+0.5);
     const clearLv=!lr||!wr||(wr.right<=lr.left||wr.left>=lr.right||wr.bottom<=lr.top||wr.top>=lr.bottom);
     out.push({key,cls:w&&w.dataset.afbClass,elem:w&&w.dataset.afbElem,imgs,inside,clearLv,w:wr?Math.round(wr.width):0}); }); return out; },[sel,lvSel]);
 async function checkGrid(page,label,rows,nameKey){
