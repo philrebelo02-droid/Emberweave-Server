@@ -137,14 +137,15 @@ function sameNums(card,u){ const s=card.stats; return s.hp===u.hp&&s.atk===u.atk
       await new Promise(r=>setTimeout(r,60)); const card=document.querySelector('#mcLayer .mcCard'); const wave=[...document.querySelectorAll('#stageModal .smWave')].indexOf(c.closest('.smWave'));
       out.push({wave,html:card?card.outerHTML:''}); mcardClose(); } return out; });
   await page.evaluate(()=>{ try{ closeStageModal(); }catch(e){} document.getElementById('stageModal').classList.remove('active'); });
-  /* B + C. the Vault floor (a boss floor: 10) */
+  /* B + C. the Vault floor (a boss floor: 10) - v1376 (Phil 12 Nov: "make it a pop out"): the lineup lives in the Floor Description window */
   await page.evaluate(async()=>{ await api('/api/dungeon/dev-floor','POST',{floor:10,requestId:uid8()}); VAULT.st=null; }); await delay(300);
   for(const [nm,w,h] of [['phone',844,390],['pc',1440,900]]){ await page.setViewportSize({width:w,height:h}); await page.waitForFunction(([w,h])=>document.body.offsetWidth===w&&document.body.offsetHeight===h,[w,h],{timeout:8000}).catch(()=>{}); await delay(600);   /* a big resize lands after the game's 4 s size hold (fold-viewport.js) */
     await page.evaluate(()=>{ VAULT.st=null; show('dungeon'); }); await delay(2200);
-    const chips=await page.evaluate(()=>[...document.querySelectorAll('#dungeon [data-mc]')].length);
+    await page.evaluate(()=>{ const b=document.querySelector('#dungeon .vtStats .vtInfo'); if(b) b.click(); }); await delay(600);
+    const chips=await page.evaluate(()=>[...document.querySelectorAll('#vtInfoPop [data-mc]')].length);
     ok(chips>=4, nm+' Vault floor 10: the floor shows its enemy lineup ('+chips+' chips)');
     if(!chips){ await shot(page,'vault-'+nm); continue; }
-    const box=await page.evaluate(()=>{ const all=[...document.querySelectorAll('#dungeon [data-mc]')]; const c=all[all.length-1]; c.scrollIntoView({block:'nearest'}); const r=c.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; });
+    const box=await page.evaluate(()=>{ const all=[...document.querySelectorAll('#vtInfoPop [data-mc]')]; const c=all[all.length-1]; c.scrollIntoView({block:'nearest'}); const r=c.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; });
     await page.mouse.move(box.x,box.y); await delay(500);
     let card=await cardRead(page);
     ok(!!card&&inScreen(card), nm+' Vault floor 10: hovering an enemy opens its card inside the screen ('+(card?JSON.stringify(card.box):'none')+')');
@@ -157,9 +158,10 @@ function sameNums(card,u){ const s=card.stats; return s.hp===u.hp&&s.atk===u.atk
     await shot(page,'vault-card-tap-'+nm);
     await page.touchscreen.tap(4,h-4); await delay(500);
     ok(!(await cardRead(page)), nm+' Vault floor 10: a tap outside closes the card');
+    await page.evaluate(()=>{ const p=document.getElementById('vtInfoPop'); if(p) p.remove(); });
   }
-  const vCards=await page.evaluate(async()=>{ const out=[]; for(const c of document.querySelectorAll('#dungeon [data-mc]')){ c.dispatchEvent(new MouseEvent('dblclick',{bubbles:true})); await new Promise(r=>setTimeout(r,60));
-        const card=document.querySelector('#mcLayer .mcCard'); const wave=[...document.querySelectorAll('#dungeon .smWave')].indexOf(c.closest('.smWave')); out.push({wave,html:card?card.outerHTML:''}); mcardClose(); } return out; });
+  const vCards=await page.evaluate(async()=>{ const out=[]; vaultInfo(); for(const c of document.querySelectorAll('#vtInfoPop [data-mc]')){ c.dispatchEvent(new MouseEvent('dblclick',{bubbles:true})); await new Promise(r=>setTimeout(r,60));
+        const card=document.querySelector('#mcLayer .mcCard'); const wave=[...document.querySelectorAll('#vtInfoPop .smWave')].indexOf(c.closest('.smWave')); out.push({wave,html:card?card.outerHTML:''}); mcardClose(); } const p=document.getElementById('vtInfoPop'); if(p) p.remove(); return out; });
   /* C. (after the Vault screens: a fight holds the game's size, so the screens are driven first) */
   /* a real BATTLE on 2-10, then every wave built by buildEnemyWave from the server's own waves */
   await page.evaluate(()=>{ CUR={node:20,mode:'campaign',portal:'normal',opp:null}; teamCtx='campaign'; G.stamina=999; show('menu'); }); await delay(900);

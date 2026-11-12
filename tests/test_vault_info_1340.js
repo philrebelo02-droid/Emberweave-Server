@@ -10,6 +10,6 @@ function problems(h) { const o = []; const v = h.slice(h.indexOf('function vault
   if (/#market\{position:relative;min-height:100dvh/.test(h) || /height:max\(740px,100dvh\)/.test(h)) o.push('screens still window-height');
   return o; }
 assert.deepStrictEqual(problems(html), [], problems(html).join('; '));
-const bad = html.replace("${stat(s.isBoss&&s.bossRule&&s.bossRule.gatekeeper?t('vault.gatekeeper'):t('vault.info')", "${stat(t('vault.highest_cleared'),'9')}${stat(s.isBoss&&s.bossRule&&s.bossRule.gatekeeper?t('vault.gatekeeper'):t('vault.info')");
+const bad = html.replace("${stat(t('vault.floor_desc')", "${stat(t('vault.highest_cleared'),'9')}${stat(t('vault.floor_desc')");   /* v1376: the Info button is the Floor Description button */
 assert(bad !== html && problems(bad).length === 1, 'CONTROL failed: ' + problems(bad).join('; '));
 console.log('PASS vault info 1340');
