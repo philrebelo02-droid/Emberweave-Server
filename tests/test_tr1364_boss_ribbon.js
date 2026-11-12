@@ -71,6 +71,10 @@ const overlap=(a,b)=>a&&b&&a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
     M.bar=bar; M.hud=hud; const pct0=await page.evaluate(()=>{ const e=document.querySelector('#bossTopBar .btPct'); return e?e.textContent:null; });
     ok(!!bar&&bar.w>=Math.min(0.4*w,300)&&pct0==='100%', n+': a large boss HP bar is up ('+(bar?Math.round(bar.w)+'x'+Math.round(bar.h)+' at y '+Math.round(bar.y):'none')+', reads '+pct0+')');
     ok(!!bar&&hud&&bar.y>=hud.y+hud.h-1&&!overlap(bar,pause)&&!overlap(bar,speed)&&!overlap(bar,auto)&&!overlap(bar,ctrls), n+': under the wave timer (timer bottom '+(hud?Math.round(hud.y+hud.h):'?')+') and clear of pause / speed / AUTO');
+    /* v1372 (Phil 12 Nov: "Put the bosses health bar in the bottom left, almost touching the heroes frames") */
+    { const pr=await page.evaluate(()=>{ const cs=[...document.querySelectorAll('#portraitBar > *')].filter(c=>c.offsetParent!==null).map(c=>c.getBoundingClientRect()); return cs.length?{l:Math.min(...cs.map(r=>r.left)),b:Math.max(...cs.map(r=>r.bottom))}:null; });
+      const gap=bar&&pr?pr.l-(bar.x+bar.w):null, dy=bar&&pr?Math.abs((bar.y+bar.h)-pr.b):null;
+      ok(!!bar&&!!pr&&gap>=2&&gap<=16&&dy<=8&&bar.x<w/2, n+': the bar sits bottom-left, ending '+Math.round(gap)+' px short of the hero frames, bottom '+Math.round(dy)+' px off their bottom line'); }
     if(SHOTS) await page.screenshot({path:path.join(SHOTS,tag+'_2_bar_full.png')});
     await page.evaluate(()=>{ const b=units.find(u=>u.team==='enemy'&&u.boss&&u.alive), a=units.find(u=>u.team==='ally'&&u.alive); if(b){ b.hp=Math.max(1,Math.round(b.maxHp*0.5)); } }); await delay(900);
     const pct1=await page.evaluate(()=>{ const e=document.querySelector('#bossTopBar .btPct'), f=document.querySelector('#bossTopBar .btFill'), b=units.find(u=>u.team==='enemy'&&u.boss&&u.alive); return {txt:e&&e.textContent, fill:f&&f.style.width, real:b?Math.round(100*b.hp/b.maxHp):null}; });
