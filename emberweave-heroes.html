@@ -20755,7 +20755,7 @@ async function skyMarchAnim(i){ if(SKY.busy)return;
   await skyMarch(i);
 }
 async function skyStatus(){ const r=await api('/api/guild-war/status'); if(!r||r.error){ SKY.st=null; return {enabled:false,failed:true}; }   /* v1355 (audit): a transport failure stays retryable - it was cached as 'moved' until reload */ SKY.st=r.enabled?r:{enabled:false}; return SKY.st; }
-function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
+function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York',timeZoneName:'short'}); }   /* v1374 (Phil 12 Nov: "its actually meant to be EST for Eastern standard time"): the zone's own short name - EST now, EDT in summer */
 function skyLaneIcon(i){ return [statusIcon('shield'),statusIcon('energy'),uiIcon('crown'),uiIcon('herbs'),'🔮'][i]||'🏰'; }
 /* v803 - the placement block off the status payload: the window, the tower this member holds and
    the lines it covers. Null in the sandbox, which has no schedule and is always open. */
