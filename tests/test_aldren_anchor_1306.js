@@ -15,7 +15,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: path.join(tmp, 'db.json'), RL_MUL: '1000', SIM_WORKERS: '0' }, stdio: 'ignore', windowsHide: true });
     for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    br = await chromium.launch({ args: ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+    br = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
     const pg = await (await br.newContext({ viewport: { width: 1280, height: 720 }, serviceWorkers: 'block' })).newPage();
     const errs = []; pg.on('pageerror', e => errs.push(e.message));
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForFunction(() => typeof startVersus === 'function' && typeof loop === 'function', null, { timeout: 90000 }); await delay(2000);

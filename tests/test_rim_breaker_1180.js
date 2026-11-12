@@ -128,7 +128,7 @@ const tests = async () => {
   let b;
   try {
     for (let i = 0; i < 120; i++) { try { if ((await fetch(`http://127.0.0.1:${port}/api/health`)).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 250)); }
-    b = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+    b = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  headless: true, args: ['--disable-audio-output', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
     const p = await b.newPage({ viewport: { width: 844, height: 390 } });
     await p.addInitScript(() => { try { window.AudioContext = undefined; window.webkitAudioContext = undefined; } catch (e) {} });
     await p.goto(`http://127.0.0.1:${port}/play`, { waitUntil: 'load', timeout: 90000 });

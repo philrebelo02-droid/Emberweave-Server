@@ -13,7 +13,7 @@
      3. SOUND - every file the fight's SFX_DATA rows play, the swing's weapon / arm pick (sfxAtk), each peak on the clip's contact cell
                 (clipContactCell), cast and passive rows from the start on the press, a swing at SFX_ATK_GAIN.
      4. CONTROLS - Korvux pointed back at his old (v1159) Ember Cleave sheet, a sound moved one cell, a dropped FX: the checks FAIL.
-     5. BROWSER (phone 844x390, muted - every destination through a gain of 0, --mute-audio): opening the Skills tab plays no sound; a tap
+     5. BROWSER (phone 844x390, muted - every destination through a gain of 0, --disable-audio-output): opening the Skills tab plays no sound; a tap
                 plays the slot's files through sfxPlay on the FX bus (a swing at 0.85); a second slot stops the first; FX off = silent; the
                 master mute holds; the stage holds only the open hero's sheets - the device's tier files (artFile) - and lets them and its
                 decoded sounds go when the panel closes. Shots for the review in SHOT_DIR.
@@ -154,7 +154,7 @@ else {
   let browser;
   try {
     for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await delay(150); }   /* 11 Nov: a 60 s deadline, not an iteration count */
-    browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] });
+    browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', headless: true, args: ['--disable-audio-output'] });
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
       userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' });
     await ctx.addInitScript(() => { const oc = AudioNode.prototype.connect;   // every path to the speakers goes through a gain of 0

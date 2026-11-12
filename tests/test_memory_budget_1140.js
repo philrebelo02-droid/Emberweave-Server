@@ -187,7 +187,7 @@ try {
     };
     try {
       for (let i = 0; i < 100; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }
-      try { browser = await chromium.launch({ args: ['--mute-audio', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args: ['--mute-audio', '--js-flags=--expose-gc'] }); }
+      try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output', '--js-flags=--expose-gc'] }); }
       const N = await loop('v1140', null, 5);
       const peakG = Math.max(...N.rows.map(r => Math.max(r.mid.gpu, r.vic.gpu))), peakB = Math.max(...N.rows.map(r => Math.max(r.mid.bmp, r.vic.bmp)));
       ck('5 fights of the 10 heaviest heroes really loaded their art (peak GPU ' + peakG + ' MB > 300)', peakG > 300);
@@ -201,7 +201,7 @@ try {
       /* the BASE page can run the rig's browser out of memory (the very crash this test guards): a crash of its page counts as BASE breaking the budget */
       let B = null, bCrash = '';
       try { await browser.close(); } catch (e) {}
-      try { browser = await chromium.launch({ args: ['--mute-audio', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args: ['--mute-audio', '--js-flags=--expose-gc'] }); }
+      try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output', '--js-flags=--expose-gc'] }); }
       try { B = await loop('BASE ' + BASE_SHA, baseHtml, 2); } catch (e) { if (e && e.notCrash) { ck(e.message, false); } else { bCrash = String(e && e.message || e).slice(0, 80); console.log('  info BASE page crashed: ' + bCrash); } }
       const bPeak = B ? Math.max(...B.rows.map(r => r.mid.gpu)) : 0;
       ck('CONTROL: BASE (before the fix) breaks the budget - ' + (B ? 'GPU ' + bPeak + ' MB, bitmaps kept after the fight ' + B.rows[0].hub.bmp + ' MB' : 'its page crashed (' + bCrash + ')'), B ? (bPeak > GPU_BUDGET_MB && B.rows[0].hub.bmp > 1000) : !!bCrash);

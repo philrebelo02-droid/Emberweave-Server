@@ -19,7 +19,7 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
   child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',REG_PER_MIN:'500',REG_ACCOUNTS_PER_IP:'500',PORT:String(port),DB_FILE:path.join(temp,'db.json')},stdio:'ignore',windowsHide:true});
   let ready=false; for(let i=0;i<200;i++){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}
   assert(ready,'throwaway server did not start');
-  try{browser=await chromium.launch({args:['--mute-audio']});}catch(_){browser=await chromium.launch({channel:'chrome',args:['--mute-audio']});}
+  try{browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args:['--disable-audio-output']});}catch(_){browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], channel:'chrome',args:['--disable-audio-output']});}
   console.log('campaign chapter vs ledger sync (26 Oct) root='+root);
   const deviceId='camp-sync-'+Date.now();
   const guest=await (await fetch(base+'/api/guest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId,roster:{__save:'{}'}})})).json();

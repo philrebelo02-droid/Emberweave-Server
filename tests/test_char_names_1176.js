@@ -57,8 +57,8 @@ const EVIL = '<b class=pwn>x</b>&"\'', EVIL2 = '<img src=x onerror=__xss=1>', EV
       fs.writeFileSync(dbFile, JSON.stringify(db)); }
     await start(dev.profile.id);
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, serviceWorkers: 'block' }); await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 160)));
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' });

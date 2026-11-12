@@ -11259,6 +11259,7 @@ function bootFinish(){ if(_booted) return;
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
   console.log('DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent)':'(EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
   console.log('Player accounts loaded: '+realAccts+' (real players: '+_safety.realPlayerCount(DB)+')');
+  server.prependListener('error', e=>{ if(e&&(e.code==='EADDRINUSE'||e.code==='EACCES')){ console.error('Port '+PORT+' unavailable ('+e.code+') - exiting without touching the world file (another server owns it).'); process.exit(98); } });   /* v1371: a port clash used to fall into _backstop and leave a zombie running timers + DB writes; prepended because ws's own listener (added first) re-throws */
   server.listen(PORT,()=>{ setImmediate(()=>{ try{ simPool(); }catch(e){} try{ frontDecider(); }catch(e){ console.error('new-player placement off:', e.message); } });   // v1130: the placement polls from boot, so its first answer has every server's count   // v1036: battle workers load at boot, ready before the first fight
     console.log('Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
 }

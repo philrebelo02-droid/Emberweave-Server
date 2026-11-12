@@ -2,7 +2,7 @@
    The first splash (#rotateGate: the key art, the logo, the studio + build bottom-left, Online bottom-right) shows no mute button and plays
    nothing - no music, no sound effect, no voice - even after the tap that unlocks audio; the player's sound settings are never touched; on the
    next screen the button is back and the music plays.
-   Real page (Chromium, phone 844x390) on a local server with a temp DB. EVERY RIG IS SILENT: --mute-audio and every connection to an
+   Real page (Chromium, phone 844x390) on a local server with a temp DB. EVERY RIG IS SILENT: --disable-audio-output and every connection to an
    AudioContext's destination goes through a gain of 0. WebGL on SwiftShader (CPU).
      (1) every inline script parses, and the check catches a broken one
      (2) on the splash, before any tap: splashOn(), no visible mute button, nothing playing
@@ -53,8 +53,8 @@ const PROBE = async () => { const b = document.getElementById('muteBtn'); let bt
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(ROOT, 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const page = async control => { const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
       await ctx.addInitScript(SILENT);
       await ctx.addInitScript(() => { try { localStorage.setItem('ew_sound', JSON.stringify({ fx: { on: true, vol: 0.7 }, music: { on: true, vol: 0.5 }, voice: { on: true, vol: 0.8 } })); localStorage.setItem('ew_mute', '0'); } catch (e) {} });

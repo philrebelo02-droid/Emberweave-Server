@@ -22,8 +22,8 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     await delay(300);
     ck(read().length === 0, 'a step without a session id, or an oversized body, writes nothing');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 800, height: 360 }, isMobile: true, hasTouch: true, serviceWorkers: 'block',
       userAgent: 'Mozilla/5.0 (Linux; Android 12; SM-A125F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36' });
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 160)));

@@ -1,4 +1,4 @@
-/* v1176 - two things in one real-page run (Chromium, a real local server with a temp DB, phone 844x390, SILENT: --mute-audio and every
+/* v1176 - two things in one real-page run (Chromium, a real local server with a temp DB, phone 844x390, SILENT: --disable-audio-output and every
    AudioContext output through a gain of 0, SwiftShader, service workers blocked).
    A) THE DEV PANEL PLAYER INFO (Phil 16 Oct: "can you make it so that I can see their info? their level, diamonds, gold, top campaign/vault
       level etc etc"): a dev opens Settings > Developer Panel > Accounts > Players online, taps the fixture player, and the popup shows the
@@ -42,8 +42,8 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       fs.writeFileSync(dbFile, JSON.stringify(db)); }
     await start(dev.profile.id);
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
     await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));

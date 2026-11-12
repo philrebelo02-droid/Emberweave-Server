@@ -27,8 +27,8 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const st0 = (await call('/api/bonus/state', null, me.token)).data;
     ck(st0.perHour === 3 && st0.claim && st0.claim.hours === 5 && st0.claim.total === 15, 'server: 3 per hour, 5 whole hours saved = 15 (' + JSON.stringify(st0.claim) + ')');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, serviceWorkers: 'block' });
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 160)));
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' });

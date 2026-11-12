@@ -1,6 +1,6 @@
 /* v1165 - RESTART STOPS THE OLD FIGHT AT ONCE (Phil 16 Oct 2026: "when I hit restart stage, it should stop battle music and spell effect
    from that stage until the new one starts. The battle was still going on while I was reloading a new fight").
-   Real page (Chromium, phone 844x390) on a local server with a temp DB; silent (--mute-audio + every destination through a gain of 0).
+   Real page (Chromium, phone 844x390) on a local server with a temp DB; silent (--disable-audio-output + every destination through a gain of 0).
    ("loading" = the loading screen is up and the new fight has not been started yet - _blLoading; the old page has no such flag, so there
    it is the whole time the loading screen is up.)
    A real campaign fight (stage 1-1, BATTLE on the squad screen) runs ~6 s with sound and music, then Pause -> Restart Stage. While the
@@ -32,9 +32,9 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
     // Chrome first: the fight sounds are AAC (.m4a), which Playwright's own Chromium cannot decode - with it no fight would make a sound
-    try { browser = await chromium.launch({ channel: 'chrome', args }); } catch (e) { browser = await chromium.launch({ args }); }
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
     await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));

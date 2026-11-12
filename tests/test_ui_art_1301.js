@@ -18,8 +18,8 @@ const ART = ['forge/forge-bg', 'forge/forge-popup', 'forge/forge-row', 'forge/fo
     for(const _t0=Date.now();Date.now()-_t0<60000&&!(srv&&srv.exitCode!==null);) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */
     for (const a of ART) { const r = await fetch(base + '/assets/img/ui/' + a + '.webp?v=1'); ck(r.ok && /image\/webp/.test(r.headers.get('content-type') || ''), 'served: ' + a + '.webp', r.status); }
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, serviceWorkers: 'block' });
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 160)));
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' });

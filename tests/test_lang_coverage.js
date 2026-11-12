@@ -25,7 +25,7 @@ const ROOT=path.join(__dirname,'..');
     const srv=cp.spawn(process.execPath,['server.js'],{cwd:ROOT,env:{...process.env,DATABASE_URL:'',DB_STORE:'',PORT:String(port),DB_FILE:path.join(S.tmp,'db.json'),RL_MUL:'1000',SIM_WORKERS:'0',ALLOW_NEW_GUESTS:'1'},stdio:['ignore',log,log],windowsHide:true});
     for(let i=0;i<300;i++){ try{ if((await fetch(S.base+'/api/health')).ok) break; }catch(_){} await H.delay(100); }
     const { chromium }=require(path.join(ROOT,'node_modules','playwright'));
-    const browser=await chromium.launch({args:['--mute-audio','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
+    const browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args:['--disable-audio-output','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
     const ctx=await browser.newContext({viewport:{width:900,height:420}});
     await ctx.addInitScript(([tok,gid,nm])=>{ localStorage.setItem('ew_acc',JSON.stringify({token:tok,id:gid,name:nm,guest:true})); localStorage.setItem('ew_guest_step_'+gid,'1'); },[guest.token,guest.profile.id,guest.profile.name]);
     const page=await ctx.newPage(); const errors=[]; page.on('pageerror',e=>errors.push(String(e&&e.message||e)));

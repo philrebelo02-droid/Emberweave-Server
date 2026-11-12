@@ -42,7 +42,7 @@ const CASES = [
   try {
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch('http://127.0.0.1:' + port + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
-    try { b = await chromium.launch({ args: ['--mute-audio'] }); } catch (e) { b = await chromium.launch({ channel: 'chrome', args: ['--mute-audio'] }); }
+    try { b = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output'] }); } catch (e) { b = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output'] }); }
     const ctx = await b.newContext({ viewport: { width: 844, height: 390 } });
     await ctx.addInitScript(() => { const P = new Proxy(function () {}, { get: (t, k) => k === 'then' ? undefined : (k === Symbol.toPrimitive ? () => 0 : (['value', 'currentTime', 'sampleRate'].includes(k) ? 0 : P)), apply: () => P, construct: () => P, set: () => true });
       window.AudioContext = function () { return P; }; window.webkitAudioContext = window.AudioContext; });

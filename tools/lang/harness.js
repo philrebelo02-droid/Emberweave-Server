@@ -13,7 +13,7 @@ async function startServer(extraEnv){ const tmp=fs.mkdtempSync(path.join(os.tmpd
 async function open(opts){ opts=opts||{};
   const {srv,base,tmp}=await startServer(opts.env);
   const { chromium }=require(path.join(ROOT,'node_modules','playwright'));
-  const browser=await chromium.launch({args:['--mute-audio','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
+  const browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args:['--disable-audio-output','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
   const ctx=await browser.newContext({viewport:opts.viewport||{width:420,height:860},locale:opts.locale||'en-US'});
   if(opts.lang) await ctx.addInitScript(l=>{ try{ localStorage.setItem('ew_lang',l); }catch(e){} },opts.lang);
   const page=await ctx.newPage(); const errors=[];

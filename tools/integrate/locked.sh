@@ -3,7 +3,7 @@
 # Run ONE GPU-touching job (a headless browser rig, a browser test) under the shared GPU lock (C:/Emberweave/tools/gpu_lock.sh - the 15 Oct
 # 0x119 crash came from two WebGL rigs and a render on the 4080 at once). Waits for the lock, refuses to start with < 2 GB free on the card,
 # drops the lock on exit. One job per call: callers loop, they never run two of these in parallel. Sound: every browser the pipeline starts is
-# headless with --mute-audio and AudioContext removed before load (rig_hero.js, the browser tests) - nothing plays on the speakers.
+# headless with --disable-audio-output and AudioContext removed before load (rig_hero.js, the browser tests) - nothing plays on the speakers.
 WHO=$1; LOG=$2; shift 2; [ "$1" = "--" ] && shift
 LOCK_SH=${EW_GPU_LOCK:-C:/Emberweave/tools/gpu_lock.sh}
 source "$LOCK_SH" || { echo "no gpu lock script at $LOCK_SH"; exit 5; }

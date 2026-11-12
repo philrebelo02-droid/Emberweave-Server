@@ -1,5 +1,5 @@
 // tools/integrate rig (rig_ng.js v1166-v1175, from rig_korvux.js v1162), hero-agnostic. A real battle on a local server (its own free port, temp DB), phone landscape 844x390 @2x,
-// Android UA (the phone texture tier), headless, software GL (swiftshader). SOUND: AudioContext removed before load + --mute-audio + headless;
+// Android UA (the phone texture tier), headless, software GL (swiftshader). SOUND: AudioContext removed before load + --disable-audio-output + headless;
 // SND gain 0 and its context closed if any. rAF stubbed, the clock driven by hand one 60 fps frame at a time (real speed).
 // PROBE (two reps): for each action the cell DRAWN on the frame the engine releases / lands it - attack: the projectile leaves (spawnProjFx /
 //   spawnShot); green / blue / ult: the cast release (u._pend resolves) or the form landing (its 2nd doEffect) where that is the contact.
@@ -26,7 +26,7 @@ const HOLD = `{ const c=units.find(x=>x.key===${JSON.stringify(process.argv[4])}
   let b; const reqFail = [], reqBad = [];
   try {
     for (let i = 0; i < 120; i++) { try { if ((await fetch(`http://127.0.0.1:${PORT}/api/health`)).ok) break; } catch (_) {} await delay(250); }
-    b = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+    b = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  headless: true, args: ['--disable-audio-output', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
     const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block',
       userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
     const p = await ctx.newPage();

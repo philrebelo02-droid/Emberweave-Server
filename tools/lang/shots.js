@@ -15,7 +15,7 @@ const out=process.argv[2]; const codes=process.argv.slice(3).length?process.argv
   const srv=cp.spawn(process.execPath,['server.js'],{cwd:ROOT,env:{...process.env,DATABASE_URL:'',DB_STORE:'',PORT:String(port),DB_FILE:path.join(S.tmp,'db.json'),RL_MUL:'1000',SIM_WORKERS:'0',ALLOW_NEW_GUESTS:'1'},stdio:['ignore',log,log],windowsHide:true});
   for(let i=0;i<300;i++){ try{ if((await fetch(S.base+'/api/health')).ok) break; }catch(_){} await H.delay(100); }
   const { chromium }=require(path.join(ROOT,'node_modules','playwright'));
-  const browser=await chromium.launch({args:['--mute-audio','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
+  const browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args:['--disable-audio-output','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
   try{
     for(const code of codes) for(const [dev,vp] of [['phone',{width:844,height:390}],['pc',{width:1280,height:720}]]){
       const ctx=await browser.newContext({viewport:vp,deviceScaleFactor:dev==='phone'?2:1}); const guest=GUESTS[code+dev];

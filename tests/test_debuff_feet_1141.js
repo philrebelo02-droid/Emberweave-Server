@@ -179,7 +179,7 @@ try {
     };
     try {
       for (let i = 0; i < 150; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }
-      try { browser = await chromium.launch({ args: ['--mute-audio'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args: ['--mute-audio'] }); }
+      try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output'] }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output'] }); }
       const N = await probe(null);
       const ks = [...new Set(N.seen.map(s => s.k))];
       ck('real fights: the debuff badges of Grimsby / Pyroclast / Absalie landed on the victims (' + ks.join(', ') + ')', ks.length >= 3, JSON.stringify(N.seen.slice(0, 4)));

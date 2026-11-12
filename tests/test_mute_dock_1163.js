@@ -1,7 +1,7 @@
 /* v1163 - THE MUTE BUTTON NEVER SITS ON TOP OF OTHER UI (Phil 16 Oct 2026, on his phone: "can you make the audio button not layered
    over buttons" - v1159's spot logic only avoided clickable controls, so in the Heroes window it sat on the HEROES title plate).
    Real page (Chromium) on a real local server with a temp DB, at phone 844x390, a tall phone 915x412 (Phil's) and desktop 1920x1080.
-   EVERY RIG IS SILENT: --mute-audio, and every connection to an AudioContext's destination goes through a gain of 0. SwiftShader WebGL.
+   EVERY RIG IS SILENT: --disable-audio-output, and every connection to an AudioContext's destination goes through a gain of 0. SwiftShader WebGL.
    Asserts (non-zero exit on any failure):
      (1) every inline script parses
      (2) ZERO OVERLAP on every screen and window: the button's square, sampled every 2 px, shows nothing but background under it. The
@@ -142,8 +142,8 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
     await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));

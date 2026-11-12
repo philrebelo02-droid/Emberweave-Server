@@ -21,7 +21,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const refused = await post('/api/admin/led-grant', { campCleared: 160 }, (await post('/api/login', { name: plain, pass: 'password1' })).token);
     ck('a normal player cannot use it (the server refuses the grant)', !refused.ok, JSON.stringify(refused).slice(0, 120));
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    br = await chromium.launch({ args: ['--mute-audio', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+    br = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
     const pg = await (await br.newContext({ viewport: { width: 1000, height: 462 }, serviceWorkers: 'block' })).newPage();
     const errs = []; pg.on('pageerror', e => errs.push(e.message));
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForFunction(() => typeof devAction === 'function' && typeof api === 'function', null, { timeout: 90000 }); await delay(1500);

@@ -1,7 +1,7 @@
 /* v1163 LAG FIX - the mute button costs nothing while the player browses (Phil 16 Oct 2026: "Game is lagging alot lately", "While im
    going through hero tab it was"). v1159-v1162 re-measured the button's spot every second (setInterval) with up to ~435 elementFromPoint
    probes on a busy window, forcing layout over the Heroes grid again and again.
-   Real page (Chromium, phone 915x412, Phil's) on a local server with a temp DB; silent (--mute-audio + every destination through a gain of
+   Real page (Chromium, phone 915x412, Phil's) on a local server with a temp DB; silent (--disable-audio-output + every destination through a gain of
    0); SwiftShader. The Heroes window (60 hero cards: owned + still collecting) is opened from the hub, then 5 s idle and 5 s of real wheel
    scrolling are measured three ways:
      NOW      this page as it ships
@@ -42,8 +42,8 @@ const INIT = () => {
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
+    try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 915, height: 412 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
     await ctx.addInitScript(INIT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));

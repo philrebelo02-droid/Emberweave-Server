@@ -23,7 +23,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     u.dust = 5000000; u.gear = Object.assign(u.gear || {}, { revision: (u.gear && u.gear.revision) || 1, items: { q1: { d: grey.id, temper: 0, prog: 0, dustSpent: 0, bound: false, createdAt: Date.now() } } });
     fs.writeFileSync(dbFile, JSON.stringify(db)); await start();
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-    br = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--mute-audio'] });
+    br = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-audio-output'] });
     const pg = await (await br.newContext({ viewport: { width: 844, height: 390 }, serviceWorkers: 'block' })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
     const reqs = []; pg.on('response', r => { if (/\/api\/gear\//.test(r.url())) reqs.push(r.status() + ' ' + r.url().replace(/.*\/api/, '')); });
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForFunction(() => typeof show === 'function' && typeof api === 'function', null, { timeout: 90000 }); await delay(1500);
