@@ -62,7 +62,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const won = await pg.evaluate(() => { const P = document.getElementById('bonusFragPanel'); if (!P) return null;
       const cards = [...P.querySelectorAll('.bfFrag')];
       return { txt: P.innerText, n: cards.length, on: P.querySelectorAll('.bfFrag.on').length, sum: cards.reduce((a, c) => a + (+(c.querySelector('b').innerText.replace(/\D/g, '')) || 0), 0),
-        art: cards.every(c => /\/assets\/img\/glyphs-v2\/[A-Za-z0-9]+\/fragment-[a-z]+\.png/.test(c.querySelector('img').getAttribute('src')) && c.querySelector('img').naturalWidth > 0),
+        art: cards.every(c => /\/assets\/img\/glyphs-v3\/[A-Za-z0-9]+\/fragment-[a-z]+\.webp/.test(c.querySelector('img').getAttribute('src')) && c.querySelector('img').naturalWidth > 0),
         banner: (document.getElementById('banner') || {}).innerText || '' }; });
     const pageTok = await pg.evaluate(() => ACC.token);   // the page's sign-in replaced the test's session
     const st1 = (await call('/api/bonus/state', null, pageTok)).data;
