@@ -13,6 +13,13 @@ const html = fs.readFileSync(path.join(base, 'emberweave-heroes.html'), 'utf8');
 for (const m of html.matchAll(/<script[^>]*\ssrc="([^"?]+)[^"]*"/g)) { const src = m[1].replace(/^\//, ''), from = path.join(ROOT, src), to = path.join(base, src); if (fs.existsSync(from) && !fs.existsSync(to)) { fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to); } }
 const fx = path.join(__dirname, 'fixtures_1362b', 'province-well-replay-mode.test.cjs');
 const run = (a, b) => cp.spawnSync(process.execPath, [fx, a, b], { encoding: 'utf8', timeout: 240000 });
-const good = run(base, ROOT); ck('this tree: Province and Well replays match the live mode; Campaign 1-1 receipt unchanged', good.status === 0, (good.stderr || '').split('\n').slice(0, 4).join(' ').slice(0, 300));
+/* v1372 re-baseline: the Affinities switch (on since v1372) changes every seeded fight's digest, so "this tree" is replayed with that one switch
+   off - the comparison keeps checking only what it was written for (the replay MODE); tests/test_affinity_parity_1372.js checks the switch itself */
+const cand = fs.mkdtempSync(path.join(os.tmpdir(), 'prov1372-'));
+{ const live = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8'); if (!live.includes('const AFFINITIES_LIVE=true;')) throw new Error('AFFINITIES_LIVE=true not found');
+  fs.writeFileSync(path.join(cand, 'emberweave-heroes.html'), live.replace('const AFFINITIES_LIVE=true;', 'const AFFINITIES_LIVE=false;'));
+  fs.mkdirSync(path.join(cand, 'server')); fs.copyFileSync(path.join(ROOT, 'server', 'sim-host.js'), path.join(cand, 'server', 'sim-host.js'));
+  for (const m of live.matchAll(/<script[^>]*\ssrc="([^"?]+)[^"]*"/g)) { const src = m[1].replace(/^\//, ''), from = path.join(ROOT, src), to = path.join(cand, src); if (fs.existsSync(from) && !fs.existsSync(to)) { fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to); } } }
+const good = run(base, cand); ck('this tree: Province and Well replays match the live mode; Campaign 1-1 receipt unchanged', good.status === 0, (good.stderr || '').split('\n').slice(0, 4).join(' ').slice(0, 300));
 const ctl = run(base, base); ck('CONTROL v1361 against itself: the Province digest comparison fails', ctl.status !== 0 && /digest|Province|province|AssertionError/.test(ctl.stderr || ''), (ctl.stderr || '').split('\n').slice(0, 3).join(' ').slice(0, 200));
 console.log('test_province_replay_mode_1362.js: ' + P + ' passed, ' + F + ' failed'); process.exit(F ? 1 : 0);

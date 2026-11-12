@@ -253,5 +253,10 @@ function resolveTwoWaveBattle(teamSnaps, enemyWaveSnaps, seed){
 }
 
 module.exports={ HERO_BASE, HERO_PROFILES, PURPLE_FURY, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE,
-  STAR_FLAT, STAR_FLAT_KEYS, REFINE_TIERS, REFINE_START, REFINE_MAX, REFINE_TRACK_V, refineClamp, refineTierIndex, refineTierAt, starFlatFrom, refineFromOld };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
+  STAR_FLAT, STAR_FLAT_KEYS, REFINE_TIERS, REFINE_START, REFINE_MAX, REFINE_TRACK_V, refineClamp, refineTierIndex, refineTierAt, starFlatFrom, refineFromOld,
+  /* v1372 AFFINITIES: elements + the six class edges, ON in every fight this file decides (Arena, Skyfall lines, war marches, the Vault /
+     elite / trial estimates) - they live in the shared core's applyDamage / applyHeal / resolveBattle (server/combat-core.js, the mirror of the
+     client's AFF_ELEMENT / classEdge / EDGE; tests/test_affinity_parity_1372.js) */
+  AFFINITIES_LIVE:CORE.AFFINITIES_LIVE, AFF_ELEMENT:CORE.AFF_ELEMENT, ELEM_BEATS:CORE.ELEM_BEATS, ELEM_BONUS:CORE.ELEM_BONUS, CLASS_BEATS:CORE.CLASS_BEATS, EDGE:CORE.EDGE,
+  unitElement:CORE.unitElement, elemMul:CORE.elemMul, classEdge:CORE.classEdge };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
 

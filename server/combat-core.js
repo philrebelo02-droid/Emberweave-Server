@@ -123,6 +123,48 @@ const KITS={
 };
 const DEFAULT_KIT={kind:'phys',shape:'nuke',coef:2.2};
 
+/* ---- v1372 AFFINITIES (Phil 11 Nov 2026: "Support beats Tank * Tank beats Marksman * Marksman beats mage * mage beats bruiser * bruiser beats
+   assasin * assasin beats support" / elements "each of these deal 20% more damage to the other type" / "and the one they beat does 20% less to
+   them" / "neutral means does no extra damage and takes no extra" / "aureth should be both light and dark, he switches as he swaps stances").
+   THE SERVER MIRROR of emberweave-heroes.html AFF_ELEMENT / ELEM_BEATS / ELEM_BONUS / CLASS_BEATS / EDGE / unitElement / elemMul / classEdge
+   (blueprint 28). The tables are copies, like STAR_FLAT: tests/test_affinity_parity_1372.js fails the day either side drifts, and checks that
+   this switch equals the client's AFFINITIES_LIVE. How each rule lands in this ROUND model (1 round = 1 second, the energy-regen unit):
+   - elements: raw x elemMul(src,tgt) on every hit (applyDamage) - the client's `amt*=elemMul(src,tgt)` at the top of dealDamage.
+   - Sundering grace (Support > Tank): the Tank's Armor / MR rating x0.5 before pen (client _defMulRaw rk=0.5); a unit whose front foe is a
+     Tank heals x1.20 while a Support is alive on its side (client healUnit: u.target is a Tank) - heals and lifesteal (both go through healUnit).
+   - Shield wall (Tank > Marksman): 25% of a Marksman's BASIC attacks on a Tank are blocked (one seeded roll, only for that pair). The +1 s taunt
+     has nothing to act on here: this model has no taunt (a 'taunt' gear skill is a shield).
+   - Interrupt (Marksman > Mage): -10 energy per landed hit.
+   - Hex (Mage > Bruiser): a landed non-basic, non-physical hit: for 2 rounds the Bruiser's swings count x1/1.3 (energy and basic-attack damage -
+     the client's attack interval x1.3). The 2 s slow is movement; this model has none.
+   - Riposte (Bruiser > Assassin): an Assassin's landed hit draws the Bruiser's basic attack straight back (no variance, like the client's
+     dealDamage(tgt,src,tgt.dmg)), at most once per 3 rounds, never while the Bruiser is stunned; after the hit, before the Assassin's lifesteal.
+   - Silence the healer (Assassin > Support): heals on the Support x0.6 for 4 rounds; the blow that lands strips its shield first (double damage).
+   - Ally spacing (UNIT_GAP_ALLY 1.30) is positional: this model has no positions. Aureth fights in his Light stance here (no stance swap).
+   AFFINITIES_LIVE=false is the v1367 engine, rule for rule. */
+const AFFINITIES_LIVE=true;   /* MUST equal emberweave-heroes.html AFFINITIES_LIVE (tests/test_affinity_parity_1372.js) */
+const AFF_ELEMENT={"konwu":"Neutral","grosk":"Neutral","vulmar":"Neutral","tick":"Neutral","sylthaine":"Ice","aureth":"Light","bloatus":"Nature","vireo":"Neutral","fritz":"Lightning","umbris":"Dark","vael":"Neutral","oakmir":"Nature","rhukk":"Neutral","hurne":"Nature","meridian":"Neutral","gruel":"Neutral","astra":"Fire","quorrel":"Neutral","korvux":"Fire","maren":"Water","lumi":"Light","hollow":"Dark","veyr":"Water","mirelle":"Nature","pellucid":"Fire","orryn":"Water","hobb":"Fire","tharl":"Ice","askel":"Neutral","deepcleft":"Neutral","brannus":"Neutral","sorrel":"Dark","yenna":"Dark","kharos":"Nature","zahri":"Light","vaelora":"Ice","seyla":"Nature","nox":"Dark","nerisse":"Water","lysara":"Nature","calypsa":"Water","linnet":"Neutral","rivet":"Neutral","carn":"Neutral","vesper":"Neutral","tessit":"Neutral","vex":"Neutral","grimsby":"Neutral","dandra":"Nature","pyroclast":"Fire","iver":"Lightning","sloe":"Nature","absalie":"Dark","joss":"Light","ambrel":"Light","tolley":"Fire","mellan":"Nature","aldren":"Dark","rafe":"Neutral","ceraline":"Fire","hero61":"Neutral","zahri mirage":"Light","boar warrior":"Nature","boar shaman":"Nature","skarrn":"Nature","skulk":"Neutral","volthex":"Light","cindertusk":"Fire","ashen":"Fire","sludgemaw":"Nature","gnashul":"Neutral","bitwraith":"Dark","grundle":"Neutral","vexmite":"Nature","lost soul":"Dark","trapjaw":"Neutral","grushak":"Neutral","blackquill":"Dark","granith":"Neutral","nightgloom":"Dark","mordath":"Neutral","ooznik":"Nature","bilewretch":"Nature","rustclank":"Neutral","shellwark":"Neutral","whisp":"Fire","wintercrag":"Ice","magmourn":"Fire","voraxis":"Neutral","grommash":"Neutral","leviath":"Water","sylphice":"Ice","cinder skulk":"Fire","furnace gnawer":"Fire","sootwing imp":"Fire","basalt mauler":"Neutral","magma hound":"Fire","crucible acolyte":"Fire","reef prowler":"Water","kelp hexer":"Water","shellguard sentinel":"Water","mudsnap crab":"Water","storm eel":"Lightning","saltglass siren":"Lightning","graveclaw ghoul":"Dark","wispweaver shade":"Dark","bonepike guard":"Dark","rotbloom ooze":"Nature","nightcap mimic":"Nature","mourn moth":"Nature","riftling spider":"Dark","crystalhorn grazer":"Neutral","skyroot dryad":"Nature","luminant orb":"Light","zephyr harrier":"Neutral","runic automaton":"Neutral","ironjaw raider":"Neutral","vineback boar":"Nature","frostjaw troll":"Ice","clockwork lantern":"Light","vharok":"Fire","nerissa":"Water","barrowmaw":"Dark","asterion":"Light","maelvara":"Lightning","brukk":"Fire","nymira":"Nature","irix":"Neutral","hourglass sentinel":"Neutral","miregor":"Nature","sable vesper":"Dark","orryx":"Neutral","thorneveil":"Nature","nameless admiral":"Water","ink spirit":"Dark","ink horror":"Dark"};
+const ELEM_BEATS={Water:'Fire',Fire:'Ice',Ice:'Nature',Nature:'Lightning',Lightning:'Water'};
+const ELEM_BONUS=0.20;
+const CLASS_BEATS={Support:'Tank',Tank:'Marksman',Marksman:'Mage',Mage:'Bruiser',Bruiser:'Assassin',Assassin:'Support'};
+const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10, hexDur:2, hexAtk:1.3, riposteCd:3, healCut:0.40, healCutDur:4 };
+/* the core never damages its own side (applyDamage is always foe -> foe), so the client's team test is src!==tgt here; a `side` tag wins when present */
+const _sameSide=(s,t)=>s===t||(s.side!=null&&s.side===t.side);
+function unitElement(u){ if(!u) return 'Neutral'; if(u.key==='aureth') return u._darkStance?'Dark':'Light'; return u.element||AFF_ELEMENT[u.key]||'Neutral'; }
+function unitClass(u){ return (u&&u.role)||''; }
+function elemMul(src,tgt){ if(!AFFINITIES_LIVE||!src||!tgt||_sameSide(src,tgt)) return 1; const a=unitElement(src), d=unitElement(tgt);
+  if(a==='Neutral'||d==='Neutral') return 1;
+  if((a==='Light'&&d==='Dark')||(a==='Dark'&&d==='Light')) return 1+ELEM_BONUS;
+  if(ELEM_BEATS[a]===d) return 1+ELEM_BONUS; if(ELEM_BEATS[d]===a) return 1-ELEM_BONUS; return 1; }
+function classEdge(src,tgt){ if(!AFFINITIES_LIVE||!src||!tgt||_sameSide(src,tgt)) return ''; const a=unitClass(src); return (a&&CLASS_BEATS[a]===unitClass(tgt))?a:''; }
+/* the two heal edges (client healUnit): the battle's lines, set by resolveBattle for its own run */
+let AFF_CTX=null;
+function affHealMul(u, side, round, ctx){ let m=1; ctx=ctx||AFF_CTX;   /* ctx {a,b}: the two lines (resolveBattle's own by default) */
+  if((u._healCutUntilR||0)>0 && round<u._healCutUntilR) m*=1-EDGE.healCut;   /* Silence the healer */
+  if(AFFINITIES_LIVE && ctx && (side==='A'||side==='B')){ const own=side==='A'?ctx.a:ctx.b, foe=side==='A'?ctx.b:ctx.a, t=firstAlive(foe);
+    if(t && unitClass(t)==='Tank' && own.some(o=>o.hp>0&&unitClass(o)==='Support')) m*=1+EDGE.healBonus; }   /* Sundering grace */
+  return m; }
+
 /* ---- typed unit builder. base: {hp,dmg,apow,armor,mr,role,healer,atkSpeed}; mul: level×star
    multiplier; r: RATINGS {hpFlat,atkFlat,apowFlat,healFlat, armor,mr,armorPen,magicPen, crit,
    critDmg,critRes, energy,startEnergy, regen, lifesteal,atkSpd,haste, eva,acc,block, dmgBonus,
@@ -181,6 +223,7 @@ function lineUp(units, carry, capToEntry){
     c.healCap=capToEntry?c.hp:u.maxHp;
     c.energy=carry&&carry[i]?Math.max(0,Math.min(100,carry[i].energy|0)):(u.startEnergy||0);
     c.shieldPool=0; c._stunR=0; c._skipR=0; c._buffR=0; c._buffMul=1; c._drR=0; c._markR=0; c._markMul=1; c._gearSkillUsed=false;
+    c._hexUntilR=0; c._healCutUntilR=0; c._ripReadyR=0;   /* v1372 affinity timers: rounds restart at 1 in every battle */
     return c; });
   out.sort((a,b)=>(ROLE_FRONT_ORDER[a.role]??5)-(ROLE_FRONT_ORDER[b.role]??5));
   return out;
@@ -195,6 +238,11 @@ function state(us){ return us.map(u=>({key:u.key,hp:Math.max(0,Math.round(u.hp))
    kind: 'phys' | 'magic' | 'true'. Returns damage actually removed from hp+shields. */
 function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   opts=opts||{};
+  raw*=elemMul(src,tgt); const edge=classEdge(src,tgt);   /* v1372 elements (client dealDamage: amt*=elemMul(src,tgt)) */
+  /* v1372 Shield wall: the Tank blocks 25% of a Marksman's basic attacks. The roll is drawn only for that pair (decided by the units, never by a roll) */
+  if(AFFINITIES_LIVE && edge==='' && unitClass(src)==='Marksman' && unitClass(tgt)==='Tank' && opts.auto && kind!=='true' && rnd()<EDGE.block){
+    if(log.length<600) log.push([round,side,tgt.key,'block',src.key,0,0,kind,0]);
+    return 0; }
   // evasion (countered point-for-point by accuracy) — roll ALWAYS consumed
   const evaRoll=rnd();
   const eva=Math.max(0, (tgt.eva||0) - (src.acc||0)*CONV.evaPerPt);
@@ -208,14 +256,16 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
     crit=true; dmg*= 1 + Math.max(0, (src.critDmg||0.6) - (tgt.critRes||0)); }   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), never below a normal hit. = client dealDamage */
   if(tgt._markR>0) dmg*=(tgt._markMul||1);
   // TYPED mitigation: armor vs phys (blockable), MR vs magic — each countered only by its own pen
+  const rk=(edge==='Support')?EDGE.armorIgnore:1;   /* v1372 Sundering grace: a Support's hit reads the Tank's Armor / MR at x0.5 (client _defMulRaw rk) */
   if(kind==='phys'){
-    dmg*=1-defToDR(Math.max(0,(tgt.armor||0)-(src.armorPen||0)), tgt.level);
+    dmg*=1-defToDR(Math.max(0,(tgt.armor||0)*rk-(src.armorPen||0)), tgt.level);
     const blockRoll=rnd();
     if((tgt.block||0)>0 && blockRoll<(tgt.block||0)){ dmg*=0.5; if(log.length<600) log.push([round,side,tgt.key,'block',src.key,0,0,kind,0]); }
   } else if(kind==='magic'){
-    dmg*=1-defToDR(Math.max(0,(tgt.mr||0)-(src.magicPen||0)), tgt.level);
+    dmg*=1-defToDR(Math.max(0,(tgt.mr||0)*rk-(src.magicPen||0)), tgt.level);
     rnd();   // parity roll so phys/magic consume identical stream length
   } else { rnd(); }
+  if(edge==='Assassin' && tgt.shieldPool>0) tgt.shieldPool-=Math.min(tgt.shieldPool,Math.round(dmg));   /* v1372 Silence the healer: double damage to a shield - only a blow that lands */
   if(tgt._drR>0) dmg*=0.65;                      // gear brace
   dmg*=1-(tgt.dmgRed||0);                        // Damage Reduction rating
   dmg=Math.max(0,Math.round(dmg));
@@ -224,12 +274,21 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   tgt.hp-=dmg; removed+=dmg;
   if(dmg>0&&tgt.templeDamageEnergy) tgt.energy=Math.min(100,tgt.energy+100*dmg/Math.max(1,tgt.maxHp)*tgt.templeDamageEnergy);
   if(log.length<600) log.push([round,side,src.key,'>',tgt.key,removed,opts.ult?1:0,kind,crit?1:0]);
+  /* v1372 class edges that act after the hit (client dealDamage, same order) */
+  if(edge && tgt.hp>0 && src.hp>0){
+    if(edge==='Marksman' && unitClass(tgt)==='Mage') tgt.energy=Math.max(0,(tgt.energy||0)-EDGE.drain);   /* Interrupt */
+    else if(edge==='Mage' && kind!=='phys' && !opts.auto) tgt._hexUntilR=round+EDGE.hexDur;   /* Hex */
+    else if(edge==='Assassin') tgt._healCutUntilR=round+EDGE.healCutDur; }   /* Silence the healer */
+  if(AFFINITIES_LIVE && tgt.hp>0 && src.hp>0 && unitClass(src)==='Assassin' && unitClass(tgt)==='Bruiser' && (tgt._ripReadyR||0)<=round && !(tgt._stunR>0)){   /* Riposte */
+    tgt._ripReadyR=round+EDGE.riposteCd;
+    if(log.length<600) log.push([round,side==='A'?'B':'A',tgt.key,'riposte',src.key,0,0,'phys',0]);
+    applyDamage(rnd,log,round,side==='A'?'B':'A',tgt,src,(tgt.atkP||0)*((tgt._buffR>0)?(tgt._buffMul||1):1),'phys',{}); }
   // lifesteal off damage actually removed
-  if((src.lifesteal||0)>0 && removed>0 && src.hp>0){ const ls=Math.round(removed*src.lifesteal); src.hp=Math.min(src.healCap==null?src.maxHp:src.healCap,src.hp+ls); }
+  if((src.lifesteal||0)>0 && removed>0 && src.hp>0){ const ls=Math.round(removed*src.lifesteal*affHealMul(src,side,round)); src.hp=Math.min(src.healCap==null?src.maxHp:src.healCap,src.hp+ls); }   /* v1372: lifesteal is a heal (client healUnit) - the heal edges apply */
   return removed;
 }
 function applyHeal(log, round, side, src, tgt, amt, ult){
-  const a=Math.round(amt*(1+(src.healPow||0)));
+  const a=Math.round(amt*(1+(src.healPow||0))*affHealMul(tgt,side,round));   /* v1372 heal edges on the unit healed (client healUnit) */
   tgt.hp=Math.min(tgt.healCap==null?tgt.maxHp:tgt.healCap,tgt.hp+a);
   if(log.length<600) log.push([round,side,src.key,'+',tgt.key,a,ult?1:0,'heal',0]);
   return a;
@@ -326,6 +385,10 @@ function fireGearSkill(rnd,log,round,side,u,own,foe){ const g=u.gearSkill;
 
 /* ---- THE resolver: attacker a must eliminate b; round-cap stall = defender win. ---- */
 function resolveBattle(a, b, seed){
+  const _ctx0=AFF_CTX; AFF_CTX={a,b};   /* v1372: the heal edges read the two lines */
+  try{ return _resolveBattle(a, b, seed); } finally{ AFF_CTX=_ctx0; }
+}
+function _resolveBattle(a, b, seed){
   const rnd=mulberry32(seed>>>0); const log=[]; let round=0;
   const fA=0.85+0.30*rnd(), fB=0.85+0.30*rnd();     // per-fight team performance band (seeded)
   const act=(u, side, own, foe)=>{
@@ -335,7 +398,8 @@ function resolveBattle(a, b, seed){
     const swings=u.speed>=1.1?2:1;
     for(let s=0;s<swings;s++){
       if(!anyAlive(foe)) return;
-      u.energy=Math.min(100,u.energy+25*(u.haste||1));
+      const hexMul=(AFFINITIES_LIVE && round<(u._hexUntilR||0))?1/EDGE.hexAtk:1;   /* v1372 Hex: a hexed swing counts x1/1.3 (attack interval x1.3) */
+      u.energy=Math.min(100,u.energy+25*(u.haste||1)*hexMul);
       const ult=u.energy>=100;
       const variance=()=> (side==='A'?fA:fB)*(0.85+0.3*rnd());
       if(ult){ fireKit(rnd,log,round,side,u,own,foe,variance); u.energy=0; continue; }
@@ -344,7 +408,7 @@ function resolveBattle(a, b, seed){
       const t=firstAlive(foe); if(!t) return;
       const buff=(u._buffR>0)?(u._buffMul||1):1;
       // BASIC ATTACK: always the PHYSICAL line — casters poke physically, their power is the kit
-      applyDamage(rnd,log,round,side,u,t,u.atkP*buff*variance(),'phys',{});
+      applyDamage(rnd,log,round,side,u,t,u.atkP*buff*hexMul*variance(),'phys',{auto:true});   /* auto: the basic attack (Shield wall reads it, Hex skips it) */
     }
   };
   while(anyAlive(a)&&anyAlive(b)&&round<300){
@@ -367,5 +431,6 @@ function resolveBattle(a, b, seed){
   return { won, rounds:round, aState:state(a), bState:state(b), log };
 }
 
-module.exports={ skillMul, SKILL_STEP, CC_MISS_PER_LEVEL, mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
+module.exports={ AFFINITIES_LIVE, AFF_ELEMENT, ELEM_BEATS, ELEM_BONUS, CLASS_BEATS, EDGE, unitElement, unitClass, elemMul, classEdge, affHealMul,
+  skillMul, SKILL_STEP, CC_MISS_PER_LEVEL, mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
   applyDamage, applyHeal, grantShield, state };

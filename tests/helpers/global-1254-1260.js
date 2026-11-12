@@ -95,6 +95,10 @@ const SWAPS = [
   //   monster damage types (Magic monsters' abilities + autos off Ability Power as magic damage), Magmourn Tank + Fireball at the weakest back-row
   //   hero + Ignite All 20 m - all behind one switch, off for the older BASE fights; tests/test_monster_damage_types_1313.js checks v1313 itself.
   ['const MON_DMG_TYPES=true;', 'const MON_DMG_TYPES=false;', /const MON_DMG_TYPES\s*=/],
+  // v1372 (Phil 11 Nov 2026: Affinities switched on): elements, the six class edges and the 1.30 ally spacing change every seeded fight's numbers and
+  //   positions - off for the older BASE fights so they keep checking only what they were written for; tests/test_affinities_1367.js and
+  //   tests/test_affinity_parity_1372.js check the live switch (and test_skill_anim_hold puts it back on: its renderer checks run on the live rules).
+  ['const AFFINITIES_LIVE=true;', 'const AFFINITIES_LIVE=false;', /const AFFINITIES_LIVE\s*=/],
   ];   // v1287: Zahri is an Arena hero (Phil 5 Nov)   // v1287: Oakmir Blue cd 9 -> 10   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
 const made = [];
 process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } catch (e) {} } });
