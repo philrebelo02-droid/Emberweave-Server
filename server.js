@@ -6733,10 +6733,10 @@ async function api(req,res,url){
     if(!warEnabledFor(me)) return send(res,200,{enabled:false});
     if(rateLimited(req,'gwar',30,30000)) return send(res,429,{error:'Slow down.'});
     const t=warAdvance(getTournament());
-    const myGid=me.guildId||null; const myGuildObj=myGid?(DB.guilds||{})[myGid]:null;
+    let myGid=me.guildId||null; let myGuildObj=myGid?(DB.guilds||{})[myGid]:null;
     /* v1372: two rank permissions, read by guildCan - registering, and arranging the towers (assign one player / move a whole lane) */
-    const canWarRegister=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_register'));
-    const canWarManage=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_manage'));
+    let canWarRegister=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_register'));
+    let canWarManage=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_manage'));
 
     if(p==='/api/guild-war/status'){
       const ent=myGid?warEntrant(t,myGid):null; const m=myGid?warMatchOfGuild(t,myGid):null;
@@ -6806,6 +6806,9 @@ async function api(req,res,url){
     }
     if(req.method!=='POST') return send(res,404,{error:'guild-war'});
     const b=await body(req);
+    /* v1372 (ChatGPT check): membership and rank may have changed while the body arrived - read them again before any write */
+    myGid=me.guildId||null; myGuildObj=myGid?(DB.guilds||{})[myGid]:null;
+    canWarRegister=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_register')); canWarManage=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_manage'));
 
     if(p==='/api/guild-war/register'){
       if(!myGuildObj) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
@@ -10717,7 +10720,7 @@ async function api(req,res,url){
       const tu=DB.users[tid]; if(!tu){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB([me.id]); return send(res,400,{error:'That player no longer exists.'}); }
       if(tu.guildId){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB([me.id]); return send(res,400,{error:'That player already joined a guild.'}); }
       if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'Your guild is full.'});
-      g.members.push(tid); tu.guildId=g.id; g.reqs=g.reqs.filter(r=>r.id!==tid);
+      g.members.push(tid); tu.guildId=g.id; g.reqs=g.reqs.filter(r=>r.id!==tid); guildRanksEnsure(g); delete g.memberRank[tid];   /* v1372 (ChatGPT check): every join starts as Member */
       g.log=g.log||[]; g.log.push({sys:1,tx:tu.name+' joined the guild.',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
       writeDB([me.id,tu.id]);   /* v1124: the guild (shared world) + the leader + the new member */ return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/deny'){ g.reqs=(g.reqs||[]).filter(r=>r.id!==b.id); writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
@@ -10802,7 +10805,7 @@ async function api(req,res,url){
     if(p==='/api/guild/leave'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       warPoolForget(g.id);
       if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
-      g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
+      g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId; if(g.memberRank) delete g.memberRank[me.id];   /* v1372 (ChatGPT check): a rank never survives leaving */
       if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); siegeSettleGuilds(Date.now()); writeDB([me.id]); return send(res,200,{ ok:true, disbanded:true }); }
       g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()}); guildLogCap(g);
       siegeSettleGuilds(Date.now());   /* v1240 (Phil 31 Oct): leaving the guild = your lines march home; a site you held alone goes */

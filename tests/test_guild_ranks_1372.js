@@ -180,6 +180,16 @@ const BANNER={shape:1,emblem:2,color:3};
   const d=disk(), dg=d.guilds.g1;
   ok(Array.isArray(dg.ranks)&&dg.ranks.length===3&&dg.ranks[2].id==='member'&&dg.memberRank&&dg.memberRank[id('grLead')]==='officer'&&dg.memberRank[id('grBram')]==='officer'&&!dg.memberRank[id('grOff')],'the DB holds the ranks and memberRank');
   ok(d.users[id('grAnna')].guildId===undefined&&!(dg.memberRank||{})[id('grAnna')],'a removed member leaves no rank behind');
+  // ---- 6. (ChatGPT check, v1372) a rank never survives leaving: an Officer who leaves and is re-approved comes back as a Member ----
+  await start();
+  r=await call('/api/guild/leave',{},T.grBram); ok(r.status===200,'the Officer grBram leaves ('+r.status+' '+(r.data.error||'')+')');
+  await delay(600); await stop();
+  ok(!(disk().guilds.g1.memberRank||{})[id('grBram')],'leaving removes the rank from the guild record');
+  { const db=disk(); db.guilds.g1.memberRank[id('grBram')]='officer'; fs.writeFileSync(dbFile,JSON.stringify(db)); }   /* a stale entry as an older build left it */
+  await start();
+  r=await call('/api/guild/request',{guildId:'g1'},T.grBram); ok(r.status===200,'grBram asks to rejoin ('+r.status+' '+(r.data.error||'')+')');
+  r=await call('/api/guild/approve',{id:id('grBram')},T.grOff); ok(r.status===200&&memOf(r.data.guild,'grBram').rankId==='member','re-approved, grBram is a Member - not the old Officer rank ('+(r.status===200?memOf(r.data.guild,'grBram').rankId:r.status)+')');
+  r=await call('/api/guild-war/move-lane',{from:2,to:0},T.grBram,true); ok(r.status===403,'and cannot move a lane any more ('+r.status+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_guild_ranks_1372.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();
