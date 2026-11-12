@@ -3224,6 +3224,52 @@ function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
      records, chat history, other players' battle logs, and the player's own bug reports (the device string is dropped);
    - on Server 1 a tombstone (the bare account id and the time, nothing else) tells Servers 2-5 to delete their linked player at
      their next status check (acctStatusSync). */
+/* v1372 GUILD RANKS (Phil 11 Nov 2026: officers could not be appointed - "make that and also the ability for the guild leader to promote
+   member and create "ranks" and give rank permissions"). THE SERVER IS THE AUTHORITY for every check.
+   g.ranks = [{id, name, perms{perm:true}}] in order, highest first; the Member rank (id 'member') is always LAST and is everyone's default.
+   g.memberRank[uid] = rank id (missing = Member; the leader is never listed). The leader holds every permission and sits above every rank.
+   Only the leader creates / renames / deletes / reorders ranks, sets their permissions and assigns them; disband and leadership transfer
+   stay leader-only. A guild with no ranks (every guild made before v1372) is seeded on first read with Officer (every permission) and
+   Member (none); an old g.officers list, if any, lands on Officer. Kick: only someone of a LOWER rank (leader > ranks in list order). */
+const GUILD_PERMS=['members_accept','members_kick','notice_edit','banner_edit','war_register','war_manage'];
+const GUILD_RANK_MAX=8, GUILD_RANK_NAME_MAX=16;
+function guildRanksEnsure(g){
+  if(!g||typeof g!=='object') return g;
+  const members=Array.isArray(g.members)?g.members:[];
+  const fresh=!Array.isArray(g.ranks);
+  const src=fresh?[{id:'officer',name:'Officer',perms:Object.fromEntries(GUILD_PERMS.map(k=>[k,true]))},{id:'member',name:'Member',perms:{}}]:g.ranks;
+  const seen=new Set(), out=[]; let member=null;
+  for(const r of src){ if(!r||typeof r!=='object') continue; const id=String(r.id||'');
+    if(!/^[a-z0-9_]{1,24}$/.test(id)||seen.has(id)) continue; seen.add(id);
+    const perms={}; for(const k of GUILD_PERMS) if(r.perms&&r.perms[k]===true) perms[k]=true;
+    const name=String(r.name||'').slice(0,GUILD_RANK_NAME_MAX)||(id==='member'?'Member':'Rank');
+    /* the stored objects are kept (normalised in place), so a rank read before this call is still the guild's rank after it */
+    let rr=r; if(fresh) rr={id,name,perms}; else { for(const k of Object.keys(rr)) if(k!=='id'&&k!=='name'&&k!=='perms') delete rr[k]; rr.id=id; rr.name=name; rr.perms=perms; }
+    if(id==='member') member=rr; else out.push(rr); }
+  if(!member) member={id:'member',name:'Member',perms:{}};
+  g.ranks=out.slice(0,GUILD_RANK_MAX-1).concat([member]);
+  const mr=(g.memberRank&&typeof g.memberRank==='object'&&!Array.isArray(g.memberRank))?g.memberRank:{};
+  if(fresh&&Array.isArray(g.officers)) for(const id of g.officers) if(!mr[id]) mr[id]='officer';
+  const ids=new Set(g.ranks.map(r=>r.id)), clean={};
+  for(const id of members){ if(id===g.leader) continue; const rid=mr[id]; if(rid&&rid!=='member'&&ids.has(rid)) clean[id]=rid; }
+  g.memberRank=clean; if('officers' in g) delete g.officers;
+  return g; }
+function guildRankOf(g,uid){ guildRanksEnsure(g); const rid=g.memberRank[uid]||'member'; return g.ranks.find(r=>r.id===rid)||g.ranks[g.ranks.length-1]; }
+/* -1 for the leader, else the rank's place in the list (0 = highest); a bigger number is a LOWER rank */
+function guildRankPos(g,uid){ if(uid===g.leader) return -1; const r=guildRankOf(g,uid); return g.ranks.indexOf(r); }
+function guildCan(g,uid,perm){
+  if(!GUILD_PERMS.includes(perm)||!g||!uid||!Array.isArray(g.members)||!g.members.includes(uid)) return false;
+  if(g.leader===uid) return true;
+  return guildRankOf(g,uid).perms[perm]===true; }
+function guildCanKick(g,actor,target){
+  if(!g||!actor||!target||actor===target||target===g.leader||!(g.members||[]).includes(target)) return false;
+  return guildCan(g,actor,'members_kick') && guildRankPos(g,target)>guildRankPos(g,actor); }
+function guildPermsOf(g,uid){ return GUILD_PERMS.filter(k=>guildCan(g,uid,k)); }
+function guildRankLabel(g,uid){ return uid===g.leader?'Leader':guildRankOf(g,uid).name; }
+function guildRankName(raw){ const n=String(raw==null?'':raw).replace(/\s+/g,' ').trim();
+  if(n.length<1||n.length>GUILD_RANK_NAME_MAX) return {error:'Rank names are 1 to 16 characters.'};
+  const bad=badCharName(n); if(bad) return {error:bad};
+  return {name:n}; }
 const DELETED_NAME='Deleted player';
 function _anonWalk(o,tid,oldName,depth){ if(!o||typeof o!=='object'||depth>14) return;
   if(Array.isArray(o)){ for(const v of o) if(v&&typeof v==='object') _anonWalk(v,tid,oldName,depth+1); return; }
@@ -3573,7 +3619,7 @@ function adminPlayerInfo(u){
   const out={ identity:{ id:u.id, name:u.name, server:SERVER_ID||String(process.env.SERVER_NAME||''), created:u.created||0, lastSeen:u.lastSeen||0,
       signedIn:!u.guest, guest:!!u.guest, hasEmail:!!u.email, dev:isDev(u), ban:banInfo(u) }, ledger:!!led };
   const g=u.guildId&&(DB.guilds||{})[u.guildId];
-  const guild=g?{ name:String(g.name||''), role:g.leader===u.id?'Leader':((g.officers||[]).includes(u.id)?'Officer':'Member') }:null;
+  const guild=g?{ name:String(g.name||''), role:guildRankLabel(g,u.id) }   /* v1372: the member's rank name */:null;
   const dp=(DB.dungeonProgress||{})[u.id]||null;
   out.progress={ arenaRank:u.rank|0, bestArenaRank:u.bestRank!=null?(u.bestRank|0):null, guild, vaultFloor:dp?(dp.highestClearedFloor|0):0, vaultDone:!!(dp&&dp.vaultStatus==='complete') };
   out.currencies={ arenaCoins:Math.max(0,u.coins|0), forgeDust:Math.max(0,+u.dust||0), shields:Math.max(0,u.shields|0) };
@@ -6688,7 +6734,9 @@ async function api(req,res,url){
     if(rateLimited(req,'gwar',30,30000)) return send(res,429,{error:'Slow down.'});
     const t=warAdvance(getTournament());
     const myGid=me.guildId||null; const myGuildObj=myGid?(DB.guilds||{})[myGid]:null;
-    const isLeaderOrOfficer=!!(myGuildObj && (myGuildObj.leader===me.id || (myGuildObj.officers||[]).includes(me.id)));
+    /* v1372: two rank permissions, read by guildCan - registering, and arranging the towers (assign one player / move a whole lane) */
+    const canWarRegister=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_register'));
+    const canWarManage=!!(myGuildObj && guildCan(myGuildObj,me.id,'war_manage'));
 
     if(p==='/api/guild-war/status'){
       const ent=myGid?warEntrant(t,myGid):null; const m=myGid?warMatchOfGuild(t,myGid):null;
@@ -6730,7 +6778,7 @@ async function api(req,res,url){
           if(q.powerPool!==ent.powerPool || (q.lines||[]).length!==(ent.lines||[]).length){
             ent.lines=q.lines; ent.powerPool=q.powerPool; t.version++; writeDB([me.id]); }
           return q.powerPool; })(),
-        canRegister:isLeaderOrOfficer,
+        canRegister:canWarRegister, canArrange:canWarManage,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
         match:m?warMatchView(t,m,myGid,me.id):null });
     }
@@ -6761,7 +6809,7 @@ async function api(req,res,url){
 
     if(p==='/api/guild-war/register'){
       if(!myGuildObj) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
-      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can register.'});
+      if(!canWarRegister) return send(res,403,{error:'Your guild rank does not allow that.'});
       if(t.state!=='registration') return send(res,400,{error:'Registration is closed for this week.'});
       if(warEntrant(t,myGid)) return send(res,400,{error:'Already registered.'});
       const probe=warQualifyGuild(myGuildObj);   // display-only preview; AUTHORITY is the Monday-lock recompute (audit C8)
@@ -6772,7 +6820,7 @@ async function api(req,res,url){
       return send(res,200,{ok:true, powerPool:probe.powerPool, lines:probe.lines.length, note:'Qualification is recalculated for every registered guild at the Monday lock.'});
     }
     if(p==='/api/guild-war/unregister'){
-      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can do that.'});
+      if(!canWarRegister) return send(res,403,{error:'Your guild rank does not allow that.'});
       if(t.state!=='registration') return send(res,400,{error:'Locked — the bracket is set.'});
       const i=t.entrants.findIndex(e=>e.guildId===myGid); if(i<0) return send(res,400,{error:'Not registered.'});
       t.entrants.splice(i,1); t.version++; writeDB([me.id]); return send(res,200,{ok:true});
@@ -6869,7 +6917,7 @@ async function api(req,res,url){
         return send(res,400,{error: nxt?('No round is in planning — placement opens '+warWhenET(nxt)+'.'):'No match in planning.'});
       }
       if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.'});
-      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can arrange citadels.'});
+      if(!canWarManage) return send(res,403,{error:'Your guild rank does not allow that.'});
       const side=m.sides[myGid]; const memberId=String(b.memberId||''); const lane=parseInt(b.lane,10);
       if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
       const ent=warEntrant(t,myGid);
@@ -6911,7 +6959,7 @@ async function api(req,res,url){
         return send(res,400,{error: nxt?('No round is in planning \u2014 placement opens '+warWhenET(nxt)+'.'):'No match in planning.'});
       }
       if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.'});
-      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can arrange citadels.'});
+      if(!canWarManage) return send(res,403,{error:'Your guild rank does not allow that.'});
       const side=m.sides[myGid]; if(!side) return send(res,400,{error:'You are not in this war.'});
       const from=parseInt(b.from,10), to=parseInt(b.to,10);
       if(!(from>=0&&from<5)||!(to>=0&&to<5)) return send(res,400,{error:'Bad lane.'});
@@ -10480,6 +10528,7 @@ async function api(req,res,url){
       return {ok:true, banner:out};
     }
     function guildView(g){
+      guildRanksEnsure(g);   /* v1372: an old guild is seeded with Officer + Member on first read */
       /* v750 (Phil: "Ranking should be your guild members ranked by power") - the roster carries
          POWER now. serverTeamPower is the same server-computed number the arena and the world map
          rank by; a client-uploaded figure is never trusted. `lines` is how many war lines that
@@ -10488,14 +10537,20 @@ async function api(req,res,url){
         let power=0, lines=0;
         try{ power=serverTeamPower((u&&Array.isArray(u.wall)&&u.wall.length?u.wall:((u&&u.team)||[])), u)|0; }catch(e){}
         try{ lines=(u&&!u.isNpc)?buildRegisteredLines(u).length:0; }catch(e){}
-        return {id,name:nameOf(id),rank:rankOf(id),online:isOnline(id),leader:id===g.leader,power,lines}; })
-        .sort((a,b)=>(b.leader?1:0)-(a.leader?1:0) || (b.online?1:0)-(a.online?1:0) || a.rank-b.rank);
+        /* v1372: the member's guild rank, and whether THIS viewer may remove them (the server's answer, never the client's) */
+        const gr=id===g.leader?null:guildRankOf(g,id);
+        return {id,name:nameOf(id),rank:rankOf(id),online:isOnline(id),leader:id===g.leader,power,lines,
+          rankId:gr?gr.id:'leader', rankName:gr?gr.name:'Leader', rankPos:guildRankPos(g,id), kickable:guildCanKick(g,me.id,id)}; })
+        .sort((a,b)=>(b.leader?1:0)-(a.leader?1:0) || a.rankPos-b.rankPos || (b.online?1:0)-(a.online?1:0) || a.rank-b.rank);
       const youLeader = g.leader===me.id;
+      const myPerms = guildPermsOf(g,me.id);
       return { id:g.id, name:g.name, banner:g.banner||null,   /* v769 */
         level:g.level||1, exp:g.exp||0, expNeed:gExpNeed(g.level||1),
         motd:g.motd||'', leader:g.leader, leaderName:nameOf(g.leader), cap:gCap(g),
         members:mem, count:mem.length, youLeader,
-        requests: youLeader ? (g.reqs||[]).map(r=>({id:r.id,name:nameOf(r.id),rank:rankOf(r.id),t:r.t})) : [],
+        /* v1372 */ ranks:g.ranks.map(r=>({id:r.id, name:r.name, perms:GUILD_PERMS.filter(k=>r.perms[k]===true)})),
+        permList:GUILD_PERMS.slice(), rankMax:GUILD_RANK_MAX, myPerms, myRankId:youLeader?'leader':guildRankOf(g,me.id).id,
+        requests: myPerms.includes('members_accept') ? (g.reqs||[]).map(r=>({id:r.id,name:nameOf(r.id),rank:rankOf(r.id),t:r.t})) : [],
         pendingReqCount:(g.reqs||[]).length,
         log:(g.log||[]).filter(e=>e.sys||!e.t||(Date.now()-e.t)<6*3600000).filter(e=>e.sys||!chatBlocked(me.id,e.id)).slice(-60) };   /* v1097: blocked players hidden */   // guild CHAT messages disappear after 6h (system notices kept)
     }
@@ -10648,9 +10703,13 @@ async function api(req,res,url){
     if(p==='/api/guild/cancelRequest'){ const g=findGuild(b.guildId); if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB([me.id]); } return send(res,200,{ok:true}); }
 
     const g=myGuild();
+    const GUILD_ROUTE_PERM={'/api/guild/approve':'members_accept','/api/guild/deny':'members_accept','/api/guild/kick':'members_kick',
+      '/api/guild/motd':'notice_edit','/api/guild/banner':'banner_edit'};
     if(['/api/guild/approve','/api/guild/deny','/api/guild/kick','/api/guild/transfer','/api/guild/disband','/api/guild/motd','/api/guild/banner'].includes(p)){
       if(!g) return send(res,400,{error:'You are not in a guild.'});
-      if(g.leader!==me.id) return send(res,403,{error:'Only the guild leader can do that.'});
+      /* v1372: approve / deny / kick / motd / banner are rank permissions (guildCan); transfer and disband stay the leader's */
+      const need=GUILD_ROUTE_PERM[p];
+      if(need ? !guildCan(g,me.id,need) : g.leader!==me.id) return send(res,403,{error:need?'Your guild rank does not allow that.':'Only the guild leader can do that.'});
     }
     /* v803b - the pool is memoised per guild; membership is the one input that must not wait */
     if(p==='/api/guild/approve'){ const tid=b.id; g.reqs=g.reqs||[]; warPoolForget(g.id);
@@ -10665,11 +10724,14 @@ async function api(req,res,url){
     if(p==='/api/guild/kick'){ if(b.id===me.id) return send(res,400,{error:'Use Leave instead.'});
       warPoolForget(g.id);
       if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
-      g.members=g.members.filter(x=>x!==b.id); const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
+      if(!guildCanKick(g,me.id,b.id)) return send(res,403,{error:'You can only remove members of a lower rank.'});   /* v1372 */
+      g.members=g.members.filter(x=>x!==b.id); if(g.memberRank) delete g.memberRank[b.id]; const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
       g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()}); guildLogCap(g);
       siegeSettleGuilds(Date.now());   /* v1240: the removed member's garrison lines march home */
       writeDB([me.id,String(b.id)]);   /* v1124: the guild + the leader + the removed member */ return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/transfer'){ if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
+      if(b.id===me.id) return send(res,200,{ guild:guildView(g) });   /* v1372: already the leader - nothing to change */
+      { const was=guildRankOf(g,b.id).id; delete g.memberRank[b.id]; if(was!=='member') g.memberRank[me.id]=was; else delete g.memberRank[me.id]; }   /* v1372: the two swap places */
       g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()}); guildLogCap(g);
       writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/motd'){ g.motd=(b.motd||'').toString().replace(/[<>]/g,'').slice(0,160); writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
@@ -10681,6 +10743,59 @@ async function api(req,res,url){
       if(v.banner===null) delete g.banner; else g.banner=v.banner;
       g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()}); guildLogCap(g);
       writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
+    /* v1372 GUILD RANKS - the leader's routes. Each is auth (the block's 401), in-a-guild, leader-only (403), validated, rate-limited, and
+       idempotent: the same request again leaves the same state (create carries an optional requestId; a repeat answers the first result). */
+    if(p.startsWith('/api/guild/rank/')){
+      if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(g.leader!==me.id) return send(res,403,{error:'Only the guild leader can do that.'});
+      if(rateLimited(req,'grank:'+me.id,Math.round(40*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});
+      guildRanksEnsure(g);
+      const findRank=id=>g.ranks.find(r=>r.id===String(id||''));
+      const nameTaken=(n,exceptId)=>g.ranks.some(r=>r.id!==exceptId&&r.name.toLowerCase()===n.toLowerCase());
+      const saved=extra=>{ writeDB([me.id],['guilds']); return send(res,200,Object.assign({ ok:true, guild:guildView(g) },extra||{})); };
+      if(p==='/api/guild/rank/create'){
+        const rid=String(b.requestId||'').slice(0,48);
+        g.rankReqs=(g.rankReqs&&typeof g.rankReqs==='object')?g.rankReqs:{};
+        if(rid&&g.rankReqs[rid]&&findRank(g.rankReqs[rid])) return send(res,200,{ ok:true, replayed:true, rankId:g.rankReqs[rid], guild:guildView(g) });
+        const v=guildRankName(b.name); if(v.error) return send(res,400,{error:v.error});
+        if(nameTaken(v.name)) return send(res,409,{error:'That rank name is already used.'});
+        if(g.ranks.length>=GUILD_RANK_MAX) return send(res,400,{error:'A guild can have at most 8 ranks.'});
+        let id; do{ id='r'+crypto.randomBytes(4).toString('hex'); }while(findRank(id));
+        const perms={}; if(b.perms&&typeof b.perms==='object') for(const k of GUILD_PERMS) if(b.perms[k]===true) perms[k]=true;
+        g.ranks.splice(g.ranks.length-1,0,{id,name:v.name,perms});   /* new ranks go just above Member */
+        if(rid){ g.rankReqs[rid]=id; const ks=Object.keys(g.rankReqs); if(ks.length>20) for(const k of ks.slice(0,ks.length-20)) delete g.rankReqs[k]; }
+        return saved({ rankId:id }); }
+      if(p==='/api/guild/rank/rename'){
+        const r=findRank(b.rankId); if(!r) return send(res,400,{error:'No such rank.'});
+        const v=guildRankName(b.name); if(v.error) return send(res,400,{error:v.error});
+        if(nameTaken(v.name,r.id)) return send(res,409,{error:'That rank name is already used.'});
+        r.name=v.name; return saved(); }
+      if(p==='/api/guild/rank/delete'){
+        const id=String(b.rankId||''); if(id==='member') return send(res,400,{error:'The Member rank cannot be deleted.'});
+        const r=findRank(id); if(!r) return send(res,200,{ ok:true, already:true, guild:guildView(g) });
+        g.ranks=g.ranks.filter(x=>x!==r);
+        for(const uid of Object.keys(g.memberRank)) if(g.memberRank[uid]===id) delete g.memberRank[uid];   /* its members fall back to Member */
+        return saved(); }
+      if(p==='/api/guild/rank/reorder'){
+        /* the ranks above Member, highest first; Member always stays last */
+        const want=Array.isArray(b.order)?b.order.map(String):null, cur=g.ranks.filter(r=>r.id!=='member');
+        if(!want||want.length!==cur.length||new Set(want).size!==want.length||!want.every(id=>cur.some(r=>r.id===id)))
+          return send(res,400,{error:'Bad rank order.'});
+        g.ranks=want.map(id=>findRank(id)).concat([findRank('member')]); return saved(); }
+      if(p==='/api/guild/rank/perms'){
+        const r=findRank(b.rankId); if(!r) return send(res,400,{error:'No such rank.'});
+        const src=b.perms; if(!src||typeof src!=='object'||Array.isArray(src)) return send(res,400,{error:'Unknown permission.'});
+        for(const k of Object.keys(src)) if(!GUILD_PERMS.includes(k)||typeof src[k]!=='boolean') return send(res,400,{error:'Unknown permission.'});
+        const perms={}; for(const k of GUILD_PERMS) if(src[k]===true) perms[k]=true;
+        r.perms=perms; return saved(); }
+      if(p==='/api/guild/rank/assign'){
+        const tid=String(b.id||''); if(!(g.members||[]).includes(tid)) return send(res,400,{error:'Not a member.'});
+        if(tid===g.leader) return send(res,400,{error:'The leader has no rank.'});
+        const r=findRank(b.rankId); if(!r) return send(res,400,{error:'No such rank.'});
+        if(r.id==='member') delete g.memberRank[tid]; else g.memberRank[tid]=r.id;
+        return saved(); }
+      return send(res,404,{error:'not found'});
+    }
     if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
       delete DB.guilds[g.id]; warDropDeletedGuild(g.id); siegeSettleGuilds(Date.now()); writeDB([me.id,...(g.members||[])]); return send(res,200,{ ok:true, disbanded:true }); }   /* v1240: its sites go */   // v1124: every member's guildId
 

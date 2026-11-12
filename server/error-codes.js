@@ -491,6 +491,16 @@ const EXACT=[
   ["world_tree_only_world_tree_event","The World Tree can only be taken during the World Tree event."],
   ["lines_locked_reopen_next_prep","The fighting has started — lines locked at 18:00 ET. They reopen at the next prep."],
   ["bracket_not_set_rounds_begin","The bracket is not set yet — line placement opens once the rounds begin."],
+  /* v1372 guild ranks */ ["your_guild_rank_does_not_allow_that","Your guild rank does not allow that."],
+  ["you_can_only_remove_members_of","You can only remove members of a lower rank."],
+  ["rank_names_are_1_to_16","Rank names are 1 to 16 characters."],
+  ["that_rank_name_is_already_used","That rank name is already used."],
+  ["a_guild_can_have_at_most_8","A guild can have at most 8 ranks."],
+  ["no_such_rank","No such rank."],
+  ["the_member_rank_cannot_be_deleted","The Member rank cannot be deleted."],
+  ["bad_rank_order","Bad rank order."],
+  ["unknown_permission","Unknown permission."],
+  ["the_leader_has_no_rank","The leader has no rank."]
 ];
 const PATTERNS=[
   ["names_cannot_use_letters_numbers_spaces","Names cannot use {bad} - letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.","^Names cannot use ([\\s\\S]*?) - letters, numbers, spaces and _ - \\. ! \\? # @ \\$ % \\* \\+ = ~ \\( \\) \\[ \\] : , \\^ only\\.$",["bad"]],
