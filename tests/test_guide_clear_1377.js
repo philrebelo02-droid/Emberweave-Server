@@ -44,13 +44,16 @@ const CASES=[['market','market'],['shadymarket','shadymarket'],['wishing','wishi
         host.querySelectorAll('button,.btn,[onclick]').forEach(el=>{ if(el.closest('#ftutBar')) return; const q=R(el); if(q.width<6||q.height<6) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return;
           const a=foot.reduce((s,f)=>s+area(f,q),0); if(a>0.5*q.width*q.height) under.push((el.textContent||'').trim().replace(/\s+/g,' ').slice(0,20)||String(el.className).slice(0,20)); });
         const inside=box.left>=-0.5&&box.top>=-0.5&&box.right<=v.width+0.5&&box.bottom<=v.height+0.5&&por.top>=-0.5&&por.bottom<=v.height+0.5&&por.left>=-0.5;
-        return {fired:true,n:row.length,over,under,inside,y:Math.round(box.top)}; },[sc,k]);
+        const _v=ewGameView(), _p=R(bar.querySelector('.ftut-por')); return {fired:true,n:row.length,over,under,inside,y:Math.round(box.top),barBottom:Math.max(box.bottom,_p.bottom)>=_v.height-24}; },[sc,k]);
       ok(r.fired, tag+': '+k+' guide fires on '+sc);
       if(!r.fired) continue;
       if(SHOTS){ try{ fs.mkdirSync(SHOTS,{recursive:true}); await page.screenshot({path:path.join(SHOTS,tag.replace(/\s.*$/,'')+'-'+k+'.png')}); }catch(e){} }
       ok(r.n>0&&r.over.length===0, tag+': '+k+' box + portrait clear of the '+sc+' top row and Back (box top '+r.y+'; covers: '+(r.over.join(' | ')||'nothing')+')');
       ok(r.inside, tag+': '+k+' box + portrait inside the screen');
-      ok(r.under.length===0, tag+': '+k+' Skip / Next not on a screen button ('+(r.under.join(' | ')||'none')+')');
+      /* v1378 (Phil 12 Nov: the guide sits "at the bottom of the game", "not directly in the way"): the Forge is buttons top to bottom (gear grid + the quality column),
+         so no height keeps Skip / Next off every button - there the bar stays at the bottom edge (checked), every other screen must be clear */
+      if(k==='forge') ok(r.barBottom===true||r.under.length===0, tag+': forge (all buttons) - bar at the bottom edge ('+(r.under.join(' | ')||'none')+')');
+      else ok(r.under.length===0, tag+': '+k+' Skip / Next not on a screen button ('+(r.under.join(' | ')||'none')+')');
       await page.evaluate(()=>{ try{ ftutEnd(true); }catch(e){} }); }
     ok(errs.length===0, tag+': no page errors ('+errs.slice(0,2).join(' | ')+')'); await ctx.close(); }
 }catch(e){ console.error(e); fails++; } finally { console.log('guide clear 1377: '+(checks-fails)+'/'+checks+' checks passed, '+fails+' failed'); if(fails) process.exitCode=1;

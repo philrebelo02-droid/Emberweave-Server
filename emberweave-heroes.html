@@ -19671,26 +19671,34 @@ function ftutTopRow(host,r,L,W){ const lim=r.top+r.height*.22, T=Math.max(0,r.to
     if(q.bottom>hb) hb=q.bottom; });
   return Math.min(hb,T+r.height*.5); }
 function ftutPlace(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); if(!g||!bar) return; const host=ftutHost(g.at); if(!host) return;
-  const r=host.ewGameRect(), v=ewGameView(); const L=Math.max(0,r.left), T=Math.max(0,r.top), W=Math.min(v.width,r.right)-L, H=Math.min(v.height,r.bottom)-T;
-  bar.style.left=L+'px'; bar.style.width=W+'px';
+  /* v1378 (Phil 12 Nov, the guide squeezed into the middle of the Heroes window over the stats: "should be at the bottom of the game" / "not directly
+     in the way" / "same issue everywhere"): the bar spans the whole game view and sits at its BOTTOM edge on every screen and pop-out. It lifts only
+     as far as needed so Skip / Next never sit on one of the screen's own buttons and the box + portrait never cover the control the line highlights;
+     it never covers the screen's top row (Back, title, counters - v1377 F1). Each candidate height is MEASURED as drawn (portrait hangs differently
+     at the top), lowest clear height wins; a tall highlighted column narrows the bar to its other side. */
+  const r=host.ewGameRect(), v=ewGameView(), W=v.width, H=v.height;
   const key=[g.k,Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)].join(','), now=Date.now();
-  if(!FTUT.row||FTUT.row.host!==host||FTUT.row.key!==key||now-FTUT.row.at>1500) FTUT.row={host,key,at:now,y:ftutTopRow(host,r,L,W)};
-  const hb=FTUT.row.y+4, btn=[];
-  host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(el.closest('#ftutBar')) return;
+  if(!FTUT.row||FTUT.row.host!==host||FTUT.row.key!==key||now-FTUT.row.at>1500) FTUT.row={host,key,at:now,y:ftutTopRow(host,r,Math.max(0,r.left),Math.min(v.width,r.right)-Math.max(0,r.left))};
+  const hb=Math.max(0,FTUT.row.y+4);
+  const btn=[]; host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(el.closest('#ftutBar')) return;
     const q=el.ewGameRect(); if(q.width<4||q.height<4) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return; btn.push(q); });
-  const fit=()=>{ const box=bar.querySelector('.ftut-box'), row=bar.querySelector('.ftut-row'), p=bar.querySelector('.ftut-por').ewGameRect(), b=box.ewGameRect(), f=bar.querySelector('.ftut-foot').ewGameRect();
-    return {bh:Math.ceil(b.height)+10,rise:Math.max(0,Math.ceil(p.height-row.ewGameRect().height)),pl:p.left,pr:p.right,fl:f.left,fr:f.right,ft:f.top-b.top,fb:f.bottom-b.top}; };
-  bar.classList.remove('ftut-slim'); let m=fit(); if(T+H-hb<m.bh+m.rise){ bar.classList.add('ftut-slim'); m=fit(); }
-  const ov=(x0,x1,y0,y1)=>{ let a=0; btn.forEach(q=>{ a+=Math.max(0,Math.min(q.right,x1)-Math.max(q.left,x0))*Math.max(0,Math.min(q.bottom,y1)-Math.max(q.top,y0)); }); return a; };
-  /* the box lets taps through and is 80% see-through; the portrait hides what is under it and Skip/Next take the tap - they weigh more */
-  const hl=ftutHL(), hq=hl?hl.ewGameRect():null, hov=(x0,x1,y0,y1)=>hq?Math.max(0,Math.min(hq.right,x1)-Math.max(hq.left,x0))*Math.max(0,Math.min(hq.bottom,y1)-Math.max(hq.top,y0)):0;
-  const cost=(y,top)=>{ const by=y+(top?4:0), p0=top?by:by-m.rise, p1=by+m.bh-10+(top?m.rise:0);
-    return ov(L,L+W,by,by+m.bh-10)+3*ov(m.pl,m.pr,p0,p1)+4*ov(m.fl,m.fr,by+m.ft,by+m.fb)+1e6*(hov(L,L+W,by,by+m.bh-10)+hov(m.pl,m.pr,p0,p1)); };   /* F1b: never on the highlighted control */
-  const yB=T+H-m.bh, yMax=T+H-m.bh-m.rise; let top=true, y=Math.min(hb,Math.max(T,yMax));
-  let best=Infinity; if(yMax>hb){ best=cost(hb,true); y=hb; for(let yy=hb+6;yy<yMax+6;yy+=6){ const y2=Math.min(yy,yMax), c=cost(y2,true); if(c<best-1){ best=c; y=y2; } } }
-  if(yB-m.rise>=hb){ const cb=cost(yB,false); if(cb<1||(g.pos==='bottom'&&cb<=best)){ top=false; y=yB; } }
-  bar.classList.toggle('ftut-top',top); bar.classList.toggle('ftut-bottom',!top);
-  bar.style.top=y+'px'; bar.style.bottom='auto'; }
+  const hl=ftutHL(), hq=hl?hl.ewGameRect():null;
+  const ov=(a,q,m)=>Math.min(a.right,q.right+m)>Math.max(a.left,q.left-m)&&Math.min(a.bottom,q.bottom+m)>Math.max(a.top,q.top-m);
+  const put=(L,Wd,y,top)=>{ bar.style.left=L+'px'; bar.style.width=Wd+'px'; bar.classList.toggle('ftut-top',top); bar.classList.toggle('ftut-bottom',!top); bar.style.top=y+'px'; bar.style.bottom='auto'; };
+  const parts=()=>[bar.querySelector('.ftut-box').ewGameRect(),bar.querySelector('.ftut-por').ewGameRect()], foot=()=>bar.querySelector('.ftut-foot').ewGameRect();
+  const judge=()=>{ const [b,p]=parts(), f=foot(); const inside=b.top>=-0.5&&b.bottom<=H+0.5&&p.top>=-0.5&&p.bottom<=H+0.5&&Math.min(b.top,p.top)>=hb-0.5;
+    const onHL=!!hq&&(ov(b,hq,6)||ov(p,hq,6)); const onBtn=btn.some(q=>ov(f,q,0)); return {inside,onHL,onBtn}; };
+  const run=(L,Wd)=>{ bar.classList.remove('ftut-slim'); put(L,Wd,0,false); let bh=Math.ceil(bar.querySelector('.ftut-box').ewGameRect().height)+10;
+    if(H<bh*2.6){ bar.classList.add('ftut-slim'); bh=Math.ceil(bar.querySelector('.ftut-box').ewGameRect().height)+10; }
+    let soft=null; for(let y=H-bh; y>=hb; y-=6){ const top=y<(H-bh)/2; put(L,Wd,y,top); const j=judge(); if(!j.inside||j.onHL) continue; if(!j.onBtn) return y; if(soft==null) soft=y; }
+    return soft==null?null:soft; };
+  let y=run(0,W);
+  if(y!=null){ put(0,W,y,y<H/2); const j=judge(); if(j.onBtn){ const f=foot(), col=btn.filter(q=>q.left>f.left-40&&q.left<W); const cut=col.length?Math.min(...col.map(q=>q.left))-10:W;   /* a full-height button column under Skip/Next (Forge): the bar ends left of it */
+      if(cut>W*.5&&cut<W){ const y2=run(0,cut); if(y2!=null){ put(0,cut,y2,y2<H/2); if(!judge().onBtn) return; } } } }
+  if(y==null&&hq){ const cx=(hq.left+hq.right)/2, nL=cx<W/2?Math.min(Math.ceil(hq.right)+10,Math.round(W*.5)):0, nW=cx<W/2?W-nL:Math.max(Math.floor(hq.left)-10,Math.round(W*.5)); y=run(nL,nW);
+    if(y!=null){ put(nL,nW,y,y<H/2); return; } }
+  if(y==null){ bar.classList.remove('ftut-slim'); put(0,W,H-Math.ceil(bar.querySelector('.ftut-box').ewGameRect().height)-10,false); return; }
+  put(0,W,y,y<(H-Math.ceil(bar.querySelector('.ftut-box').ewGameRect().height)-10)/2); }
 function ftutReplayAll(){ G.ftutSeen={}; try{ saveG(); }catch(e){} }
 (function(){ const st=document.createElement('style'); st.textContent=
   '#ftutBar{--ftut-por:clamp(92px,calc(var(--ew-game-height,100vh)*.30),210px);--ftut-por-x:4px;--ftut-por-rise:clamp(22px,calc(var(--ew-game-height,100vh)*.08),76px);'+
