@@ -775,6 +775,7 @@
   .cnode.elite::after{content:'';position:absolute;left:10px;bottom:0;width:28px;height:10px;border-radius:50%;z-index:1;background:radial-gradient(ellipse at 50% 35%,#bea6dc 0 14%,#66418b 42%,#29163e 72%);box-shadow:0 0 0 2px #3e2358,0 0 0 4px #c9a0f2,0 0 0 5px #54306f,inset 0 -5px 7px #170822cc,0 4px 6px #000b;}
   .cnode.elite::before{top:0;bottom:auto;background:linear-gradient(#704c8e,#3d2458);z-index:3;}
   .cnode.elite .clbl{top:58px;z-index:3;}
+.cnode .clbl .ewcmLbl{display:block;width:min-content;margin:0 auto;white-space:normal;text-align:center;line-height:1.05;}   /* Tester B 4.7: one word per line */
   .cnode.elite.current::after{box-shadow:0 0 0 2px #6b3c84,0 0 0 5px #ffe17a,0 0 0 8px #9b5fc4,0 0 20px #ffd45e;}.cnode.elite.locked .cIdle{filter:grayscale(.55) brightness(.65) drop-shadow(0 4px 3px #000b)}
   .cnode.boss{width:30px;height:30px;color:#fff0cf;font-size:18px;background:radial-gradient(circle at 38% 30%,#d95b4e 0 10%,#7b1719 44%,#310708 75%);box-shadow:0 0 0 2px #71300e,0 0 0 4px #ffcb5e,0 0 0 6px #93420d,inset 0 0 0 2px #ffe49a,inset 0 -8px 10px #210000bb,0 0 15px #ff6a3788,0 4px 7px #000c;}
   .cnode.boss.locked{filter:none}.cnode.boss .cIdle{height:var(--idleh,56px);bottom:13px}.cnode.boss::before{bottom:27px;background:linear-gradient(#9b3b29,#5c1715);}.cnode.boss .clbl{top:36px;}.cnode.boss::after{inset:-7px;}
@@ -943,6 +944,17 @@
   .pslot.ready .portrait{box-shadow:0 0 16px 3px rgba(255,212,94,.95);animation:pulse 1s infinite;}
   .pslot.ready::after{content:'';width:20px;height:20px;background:url(/assets/img/icons/status/energy-v1.webp) center/contain no-repeat;position:absolute;top:11%;right:7%;font-size:20px;z-index:4;text-shadow:0 0 5px #000;pointer-events:none;}
   .pslot.dead{opacity:.4;filter:grayscale(1);}
+  /* Tester B 4.5 (11 Nov 2026): each combat card shows its HP as numbers, its class (the roster's class icon art) and a lit gold
+     border while the ultimate is ready. Everything sits inside the card - the bar covers no more of the field than before. */
+  .pslot .ewcHpNum{position:absolute;left:8%;width:84%;top:55%;height:12%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1px;box-sizing:border-box;
+    font-size:13px;font-weight:900;line-height:1;color:#fff;letter-spacing:-.2px;white-space:nowrap;text-shadow:0 1px 2px #000,0 0 3px #000,0 0 1px #000;
+    background:linear-gradient(0deg,rgba(6,9,15,.85),rgba(6,9,15,0));border-radius:0 0 8px 8px;pointer-events:none;z-index:3;font-variant-numeric:tabular-nums;}
+  .pslot.ewcLow .ewcHpNum{color:#ffb0a0;}
+  .pslot .ewcCls{position:absolute;left:10%;top:16.5%;width:22%;aspect-ratio:1;z-index:3;pointer-events:none;filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 1px #000);}
+  .pslot .ewcCls .stIc{display:block;width:100%;height:100%;margin:0;object-fit:contain;vertical-align:0;}
+  .pslot.ready::before{content:'';position:absolute;inset:2.5% 3.5%;border:2px solid #ffd45e;border-radius:9px;pointer-events:none;z-index:4;
+    box-shadow:0 0 10px 2px rgba(255,200,80,.85),inset 0 0 8px rgba(255,212,94,.55);animation:ewcReady .9s ease-in-out infinite alternate;}
+  @keyframes ewcReady{from{opacity:.6}to{opacity:1}}
   /* MOBILE: the framed hero HUD tiles are half-size on phones (desktop keeps full size) */
   @media (max-width:1024px), (max-height:600px){
     #portraitBar{gap:2px;padding-right:4px;}
@@ -951,6 +963,8 @@
     .portrait .pEmoji{font-size:28px;}
     .portrait .pInfo{width:13px;height:13px;line-height:12px;font-size:9px;}
     .pslot.ready::after{font-size:12px;top:12%;right:8%;}
+    .pslot .ewcHpNum{font-size:9px;border-radius:0 0 5px 5px;letter-spacing:-.3px;}
+    .pslot.ready::before{border-width:1.5px;border-radius:6px;box-shadow:0 0 6px 1px rgba(255,200,80,.85),inset 0 0 5px rgba(255,212,94,.55);}
   }
   /* ult aim Cancel target (bottom-left): drag the ult onto it — or tap it — to cancel */
   #ultCancel{position:absolute;left:14px;bottom:16px;display:none;align-items:center;gap:6px;background:rgba(40,16,20,.92);color:#ff9a9a;border:2px solid #b0444a;border-radius:16px;padding:12px 18px;font-size:15px;font-weight:800;z-index:20;pointer-events:auto;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.55);}
@@ -5491,6 +5505,42 @@ function texSheetK(fw, fh, cols, rows, figFrac){ if(!texPhone() || !fw || !fh) r
   const side=Math.max(fw*(cols||1), fh*(rows||1)), fig=(figFrac>0)?figFrac*fh:0;
   const kSide=TEX_SHEET_MAX/side, kFloor=fig>0?TEX_FIG_FLOOR/fig:0;
   return Math.min(1, Math.max(kSide, kFloor), TEX_SHEET_HARD/side); }
+/* Tester A P9 (11 Nov 2026, "enemy / boss art looks low quality"; Grok measured it, Open Projects/TESTER REPORTS 11NOV2026/Grok/monster-art-res):
+   the boss sheets are 3000-5400 px wide, so the rule above shrank them x0.38-0.58 before upload and a boss was drawn up to 1.55x its
+   texture on a phone. The 2048 rule stays - a big boss sheet now uploads as COLUMN TILES instead: each tile is whole columns of cells
+   (a cell never straddles two tiles), at most TEX_SHEET_MAX px wide and tall, at the sheet's FULL resolution. The clip's texture (s.tex)
+   is tile 0 and owns the others (freeing it frees every tile); syncMesh draws a frame from the tile that holds its column.
+   Boss sheets only (the _2k / _xl files under /mon/), only where the sheet would otherwise be shrunk and one column of cells fits a tile;
+   a phone tier file, a desktop, or any failure loads the sheet exactly as before. Display only. Decoded one sheet at a time (_tileQ). */
+const TEX_TILE_ON=true;
+function texTilePlan(u, fw, fh, cols, rows, figFrac){ try{
+  if(!TEX_TILE_ON || (typeof window!=='undefined'&&window.__texTileOff) || !texPhone() || !fw || !fh || !(cols>1)) return null;
+  if(!/\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')) return null;
+  if(texSheetK(fw, fh, cols, rows, figFrac)>=0.99) return null;
+  if(fh*(rows||1)>TEX_SHEET_MAX || fw>TEX_SHEET_MAX) return null;
+  const per=Math.floor(TEX_SHEET_MAX/fw), n=Math.ceil(cols/per), each=Math.ceil(cols/n), out=[];
+  for(let c0=0;c0<cols;c0+=each) out.push({c0, n:Math.min(each, cols-c0)});
+  return out.length>1?out:null; }catch(e){ return null; } }
+let _tileQ=Promise.resolve();
+function texTileLoad(s, U, cw, ch, cols, rows, plan, tx, onDone, onFail){
+  const W=Math.round(cw*cols), H=Math.round(ch*rows);
+  /* tiles 1.. always drop their decoded copy once on the GPU: an idle / walk sheet keeps only tile 0's (the loading card paints its cell 0) */
+  const tiles=plan.map((q,i)=>{ let t=tx; if(i){ t=new TH.Texture(); t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; texFreeAfterUpload(t); } return {c0:q.c0, n:q.n, tex:t}; });
+  const d0=tx.dispose;
+  tx.dispose=function(){ for(let i=1;i<tiles.length;i++){ const t=tiles[i].tex; t._ewFreed=1; try{ t.dispose(); }catch(_){} texImgFree(t); const j=_texReg.indexOf(t); if(j>=0) _texReg.splice(j,1); } return d0.apply(this,arguments); };
+  s._tiles=tiles; tx.repeat.set(1/tiles[0].n,1/rows);
+  const undo=()=>{ s._tiles=null; tx.dispose=d0; for(let i=1;i<tiles.length;i++){ try{ tiles[i].tex.dispose(); }catch(_){} } tx.repeat.set(1/cols,1/rows); onFail(); };
+  _tileQ=_tileQ.then(()=>{ if(tx._ewFreed){ undo(); return; }
+    return fetch(U).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
+      .then(bl=>createImageBitmap(bl))
+      .then(full=>{ if(full.width!==W||full.height!==H){ try{ full.close(); }catch(_){} throw new Error('size '+full.width+'x'+full.height); }
+        return Promise.all(tiles.map(q=>createImageBitmap(full, Math.round(q.c0*cw), 0, Math.round(q.n*cw), H, {imageOrientation:'flipY'})))
+          .then(bms=>{ try{ full.close(); }catch(_){} return bms; }, e=>{ try{ full.close(); }catch(_){} throw e; }); })
+      .then(bms=>{ bms.forEach((bm,i)=>{ const t=tiles[i].tex; t.flipY=false; t.image=bm; _applyTexQual(t); t.needsUpdate=true; }); onDone(); })
+      .catch(undo); });
+}
+/* the columns held by the image a 2D painter reads from s.tex (tile 0 when the sheet is tiled) */
+function clipCols0(A){ return (A&&A._tiles)?A._tiles[0].n:((A&&(A.cols||A.n))||1); }
 /* After a sheet is on the GPU its decoded copy is dead weight (a 4096 px sheet is 64 MB of page memory). Free it - except the idle and
    walk sheets, which the battle-loader cards and the Emberdraft carousel paint from on a 2D canvas. The stub keeps the size every
    reader checks (width/height > 0 = "ready"); a freed texture refuses a re-upload (nothing could re-upload it: evict / edEvictArt drop
@@ -5745,7 +5795,7 @@ const _LOADQ={n:0,done:0,cbs:[]};
 function _lqTick(){ _LOADQ.cbs.slice().forEach(f=>{ try{f(_LOADQ.done,_LOADQ.n);}catch(_){} }); }
 function _lqOnDone(fn){ _LOADQ.cbs.push(fn); return ()=>{ const i=_LOADQ.cbs.indexOf(fn); if(i>=0)_LOADQ.cbs.splice(i,1); }; }
 function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
-  const tx=new TH.Texture();
+  const tx=new TH.Texture(); s._tiles=null;
   _LOADQ.n++; let _fired=false;
   const _fin=()=>{ if(_fired) return; _fired=true; _LOADQ.done++; _lqTick(); };
   s._fin=_fin;
@@ -5756,10 +5806,13 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   const go=()=>{ const F=(typeof _keepsImage==='function'&&_keepsImage(s))?null:artFile(s.u), U=F?F.u:s.u, _c=F?F.c:(s.cols||s.n), _r=F?F.r:(s.rows||1);
     const _cw=F?F.W/_c:s.fw, _ch=F?F.H/_r:s.fh, _tc=F?F.tc:null, _ff=(s.figH&&s.fh)?(s.figH/s.fh)/(_tc?_tc[3]:1):0;
     s._lay=F?{c:_c,r:_r,W:F.W,H:F.H,tc:_tc}:null; s._fu=U; s._grid=[_c,_r]; tx.repeat.set(1/_c,1/_r);
-    if(!bitmapLoad(U,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
+    const single=()=>{ if(!bitmapLoad(U,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
                    ()=>{ new TH.TextureLoader().load(U, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),_ff); _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, _cw, _ch, _ff, !!(F&&ART_TIER==='phone'))){
       new TH.TextureLoader().load(U, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),_ff); tx.image=t.image; _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
     } };
+    const _tp=F?null:texTilePlan(U,_cw,_ch,_c,_r,_ff);   /* Tester A P9: a big boss sheet as full-resolution column tiles */
+    if(_tp){ try{ texTileLoad(s,U,_cw,_ch,_c,_r,_tp,tx,()=>{ s._err=false; _fin(); },single); return; }catch(e){ s._tiles=null; } }
+    single(); };
   _applyTexQual(tx); tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; s.tex=tx; s.aspect=s.fw/s.fh;
   if(ART_TIERS) go(); else { s._lay=null; s._grid=[s.cols||s.n,s.rows||1]; tx.repeat.set(1/s._grid[0],1/s._grid[1]); artTiersLoad().then(go,go); } }
 /* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
@@ -6072,7 +6125,7 @@ function _blDrawCard(cv, key, img, face){
     try{ if(!A.tex) _loadClip(A); }catch(e){}
     return new Promise(res=>{ const t0=Date.now();
       const poll=()=>{ const im=A.tex&&A.tex.image;
-        if(im && im.width){ try{ const k=im.width/((A.cols||A.n||1)*A.fw), ky=im.height/((A.rows||1)*A.fh);
+        if(im && im.width){ try{ const k=im.width/(clipCols0(A)*A.fw), ky=im.height/((A.rows||1)*A.fh);
             const mon=!(typeof HERO_TYPES!=='undefined'&&HERO_TYPES[key]), fig=Math.max(1,A.feet-A.top), sh=fig*0.72, sw=sh*cv.width/cv.height, sy=Math.max(0,A.top-fig*0.05), sx=(A.cx!=null?A.cx:A.fw/2)-sw/2;
             const up=(typeof ImageBitmap!=='undefined' && im instanceof ImageBitmap);   /* bitmapLoad makes WebGL bitmaps with imageOrientation:'flipY' */
             const mir=face==='right' ? !!A.flip : face==='left' ? !A.flip : false;
@@ -18549,7 +18602,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              window is applied in onBeforeRender, which three calls immediately before drawing THAT
              sprite, so each unit still gets its own frame and its own facing — as a uniform update,
              costing nothing, instead of a texture upload. */
-          const T=A.tex;
+          let T=A.tex, _cc=_c, _cl=_col;
+          if(A._tiles){ const _tt=A._tiles; let _q=_tt[0]; for(let i=1;i<_tt.length;i++){ if(_col>=_tt[i].c0) _q=_tt[i]; } T=_q.tex; _cc=_q.n; _cl=_col-_q.c0; }   /* Tester A P9: a tiled boss sheet */
           if(!spr._uvHook){ spr._uvHook=true;
             spr.onBeforeRender=function(){ const m=this.material&&this.material.map, v=this._uv;
               if(m&&v){ m.repeat.set(v[0],v[1]); m.offset.set(v[2],v[3]); m.updateMatrix(); } }; }
@@ -18571,11 +18625,11 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              neighbouring frame, which draws as a thin box outline around the sprite. Measure the inset
              against the texture that is actually in memory. */
           const _im=T&&T.image, _tw=(_im&&(_im.width|0))||0, _th=(_im&&(_im.height|0))||0;
-          const _iw=Math.max(1, _tw || (_L?_L.W:_c*A.fw)), _ih=Math.max(1, _th || (_L?_L.H:_r*A.fh));
+          const _iw=Math.max(1, _tw || (_L?_L.W:_cc*A.fw)), _ih=Math.max(1, _th || (_L?_L.H:_r*A.fh));
           const _ex=1.5/_iw, _ey=1.5/_ih;
-          const _uw=Math.max(1e-6,(1/_c)-2*_ex);
+          const _uw=Math.max(1e-6,(1/_cc)-2*_ex);
           const _rx = mirror? -_uw : _uw;
-          const _ox = mirror? ((_col+1)/_c-_ex) : (_col/_c+_ex);
+          const _ox = mirror? ((_cl+1)/_cc-_ex) : (_cl/_cc+_ex);
           let _ry,_oy;
           if(_r>1){ _ry=Math.max(1e-6,(1/_r)-2*_ey); _oy=1-(_row+1)/_r+_ey; }
           else    { _ry=1-2*_ey; _oy=_ey; }
@@ -23648,7 +23702,10 @@ function renderRoadmap(){
     if(MODE==='normal') _bonusSites.forEach((site,i)=>{ const slot=[3,4,6,7,9,10][i], code=ch+'-'+slot;
       const b=document.createElement('button'); b.type='button'; b.className='cbonus '+(i<3?'upper':'lower'); b.dataset.bonusStage=code;
       const bonusLocked=portalCleared('normal')<((ch-1)*STAGES_PER_CH+slot);
-      if(bonusLocked){ b.classList.add('locked'); b.disabled=true; }
+      /* Tester B 4.7 (11 Nov 2026, "Declutter the Chapter Map Nodes": stage badges, fragment icons and bonus labels crowded, "frequent accidental
+         taps"): a bonus stage shows on the map once its main stage is cleared. A locked plate was a disabled button that only said "locked" and
+         swallowed taps meant for the stage under it. Map art and node positions are unchanged. */
+      if(bonusLocked) return;
       b.style.left=_wideX(site[0])+'%'; b.style.top=site[1]+'%';
       b.setAttribute('aria-label',bonusLocked?t('portal.bonus_locked_aria',{code}):t('portal.bonus',{code}));
       b.title=bonusLocked?t('portal.bonus_clear',{code}):t('portal.bonus',{code});
@@ -23673,7 +23730,10 @@ function renderRoadmap(){
       const _anim=_hk&&BATTLE_ANIM[_hk], _idle=_anim&&(boss?(_anim.walk||_anim.idle):_anim.idle);
       const _ih=boss?56:36, _iw=_idle?Math.max(boss?28:18,Math.min(boss?74:34,_ih*_idle.fw/_idle.fh)):28;
       const face=_idle?`<canvas class="cIdle" width="${_idle.fw}" height="${_idle.fh}" data-u="${_idle.u}" data-fw="${_idle.fw}" data-fh="${_idle.fh}" data-n="${_idle.n}" data-cols="${_idle.cols||6}" data-rows="${_idle.rows||Math.ceil(_idle.n/(_idle.cols||6))}" data-fps="${boss?Math.max(3,Math.min(5,(_idle.fps||10)*.45)):Math.min(12,_idle.fps||8)}" data-ping="${boss?0:(_idle.pingpong?1:0)}" style="--idlew:${_iw}px;--idleh:${_ih}px"></canvas>`:`<span class="clock">${clickable?(boss?uiIcon('crown'):(cleared?uiIcon('check'):s)):hudIcon('lock')}</span>`;
-      el.innerHTML=`${face}<div class="clbl">${boss?t('portal.boss'):((MODE==='normal'?elite:[1,4,7].includes(stageInChapter(g)))?t('portal.hero_frags_lbl'):t('portal.stage_lbl'))}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
+      /* Tester B 4.7: a plain stage shows its code only (the word STAGE over every code was the widest, most repeated label); BOSS and HERO
+         FRAGMENTS stay, set one word per line so the label is as narrow as its longest word and no longer runs into the next node */
+      const _lbl=boss?t('portal.boss'):((MODE==='normal'?elite:[1,4,7].includes(stageInChapter(g)))?t('portal.hero_frags_lbl'):'');
+      el.innerHTML=`${face}<div class="clbl">${_lbl?'<span class="ewcmLbl">'+_lbl+'</span>':''}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
       if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
       if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
       _inner.appendChild(el);
@@ -33455,15 +33515,24 @@ function buildGuestPortraits(){const bar=document.getElementById('portraitBar');
       const el=document.createElement('div');el.className='portrait';el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${(HERO_TYPES[u.key]||HERO_TYPES.grosk).emoji}</div>`);
       const hp=document.createElement('div');hp.className='pHp';hp.innerHTML='<div class="pHpFill"></div>';
       const en=document.createElement('div');en.className='pEnergyBar';en.innerHTML='<div class="pEnFill"></div>';
+      ewcCardExtras(slot,u);   // Tester B 4.5
       attachUltPress(el,u,true);   // guest side relays the ult to the host
       u.portraitEl=el;u.hpEl=hp;u.enEl=en;u.slotEl=slot;slot.appendChild(el);slot.appendChild(hp);slot.appendChild(en);bar.appendChild(slot);});}
   mine.forEach(u=>{const el=u.portraitEl;if(!el)return;const pct=Math.max(0,u.hp/u.maxHp*100),ready=u.alive&&u.energy>=100;
     if(u.hpEl){const f=u.hpEl.querySelector('.pHpFill');if(f)f.style.width=(u.alive?pct:0)+'%';u.hpEl.classList.toggle('low',u.alive&&pct<30);}
     if(u.enEl){const ef=u.enEl.querySelector('.pEnFill');if(ef)ef.style.width=(u.alive?Math.min(100,u.energy):0)+'%';}
-    if(u.slotEl)u.slotEl.className='pslot'+(!u.alive?' dead':(ready?' ready':''));});
+    if(u._hpNumEl){const n=u.alive?Math.max(0,Math.ceil(u.hp)):0,m=Math.ceil(u.maxHp||0);if(n!==u._hpN||m!==u._hpM){u._hpN=n;u._hpM=m;u._hpNumEl.textContent=hpFmt(n)+'/'+hpFmt(m);}}
+    if(u.slotEl)u.slotEl.className='pslot'+(!u.alive?' dead':(ready?' ready':''))+(u.alive&&pct<30?' ewcLow':'');});
 }
 
 /* portrait bar + counts */
+/* Tester B 4.5 (11 Nov 2026): the class icon (the same art as the roster's class filter) and the HP number strip of one combat card.
+   The number is written by updatePortraits only when the whole-number HP or max HP changes. */
+function ewcCardExtras(slot,u){ try{
+  const role=(HERO_TYPES[u.key]||{}).role, ic=(typeof ROSTER_CLASS_IC!=='undefined'&&role)?ROSTER_CLASS_IC[role]:'';
+  if(ic){ const c=document.createElement('div'); c.className='ewcCls'; c.innerHTML=ic; slot.appendChild(c); }
+  const n=document.createElement('div'); n.className='ewcHpNum'; slot.appendChild(n); u._hpNumEl=n; u._hpN=undefined; u._hpM=undefined;
+}catch(e){} }
 function hpFmt(v){ v=Math.max(0,Math.ceil(v)); return v>=10000?Math.round(v/1000)+'k':(v>=1000?(v/1000).toFixed(1)+'k':''+v); }
 function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KITS[u.key]||{};
   const eff=(typeof skillEffectStr==='function')?skillEffectStr(u.key,0,Math.round(u.dmg),Math.round(u.maxHp)):'';
@@ -33504,6 +33573,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     const hp=document.createElement('div'); hp.className='pHp'; hp.innerHTML='<div class="pHpFill"></div>';
     const en=document.createElement('div'); en.className='pEnergyBar'; en.innerHTML='<div class="pEnFill"></div>';
     u._pEl=el;   // v1141: the ult coach glows this portrait
+    ewcCardExtras(slot,u);   // Tester B 4.5: class icon + HP numbers
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
     // dedicated info tap: always shows the description (even when the ult is ready)
     const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,4500); }; info.addEventListener('pointerdown',(e)=>e.stopPropagation()); info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
@@ -33526,7 +33596,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
        them gaining"): updatePortraits caches each bar's fill element and last value on the unit. A rebuild of this bar mid-fight (a hero
        joining in 1-1, the gear fetch at battle start, a Vault backup) made NEW elements, but the cache kept pointing at the old, detached
        ones - so the bars on screen stopped moving. Every rebuild drops the cache, and the next frame writes the new bars. */
-    u._hpFill=undefined; u._enFill=undefined; u._hpW=undefined; u._enW=undefined; u._hpLow=undefined; u._slotCN=undefined;
+    u._hpFill=undefined; u._enFill=undefined; u._hpW=undefined; u._enW=undefined; u._hpLow=undefined; u._slotCN=undefined; u._hpN=undefined; u._hpM=undefined;
     u.portraitEl=el; u.hpEl=hp; u.enEl=en; u.slotEl=slot; slot.appendChild(el); slot.appendChild(hp); slot.appendChild(en); bar.appendChild(slot);});
   buildEnemyBar();
 }
@@ -33541,7 +33611,8 @@ function updatePortraits(){ for(let i=0;i<units.length;i++){ const u=units[i]; i
       const low=u.alive&&pct<30; if(u._hpLow!==low){ u._hpLow=low; u.hpEl.classList.toggle('low',low); } }
     if(u.enEl){ if(u._enFill===undefined) u._enFill=u.enEl.querySelector('.pEnFill');
       const w=(u.alive?Math.min(100,u.energy):0); if(u._enFill && u._enW!==w){ u._enW=w; u._enFill.style.width=w+'%'; } }
-    if(u.slotEl){ const cn='pslot'+(!u.alive?' dead':(ready?' ready':'')); if(u._slotCN!==cn){ u._slotCN=cn; u.slotEl.className=cn; } } }
+    if(u._hpNumEl){ const n=u.alive?Math.max(0,Math.ceil(u.hp)):0, m=Math.ceil(u.maxHp||0); if(n!==u._hpN||m!==u._hpM){ u._hpN=n; u._hpM=m; u._hpNumEl.textContent=hpFmt(n)+'/'+hpFmt(m); } }   // Tester B 4.5
+    if(u.slotEl){ const cn='pslot'+(!u.alive?' dead':(ready?' ready':''))+(u.alive&&pct<30?' ewcLow':''); if(u._slotCN!==cn){ u._slotCN=cn; u.slotEl.className=cn; } } }
   updateEnemyBar();
 }
 // Enemies have NO bottom/top HUD — their health floats over the head (drawn on the overlay canvas).
