@@ -27530,7 +27530,7 @@ function renderArenaShop(){
       if(e&&!(e.amount>0)){ const m0=_msg(); if(m0)m0.textContent=e.empty||t('ashop.nothing'); return; }
       _abtn.disabled=true;
       try{
-        if(ACC.token){ const r=await api('/api/arena/shop','POST',{item:it.id,requestId:uid8()});   /* v1079 (scan #2): the server spends ITS arena coins and grants the goods in one write */
+        if(ACC.token){ const rk='ashop:'+it.id, r=await api('/api/arena/shop','POST',{item:it.id,requestId:shopRid(rk)}); shopRidDone(rk,r);   /* Grok bug hunt 12 Nov: one requestId per item until a definite answer (Market #7 / v1010) - a retap after a lost reply got a NEW id and paid twice */   /* v1079 (scan #2): the server spends ITS arena coins and grants the goods in one write */
           if(!r||!r.ok){ const m1=_msg(); if(m1)m1.textContent=(r&&r.error&&langMsg(r.error))||t('ashop.deliver_fail'); if(r&&r.ledger)adoptLedger(r.ledger); return; }
           if(r.ledger) adoptLedger(r.ledger); }
         else { if(it.give) it.give(); G.arenaCoins-=it.cost; }
@@ -29478,7 +29478,7 @@ function renderGuildShopInto(el){
            after the coins were already gone. /api/shop/buy 'pieces_guild' takes the coins and hands
            over the materials in the same write, so nothing can be charged without delivery. */
         if(it.server){
-          const b2=await api('/api/shop/buy','POST',{what:it.server,requestId:uid8()});
+          const rk='gshopbuy:'+it.server, b2=await api('/api/shop/buy','POST',{what:it.server,requestId:shopRid(rk)}); shopRidDone(rk,b2);   /* Grok bug hunt 12 Nov: same id on a retap after a lost reply (was uid8 per tap = a second charge) */
           if(!b2||!b2.ok){ bannerMsg(langMsg(b2&&b2.error)||ewT('gshop.no_stock')); ledgerSync(); return; }
           if(b2.ledger) adoptLedger(b2.ledger);
         } else {
