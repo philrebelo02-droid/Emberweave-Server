@@ -593,7 +593,7 @@ function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reje
 }); }
 function authUser(req){ const id=lookupToken(req.headers['x-token']); return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
-function profileFor(u){ return { id:u.id, name:u.name, login:usernameOf(u), rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0, admin:isDev(u)||undefined }; }   // admin: server-confirmed role — the client's Developer Panel gates on THIS, never a name list
+function profileFor(u){ return { id:u.id, name:u.name, login:usernameOf(u), rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0, admin:isDev(u)||undefined, tester:isTester(u)||undefined }; }   // admin: server-confirmed role — the client's Developer Panel gates on THIS, never a name list
 // --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
 // A display name is not a permission boundary (audit crit #7): anyone who registered the name
 // 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
@@ -616,6 +616,21 @@ function migrateAdminRoles(){ let n=0;
     if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
   if(n){ console.log('stamped role:admin on '+n+' account(s) from ADMIN_IDS'); writeDB(); } }
 function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id) || (u.gid && ADMIN_IDS.has(u.gid)))); }   // v946: gid = the game-wide account id
+/* v1376 TEST ACCOUNTS (Phil 12 Nov 2026: "Can you make a test account? The test accounts will have the economy part of the dev panel and reset
+   all progress option, that's all. These accounts would be deleted and removed when we launch the game, the same time we turn off free diamonds";
+   "Give me the rights to be able to do it by clicking them"). A test account is u.role==='tester' (never an admin). Its only powers: the dev
+   panel's Economy controls (/api/admin/led-grant, on ITSELF only) and Reset all progress (/api/account/reset-progress, open to every player).
+   Every other admin route stays isDev only. Testers are left out of the Bulletin Board rankings, the Arena ladder and real players' Arena
+   opponents, and a tester's Arena win never moves a real player. Admins make them (Dev > Accounts > Test accounts, or the Make tester button
+   on a tapped player): /api/admin/tester, /api/admin/testers, /api/admin/test-account. The role travels to Servers 2-5 with the account state
+   (acctState.tester; testerS1 marks a copied role) like the admin role.
+   ONE LAUNCH SWITCH: PREBETA. It also drives FREE_PACKS (the free diamond packs). TURN OFF AT LAUNCH: set PREBETA to false here (or start the
+   server with SHOP_FREE_PACKS=0). Then isTester() is false at once (no tester power anywhere), and at boot testerLaunchSweep() moves every
+   tester account into backups/removed-test-accounts-<date>.json next to the DB, then deletes it from the live world (logged per account). */
+const PREBETA = true && process.env.SHOP_FREE_PACKS!=='0';
+function testerTagged(u){ return !!(u && !u.isNpc && u.role==='tester'); }
+function isTester(u){ return !!(PREBETA && testerTagged(u) && !u.guest && !isDev(u)); }
+function arenaVisibleTo(me,u){ return !(testerTagged(u) && !testerTagged(me)); }   /* v1376: real players never meet a test account in the Arena */
 
 /* v946 (Phil, 2 Oct 2026: "the same account should be Game wide "user" "pass". the only thing that should start over is their
    player progress if they go on another server" / "so phil or dev1 should be able to sign on any server").
@@ -676,7 +691,7 @@ async function linkedUser(gid, name, pass, opts){
      while Server 1 is down (the next good sign-in through Server 1 stores the new one).
    A ban made on Server 2-4 (/api/dev/ban) is made on the account at Server 1. Guests (no account) keep per-server bans. */
 function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'', del:(u.delReq&&+u.delReq.wipeAt)||0,
-  login:usernameOf(u), admin:isDev(u)?1:0, fb:(u.facebook&&u.facebook.id)||'' }; }   /* v1253: the username and the dev role go to Servers 2-5 with the rest (Phil: "my log in for the other servers not devs") */   /* v1232: del = a pending deletion's wipe time (0 = none) */
+  login:usernameOf(u), admin:isDev(u)?1:0, tester:testerTagged(u)?1:0, fb:(u.facebook&&u.facebook.id)||'' }; }   /* v1253: the username and the dev role go to Servers 2-5 with the rest (Phil: "my log in for the other servers not devs") */   /* v1232: del = a pending deletion's wipe time (0 = none) */
 function applyAcctState(lu, st){
   if(!lu || !lu.gid || !st) return false; let changed=false; const now=Date.now();
   if(st.deleted){ deleteAccountData(lu); return true; }
@@ -685,7 +700,9 @@ function applyAcctState(lu, st){
   if('fb' in st && lu.facebook && lu.facebook.id!==st.fb){ delete lu.facebook; changed=true; }   /* v1271: Server 1's Facebook link wins (unlink / Meta data deletion) */
   if(st.login && lu.login!==String(st.login).slice(0,16)){ lu.login=String(st.login).slice(0,16); loginIdxPut(lu); changed=true; }
   if('admin' in st){ if(st.admin && lu.role!=='admin'){ lu.role='admin'; lu.roleS1=1; changed=true; }
-    else if(!st.admin && lu.roleS1){ if(lu.role==='admin') delete lu.role; delete lu.roleS1; changed=true; } }   /* v1097: the account was deleted on the account server - this server's player goes too */
+    else if(!st.admin && lu.roleS1){ if(lu.role==='admin') delete lu.role; delete lu.roleS1; changed=true; } }
+  if('tester' in st){ if(st.tester && !lu.role){ lu.role='tester'; lu.testerS1=1; changed=true; }   /* v1376: a test account on Server 1 is one here */
+    else if(!st.tester && lu.testerS1){ if(lu.role==='tester') delete lu.role; delete lu.testerS1; changed=true; } }   /* v1097: the account was deleted on the account server - this server's player goes too */
   if(acctDelFollow(lu, +st.del||0)) changed=true;   /* v1232: a deletion requested (or cancelled) on the account server locks (or unlocks) this server's player too */
   const until=(+st.until>now)?+st.until:0, was=isBanned(lu);
   if(until!==((lu.bannedUntil||0)>now?lu.bannedUntil:0)){ lu.bannedUntil=until; lu.banReason=until?String(st.reason||'').slice(0,200):''; changed=true;
@@ -1177,7 +1194,7 @@ function seed(){
 function nextJoinRank(){ const occ=new Set(); for(const id in DB.users){ const u=DB.users[id]; if(u && u.rank>BOT_COUNT) occ.add(u.rank); } let r=BOT_COUNT+1; while(occ.has(r)) r++; return r; }
 
 /* ------------------------------ ladder logic ------------------------------ */
-function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
+function allUsersByRank(){ return Object.values(DB.users).filter(u=>!testerTagged(u)).sort((a,b)=>a.rank-b.rank); }   /* v1376: the Arena ladder leaves out test accounts */
 /* v1376 BULLETIN BOARD RANKINGS (Phil 12 Nov: "Bulletin is good"; "Players or 'guilds' for skyfall or guild raid"; "The rankings should
    show top 25, then show a back or Beck button on the bottom to open next 25 going until 100 max"). GET /api/rankings?board=<id> answers
    the top 100 of one board plus the caller's own place. Every number is read from what the server already keeps - nothing is invented:
@@ -1203,7 +1220,7 @@ const BB_JOURNAL_TRACKS=[
   ['Normal Campaign',[4,8,12,16]], ['Elite Campaign',[4,8,12,16]], ['Veteran Campaign',[4,8,12,16]],
   ['Aether Vault',[20,40,60,80,100]], ['Campaign Bonus Stages',[1,3,5,10]], ['Starless Well Normal',[1,3,5]], ['Starless Well Hard',[1,3,5]] ];
 const _bbRank={};   // board -> { t, rows:[...top 100], all:[{id,s,name}] sorted, building:Promise }
-function bbRankPlayerOk(u){ return !!(u && !u.isNpc && !u.delReq && !isBanned(u) && u.led && u.led.migratedAt); }
+function bbRankPlayerOk(u){ return !!(u && !u.isNpc && !u.delReq && !isBanned(u) && !testerTagged(u) && u.led && u.led.migratedAt); }   /* v1376: no test accounts */
 function bbRankGuildOk(g){ return !!(g && g.id && (g.members||[]).length>0); }
 /* the same number as cardPower(), but a board build does not park every hero of every account in CARD_POWER_CACHE (it would never be pruned) */
 function bbCardPower(u,k){ const hit=CARD_POWER_CACHE.get(String(u.id)+'|'+k); if(hit&&(Date.now()-hit.t)<CARD_POWER_TTL_MS) return hit.v; try{ return heroCardPower(u,k); }catch(e){ return hit?hit.v:0; } }
@@ -3398,6 +3415,36 @@ function guildRankName(raw){ const n=String(raw==null?'':raw).replace(/\s+/g,' '
   if(n.length<1||n.length>GUILD_RANK_NAME_MAX) return {error:'Rank names are 1 to 16 characters.'};
   const bad=badCharName(n); if(bad) return {error:bad};
   return {name:n}; }
+/* v1376 TEST ACCOUNTS (see isTester): the admin routes' helpers and the launch sweep */
+function testerFind(b){ b=b||{}; const id=String(b.id||''); if(id&&DB.users[id]) return DB.users[id];
+  const n=String(b.name||'').trim().toLowerCase(); if(!n) return null;
+  const a=DB.byName[n]; if(a&&DB.users[a]) return DB.users[a]; const l=loginId(n); return l?DB.users[l]:null; }
+function testerView(u){ return { id:u.id, name:u.name, login:usernameOf(u), tester:testerTagged(u), active:isTester(u), made:!!u.testAcct, rank:u.rank|0, created:u.created||0, lastSeen:u.lastSeen||0 }; }
+async function testerSet(u, on, by, made){
+  if(!u||u.isNpc) return { status:404, error:'account not found' };
+  if(isDev(u)) return { status:400, error:'That account is an admin.' };
+  if(u.guest) return { status:400, error:'A guest cannot be a test account.' };
+  if(on && !PREBETA) return { status:400, error:'Test accounts are switched off.' };
+  if(ACCOUNT_AUTHORITY && u.gid){   // Servers 2-5: the role lives on the account server, this server follows its answer
+    const r=await authorityCall('/api/internal/account/tester',{ gid:u.gid, on:!!on, made:!!made, by:usernameOf(by) });
+    if(!r) return { status:503, error:'Accounts are unreachable right now - try again in a minute.' };
+    if(r.status!==200 || !r.body || !r.body.st) return { status:r.status||400, error:(r.body&&r.body.error)||'Could not change the account.' };
+    if(!on && u.role==='tester') u.testerS1=1;
+    applyAcctState(u, r.body.st); if(on && u.role!=='tester'){ u.role='tester'; u.testerS1=1; } }
+  else { if(on) u.role='tester'; else if(u.role==='tester'){ delete u.role; delete u.testerS1; } }
+  writeDB(); console.log('[testers] '+usernameOf(by)+(on?' made ':' removed ')+usernameOf(u)+(on?' a test account':' from the test accounts'));
+  return { ok:true }; }
+function testerLaunchSweep(){ if(PREBETA || typeof DB==='undefined' || !DB || !DB.users) return 0;
+  const gone=Object.values(DB.users).filter(u=>testerTagged(u) && !isDev(u)); if(!gone.length) return 0;
+  const now=new Date(), bdir=path.join(path.dirname(DB_FILE),'backups'), file=path.join(bdir,'removed-test-accounts-'+now.toISOString().slice(0,10)+'.json');
+  let prev=[]; try{ const o=JSON.parse(fs.readFileSync(file,'utf8')); if(Array.isArray(o.accounts)) prev=o.accounts; }catch(e){}
+  const rec={ note:'PREBETA switched off (launch): the test accounts were removed with the free diamonds. Each entry is the whole player record as it was.',
+    lastRemovedAt:now.toISOString(), accounts:prev.concat(gone.map(u=>({ removedAt:now.toISOString(), id:u.id, login:usernameOf(u), name:u.name,
+      user:JSON.parse(JSON.stringify(u)), dungeonProgress:(DB.dungeonProgress||{})[u.id]||null }))) };
+  try{ fs.mkdirSync(bdir,{recursive:true}); _safety.writeAtomic(file, JSON.stringify(rec), '.tmp'); }
+  catch(e){ console.error('[testers] launch: could not write '+file+' - the test accounts were NOT removed: '+e.message); return 0; }
+  for(const u of gone){ console.log('[testers] launch: removed test account '+usernameOf(u)+' ('+u.id+') - kept in '+file); deleteAccountData(u); }
+  writeDB(); console.log('[testers] launch: '+gone.length+' test account(s) removed from the live world'); return gone.length; }
 const DELETED_NAME='Deleted player';
 function _anonWalk(o,tid,oldName,depth){ if(!o||typeof o!=='object'||depth>14) return;
   if(Array.isArray(o)){ for(const v of o) if(v&&typeof v==='object') _anonWalk(v,tid,oldName,depth+1); return; }
@@ -5149,7 +5196,7 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
 /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) - their own GET, fetched when a level is browsed, so the tables stay out of every ledger and saved fight */
 function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP }; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, tester:isTester(u)?1:0, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -5388,8 +5435,9 @@ function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
    'prebeta'): same server-side credit as a purchase (v1135: recorded at usd 0 with no EGP/Patron; v1139 below: it counts toward Patron).
    v1139 (Phil 15 Oct: "Make it count towards their patron"): a free pack now counts toward EGP/Patron exactly like the paid pack (its usd, the rebate
    paid) - recorded with free:true so it can be told apart later.
-   TURN OFF IN DECEMBER: set FREE_PACKS to false here (or start the server with SHOP_FREE_PACKS=0) - the shop then says "coming soon" again. */
-const FREE_PACKS = true && process.env.SHOP_FREE_PACKS!=='0';
+   TURN OFF IN DECEMBER: set PREBETA to false (beside isDev / isTester, v1376) or start the server with SHOP_FREE_PACKS=0 - the shop then says "coming soon"
+   again AND the test accounts are removed (v1376: one launch switch). */
+const FREE_PACKS = PREBETA;   /* v1376: = the launch switch, const PREBETA = true && process.env.SHOP_FREE_PACKS!=='0' */
 const GOOGLE_AUTH=require('./server/google-signin');
 const googleVerify=GOOGLE_AUTH.createGoogleVerifier();
 const googleNonces=new Map();
@@ -5688,7 +5736,7 @@ function gearGrantFragments(u, quality, n, rnd){
 
 
 function pickOpponent(me){
-  const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
+  const pool=Object.values(DB.users).filter(u=>u.id!==me.id&&arenaVisibleTo(me,u));
   // prefer someone slightly ABOVE the player (lower rank number)
   const above=pool.filter(u=>u.rank<me.rank).sort((a,b)=>b.rank-a.rank); // closest above
   const cand = above.length? above.slice(0, Math.min(8,above.length)) : pool;
@@ -5703,7 +5751,7 @@ function arenaTopList(uid){ return arenaTopRanked().slice(0,10).map(x=>{ let up=
   return { id:x.id, seed:x.seed, mineSnap:x.mineSnap, foe:x.foe, won:x.won, atkName:x.atkName, defName:x.defName, atkRank:x.atkRank, defRank:x.defRank, t:x.t, up, down, mine:(x.votes||{})[uid]||0 }; }); }
 function applyResult(me, opp, won){
   const before=me.rank;
-  if(won && opp && opp.rank < me.rank){
+  if(won && opp && opp.rank < me.rank && !(testerTagged(me) && !opp.isNpc && !testerTagged(opp))){   /* v1376: a test account never takes a real player's rank */
     const taken=opp.rank; me.rank=taken;
     // A BOT that would be bumped BEYOND rank 5000 disappears entirely — the slot it would have taken
     // (your old rank, in the 5001-10000 zone) opens up as the next new player's starting rank.
@@ -6194,6 +6242,14 @@ async function api(req,res,url){
       const r=acctDelRequest(u, b.via||'game');
       if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
       return send(res,200,Object.assign({ ok:true }, r)); }
+    // v1376: a test account made (or unmade) on Server 2-5 is made on the account here
+    if(p==='/api/internal/account/tester'){ const u=DB.users[String(b.gid||'')];
+      if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+      if(b.on && !PREBETA) return send(res,400,{error:'Test accounts are switched off.'});
+      if(b.on){ u.role='tester'; if(b.made) u.testAcct=1; } else if(u.role==='tester'){ delete u.role; delete u.testerS1; }
+      writeDB(); console.log('[testers] '+usernameOf(u)+(b.on?' is now a test account':' is no longer a test account')+' (from '+String(b.by||'a server').slice(0,40)+')');
+      return send(res,200,{ ok:true, st:acctState(u) }); }
     // v1035: a ban made on Server 2-4 is made on the account here
     if(p==='/api/internal/account/ban'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
@@ -6373,6 +6429,38 @@ async function api(req,res,url){
     const snap=snapshotHeroFromServer(me,hk);
     if(!snap) return send(res,400,{error:'unknown hero'});
     return send(res,200,{snapshot:snap}); }
+  /* v1376 TEST ACCOUNTS (see isTester): admin only. GET /api/admin/tester?name=|id= one player's state; POST /api/admin/tester {name|id, on}
+     makes / unmakes; GET /api/admin/testers lists them; POST /api/admin/test-account makes a new account with a generated username + password,
+     answered ONCE to the admin (the password is kept nowhere in clear). */
+  if(p==='/api/admin/tester' || p==='/api/admin/testers' || p==='/api/admin/test-account'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    if(p==='/api/admin/testers'){ const list=Object.values(DB.users).filter(testerTagged).sort((a,b)=>(b.created||0)-(a.created||0)).map(testerView);
+      return send(res,200,{ ok:true, prebeta:PREBETA, testers:list, count:list.length }); }
+    if(p==='/api/admin/tester' && req.method==='GET'){ const u=testerFind({ id:url.searchParams.get('id'), name:url.searchParams.get('name') });
+      if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+      return send(res,200,{ ok:true, prebeta:PREBETA, admin:isDev(u), guest:!!u.guest, player:testerView(u) }); }
+    if(req.method!=='POST') return send(res,405,{error:'POST only'});
+    const b=await body(req);
+    if(p==='/api/admin/tester'){ const u=testerFind(b); const r=await testerSet(u, !!b.on, me);
+      if(!r.ok) return send(res,r.status||400,{error:r.error});
+      return send(res,200,{ ok:true, player:testerView(u) }); }
+    if(!PREBETA) return send(res,400,{error:'Test accounts are switched off.'});
+    let name=''; for(let i=0;i<40&&!name;i++){ const n='Tester'+crypto.randomBytes(4).toString('hex').slice(0,6); if(!badCharName(n)&&!nameTaken(n)) name=n; }
+    if(!name) return send(res,500,{error:'Could not pick a free username - try again.'});
+    const pass=crypto.randomBytes(9).toString('base64').replace(/[+/=]/g,'x');
+    let u=null;
+    if(ACCOUNT_AUTHORITY){ const cred=await makeCredAsync(pass);
+      const r=await authorityCall('/api/internal/account/register',{ name, pass, cred });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
+      u=await linkedUser(r.body.gid, r.body.name, pass, { cred, tag:r.body.tag, login:r.body.name }); u.rank=5000; }
+    else { const c=await makeCredAsync(pass); if(nameTaken(name)) return send(res,409,{error:'That username was just taken - try again.'});
+      const id=uid();
+      u=DB.users[id]={ id, name, login:name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
+        roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+      DB.byName[name.toLowerCase()]=id; nameIdxPut(u); loginIdxPut(u); _dpk('byName',name.toLowerCase()); }
+    u.testAcct=1; const r=await testerSet(u, true, me, true);
+    if(!r.ok) return send(res,r.status||400,{error:r.error});
+    return send(res,200,{ ok:true, name, pass, player:testerView(u) }); }
   if(p==='/api/admin/player'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   /* v1176: one player's info for the dev panel - read-only, see adminPlayerInfo */
     if(req.method!=='GET') return send(res,405,{error:'GET only'});
     const tid=String(url.searchParams.get('id')||''), u=tid&&DB.users[tid];
@@ -8532,9 +8620,9 @@ async function api(req,res,url){
       writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, xpPotions, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
-  if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+  if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!(isDev(me)||isTester(me))) return send(res,403,{error:'forbidden'});   /* v1376: a test account uses the Economy controls too */
     const b=await body(req);
-    const tgt=(b.userId&&DB.users[String(b.userId)])||me;   // v229: admin may grant to a named account (test fixtures, support)
+    const tgt=(isDev(me)&&b.userId&&DB.users[String(b.userId)])||me;   // v1376: a tester grants only to itself   // v229: admin may grant to a named account (test fixtures, support)
     const led=ensureLedger(tgt);
     if(Array.isArray(b.unlock)) for(const k of b.unlock.map(String)){ if(SIM.HERO_BASE[k]){ led.unlocked[k]=true;
       if(!led.hero[k]) led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0}; } }
@@ -10366,7 +10454,7 @@ async function api(req,res,url){
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaopp:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     // SPREAD opponents across %-better rank bands (mirrors client arenaTargetRanks) so you can see JUMP targets,
     // not just the 5 consecutive ranks directly above you. The spread widens as you climb.
-    const pool=Object.values(DB.users).filter(u=>u.id!==me.id && u.rank<me.rank).sort((a,b)=>a.rank-b.rank);
+    const pool=Object.values(DB.users).filter(u=>u.id!==me.id && u.rank<me.rank && arenaVisibleTo(me,u)).sort((a,b)=>a.rank-b.rank);
     function bandBonus(m){ let b=Math.min(4,Math.floor((5000-m)/1000));
       if(m<=1000)b+=Math.min(18,Math.floor((1000-m)/100)*2); if(m<=100)b+=Math.min(15,Math.floor((100-m)/10)*3); if(m<=50)b+=Math.min(12,Math.floor((50-m)/10)*3); return b; }
     function targetRanks(m){ if(m<=1)return []; if(m<=10){ const o=[]; for(let r=1;r<m&&o.length<4;r++)o.push(r); return o; }
@@ -10382,10 +10470,10 @@ async function api(req,res,url){
     for(let k=pool.length-1; k>=0 && opps.length<5; k--){ const u=pool[k]; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } }   // fill remaining with the NEAREST ranks above you (pool is ascending → never the very top)
     /* Phil 10 Nov: "I should always be able to see 4 opponents" / "No matter what rank I am": near the top there are not 4 players above you,
        so the list fills with the nearest players below. A win against a lower rank keeps your rank (applyResult only swaps upward) and pays the win reward. */
-    if(opps.length<4){ const below=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>me.rank).sort((a,b)=>a.rank-b.rank); for(const u of below){ if(opps.length>=4) break; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } } }
+    if(opps.length<4){ const below=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>me.rank&&arenaVisibleTo(me,u)).sort((a,b)=>a.rank-b.rank); for(const u of below){ if(opps.length>=4) break; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } } }
     /* Phil 10 Nov: "Rank 1 should be able to see the top 10 to fight": anyone in the top 10 is offered everyone else in the top 10 */
     /* Phil 10 Nov: "I should not be able to move the players by scrolling" / "the refresh button should refresh the players ... a rank 1 player should be able to see rank 1 when refreshing eventually": 5 at a time, a random 5 of the rest of the top 10 on every refresh */
-    if(me.rank<=10){ opps.length=0; chosen.clear(); const top=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>=1&&u.rank<=10); for(let i=top.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [top[i],top[j]]=[top[j],top[i]]; } top.slice(0,5).forEach(u=>{ chosen.add(u.id); opps.push(u); }); }
+    if(me.rank<=10){ opps.length=0; chosen.clear(); const top=Object.values(DB.users).filter(u=>u&&u.id!==me.id&&u.rank>=1&&u.rank<=10&&arenaVisibleTo(me,u)); for(let i=top.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [top[i],top[j]]=[top[j],top[i]]; } top.slice(0,5).forEach(u=>{ chosen.add(u.id); opps.push(u); }); }
     opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
     // v327: preview the rank-milestone diamonds THIS player would ACTUALLY be paid for each opponent —
     // same step table, same loop and same fractional settle as /api/arena/result — so the client's
@@ -11517,7 +11605,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
 function bootFinish(){ if(_booted) return;
   if(_DB_LOAD_FAILED){ _worldLoadRefusal(_DB_LOAD_FAILED,['PostgreSQL had no world to restore either']); process.exit(1); }   // v1183: never seed over a world that did not load
   _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateLogins1253(); /* v1253 */ migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */ migrateAurethGlyphPath();   /* v1369 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); testerLaunchSweep(); /* v1376: PREBETA off = the test accounts leave the live world */ migrateLogins1253(); /* v1253 */ migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */ migrateAurethGlyphPath();   /* v1369 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */

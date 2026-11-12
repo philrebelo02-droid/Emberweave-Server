@@ -79,6 +79,6 @@ const buy=(token,user='a',sku='d500')=>run('/api/shop/buy',{method:'POST',input:
   client.PaymentRequest=class {constructor(methods){assert.equal(methods[0].data.sku,'d500');paidCalls++;}async show(){return {details:{purchaseToken:'paid'},complete:async status=>assert.equal(status,'success')};}};
   vm.runInContext(module.replace('const playBilling','const secondBilling')+';globalThis.billing=secondBilling;',client);await new Promise(r=>setImmediate(r));await client.billing.buy(offers.d500);
   assert.equal(paidCalls,1);assert.equal(sent[0][0],'/api/shop/buy');assert.equal(sent[0][2].provider,'play');assert.equal(sent[0][2].purchaseToken,'paid');assert.equal(ledgerAdopts,1);
-  assert(html.includes('if(!freePacksOn()&&playBilling.available())'));assert(source.includes("const FREE_PACKS = true && process.env.SHOP_FREE_PACKS!=='0'"));
+  assert(html.includes('if(!freePacksOn()&&playBilling.available())'));assert(source.includes("const PREBETA = true && process.env.SHOP_FREE_PACKS!=='0'")&&source.includes("const FREE_PACKS = PREBETA;"));   /* v1376: one launch switch (free packs + test accounts) */
   console.log('Play billing shell: offline Google transport, real route dispatch, replay/race, durable-failure, states, plans, consume retry, browser and TWA checks PASS');
 })().catch(e=>{console.error(e);process.exitCode=1;});
