@@ -30,18 +30,22 @@ vm.runInNewContext(source.slice(offset, end), {
   ewT: key => key,
   edNiceErr: (error, fallback) => error || fallback,
   edNewGame: id => { attempt = id; },
+  SAVE: null, gameConfirm: (_, yes) => yes(), edEsc: s => s,   // 12 Nov (Grok): since v1369 (b4ccaa8f) the slice also holds the Save-and-exit wrapper round Solo
+  ED_START_RID: {id: null, acct: null},   // 12 Nov (Grok): the start id lives outside the lobby so it survives closing it (unused on trees before that change)
 });
 (async () => {
+  // 12 Nov (Grok): since v1369 Solo's outer handler does not return the start promise, so let the start finish before reading the result
+  const settle = async () => { for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve)); };
   const onUnhandled = () => {};
   process.on('unhandledRejection', onUnhandled);
-  await solo.onclick();
+  await solo.onclick(); await settle();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(solo.disabled, false);
   assert.equal(ov.dataset.busy, undefined);
   assert.equal(messages.at(-1), 'offline');
-  await solo.onclick();
+  await solo.onclick(); await settle();
   assert.equal(messages.at(-1), 'Refused');
-  await solo.onclick();
+  await solo.onclick(); await settle();
   assert.equal(attempt, 'fixture-attempt');
   assert.deepEqual(ids, ['id-1', 'id-1', 'id-3']);
 })().catch(error => { console.error(error); process.exitCode = 1; });

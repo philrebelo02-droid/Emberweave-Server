@@ -2987,6 +2987,21 @@ function warEntrant(t,gid){ return t.entrants.find(e=>e.guildId===gid); }
 function warDropDeletedGuild(gid){ const t=DB.tournaments&&DB.tournaments.current;
   if(!t||t.state!=='registration'||!Array.isArray(t.entrants)) return; const i=t.entrants.findIndex(e=>e.guildId===gid);
   if(i>=0){ t.entrants.splice(i,1); t.version=(t.version|0)+1; } }
+/* Grok bug hunt 12 Nov (Skyfall x v1372 ranks): a member who leaves, or is removed, while the bracket is open or their guild's round is in
+   PLANNING takes their lines off that guild's board at once. The 18:00 lock already rebuilds every side from the CURRENT members
+   (warQualifyGuild), so the player was dropped then anyway - but until the lock the towers, the officer roster and /assign still showed
+   (and could move) somebody who had gone, even after they joined the opponent. A locked (live) board is never touched: what fights was
+   frozen at the lock. */
+function warDropMember(gid,uid){ const t=DB.tournaments&&DB.tournaments.current; if(!t||!gid||uid==null) return; const sid=String(uid);
+  const m0=warMatchOfGuild(t,gid), m=(m0&&m0.state==='planning'&&m0.sides&&m0.sides[gid])?m0:null; let changed=false;
+  const ent=Array.isArray(t.entrants)?t.entrants.find(e=>e.guildId===gid):null;
+  if(ent&&Array.isArray(ent.lines)&&(t.state==='registration'||m)){ const n=ent.lines.length; ent.lines=ent.lines.filter(l=>String(l.memberId)!==sid);
+    if(ent.lines.length!==n){ ent.powerPool=ent.lines.reduce((s,l)=>s+(l.power|0),0); changed=true; } }
+  if(m){ const side=m.sides[gid];
+    for(const c of (side.citadels||[])){ const n=(c.defenders||[]).length; c.defenders=(c.defenders||[]).filter(d=>String(d.memberId)!==sid); if(c.defenders.length!==n) changed=true; }
+    const n=(side.unplaced||[]).length; side.unplaced=(side.unplaced||[]).filter(x=>String((x&&typeof x==='object')?x.memberId:x)!==sid); if(side.unplaced.length!==n) changed=true;
+    if(changed) m.version=(m.version|0)+1; }
+  if(changed) t.version=(t.version|0)+1; }
 function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unassigned members auto-spread
   // AUDIT (26 Aug, CR-4): snapshots are rebuilt FRESH at lock time from server-owned data — glyph/gear/
   // level changes made during planning count. The registration-time entrant is only the fallback if the
@@ -10741,6 +10756,7 @@ async function api(req,res,url){
       if(!guildCanKick(g,me.id,b.id)) return send(res,403,{error:'You can only remove members of a lower rank.'});   /* v1372 */
       g.members=g.members.filter(x=>x!==b.id); if(g.memberRank) delete g.memberRank[b.id]; const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
       g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()}); guildLogCap(g);
+      warDropMember(g.id,String(b.id));   /* Grok bug hunt 12 Nov: off the Skyfall board until the lock too */
       siegeSettleGuilds(Date.now());   /* v1240: the removed member's garrison lines march home */
       writeDB([me.id,String(b.id)]);   /* v1124: the guild + the leader + the removed member */ return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/transfer'){ if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
@@ -10819,6 +10835,7 @@ async function api(req,res,url){
       g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId; if(g.memberRank) delete g.memberRank[me.id];   /* v1372 (ChatGPT check): a rank never survives leaving */
       if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); siegeSettleGuilds(Date.now()); writeDB([me.id]); return send(res,200,{ ok:true, disbanded:true }); }
       g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()}); guildLogCap(g);
+      warDropMember(g.id,me.id);   /* Grok bug hunt 12 Nov: leaving during prep takes your lines off the Skyfall board */
       siegeSettleGuilds(Date.now());   /* v1240 (Phil 31 Oct): leaving the guild = your lines march home; a site you held alone goes */
       writeDB([me.id]); return send(res,200,{ ok:true }); }
 

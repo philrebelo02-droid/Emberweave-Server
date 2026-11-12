@@ -10536,9 +10536,18 @@ function gsplitStartRun(){
     if(left){ if(errEl) errEl.textContent=t('bonuspick.not_placed',{n:left}); return; } }
   for(let L=1;L<=3;L++){ if(!assign[L].length && !(GSPLIT_ENTRY.stageInfo&&GSPLIT_ENTRY.stageInfo.tutorial)){
     if(errEl) errEl.textContent=t('bonuspick.need_one'); return; } }
-  api('/api/bonus/start','POST',{id:GSPLIT_ENTRY.id, assign}).then(data=>{
+  /* Grok bug hunt 12 Nov: the start reply used to act on whatever picker was open when it LANDED. A second tap sent a second start (the
+     server keeps only the newest attempt, so the run being played no longer matched it), and a reply landing after the player closed the
+     picker, went Back to the heroes or opened another stage threw on a null GSPLIT_ENTRY or launched that other stage's picker. One start
+     per picker; the reply only launches if the same picker is still open on the same step. */
+  const entry=GSPLIT_ENTRY, mode0=entry.mode; if(entry._starting) return; entry._starting=true;
+  const sb=document.getElementById('gsplitStart'); if(sb) sb.disabled=true;
+  const stillHere=()=>GSPLIT_ENTRY===entry&&entry.mode===mode0&&!!document.getElementById('gsplitPicker');
+  api('/api/bonus/start','POST',{id:entry.id, assign}).then(data=>{
+    entry._starting=false; const sb2=document.getElementById('gsplitStart'); if(sb2) sb2.disabled=false;
+    if(!stillHere()) return;   /* the player left this picker while the start was in flight */
     if(!data || !data.ok){ if(errEl) errEl.textContent=langMsg(data&&data.error)||t('bonuspick.cant_start'); return; }
-    const assignSnap=assign, id=GSPLIT_ENTRY.id, coach=GSPLIT_ENTRY.coach;
+    const assignSnap=assign, id=entry.id, coach=entry.coach;
     gsplitPickerClose();
     /* v588 (Phil, 18 Sep: "there is lag I need it smoother the entire time from start to finish"). Campaign and
        Vault warm EVERY sheet a fight can show behind the v564 loading screen ("so when you get in the game there is
@@ -10550,7 +10559,7 @@ function gsplitStartRun(){
     let went=false; const go=()=>{ if(went) return; went=true; try{ if(ui) ui.close(); }catch(e){} gsplitEnterBattle(data, assignSnap, id, coach); };
     try{ preloadBattleArtFull(keys, CH_BONUS_MAPS[id]||null, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go); }
     catch(e){ go(); }
-  });
+  }, ()=>{ entry._starting=false; const sb2=document.getElementById('gsplitStart'); if(sb2) sb2.disabled=false; });
 }
 function gsplitMonsterKeys(lanes){   // every monster key in every wave of every road, whatever the nesting
   const out=new Set();
@@ -19774,10 +19783,12 @@ function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn
    and takes ITS damage figure. The boss is one authored wave of one unit. */
 function raidSelectHeroes(){ CUR={mode:'graid'}; teamCtx='campaign'; menuReturn='guild'; show('menu'); }
 async function raidLaunch(){
+  const _rctx=_startCtx();   /* Grok bug hunt 12 Nov: the squad screen this start belongs to */
   let sq=squadFor('graid').slice(0,TEAM_SIZE*2);
   if(!sq.length) return;
   if(!ACC.token){ bannerMsg(t('raid.sign_in')); return; }
   const st=await apiOnce('graidstart','/api/guild/raid/start',{heroIds:sq});   /* v1008: one requestId, re-sent on a lost reply */
+  if(state!=='menu' || _rctx!==_startCtx()) return;   /* left the raid squad screen during the round-trip: never land in a fight the player backed out of (the server keeps the open fight; the next Battle resumes it) */
   if(st&&st.busy) return;
   if(!st||st.error){ bannerMsg(st&&st.error==='offline'?t('net.connection_lost'):((st&&st.error)||t('raid.unreachable'))); return; }
   if(st.resumed&&Array.isArray(st.heroIds)&&st.heroIds.length) sq=st.heroIds.slice(0,TEAM_SIZE*2);   /* an open fight comes back with ITS squad */
@@ -35621,6 +35632,7 @@ function edLoadCatalog(){ if(ED.cat && Object.keys(ED.cat).length) return Promis
 const ED_TITLE_ART='/assets/img/battlefields/emberdraft/title.webp';   // v610 key art for the title screen (2400x1029)
 const ED_TITLE_PED={ x:0.497, y:0.636, h:0.40, ar:2400/1029 };   // where the painted pedestal's top is (image fractions) and how tall the avatar stands on it
 const ED_BUY_RID={id:null,acct:null};
+const ED_START_RID={id:null,acct:null};   /* Grok bug hunt 12 Nov: the Solo start's requestId lives here, not on the lobby element - see solo.onclick */
 function openEmberdraft(){   /* v1324 (Phil 9 Nov, via ChatGPT: "Emberdraft MAIN SCREEN FIRST, make more appealing" - Phil reviewed: "Everything good except" 2 alignments, fixed): ChatGPT's package Game Art/UI/Emberdraft Main Screen 09NOV2026 (openEmberdraft.after.txt), art as pixel-identical lossless WebP */
   /* the Gauntlet is retired from the Island: a run left open there is banked, never lost */
   try{ if(typeof gauntRestore==='function'){ gauntRestore(); if(typeof _gaunt!=='undefined'&&_gaunt&&_gaunt.alive){ gauntBank(); _gaunt.alive=false; gauntSave(); } } }catch(e){}
@@ -35903,16 +35915,20 @@ function openEmberdraft(){   /* v1324 (Phil 9 Nov, via ChatGPT: "Emberdraft MAIN
     if(!signed){ ov.remove(); edNewGame(null); return; }
     const token=ACC.token, account=ACC.id;
     const owns=()=>ov.isConnected&&ACC.token===token&&ACC.id===account;
-    solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();
+    solo.disabled=true; ov.dataset.busy='1';
+    /* Grok bug hunt 12 Nov: one requestId per start until a definite answer, kept across a reopened lobby like ED_BUY_RID. It lived on the lobby (ov._startReq),
+       so after a lost reply (offline / timeout - the server had already spent the attempt) the Island button, reopen + Solo sent a NEW id: a second
+       attempt was spent and the first match could never be played. Now the retry re-sends the same id and the server answers with that same match. */
+    if(ED_START_RID.acct!==account){ ED_START_RID.id=null; ED_START_RID.acct=account; } const rid=ED_START_RID.id||(ED_START_RID.id=uid8());
     let d;
     try{
       await _claimP;
       if(!owns()) return;
-      d=await api('/api/emberdraft/start','POST',{requestId:ov._startReq,god});
+      d=await api('/api/emberdraft/start','POST',{requestId:rid,god});
     }catch(e){ d={error:'offline'}; }
     finally{ delete ov.dataset.busy; solo.disabled=false; }
-    if(!owns()) return;
-    if(pendingDefinite(d)) ov._startReq=null;
+    if(!owns()) return;   /* lobby gone or account switched mid-start: the id is kept, so the next Solo picks up the match the server booked */
+    if(pendingDefinite(d) && ED_START_RID.id===rid) ED_START_RID.id=null;
     if(d&&d.ok){ ov.remove(); edNewGame(d.attemptId); return; }
     show(d&&d.edraft,edNiceErr(d&&d.error,ewT('draft.err_start')));
   };
