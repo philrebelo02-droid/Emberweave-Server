@@ -7021,7 +7021,7 @@ const KITS={
   veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33,ownFx:'crescent'},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,perLv:0.001,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88,ownFx:'mantle'},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
   vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,range:28*METER,evade:0.5,ownFx:'hook',gfx:'vex_green',gfxR:3*METER,gdur:4.58,desc:"Vex fires her hook at the most fragile enemy in reach, back-row casters first, and swings in behind them for a crushing strike."},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,ownFx:'wound',gfx:'vex_blue',gfxR:3*METER,gdur:5.25,desc:"Vex opens a deep wound that bleeds the target every second for 6 seconds."},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
   grimsby:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6,gfx:'grimsby_green',gfxR:3*METER,gdur:5.88},blue:{deliver:'form',name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10,gfx:'grimsby_blue',gdur:5.88},purple:{name:'Compound Interest',pass:'debtaura'}},
-  dandra:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
+  dandra:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive 30% less healing while the sting lasts'}},
 };
 // ---- MONSTER kits (Batch 1) — each monster auto-casts its two chosen abilities on cooldown (no ults). ----
 // Stronger ability goes on the longer cooldown, per the balance rule in the monster-picks design note.
@@ -12328,7 +12328,7 @@ function damage(u,a,c,noEnergy,crit){
       floatTexts.push({x:u.x,y:u.y-14,txt:'DEBT CALLED IN',t:1.3,color:'#8a7a3a',vy:1,sz:13}); }
     if(u._contagion && u.dots && u.dots.some(d=>d.color===u._plagueColor)){   // only the carrier's own plague/curse spreads — a stray bleed or burn does not // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
       const _cgDur=SKLV.contagionDur(contagionLv(u.team));   /* v1112: the spread lasts 4 s + 0.02 s a level of the strongest Contagion on the other side */
-      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ { const _cd=u.dots.find(d=>d.color===u._plagueColor); plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f',_cd&&_cd.src,_cd&&_cd.kind); } e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
+      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ { const _cd=u.dots.find(d=>d.color===u._plagueColor); plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f',_cd&&_cd.src,_cd&&_cd.kind); } e._contagion=true; if(u._plagueColor==='#f2d84a') e._beeCutUntil=battleTime+_cgDur; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
       if(typeof SFX!=='undefined'&&SFX.loop) sfxSpread(u);   /* v1138 sound: the plague's owner's passive */
       if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
@@ -15112,8 +15112,12 @@ function worldHealCap(u){ return u._worldEntryHpCap==null?u.maxHp:Math.min(u.max
 /* v1112 (Phil 10 Oct 2026: "please make wax reduce healing on the enemy effected by 30%"): a unit carrying Ceraline's wax - her ult's
    coat (_waxCoatT) or Living Tallow's stacks (_wax while _waxT runs) - receives 30% less healing from every source. */
 const WAX_HEAL_CUT=0.30;
+/* v1376 (tester Soul Eater 12 Nov, Phil: "make the dandra change"): Dandra's purple, The Swarm Moves On - when a stung foe dies and her bees move on,
+   every enemy they move on to also receives 30% less healing for as long as that spread sting lasts (SKLV.contagionDur). */
+const BEE_HEAL_CUT=0.30;
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
   if((u._healCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._healCutUntil>battleTime) a*=1-EDGE.healCut;   /* v1367 Silence the healer */
+  if((u._beeCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._beeCutUntil>battleTime) a*=1-BEE_HEAL_CUT;   /* v1376 The Swarm Moves On */
   if(typeof AFFINITIES_LIVE!=='undefined'&&AFFINITIES_LIVE&&u.target&&u.target.alive&&unitClass(u.target)==='Tank'&&u.target.team!==u.team&&units.some(o=>o.alive&&o.team===u.team&&unitClass(o)==='Support')) a*=1+EDGE.healBonus;   /* v1367 Sundering grace: allies attacking a Tank heal more while a Support fights beside them */ if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a;
   /* v527 - healing that travels. Golden Thread (Threadseer) sends part of what SHE receives to
      the ally nearest death; Dreamthread (Lysara) shares between the two allies she linked.
