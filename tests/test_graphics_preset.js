@@ -33,7 +33,7 @@ async function run(width,height,dpr){
   await settings();
   ok(await select.inputValue()==='high',width+' High default');
   const shot=async tag=>{if(process.env.SHOTS) await page.screenshot({path:path.join(process.env.SHOTS,width+'x'+height+'-'+tag+'.png')});};
-  for(const preset of ['high','balanced','low']){
+  for(const preset of ['high','detailed','balanced','light','low']){   // v1373: 5 levels (Phil)
     await select.selectOption(preset);
     await shot('settings-'+preset);
   }
@@ -64,16 +64,17 @@ async function run(width,height,dpr){
     info.rgbaMiB=+(4*(info.webgl[0]*info.webgl[1]+info.overlay[0]*info.overlay[1])/1048576).toFixed(2);
     return info;
   };
-  const high=await capture('high'), balanced=await capture('balanced'), low=await capture('low');
+  const high=await capture('high'), detailed=await capture('detailed'), balanced=await capture('balanced'), light=await capture('light'), low=await capture('low');
   ok(high.ratio>balanced.ratio&&balanced.ratio>low.ratio,width+' three renderer tiers at zoom');
-  ok(balanced.ratio===2&&low.ratio===1,width+' final DPR capped after zoom');
+  ok(balanced.ratio===2&&low.ratio===1&&light.ratio===1.5&&detailed.ratio<=2.5&&detailed.ratio>=balanced.ratio&&high.ratio>=detailed.ratio,width+' final DPR capped after zoom (Low 1, Light 1.5, Balanced 2, Detailed <=2.5, High full)');
+  ok((await page.evaluate(()=>Object.keys(GRAPHICS_PRESETS).join()))==='high,detailed,balanced,light,low',width+' five levels in order');
   ok(high.sameState&&balanced.sameState&&low.sameState,width+' setting changes do not mutate fight state');
   ok(high.css.join()===low.css.join()&&low.rgbaMiB<high.rgbaMiB,width+' smaller buffers at unchanged CSS size');
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>typeof graphicsPreset!=='undefined');
   ok(await page.evaluate(()=>graphicsPreset==='low'&&localStorage.getItem('ew_graphics_quality')==='low'),width+' Low restored after reload');
   ok(!errs.length,width+' no page errors '+errs.join(' | '));
-  console.log(JSON.stringify({width,height,dpr,high,balanced,low}));
+  console.log(JSON.stringify({width,height,dpr,high,detailed,balanced,light,low}));
 }
 (async()=>{
   try{
