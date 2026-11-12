@@ -108,6 +108,12 @@ const _LF = x => String(x).replace(/\r\n/g, '\n');
 function undoText(s) {
   s = _LF(s);
   for (const [from0, to0, any0] of SWAPS) { const from = _LF(from0), to = _LF(to0), any = new RegExp(any0.source.replace(/\\r\\n/g, '\\n'), any0.flags);
+    /* v1376 (Phil 12 Nov: Bruisers x1.1, Assassins 95-100): a hero-line swap matches whatever move speed the page now has - speed is not what it backs out */
+    { const hm = /^\s*(\w+):\s*\{name:'/.exec(from);
+      if (hm && /speed:\d+/.test(from) && s.split(from).length === 1) {
+        const pm = new RegExp('\\n\\s*' + hm[1] + ':\\s*\\{name:[^\\n]*?speed:(\\d+)').exec(s);
+        if (pm) { const sp = 'speed:' + pm[1], f2 = from.replace(/speed:\d+/, sp), t2 = to.replace(/speed:\d+/, sp);
+          if (s.split(f2).length === 2) { s = s.replace(f2, t2); continue; } } } }
     const n = s.split(from).length - 1;
     if (n === 0 && (!any.test(s) || s.split(to).length === 2)) continue;   /* a page from before the change, or one already undone */
     if (n !== 1) throw new Error('global-1254-1260: expected exactly one "' + from + '" in the page, found ' + n);
