@@ -8974,7 +8974,7 @@ async function api(req,res,url){
       const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
       const h=led.hero[k]; if(!h||h.stars<5) return {ok:false,error:'Refine opens at 5 stars.'};
       const lvl=SIM.refineClamp(h.ref);
-      const tier=SIM.refineTierAt(lvl);   // v1369 star track: bronze 6th star 50 frags/50% · silver pips 80/35% · gold 90/20% · mythical 100/10% (server/sim.js REFINE_TIERS)
+      const tier=SIM.refineTierAt(lvl);   // v1369 star track: bronze 6th star 50 frags/50% · silver pips 70/35% · gold 90/20% · mythical 110/10% (server/sim.js REFINE_TIERS)
       if(!tier) return {ok:false,error:'Fully refined.'};
       if((led.frags[k]|0)<tier.cost) return {ok:false,error:'Need '+tier.cost+' fragments.'};
       led.frags[k]-=tier.cost;
