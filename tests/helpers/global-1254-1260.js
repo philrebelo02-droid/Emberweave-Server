@@ -105,8 +105,11 @@ process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } cat
 /* v1357 (flakes): several SWAPS carry \r\n. On the cluster's LF tree they were not found, the guard did not match either, and the back-out was
    skipped without a word - test_debuff_feet_1141 and test_nox_grimsby_anims failed there in every run. Page, needles and guards are compared in LF. */
 const _LF = x => String(x).replace(/\r\n/g, '\n');
+/* v1376/v1377 (Phil 12 Nov: Bruisers x1.1, Assassins 95-100, Carn 72->80): the older BASE fights put every hero's move speed back */
+const SPEED_BACK = {konwu:70,tick:72,aureth:67,hurne:62,quorrel:67,korvux:70,hobb:70,deepcleft:67,zahri:74,carn:72,grimsby:62,iver:67,tolley:65,sorrel:77,veyr:86,vex:86,hollow:89,seyla:89,nox:92,kharos:94};
+function speedBack(s) { for (const k in SPEED_BACK) s = s.replace(new RegExp('(\\n\\s*' + k + ':\\s*\\{name:[^\\n]*?speed:)\\d+'), '$1' + SPEED_BACK[k]); return s; }
 function undoText(s) {
-  s = _LF(s);
+  s = speedBack(_LF(s));
   for (const [from0, to0, any0] of SWAPS) { const from = _LF(from0), to = _LF(to0), any = new RegExp(any0.source.replace(/\\r\\n/g, '\\n'), any0.flags);
     /* v1376 (Phil 12 Nov: Bruisers x1.1, Assassins 95-100): a hero-line swap matches whatever move speed the page now has - speed is not what it backs out */
     { const hm = /^\s*(\w+):\s*\{name:'/.exec(from);
