@@ -920,6 +920,7 @@ async function handle(p, method, ctx){
       tier:tierFor(ch), perHour:SLOT_RATE[slot],
       recommendedPower:isTutorialBonus(id)?0:chapterPowerRef(ctx.CAMP_ENC, ch),
       tutorial:isTutorialBonus(id),
+      coachBonus13:isTutorialBonus(id) && !led.tut?.bonus13,
       script:isTutorialBonus(id)?TUTORIAL_SCRIPT:null,
       comeBackLater:!isTutorialBonus(id),   // Phil: every other one is not a stage you clear on the way past
 

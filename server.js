@@ -8256,6 +8256,19 @@ async function api(req,res,url){
       return {ok:false,error:'Unknown item.'};
     });
     return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
+  if(p==='/api/tutorial/bonus13' && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req);
+    const led=ensureLedger(me);
+    if(led.tut?.bonus13) return send(res,200,{ok:true});
+    const run=led.bonus?.att;
+    if(!run || run.stage!=='1-3' || run.id!==b.attemptId) return send(res,409,{error:'No matching bonus run.'});
+    const out=idem(me.id+':bonus13:seen',()=>{
+      (led.tut ||= {}).bonus13=Date.now();
+      return {ok:true};
+    },{durableUser:me});
+    return send(res,out.storageFailed?503:200,out);
+  }
   /* v267: Getting Started rewards are server-granted, once each, from the authored table above. */
   if(p==='/api/tutorial/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const step=String(b.step||'').slice(0,16); _saveScope(me.id);   /* v1124: per-player save - this route changes only its own player (+ the shared world the manifest always writes) */

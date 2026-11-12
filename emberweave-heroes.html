@@ -3697,6 +3697,18 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   html.ew-lang-noto body, html.ew-lang-noto body *{font-family:var(--ew-lang-font),-apple-system,"Segoe UI",Roboto,sans-serif!important;}
   html:not([lang="en"]) .mitem .ml{white-space:normal;max-width:64px;overflow-wrap:normal;}
 </style>
+<style>
+.bonus13Bubble{position:fixed;inset:10px 0 auto;margin:0 auto;width:min(460px,calc(100% - 28px));box-sizing:border-box;padding:12px 16px;border:1px solid #efcc7a;border-radius:12px;background:#1b2333;color:#fff1ce;box-shadow:0 6px 22px #000b;font:inherit}
+.bonus13Bubble::backdrop{background:transparent}
+@media(orientation:landscape) and (max-height:600px){.bonus13Bubble.bonus13ZoomBubble{max-width:min(360px,46vw)}}
+@media(orientation:landscape) and (max-height:600px){.bonus13Bubble.bonus13LaneBubble{inset-inline:auto 14px;margin:0;width:min(460px,calc(50vw - 28px))}}
+.bonus13Bubble strong{color:#ffd45e}
+.bonus13Bubble p{margin:4px 0 8px;line-height:1.3}
+.bonus13Bubble .btn{min-height:36px}
+@keyframes bonus13Glow{50%{filter:drop-shadow(0 0 5px #ffe293)}}
+.bonus13PickGlow .gsplitCount,.bonus13RoadGlow .gsplitRoad>div:first-child,.bonus13BoonGlow .gw-boon,.bonus13CrossGlow .gw-roster,.bonus13ZoomGlow{outline:2px solid #ffd45e;outline-offset:2px}
+@media(prefers-reduced-motion:no-preference){.bonus13PickGlow .gsplitCount,.bonus13RoadGlow .gsplitRoad>div:first-child,.bonus13BoonGlow .gw-boon,.bonus13CrossGlow .gw-roster,.bonus13ZoomGlow{animation:bonus13Glow 1.3s ease-in-out infinite}}
+</style>
 </head>
 <body>
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play" data-i18n-aria="html2.click_to_play"></button><div class="splashTap" id="splashTap" data-i18n="boot.tap_to_play">Tap to play</div><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
@@ -8843,6 +8855,8 @@ function gsplitBegin(spec){
   gsplitBuildGround();
 }
 function gsplitEnd(){
+  bonus13Dismiss(GSPLIT.coach);
+  GSPLIT.coach=null;
   gsplitClearGround();
   // The battle renderer owns the sprites, projectiles, and status effects. Emptying
   // only GSPLIT.lanes left their meshes in the scene on a repeat entry.
@@ -9959,6 +9973,7 @@ function gsplitWindowDraw(){
     html+='</div><div class="gw-preview" role="status">'+gsplitEsc(W.preview||'')+'</div>';
     html+='<div class="gw-foot"><span class="gw-why">'+t('gswin.change_boon')+'</span><button data-gw="confirm" id="gwConfirm"'+(ready?'':' disabled')+'>'+t('gswin.confirm_boons')+'</button></div>';
     el.innerHTML=html;el.className='show';
+    bonus13FirebreakCoach(W,el);
     el.querySelectorAll('[data-gw="boon"]').forEach(b=>{
       const preview=()=>{const L=GSPLIT.lanes[+b.dataset.lane],x=(L.offer||[]).find(x=>x.id===b.dataset.id);const p=el.querySelector('.gw-preview');if(p)p.textContent=x&&x.blurb||'';};
       b.addEventListener('pointerenter',preview);b.addEventListener('focus',preview);
@@ -9995,6 +10010,7 @@ function gsplitWindowDraw(){
   el.innerHTML=html;el.className='show gw-assign'+(W._drag&&W._drag.on?' gw-dragging':'');
   const roster=el.querySelector('.gw-roster'); if(roster&&rosterLeft)roster.scrollLeft=rosterLeft;
   gsplitDrawLaneOverlays();
+  bonus13FirebreakCoach(W,el);
 }
 
 function gsplitEsc(s){ return String(s == null ? '' : s)
@@ -10248,6 +10264,7 @@ async function gsplitPresetSave(i){
   gsplitPickerRender();
 }
 function gsplitPickerClose(){
+  bonus13Dismiss(GSPLIT_ENTRY?.coach);
   const el=document.getElementById('gsplitPicker'); if(el) el.remove();
   GSPLIT_ENTRY = null;
 }
@@ -10398,7 +10415,7 @@ function gsplitStartRun(){
     if(errEl) errEl.textContent=t('bonuspick.need_one'); return; } }
   api('/api/bonus/start','POST',{id:GSPLIT_ENTRY.id, assign}).then(data=>{
     if(!data || !data.ok){ if(errEl) errEl.textContent=langMsg(data&&data.error)||t('bonuspick.cant_start'); return; }
-    const assignSnap=assign, id=GSPLIT_ENTRY.id;
+    const assignSnap=assign, id=GSPLIT_ENTRY.id, coach=GSPLIT_ENTRY.coach;
     gsplitPickerClose();
     /* v588 (Phil, 18 Sep: "there is lag I need it smoother the entire time from start to finish"). Campaign and
        Vault warm EVERY sheet a fight can show behind the v564 loading screen ("so when you get in the game there is
@@ -10407,7 +10424,7 @@ function gsplitStartRun(){
     const heroKeys=[].concat(assign[1]||[],assign[2]||[],assign[3]||[]);
     const keys=heroKeys.concat(gsplitMonsterKeys(data.lanes));
     let ui=null; try{ ui=showBattleLoader({ title:t('bonuspick.loader_title'), lanes:[assign[1]||[],assign[2]||[],assign[3]||[]] }); }catch(e){}   // v611: the three roads
-    let went=false; const go=()=>{ if(went) return; went=true; try{ if(ui) ui.close(); }catch(e){} gsplitEnterBattle(data, assignSnap, id); };
+    let went=false; const go=()=>{ if(went) return; went=true; try{ if(ui) ui.close(); }catch(e){} gsplitEnterBattle(data, assignSnap, id, coach); };
     try{ preloadBattleArtFull(keys, CH_BONUS_MAPS[id]||null, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go); }
     catch(e){ go(); }
   });
@@ -10421,7 +10438,7 @@ function gsplitMonsterKeys(lanes){   // every monster key in every wave of every
 /* THE REAL LAUNCH. Everything below this point was previously only reachable through a test
    harness (`__gauntProof`/`__gauntEncounter`). This is the same sequence, fed real server data and
    a real player's squad, ending in the same `show('battle')` the rest of the game already uses. */
-function gsplitEnterBattle(data, assign, id){
+function gsplitEnterBattle(data, assign, id, coach){
   // Clear a previous fight before spawning any lane. This also handles a re-entry
   // after an interrupted exit and prevents old sprites from sharing the new scene.
   clearBattle();
@@ -10482,6 +10499,12 @@ function gsplitEnterBattle(data, assign, id){
   try{ refreshCtrlBtns(); }catch(e){}
   try{ CW=0; resize3D(); }catch(e){}   // v588: apply the bonus-run render ratio (zoomPR) now that GSPLIT is active
   bannerMsg('◆ '+ewT('gauntlet.three_roads',{id}));
+  GSPLIT.coach=coach || null;
+  if(coach){
+    const zoomButton=document.querySelector('#bonusZoomBtn,#gsplitZoomBtn,[data-bonus-zoom]');
+    zoomButton?.classList.add('bonus13ZoomGlow');
+    bonus13Bubble(coach,[zoomButton?'zoom':'zoom_gesture'],()=>zoomButton?.classList.remove('bonus13ZoomGlow'));
+  }
 }
 
 /* ============================================================================
@@ -10946,7 +10969,7 @@ function gsplitCloseWindow(){
 }
 
 function gsplitStep(dt){
-  if(!GSPLIT.active || GSPLIT._finishing) return;
+  if(!GSPLIT.active || GSPLIT._finishing || GSPLIT.coach?.dialog) return;
 
   if(gsplitWindowOpen()){
     /* v589 - THE CROSSING JITTER (Phil, 18 Sep: "causes the heroes to jitter when crossing, making them look
@@ -10990,11 +11013,95 @@ function gsplitStep(dt){
   if(v) gsplitFinish(v);
 }
 
+/* Bonus 1-3 conversation. The older scripted picker is retained for legacy payloads. */
+const BONUS13_SPEAKERS={pick:'Vael',roads:'Sylthaine',goal:'Vael',zoom:'Vireo',zoom_gesture:'Vireo',boon:'Sylthaine',cross:'Vex'};
+function bonus13Bubble(coach, steps, done){
+  const dialog=document.createElement('dialog');
+  dialog.id='bonus13Coach';
+  dialog.className='bonus13Bubble';
+  if(steps[0]==='roads') dialog.classList.add('bonus13LaneBubble');
+  if(steps[0]==='zoom') dialog.classList.add('bonus13ZoomBubble');
+  dialog.setAttribute('aria-labelledby','bonus13Speaker');
+  dialog.setAttribute('aria-describedby','bonus13Speech');
+  dialog.innerHTML='<strong id="bonus13Speaker"></strong><p id="bonus13Speech"></p><button type="button" class="btn"></button>';
+  const button=dialog.querySelector('button');
+  button.textContent=t('intro11.tap_continue');
+  dialog.addEventListener('cancel',e=>e.preventDefault());
+  let index=0;
+  const showLine=()=>{
+    const key=steps[index];
+    dialog.querySelector('strong').textContent=BONUS13_SPEAKERS[key];
+    dialog.querySelector('p').textContent=t('bonus13.coach.'+key);
+  };
+  button.onclick=()=>{
+    if(++index<steps.length){ showLine(); return; }
+    bonus13Dismiss(coach);
+    done();
+  };
+  coach.dialog=dialog;
+  showLine();
+  document.body.appendChild(dialog);
+  dialog.showModal();
+}
+function bonus13Dismiss(coach){
+  if(!coach?.dialog) return;
+  coach.dialog.close();
+  coach.dialog.remove();
+  coach.dialog=null;
+}
+function bonus13PickCoach(entry,panel){
+  panel.classList.remove('bonus13PickGlow','bonus13RoadGlow');
+  if(!entry?.stageInfo?.coachBonus13) return;
+  const coach=entry.coach ||= {};
+  if(entry.mode==='pick'){
+    if(coach.pick) panel.classList.add('bonus13PickGlow');
+    else if(!coach.dialog) bonus13Bubble(coach,['pick'],()=>{
+      coach.pick=true;
+      panel.classList.add('bonus13PickGlow');
+    });
+  }else{
+    panel.classList.add('bonus13RoadGlow');
+    if(!coach.roads && !coach.dialog) bonus13Bubble(coach,['roads','goal'],()=>{ coach.roads=true; });
+  }
+}
+function bonus13DrawCrossings(ctx){
+  const W=GSPLIT.window;
+  if(!GSPLIT.active || !GSPLIT.coach || W?.station!==0 || W.phase!=='move') return;
+  ctx.save();
+  ctx.strokeStyle='#ffe39b';
+  ctx.shadowColor='#ffce51';
+  ctx.shadowBlur=9;
+  ctx.lineWidth=3;
+  ctx.lineCap='round';
+  ctx.setLineDash([6,6]);
+  for(const [side,from,to] of [['upper',0,1],['lower',1,2]]){
+    if(GSPLIT.lanes[from].state!=='walking' || GSPLIT.lanes[to].state!=='walking') continue;
+    const a=project(gsplitCrossX(side,W.station,from),GSPLIT_ROAD_Y_FITTED[from],0.001);
+    const b=project(gsplitCrossX(side,W.station,to),GSPLIT_ROAD_Y_FITTED[to],0.001);
+    ctx.beginPath();
+    ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function bonus13FirebreakCoach(windowState,panel){
+  const coach=GSPLIT.coach;
+  if(!coach || windowState.station!==0) return;
+  const step=windowState.phase==='boon'?'boon':'cross';
+  panel.classList.add(step==='boon'?'bonus13BoonGlow':'bonus13CrossGlow');
+  if(coach[step] || coach.dialog) return;
+  bonus13Bubble(coach,[step],()=>{
+    coach[step]=true;
+    if(step==='cross') api('/api/tutorial/bonus13','POST',{attemptId:GSPLIT.attemptId});
+  });
+}
+
 /* Bonus 1-3 Start Here rails. Load after the Gauntlet entry/window/flow payloads. */
 const _bonusPickerRender = gsplitPickerRender;
 gsplitPickerRender = function(){
   const E = GSPLIT_ENTRY;
-  if(E && E.stageInfo && E.stageInfo.script && !G.tutSkipped && !E._rails){
+  if(E && E.stageInfo && E.stageInfo.script && E.stageInfo.coachBonus13===undefined && !G.tutSkipped && !E._rails){
     const owned = HERO_KEYS.filter(k=>G.unlocked[k]).sort((a,b)=>heroPower(b)-heroPower(a));
     E._rails = { steps:E.stageInfo.script.place.filter(p=>owned[p.rank]).map(p=>({key:owned[p.rank],lane:p.lane,say:p.say})), next:0 };
   }
@@ -11021,6 +11128,7 @@ gsplitPickerRender = function(){
     if(start){ start.style.fontSize='16px'; start.style.minHeight='48px'; }
     if(_keepScroll){ card.scrollTop=_keepScroll; requestAnimationFrame(()=>{ card.scrollTop=_keepScroll; }); }
   }
+  if(panel) bonus13PickCoach(E,panel);
   if(!E || !E._rails) return;
   const root=document.getElementById('gsplitPicker'), rails=E._rails;
   if(!root) return;
@@ -18685,6 +18793,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='ba
      part of the text now takes BONUS_UNIT_SCALE, the factor the heroes and (v592) their spell areas take: font, outline,
      name plate padding/corners, and the rise. Zooming in still grows them with the units. */
   const _ftK=_ftBn?BONUS_UNIT_SCALE:1;
+  bonus13DrawCrossings(octx);
   try{ introDrawBubble(); }catch(e){}   /* v1255 */
   floatTexts.forEach(f=>{const _fdb=ftIsDebuff(f); const p=project(f.x,f.y,(_fdb?FT_FEET_HZ:(f.hz||(f.label?3.1:1.8)))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));   /* v1141: a debuff word is projected from the feet line */if(!p.vis)return; if(f._oy!=null) p.y+=f._oy;   // v942: a status word's place in its unit's column   // v253: ability NAMES float higher, clear of the melee cluster
     const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK*((ftIsStatus(f)||_fdb)?FT_STATUS_SCALE:1), col=f.color||'#fff';
@@ -33459,6 +33568,15 @@ const INTRO_LINES={ vael_ready:["Vael","You won't strike me down. Not today!"], 
   vael_kill:["Vael",[["Kill....",1.3],["Kill everything!!",1.5],["KILL!!!",1.1],["RAHHHH!!!",1.7]]] };
 /* v1271 LANGUAGES: the line shown is the key's text in the player's language; the English above stays the fallback */
 EW_LANG_EN['intro11.tap_continue']='Tap to continue';
+Object.assign(EW_LANG_EN,{
+  "bonus13.coach.pick": "Pick your squad. Bring up to fifteen if you have them. We'll split them across three roads.",
+  "bonus13.coach.roads": "Top, Middle, Bottom. Drag a hero to a road, or tap the hero and then the road. All three fight at once.",
+  "bonus13.coach.goal": "Five waves. Get at least two roads home.",
+  "bonus13.coach.zoom": "Hard to see who's where? Tap Zoom to bring the fight closer. You can pinch or use the mouse wheel, too.",
+  "bonus13.coach.zoom_gesture": "Hard to see who's where? Pinch or use the mouse wheel to bring the fight closer.",
+  "bonus13.coach.boon": "A firebreak. Choose one boon for each road still fighting, then confirm.",
+  "bonus13.coach.cross": "Now send help where it's needed. Drag a hero across, or tap the hero and then the road. Their boon goes with them."
+});
 const INTRO_KEYS={ vael_ready:['intro11.vael_ready'], vael_after:['intro11.vael_after'], vireo_in:['intro11.vireo_in'], vael_reply:['intro11.vael_reply'],
   vireo_ready:['intro11.vireo_ready'], syl_in:['intro11.syl_in'], syl_ready:['intro11.syl_ready'],
   vael_kill:['intro11.vael_kill_1','intro11.vael_kill_2','intro11.vael_kill_3','intro11.vael_kill_4'] };

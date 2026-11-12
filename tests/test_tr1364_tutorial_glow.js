@@ -46,6 +46,13 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
   console.log('B 2.5 tutorial glowing hero, root='+ROOT);
   ok(await bonusReady(page),'heroes unlocked, campaign cleared to 45');
   await page.evaluate(()=>{ G.tutSkipped=false; });
+  // Exercise the old picker when the stage payload comes from a pre-conversation server.
+  await page.route('**/api/bonus/stage?id=1-3',async route=>{
+    const response=await route.fetch();
+    const stage=await response.json();
+    delete stage.coachBonus13;
+    await route.fulfill({response,json:stage});
+  });
   await openBonus(page,'1-3');
   const r=await page.evaluate(async()=>{ const E=GSPLIT_ENTRY; if(!E||!E._rails) return {err:'no teaching rails on 1-3'};
     const b=[...document.querySelectorAll('#gsplitPicker .gsplitHero')].find(b=>!b.disabled); if(!b) return {err:'no hero to tap'};
