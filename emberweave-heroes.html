@@ -17691,11 +17691,15 @@ function endBattle(won){
        award is taken from the squad alone. */
     const _sq=_al.filter(u=>!u._summon&&!u._wasSummon), _sqT=_sq.length||1, _sqA=_sq.filter(u=>u.alive).length;
     window._p2lastWon=!!won;
-    window._p2lastStars=won?(_sqA>=_sqT?3:(_sqA>=Math.ceil(_sqT/2)?2:1)):0; }catch(e){}
+    /* v1376 (tester Soul Eater 12 Nov: "if you complete a stage of the campaign with only one hero and no other heroes in your team, you still get 3 stars";
+       Phil: "Star issue needs to be fixed"): stars count against a FULL team - five heroes, or every hero the player owns when fewer -
+       not against however many were brought. The server caps it the same way. */
+    const _sqD=Math.max(_sqT,ewStarTeam());
+    window._p2lastStars=won?(_sqA>=_sqD?3:(_sqA>=Math.ceil(_sqD/2)?2:1)):0; }catch(e){}
   // snapshot Victory-screen data before any mode-specific early return (used by renderResultExtras)
   resultWon=won;
   { const al=units.filter(u=>u.team==='ally'&&!u._summon&&!u._wasSummon); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
-    const total=al.length||1, alive=al.filter(u=>u.alive).length;
+    const total=Math.max(al.length||1, ewStarTeam()), alive=al.filter(u=>u.alive).length;   /* v1376: stars against a full team */
     resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0;
     /* AUDIT #21: do NOT bank stars from the client's own verdict when a server attempt is open —
        /api/campaign/resolve is the authority and answers a moment later. Only the offline /
@@ -19566,7 +19570,9 @@ function ftutReplayAll(){ G.ftutSeen={}; try{ saveG(); }catch(e){} }
   '#ftutBar .ftut-row{position:relative;max-width:var(--ftut-max);margin:0 auto;pointer-events:none;-webkit-tap-highlight-color:transparent}'+
   /* v1376 (Phil 12 Nov: "the opaque dialogue boxes need to be like 20% so we can see through them, and make sure dialogue is out of the way always"):
      the box is ~20% dark with the gold frame edge only (no filled panel), and taps pass straight through it to the screen - only Skip and Next take a tap */
-  '#ftutBar .ftut-box.ewFrame{border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 18px stretch!important;background:rgba(6,9,16,.2)!important;background-clip:padding-box!important;filter:none!important}'+
+  '#ftutBar .ftut-box.ewFrame{position:relative;isolation:isolate;border-image:none!important;background:none!important;filter:none!important}'+
+  /* Phil: "I want the entire box transparent" / "I said 20% opaque dialogue boxes": the whole framed panel is drawn at 20% opacity; the words, names and buttons stay solid */
+  '#ftutBar .ftut-box.ewFrame::before{content:"";position:absolute;inset:-18px;z-index:-1;pointer-events:none;border:18px solid transparent;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch;opacity:.2}'+
   '#ftutBar .ftut-foot .btn{pointer-events:auto}'+
   /* the speaker stands at the left, chest up, rising over the bar's top edge (at the top of the screen: hanging under it) */
   '#ftutBar .ftut-por{position:absolute;left:var(--ftut-por-x);bottom:0;width:var(--ftut-por);height:calc(100% + var(--ftut-por-rise));pointer-events:none;z-index:2;display:flex;align-items:flex-end;justify-content:center}'+
@@ -26382,6 +26388,7 @@ function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?
 /* v665: a squad entry the player cannot pick (a hero they no longer own, or a key dropped from the
    roster) still filled a slot - the screen showed 4 selected and refused the 5th, and the fight would
    not start. Every read of a squad prunes to owned heroes and de-duplicates, so a stuck save heals. */
+function ewStarTeam(){ try{ const n=Object.keys(G.unlocked||{}).filter(k=>G.unlocked[k]&&HERO_TYPES[k]&&!HERO_TYPES[k].monster).length; return Math.max(1,Math.min(TEAM_SIZE,n)); }catch(e){ return 1; } }   /* v1376: a full team for stars */
 function heroOwned(k){ return !!(k && HERO_TYPES[k] && G.unlocked && G.unlocked[k]); }
 function pruneSquadArr(arr){ if(!Array.isArray(arr)) return arr;
   let w=0; const seen=Object.create(null);

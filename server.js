@@ -8964,6 +8964,9 @@ async function api(req,res,url){
       let stars=0, reward=null;
       if(won){
         stars=witnessed.stars;
+        { /* v1376 (tester 12 Nov: 3 stars with one hero; Phil: "Star issue needs to be fixed"): stars count against a full team - 5 heroes, or all the player owns if fewer */
+          const _own=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]).length, _need=Math.max(1,Math.min(5,_own)), _n=new Set((a.heroIds||[]).filter(Boolean)).size;
+          if(_n<_need) stars=Math.min(stars, _n>=Math.ceil(_need/2)?2:1); }
         const first=a.node>prog.cleared;
         /* DAILY RUN CAP — the SAME 3-rewarded-runs/day budget /api/campaign/sweep enforces for Guardian
            and boss stages (3/6/9/10), on the SAME prog.runs counter, so manual runs and sweeps share
