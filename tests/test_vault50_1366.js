@@ -13,6 +13,6 @@ f50.waves.forEach((w, i) => w.forEach((s, j) => { const o = o50.waves[i][j]; cnt
   if (!(s.key === o.key && near(s.hpMul, +(o.hpMul * 1.08).toFixed(4)) && near(s.dmgMul, +(o.dmgMul * 1.08).toFixed(4)))) all = false; }));
 ck('every floor-50 enemy (' + cnt + ', boss included) has hp and damage x1.08', all && cnt === 9);
 ck('CONTROL: v1365 floor 50 had the old numbers (3.1827 / 3.8072 first enemy)', o50.waves[0][0].hpMul === 3.1827 && o50.waves[0][0].dmgMul === 3.8072);
-ck('every other floor is untouched (floors 60-100 were re-tuned in v1372 - pinned by test_vault_curve_1372.js)', now.every((f, i) => i === 49 || i >= 59 || JSON.stringify(f) === JSON.stringify(old[i])));
+ck('every other floor is untouched', now.every((f, i) => i === 49 || JSON.stringify(f) === JSON.stringify(old[i])));
 ck('floor 50 rewards and boss rule untouched', f50.dust === o50.dust && JSON.stringify(f50.bossRule) === JSON.stringify(o50.bossRule) && JSON.stringify(f50.gearFragments) === JSON.stringify(o50.gearFragments));
 console.log('test_vault50_1366.js: ' + P + ' passed, ' + F + ' failed'); process.exit(F ? 1 : 0);
