@@ -64,7 +64,7 @@ try {
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   ck('no audio in the service worker shell or preloaded by the page', !/audio\//.test((sw.match(/const SHELL = \[[^\]]*\]/) || [''])[0]) && !/<link[^>]+(m4a|audio\/)/.test(src) && !/<audio[^>]*(src|preload)=/.test(src));
   ck('the first tap fetches spell sounds only - voice lines wait for their hero to take the field (sndPrimeHero from makeUnit)',
-    /for\(const k in AUDIO_MAP\) if\(!\/\^hero\\\.\/\.test\(k\)\) \(AUDIO_MAP\[k\]\|\|\[\]\)\.forEach\(l=>sndLoad\(l\.f\)\);/.test(src) && /if\(HERO_TYPES\[key\]\) sndPrimeHero\(key\);/.test(src));
+    /for\(const k in AUDIO_MAP\) if\(!\/\^hero\\\.\/\.test\(k\)\) \(AUDIO_MAP\[k\]\|\|\[\]\)\.forEach\(l=>sndLoad\(l\.f\)\);/.test(src) && /if\(HERO_TYPES\[key\](&&!\(extra&&extra\.preview\))?\) sndPrimeHero\(key\);/.test(src));
   ck('the service worker lets Range requests (the streamed lore) go to the network', /if \(isOwnAsset && req\.headers\.has\('range'\)\) return;/.test(sw));
   const srv = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
   ck('the server answers .m4a as audio/mp4, with Range support like video', /'\.m4a':'audio\/mp4'/.test(srv) && /if\(type\.startsWith\('video\/'\)\|\|type\.startsWith\('audio\/'\)\) return fs\.readFile/.test(srv));

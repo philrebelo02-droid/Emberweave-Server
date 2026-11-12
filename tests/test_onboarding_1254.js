@@ -13,7 +13,7 @@ ok(/#tutorial #tutorialBody\{[^}]*hud-panel\.webp/.test(html) && /#authGate \.ag
 ok(/function ewFunnel\(ev\)/.test(html) && /ewFunnel\('go:'\+s\.id\)/.test(html), 'the client reports the first-session funnel');
 ok(fs.existsSync(path.join(dir, 'assets', 'img', 'ui', 'hud-panel.webp')), 'the frame art exists');
 ok(/const ENEMY_NERF=0\.95, ENEMY_NERF_MODES=new Set\(\['campaign','elite','province','well','vault','dungeon','graid','raid'\]\)/.test(html), 'PvE enemies are nerfed 5% (Phil: "nerf all enemies by 5% stats game wide"), PvP modes untouched');
-ok(/if\(team==='enemy'&&typeof CUR!=='undefined'&&CUR&&ENEMY_NERF_MODES\.has\(CUR\.mode\)\) BL=Object\.assign\(\{\},BL,\{hp:BL\.hp\*ENEMY_NERF, dmg:BL\.dmg\*ENEMY_NERF, apow:\(BL\.apow\|\|0\)\*ENEMY_NERF, armor:\(BL\.armor\|\|0\)\*ENEMY_NERF, mr:\(BL\.mr\|\|0\)\*ENEMY_NERF\}\)/.test(html), '...on every base stat, enemy team only');
+ok(/const _pveMode=\(extra&&extra\.pveMode\)\|\|\(\(typeof CUR!=='undefined'&&CUR\)\?CUR\.mode:null\);/.test(html) && /if\(team==='enemy'&&_pveMode&&ENEMY_NERF_MODES\.has\(_pveMode\)\) BL=Object\.assign\(\{\},BL,\{hp:BL\.hp\*ENEMY_NERF, dmg:BL\.dmg\*ENEMY_NERF, apow:\(BL\.apow\|\|0\)\*ENEMY_NERF, armor:\(BL\.armor\|\|0\)\*ENEMY_NERF, mr:\(BL\.mr\|\|0\)\*ENEMY_NERF\}\)/.test(html), '...on every base stat, enemy team only');
 
 // the server keeps each funnel event once, refuses others
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v1254-')); const DB = path.join(tmp, 's1', 'db.json'); fs.mkdirSync(path.dirname(DB));

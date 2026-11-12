@@ -51,9 +51,9 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     await pg.waitForFunction(() => typeof show === 'function' && typeof api === 'function', null, { timeout: 90000 }); await delay(2500);
     await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await delay(1200);
     /* the sign-in gate: the keys do nothing */
-    { const before = await pg.evaluate(() => [state, history.length, (document.getElementById('authGate') || {}).style ? document.getElementById('authGate').style.display : '']);
+    { /* v1374: the first key press re-arms the game's own Back trap (ewBackDepth counts those entries) - history minus them must not move */ const before = await pg.evaluate((() => [state, history.length - (typeof ewBackDepth === 'function' ? ewBackDepth() : 0), (document.getElementById('authGate') || {}).style ? document.getElementById('authGate').style.display : '']));
       await pg.keyboard.press('Escape'); await pg.keyboard.press('Backspace'); await delay(300);
-      const after = await pg.evaluate(() => [state, history.length, (document.getElementById('authGate') || {}).style ? document.getElementById('authGate').style.display : '']);
+      const after = await pg.evaluate((() => [state, history.length - (typeof ewBackDepth === 'function' ? ewBackDepth() : 0), (document.getElementById('authGate') || {}).style ? document.getElementById('authGate').style.display : '']));
       ck(JSON.stringify(before) === JSON.stringify(after), 'sign-in gate: Esc and Backspace change nothing', JSON.stringify([before, after])); }
     /* sign in as the dev */
     await pg.evaluate(async () => { const r = await api('/api/login', 'POST', { name: 'kbDev', pass: 'password1' }); ACC.token = r.token; ACC.id = r.profile.id; ACC.name = r.profile.name; try { ACC.admin = !!r.profile.admin; } catch (e) {}
