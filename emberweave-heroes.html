@@ -17237,7 +17237,7 @@ function vaultPickSub(dead,k,ov){
   ov.remove(); VAULT_PICK_OPEN=false; paused=false;
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();
-  if(waveIdx===chapterWaves-1) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));}
+  if(waveIdx===chapterWaves-1&&isBossFight()) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));}
 /* v253 (visual audit #3): a real boss introduction — name, silhouette and ONE mechanic cue, held
    ~1.6s so the player can read who they are fighting and what it does. */
 const BOSS_CUES={'wintercrag':'Freezes the frontline — spread your ultimates',
@@ -17289,6 +17289,9 @@ function bossBarTick(){ if(typeof document==='undefined') return; const el=docum
   if(!el._on){ el._on=1; el.classList.add('on'); }
   if(el._k!==key){ el._k=key; el.querySelector('.btN').textContent=((lead.t&&lead.t.name)||'')+(bs.length>1?' x'+bs.length:''); const a=bossArt(lead); el.querySelector('.btPort').style.backgroundImage=a?'url("'+a+'")':''; }
   if(el._pc!==pc){ el._pc=pc; el.querySelector('.btFill').style.width=(f*100).toFixed(1)+'%'; el.querySelector('.btLag').style.width=(f*100).toFixed(1)+'%'; el.querySelector('.btPct').textContent=pc+'%'; } }
+/* v1372 (Phil 11 Nov: "I only want boss banner on boss fights, not ever stage. that means x-10 for campaign and every 5 level in vault"):
+   the BOSS INCOMING ribbon shows on the last wave of a campaign x-10 stage and of every 5th Vault floor, nowhere else (other fights say WAVE n). */
+function isBossFight(){ try{ if(CUR.mode==='campaign') return isBossStage(CUR.node); if(CUR.mode==='vault') return (CUR.floor|0)>0&&(CUR.floor|0)%5===0; }catch(e){} return false; }
 function bossIntro(){ const b=units.find(u=>u.team==='enemy'&&u.alive&&u.boss)||units.find(u=>u.team==='enemy'&&u.alive);
   const nm=(b&&b.t&&b.t.name)?b.t.name:ewT('battle.the_guardian');
   const cue=bossCueFor(b)||ewT('bosscue.default');
@@ -17440,7 +17443,7 @@ function updateWaveXfer(dt){
     if(u.x<FW+40 && u.y>-40)allOut=false; });   // off the top-right corner
   if(allOut || waveXfer.t>6){
     if(waveIdx<chapterWaves-1){ waveIdx++; buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();
-      if(waveIdx===chapterWaves-1) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));
+      if(waveIdx===chapterWaves-1&&isBossFight()) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));
       beginWaveEnter(); }                       // next wave: heroes run back on from the bottom-left
     else { waveXfer=null; endBattle(true); }     // stage cleared → victory
   }
