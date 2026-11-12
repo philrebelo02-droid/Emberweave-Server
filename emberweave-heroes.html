@@ -2619,7 +2619,22 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlSq.wlReach{filter:drop-shadow(0 0 8px #ffd98a) brightness(1.15);cursor:pointer}.wlSq.wlHere{filter:drop-shadow(0 0 9px #8fe39a)}.wlSq .wlIcI{position:absolute;left:50%;top:5%;width:52%;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 3px 3px #000a)}.wlSq .wlIc{position:absolute;left:50%;top:14%;transform:translateX(-50%)}.wlSq.wl_boss .wlIcI{top:12%}
 .wlSq.wlGone{opacity:.55;filter:grayscale(.6)}.wlSq:disabled{cursor:default}.wlSq.wl_boss{width:14%;background-image:url(/assets/img/well/well-tile-boss-v1.webp)}.wlSq.wl_boss .wlIcI{width:40%}
 .wlDone{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#ffd98a;text-shadow:0 2px 8px #000;pointer-events:none}
-.wlBottom{position:absolute;left:0;right:0;bottom:0;z-index:2;pointer-events:none;padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;background:linear-gradient(#0000,#000a)}
+.wlBottom{position:absolute;left:0;right:0;bottom:0;z-index:2;pointer-events:none;padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:row;align-items:flex-end;flex-wrap:wrap;gap:8px;background:linear-gradient(#0000,#000a)}
+/* v1378 (Phil 12 Nov: "Make the 5 hero cards at the bottom, to the right of them a boons button. When you click it makes a pop out") */
+
+.wlBoonsPop{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(4,6,10,.72);pointer-events:auto}.wlBoonsPop[hidden]{display:none}
+/* v1378 (Phil 12 Nov: "Use our current ui style"): the Well's Heroes / Boons pop-outs wear the Vault Floor Description card (panel-frame, gold Georgia title, gold plate button); the two map buttons are gold plates */
+.wlBoonsP{width:min(440px,92%);max-height:calc(var(--ew-game-height,100vh) - 16px);overflow:auto;box-sizing:border-box;padding:76px 26px 22px;border-style:solid;border-color:transparent;border-image:url(/assets/img/ui/bonus/panel-frame.webp?v=1) 175 44 64 44 fill / 66px 17px 24px 17px stretch;filter:drop-shadow(0 14px 30px #000b);text-align:center;color:#dfe6f0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.wlHeroCard .wlBar{position:relative;height:12px;margin:3px 6px 0;border-radius:6px;background:#000b;border:1px solid #5a4a26;overflow:hidden}.wlHeroCard .wlBar i{display:block;height:100%}.wlHeroCard .wlBarHp i{background:linear-gradient(90deg,#2fb85a,#9df07a)}.wlHeroCard .wlBarEn i{background:linear-gradient(90deg,#2a7fe0,#8fd3ff)}.wlHeroCard .wlBar span{position:absolute;inset:0;font:800 9px/12px sans-serif;color:#fff;text-shadow:0 1px 2px #000;text-align:center}.wlHeroCard .wlBar .stIc{width:9px;height:9px;vertical-align:-1px}.wlHeroCard.wlDead .hc-img{filter:grayscale(1) brightness(.7)}.wlHeroCard .wlRes{margin:4px auto 0;display:block}body.wlHeroView #popoutBackdrop{z-index:13500!important}body.wlHeroView #heroesPanel.popout{z-index:13600!important}
+.wlPopT{font:900 22px Georgia,serif;color:#ffd45e;letter-spacing:1px;text-shadow:0 2px 4px #000;text-transform:uppercase}
+.wlBoonsX{width:100%;min-height:46px;border:0;border-radius:0;background:url(/assets/img/ui/bonus/claim-button.webp?v=1) center/100% 100% no-repeat;color:#24170a;font:900 15px Georgia,serif;text-shadow:0 1px 0 #ffe9a8;cursor:pointer}
+.wlHeroesB,.wlBoonsB{pointer-events:auto;align-self:center;white-space:nowrap;min-width:118px;min-height:40px;padding:0 18px;border:0;border-radius:0;background:url(/assets/img/ui/bonus/claim-button.webp?v=1) center/100% 100% no-repeat;color:#24170a;font:900 15px Georgia,serif;text-shadow:0 1px 0 #ffe9a8;cursor:pointer}
+.wlHeroesB b,.wlBoonsB b{margin-left:6px;color:#5a2d08}
+@media (max-height:500px){.wlBoonsP{padding:60px 22px 14px}.wlPopT{font-size:18px}.wlBoonsX{min-height:40px}}
+
+.wlHList{display:flex;flex-direction:column;gap:4px;width:min(440px,100%);max-height:calc(var(--ew-game-height,100vh) - 150px);overflow-y:auto}.wlHeroesPop .wlBoonsP{max-height:94%;gap:6px;padding-block:10px}.wlHeroesPop .wlH1{margin:0}.wlHRow{display:flex;align-items:center;gap:10px;padding:3px 8px;border-radius:10px;background:#0006}.wlHRow .ascw{width:36px!important;height:36px!important}
+.wlHRow.wlDead{opacity:.75}.wlHRow.wlDead .ascw{filter:grayscale(1)}.wlHInfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;text-align:left}.wlHInfo b{color:#fff4d6;font-size:14px}.wlHInfo span{font-size:12px;color:#cfe3ff}
+.wlHBar{height:8px;border-radius:4px;background:#000a;overflow:hidden}.wlHBar i{display:block;height:100%;background:linear-gradient(90deg,#3fd16b,#9df07a)}
 .wlStrip{display:flex;gap:8px;overflow-x:auto;pointer-events:auto;width:max-content;max-width:100%}.wlBuffs,.wlSweeps{pointer-events:auto}.wlHero{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px}
 .wlHero.wlDead img,.wlHero.wlDead canvas{filter:grayscale(1);opacity:.5}.wlHp{width:40px;height:4px;background:#301a1a;border-radius:2px;overflow:hidden}.wlHp i{display:block;height:100%;background:#8fe39a}
 .wlEn{font-size:9px;color:#9fe0ff}.wlRes{font-size:10px;padding:2px 6px}.wlBuffs{display:flex;flex-wrap:wrap;gap:4px}.wlBuff{font-size:10px;padding:2px 6px;border-radius:8px;background:#0008}
@@ -2668,13 +2683,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    and the hero cards, blessings and sweep buttons sat on the squares ahead. The squares now fit inside the screen under the title, slightly larger tiles,
    and the run panel is a column down the left edge, in the space the fitted map leaves free. PC (taller than 500 px) is unchanged. */
 @container (max-height:500px){
-  .wlArtIn{inset:auto;left:50%;top:calc(50% + 22px);transform:translate(-50%,-50%);aspect-ratio:16/9;width:min(100%,calc((100cqh - 56px) * 16 / 9))}
-  .wlSq{width:11%}.wlSq.wl_boss{width:16%}
-  .wlBottom{top:calc(46px + env(safe-area-inset-top,0px));right:auto;width:112px;box-sizing:border-box;padding:2px 6px calc(6px + env(safe-area-inset-bottom,0px));gap:4px;background:none;overflow:hidden}
-  .wlStrip{display:grid;grid-template-columns:repeat(2,48px);gap:4px;width:auto;max-width:none;overflow:visible}
-  .wlHero{min-width:0;padding:2px}.wlHero .ascw{width:32px!important;height:32px!important}.wlHp{width:36px}
-  .wlBuffs{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;overflow-y:auto;min-height:0;flex:0 1 auto}.wlBuff{font-size:9px;white-space:nowrap;padding:1px 4px}
-  .wlSweeps{flex-direction:column;gap:4px}.wlSweep{white-space:normal;line-height:1.15;padding:4px 6px!important;font-size:10px!important;width:100%}
+  /* v1378 (Phil 12 Nov, on the left-column layout: "Thats hideous"): the run panel is one row at the bottom (hero cards, then the Boons button that opens the boons pop-out, then sweeps); the islands and connections are back at their original size (Phil: "Make the actualy Islands and connections back to their original size") */
+  .wlHero .ascw{width:32px!important;height:32px!important}.wlHp{width:34px}.wlBottom{padding-top:2px;gap:6px}.wlSweep{font-size:11px!important}
 }
 .wlOffer{background:rgba(4,6,10,.72)}
 .wlOfferP{max-width:min(560px,calc(var(--ew-game-width,100vw) * 0.92));display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -2812,7 +2822,9 @@ body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none
 .hupDot{filter:brightness(1.45) saturate(1.3) drop-shadow(0 0 3px rgba(255,70,50,.95))!important}   /* Phil 10 Nov: "The red dots that tells someone something is available to upgrade in hero panel make it a bit brighter" */
 /* v1322 (Phil 9 Nov: "Make it have 5 columns now" / "Rows of 5"): the Heroes list shows 5 cards a row; its centred window widens to keep the cards their size */
 #heroList{grid-template-columns:repeat(5,minmax(0,1fr))!important}
-#heroesPanel.popout,#heroDetail.popout{width:min(560px,96%)!important}   /* v1324 (Phil 9 Nov: "Make the width of the heroes hero card the same as the hero panel") */
+#heroesPanel.popout,#heroDetail.popout{width:min(560px,96%)!important}
+/* v1378 (Phil 12 Nov: "Why is the right side cut off" / "Of the pop outs"): the centred Heroes and hero windows kept the docked pop-out's frame with NO right border (border-width 6px 0 6px 6px) - they get the frame on all four sides */
+#heroesPanel.popout,#heroDetail.popout{border-width:6px!important;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 22px stretch!important;box-shadow:0 18px 55px rgba(0,0,0,.65)!important}   /* v1324 (Phil 9 Nov: "Make the width of the heroes hero card the same as the hero panel") */
 .screen.popout > .ew-pinned-exits{position:sticky;top:-18px;min-height:44px;width:100%;flex-shrink:0;align-self:stretch;z-index:40;display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#11172a;}
 .screen.popout > .ew-pinned-exits .backbtn{position:relative!important;top:auto!important;left:auto!important;right:auto!important;margin-right:auto;}
 .screen.popout > .ew-pinned-exits .popoutClose{position:relative!important;top:auto!important;right:auto!important;flex-shrink:0;}
@@ -7984,6 +7996,10 @@ function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skil
 const REF_ENEMY_CRIT=0.15, REF_CRIT_BONUS=0.6, HEAL_POWER_W_HEALER=1.0, HEAL_POWER_W_OTHER=0.25;
 function furyPowerMul(key){ const k=KITS[key]; return (k&&k.purple&&k.purple.pass==='fury'&&heroQuality(key)>=3) ? (1+0.25*skillMul(skillLevel(key,3))) : 1; }
 const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) lifted every class's EHP; K retuned so an Orange board reads ~25k power across classes
+let _powerBoon=null;   /* Starless Well (Phil 12 Nov: "The power in starless cards follows the boon buffs also"): {hp,atk,def} the run's boons add, exactly as server applyRun */
+const WELL_CLASS_OF={Tank:'Tank',Bruiser:'Bruiser',Brute:'Bruiser',Warrior:'Bruiser',Assassin:'Assassin',Marksman:'Marksman',Mage:'Mage',Support:'Support'};
+function wellBoonOf(key,S){ const cls=WELL_CLASS_OF[(HERO_TYPES[key]||{}).role]||'Bruiser', o={hp:0,atk:0,def:0}; (S&&S.buffs||[]).forEach(bf=>{ if(bf&&(bf.cls==='All'||bf.cls===cls)){ o.hp+=bf.hp||0; o.atk+=bf.atk||0; o.def+=bf.def||0; } }); return o; }
+function wellHeroPower(key,S){ _powerBoon=wellBoonOf(key,S); try{ return heroPower(key); } finally{ _powerBoon=null; } }
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ const _tb=templeBonusesClient(key), _gp=(typeof gearSockMul==='function'?gearSockMul(key):{})||{};   /* v1316 (Phil 8 Nov: gear penetration counts): gear pen joins the Temple pen term */
     const _tp=((_gp.armorPen||0)>0||(_gp.magicPen||0)>0) ? Object.assign({},_tb,{armorPenFlat:(Number(_tb&&_tb.armorPenFlat)||0)+(_gp.armorPen||0), magicPenFlat:(Number(_tb&&_tb.magicPenFlat)||0)+(_gp.magicPen||0)}) : _tb;   /* v1316: = server heroCardPower; no gear pen -> the Temple bonuses as before */
@@ -7994,15 +8010,15 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      anything reads them, so those are the numbers the hero actually fights with; pricing the raw
      fractions put the card half a percent off the same hero priced anywhere else. Same order too -
      the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
-  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;
-  const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat;
-  const atkM = (t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0;   /* v1099: Academy AP is a flat */
+  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;   const _bo=_powerBoon||{hp:0,atk:0,def:0};
+  const atkP = (Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat)*(1+_bo.atk);
+  const atkM = (1+_bo.atk)*((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0);   /* v1099: Academy AP is a flat */
   const _sf=starFlat(key);   // v1369: star Armor / MR are flat rating points (x1), = the server core's armorRating / mrRating
-  const armor= heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat;
-  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat;
+  const armor= (1+_bo.def)*(heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat);
+  const mr   = (1+_bo.def)*(heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat);
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
-  let ehp    = hp/Math.max(0.15,1-mitig);
+  let ehp    = hp*(1+_bo.hp)/Math.max(0.15,1-mitig);
   const _crR = (typeof techFlat==='function'?techFlat('critres'):0)+(tt.critRes||0); if(_crR>0){ const cr=Math.min(0.75,_crR*0.0005); ehp*=(1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }   /* v1311: Academy crit resist (= mulsFromTotals critRes); v1316 (Phil 8 Nov): + gear crit resist (tt is gear only here - glyphs count as their tier) */
   const crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
   const _fu  = furyPowerMul(key);   /* v1311: purple FURY */
@@ -19393,6 +19409,7 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
      When the screen asked for is the one already under the pop-out, Back just closes the pop-out and redraws that screen. */
   if(name===state&&el.classList.contains('active')&&!el.classList.contains('popout')){ closePopout(); try{ popoutRender(name); }catch(e){ console.error('popoutRender',name,e); } _ensureScreen(); return; }
   closePopout();
+  if(WELL_HEROVIEW_NEXT){ if(name==='heroesPanel'){ WELL_HEROVIEW=WELL_HEROVIEW_NEXT; document.body.classList.add('wlHeroView'); } WELL_HEROVIEW_NEXT=null; }   /* the Starless Well's Heroes button */
   _popout=name;
   let bd=document.getElementById('popoutBackdrop');
   if(!bd){ bd=document.createElement('div'); bd.id='popoutBackdrop'; bd.onclick=closePopout; document.body.appendChild(bd); }
@@ -19403,7 +19420,8 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   el.scrollTop=0;   /* v1359 (night smoke, heroes): the reset ran while the screen was still display:none and did nothing - a second hero opened scrolled to where the last one was left, SUMMON NOW off the top */
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
-function closePopout(){ try{ loreStop(); }catch(e){} try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
+let WELL_HEROVIEW=null, WELL_HEROVIEW_NEXT=null;   /* the Starless Well run opened the Heroes window: show only its heroes, with health + energy */
+function closePopout(){ if(WELL_HEROVIEW){ WELL_HEROVIEW=null; document.body.classList.remove('wlHeroView'); } try{ loreStop(); }catch(e){} try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
   try{ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none'; }catch(e){}
   try{ document.querySelectorAll('.popoutClose').forEach(x=>x.remove()); }catch(e){}
   if(_popout){ const was=_popout; _popout=null; try{ const el=document.getElementById(was); if(el){ el.classList.remove('popout'); if(was!==state) el.classList.remove('active'); } }catch(e){} }   /* v1198: the screen the player is ON keeps showing */
@@ -31026,9 +31044,27 @@ function ewDropdown(label, opts, val, onPick){   // opts: [[value, text], ...]
   b.onclick=e=>{ e.stopPropagation(); const willOpen=m.hidden; document.querySelectorAll('.ewDDm').forEach(x=>x.hidden=true); document.querySelectorAll('.ewDDb.open').forEach(x=>x.classList.remove('open')); m.hidden=!willOpen; b.classList.toggle('open',willOpen); };
   m.onclick=e=>{ const o=e.target.closest('.ewDDo'); if(!o) return; e.stopPropagation(); m.hidden=true; b.classList.remove('open'); if(o.dataset.v!==cur[0]) onPick(o.dataset.v); };
   return w; }
+/* Starless Well (Phil 12 Nov: "You literally already have it in game. Just put this in starless but instead a health and energy bar" / "The power in starless
+   cards follows the boon buffs also"): the Heroes window lists the run's heroes as the usual cards; under the art: power WITH the run's boons, a health bar
+   and an energy bar; a fallen hero's card carries its revive button */
+function renderWellHeroList(r,S){ const run=S.heroes||{}, owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]);   /* Phil: "This starless would show all heroes i own right?" - every owned hero (+ any loan in the run); one not used yet is at full health, 0 energy */ const keys=[...new Set([...owned,...Object.keys(run)])].sort((a,b)=>(run[a]&&run[a].dead?1:0)-(run[b]&&run[b].dead?1:0)||wellHeroPower(b,S)-wellHeroPower(a,S));
+  keys.forEach(key=>{ const t=HERO_TYPES[key]; if(!t) return; const h=run[key]||{hpFrac:1,energy:0}, pct=h.dead?0:Math.round((h.hpFrac||0)*100), en=h.dead?0:Math.max(0,Math.min(100,h.energy|0));
+    const card=document.createElement('div'); card.className='hero-card hc-tile wlHeroCard'+(h.dead?' wlDead':''); card.dataset.heroKey=key;
+    const _cpos=(typeof HERO_CARD_POS!=='undefined'&&HERO_CARD_POS[key])||null;
+    const portImg=HERO_PORTRAITS[key]?`<img class="hc-img" src="${HERO_PORTRAITS[key]}"${_cpos?` style="object-position:center ${_cpos}"`:''}>`:'';
+    card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}<span class="hc-lv">${ewT('hero.lv',{n:heroLevel(key)})}</span></div>
+      <div class="hc-info">${RARITY_READY?'':`<div class="hc-name">${t.name}</div>`}
+        <div class="hc-sub">${statusIcon('attack')} ${wellHeroPower(key,S).toLocaleString()}</div>
+        <div class="wlBar wlBarHp" title="${ewT('hero.stat_health')}"><i style="width:${pct}%"></i><span>${pct}%</span></div>
+        <div class="wlBar wlBarEn"><i style="width:${en}%"></i><span>${statusIcon('energy')}${en}</span></div>
+        ${h.dead?`<button class="btn sm wlRes" data-k="${key}">${S.resCost?'<img class="wlCur" src="/assets/img/ui/hud-gem.webp?v=1" alt="">'+S.resCost:ewT('common.free')}</button>`:''}</div>`;
+    const rb=card.querySelector('.wlRes'); if(rb) rb.onclick=e=>{ e.stopPropagation(); closePopout(); wellPost('/api/well/resurrect',{hero:key}); };
+    card._pick=()=>{};
+    r.appendChild(card); }); }
 function renderHeroList(){ try{ setTimeout(()=>ftutCheck('heroesPanel'),350); }catch(e){}   /* v1377 hunt F4: Heroes opens from the town menu as a pop-out (popoutScreen, no show()) - the Heroes guide never played */
   const r=document.getElementById('heroList'); r.innerHTML='';
-  wireRosterTaps(r);   // 30 Aug: same drift-cancels-click defect as the squad roster — these are .hero-card too
+  wireRosterTaps(r);
+  if(WELL_HEROVIEW){ renderWellHeroList(r,WELL_HEROVIEW); return; }   /* Starless Well: the same Heroes window, only the run's heroes, with health + energy */   // 30 Aug: same drift-cancels-click defect as the squad roster — these are .hero-card too
   // sort control (spans the full grid width)
   const sortBar=document.createElement('div');
   sortBar.style.cssText='grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px 12px;margin:0 2px 2px;position:relative;z-index:30';   /* v1066 (Phil 8 Oct: "the prayer on mirelle seems to be a layer above the sort pop out"): the bar was z 5, the same as the cards' Temple orbs (.tOrbs z 5), so later cards painted their orbs over the open menu */
@@ -32650,6 +32686,7 @@ function wellDraw(S){ const ov=document.getElementById('wlMap'); if(!ov) return;
   const strip=hs.map(k=>{ const h=S.heroes[k], pct=Math.round((h.hpFrac||0)*100);
     return `<div class="wlHero${h.dead?' wlDead':''}">${heroIcon(k,38)}<div class="wlHp"><i style="width:${h.dead?0:pct}%"></i></div>`
       +(h.dead?`<button class="btn sm wlRes" data-k="${k}">${S.resCost?'<img class="wlCur" src="/assets/img/ui/hud-gem.webp?v=1" alt="">'+S.resCost:ewT('common.free')}</button>`:`<div class="wlEn">${statusIcon('energy')}${h.energy|0}</div>`)+`</div>`; }).join('');
+  /* v1378 (Phil 12 Nov: "Make 2 new buttons, 1 is heroes, one is boon, remove the heroes from the bottom. Instead heroes button pops open the full list of all your heroes curent health and energy") */
   const sweeps=S.canSweep?Object.keys(S.cleared||{}).filter(p=>p==='normal'||S.hardOpen).map(p=>`<button class="btn sm wlSweep" data-p="${p}">${ewT('isle.well_sweep',{path:p==='hard'?ewT('isle.hard'):ewT('isle.normal'),xp:(S.endXP[p]|0).toLocaleString()})}</button>`).join(''):'';
   const buffs=(S.buffs||[]).map(b=>`<span class="wlBuff">${escapeHTML(b.label)}</span>`).join('');
   /* Phil 25 Sep: "a blue and purple animated portal that appears when you reach the end ... swirling ... So you can choose between
@@ -32663,9 +32700,11 @@ function wellDraw(S){ const ov=document.getElementById('wlMap'); if(!ov) return;
   ov.innerHTML=`<div class="wlArt"><div class="wlArtIn">${wellBridges(S)}${sq}${portals}</div></div>`
     +`<div class="wlTop"><button class="btn secondary sm wlBackB">◀</button><div class="wlTtl"><h1 class="wlH1">${ewT('bld.starless_well')}</h1><div class="wlSubT">${S.map===1?ewT('isle.standard'):(S.path==='hard'?ewT('isle.hard'):ewT('isle.normal'))} · ${ewT('isle.map_n',{n:S.map,total:3})}</div></div><div class="wlClock">${hrs} h</div></div>`
     +(S.done?'<div class="wlDone">'+ewT('isle.cleared')+'</div>':'')
-    +`<div class="wlBottom"><div class="wlStrip">${strip}</div>${buffs?`<div class="wlBuffs">${buffs}</div>`:''}${sweeps?`<div class="wlSweeps">${sweeps}</div>`:''}</div>`
+    +`<div class="wlBottom">${hs.length?`<button class="wlHeroesB" type="button">${ewT('menu.heroes')} <b>${hs.filter(k=>!S.heroes[k].dead).length}/${hs.length}</b></button>`:''}${buffs?`<button class="wlBoonsB" type="button">${ewT('isle.boons')} <b>${(S.buffs||[]).length}</b></button>`:''}${sweeps?`<div class="wlSweeps">${sweeps}</div>`:''}</div>`+(buffs?`<div class="wlBoonsPop" hidden><div class="wlBoonsP"><div class="wlPopT">${ewT('isle.boons')}</div><div class="wlBuffs">${buffs}</div><button class="wlBoonsX" type="button">${ewT('common.close')}</button></div></div>`:'')
     +(S.offer?`<div class="wlOffer"><div class="panel wlOfferP"><h1 class="wlH1">${ewT('isle.choose_blessing')}</h1><div class="wlCards">${S.offer.map(b=>`<button class="wlCard" data-b="${b.id}"><b>${escapeHTML(b.cls==='All'?ewT('isle.all_heroes'):b.cls)}</b><span>${escapeHTML(b.label)}</span><i class="btn sm">${ewT('isle.choose')}</i></button>`).join('')}</div></div></div>`:'');
   ov.querySelector('.wlBackB').onclick=()=>ov.remove();
+  { const hb=ov.querySelector('.wlHeroesB'); if(hb) hb.onclick=()=>{ WELL_HEROVIEW_NEXT=S; popoutScreen('heroesPanel'); }; }   /* Phil 12 Nov: "You literally already have it in game. Just put this in starless but instead a health and energy bar" */
+  [['.wlBoonsB','.wlBoonsPop:not(.wlHeroesPop)']].forEach(([bs,ps])=>{ const bp=ov.querySelector(ps), bb=ov.querySelector(bs); if(bp&&bb){ bb.onclick=()=>{ bp.hidden=false; }; bp.querySelector('.wlBoonsX').onclick=()=>{ bp.hidden=true; }; bp.onclick=e=>{ if(e.target===bp) bp.hidden=true; }; } });   /* v1378 (Phil 12 Nov): Heroes and Boons each open a pop-out */
   ov.querySelectorAll('.wlSq.wlReach').forEach(b=>b.onclick=()=>wellTap(+b.dataset.c,+b.dataset.r));
   ov.querySelectorAll('.wlRes').forEach(b=>b.onclick=()=>wellPost('/api/well/resurrect',{hero:b.dataset.k}));
   ov.querySelectorAll('.wlSweep').forEach(b=>b.onclick=()=>wellPost('/api/well/sweep',{path:b.dataset.p},r=>{ if(r.reward){ const w=r.reward; bannerMsg('+'+(w.xp|0).toLocaleString()+' XP'+(w.gold?' · '+hudIcon('gold')+' +'+(w.gold|0).toLocaleString():'')+(w.gems?' · '+hudIcon('gem')+' +'+(w.gems|0):'')+(w.potions?' · '+uiIcon('res-xp-potion')+' +'+ewT('isle.xp_potions',{n:w.potions|0}):'')); } }));   // v1110: a sweep pays gold, diamonds and potions too

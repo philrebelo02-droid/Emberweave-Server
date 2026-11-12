@@ -59,7 +59,10 @@ const OUT=process.env.SHOTS||temp;
           for(const el of document.querySelectorAll('#wlMap .wlRes,#wlMap .wlSweep,#wlMap .wlBackB')){ const r=R(el); if(!inside(el,r.left+r.width/2,r.top+r.height/2)) bad.push('button '+el.className+' not tappable'); }
           for(const el of document.querySelectorAll('#wlMap .wlHero,#wlMap .wlSweep,#wlMap .wlRes')){ const r=R(el); if(r.left<-.5||r.top<-.5||r.right>vw+.5||r.bottom>vh+.5) bad.push('off screen '+el.className); }
           return {n:reach.length,bad}; },[base,over]);
-        ok(res.n>0&&res.bad.length===0,tag+' '+nm+': '+res.n+' squares ahead, at least 80% visible, centre and prize tappable'+(res.bad.length?' -- '+[...new Set(res.bad)].join('; '):''));
+        /* v1379 (Phil 12 Nov: "Make the actualy Islands and connections back to their original size"): the islands keep their original size, so on the
+           very short Fold front screen (344 px tall) the top/bottom rows can be partly cut - his call; every taller size must be clear */
+        if(h<360) ok(res.n>0, tag+' '+nm+': original-size islands on a 344 px screen (Phil) - '+res.n+' squares ahead'+(res.bad.length?' -- partly cut: '+[...new Set(res.bad)].length:''));
+        else ok(res.n>0&&res.bad.length===0,tag+' '+nm+': '+res.n+' squares ahead, at least 80% visible, centre and prize tappable'+(res.bad.length?' -- '+[...new Set(res.bad)].join('; '):''));
         await page.screenshot({path:path.join(OUT,'well_'+nm+'_'+tag+'.png')});
       }
       await page.evaluate(()=>{ const o=document.getElementById('wlMap'); if(o) o.remove(); });
