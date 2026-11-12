@@ -1519,6 +1519,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2Opt[aria-pressed="true"]{border-color:#ffcf6b;box-shadow:0 0 calc(var(--u)*12) rgba(255,190,80,.55)}
 .tp2Opt[aria-pressed="true"] .tp2Check{background:#ffb347 radial-gradient(circle,#fff3c4 0 30%,#ff9a1f 60%)}
 .tp2Opt:disabled{opacity:.42;cursor:default}
+.tp2GridBack{background:#000f1a;border-radius:calc(var(--u)*10);pointer-events:none}   /* Grok hunt 12 Nov: the plate has the pray view's empty bar + blessing frames baked in; hide them behind the hero grid */
 .tp2Grid{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:max-content;gap:calc(var(--u)*22);overflow-y:auto;padding:calc(var(--u)*6)}
 .tp2Tile{position:static;background:none;border:0;padding:0;color:#efd9a8;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*6)}
 .tp2TileImg{position:relative;display:block;width:100%;aspect-ratio:1;border:calc(var(--u)*4) solid #c99b4f;border-radius:calc(var(--u)*12);overflow:hidden;box-shadow:0 0 calc(var(--u)*10) rgba(0,0,0,.7)}
@@ -2619,6 +2620,18 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlSweep{font-size:11px!important}
 .wlPortal b{font-family:Georgia,'Times New Roman',serif;letter-spacing:1.5px;text-transform:uppercase;color:#fff4d6;filter:drop-shadow(0 2px 3px #000)}
 .wlPortal i{font-family:Georgia,'Times New Roman',serif;color:#ffe9b8}
+/* Grok bug hunt 12 Nov (Starless Well): on phone / Fold screens (short height) the map was cropped top and bottom (the Fold lost most of the top and bottom rows)
+   and the hero cards, blessings and sweep buttons sat on the squares ahead. The squares now fit inside the screen under the title, slightly larger tiles,
+   and the run panel is a column down the left edge, in the space the fitted map leaves free. PC (taller than 500 px) is unchanged. */
+@container (max-height:500px){
+  .wlArtIn{inset:auto;left:50%;top:calc(50% + 22px);transform:translate(-50%,-50%);aspect-ratio:16/9;width:min(100%,calc((100cqh - 56px) * 16 / 9))}
+  .wlSq{width:11%}.wlSq.wl_boss{width:16%}
+  .wlBottom{top:calc(46px + env(safe-area-inset-top,0px));right:auto;width:112px;box-sizing:border-box;padding:2px 6px calc(6px + env(safe-area-inset-bottom,0px));gap:4px;background:none;overflow:hidden}
+  .wlStrip{display:grid;grid-template-columns:repeat(2,48px);gap:4px;width:auto;max-width:none;overflow:visible}
+  .wlHero{min-width:0;padding:2px}.wlHero .ascw{width:32px!important;height:32px!important}.wlHp{width:36px}
+  .wlBuffs{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;overflow-y:auto;min-height:0;flex:0 1 auto}.wlBuff{font-size:9px;white-space:nowrap;padding:1px 4px}
+  .wlSweeps{flex-direction:column;gap:4px}.wlSweep{white-space:normal;line-height:1.15;padding:4px 6px!important;font-size:10px!important;width:100%}
+}
 .wlOffer{background:rgba(4,6,10,.72)}
 .wlOfferP{max-width:min(560px,calc(var(--ew-game-width,100vw) * 0.92));display:flex;flex-direction:column;align-items:center;gap:10px}
 .wlCard{width:150px;min-height:0;border-radius:12px;border:2px solid #6b5628;background:linear-gradient(180deg,#18223a,#0b1122);box-shadow:0 6px 14px rgba(0,0,0,.4),inset 0 1px rgba(255,230,168,.07);gap:6px}
@@ -3205,7 +3218,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) h1{-webkit-text-fill-color:#edc67d!important;background:none!important}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody{width:94%!important;max-width:1050px!important;margin:0 auto!important}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.row{justify-content:center!important}
-#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 32px;align-content:center;align-items:center;width:100%!important;max-width:none!important;background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;border:0!important;border-image:none!important;box-shadow:none;padding:62px 16%!important}
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 32px;align-content:center;align-items:center;width:100%!important;max-width:none!important;background:none!important;border:0!important;--fw:clamp(40px,5.2vw,62px);border-image:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 270 fill/var(--fw)/0 stretch!important;box-shadow:none;padding:62px 16%!important}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>video{grid-column:1;grid-row:1/span 7;width:100%!important;max-width:380px;margin:0!important;border-radius:15px!important}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div{grid-column:2;min-width:0}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div:first-child{font:700 21px Georgia!important;color:#edcb8c}
@@ -3214,6 +3227,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn{width:100%;min-height:44px;padding:10px 20px;background:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100%;border:0;border-image:none;box-shadow:none;color:#efdbb0;font:700 14px Georgia;white-space:normal;text-shadow:0 2px 2px #000}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1');color:#a49e91}
 #wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn::before,#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn::after{display:none}
+/* Grok bug hunt 12 Nov (Witches Hut): (1) the frame is 9-sliced like the v1349 Market cards - stretched whole, a tall list (several damaged heroes) grew its gold bar over the brew line and the last hero; (2) the column rule above is for the action buttons, a hero row stays one line: portrait, name, Heal */
+#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row:has(>[data-witch-heal]){flex-direction:row!important;flex-wrap:nowrap;align-items:center;gap:8px!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>.row>.btn[data-witch-heal]{width:auto;flex:0 0 auto;min-width:92px;min-height:36px;padding:6px 14px}
 @media(max-width:700px){#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel{grid-template-columns:1fr;gap:9px;padding:35px 12%!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div{grid-column:1}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>video{grid-column:1;grid-row:2;width:80%!important;max-width:230px;margin:auto!important}#wall:has([data-wall-tab="cauldron"]:not(.secondary)) #wallBody>.panel>div:first-child{font-size:17px!important;text-align:center}#skyisland>.titlebar h1{font-size:20px!important}}
 
 #forge .fgRow{background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;min-height:125px!important;padding:25px 11%!important;gap:12px!important;align-items:center!important}
@@ -3244,7 +3259,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #dungeon .vtTitle{width:226px;height:78px}
 #dungeon .vtFloor{display:block}
 #dungeon .vtPick .btn{padding:7px 0!important;min-height:36px}
-#dungeon .vtStats{grid-column:1/-1;grid-row:2;margin:-14px 0 0!important;flex-wrap:nowrap!important;justify-content:flex-end;gap:4px!important}
+#dungeon .vtStats{grid-column:1/-1;grid-row:2;margin:0!important;flex-wrap:nowrap!important;justify-content:flex-end;gap:4px!important}
 #dungeon #dungeonBody>div>div>.vtStats>div{flex:0 0 172px!important;padding:6px 26px 5px!important;min-width:0}
 #dungeon #dungeonBody>div>div>.panel.vtPick{grid-column:1/-1;grid-row:3;justify-self:end;width:530px!important;align-self:start;height:auto!important;min-height:0!important;padding:28px 66px 28px!important;margin:-12px 0 0!important;min-width:0}
 #dungeon .vtPick>div{flex-wrap:nowrap!important;gap:4px!important;justify-content:space-between!important}
@@ -19197,6 +19212,7 @@ function _ensureScreen(){ try{ if(typeof state==='undefined'||state==='battle'||
     else if(!_ensureScreen.busy){ _ensureScreen.busy=true; try{ show('home'); }finally{ _ensureScreen.busy=false; } }
   }catch(e){} }
 function show(name){ try{ ewStep('screen:'+name); }catch(e){} if(name==='home'&&typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ CAMP_RETURN=null; try{ campBackLabel(); }catch(e){} } show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
+let vaultScreenEpoch=0;
 function _showScreen(name){
   /* v1369 (Phil: "Do it like spire"): leaving a live Emberdraft match for any other screen saves it (AI) or ends it as a loss (player vs player) - never a frozen match holding its art */
   try{ if(name!=='battle' && window.ED && ED.active && !ED._leaving && typeof edLeaveAuto==='function') edLeaveAuto(); }catch(e){}
@@ -19217,6 +19233,7 @@ function _showScreen(name){
   { const wasHome=document.getElementById('home').classList.contains('active'), wrap=document.getElementById('townWrap');
     if(wasHome && name!=='home' && wrap) _homeScroll=wrap.scrollLeft;
     if(name==='home' && !wasHome) _restoreHomeScroll=true; }
+  if(name!==state) vaultScreenEpoch++;
   state=name;
   if(_leavingResult) setTimeout(flushRewardQueue,120);   // v255: queued notices appear only after the reward is dismissed
   SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
@@ -19779,15 +19796,20 @@ async function vaultDevJump(toBoss){   // v362 (Phil): God Mode only — set the
   if(squadFor('vault').slice(0,TEAM_SIZE).length<TEAM_SIZE){ renderDungeon(); bannerMsg('Pick 5 fighters first'); return; }
   VAULT.devWave2=!!toBoss; await vaultLaunch(); VAULT.devWave2=false; }
 async function vaultLaunch(){ if(VAULT.busy) return; VAULT.busy=true;
-  await vaultResendPending();   /* a saved floor result goes first - a new start would abandon its attempt */
-  if(vaultPendingHeld()){ VAULT.busy=false; bannerMsg(t('vault.pending_send')); show('dungeon'); return; }
-  const sq=squadFor('vault').slice(0,TEAM_SIZE*2);
-  const st=await api('/api/dungeon/start-battle','POST',{heroIds:sq, requestId:uid8()});
-  VAULT.busy=false;
-  if(!st||st.error){ bannerMsg((st&&st.error)||t('vault.unavailable')); show('dungeon'); return; }
-  CUR={mode:'vault', attemptId:st.attemptId, floor:st.floor, vwaves:st.waves||[], backups:sq.slice(TEAM_SIZE), devWave2:!!(VAULT.devWave2&&typeof AUDIT_MODE==='function'&&AUDIT_MODE())};
-  preloadVaultArt(CUR.vwaves);   // v255: warm both waves' monsters before the floor opens
-  startBattle();
+  const epoch=vaultScreenEpoch, token=ACC.token;
+  const left=()=>epoch!==vaultScreenEpoch||token!==ACC.token;
+  try{
+    await vaultResendPending();   /* a saved floor result goes first - a new start would abandon its attempt */
+    if(left()) return;
+    if(vaultPendingHeld()){ bannerMsg(t('vault.pending_send')); show('dungeon'); return; }
+    const sq=squadFor('vault').slice(0,TEAM_SIZE*2);
+    const st=await api('/api/dungeon/start-battle','POST',{heroIds:sq, requestId:uid8()});
+    if(left()) return;
+    if(!st||st.error){ bannerMsg((st&&st.error)||t('vault.unavailable')); show('dungeon'); return; }
+    CUR={mode:'vault', attemptId:st.attemptId, floor:st.floor, vwaves:st.waves||[], backups:sq.slice(TEAM_SIZE), devWave2:!!(VAULT.devWave2&&typeof AUDIT_MODE==='function'&&AUDIT_MODE())};
+    preloadVaultArt(CUR.vwaves);   // v255: warm both waves' monsters before the floor opens
+    startBattle();
+  } finally { VAULT.busy=false; }
 }
 function uid8(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 function vaultWaveHTML(w){
@@ -19881,7 +19903,7 @@ function vaultScreenHTML(){
       <div style="font-size:13px;font-weight:800;margin-top:2px">${val}</div></div>`;
   return headBar+`
     <div class="vtStats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      ${stat(s.isBoss&&s.bossRule&&s.bossRule.gatekeeper?t('vault.gatekeeper'):t('vault.info'),`<span style="color:#c9a2ff">${s.isBoss&&s.bossRule?uiIcon('crown')+' '+escapeHTML(vaultBossName(s.bossRule)):uiIcon('info')+' '+t('vault.info')}</span>`).replace('<div style="','<div class="vtInfo" role="button" tabindex="0" onclick="vaultInfo()" style="cursor:pointer;')}
+      ${stat(s.isBoss&&s.bossRule&&s.bossRule.gatekeeper?t('vault.gatekeeper'):t('vault.info'),`<span style="color:#c9a2ff">${s.isBoss&&s.bossRule?uiIcon('crown')+' '+escapeHTML(vaultBossName(s.bossRule)):uiIcon('info')+' '+t('vault.info')}</span>`).replace('<div style="','<div class="vtInfo" role="button" tabindex="0" onclick="vaultInfo()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();vaultInfo()}" style="cursor:pointer;')}
       ${stat(t('vault.floor_reward'),`<span style="color:#ffd45e">${uiIcon('res-forge-dust')}${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">'+t('vault.plus2_glyph')+'</span>':''}`)}
       ${stat(String(t('vault.floor_of',{n:'',m:''})).replace(/[\s\/]+$/,''),`<span style="color:#c9a2ff">${t('vault.floor_of',{n:s.currentFloor,m:100})}</span>`).replace('<div style="','<div class="vtFloor" style="')}
     </div>
@@ -23158,7 +23180,7 @@ function renderTemple(){
       return `<button type="button" class="tp2Tile" data-tp2-hero="${k}" aria-label="${escapeHTML((HERO_TYPES[k]||{}).name||k)} ${s.pct}%">
         <span class="tp2TileImg">${heroIcon(k,96)}<em>Lv${heroLevel(k)}</em>
         <span class="tp2Dots">${'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">'.repeat(dots)}</span></span><b>${s.pct}%</b></button>`; }).join('');
-    inner=`<div class="tp2Hint" style="${tp2Box(620,300,1690,60)}">${unlocked?ewT('temple.purple_can_pray'):ewT('temple.opens_at_lv',{n:T.CONFIG.UNLOCK_PLAYER_LEVEL})}</div>
+    inner=`<div class="tp2GridBack" style="${tp2Box(612,284,1690,692)}"></div><div class="tp2Hint" style="${tp2Box(620,300,1690,60)}">${unlocked?ewT('temple.purple_can_pray'):ewT('temple.opens_at_lv',{n:T.CONFIG.UNLOCK_PLAYER_LEVEL})}</div>
       <div class="tp2Grid" style="${tp2Box(620,362,1690,590)}">${tiles||'<div class="tp2Empty">'+ewT('temple.no_purple')+'</div>'}</div>
       <img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(272,280,296,608)}" class="tp2Win">
       <div class="tp2Side" style="${tp2Box(290,1015,265,300)}"><b>${st.keeperPoints||0}</b><span>${ewT('temple.points')}</span>${(st.bonusPrayers|0)?`<b>${st.bonusPrayers|0}</b><span>${ewT('temple.bonus_prayers')}</span>`:''}</div>
@@ -23222,7 +23244,7 @@ function renderTemple(){
   b.querySelectorAll('[data-tp2-tier]').forEach(t=>t.onclick=()=>{ templeSelectedTier=t.dataset.tp2Tier; templePayFlame=null; renderTemple(); });
   b.querySelectorAll('[data-tp2-pay]').forEach(t=>t.onclick=()=>{ templePayFlame=t.dataset.tp2Pay==='flame'; renderTemple(); });
   const sw=b.querySelector('#tp2Switch'); if(sw) sw.onclick=()=>{ templeView='grid'; templeLastRolls=null; renderTemple(); };
-  const au=b.querySelector('#tp2Auto'); if(au) au.onclick=()=>{ const t=templePrayerTiers().filter(x=>!x.locked); templeAuto={tiers:t.map(x=>x.id),i:0,n:10,result:null};   /* v1306: x10 by default (Phil) */ renderTemple(); };
+  const au=b.querySelector('#tp2Auto'); if(au) au.onclick=()=>{ const t=templePrayerTiers().filter(x=>!x.locked); const ids=t.map(x=>x.id), aff=t.find(x=>x.id==='gold'?(G.gold||0)>=x.gold:(G.gems||0)>=x.gems); templeAuto={tiers:ids,i:Math.max(0,ids.indexOf(templeSelectedTier)>=0?ids.indexOf(templeSelectedTier):(aff?ids.indexOf(aff.id):0)),n:10,result:null};   /* Grok hunt 12 Nov: open on the tier picked on the screen (was always the first, Gold) */   /* v1306: x10 by default (Phil) */ renderTemple(); };
   const msg=t=>{ const m=document.getElementById('templeMsg'); if(m){ m.textContent=t; m.classList.add('on'); setTimeout(()=>m.classList.remove('on'),2600);} };
   const act=async(path,payload)=>{ const r=await apiOnce('temple',path,payload); if(r&&r.busy) return null;
     if(!(r&&r.ok)){ const e=(r&&r.error==='offline')?ewT('net.connection_lost'):(langMsg(r&&r.error)||ewT('temple.pray_failed')); try{ await ledgerSync(); }catch(_){} renderTemple(); msg(e); return null; }
@@ -30879,7 +30901,7 @@ function wishAgainBtnHTML(pool,n,id){ const w=wishAgainInfo(pool,n), ok=w.free||
   return `<button class="btn ${ok?'':'secondary'}" id="${id}" ${ok?'':'disabled'} style="width:100%;margin-top:8px">🔁 ${w.label}</button>`; }
 function showWishResult(res,pool){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
-  ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 46px #000b">
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:22px;width:100%;max-width:320px;max-height:calc(var(--ew-game-height,100vh) - 16px);overflow:auto;box-sizing:border-box;text-align:center;box-shadow:0 12px 46px #000b">
     <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='myth'?iconImg('a','wish-myth')+' '+t('wish.mythical_wish'):pool==='gem'?iconImg('a','wish-diamond')+' '+t('wish.diamond_wish'):iconImg('a','wish-gold')+' '+t('wish.gold_wish')}</div>
     <div style="font-size:60px;margin:8px 0;display:flex;justify-content:center;${res.big?'animation:wishbob 1.6s ease-in-out infinite':''}">${res.hero?`<div style="width:132px;height:132px">${heroIcon(res.hero,132)}</div>`:(res.art||res.icon)}</div>
     <div style="font-size:16px;font-weight:800;color:#e6edf3;line-height:1.4">${res.name}</div>

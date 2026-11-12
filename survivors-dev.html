@@ -160,8 +160,8 @@
   <div id="mem" class="devonly" style="color:var(--dim)"></div>
   <div class="devonly" style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. Auras fire on their own; your skills are the buttons (or 1-5). ULT (or Space) when the ring is full.</div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="/assets/js/three-r128-GLTFLoader.js"></script>
+<!-- Grok bug hunt 12 Nov (Spire): three.js is loaded only when a hero plays in 3D (load3d). It was a blocking <script> from cdnjs: on a network that
+     blocks or stalls cdnjs the Spire sat on a black screen until the request timed out, though every hero plays in 2D (SURV_3D_ON false). -->
 <script src="/server/survivors-core.js?v=dev38"></script>
 <script>
 (async function () {
@@ -237,7 +237,10 @@
       state(moving) { if (this.busy()) return [act, (performance.now() / 1000 - t0) / dur]; act = null; return [moving ? 'walk' : 'idle', -1]; } }; }
   /* 26 Oct (Phil: "adding all heroes into spire"): every hero with a 3D model plays in 3D. The roster sends the model url; each model
      carries the same clip names (Walking, Running, Attack, Cast, Ult - renamed at export), Linnet keeps her own cast clips. */
+  const loadJs = src => new Promise((ok, no) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('could not load ' + src)); document.head.appendChild(el); });
   async function load3d(url) {
+    if (!window.THREE) await loadJs('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+    if (!THREE.GLTFLoader) await loadJs('/assets/js/three-r128-GLTFLoader.js');
     const cv3 = document.getElementById('cv3'), r = new THREE.WebGLRenderer({ canvas: cv3, alpha: true, antialias: true });
     r.setPixelRatio(devicePixelRatio); r.setSize(innerWidth, innerHeight, false); r.outputEncoding = THREE.sRGBEncoding;
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100);
