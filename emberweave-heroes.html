@@ -33403,7 +33403,7 @@ function introWave(I,vael){ I.wave=waveIdx;
   if(waveIdx===1){ if(!I.vireoIn){ I.vireoIn=I.t; introEnter(I.vireo); } I.sylDue=I.t+SYL_JOIN_DELAY; }
   if(waveIdx===2) introSay('vael_kill',vael); }
 function introTick(dt){ const I=CUR._intro, vael=unitByUid(I.vael);
-  if(vael&&vael.alive&&!I.vaelFull&&vael.hp>vael.maxHp*0.75) vael.energy=Math.min(vael.energy,99);   // his ult waits for ~75% HP
+  if(vael&&vael.alive&&!I.vaelFull&&vael.hp>vael.maxHp*0.90) vael.energy=Math.min(vael.energy,99);   // his ult waits for ~90% HP (v1370, Phil: "a" - flat stars made level-1 Vael too tough to reach 75% in wave 1)
   /* v1261 (Phil 2 Nov: "No dont make 1-1 wave to wait for her"): a hero who joins at a wave (Sylthaine at wave 2) runs in AFTER the wave's
      walk-in, while the fight is already on - the wave does not wait for her (v1260 had her join the walk-in). */
   if(waveXfer||ended) return;   // entries and lines wait for the wave transition to finish
@@ -33414,7 +33414,7 @@ function introTick(dt){ const I=CUR._intro, vael=unitByUid(I.vael);
   if(waveIdx!==I.wave) introWave(I,vael);
   if(I.sylDue!=null&&I.sylIn==null&&I.t>=I.sylDue){ I.sylIn=I.t; introEnter(I.syl); introSay('syl_in',I.syl); }
   if(vael&&vael.alive&&!I.vaelFull){   // his ult arrives at ~75% HP - held just under full until then
-    if(vael.hp<=vael.maxHp*0.75){ vael.energy=100; I.vaelFull=I.t; introSay('vael_ready',vael); } else vael.energy=Math.min(vael.energy,99); }
+    if(vael.hp<=vael.maxHp*0.90){ vael.energy=100; I.vaelFull=I.t; introSay('vael_ready',vael); } else vael.energy=Math.min(vael.energy,99); }
   if(I.vaelFull&&!I.vaelCast&&vael&&vael.energy<100){ I.vaelCast=I.t; introSay('vael_after',vael); }
   if(I.vaelCast&&!I.vireoIn&&I.t>=I.vaelCast+1.6){ I.vireoIn=I.t; introEnter(I.vireo); introSay('vireo_in',I.vireo); }
   if(I.vireoIn&&!I.vaelReply&&waveIdx===0&&I.t>=I.vireoIn+2.6){ I.vaelReply=1; introSay('vael_reply',vael); }
