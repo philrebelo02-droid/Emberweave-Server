@@ -1345,7 +1345,7 @@
 body:has(#campaign.active) #muteBtn{display:none!important}
 #home #leftHud{top:2px;left:calc(0.5% + 37px)}
 #home #cornerHud{top:2px;right:3px}
-body:has(#home.active) #chatWidget.min{left:calc(max(3px,env(safe-area-inset-left,0px)) + var(--ew-bar-x,0px));bottom:calc(max(2px,env(safe-area-inset-bottom,0px)) + var(--ew-bar-y,0px))}
+body:has(#home.active) #chatWidget.min{left:calc(max(3px,env(safe-area-inset-left,0px)) + var(--ew-bar-x,0px) - 21px);bottom:calc(max(2px,env(safe-area-inset-bottom,0px)) + var(--ew-bar-y,0px) - 3px)}   /* v1374 (Phil 12 Nov: "make sure the chat bar is more snug in the bottom left"): chat-bar.webp has 7.6% clear margin each side (21 px of 276) and 7.2% top/bottom (3 px of 46) - the box steps back by that much so the painted bar itself sits 3 px / 2 px from the corner */
 #home #townHud .resframe{position:relative;height:30px;padding:0;margin-left:6px;border-style:solid;border-color:transparent;border-width:7px 26px 6px 26px;border-image:url(/assets/img/ui/hud2/resource-pill.webp?v=1) 36 150 30 150 fill / 7px 26px 6px 26px stretch;background:none;box-sizing:border-box;display:flex;align-items:center}
 #home #townHud .resframe .resval{margin:-7px 0 -6px;padding:0 3px 0 7px;font-size:13px;line-height:30px}
 #home #townHud .resframe .resicon{left:-32px;width:34px;height:34px;z-index:2}
