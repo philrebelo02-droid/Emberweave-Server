@@ -86,15 +86,16 @@ function sameNums(card,u){ const s=card.stats; return s.hp===u.hp&&s.atk===u.atk
     /* hero window: the portrait carries the badges and the stats say the element */
     await page.evaluate(()=>{ detailHero='umbris'; heroTab='stats'; popoutScreen('heroDetail'); }); await delay(900);
     const hd=await page.evaluate(()=>{ const w=document.querySelector('#hdPortrait .afbW'); return w?{c:w.dataset.afbClass,e:w.dataset.afbElem}:null; });
-    ok(!!hd&&hd.e==='Dark', nm+' hero window: Umbris portrait shows '+(hd?hd.c+' + '+hd.e:'no badges'));
+    /* v1376 (Phil: "Please make sure I dont see affinities on my hero art like this" / "Should be on hero cards not here"): no icons over hero art */
+    ok(!hd, nm+' hero window: no class / element icons over the Umbris portrait ('+(hd?hd.c+' + '+hd.e:'none')+')');
     await shot(page,'hero-window-'+nm);
     await page.evaluate(()=>{ try{ closePopout&&closePopout(); }catch(e){} show('home'); }); await delay(400);
     /* A2. squad picker (the campaign team screen) */
     await page.evaluate(()=>{ CUR={node:12,mode:'campaign',portal:'normal',opp:null}; teamCtx='campaign'; rosterClassF='All'; show('menu'); }); await delay(1200);
     await page.evaluate(()=>{ const sq=squadFor(squadModeKey()); sq.length=0; ['aureth','sylthaine','fritz','umbris','maren'].forEach(k=>sq.push(k)); reRenderRoster(); }); await delay(700);
-    await checkGrid(page,nm+' squad picker',await readBadges(page,'#roster .hero-card','.rsLv'));
+    { const n=await page.evaluate(()=>document.querySelectorAll('#roster .afbW').length); ok(n===0, nm+' squad picker: no class / element icons over the hero art ('+n+')'); }
     const slots=await page.evaluate(()=>[...document.querySelectorAll('#rosterSlots .rsSlot.full .afbW')].length);
-    ok(slots===5, nm+' squad picker: the 5 picked slots wear badges ('+slots+')');
+    ok(slots===0, nm+' squad picker: the 5 picked slots carry no icons over the art ('+slots+')');
     await shot(page,'squad-picker-'+nm);
   }
   /* B + C. the campaign stage window, 2-10 */

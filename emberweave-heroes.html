@@ -13154,7 +13154,10 @@ function affClassWord(c){ return c?((typeof rosterClassName==='function'&&roster
 function affElemWord(e){ return affTip(e||'Neutral')[0]; }
 function affClassImg(c){ return AFB_CLASS_IC[c]?`<i class="afbI afbC"><img src="${ICON_SRC.u(AFB_CLASS_IC[c])}" alt="${escapeHTML(affClassWord(c))}"></i>`:''; }
 function affElemImg(e){ return `<i class="afbI afbE"><img src="${ICON_SRC.u(AFB_ELEM_IC[e]||AFB_ELEM_IC.Neutral)}" alt="${escapeHTML(affElemWord(e))}"></i>`; }
-function affBadgesHTML(key,cls){ const c=affClassOf(key), e=affElemOf(key);
+function affBadgesHTML(key,cls){ /* v1376 (Phil 12 Nov, Arena: "Please make sure I dont see affinities on my hero art like this" / "Should be on hero cards not here"):
+  the class + element icons show only on the Heroes list card (the row under its power) - never laid over hero art elsewhere */
+  if(cls!=='afbRow') return '';
+  const c=affClassOf(key), e=affElemOf(key);
   return `<span class="afbW${cls?' '+cls:''}" data-afb-class="${c}" data-afb-elem="${e}">${affClassImg(c)}${affElemImg(e)}</span>`; }
 function classEdge(src,tgt){ if(!AFFINITIES_LIVE||!src||!tgt||src===tgt||src.team===tgt.team) return ''; const a=unitClass(src); return (a&&CLASS_BEATS[a]===unitClass(tgt))?a:''; }
 const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10, hexDur:2, hexAtk:1.3, hexMove:0.80, riposteCd:3, healCut:0.40, healCutDur:4 };
