@@ -19606,7 +19606,7 @@ const FTUT_GUIDES=[
   {k:'province',at:'province',lv:10},{k:'emberdraft',at:'emberdraft',lv:25},
   {k:'guild',at:'guild',lv:13},{k:'skyfall',at:'skyfall',lv:13},{k:'watchtower',at:'watchtower',lv:20},
   {k:'wall',at:'wall',lv:()=>WALL_UNLOCK_LEVEL,ok:()=>WALL_TAB!=='cauldron'},{k:'hut',at:'wall',lv:()=>WALL_UNLOCK_LEVEL,ok:()=>WALL_TAB==='cauldron'},
-  {k:'world',at:'world',lv:()=>WALL_UNLOCK_LEVEL},{k:'tech',at:'tech',lv:()=>ACADEMY_UNLOCK_LEVEL},{k:'forge',at:'forge',lv:25},
+  {k:'world',at:'world',lv:()=>WALL_UNLOCK_LEVEL},{k:'tech',at:'tech',lv:()=>ACADEMY_UNLOCK_LEVEL},{k:'forge',at:'forge',lv:25,foot:'por'},
   {k:'temple',at:'temple',lv:50},{k:'well',at:'well',lv:61},
   {k:'elite',at:'campaign',ok:()=>portalCleared('normal')>=10},{k:'veteran',at:'campaign',ok:()=>portalCleared('elite')>=10},
   {k:'bonus',at:'campaign',ok:()=>(G.campaignCleared|0)>=3},{k:'affinity',at:'campaign',pos:'bottom',ok:()=>typeof AFFINITIES_LIVE==='undefined'||AFFINITIES_LIVE}
@@ -19689,7 +19689,25 @@ function ftutTopRow(host,r,L,W){ const lim=r.top+r.height*.22, T=Math.max(0,r.to
     const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return;
     if(q.bottom>hb) hb=q.bottom; });
   return Math.min(hb,T+r.height*.5); }
+/* v1378 F5 (Grok guide-bottom check; Claude: Forge is the one screen where no bar height keeps Skip / Next off a button - the quality column runs the
+   full height on the right): a guide with foot:'por' moves Skip / Next out of the box to sit just above the portrait in the screen's left gutter, but only
+   when the normal bottom bar would put them on a button. Everything else is unchanged. */
 function ftutPlace(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); if(!g||!bar) return; const host=ftutHost(g.at); if(!host) return;
+  bar.classList.remove('ftut-footpor'); bar.style.removeProperty('--ftut-foot-dx'); ftutPlace0(g,bar,host);
+  if(g.foot==='por'&&ftutFootHit(host,bar)){ bar.classList.add('ftut-footpor'); ftutPlace0(g,bar,host);
+    /* the portrait itself can reach the gear rows (PC): slide the stack left, never past the view's left edge, until it is clear */
+    const fl=bar.querySelector('.ftut-foot').ewGameRect().left; for(let dx=-8; ftutFootHit(host,bar)&&fl+dx>=4; dx-=8) bar.style.setProperty('--ftut-foot-dx',dx+'px');
+    /* keep it only if it is no worse: bar at the bottom, the stack inside the view under the top row and off every button, the highlighted control clear */
+    if(!ftutFootPorOK(host,bar)){ bar.classList.remove('ftut-footpor'); bar.style.removeProperty('--ftut-foot-dx'); ftutPlace0(g,bar,host); } } }
+function ftutFootPorOK(host,bar){ if(bar.classList.contains('ftut-top')||ftutFootHit(host,bar)) return false; const v=ewGameView(), f=bar.querySelector('.ftut-foot').ewGameRect(), hb=FTUT.row?FTUT.row.y:0;
+  if(f.left<-0.5||f.right>v.width+0.5||f.top<hb-0.5||f.bottom>v.height+0.5) return false; const hl=ftutHL(); if(!hl) return true; const q=hl.ewGameRect();
+  return ![bar.querySelector('.ftut-box').ewGameRect(),bar.querySelector('.ftut-por').ewGameRect()].some(a=>Math.min(a.right,q.right+6)>Math.max(a.left,q.left-6)&&Math.min(a.bottom,q.bottom+6)>Math.max(a.top,q.top-6)); }
+function ftutFootHit(host,bar){ const f=bar.querySelector('.ftut-foot').ewGameRect(); let hit=false;
+  host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(hit||el.closest('#ftutBar')) return;
+    const q=el.ewGameRect(); if(q.width<4||q.height<4) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return;
+    if(Math.min(f.right,q.right)>Math.max(f.left,q.left)&&Math.min(f.bottom,q.bottom)>Math.max(f.top,q.top)) hit=true; });
+  return hit; }
+function ftutPlace0(g,bar,host){
   /* v1378 (Phil 12 Nov, the guide squeezed into the middle of the Heroes window over the stats: "should be at the bottom of the game" / "not directly
      in the way" / "same issue everywhere"): the bar spans the whole game view and sits at its BOTTOM edge on every screen and pop-out. It lifts only
      as far as needed so Skip / Next never sit on one of the screen's own buttons and the box + portrait never cover the control the line highlights;
@@ -19705,7 +19723,7 @@ function ftutPlace(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); 
   const ov=(a,q,m)=>Math.min(a.right,q.right+m)>Math.max(a.left,q.left-m)&&Math.min(a.bottom,q.bottom+m)>Math.max(a.top,q.top-m);
   const put=(L,Wd,y,top)=>{ bar.style.left=L+'px'; bar.style.width=Wd+'px'; bar.classList.toggle('ftut-top',top); bar.classList.toggle('ftut-bottom',!top); bar.style.top=y+'px'; bar.style.bottom='auto'; };
   const parts=()=>[bar.querySelector('.ftut-box').ewGameRect(),bar.querySelector('.ftut-por').ewGameRect()], foot=()=>bar.querySelector('.ftut-foot').ewGameRect();
-  const judge=()=>{ const [b,p]=parts(), f=foot(); const inside=b.top>=-0.5&&b.bottom<=H+0.5&&p.top>=-0.5&&p.bottom<=H+0.5&&Math.min(b.top,p.top)>=hb-0.5;
+  const judge=()=>{ const [b,p]=parts(), f=foot(); const inside=b.top>=-0.5&&b.bottom<=H+0.5&&p.top>=-0.5&&p.bottom<=H+0.5&&Math.min(b.top,p.top,f.top)>=hb-0.5&&f.left>=-0.5;
     const onHL=!!hq&&(ov(b,hq,6)||ov(p,hq,6)); const onBtn=btn.some(q=>ov(f,q,0)); return {inside,onHL,onBtn}; };
   const run=(L,Wd)=>{ bar.classList.remove('ftut-slim'); put(L,Wd,0,false); let bh=Math.ceil(bar.querySelector('.ftut-box').ewGameRect().height)+10;
     if(H<bh*2.6){ bar.classList.add('ftut-slim'); bh=Math.ceil(bar.querySelector('.ftut-box').ewGameRect().height)+10; }
@@ -19749,7 +19767,10 @@ function ftutReplayAll(){ G.ftutSeen={}; try{ saveG(); }catch(e){} }
   '#ftutBar .ftut-text{grid-column:1;grid-row:2;font-size:var(--ftut-fs);line-height:1.3;margin:1px 0 0;min-height:2.6em;font-weight:600;color:#fff6e6;text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000,0 0 10px rgba(0,0,0,.85)}'+
   '#ftutBar .ftut-foot{grid-column:2;grid-row:1 / span 2;display:flex;align-items:center;gap:8px}'+
   '#ftutBar .ftut-foot .btn{min-height:30px;padding:3px 12px;font-size:calc(var(--ftut-fs)*.85)}'+
-  '@media (max-width:560px){#ftutBar .ftut-foot{flex-direction:column-reverse;gap:5px}}';
+  '@media (max-width:560px){#ftutBar .ftut-foot{flex-direction:column-reverse;gap:5px}}'+
+  /* v1378 F5: foot:'por' guides (Forge) - Skip / Next stack just above the portrait (Next on top), no wider than it, in the screen's left gutter (grid-column/row auto: an absolute grid item is otherwise placed in its grid area, not the box) */
+  '#ftutBar.ftut-footpor .ftut-foot{grid-column:auto;grid-row:auto;position:absolute;left:var(--ftut-por-x);width:var(--ftut-por);transform:translateX(var(--ftut-foot-dx,0px));bottom:calc(100% + var(--ftut-por-rise) + 6px);flex-direction:column-reverse;align-items:center;gap:5px;white-space:nowrap}'+
+  '#ftutBar.ftut-footpor .ftut-box{grid-template-columns:minmax(0,1fr)}';
   document.head.appendChild(st); })();
 async function whatsNewMaybe(){
   if(_whatsNewDone || !(ACC&&ACC.token) || (G.tutStarted&&!G.tutDone) || state!=='home') return;
