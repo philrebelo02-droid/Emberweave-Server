@@ -31032,7 +31032,7 @@ function ewDropdown(label, opts, val, onPick){   // opts: [[value, text], ...]
   b.onclick=e=>{ e.stopPropagation(); const willOpen=m.hidden; document.querySelectorAll('.ewDDm').forEach(x=>x.hidden=true); document.querySelectorAll('.ewDDb.open').forEach(x=>x.classList.remove('open')); m.hidden=!willOpen; b.classList.toggle('open',willOpen); };
   m.onclick=e=>{ const o=e.target.closest('.ewDDo'); if(!o) return; e.stopPropagation(); m.hidden=true; b.classList.remove('open'); if(o.dataset.v!==cur[0]) onPick(o.dataset.v); };
   return w; }
-function renderHeroList(){
+function renderHeroList(){ try{ setTimeout(()=>ftutCheck('heroesPanel'),350); }catch(e){}   /* v1377 hunt F4: Heroes opens from the town menu as a pop-out (popoutScreen, no show()) - the Heroes guide never played */
   const r=document.getElementById('heroList'); r.innerHTML='';
   wireRosterTaps(r);   // 30 Aug: same drift-cancels-click defect as the squad roster — these are .hero-card too
   // sort control (spans the full grid width)
