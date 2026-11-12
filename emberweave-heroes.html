@@ -12700,12 +12700,25 @@ function musTick(){ try{
       else if(MUS.over&&st==='battle'&&!ended){ MUS.over=false; const B=musLane('battle'); musLog(['refight',performance.now()|0]); musLeave(B,MUS_XF_SCENE,true); musEnter(B,MUS_XF_SCENE); } }
     else MUS.over=false;
     musSwitch(w); const L=MUS.cur&&MUS.lanes[MUS.cur]; if(L){ musHeal(L); musWatch(L); } }catch(e){} }
+/* v1371 (tester B 3.2 re-check, 11 Nov): v1364 heals a song the browser PAUSED or BROKE. A song that is "playing" (not paused, no error)
+   but never moves - its request stalled on a dropped phone connection, a media pipeline that never came back - was still silence until the
+   next fight (the battle lane always starts a fresh element). The current lane's clock is watched: no progress for MUS_STALL_MS of real time
+   while the audio context runs = healed the same way. A gap in the watching (the lane was not current, a long main-thread freeze, the
+   context suspended) starts the watch afresh, so a resumed or loading song gets its full window. */
+const MUS_STALL_MS=6000;
+function musStalled(L,s,now){ try{
+    if(!s||s.el.paused||s.el.ended||!SND.ctx||SND.ctx.state!=='running'){ L.stS=null; return false; }
+    const t=s.el.currentTime||0;
+    if(L.stS!==s||now-(L.stSeen||0)>1000||Math.abs(t-L.stT)>0.05){ L.stS=s; L.stT=t; L.stAt=now; L.stSeen=now; return false; }
+    L.stSeen=now; return now-L.stAt>=MUS_STALL_MS; }catch(e){ return false; } }
 function musHeal(L){
   const s=L.slot, now=performance.now();
-  if(L.xf||L.seamT||now-(L.healAt||0)<2000) return;
-  if(s&&!s.el.error&&!(s.el.paused&&!s.el.ended)) return;
-  L.healAt=now;
-  musLog(['heal',L.name,s?(s.el.error?'error':'paused'):'noslot',now|0]);
+  if(L.xf||L.seamT){ L.stS=null; return; }
+  const stuck=musStalled(L,s,now);
+  if(now-(L.healAt||0)<2000) return;
+  if(s&&!s.el.error&&!(s.el.paused&&!s.el.ended)&&!stuck) return;
+  L.healAt=now; L.stS=null;
+  musLog(['heal',L.name,s?(s.el.error?'error':(stuck?'stalled':'paused')):'noslot',now|0]);
   if(s){ L.slot=null; musFree(s); }
   musEnter(L,0.3);
 }
