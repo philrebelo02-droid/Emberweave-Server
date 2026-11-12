@@ -34962,6 +34962,23 @@ function ewPwEyeAll(root){ try{ (root||document).querySelectorAll('input[type=pa
 try{ new MutationObserver(ms=>{ for(const m of ms) for(const nd of m.addedNodes) if(nd.nodeType===1){ if(nd.matches&&nd.matches('input[type=password]')) ewPwEye(nd); else if(nd.querySelector&&nd.querySelector('input[type=password]')) ewPwEyeAll(nd); } })
   .observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
 document.addEventListener('DOMContentLoaded',()=>ewPwEyeAll()); ewPwEyeAll();
+/* v1374 (Phil 12 Nov: "lets build googles review pop up in our game"): Google Play's own in-app review sheet (1-5 stars + a text box that
+   posts a real Play review, the player never leaves the game). Google's rules: no question or star picker of ours before it, never on launch,
+   Google decides if it shows (it caps it per player). Asked once, when the player claims the chapter 2 boss (2-10) rewards. Only inside the Play app, and only once the app build with the review screen
+   (versionCode 4, ChatGPT) is on Play - until then EW_REVIEW_LIVE stays false (the intent would otherwise send the player to the Play page). */
+const EW_REVIEW_LIVE=false;
+function ewInPlayApp(){ try{ return String(document.referrer).startsWith('android-app://')||sessionStorage.getItem('ewApp')==='1'; }catch(e){ return false; } }
+function ewAskReview(){ try{ if(!EW_REVIEW_LIVE||!ewInPlayApp()) return false;
+  if(localStorage.getItem('ewReviewAt')) return false;
+  localStorage.setItem('ewReviewAt',String(Date.now()));
+  location.href='intent://review#Intent;scheme=emberweave;package=com.emberweave.heroes;end'; return true; }catch(e){ return false; } }
+/* Phil 12 Nov: "Make the rating pop up after they complete chapter 2" / "Once they claim rewards from the chapter 2 boss": the Continue on the
+   victory screen of 2-10 (Normal) - the tap that banks its rewards - asks once, 1.5 s later, back on the map. */
+document.addEventListener('click',ev=>{ try{ if(!ev.target||!ev.target.closest||!ev.target.closest('#resultBtn')) return;
+  if(typeof CUR==='undefined'||CUR.mode!=='campaign'||+CUR.node!==2*STAGES_PER_CH||(CUR.portal||'normal')!=='normal') return;
+  if((+G.campaignCleared||0)<2*STAGES_PER_CH) return;   /* a loss never asks */
+  setTimeout(()=>window.ewAskReview(),1500); }catch(e){} },true);
+window.ewAskReview=ewAskReview;
 /* =============================== WORLD CHAT ================================= */
 // REAL CHAT ONLY (build 1787085000000): channels start empty — history comes from the
 // server ('chathist' on connect); no NPC seed lines, no fake whisper replies.

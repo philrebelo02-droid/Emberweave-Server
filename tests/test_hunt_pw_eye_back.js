@@ -55,5 +55,16 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
   await page.goBack({waitUntil:'commit',timeout:3000}).catch(()=>{}); await delay(700);
   const c=await page.evaluate(()=>({dlg:!!document.getElementById('uiConfirmWrap'),url:location.pathname,d:window.ewBackDepth()}));
   ok(c.dlg&&c.url==='/play','Back asks "Leave Emberweave?" and stays in the game ('+JSON.stringify(c)+')');
+  /* Google review sheet trigger: only after a first clear of a chapter-2+ boss, back on the campaign map; off until the app build ships */
+  const rv=await page.evaluate(async()=>{ const calls=[]; window.ewAskReview=()=>{ calls.push(CUR.node); return true; };
+    const W=ms=>new Promise(r=>setTimeout(r,ms)); const tap=()=>document.getElementById('resultBtn').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+    CUR.mode='campaign'; CUR.portal='normal'; CUR.node=10; G.campaignCleared=10; tap(); await W(1800); const a=calls.length;   /* chapter 1 boss */
+    CUR.node=20; G.campaignCleared=19; tap(); await W(1800); const b2=calls.length;   /* lost 2-10 */
+    CUR.node=20; G.campaignCleared=20; tap(); await W(1800);   /* won 2-10, claims */
+    return {a,b:b2,c:calls.length,live:EW_REVIEW_LIVE}; });
+  ok(rv.a===0,'no review ask for the chapter 1 boss');
+  ok(rv.b===0,'no review ask after losing 2-10');
+  ok(rv.c===1,'review asked when the chapter 2 boss rewards are claimed ('+JSON.stringify(rv)+')');
+  ok(rv.live===false,'switched off until the review app build is on Play');
   ok(errs.length===0,'no page errors ('+errs.slice(0,3).join(' | ')+')');
 }catch(e){ console.error(e); fails++; } finally { finish('password eye + back confirm'); await cleanup(); } })();
