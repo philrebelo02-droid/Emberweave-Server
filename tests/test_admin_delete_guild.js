@@ -25,10 +25,13 @@ const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
   await call('/api/guild/request',{guildId:gid},M.token); const ap=await call('/api/guild/approve',{id:M.profile.id},L.token);
   ok(ap.status===200,'member approved ('+(ap.data.error||ap.status)+')');
   const d1=await call('/api/admin/delete',{id:L.profile.id},devTok);
-  ok(d1.status===200,'leader account deleted ('+(d1.data.error||d1.status)+')'); await delay(400);
+  ok(d1.status===200,'leader account deleted ('+(d1.data.error||d1.status)+')');
+  /* 12 Nov: the save is debounced - wait for it on disk (up to 8 s), not a fixed 400 ms (flaky in suite c3bf2a12 on a loaded cluster) */
+  const until=async f=>{ for(let i=0;i<80;i++){ try{ if(f()) return true; }catch(_){} await delay(100); } return false; };
+  await until(()=>{ const g=(disk().guilds||{})[gid]; return g&&g.leader===M.profile.id; });
   const g1=(disk().guilds||{})[gid]||{};
   ok(JSON.stringify(g1.members)===JSON.stringify([M.profile.id])&&g1.leader===M.profile.id,'the deleted leader left the guild and the member leads it ('+JSON.stringify({members:g1.members,leader:g1.leader})+')');
-  await call('/api/admin/delete',{id:M.profile.id},devTok); await delay(400);
+  await call('/api/admin/delete',{id:M.profile.id},devTok); await until(()=>!(disk().guilds||{})[gid]);
   ok(!(disk().guilds||{})[gid],'deleting the last member disbands the guild');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_admin_delete_guild.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');

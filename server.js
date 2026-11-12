@@ -205,12 +205,22 @@ function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
   if(typeof _DB_LOAD_FAILED!=='undefined'&&_DB_LOAD_FAILED) throw Error('the world did not load - refusing to save over it');   // v1183: belt and braces for the load guard
+  try{ _saveDBWrite(snapshot,suffix); }catch(e){ _saveFailedRetry(); throw e; }   /* v1372 SAVE LOST: see _saveFailedRetry */
+}
+/* v1372 SAVE LOST (12 Nov 2026, test_admin_delete_guild flaky): a debounced writeDB() change is acknowledged at once; if its save then
+   failed (Windows: EPERM renaming over a db.json another process was reading; anywhere: ENOSPC/EIO/EACCES) the error was logged and NO
+   save was ever scheduled again - and a group/durable save that cancelled a pending debounced timer and then failed dropped that timer's
+   change the same way. The acked change sat in memory only until some unrelated save happened (or a crash lost it). Now every failed
+   world save keeps the world marked dirty and schedules a full retry (_saveRecovery: 250 ms, backing off to 30 s). */
+function _saveFailedRetry(){ try{ if(typeof _saveRecovery==='function') _saveRecovery(); }catch(_){} }   /* typeof/try: the span tests run saveDB alone */
+function _saveDBWrite(snapshot,suffix){
   if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; if(typeof _clearPieces==='function') _clearPieces(); } return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap (v1127: every piece compared, the changed ones written)
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));
   if(typeof _safety!=='undefined'&&process.env.DB_FSYNC!=='0'){ _safety.fsyncFile(tmp); _safety.fsyncDir(path.dirname(DB_FILE)); }   // v1183: on the disk before the swap
   fs.renameSync(tmp,DB_FILE);
   if(typeof _safety!=='undefined'&&process.env.DB_FSYNC!=='0') _safety.fsyncDir(path.dirname(DB_FILE));   // v1183: ... and the swap itself
   _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; if(typeof _clearPieces==='function') _clearPieces(); }
+  try{ if(typeof _saveFails!=='undefined') _saveFails=0; }catch(_){}   /* v1372: a good save ends the retry back-off */
 }
 var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absorbed into a group save) - its change names no players */
 /* v1124 PARTIAL DEBOUNCED SAVES (Server 1 load test 11 Oct 2026: p95 broke 1 s at ~150-250 players with the CPU at 6-17% - the main
@@ -256,7 +266,7 @@ function _timerSave(){ saveTimer=null;
     if(!full) _sweepIfDue(); return; }
   try{ if(full) saveDB(DB);   // atomic: write temp, then rename
     else { const sl=_takeSlice(); _store.write(DB,[..._pendingIds],sl?null:_piecesArg(),sl); _pendingIds.clear(); _pendingCore=false; _clearPieces(); _sliceDone(sl); } }   // v1124: only the named players' shards + the manifest (v1127: + the shared pieces that changed; a sweep slice adds its shards)
-  catch(e){ console.error('DB write failed:', e.message); }   // a failed partial keeps its ids pending: the next save retries them
+  catch(e){ console.error('DB write failed:', e.message); _saveFailedRetry(); }   // a failed partial keeps its ids pending: the next save retries them (v1372: and that save is now scheduled - it was never, see _saveFailedRetry)
   pgSave();
   if(!full) _sweepIfDue(); }
 function writeDBFull(){ _pendingFull=true; writeDB([]); }   /* v1124: a full save, whatever request scope is active (the periodic sweep) */
@@ -361,6 +371,7 @@ function _runBatch(){
   catch(e){
     for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
     GROUP_SAVE_STATS.failed++; console.error('group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
+    _saveFailedRetry();   // v1372: this save cancelled the debounced timer - acked writeDB() changes still need a save
     return b.resolve(false); }
   const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=ms;
   if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
@@ -2109,7 +2120,7 @@ function writeDBNow(ids,pieces){   /* v1000 (Account audit #9): returns false wh
     if(named&&_store.split&&!_pendingFull){ const s=new Set(_pendingIds); for(const id of named) if(typeof id==='string'&&id) s.add(id); _notePieces(pieces); _store.write(DB,s,_piecesArg()); _pendingIds.clear(); _pendingCore=false; _clearPieces(); }   // v1124 (v1127: + its pieces)
     else saveDB(DB);
   }catch(e){ if(named) for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id);   // v1124: the change is still waiting for a save
-    console.error('DB durable write failed:', e.message); return false; }
+    console.error('DB durable write failed:', e.message); _saveFailedRetry(); return false; }   // v1372: it cancelled the debounced timer
   try{ pgSave(); }catch(e){}
   return true;
 }

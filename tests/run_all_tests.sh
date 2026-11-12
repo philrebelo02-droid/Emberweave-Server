@@ -88,6 +88,8 @@ note "test_v1011.js (4 Oct re-audit: heavy reads throttled per account; Tower re
 node tests/test_v1011.js || FAILED=1
 note "test_admin_delete_guild.js (4 Oct re-audit Guild #5: a deleted account leaves its guild; leadership passes on; an emptied guild disbands)"
 node tests/test_admin_delete_guild.js || FAILED=1
+note "test_save_lost_1372.js (v1372 SAVE LOST: a failed debounced save, or a failed group save that cancelled its timer, schedules a full retry - an acked writeDB() change reaches disk; dd1808c0 control fails both)"
+node tests/test_save_lost_1372.js || FAILED=1
 note "test_v1013.js (4 Oct re-audit Account N12 N16: replay chip shape; world chat only to signed-in chat sockets; no switch code while suspended)"
 node tests/test_v1013.js || FAILED=1
 note "test_feedback_api.js (player reports, dev-only feed, durable acknowledgment; wired v1013 - re-audit Arena N16)"
