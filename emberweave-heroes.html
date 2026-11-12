@@ -19674,6 +19674,21 @@ function renderProfileModal(){
      re-render so picking does not fling you back to the top of the profile. */
   body.querySelectorAll('#pfAvs .av').forEach(el=>wireTap(el, function(){ const k=el.dataset.k; if(!G.unlocked[k]){ body.querySelector('#pfMsg').textContent=t('profile.unlock_portrait',{hero:HERO_TYPES[k].name}); return; } G.avatarHero=k; saveG(); var sc=null, sv=0; try{ sc=body.closest?body.closest('.pm'):null; if(sc) sv=sc.scrollTop; }catch(e){} renderProfileModal(); try{ if(sc) sc.scrollTop=sv; }catch(e){} setHead(document.getElementById('pcAvatar'),k); }));
 }
+/* Grok hunt 12 Nov (v2 after ChatGPT 02:18): the Academy and Wishing Pool panels are rebuilt whole (innerHTML) by the 1 s tick below AND by the
+   replies of their background syncs (academySync, poolStateSync). A click pressed before a rebuild and released after it lands on a node that no
+   longer exists, so about 1 tap in 10 did nothing. While a pointer is held, renderTech / renderWishing wait and run once the press ends (after
+   its click), so a held press is never rebuilt under the finger and no refresh is lost. A press held over 5 s stops holding them. */
+var _ewPtrHeldAt=0, _ewHeldQ={}, _ewHeldT=0;
+/* v3 (ChatGPT 03:16): a release fallback or click flush that lands while a NEWER press is held must not repaint under it - clear the
+   timer marker and keep the queue, so that press's own release schedules the flush. */
+function _ewHeldFlush(){ clearTimeout(_ewHeldT); _ewHeldT=0; if(ewPointerHeld()) return; const q=_ewHeldQ; _ewHeldQ={}; for(const k in q){ try{ q[k](); }catch(e){} } }
+try{ document.addEventListener('pointerdown',()=>{ _ewPtrHeldAt=Date.now(); if(_ewHeldT){ clearTimeout(_ewHeldT); _ewHeldT=0; } },{capture:true,passive:true});
+  ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{ _ewPtrHeldAt=0; if(!_ewHeldT&&Object.keys(_ewHeldQ).length) _ewHeldT=setTimeout(_ewHeldFlush,150); },{capture:true,passive:true}));
+  document.addEventListener('click',()=>{ if(Object.keys(_ewHeldQ).length) setTimeout(_ewHeldFlush,0); },{capture:true,passive:true}); }catch(e){}   /* after the click's own handlers */
+function ewPointerHeld(){ return _ewPtrHeldAt>0&&Date.now()-_ewPtrHeldAt<5000; }
+function ewHoldRender(key,fn){ if(!ewPointerHeld()) return false; _ewHeldQ[key]=fn; return true; }
+/* a BACKGROUND repaint (timer / poll / sync reply) of a whole screen: now, or once the held press ends. Never used for the player's own taps. */
+function ewBgRender(key,fn){ if(!ewHoldRender(key,fn)) fn(); }
 // live tick for research countdowns (home map badge + Technology screen)
 setInterval(()=>{
   const wishScreen=document.getElementById('wishing');
@@ -19681,12 +19696,12 @@ setInterval(()=>{
   const techScreen=document.getElementById('tech');
   if(techScreen&&techScreen.classList.contains('active')){ renderTech(); return; }
   const arenaScreen=document.getElementById('arena');
-  if(arenaScreen&&arenaScreen.classList.contains('active')){ const dl=document.getElementById('dailyLeft'); if(dl){ const left=arenaDailyLeft(); if(left<=0){ renderArena(); } else dl.textContent=fmtDur(left); } return; }
+  if(arenaScreen&&arenaScreen.classList.contains('active')){ const dl=document.getElementById('dailyLeft'); if(dl){ const left=arenaDailyLeft(); if(left<=0){ if(dl.textContent!=='\u2014') ewBgRender('arena',()=>{ if(state==='arena') renderArena(); }); } else dl.textContent=fmtDur(left); } return; }   /* v3: repaint once when the countdown reaches 0 - while the reward already shows ready ('\u2014') the Arena used to rebuild every second */
   const home=document.getElementById('home'); if(!home||!home.classList.contains('active'))return;
-  if(collectLearns()){ renderHome(); return; }
+  if(collectLearns()){ ewBgRender('home',()=>{ if(state==='home') renderHome(); }); return; }
   regenStamina(); updateHubChrome();
   const b=document.querySelector('[data-academy-timer]'), nl=nextLearn();
-  if(b&&nl){ const tip=b.querySelector('.locktip'); if(tip) tip.textContent=t('hub.research',{t:fmtDur(nl-Date.now())}); } else if((b&&!nl)||(!b&&nl)) renderHome();
+  if(b&&nl){ const tip=b.querySelector('.locktip'); if(tip) tip.textContent=t('hub.research',{t:fmtDur(nl-Date.now())}); } else if((b&&!nl)||(!b&&nl)) ewBgRender('home',()=>{ if(state==='home') renderHome(); });
 },1000);
 /* ================= AETHER VAULT + SKYFALL — client (server-authoritative, render-only) ================= */
 let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
@@ -20550,8 +20565,8 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; summonTableSync(
       /* 26 Oct (QA A1: "chapter-next shows Chapter 2 but tapping 2-1 opens 1-1"): a sync landing after the player turned the chapter
          put Chapter 1 back under the finger. A chapter the player chose stays; an untouched map still follows the ledger. */
       if(typeof campViewCh!=='undefined' && !(typeof campViewUser!=='undefined' && campViewUser)) campViewCh=Math.min(chapterOf(_seed), portalChapters(PORTAL));
-      renderRoadmap();
-    } else if(state==='home' && typeof renderHome==='function') renderHome();
+      ewBgRender('campaign',()=>{ if(state==='campaign') renderRoadmap(); });
+    } else if(state==='home' && typeof renderHome==='function') ewBgRender('home',()=>{ if(state==='home') renderHome(); });
   } }catch(e){}
 }
 async function ledgerSync(){ if(!ACC.token) return null; try{ const d=await api('/api/ledger'); if(d&&!d.error){ adoptLedger(d); return d; } }catch(e){} return null; }
@@ -26260,7 +26275,7 @@ const TECH_TRACKS=[
 function techText(k){ const N={atk:[t('tech.atk_name'),t('tech.atk_desc')],hp:[t('tech.hp'),t('tech.hp')],ap:[t('tech.ap_name'),t('tech.ap_desc')],heal:[t('tech.heal_name'),t('tech.heal_desc')],armor:[t('tech.armor'),t('tech.armor')],mr:[t('tech.mr_name'),t('tech.mr_desc')],crit:[t('tech.crit_name'),t('tech.crit_desc')],critres:[t('tech.critres_name'),t('tech.critres_desc')]}; return N[k]||null; }   // v1271: a track's [name, description] as shown
 let techSel='atk';
 /* v1325 (Phil 9 Nov: Emberdraft style approved -> every building MAIN screen, art AND UI; ChatGPT's package Academy Main Screen 09NOV2026) */
-function renderTech(){
+function renderTech(){ if(ewHoldRender('tech',()=>{ if(state==='tech') renderTech(); })) return;
   applySceneBg('tech','/assets/img/ui/academy-main/academy-hall.webp?v=1');
   const acHeading=document.querySelector('#tech h1'); if(acHeading){acHeading.dataset.i18n='bld.academy';acHeading.textContent=t('bld.academy');acHeading.classList.toggle('ac-title-art',LANG.cur==='en');}
   // v327: if the boot sync never landed (offline at 2.8s, or signed in mid-session), repair the display on open.
@@ -27262,7 +27277,7 @@ function fetchRealCities(force){
                  ally: !!(_rcMyGuild && c.guildId && c.guildId===_rcMyGuild) };  // guildmate = green ally castle
       });
       _botCache={};                                                              // bot fill depends on real counts
-      if(document.getElementById('wzone')) renderWorldMap(true);
+      if(document.getElementById('wzone')) ewBgRender('worldmap',()=>{ if(document.getElementById('wzone')) renderWorldMap(true); });
     }
     return REAL_CITIES;
   }).catch(()=>null);
@@ -27580,7 +27595,7 @@ async function renderCauldron(body){
     const bt=panel.querySelector('.whBrewTxt'); if(bt) bt.textContent=ewT('hut.brew_of',{n:Math.floor(b).toLocaleString(),cap:cap.toLocaleString()});
     const bb=panel.querySelector('.whBrewBar'); if(bb) bb.style.width=(cap?100*b/cap:0)+'%';
     panel.querySelectorAll('.whRet').forEach(el=>{ el.textContent=' · '+ewT('hut.returns_in',{t:fmtDur(Math.max(0,+el.dataset.at-t))}); });
-    if(t>=nextRet||t-t0>=60000){ clearInterval(tick); body.querySelectorAll('.panel').forEach(el=>el.remove()); renderCauldron(body); }
+    if(t>=nextRet||t-t0>=60000){ clearInterval(tick); ewBgRender('cauldron',()=>{ if(!panel.isConnected||WALL_TAB!=='cauldron') return; body.querySelectorAll('.panel').forEach(el=>el.remove()); renderCauldron(body); }); }
   },1000);
 }
 /* v1323 THE CITY WALL TAB (Phil 9 Nov: "The city wall will have durability, when the durability hits zero percent the castle is destroyed and
@@ -29063,8 +29078,8 @@ function refreshWorldMineField(){
     _worldMineFieldInner=null;return;
   }
   if(inner.dataset.details!=='1') return;   /* v1127 zoom gate: zoomed out, the mine field is neither drawn nor asked for */
-  paintWorldMineField(inner);
-  const cache=worldMineFieldCache();if(cache)cache.sync(false).then(()=>{if(inner===_worldMineFieldInner)paintWorldMineField(inner);});
+  ewBgRender('mines',()=>paintWorldMineField(inner));
+  const cache=worldMineFieldCache();if(cache)cache.sync(false).then(()=>{if(inner===_worldMineFieldInner)ewBgRender('mines',()=>{ if(inner===_worldMineFieldInner) paintWorldMineField(inner); });});
 }
 drawMines=function(inner){
   if(!inner)return;
@@ -29543,7 +29558,7 @@ async function guildFetch(){ if(!ACC.token){ GS.guild=null; syncLocalGuild(); re
   if(_guildFetching) return GS.guild; _guildFetching=true;
   try{ const d=await api('/api/guild/mine'); if(d&&!d.error){ GS.guild=d.guild||null; syncLocalGuild(); } }catch(e){} finally{ _guildFetching=false; }
   return GS.guild; }
-async function guildRefresh(){ var _prev=''; try{ _prev=JSON.stringify(GS.guild); }catch(e){} await guildFetch(); if(state!=='guild') return; if(guildTab==='raid') return; var _now=''; try{ _now=JSON.stringify(GS.guild); }catch(e){} if(_prev!==''&&_now===_prev) return; renderGuild(); }
+async function guildRefresh(){ var _prev=''; try{ _prev=JSON.stringify(GS.guild); }catch(e){} await guildFetch(); if(state!=='guild') return; if(guildTab==='raid') return; var _now=''; try{ _now=JSON.stringify(GS.guild); }catch(e){} if(_prev!==''&&_now===_prev) return; ewBgRender('guild',()=>{ if(state==='guild'&&guildTab!=='raid') renderGuild(); }); }
 function startGuildPoll(){ if(_guildPoll)return; _guildPoll=setInterval(()=>{ if(state==='guild'&&ACC.token) guildRefresh(); else stopGuildPoll(); },6000); }
 function stopGuildPoll(){ if(_guildPoll){ clearInterval(_guildPoll); _guildPoll=null; } }
 /* v1372 GUILD RANKS - what the viewer may do is the server's answer (guild.myPerms); the leader holds every permission */
@@ -29983,7 +29998,7 @@ async function renderGuildRaid(el){
     const live=await api('/api/guild/raid');
     if(!live||!live.raid||state!=='guild'||guildTab!=='raid'||gen!==_raidGen) return;
     const q=live.raid, p2=Math.round(q.hp/q.max*100), host=document.getElementById('gTabBody')||el;
-    if(q.level!==r.level||q.name!==r.name||q.bossKey!==r.bossKey){ clearInterval(window._raidPoll); window._raidPoll=null; renderGuild(); return; }   /* v1355 (audit): the boss changed under the poll */
+    if(q.level!==r.level||q.name!==r.name||q.bossKey!==r.bossKey){ clearInterval(window._raidPoll); window._raidPoll=null; ewBgRender('guild',()=>{ if(state==='guild') renderGuild(); }); return; }   /* v1355 (audit): the boss changed under the poll */
     const txt=host.querySelector('#gbHpTxt');
     if(txt){ txt.textContent=t('graid.hp_line',{hp:q.hp.toLocaleString(),max:q.max.toLocaleString(),pct:p2});
       const fill=txt.previousElementSibling; if(fill) fill.style.width=p2+'%'; }
@@ -31024,7 +31039,7 @@ async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h|
   const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
   ov.innerHTML='<div class="wishInfoCard"><div class="wishInfoHead"><b>'+uiIcon('quest-scroll')+' '+t('wish.last_wishes')+'</b><button class="btn sm secondary" id="wishInfoX">'+uiIcon('close')+'</button></div><div id="wishHistRows" style="line-height:1.7;overflow-wrap:anywhere">'+rows+'</div></div>';
   document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); }
-function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
+function renderWishing(){ if(ewHoldRender('wishing',()=>{ if(state==='wishing') renderWishing(); })) return; applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   // first paint of a visit asks the server what is actually free, then repaints with the truth
   /* Refetch when the cache is missing OR stale. The gold pool's free wish returns on a timer
      (1/hour, 3/day); a cache fetched once and never again froze that timer and the free wish never
