@@ -12373,11 +12373,17 @@ function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(
     .then(b=>{ SND.buf[f]=b; delete SND.pend[f]; return b; }, ()=>{ SND.buf[f]=null; delete SND.pend[f]; return null; });
   return SND.pend[f]; }
 function sndUnlock(){ try{
-    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination); SND_CH.forEach(ch=>{ const g=SND.ctx.createGain(); g.gain.value=sndGain(ch); g.connect(SND.out); SND.bus[ch]=g; }); sndMuteApply();   /* v1159 master mute */
+    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination);
+      /* v1374 (tester Soul Eater 12 Nov: "The music on the campaign screen sometimes sounds choppy"): music gets its OWN audio context with a
+         playback-sized buffer (latencyHint 'playback'). It shared the low-latency one the effects need (10 ms buffer); a phone busy drawing
+         the campaign map ran that buffer dry and the music crackled. Effects, taps and voices keep the fast one. Muted with the rest. */
+      try{ SND.mctx=new C({latencyHint:'playback'}); SND.mout=SND.mctx.createGain(); SND.mout.connect(SND.mctx.destination); }catch(e){ SND.mctx=null; SND.mout=null; }
+      SND_CH.forEach(ch=>{ const X=(ch==='music'&&SND.mctx)?SND.mctx:SND.ctx; const g=X.createGain(); g.gain.value=sndGain(ch); g.connect(X===SND.ctx?SND.out:SND.mout); SND.bus[ch]=g; }); sndMuteApply();   /* v1159 master mute */
       for(const k in AUDIO_MAP) if(!/^hero\./.test(k)) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f));   /* v1124: voice lines wait for their hero's fight */
       sfxPrimeLib();   /* v1138: the weapon sounds; a hero's own sounds load with its fight (sndPrimeHero) */
       try{ (typeof units!=='undefined'&&units||[]).forEach(u=>u&&sndPrimeHero(u.key)); }catch(e){} }
     if(SND.ctx.state==='suspended') SND.ctx.resume().catch(()=>{});
+    try{ if(SND.mctx&&SND.mctx.state==='suspended') SND.mctx.resume().catch(()=>{}); }catch(e){}
     musBoot(); musTick();   /* v1159 music: starts inside the tap that unlocks audio */
   }catch(e){} }
 /* v1124: fetch + decode a hero's ult lines when the hero is placed on a battlefield (makeUnit), so the first ult has its line ready
@@ -12650,6 +12656,7 @@ const SND_MUTE = { on:false };
 try{ SND_MUTE.on = localStorage.getItem('ew_mute')==='1'; }catch(e){}
 function sndMuteApply(){ const on=SND_MUTE.on;
   try{ if(SND.out&&SND.ctx){ const g=SND.out.gain, t=SND.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(on?0:1, t); g.value=on?0:1; } }catch(e){}
+  try{ if(SND.mout&&SND.mctx){ const g=SND.mout.gain, t=SND.mctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(on?0:1, t); g.value=on?0:1; } }catch(e){}   /* v1374: the music context */
   try{ if(_lore.a) _lore.a.muted=on; }catch(e){}
   try{ const b=document.getElementById('muteBtn'); if(b){ b.classList.toggle('off',on); b.setAttribute('aria-pressed',on?'true':'false'); b.setAttribute('aria-label',on?ewT('soundbtn.off'):ewT('soundbtn.on'));
       const im=b.querySelector('img'); if(im) im.src=on?'/assets/img/ui/hud2/sound-off.webp?v=1':'/assets/img/ui/hud2/sound-on.webp?v=1'; } }catch(e){}   /* v1322: the B kit's bell (Phil picked B) */
@@ -12929,6 +12936,7 @@ const MUS = { pool:[], lanes:{}, cur:null, timer:0, hidden:false, held:[], log:[
 function musLog(x){ MUS.log.push(x); if(MUS.log.length>200) MUS.log.splice(0,MUS.log.length-200); }   /* the last 200 music events (the v1159 test reads them) */
 function musRand(n){ try{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }catch(e){ MUS._x=((MUS._x||(Date.now()>>>0)||1)*1103515245+12345)>>>0; return MUS._x%n; } }
 function musLane(name){ return MUS.lanes[name]||(MUS.lanes[name]={ name, slot:null, next:null, song:null, bag:[], last:-1, xf:false, seamT:0 }); }
+function musMC(){ return SND.mctx||SND.ctx; }   /* v1374: music runs on its own playback context */
 function musOK(){ try{ return !!(SND.ctx&&SND.bus&&SND.bus.music&&SND.cfg.music.on&&!window._p2guard&&!MUS.hidden&&!splashOn()); }catch(e){ return false; } }   /* v1197: no music on the splash - the 250 ms tick starts it once the splash is gone */
 /* where the game is, as a music setting - one rule covering every mode, no list of modes */
 function musSkyLive(){ try{ if(SKYSIM&&SKYSIM.running) return true; const m=SKY&&SKY.st&&SKY.st.match; return !!(m&&m.state==='live'); }catch(e){ return false; } }
@@ -12951,21 +12959,21 @@ const MUS_SILENT=(()=>{ try{ const n=64, b=new Uint8Array(44+n), v=new DataView(
   let s=''; for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]); return 'data:audio/wav;base64,'+btoa(s); }catch(e){ return ''; } })();
 function musPrime(){ try{ if(MUS.pool.length||!SND.ctx||!SND.bus.music) return;
     for(let i=0;i<MUS_POOL;i++){ const el=new Audio(); el.preload='none'; el.loop=false;
-      const node=SND.ctx.createMediaElementSource(el), g=SND.ctx.createGain(); g.gain.value=0; node.connect(g); g.connect(SND.bus.music);
+      const node=musMC().createMediaElementSource(el), g=musMC().createGain(); g.gain.value=0; node.connect(g); g.connect(SND.bus.music);
       const s={ el, node, g, lane:null, song:null, id:i }; MUS.pool.push(s);
       el.addEventListener('pause',()=>{ if(s.lane) musLog(['pause',s.lane,+el.currentTime.toFixed(3),performance.now()|0]); });
       if(MUS_SILENT){ el.src=MUS_SILENT; const p=el.play(); if(p&&p.then) p.then(()=>{ if(!s.lane) el.pause(); },()=>{}); } } }catch(e){} }
-function musFree(s){ try{ s.lane=null; s.song=null; s.g.gain.cancelScheduledValues(SND.ctx.currentTime); s.g.gain.value=0; s.el.pause(); s.el.removeAttribute('src'); s.el.load(); }catch(e){} }
+function musFree(s){ try{ s.lane=null; s.song=null; s.g.gain.cancelScheduledValues(musMC().currentTime); s.g.gain.value=0; s.el.pause(); s.el.removeAttribute('src'); s.el.load(); }catch(e){} }
 function musSlot(){ let s=MUS.pool.find(x=>!x.lane); if(s) return s;
   /* all in use: free a paused setting's song (skyfall, then map, then city) - it starts afresh next time */
   for(const n of ['skyfall','map','city','battle']){ const L=MUS.lanes[n]; if(L&&n!==MUS.cur&&L.slot&&L.slot.el.paused){ s=L.slot; L.slot=null; musFree(s); return s; } }
   return null; }
-function musRamp(s,to,secs){ try{ const g=s.g.gain, t=SND.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value,t); g.linearRampToValueAtTime(to,t+Math.max(0.005,secs)); }catch(e){} }
+function musRamp(s,to,secs){ try{ const g=s.g.gain, t=musMC().currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value,t); g.linearRampToValueAtTime(to,t+Math.max(0.005,secs)); }catch(e){} }
 function musStart(L,song,at,fade){ const s=musSlot(); if(!s) return null;
   s.lane=L.name; s.song=song; const el=s.el, u='/assets/audio/'+song.f;
   if(el.getAttribute('src')!==u){ el.preload='auto'; el.src=u; }
   try{ el.currentTime=at||0; }catch(e){} el.playbackRate=1; el.defaultPlaybackRate=1;
-  try{ s.g.gain.cancelScheduledValues(SND.ctx.currentTime); s.g.gain.value=0; }catch(e){}
+  try{ s.g.gain.cancelScheduledValues(musMC().currentTime); s.g.gain.value=0; }catch(e){}
   const p=el.play(); if(p&&p.catch) p.catch(()=>{});
   musRamp(s,1,fade); musLog(['start',L.name,song.f,at||0,performance.now()|0]); return s; }
 /* playlists: a shuffled bag, refilled so the next song is never the one that just played */
@@ -13023,7 +13031,7 @@ function musTick(){ try{
    context suspended) starts the watch afresh, so a resumed or loading song gets its full window. */
 const MUS_STALL_MS=6000;
 function musStalled(L,s,now){ try{
-    if(!s||s.el.paused||s.el.ended||!SND.ctx||SND.ctx.state!=='running'){ L.stS=null; return false; }
+    if(!s||s.el.paused||s.el.ended||!SND.ctx||musMC().state!=='running'){ L.stS=null; return false; }
     const t=s.el.currentTime||0;
     if(L.stS!==s||now-(L.stSeen||0)>1000||Math.abs(t-L.stT)>0.05){ L.stS=s; L.stT=t; L.stAt=now; L.stSeen=now; return false; }
     L.stSeen=now; return now-L.stAt>=MUS_STALL_MS; }catch(e){ return false; } }
