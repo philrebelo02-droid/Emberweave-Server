@@ -170,6 +170,11 @@ const BANNER={shape:1,emblem:2,color:3};
   ok(r.status===200&&r.data.moved===1,'an Officer moves the whole Iron Gate lane to another tower ('+r.status+' '+(r.data.error||'')+')');
   r=await call('/api/guild-war/move-lane',{from:2,to:0},T.grCole,true); ok(r.status===403,'a Member still cannot ('+r.status+')');
 
+  const refusedLeave=await call('/api/guild/leave',{},T.grLead);
+  ok(refusedLeave.status===400 && /Transfer leadership/.test(refusedLeave.data.error||''),'a leader with ranked members must transfer before leaving');
+  const retained=await mine('grLead');
+  ok(retained.leader===id('grLead') && memOf(retained,'grOff').rankId==='officer','refused leave preserves leader and officer rank');
+
   // ---- leadership transfer: the two swap places; the old leader is never left without a rank ----
   r=await call('/api/guild/transfer',{id:id('grOff')},T.grLead);
   ok(r.status===200&&r.data.guild.leader===id('grOff')&&memOf(r.data.guild,'grLead').rankId==='officer','transfer: grOff leads, grLead takes the Officer rank ('+(memOf(r.data.guild,'grLead').rankId)+')');
