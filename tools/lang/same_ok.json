@@ -31,7 +31,9 @@
   "tech.amount",
   "tut.r_potion",
   "xp2.superior",
-  "world2.oasis"
+  "world2.oasis",
+  "vault.info",
+  "hud.zoom"
  ],
  "pt-BR": [
   "arena.league_bronze",
@@ -76,7 +78,9 @@
   "roster.vs",
   "tech.amount",
   "tut.r_potion",
-  "xp2.superior"
+  "xp2.superior",
+  "vault.info",
+  "hud.zoom"
  ],
  "fr": [
   "arena.league_bronze",
@@ -166,7 +170,8 @@
   "signin.month_year",
   "tech.amount",
   "tut.r_potion",
-  "world2.oasis"
+  "world2.oasis",
+  "hud.zoom"
  ],
  "de": [
   "arena.league_bronze",
@@ -271,7 +276,11 @@
   "roster.vs",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "vault.info",
+  "herolist.element",
+  "bb.v_guild",
+  "hud.zoom"
  ],
  "it": [
   "battle.boss",
@@ -331,7 +340,10 @@
   "roster.vs",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "vault.info",
+  "bb.v_guild",
+  "hud.zoom"
  ],
  "nl": [
   "arena.npc",
@@ -423,7 +435,12 @@
   "roster.vs",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "vault.info",
+  "herolist.element",
+  "bb.v_guild",
+  "set.graphics",
+  "hud.zoom"
  ],
  "ru": [
   "arena.npc",
@@ -463,7 +480,8 @@
   "roster.vs",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "herolist.element"
  ],
  "ja": [
   "arena.npc",
@@ -479,7 +497,8 @@
   "areport.vs",
   "draft.vs",
   "graid.hp_line",
-  "roster.vs"
+  "roster.vs",
+  "bb.v_guild"
  ],
  "zh-Hans": [
   "arena.npc",
@@ -488,7 +507,8 @@
   "isle.n_item",
   "res2.plus_n_item",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "bb.v_guild"
  ],
  "zh-Hant": [
   "arena.npc",
@@ -498,7 +518,8 @@
   "isle.n_item",
   "res2.plus_n_item",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "bb.v_guild"
  ],
  "th": [
   "arena.npc",
@@ -508,7 +529,8 @@
   "isle.n_item",
   "res2.plus_n_item",
   "signin.month_year",
-  "tech.amount"
+  "tech.amount",
+  "bb.v_guild"
  ],
  "id": [
   "arena.league_master",
@@ -598,7 +620,10 @@
   "signin.month_year",
   "tech.amount",
   "tut.r_potion",
-  "world2.oasis"
+  "world2.oasis",
+  "vault.info",
+  "bb.v_guild",
+  "hud.zoom"
  ],
  "hi": [
   "arena.npc",
@@ -609,6 +634,7 @@
   "res2.plus_n_item",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "bb.v_guild"
  ]
 }
