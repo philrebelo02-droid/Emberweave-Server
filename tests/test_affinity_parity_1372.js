@@ -161,8 +161,8 @@ const LINES = {
   assassins: ['hollow', 'vex', 'sorrel', 'kharos', 'nox'],
   tanks: ['grosk', 'gruel', 'tharl', 'askel', 'brannus'],
   marks: ['sloe', 'meridian', 'yenna', 'rafe', 'calypsa'],
-  neutralB: ['konwu', 'tick', 'quorrel', 'carn', 'grimsby'],      // all Neutral Bruisers: no element, and Bruiser vs Bruiser is no edge
-  neutralB2: ['deepcleft', 'carn', 'grimsby', 'konwu', 'tick'],
+  neutralB: ['konwu', 'deepcleft', 'quorrel', 'carn', 'grimsby'],      // all Neutral Bruisers: no element, and Bruiser vs Bruiser is no edge
+  neutralB2: ['deepcleft', 'carn', 'grimsby', 'konwu', 'quorrel'],   /* v1374: Tick is Lightning now (Phil 12 Nov) - these are the 5 Neutral Bruisers left */
 };
 const FIGHTS = [['classic', 'mages'], ['classic', 'bruisers'], ['classic', 'supports'], ['bruisers', 'assassins'], ['assassins', 'supports'], ['supports', 'tanks'],
   ['tanks', 'marks'], ['marks', 'mages'], ['mages', 'bruisers'], ['classic', 'classic']];
