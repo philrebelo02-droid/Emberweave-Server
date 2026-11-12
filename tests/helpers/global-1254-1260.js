@@ -100,6 +100,38 @@ const SWAPS = [
   //   tests/test_affinity_parity_1372.js check the live switch (and test_skill_anim_hold puts it back on: its renderer checks run on the live rules).
   ['const AFFINITIES_LIVE=true;', 'const AFFINITIES_LIVE=false;', /const AFFINITIES_LIVE\s*=/],
   ];   // v1287: Zahri is an Arena hero (Phil 5 Nov)   // v1287: Oakmir Blue cd 9 -> 10   // v1283 (5 Nov): +11 energy per released Green/Blue cast, every hero
+const _reEsc = x => new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+/* v1377 (12 Nov): later edits to lines a swap backs out left the old needle unmatched and its guard silent - the back-out was SKIPPED, not failed.
+   v1376 (8affc6b0, Dandra rework) put the cast-speed timer into the v1311 buff-expiry line: the v1311 undo stopped, the older BASE fights ran the
+   v1311 expiry rule again (test_hollow_fx_1191 fight 2 and more). The same swap on the v1376 line, the cast-speed tick kept (inert without Dandra). */
+{ const o = SWAPS.find(x => x[0].startsWith('    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if(u.dmgBuffT>0){'));
+  const CT = 'if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ ';
+  const f = o[0].replace('if(u.dmgBuffT>0){', CT + 'if(u.dmgBuffT>0){');
+  SWAPS.push([f, o[1].replace('if(u.dmgBuffT>0)', CT + 'if(u.dmgBuffT>0)'), _reEsc(f.slice(0, 200))]); }
+/* v1376 (5199a410, tester Soul Eater 12 Nov): Carn's Crimson Reap 2.6x / 45 deg -> 3.4x / 90 deg (o.arc) - BASE's cleave back (tests/test_hunt_carn_1376.js checks v1376; his speed is in SPEED_BACK) */
+SWAPS.push(["cleave:{mul:3.4,bleed:true,radius:6.5*METER,arc:90}   /* v1376 (tester: Carn's Crimson Reap \"does almost no damage\"): 2.6 -> 3.4, and the wide wedge its text promises (45 -> 90 deg) */,", "cleave:{mul:2.6,bleed:true,radius:6.5*METER},", /cleave:\{mul:3\.4,bleed:true,radius:6\.5\*METER,arc:90\}/]);
+/* v1376 (8affc6b0, Phil 12 Nov): the Dandra rework - Seedlight, Drowsy Sting, Queen's Call, the 5 s Swarm spread and their card / kit texts - back to BASE.
+   Generated from the commit's own hunks (git show 8affc6b0); the cast-speed timer it added (castT / castMul) stays: nothing but Dandra sets it.
+   tests/test_hunt_dandra_rework_1376.js checks the rework itself. dandraBack(s) / dandraPage(html) undo ONLY this, for tests that check the rest live. */
+const DANDRA_SWAPS = [
+  ["ght',type:'mendburst',mul:0.45,hot:0.06,pctLo:0.10,pctHi:0.30,apR:0.30,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,slowLo:0.20,slowHi:0.35,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive less healing (30% + 0.2% a skill level) for the 5 seconds the sting lasts'}},", "ght',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive less healing while the sting lasts (30% + 0.2% a skill level)'}},", null],   // 8affc6b0 hunk 0
+  ["s holder',drowsy:'The sting slows their attacks and their spells. Sting an already-stung foe and they fall asleep until struck',piercethrow:'Hurls through the line — hits every enemy between the caster and the FARTHEST foe',charge:'Dashes to the farthest enemy, then slams everyone at the landing point',cleave:'A heavy 45° sweep in front of the caster',aoeStun:'Slams an area — damages and stuns everything inside it',ashfall:'Drops a lasting hazard on the ground that ticks damage to anything standing in it',selfheal:'Restores a chunk of the caster\\u2019s own health',mendburst:'A heal on the worst-off ally, then half as much again over the next seconds',spdsteal:'Steals attack speed from the", "s holder',drowsy:'The sting slows their hands. Sting an already-stung foe and they fall asleep until struck',piercethrow:'Hurls through the line — hits every enemy between the caster and the FARTHEST foe',charge:'Dashes to the farthest enemy, then slams everyone at the landing point',cleave:'A heavy 45° sweep in front of the caster',aoeStun:'Slams an area — damages and stuns everything inside it',ashfall:'Drops a lasting hazard on the ground that ticks damage to anything standing in it',selfheal:'Restores a chunk of the caster\\u2019s own health',mendburst:'One large heal on the worst-off ally, plus a strong heal-over-time on top',spdsteal:'Steals attack speed from the", null],   // 8affc6b0 hunk 1
+  ["y so every ultimate charges sooner, and attacks and casts faster for a few seconds.',monkSlam:'U", "y so every ultimate charges sooner, and swings faster for a few seconds.',monkSlam:'U", null],   // 8affc6b0 hunk 3
+  ["bility==='rally') return '{i:s:energy} +'+Math.round(lvRange(20,35,lv))+' energy · {i:s:heal} '+lvPct(lvRange(0.05,0.15,lv))+' max HP + 30% Ability Power + 50% Healing Power · +'+lvPct(lvRange(0.05,0.20,lv))+' attack and cast speed for 5s'; if(t.ability==='burst') return '{i:s:", "bility==='rally') return '{i:s:energy} +40 energy · {i:s:heal} '+lvPct(skLvNum('rally',d,lv))+' max HP'; if(t.ability==='burst') return '{i:s:", null],   // 8affc6b0 hunk 4
+  ["    case 'mendburst': if(ab.pctLo!=null) return '{i:s:heal} '+lvPct(lvRange(ab.pctLo,ab.pctHi,lv))+' of the ally\\u2019s max HP + 30% Ability Power + 50% Healing Power, then half of that again over '+(ab.dur||6)+'s';\n      return '{i:s:heal} '+Math.round(apw*(ab.", "    case 'mendburst': return '{i:s:heal} '+Math.round(apw*(ab.", null],   // 8affc6b0 hunk 5
+  ["      const _cgDur=(u._plagueColor==='#f2d84a')?5:SKLV.contagionDur(contagionLv(u.team));   /* v1376 (Phil 12 Nov: \"Swarm move on make it 5 seconds\") - Dandra's bees */   /* v1112: the spread lasts 4 s + 0.02", "      const _cgDur=SKLV.contagionDur(contagionLv(u.team));   /* v1112: the spread lasts 4 s + 0.02", null],   // 8affc6b0 hunk 6
+  ["      if(o.pctLo!=null){ /* v1376 (Phil 12 Nov: \"Seedlight shouldnt be a percent of their HP that high. Lets say 10% of their max hp at level 1 and 30% at 100.\n           Have it scale off 30% ap\") */ const _sl=(u.skillLv&&u.skillLv[1])||_kLv;\n        /* \"the heal over time should be essentially half the amount of the direct heal\" */\n        const _H=dandraHealAmt(u,l,lvRange(o.pctLo,o.pctHi,_sl)), _d=o.dur||6; healUnit(l,_H); pushHot(l,_H*0.5/_d,_d,1); }\n      else { healFrom(u,l,l.maxHp*(o.mul||0.45)*sm); pushHot(l,l.maxHp*(o.hot||0.06)*sm,o.dur||6,1); }", "      healFrom(u,l,l.maxHp*(o.mul||0.45)*sm); pushHot(l,l.maxHp*(o.hot||0.06)*sm,o.dur||6,1);", null],   // 8affc6b0 hunk 7
+  ["      else { tgt._stungT=o.stung||6;\n        /* v1376 (Phil 12 Nov: \"Drowsy string should also slow their attack or cast speed 20% level 1 going to 35% at 100\") */\n        const _slow=(o.slowLo!=null)?lvRange(o.slowLo,o.slowHi,(u.skillLv&&u.skillLv[2])||_kLv):(o.slowPct||0.3);\n        tgt.hasteMul=Math.min(tgt.hasteMul||1,1-_slow); tgt.hasteT=Math.max(tgt.hasteT||0,o.stung||6);\n        if(o.slowLo!=null){ tgt.castMul=Math.min(tgt.castMul||1,1-_slow); tgt.castT=Math.max(tgt.castT||0,o.stung||6); }", "      else { tgt._stungT=o.stung||6; tgt.hasteMul=Math.min(tgt.hasteMul||1,1-(o.slowPct||0.3)); tgt.hasteT=Math.max(tgt.hasteT||0,o.stung||6);", null],   // 8affc6b0 hunk 8
+  ["    /* v1376 (Phil 12 Nov, Queen's Call): heal 5% of each hero's max HP at level 1 -> 15% at 100, + 30% of her Ability Power;\n       energy 20 -> 35; attack speed AND cast speed +5% -> +20%, for 5 s */\n    case 'rally':{ const _ul=(u.skillLv&&u.skillLv[0])||_kLv, _en=Math.round(lvRange(20,35,_ul)), _hs=1+lvRange(0.05,0.20,_ul), _pc=lvRange(0.05,0.15,_ul);\n      alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+_en);healUnit(a,dandraHealAmt(u,a,_pc));a.hasteMul=Math.max(a.hasteMul||1,_hs);a.hasteT=Math.max(a.hasteT||0,5);a.castMul=Math.max(a.castMul||1,_hs);a.castT=Math.max(a.castT||0,5);floatTexts.push({x:a.x,y:a.y-16,txt:'Ra", "    case 'rally':{alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+40);healFrom(u,a,a.maxHp*skLvNum('rally',o,_kLv));a.hasteMul=1.2;a.hasteT=5;floatTexts.push({x:a.x,y:a.y-16,txt:'Ra", null],   // 8affc6b0 hunk 9
+  ];
+DANDRA_SWAPS.forEach(x => { x[2] = _reEsc(x[0].slice(0, 70)); });   /* guard: the v1376 text itself */
+SWAPS.push(...DANDRA_SWAPS);
+/* v1377 (36db584f, Phil 12 Nov: "Bruiser for ult and assasin for wolf"): Aldren's summons back to BASE roles (class crit / row) - Ink Spirit Warrior, Ink Horror Mage */
+SWAPS.push(["'ink spirit':{name:'Lesser Ink Spirit',stars:2,swing:1.8,monster:true,role:'Assassin',", "'ink spirit':{name:'Lesser Ink Spirit',stars:2,swing:1.8,monster:true,role:'Warrior',", /'ink spirit':\{name:'Lesser Ink Spirit',stars:2,swing:1\.8,monster:true,role:'Assassin',/],
+  ["'ink horror':{name:'Elder Ink Horror',stars:3,swing:2.2,monster:true,role:'Bruiser',", "'ink horror':{name:'Elder Ink Horror',stars:3,swing:2.2,monster:true,role:'Mage',", /'ink horror':\{name:'Elder Ink Horror',stars:3,swing:2\.2,monster:true,role:'Bruiser',/]);
+/* v1374 (d7b8f476) moved the v1310 enemy-skill-level flags into vaultEnemyUnit / the campaign wave unit (pveMode, preview): v1310 off there too */
+SWAPS.push(["makeUnit(s.key,'enemy',x,y,s.lvl||1,{boss:!!s.boss,enemySkillLv:true,pveMode:'vault',", "makeUnit(s.key,'enemy',x,y,s.lvl||1,{boss:!!s.boss,pveMode:'vault',", /makeUnit\(s\.key,'enemy',x,y,s\.lvl\|\|1,\{boss:!!s\.boss,enemySkillLv:true,pveMode:'vault',/],
+  ["campaignHero:mode==='campaign'&&!!m.isHero,enemySkillLv:mode==='campaign',pveMode:mode,", "campaignHero:mode==='campaign'&&!!m.isHero,pveMode:mode,", /campaignHero:mode==='campaign'&&!!m\.isHero,enemySkillLv:mode==='campaign',pveMode:mode,/]);
 const made = [];
 process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } catch (e) {} } });
 /* v1357 (flakes): several SWAPS carry \r\n. On the cluster's LF tree they were not found, the guard did not match either, and the back-out was
@@ -108,9 +140,8 @@ const _LF = x => String(x).replace(/\r\n/g, '\n');
 /* v1376/v1377 (Phil 12 Nov: Bruisers x1.1, Assassins 95-100, Carn 72->80): the older BASE fights put every hero's move speed back */
 const SPEED_BACK = {konwu:70,tick:72,aureth:67,hurne:62,quorrel:67,korvux:70,hobb:70,deepcleft:67,zahri:74,carn:72,grimsby:62,iver:67,tolley:65,sorrel:77,veyr:86,vex:86,hollow:89,seyla:89,nox:92,kharos:94};
 function speedBack(s) { for (const k in SPEED_BACK) s = s.replace(new RegExp('(\\n\\s*' + k + ':\\s*\\{name:[^\\n]*?speed:)\\d+'), '$1' + SPEED_BACK[k]); return s; }
-function undoText(s) {
-  s = speedBack(_LF(s));
-  for (const [from0, to0, any0] of SWAPS) { const from = _LF(from0), to = _LF(to0), any = new RegExp(any0.source.replace(/\\r\\n/g, '\\n'), any0.flags);
+function swapAll(s, list) {
+  for (const [from0, to0, any0] of list) { const from = _LF(from0), to = _LF(to0), any = new RegExp(any0.source.replace(/\\r\\n/g, '\\n'), any0.flags);
     /* v1376 (Phil 12 Nov: Bruisers x1.1, Assassins 95-100): a hero-line swap matches whatever move speed the page now has - speed is not what it backs out */
     { const hm = /^\s*(\w+):\s*\{name:'/.exec(from);
       if (hm && /speed:\d+/.test(from) && s.split(from).length === 1) {
@@ -121,6 +152,9 @@ function undoText(s) {
     if (n === 0 && (!any.test(s) || s.split(to).length === 2)) continue;   /* a page from before the change, or one already undone */
     if (n !== 1) throw new Error('global-1254-1260: expected exactly one "' + from + '" in the page, found ' + n);
     s = s.replace(from, to); }
+  return s; }
+function undoText(s) {
+  s = swapAll(speedBack(_LF(s)), SWAPS);
   // v1306 (Phil 7 Nov "Aldren isnt anchored he slides"): Aldren's hit / green / passive clips gained per-frame anchor tables (render data only);
   // taken back out so the older every-other-hero BATTLE_ANIM == BASE checks keep testing what they were written for (tests/test_aldren_anchor_1306.js checks v1306)
   s = s.replace(/(aldren_(?:hit|green|passive)\.webp\?v=3'[^\n]*?),ax:\[[-\d,]+\]/g, '$1');
@@ -136,4 +170,13 @@ function undoText(s) {
 function page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-global1260-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, undoText(fs.readFileSync(htmlPath, 'utf8'))); made.push(out); return out; }
-module.exports = { page, undoText };
+/* v1377: the Dandra rework alone undone (spec tests of other heroes / skill levels that run the rest live) */
+function dandraBack(s) { return swapAll(_LF(s), DANDRA_SWAPS); }
+function dandraPage(htmlPath) {
+  const out = path.join(path.dirname(htmlPath), '.test-dandra1376-page-' + process.pid + '-' + made.length + '.html');
+  fs.writeFileSync(out, dandraBack(fs.readFileSync(htmlPath, 'utf8'))); made.push(out); return out; }
+/* v1377: only today's move speeds put back (Bruisers x1.1, Assassins 95-100, Carn 80) - for checks of the v1258 resize itself */
+function speedPage(htmlPath) {
+  const out = path.join(path.dirname(htmlPath), '.test-speed1376-page-' + process.pid + '-' + made.length + '.html');
+  fs.writeFileSync(out, speedBack(_LF(fs.readFileSync(htmlPath, 'utf8')))); made.push(out); return out; }
+module.exports = { page, undoText, dandraBack, dandraPage, speedBack, speedPage };

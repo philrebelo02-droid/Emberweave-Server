@@ -35,7 +35,7 @@ try {
     run('HERO_ULT_VOICES') === false && Object.keys(M.a).filter(k => /^hero\./.test(k)).length === 0, JSON.stringify(Object.keys(M.a)));
   ck('LORE_AUDIO is exactly the heroes with a lore read (Vael)', JSON.stringify(Object.keys(M.l).sort()) === JSON.stringify(Object.keys(M.hv).filter(k => M.hv[k].lore).sort()) && M.l.vael === 'voice/lore/vael_lore.m4a?v=' + M.hv.vael.lore, JSON.stringify(M.l));
   const refs = Object.values(M.a).flat().map(l => l.f).concat(Object.values(M.l));
-  ck('every mapped file is AAC .m4a under assets/audio/ with a numeric ?v=', refs.every(f => /^voice\/(lore\/)?[a-z0-9_]+\.m4a\?v=\d+$/.test(f)), refs.join(', '));
+  ck('every mapped file is AAC .m4a under assets/audio/ with a numeric ?v=', refs.every(f => /^(voice\/(lore\/)?[a-z0-9_]+|sfx\/[A-Z0-9-]+-v\d+)\.m4a\?v=\d+$/.test(f))   /* v1377: AUDIO_MAP also carries the v1375 UI tap sound (sfx/, upper-case like every SFX file) - same ?v= rule */, refs.join(', '));
   const missing = refs.filter(f => !fs.existsSync(path.join(ROOT, 'assets/audio', f.split('?')[0])));
   ck('every mapped file exists', missing.length === 0, 'missing: ' + missing.join(', '));
   const vaelRefs = refs.filter(f => /(^|\/)vael_/.test(f)).map(f => f.split('?')[0]).sort();

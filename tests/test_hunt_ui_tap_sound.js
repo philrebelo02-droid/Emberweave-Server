@@ -35,7 +35,7 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
   await page.evaluate(()=>{ window.__tap=[]; const o=window.sndPlay; window.sndPlay=function(k,g){ const r=o.apply(this,arguments); if(k==='ui.tap') window.__tap.push(r); return r; }; });
   const st=await page.evaluate(()=>({ch:sndCh('ui.tap'),map:(AUDIO_MAP['ui.tap']||[]).map(l=>l.f),chs:SND_CH.slice(),cfg:SND.cfg.ui,bus:!!SND.bus.ui}));
   ok(st.ch==='ui'&&st.chs.includes('ui')&&st.bus, 'a 4th sound channel "ui" with its own volume bus ('+JSON.stringify(st.chs)+')');
-  ok(st.map[0]==='sfx/UI-CLICK-BUBBLE-v1.m4a', 'the tap sound is bubble 4 (UI-CLICK-BUBBLE-v1.m4a)');
+  ok(/^sfx\/UI-CLICK-BUBBLE-v1\.m4a\?v=\d+$/.test(st.map[0]||''),'the tap sound is bubble 4 (UI-CLICK-BUBBLE-v1.m4a)');
   await page.mouse.click(420,210); await delay(200); await page.mouse.click(300,150); await delay(200);
   let t=await page.evaluate(()=>window.__tap.slice());
   ok(t.length===2&&t.every(Boolean), 'every tap anywhere plays it ('+JSON.stringify(t)+')');

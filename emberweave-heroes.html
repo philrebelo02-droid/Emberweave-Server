@@ -12436,7 +12436,7 @@ try{ const _c=JSON.parse(localStorage.getItem('ew_sound')||'null'); if(_c&&typeo
   else SND_CH.forEach(ch=>{ if(_c[ch]&&typeof _c[ch]==='object') Object.assign(SND.cfg[ch],_c[ch]); }); } }catch(e){}
 function sndCh(key){ return /^hero\./.test(key)?'voice':(/^music\./.test(key)?'music':(/^ui\./.test(key)?'ui':'fx')); }
 /* v1374 (Phil 12 Nov: "Bubble 4" / "Everytime you tap anything on in the game it makes this sound"): the UI tap sound - Grok's bubble-v2 #4 (CC0 recorded pop + chime) */
-AUDIO_MAP['ui.tap']=[{f:'sfx/UI-CLICK-BUBBLE-v1.m4a',vol:1}];
+AUDIO_MAP['ui.tap']=[{f:'sfx/UI-CLICK-BUBBLE-v1.m4a?v=1375',vol:1}];   /* v1377: ?v= like every other sound file (SHIPPING RULE 24) - test_hero_voices_1124 */
 document.addEventListener('pointerdown',e=>{ try{ if(e.button>0) return; if(typeof state!=='undefined'&&state==='battle') return;   /* v1377 (Claude 13:28 hunt: "no sound in battle"): a tap on the battlefield or the battle HUD is silent */
   sndPlay('ui.tap',60); }catch(_){} },{capture:true,passive:true});
 function sndGain(ch){ const c=SND.cfg[ch]; return c&&c.on?Math.max(0,Math.min(1,+c.vol||0)):0; }

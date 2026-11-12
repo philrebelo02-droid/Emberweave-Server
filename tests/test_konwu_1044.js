@@ -25,7 +25,7 @@ const fight = (foes) => run(`(()=>{ units=[]; ended=false; paused=false; battleT
     if(R.moveAt!=null && R.kickAt==null && R.mark && R.mark.hp<prevHp){ R.kickAt=battleTime; R.dmg=prevHp-R.mark.hp; R.stun=R.mark.stunned; R.chaseMul=k._chaseMul; R.chaseT=k._chaseT; }
     if(R.kickAt!=null && R.mark && R.markPos==null){ R.markPos=[R.mark.x,R.mark.y]; }
     if(px!=null && (k._kickHoldT||0)>0){ holdSteps++; holdSlide=Math.max(holdSlide,Math.hypot(k.x-px,k.y-py)); }
-    if(chasing && (k._chaseT||0)>0){ chaseSteps.push(Math.hypot(k.x-px,k.y-py)); if(k.target!==R.mark) lockedOnMark=false; }
+    if(chasing && (k._chaseT||0)>0){ const st=Math.hypot(k.x-px,k.y-py); if(st>1e-9) chaseSteps.push(st); if(k.target!==R.mark) lockedOnMark=false; }   /* v1377: only the steps he runs - once he reaches the mark he stands and fights out the 3 s chase; with the Bruiser x1.1 speed (Phil 12 Nov) he arrives inside 1.5 s, so the standing steps were the median (ratio 0) */
   }
   const cs=chaseSteps.slice().sort((a,b)=>a-b); R.chaseStep=cs.length?cs[cs.length>>1]:0;   /* the median step: a body-separation shove can add to one */ R.walkStep=k.speed*MOVE_MUL*SIM_STEP; R.lockedOnMark=lockedOnMark; R.chaseN=chaseSteps.length; R.holdSlide=holdSlide; R.holdSteps=holdSteps;
   R.METER=METER; R.STEP=SIM_STEP; R.mark=null; return R; })()`);

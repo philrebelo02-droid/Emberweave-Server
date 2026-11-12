@@ -9,7 +9,7 @@
 // One line per check; exit code = number of failures.
 const path = require('path'), vm = require('vm');
 const ROOT = path.resolve(__dirname, '..');
-const host = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+const host = require(path.join(ROOT, 'server/sim-host.js')).load(require('./helpers/global-1254-1260.js').dandraPage(path.join(ROOT, 'emberweave-heroes.html')));   // v1377: the v1376 Dandra rework (Phil 12 Nov: Queen's Call 5% -> 15% + 30% AP + 50% HP, energy 20 -> 35) undone - its own numbers are tests/test_hunt_dandra_rework_1376.js; this file keeps checking the v1112 level steps of every other skill
 const run = src => vm.runInContext(src, host.ctx);
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok   ' + name); } else { fail++; console.log('  FAIL ' + name + (detail !== undefined ? ' - ' + detail : '')); } };

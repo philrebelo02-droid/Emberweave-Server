@@ -73,7 +73,7 @@ const PROBE = async () => { const b = document.getElementById('muteBtn'); let bt
       const b = await pg.evaluate(PROBE);
       ck(b.splash === true && b.ctx === 'running' && (b.btn === 'hidden' || b.btn === 'none') && !b.pool.length && !b.dom.length && b.mus == null && !b.lanes.length && b.sfx === false && b.sfx2 === false && b.starts === 0,
         '(3) after the Play tap (audio unlocked: context ' + b.ctx + ', the splash still up): no music (' + JSON.stringify(b.lanes) + '), no audio element plays a file, sndPlay(' + b.fx + ') and sfxPlay(' + b.sn + ') refused, ' + b.starts + ' buffer sounds started, the button hidden (' + b.btn + ')', JSON.stringify(b));
-      ck(b.cfg === a.cfg && b.mute === a.mute && JSON.stringify(b.ls) === JSON.stringify(a.ls) && b.mute === false && JSON.parse(b.cfg).music.vol === 0.5 && b.gains.length === 3 && b.gains.every(g => g > 0),
+      ck(b.cfg === a.cfg && b.mute === a.mute && JSON.stringify(b.ls) === JSON.stringify(a.ls) && b.mute === false && JSON.parse(b.cfg).music.vol === 0.5 && b.gains.length === 4 && b.gains.every(g => g > 0),   /* v1377: 4 channels since v1374 added the UI sound channel (Phil 12 Nov) */
         '(4) the player\'s own settings are untouched (' + b.cfg + ', mute ' + b.mute + ', channel gains ' + b.gains.join('/') + ')', JSON.stringify({ a: [a.cfg, a.mute, a.ls], b: [b.cfg, b.mute, b.ls] }));
       await pg.evaluate(() => { enterGame = window.__enter; enterGame(); });
       let c = null; for (let i = 0; i < 40; i++) { await delay(250); c = await pg.evaluate(PROBE); if (!c.splash && c.pool.length) break; }

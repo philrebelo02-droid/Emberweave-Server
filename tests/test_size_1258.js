@@ -6,7 +6,7 @@ const fs = require('fs'), path = require('path'), os = require('os'), vm = requi
 const ROOT = path.join(__dirname, '..'), BASE = process.env.BASE || 'db7e16fb';
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; console.log('  ok   ' + m); };
 const load = file => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(file); return s => vm.runInContext(s, h.ctx); };
-const NEW = load(path.join(ROOT, 'emberweave-heroes.html'));
+const NEW = load(require('./helpers/global-1254-1260.js').speedPage(path.join(ROOT, 'emberweave-heroes.html')));   // v1377: today's move speeds (Phil 12 Nov: Bruisers x1.1, Assassins 95-100, Carn 80) put back, so speed still checks the x1.15 resize alone
 const tmp = path.join(ROOT, '.size1258-base.html'); fs.writeFileSync(tmp, String(cp.execSync('git show ' + BASE + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 })).replace("stars:1,hp:360,dmg:28,", "stars:1,hp:360,dmg:34,").replace("name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,", "name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,"));   // v1366 Tick buff (Phil "yes buff tick"): the BASE gets the same Tick so only the resize is compared
 let OLD; try { OLD = load(tmp); } finally { try { fs.unlinkSync(tmp); } catch (e) {} }
 const S = +NEW('UNIT_SIZE'); ok(Math.abs(S - 1.15) < 1e-9, 'UNIT_SIZE is 1.15');
@@ -51,6 +51,8 @@ for (let j = odd.length - 1; j >= 0; j--) if (/^\.(ULT_DEF\.(hipposlam|laststand
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.magmourn\.blue\.radius /.test(odd[j])) odd.splice(j, 1);
 /* v1314 (Phil 8 Nov): Magmourn's Ignite All 20 m wide (gfxR) and Fireball a real projectile with a 5 m burst (green radius / gfxR) - deliberate, not the resize (tests/test_magmourn_1314.js checks them) */
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.magmourn\.(blue\.gfxR|green\.(radius|gfxR)) /.test(odd[j])) odd.splice(j, 1);
+/* v1376 (tester Soul Eater 12 Nov): Carn's Crimson Reap 2.6x -> 3.4x Attack - deliberate, not the resize (tests/test_hunt_carn_1376.js checks it) */
+for (let j = odd.length - 1; j >= 0; j--) if (/^\.ULT_DEF\.cleave\.mul /.test(odd[j])) odd.splice(j, 1);
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
