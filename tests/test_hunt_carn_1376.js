@@ -40,7 +40,7 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
     C._castSlot='ult'; C._castSM=1; C._castLv=1; doEffect(C,'cleave',o);
     out.dmg=E.map(e=>Math.round(1e6-e.hp)); { const F=mk(2,0); units.push(F); doEffect(C,'cleave',Object.assign({},o,{mul:2.6,arc:45})); out.old=Math.round(1e6-F.hp); } out.bleed=E.map(e=>(e.dots||[]).length); out.atk=C.dmg; out.speed=HERO_TYPES.carn.speed; out.arc=o.arc; out.mul=o.mul; return out; });
   console.log('   ',JSON.stringify(r));
-  ok(r.speed===80, 'Carn moves at 80 (was 72) ('+r.speed+')');
+  ok(r.speed===88, 'Carn moves at 88 (72 -> 80 for the tester, then every Bruiser x1.1) ('+r.speed+')');
   ok(r.arc===90&&r.mul===3.4, 'Crimson Reap: 90 deg wedge, 3.4x Attack ('+r.arc+', '+r.mul+')');
   ok(r.dmg[0]>0&&r.dmg[1]>0&&r.dmg[2]>0&&r.dmg[3]>0, 'hits every enemy in the wide wedge out to 6.4 m, including 2.5 m to each side at 4 m ('+r.dmg.slice(0,4)+')');
   ok(r.dmg[4]===0&&r.dmg[5]===0, 'misses enemies past 6.5 m or far off to the side ('+r.dmg[4]+','+r.dmg[5]+')');
