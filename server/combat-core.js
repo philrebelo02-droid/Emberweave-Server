@@ -143,6 +143,7 @@ const DEFAULT_KIT={kind:'phys',shape:'nuke',coef:2.2};
    - Ally spacing (UNIT_GAP_ALLY 1.30) is positional: this model has no positions. Aureth fights in his Light stance here (no stance swap).
    AFFINITIES_LIVE=false is the v1367 engine, rule for rule. */
 const AFFINITIES_LIVE=true;   /* MUST equal emberweave-heroes.html AFFINITIES_LIVE (tests/test_affinity_parity_1372.js) */
+const AFF_ON=AFFINITIES_LIVE&&process.env.EW_AFFINITIES_OFF!=='1';   /* tests only: comparisons against older engines load a fresh copy with it off; the server never sets it */
 const AFF_ELEMENT={"konwu":"Neutral","grosk":"Neutral","vulmar":"Neutral","tick":"Neutral","sylthaine":"Ice","aureth":"Light","bloatus":"Nature","vireo":"Neutral","fritz":"Lightning","umbris":"Dark","vael":"Neutral","oakmir":"Nature","rhukk":"Neutral","hurne":"Nature","meridian":"Neutral","gruel":"Neutral","astra":"Fire","quorrel":"Neutral","korvux":"Fire","maren":"Water","lumi":"Light","hollow":"Dark","veyr":"Water","mirelle":"Nature","pellucid":"Fire","orryn":"Water","hobb":"Fire","tharl":"Ice","askel":"Neutral","deepcleft":"Neutral","brannus":"Neutral","sorrel":"Dark","yenna":"Dark","kharos":"Nature","zahri":"Light","vaelora":"Ice","seyla":"Nature","nox":"Dark","nerisse":"Water","lysara":"Nature","calypsa":"Water","linnet":"Neutral","rivet":"Neutral","carn":"Neutral","vesper":"Neutral","tessit":"Neutral","vex":"Neutral","grimsby":"Neutral","dandra":"Nature","pyroclast":"Fire","iver":"Lightning","sloe":"Nature","absalie":"Dark","joss":"Light","ambrel":"Light","tolley":"Fire","mellan":"Nature","aldren":"Dark","rafe":"Neutral","ceraline":"Fire","hero61":"Neutral","zahri mirage":"Light","boar warrior":"Nature","boar shaman":"Nature","skarrn":"Nature","skulk":"Neutral","volthex":"Light","cindertusk":"Fire","ashen":"Fire","sludgemaw":"Nature","gnashul":"Neutral","bitwraith":"Dark","grundle":"Neutral","vexmite":"Nature","lost soul":"Dark","trapjaw":"Neutral","grushak":"Neutral","blackquill":"Dark","granith":"Neutral","nightgloom":"Dark","mordath":"Neutral","ooznik":"Nature","bilewretch":"Nature","rustclank":"Neutral","shellwark":"Neutral","whisp":"Fire","wintercrag":"Ice","magmourn":"Fire","voraxis":"Neutral","grommash":"Neutral","leviath":"Water","sylphice":"Ice","cinder skulk":"Fire","furnace gnawer":"Fire","sootwing imp":"Fire","basalt mauler":"Neutral","magma hound":"Fire","crucible acolyte":"Fire","reef prowler":"Water","kelp hexer":"Water","shellguard sentinel":"Water","mudsnap crab":"Water","storm eel":"Lightning","saltglass siren":"Lightning","graveclaw ghoul":"Dark","wispweaver shade":"Dark","bonepike guard":"Dark","rotbloom ooze":"Nature","nightcap mimic":"Nature","mourn moth":"Nature","riftling spider":"Dark","crystalhorn grazer":"Neutral","skyroot dryad":"Nature","luminant orb":"Light","zephyr harrier":"Neutral","runic automaton":"Neutral","ironjaw raider":"Neutral","vineback boar":"Nature","frostjaw troll":"Ice","clockwork lantern":"Light","vharok":"Fire","nerissa":"Water","barrowmaw":"Dark","asterion":"Light","maelvara":"Lightning","brukk":"Fire","nymira":"Nature","irix":"Neutral","hourglass sentinel":"Neutral","miregor":"Nature","sable vesper":"Dark","orryx":"Neutral","thorneveil":"Nature","nameless admiral":"Water","ink spirit":"Dark","ink horror":"Dark"};
 const ELEM_BEATS={Water:'Fire',Fire:'Ice',Ice:'Nature',Nature:'Lightning',Lightning:'Water'};
 const ELEM_BONUS=0.20;
@@ -152,16 +153,16 @@ const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10,
 const _sameSide=(s,t)=>s===t||(s.side!=null&&s.side===t.side);
 function unitElement(u){ if(!u) return 'Neutral'; if(u.key==='aureth') return u._darkStance?'Dark':'Light'; return u.element||AFF_ELEMENT[u.key]||'Neutral'; }
 function unitClass(u){ return (u&&u.role)||''; }
-function elemMul(src,tgt){ if(!AFFINITIES_LIVE||!src||!tgt||_sameSide(src,tgt)) return 1; const a=unitElement(src), d=unitElement(tgt);
+function elemMul(src,tgt){ if(!AFF_ON||!src||!tgt||_sameSide(src,tgt)) return 1; const a=unitElement(src), d=unitElement(tgt);
   if(a==='Neutral'||d==='Neutral') return 1;
   if((a==='Light'&&d==='Dark')||(a==='Dark'&&d==='Light')) return 1+ELEM_BONUS;
   if(ELEM_BEATS[a]===d) return 1+ELEM_BONUS; if(ELEM_BEATS[d]===a) return 1-ELEM_BONUS; return 1; }
-function classEdge(src,tgt){ if(!AFFINITIES_LIVE||!src||!tgt||_sameSide(src,tgt)) return ''; const a=unitClass(src); return (a&&CLASS_BEATS[a]===unitClass(tgt))?a:''; }
+function classEdge(src,tgt){ if(!AFF_ON||!src||!tgt||_sameSide(src,tgt)) return ''; const a=unitClass(src); return (a&&CLASS_BEATS[a]===unitClass(tgt))?a:''; }
 /* the two heal edges (client healUnit): the battle's lines, set by resolveBattle for its own run */
 let AFF_CTX=null;
 function affHealMul(u, side, round, ctx){ let m=1; ctx=ctx||AFF_CTX;   /* ctx {a,b}: the two lines (resolveBattle's own by default) */
   if((u._healCutUntilR||0)>0 && round<u._healCutUntilR) m*=1-EDGE.healCut;   /* Silence the healer */
-  if(AFFINITIES_LIVE && ctx && (side==='A'||side==='B')){ const own=side==='A'?ctx.a:ctx.b, foe=side==='A'?ctx.b:ctx.a, t=firstAlive(foe);
+  if(AFF_ON && ctx && (side==='A'||side==='B')){ const own=side==='A'?ctx.a:ctx.b, foe=side==='A'?ctx.b:ctx.a, t=firstAlive(foe);
     if(t && unitClass(t)==='Tank' && own.some(o=>o.hp>0&&unitClass(o)==='Support')) m*=1+EDGE.healBonus; }   /* Sundering grace */
   return m; }
 
@@ -240,7 +241,7 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   opts=opts||{};
   raw*=elemMul(src,tgt); const edge=classEdge(src,tgt);   /* v1372 elements (client dealDamage: amt*=elemMul(src,tgt)) */
   /* v1372 Shield wall: the Tank blocks 25% of a Marksman's basic attacks. The roll is drawn only for that pair (decided by the units, never by a roll) */
-  if(AFFINITIES_LIVE && edge==='' && unitClass(src)==='Marksman' && unitClass(tgt)==='Tank' && opts.auto && kind!=='true' && rnd()<EDGE.block){
+  if(AFF_ON && edge==='' && unitClass(src)==='Marksman' && unitClass(tgt)==='Tank' && opts.auto && kind!=='true' && rnd()<EDGE.block){
     if(log.length<600) log.push([round,side,tgt.key,'block',src.key,0,0,kind,0]);
     return 0; }
   // evasion (countered point-for-point by accuracy) — roll ALWAYS consumed
@@ -279,7 +280,7 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
     if(edge==='Marksman' && unitClass(tgt)==='Mage') tgt.energy=Math.max(0,(tgt.energy||0)-EDGE.drain);   /* Interrupt */
     else if(edge==='Mage' && kind!=='phys' && !opts.auto) tgt._hexUntilR=round+EDGE.hexDur;   /* Hex */
     else if(edge==='Assassin') tgt._healCutUntilR=round+EDGE.healCutDur; }   /* Silence the healer */
-  if(AFFINITIES_LIVE && tgt.hp>0 && src.hp>0 && unitClass(src)==='Assassin' && unitClass(tgt)==='Bruiser' && (tgt._ripReadyR||0)<=round && !(tgt._stunR>0)){   /* Riposte */
+  if(AFF_ON && tgt.hp>0 && src.hp>0 && unitClass(src)==='Assassin' && unitClass(tgt)==='Bruiser' && (tgt._ripReadyR||0)<=round && !(tgt._stunR>0)){   /* Riposte */
     tgt._ripReadyR=round+EDGE.riposteCd;
     if(log.length<600) log.push([round,side==='A'?'B':'A',tgt.key,'riposte',src.key,0,0,'phys',0]);
     applyDamage(rnd,log,round,side==='A'?'B':'A',tgt,src,(tgt.atkP||0)*((tgt._buffR>0)?(tgt._buffMul||1):1),'phys',{}); }
@@ -398,7 +399,7 @@ function _resolveBattle(a, b, seed){
     const swings=u.speed>=1.1?2:1;
     for(let s=0;s<swings;s++){
       if(!anyAlive(foe)) return;
-      const hexMul=(AFFINITIES_LIVE && round<(u._hexUntilR||0))?1/EDGE.hexAtk:1;   /* v1372 Hex: a hexed swing counts x1/1.3 (attack interval x1.3) */
+      const hexMul=(AFF_ON && round<(u._hexUntilR||0))?1/EDGE.hexAtk:1;   /* v1372 Hex: a hexed swing counts x1/1.3 (attack interval x1.3) */
       u.energy=Math.min(100,u.energy+25*(u.haste||1)*hexMul);
       const ult=u.energy>=100;
       const variance=()=> (side==='A'?fA:fB)*(0.85+0.3*rnd());

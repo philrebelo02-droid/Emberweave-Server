@@ -256,7 +256,12 @@ function mainThreadOf(dir, html) {
     /* 4 Nov 2026: this tree's side runs on the page with the 2 Nov global engine changes undone (v1254 enemy nerf, v1258 resize, v1260 wave hold;
        tests/helpers/global-1254-1260.js) and on the inputs without the v1258 snapshot stamp sz (v1180 has none and reads the stats raw), so the
        World Tree fights still compare with v1180's; test_size_1258 checks the resize */
-    const hereU = mainThreadOf(R.root, require('./helpers/global-1254-1260.js').page(path.join(R.root, 'emberweave-heroes.html')));
+    /* v1372: Affinities are live - this comparison with the older engine needs them off on BOTH sides: the page copy (global-1254-1260)
+       and the server's combat-core (EW_AFFINITIES_OFF, read at load, so a fresh copy of this tree's server modules is loaded for it). */
+    const hereU = (() => { const sd = path.join(R.root, 'server'), keep = {}; for (const k of Object.keys(require.cache)) if (k.startsWith(sd)) { keep[k] = require.cache[k]; delete require.cache[k]; }
+      process.env.EW_AFFINITIES_OFF = '1';
+      try { return mainThreadOf(R.root, require('./helpers/global-1254-1260.js').page(path.join(R.root, 'emberweave-heroes.html'))); }
+      finally { delete process.env.EW_AFFINITIES_OFF; for (const k of Object.keys(require.cache)) if (k.startsWith(sd)) delete require.cache[k]; Object.assign(require.cache, keep); } })();
     const noSz = args => JSON.parse(JSON.stringify(args, (k, v) => k === 'sz' ? undefined : v));
     const sameBase = all.filter(x => { const a = hereU[x.m](...noSz(x.args)), c = base[x.m](...x.args); if (x.m === 'worldtree') { delete a.engine; delete c.engine; } return JSON.stringify(a) === JSON.stringify(c); }).length;
     try { R.removeControlTree(LIVE_BASE); } catch (e) {}

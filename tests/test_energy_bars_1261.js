@@ -9,7 +9,7 @@ const grab = name => { const i = html.indexOf('function ' + name + '('); assert(
   for (; k < html.length; k++) { if (html[k] === '{') d++; else if (html[k] === '}') { d--; if (!d) break; } } return html.slice(i, k + 1); };
 // the cache drop sits in buildPortraitBar, right before the elements are stored on the unit
 const bp = grab('buildPortraitBar');
-ok(/u\._hpFill=undefined; u\._enFill=undefined; u\._hpW=undefined; u\._enW=undefined; u\._hpLow=undefined; u\._slotCN=undefined;\s*u\.portraitEl=el;/.test(bp), 'every portrait-bar rebuild drops the cached bar elements and values');
+ok(/u\._hpFill=undefined; u\._enFill=undefined; u\._hpW=undefined; u\._enW=undefined; u\._hpLow=undefined; u\._slotCN=undefined;(?:\s*u\._\w+=undefined;)*\s*u\.portraitEl=el;/.test(bp)   /* v1372: the combat cards (B4.5) drop _hpN / _hpM too */, 'every portrait-bar rebuild drops the cached bar elements and values');
 // behaviour: the real updatePortraits against two generations of bar elements
 const mkEl = () => { const fill = { style: { width: '' } }; return { fill, querySelector: () => fill, classList: { toggle() {} }, className: '' }; };
 const ctx = { units: [], updateEnemyBar() {} }; vm.createContext(ctx); vm.runInContext(grab('updatePortraits'), ctx);
