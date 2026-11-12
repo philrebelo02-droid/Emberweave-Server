@@ -32,7 +32,7 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
 (async()=>{ try{
   const {page,errs}=await boot({grant:false});
   const r=await page.evaluate(()=>{ const out={};
-    const D=makeUnit('dandra','ally',100,300,30,{owned:false,rank:5}); D.pass=Object.assign({},D.pass||{},{contagion:true});
+    const D=makeUnit('dandra','ally',100,300,30,{owned:false,rank:5}); D.pass=Object.assign({},D.pass||{},{contagion:true}); D.skillLv=[1,1,1,100];
     const mk=(x)=>makeUnit('vael','enemy',x,300,30,{owned:false,rank:1});
     const A=mk(400), B=mk(400+1.2*METER), C=mk(400+20*METER);
     units.length=0; units.push(D,A,B,C); battleTime=10;
@@ -43,12 +43,13 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
     battleTime+=30; B.hp=1; healUnit(B,100); out.healAfter=+(B.hp-1).toFixed(2);
     /* a Bloatus plague spread (green) cuts nothing */
     const E=mk(700), F=mk(700+1*METER); units.push(E,F); E.dots=[{color:'#8fbf3f',dps:5,t:4}]; E._contagion=true; E._plagueColor='#8fbf3f'; damage(E,1e9,'#fff'); out.plagueCut=F._beeCutUntil||0;
-    out.desc=KITS.dandra.purple.desc; return out; });
+    out.desc=KITS.dandra.purple.desc; out.lv1=+(beeHealCut(1)*100).toFixed(2); out.lv50=+(beeHealCut(50)*100).toFixed(2); out.lv100=+(beeHealCut(100)*100).toFixed(2); return out; });
   ok(r.died&&r.nearCut>=3.9, 'a stung foe dies -> the bees move on and the nearby enemy carries the heal cut for the spread duration ('+r.nearCut+' s)');
   ok(r.farCut===0, 'an enemy out of reach is not affected');
-  ok(Math.abs(r.healCut-70)<0.6&&Math.abs(r.healFar-100)<0.6, 'it receives 30% less healing ('+r.healCut+' of 100; unaffected '+r.healFar+')');
+  ok(Math.abs(r.healCut-50)<0.6&&Math.abs(r.healFar-100)<0.6, 'at skill level 100 it receives 50% less healing (30% + 0.2% a level; '+r.healCut+' of 100; unaffected '+r.healFar+')');
+  ok(Math.abs(r.lv1-30.2)<0.01&&Math.abs(r.lv50-40)<0.01&&Math.abs(r.lv100-50)<0.01, 'the cut is 30% + 0.2% a level: L1 '+r.lv1+'%, L50 '+r.lv50+'%, L100 '+r.lv100+'%');
   ok(Math.abs(r.healAfter-100)<0.6, 'the cut ends with the sting ('+r.healAfter+')');
   ok(r.plagueCut===0, 'CONTROL: King Bloatus plague spread gives no heal cut');
-  ok(/30% less healing/.test(r.desc), 'the ability text says it ('+r.desc+')');
+  ok(/less healing.*30% \+ 0\.2% a skill level/.test(r.desc), 'the ability text says it ('+r.desc+')');
   ok(errs.length===0,'no page errors ('+errs.slice(0,3).join(' | ')+')');
 }catch(e){ console.error(e); fails++; } finally { finish('dandra swarm heal cut'); await cleanup(); } })();
