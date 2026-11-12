@@ -8590,14 +8590,31 @@ const ZOOM_PR_MAX=1.5;   /* v577: the BASELINE buffer stays at the old 1.5x ceil
    canvas AND the bar overlay, every frame. In a bonus run 1x renders at the screen's own resolution, zoom still
    raises it, and the ceiling is 3.5. Every other mode keeps its look. */
 const ZOOM_PR_BONUS_MAX=3.5;
+/* Device-local renderer setting. Keep the adaptive High governor and apply the cap
+   to the final buffer ratio, after zoom headroom and mode-specific limits. */
+const GRAPHICS_PRESETS=Object.freeze({high:Infinity,balanced:2,low:1});
+const GRAPHICS_STORAGE_KEY='ew_graphics_quality';
+let graphicsPreset='high';
+try{
+  const saved=localStorage.getItem(GRAPHICS_STORAGE_KEY);
+  if(Object.hasOwn(GRAPHICS_PRESETS,saved)) graphicsPreset=saved;
+}catch(e){}
+function setGraphicsPreset(value){
+  if(!Object.hasOwn(GRAPHICS_PRESETS,value) || value===graphicsPreset) return;
+  const before=zoomPR();
+  graphicsPreset=value;
+  try{ localStorage.setItem(GRAPHICS_STORAGE_KEY,value); }catch(e){}
+  if(renderer && before!==zoomPR()) resize3D();
+}
 function zoomPR(){
   const z=(typeof battleZoom==='number'?battleZoom:1);
-  if(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) return Math.min(ZOOM_PR_BONUS_MAX, DPR*Math.max(1,z));
+  const cap=GRAPHICS_PRESETS[graphicsPreset];
+  if(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) return Math.min(cap,ZOOM_PR_BONUS_MAX,DPR*Math.max(1,z));
   /* v643 (Phil's HUD recording, 19 Sep: buy stage 8 FPS, 123 ms frames with sim 0.0 / draw 0.3 / overlay 0.2 - pure pixel fill at
      res 2.63x, buf 1790x1000). The planning board is locked at 1x zoom, so the 1.5x pinch-zoom headroom only costs fill there:
      cap it at 1.5x total, the resolution that ran 35-56 fps before. */
-  if(document.body.classList.contains('ed-plan')) return Math.min(1.5, DPR*ZOOM_PR_MAX);
-  return Math.min(4.5, DPR*Math.max(ZOOM_PR_MAX, z)); }
+  if(document.body.classList.contains('ed-plan')) return Math.min(cap,1.5,DPR*ZOOM_PR_MAX);
+  return Math.min(cap,4.5,DPR*Math.max(ZOOM_PR_MAX,z)); }
 function clampPan(){
   const app=document.getElementById('app');
   const w=(app?app.clientWidth:0)||ewGameView().width, h=(app?app.clientHeight:0)||ewGameView().height;
@@ -32285,6 +32302,11 @@ function renderSettings(){
   const langCard = `<div class="set-sec">
       <div class="set-row"><span class="set-lbl">\u{1F310} ${t('set.language')}</span><select id="setLangSel" class="set-in set-sel" aria-label="${t('set.language')}">${langOptionsHTML()}</select></div>
     </div>`;
+  const graphicsCard = `<div class="set-sec">
+    <div class="set-row"><label class="set-lbl" for="setGraphicsSel">${t('set.graphics')}</label>
+      <select id="setGraphicsSel" class="set-in set-sel" aria-describedby="setGraphicsHint">${Object.keys(GRAPHICS_PRESETS).map(preset=>`<option value="${preset}"${graphicsPreset===preset?' selected':''}>${t('set.graphics_'+preset)}</option>`).join('')}</select></div>
+    <div class="set-data" id="setGraphicsHint">${t('set.graphics_hint')}</div>
+  </div>`;
   const notesCard = `<div class="set-sec"><button class="btn sm" id="setPatchNotes" style="width:100%">${uiIcon('quest-scroll')} Patch Notes</button></div>`;   /* v1364 (Phil 11 Nov: "put it under support") - shown signed in or not */
   const soundCard = `<div class="set-sec">
       <div class="set-h">${uiIcon('audio-on')} ${t('set.audio')}</div>
@@ -32301,7 +32323,7 @@ function renderSettings(){
   const _bid=(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
   b.innerHTML=`<div class="set-wrap">
     <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
-    ${pane('general',langCard+soundCard)}
+    ${pane('general',langCard+graphicsCard+soundCard)}
     ${pane('account',account+(account.indexOf('id="googleAuthPanel"')>=0?'':'<div class="set-sec set-links"><div id="googleAuthPanel" class="set-link" hidden></div><div id="facebookAuthPanel" class="set-link" hidden></div></div>'))}
     ${ACC.token?pane('storage',assetCard):''}
     ${pane('support',notesCard+reportCard+`<div class="set-legal set-sec">
@@ -32316,6 +32338,7 @@ function renderSettings(){
     setFitTabs(b); if(setTab==='dev'&&devTab==='accounts') loadIntegrity(); });
   setFitTabs(b); setTimeout(()=>setFitTabs(b),400);
   try{ if(DEV.on&&devTab==='accounts'&&INTEG.reports&&INTEG.reports.length) renderIntegrity(); }catch(e){}
+  b.querySelector('#setGraphicsSel').onchange=e=>setGraphicsPreset(e.target.value);
   { const ls=b.querySelector('#setLangSel'); if(ls) ls.onchange=()=>{ langSet(ls.value,{save:true}); }; }   // v1265 languages
   { const sm=b.querySelector('#snd_mute'); if(sm) sm.onchange=()=>{ sndMuteSet(sm.checked); sndUnlock(); }; }   // v1159 master mute (same flag as the top-right button)
   SND_CH.forEach(ch=>{ const so=b.querySelector('#snd_'+ch+'_on'), sv=b.querySelector('#snd_'+ch+'_vol'), sp=b.querySelector('#snd_'+ch+'_pct');   // v1049 audio settings
@@ -33575,7 +33598,12 @@ Object.assign(EW_LANG_EN,{
   "bonus13.coach.zoom": "Hard to see who's where? Tap Zoom to bring the fight closer. You can pinch or use the mouse wheel, too.",
   "bonus13.coach.zoom_gesture": "Hard to see who's where? Pinch or use the mouse wheel to bring the fight closer.",
   "bonus13.coach.boon": "A firebreak. Choose one boon for each road still fighting, then confirm.",
-  "bonus13.coach.cross": "Now send help where it's needed. Drag a hero across, or tap the hero and then the road. Their boon goes with them."
+  "bonus13.coach.cross": "Now send help where it's needed. Drag a hero across, or tap the hero and then the road. Their boon goes with them.",
+  "set.graphics": "Graphics",
+  "set.graphics_high": "High",
+  "set.graphics_balanced": "Balanced",
+  "set.graphics_low": "Low",
+  "set.graphics_hint": "Lower settings reduce battle rendering resolution. Saved on this device."
 });
 const INTRO_KEYS={ vael_ready:['intro11.vael_ready'], vael_after:['intro11.vael_after'], vireo_in:['intro11.vireo_in'], vael_reply:['intro11.vael_reply'],
   vireo_ready:['intro11.vireo_ready'], syl_in:['intro11.syl_in'], syl_ready:['intro11.syl_ready'],
