@@ -6340,6 +6340,15 @@ function evictUnusedArt(keepKeys){
 function evictBattleArtAll(){ try{ if((typeof ED!=='undefined'&&ED&&ED.active&&!((ED.round|0)>0&&typeof state!=='undefined'&&state!=='battle'&&state!=='result')) || (typeof OL!=='undefined'&&OL&&OL.active) || (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)) return 0;
   if(typeof state!=='undefined' && (state==='battle'||state==='result')) return 0; try{ corpseClear(); }catch(_){} try{ for(const u of units) if(u&&u._die&&!u._die.end) u._die.end=true; }catch(_){}   /* v1367 (memory, checked by ChatGPT): a death clip mid-play when the art leaves ends with it - its next draw never asks for the sheet again */   /* v1182+: a held body (death end:'hold') leaves with the fight - no corpse outlives it on the hub */
   try{ aimArtFree(); }catch(_){} return evictUnusedArt([]); }catch(e){ return 0; } }
+/* v1371 memory (renderer grew ~30 MB a fight with the GPU clean; <img> count 38 -> 200 over 10 fights): the screens the hub hides kept their last render - the campaign map, the squad roster, the result screen, the closed stage card and the battle portrait bar - so each fight's hero cards, reward tiles and star/lock icons stayed in the page with their decoded images. On the hub they are emptied; every one is rebuilt from scratch when its screen opens (renderRoadmap, renderRoster, renderResultExtras and the result writers, openStageModal, buildPortraitBar), so nothing that is shown changes. */
+const HIDDEN_SCREEN_ART=['cmap','cmapHdr','starTrack','portalTabs','roster','rosterSlots','rosterClass','resultSquad','resultStars','resultReward','portraitBar','stageModalBody'];
+function releaseHiddenScreenImgs(){ try{ if(typeof state==='undefined'||state!=='home') return 0;
+  if((typeof ED!=='undefined'&&ED&&ED.active)||(typeof OL!=='undefined'&&OL&&OL.active)||(typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)) return 0;
+  let n=0; for(const id of HIDDEN_SCREEN_ART){ const el=document.getElementById(id); if(!el||!el.firstChild) continue;
+    if(id==='stageModalBody'){ const sm=document.getElementById('stageModal'); if(sm&&sm.classList.contains('active')) continue; }
+    const scr=el.closest('.screen'); if(scr&&scr.classList.contains('active')) continue;
+    n+=el.getElementsByTagName('img').length; el.innerHTML=''; }
+  return n; }catch(e){ return 0; } }
 function fmtMB(b){ return (b/1048576).toFixed(1)+' MB'; }
 function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
   const keys=[];
@@ -18989,7 +18998,7 @@ function _showScreen(name){
   if(name!=='battle'&&name!=='result'&&typeof OL!=='undefined'&&OL.active){ OL.active=false; OL.host=false; OL.byId={}; }   /* v1367 memory audit (Phil 11 Nov: "Check to make sure no mode slips through"): a live PvP match set OL.active and nothing ever cleared it - after one match the phone never released battle art again that session, and a host could not start a second match. Leaving battle/result ends it. */
   if(name!=='wall'){ try{ document.querySelectorAll('#wallBody video').forEach(v=>{ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(_){} v.remove(); }); }catch(e){} }   /* v1368 memory audit: the cauldron video leaves with its screen */
   if(name==='home'){ try{ setTimeout(townHudPlace,0); setTimeout(townHudPlace,400); }catch(e){} }
-  if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} },0);   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
+  if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} try{ releaseHiddenScreenImgs(); }catch(e){} },0);   /* v1371: and the hidden screens' images */   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
   /* v1365 (tester B 1.1, the phone crash after 30-40 min; Claude's diagnosis 11 Nov, section 3): on a phone the squad's sheets stayed loaded on the campaign
      map and every other menu between fights (Continue / Quit free only the foes) - ~1.16 GB of textures on a screen that draws no battle. On the phone art
      tier ANY screen that draws no battle now lets them all go, exactly as the hub does (the next fight reloads them from the device cache behind its
