@@ -129,7 +129,7 @@ try {
         await ctx.route(u => /\/play(\?|$)/.test(new URL(u).pathname + new URL(u).search.slice(0, 1)), r => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
         await ctx.route('**/version.json*', r => r.fulfill({ status: 200, contentType: 'application/json', body: ver })); }
       const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message)));
-      await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(2500);
+      await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForFunction(() => typeof startVersus === 'function' && typeof api === 'function' && typeof spawnGroundFx === 'function' && typeof show === 'function', null, { timeout: 120000 }); await pg.waitForTimeout(800);   /* 12 Nov: ready, not a fixed 2.5 s (the BASE control saw 0 badges on a loaded cluster) */
       await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await pg.waitForTimeout(1000);
       await pg.evaluate(async () => { const reg = await api('/api/register', 'POST', { name: 'dbf' + Date.now().toString(36), pass: 'password1' }); ACC.token = reg.token; ACC.id = reg.profile.id;
         G.tutStarted = true; G.tutDone = true; document.body.classList.remove('gated'); show('home'); });
@@ -143,7 +143,7 @@ try {
         units.forEach(u => { u.maxHp = u.hp = 1e7; if (u.team === 'ally') { u.dmg = 0; u.apow = 0; u.energy = u.maxEnergy || 100; } }); gameSpeed = 2; });   /* Vael's v1171 ownFx is a body painter, so test a still-shipped generic heal badge explicitly below. */
       const DEBUFF_GFX = ['grimsby_green', 'pyroclast_green', 'absalie_green', 'grimsby_ult'];
       let seen = [];
-      for (let i = 0; i < 120; i++) { await pg.waitForTimeout(250);
+      for (let i = 0; i < 360; i++) { await pg.waitForTimeout(250);   /* up to 90 s: stops as soon as 3 kinds are seen */
         await pg.evaluate(() => units.forEach(u => { u.hp = u.maxHp; }));
         seen = await pg.evaluate((D) => window.__gf.filter(g => D.includes(g.k) && g.tgt && g.tgt.team === 'ally').map(g => {
           const p = g.r.m.position; return { k: g.k, above: g.above, below: g.below, ro: g.r.m.renderOrder, cy: g.r.m.center ? +g.r.m.center.y.toFixed(2) : null, y: +p.y.toFixed(3),
