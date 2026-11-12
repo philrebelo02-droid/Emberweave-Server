@@ -8069,7 +8069,7 @@ const DEFAULT_G = {
   created:0,                       // account-creation timestamp
   wishGoldDay:'', wishGoldUsed:0, wishGoldLast:0,   // gold pool: free-wish daily count + last free time
   wishGemLast:0, wishGemDay:'', wishGemFirstDone:false,   // diamond pool: first-free marker + daily(09:00) free-wish key + first(rigged) wish done
-  wishClicks:0,                   // total wishing-pool taps (for the "toss a coin 3×" quest)
+  wishClicks:0, goldWishClicks:0,                   // total wishing-pool taps (for the "toss a coin 3×" quest)
 };
 const JOINABLE_GUILDS=[];   // no pre-made guilds exist yet — players create their own
 // world-map resources
@@ -31787,7 +31787,7 @@ function showWishResult(res,pool){ const ov=document.createElement('div');
   ov.querySelector('#_wishOk').onclick=_close;
   { const a=ov.querySelector('#_wishAgain'); if(a) a.onclick=()=>{ _close(); (pool==='myth'?wishMythDo:pool==='gem'?wishGemDo:wishGoldDo)(); }; }
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
-function finishWish(res,pool){ G.wishClicks=(G.wishClicks||0)+1; saveG(); updateHubChrome(); updateMailBadges(); showWishResult(res,pool); renderWishing(); }
+function finishWish(res,pool){ G.wishClicks=(G.wishClicks||0)+1; if(pool==='gold') G.goldWishClicks=(G.goldWishClicks||0)+1; saveG(); updateHubChrome(); updateMailBadges(); showWishResult(res,pool); renderWishing(); }
 function wishGlyphArt(q,fam,type,px){ try{ if(typeof g2art==='function'&&typeof RUNE2!=='undefined'&&RUNE2.cat&&q&&fam){ const s=g2slotOfFam(fam); if(s) return g2art(type,q,s,px); } }catch(e){} return ''; }
 function serverWishToRes(r){
   if(!r) return {icon:'❔',name:'…'};
@@ -31864,7 +31864,7 @@ function showWishResults10(list,pool){ const ov=document.createElement('div');
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
 async function wishGold10(){ const r=await serverWish('gold',10); if(!r) return;
   const out=r.results.map(serverWishToRes);
-  G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gold'); renderWishing(); }
+  G.wishClicks=(G.wishClicks||0)+10; G.goldWishClicks=(G.goldWishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gold'); renderWishing(); }
 async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G.wishGemFirstDone=true;
   const out=r.results.map(serverWishToRes);
   G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gem'); renderWishing(); }
@@ -32220,19 +32220,19 @@ const TUTORIAL_STEPS=[
   {id:'rune',  icon:'{i:a:glyph-frag}', get title(){ return ewT('tut.rune_title',{hero:'Vael'}); }, get desc(){ return ewT('tut.rune_desc',{hero:'Vael',glyph:'Stone Glyph',frag:'Rough Gravel',stage:'1-2'}); }, get rewardLabel(){ return '{i:h:gem} '+ewT('tut.r_bonus_gems',{n:30}); }, go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
   {id:'win13', icon:'{i:s:shield}', get title(){ return ewT('tut.win13_title'); }, get desc(){ return ewT('tut.win13_desc',{stage:'1-3'}); }, get rewardLabel(){ return _tutStdRw(210)+' · {i:a:glyph-frag} '+ewT('tut.r_glyph_frags',{n:1})+' · {i:u:hero} '+ewT('tut.r_hero_frags',{n:'2–4',hero:'Tick'}); }, go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
   {id:'quest13', icon:'{i:u:quest-scroll}', get title(){ return ewT('tut.quest13_title'); }, get desc(){ return ewT('tut.quest13_desc',{stage:'1-3',hero:'Vex'}); }, get rewardLabel(){ return '{i:u:star-filled} '+ewT('tut.r_hero_frags',{n:3,hero:'Vex'}); }, go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
-  {id:'wish',  icon:'{i:a:wish-gold}', get title(){ return ewT('tut.wish_title'); }, get desc(){ return ewT('tut.wish_desc'); }, get rewardLabel(){ return '{i:a:wish-gold} '+ewT('tut.r_gold_wish',{n:1}); }, go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
   {id:'win14', icon:'{i:u:map}', get title(){ return ewT('tut.win14_title'); }, get desc(){ return ewT('tut.win14_desc',{stage:'1-4'}); }, get rewardLabel(){ return _tutStdRw(240)+' · {i:a:glyph-frag} '+ewT('tut.r_glyph_frags',{n:2}); }, go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
   {id:'quest14', icon:'{i:u:hero}', get title(){ return ewT('tut.quest14_title'); }, get desc(){ return ewT('tut.quest14_desc',{stage:'1-4',hero:'Vex',n:10}); }, get rewardLabel(){ return '{i:u:hero} '+ewT('tut.r_summoned',{hero:'Vex'})+' · {i:u:res-xp-potion} '+ewT('tut.r_claim_potion',{n:1,potion:'Minor XP Potion'}); }, go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{xpPotion:'minor'}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
   {id:'vexxp', icon:'{i:u:res-xp-potion}', get title(){ return ewT('tut.vexxp_title',{hero:'Vex',potion:'Minor XP Potion'}); }, get desc(){ return ewT('tut.vexxp_desc',{hero:'Vex',potion:'Minor XP Potion',n:60}); }, get rewardLabel(){ return '{i:u:check} '+ewT('tut.r_leveled',{hero:'Vex',tier:'Minor'}); }, go:()=>{menuReturn='home';detailHero='vex';heroTab='stats';show('heroesPanel');setTimeout(renderHeroDetail,0);}, reward:{}, done:()=>((G.xpPotionUsed||{}).vexMinor|0)>(G.tutVexXpBase|0)},
   {id:'win15', icon:'{i:a:wish-diamond}', get title(){ return ewT('tut.win15_title'); }, get desc(){ return ewT('tut.win15_desc',{stage:'1-5'}); }, get rewardLabel(){ return _tutStdRw(270)+' · {i:a:glyph-frag} '+ewT('tut.r_glyph_frags',{n:2})+' · {i:a:wish-diamond} '+ewT('tut.r_free_diamond_wish'); }, go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
+  {id:'wish',  icon:'{i:a:wish-gold}', get title(){ return ewT('tut.wish_title'); }, get desc(){ return ewT('tut.wish_desc'); }, get rewardLabel(){ return '{i:a:wish-gold} '+ewT('tut.r_gold_wish',{n:1}); }, go:()=>show('wishing'), reward:{}, done:()=>((G.goldWishClicks||0)>0)},
   {id:'gemwish', icon:'{i:h:gem}', get title(){ return ewT('tut.gemwish_title'); }, get desc(){ return ewT('tut.gemwish_desc',{stars:'2{i:u:star-filled}'}); }, get rewardLabel(){ return '{i:u:hero} '+ewT('tut.r_guaranteed_hero',{stars:'2{i:u:star-filled}'})+' · {i:h:gem} '+ewT('tut.r_bonus_gems',{n:140}); }, go:()=>show('wishing'), reward:{gems:140}, done:()=>!!G.wishGemFirstDone},
 ];
 const TUTORIAL_GROUPS=[
   {stage:'1-1',ids:['win11','quest11','skill']},
   {stage:'1-2',ids:['win12','quest12','rune']},
-  {stage:'1-3',ids:['win13','quest13','wish']},
+  {stage:'1-3',ids:['win13','quest13']},   /* v1377 (Phil 12 Nov: "Wishing pool is a part that comes up after 1-5. It needs to first make you use gold wish, then after that diamonds wish" / "the tutorial needs to be adjusted to do gold before diamond wish"): the Gold Wish lesson moved from Stage 1-3 to Stage 1-5, right before the free Diamond Wish, and it needs a GOLD wish */
   {stage:'1-4',ids:['win14','quest14','vexxp']},
-  {stage:'1-5',ids:['win15','gemwish']}];
+  {stage:'1-5',ids:['win15','wish','gemwish']}];
 /* v267 (80/20 §9): Getting Started rewards are granted BY THE SERVER, once per step, from its own
    authored table (`/api/tutorial/claim`). Signed out, the local grant remains as the offline path. */
 function grantTutReward(r, stepId){

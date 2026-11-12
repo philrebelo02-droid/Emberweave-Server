@@ -35,9 +35,9 @@ function check(ok, what) { n++; if (!ok) { fail++; console.log('FAIL: ' + what);
     check(r.status === 409 && t.paid.gold + t.paid.gems + t.paid.stam === 0, s + ' paid a fresh account (status ' + r.status + ')');
   }
   // 3) a player who really did the lessons still gets every reward, once
-  t = account({ led: { camp: { cleared: 5 }, quests: { chainStep: 3 }, pool: { history: [{}], gemFirstDone: true }, skill: { vex: [2, 1, 1, 1] }, unlocked: { vex: true } },
+  t = account({ led: { camp: { cleared: 5 }, quests: { chainStep: 3 }, pool: { history: [{ pool: 'gold' }], gemFirstDone: true }, skill: { vex: [2, 1, 1, 1] }, unlocked: { vex: true } },
     glyphs: { boards: { vex: { slots: ['g1', null, null, null, null, null] } } } });
-  for (const s of ['win11', 'quest11', 'skill', 'win12', 'quest12', 'rune', 'win13', 'quest13', 'wish', 'win14', 'quest14', 'win15', 'gemwish']) {
+  for (const s of ['win11', 'quest11', 'skill', 'win12', 'quest12', 'rune', 'win13', 'quest13', 'win14', 'quest14', 'win15', 'wish', 'gemwish']) {   /* v1377 (Phil): the Gold Wish lesson is at 1-5, before the free Diamond Wish */
     const r = await t.claim(s); check(r.status === 200 && r.payload.ok, s + ' refused for a player who did it (' + r.status + ' ' + JSON.stringify(r.payload.error || '') + ')');
   }
   check(t.paid.gold === 1300 && t.paid.gems === 170, 'real player paid gold ' + t.paid.gold + ' gems ' + t.paid.gems + ' (want 1300 / 170)');

@@ -5269,8 +5269,8 @@ const TUTORIAL_REWARDS=Object.freeze({
   signin:{stam:60}, name:{gems:20} });
 const TUTORIAL_GROUPS=Object.freeze([
   Object.freeze(['win11','quest11','skill']), Object.freeze(['win12','quest12','rune']),
-  Object.freeze(['win13','quest13','wish']), Object.freeze(['win14','quest14','vexxp']),
-  Object.freeze(['win15','gemwish'])]);
+  Object.freeze(['win13','quest13']), Object.freeze(['win14','quest14','vexxp']),
+  Object.freeze(['win15','wish','gemwish'])]);   /* v1377 (Phil 12 Nov: "Wishing pool is a part that comes up after 1-5. It needs to first make you use gold wish, then after that diamonds wish" / "the tutorial needs to be adjusted to do gold before diamond wish"): the Gold Wish lesson moved from Stage 1-3 to Stage 1-5, right before the free Diamond Wish, and it needs a GOLD wish */
 /* 22 Oct 2026 (ChatGPT's overnight audit, verified by Claude): a claim was checked only against the earlier claims in its
    lesson, so POST win15 then gemwish paid 140 diamonds to a fresh account with nothing cleared. Each step now needs the
    same progress its client card waits for (TUTORIAL_STEPS done() in emberweave-heroes.html), read from the server's own
@@ -5281,7 +5281,7 @@ function tutorialStepMet(u,led,step){ const c=((led.camp||{}).cleared)|0, q=((le
   if(quest[step]) return q>=quest[step];
   if(step==='skill') return Object.values(led.skill||{}).some(a=>Array.isArray(a)&&a.some(v=>(v|0)>1));
   if(step==='rune') return Object.values(((u.glyphs||{}).boards)||{}).some(b=>b&&((b.ascensionIndex|0)>0||(b.slots||[]).some(Boolean)));
-  if(step==='wish') return Array.isArray(pool.history)&&pool.history.length>0;
+  if(step==='wish') return Array.isArray(pool.history)&&pool.history.some(h=>h&&h.pool==='gold');   /* v1377: a GOLD wish (Phil) */
   if(step==='quest14') return !!(led.unlocked&&led.unlocked.vex);
   if(step==='vexxp') return true;   // the route's own potion check below decides it
   if(step==='gemwish') return !!pool.gemFirstDone;
