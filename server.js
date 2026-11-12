@@ -1178,6 +1178,105 @@ function nextJoinRank(){ const occ=new Set(); for(const id in DB.users){ const u
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
+/* v1376 BULLETIN BOARD RANKINGS (Phil 12 Nov: "Bulletin is good"; "Players or 'guilds' for skyfall or guild raid"; "The rankings should
+   show top 25, then show a back or Beck button on the bottom to open next 25 going until 100 max"). GET /api/rankings?board=<id> answers
+   the top 100 of one board plus the caller's own place. Every number is read from what the server already keeps - nothing is invented:
+     campaign   led.camp.cleared (Normal), then led.portals.elite/veteran.cleared      vault   DB.dungeonProgress[id].highestClearedFloor
+     arena      the arena ladder (u.rank, bots included, as /api/arena/ladder)          spire   led.tower.floor (server-owned /api/tower/*)
+     bonus      led.bonus.done (distinct bonus stages cleared)                          power   top five cardPower() of the heroes owned
+     journal    milestones reached on the Journal tracks the server can verify (BB_JOURNAL_TRACKS, the client's BB_TRACKS thresholds)
+     guildraid  g.raid.kills (bosses felled), then the damage on the boss now standing (sum of g.raid.contrib)
+     skyfall    Skyfall results kept forever (DB.tournaments.history + the current bracket): titles, then match wins, then citadels felled
+     guilds     g.level, then member count
+     emberdraft NO lasting record - led.edraft is today's attempts only and the place claims live in the 300-entry ledger log - so it
+                answers an empty board with a reason.
+   Player boards leave out NPC bots (except Arena, whose ladder is bots + players), banned accounts, accounts pending deletion and accounts
+   that never built a ledger. Each board is built at most once a minute (BB_RANK_TTL), in slices that hand the event loop back every few ms. */
+const BB_RANK_TTL=60000, BB_RANK_TOP=100, BB_RANK_SLICE_MS=8;
+const BB_RANK_GUILD=new Set(['guildraid','skyfall','guilds']);
+const BB_RANK_BOARDS=['campaign','vault','arena','emberdraft','guildraid','skyfall','spire','bonus','power','guilds','journal'];
+/* the Journal tracks the server can check from its own records, with the client's BB_TRACKS thresholds (tests/test_hunt_bulletin_rankings.js
+   keeps the two in step). The other tracks (Training and Drill, Emberdraft, Arena, Guild Raid, Skyfall, World Map, Academy, Forge, Temple of
+   Ash, Witches Hut, Wishing Pool) have no lasting per-player count on the server and are not counted. */
+const BB_JOURNAL_TRACKS=[
+  ['Commander level',[20,35,50,65,80,100]], ['Heroes to Purple',[5,10,20]], ['Five-star heroes',[5,10,20]],
+  ['Normal Campaign',[4,8,12,16]], ['Elite Campaign',[4,8,12,16]], ['Veteran Campaign',[4,8,12,16]],
+  ['Aether Vault',[20,40,60,80,100]], ['Campaign Bonus Stages',[1,3,5,10]], ['Starless Well Normal',[1,3,5]], ['Starless Well Hard',[1,3,5]] ];
+const _bbRank={};   // board -> { t, rows:[...top 100], all:[{id,s,name}] sorted, building:Promise }
+function bbRankPlayerOk(u){ return !!(u && !u.isNpc && !u.delReq && !isBanned(u) && u.led && u.led.migratedAt); }
+function bbRankGuildOk(g){ return !!(g && g.id && (g.members||[]).length>0); }
+/* the same number as cardPower(), but a board build does not park every hero of every account in CARD_POWER_CACHE (it would never be pruned) */
+function bbCardPower(u,k){ const hit=CARD_POWER_CACHE.get(String(u.id)+'|'+k); if(hit&&(Date.now()-hit.t)<CARD_POWER_TTL_MS) return hit.v; try{ return heroCardPower(u,k); }catch(e){ return hit?hit.v:0; } }
+function bbOwnedKeys(led){ return Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)); }
+function bbJournalCounts(u){ const led=u.led, owned=bbOwnedKeys(led), boards=(u.glyphs&&u.glyphs.boards)||{}, dp=(DB.dungeonProgress||{})[u.id]||null;
+  const portals=led.portals||{}, w2=(led.well2&&led.well2.cleared)||{}, bonus=(led.bonus&&led.bonus.done)||{};
+  return { 'Commander level':ledPlayerLevel(led),
+    'Heroes to Purple':owned.filter(k=>((boards[k]&&boards[k].ascensionIndex)|0)>=6).length,   /* = the client's heroQuality()>=3 (G2_TIER16, ascension index 6+) */
+    'Five-star heroes':owned.filter(k=>((led.hero[k]&&led.hero[k].stars)|0)>=5).length,
+    'Normal Campaign':Math.floor(((led.camp&&led.camp.cleared)|0)/10),
+    'Elite Campaign':Math.floor(((portals.elite&&portals.elite.cleared)|0)/10),
+    'Veteran Campaign':Math.floor(((portals.veteran&&portals.veteran.cleared)|0)/10),
+    'Aether Vault':dp?(dp.vaultStatus==='complete'?100:(dp.highestClearedFloor|0)):0,
+    'Campaign Bonus Stages':Object.keys(bonus).filter(k=>bonus[k]).length,
+    'Starless Well Normal':w2.normal|0, 'Starless Well Hard':w2.hard|0 }; }
+function bbJournalEarned(u){ const c=bbJournalCounts(u); let n=0; for(const [name,th] of BB_JOURNAL_TRACKS) for(const x of th) if((c[name]|0)>=x) n++; return n; }
+const BB_JOURNAL_TOTAL=BB_JOURNAL_TRACKS.reduce((s,r)=>s+r[1].length,0);
+/* one player's (or guild's) entry: {s: sort score, ...display fields}; null = not on this board */
+function bbRankEntry(board,x){
+  if(board==='campaign'){ const led=x.led, n=(led.camp&&led.camp.cleared)|0, P=led.portals||{}, e=(P.elite&&P.elite.cleared)|0, v=(P.veteran&&P.veteran.cleared)|0;
+    return n>0?{ s:n*1e6+e*1e3+v, value:n, elite:e, veteran:v }:null; }
+  if(board==='vault'){ const dp=(DB.dungeonProgress||{})[x.id], f=dp?(dp.highestClearedFloor|0):0; return f>0?{ s:f*10+(dp.vaultStatus==='complete'?1:0), value:f }:null; }
+  if(board==='spire'){ const tw=x.led.tower, f=(tw&&typeof tw==='object')?(tw.floor|0):0; return f>0?{ s:f, value:f }:null; }
+  if(board==='bonus'){ const d=(x.led.bonus&&x.led.bonus.done)||{}, n=Object.keys(d).filter(k=>d[k]).length; return n>0?{ s:n, value:n }:null; }
+  if(board==='power'){ const ps=bbOwnedKeys(x.led).map(k=>bbCardPower(x,k)).sort((a,b)=>b-a); let p=0; for(const v of ps.slice(0,5)) p+=v; p=Math.round(p); return p>0?{ s:p, value:p }:null; }
+  if(board==='journal'){ const n=bbJournalEarned(x); return n>0?{ s:n, value:n, of:BB_JOURNAL_TOTAL }:null; }
+  if(board==='guilds') return { s:(x.level||1)*1e4+(x.members||[]).length, value:x.level||1, level:x.level||1, count:(x.members||[]).length, cap:gCapOf(x) };
+  if(board==='guildraid'){ const r=x.raid; if(!r) return null; const k=r.kills|0, d=Math.round(Object.values(r.contrib||{}).reduce((a,b)=>a+(+b||0),0));
+    return (k>0||d>0)?{ s:k*1e13+d, value:k, dmg:d, level:x.level||1 }:null; }
+  if(board==='skyfall'){ const w=bbSkyfallTally()[x.id]; return (w&&(w.titles||w.wins||w.towers))?{ s:w.titles*1e9+w.wins*1e5+w.towers, value:w.wins, titles:w.titles, towers:w.towers, level:x.level||1 }:null; }
+  return null; }
+function gCapOf(g){ return Math.min(60, 30+((g.level||1)-1)*5); }   /* = the guild routes' gCap (GBASE 30, GPER 5, GMAXCAP 60) */
+/* Skyfall: every finished tournament's result (kept forever, v800) plus the matches already decided in the current bracket */
+let _bbSky=null;
+function bbSkyfallTally(){ if(_bbSky&&Date.now()-_bbSky.t<1000) return _bbSky.v; const v={}, T=DB.tournaments||{};
+  const add=(g,f,n)=>{ if(!g) return; const o=v[g]||(v[g]={titles:0,wins:0,towers:0}); o[f]+=n; };
+  for(const k of Object.keys(T.history||{})){ const h=T.history[k]; if(!h) continue; add(h.championGuildId,'titles',1);
+    for(const rd of (h.rounds||[])) for(const m of (rd.matches||[])){ if(!m) continue; add(m.winnerGuildId,'wins',1);
+      if(m.towers&&m.a&&m.b){ add(m.a.guildId,'towers',m.towers.a|0); add(m.b.guildId,'towers',m.towers.b|0); } } }
+  const c=T.current; if(c&&c.state==='finished'&&!(T.history||{})[c.weekKey]) add(c.championGuildId,'titles',1);
+  if(c&&c.matches&&!(T.history||{})[c.weekKey]) for(const mid of Object.keys(c.matches)){ const m=c.matches[mid]; if(m&&m.winnerGuildId) add(m.winnerGuildId,'wins',1); }
+  _bbSky={t:Date.now(),v}; return v; }
+const bbYield=()=>new Promise(r=>setImmediate(r));
+async function bbRankBuild(board){
+  const t0=Date.now(); let slice=Date.now(); const all=[];
+  if(board==='arena'){ const us=allUsersByRank();
+    for(let i=0;i<us.length&&all.length<BB_RANK_TOP;i++){ const u=us[i]; if(!u||u.delReq) continue;
+      all.push({ id:u.id, name:u.name, s:-(u.rank|0), value:serverTeamPower(u.team,u), rank:u.rank|0, npc:!!u.isNpc }); }
+  } else { const guild=BB_RANK_GUILD.has(board), src=guild?Object.values(DB.guilds||{}):Object.values(DB.users||{});
+    for(let i=0;i<src.length;i++){ const x=src[i];
+      if(guild?bbRankGuildOk(x):bbRankPlayerOk(x)){ let e=null; try{ e=bbRankEntry(board,x); }catch(err){ e=null; }
+        if(e){ e.id=x.id; e.name=String(x.name||''); all.push(e); } }
+      if((i&63)===63 && Date.now()-slice>=BB_RANK_SLICE_MS){ await bbYield(); slice=Date.now(); } }
+    all.sort((a,b)=>(b.s-a.s)||(a.name<b.name?-1:a.name>b.name?1:0)); }
+  const rows=all.slice(0,BB_RANK_TOP).map((e,i)=>{ const o=Object.assign({},e); o.rank=board==='arena'?e.rank:i+1; delete o.s; delete o.id; return o; });
+  return { t:Date.now(), ms:Date.now()-t0, rows, all };
+}
+async function bbRankGet(board){ const c=_bbRank[board];
+  if(c&&c.data&&Date.now()-c.data.t<BB_RANK_TTL) return c.data;
+  if(c&&c.building) return c.building;
+  const slot=_bbRank[board]||(_bbRank[board]={});
+  slot.building=bbRankBuild(board).then(d=>{ slot.data=d; slot.building=null; return d; },e=>{ slot.building=null; throw e; });
+  return slot.building; }
+/* the caller's own place: their entry now (live), ranked against the cached board */
+function bbRankMe(board,data,me){
+  if(board==='arena') return { rank:me.rank|0, value:serverTeamPower(me.team,me) };
+  const guild=BB_RANK_GUILD.has(board), x=guild?(me.guildId&&(DB.guilds||{})[me.guildId]):me;
+  if(!x||!(guild?bbRankGuildOk(x):bbRankPlayerOk(x))) return null;
+  if(guild&&!(x.members||[]).includes(me.id)) return null;
+  let e=null; try{ e=bbRankEntry(board,x); }catch(err){ e=null; } if(!e) return null;
+  const nm=String(x.name||''); let ahead=0;
+  for(const o of data.all){ if(o.id===x.id) continue; if(o.s>e.s||(o.s===e.s&&o.name<nm)) ahead++; }
+  const out=Object.assign({},e); delete out.s; out.rank=ahead+1; out.name=nm; return out; }
 /* v272 (full-game audit): the account's REAL power, derived from the ledger alone. `me.team` is a
    client-authored array — /api/save takes it verbatim — so anything that PAYS OUT must never read a
    level or rank out of it. This reads the roster keys only, and takes every stat from the ledger. */
@@ -10406,6 +10505,13 @@ async function api(req,res,url){
       return send(res,200,{ entries:hits, total, youIndex, youRank:me.rank, search:true }); }
     const entries=all.slice(offset,offset+limit).map((u,i)=>({ pos:offset+i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }));
     return send(res,200,{ entries, total, youIndex, youRank:me.rank, offset, limit }); }
+  if(p==='/api/rankings'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'rankings:'+me.id,90,60000)) return send(res,429,{error:'Slow down.'});   /* v1376: the Bulletin Board (BB_RANK_* above) */
+    const board=String(url.searchParams.get('board')||'').toLowerCase();
+    if(!BB_RANK_BOARDS.includes(board)) return send(res,400,{error:'Unknown board.'});
+    const guild=BB_RANK_GUILD.has(board);
+    if(board==='emberdraft') return send(res,200,{ ok:true, board, guild, rows:[], me:null, reason:'no-record', note:'Emberdraft keeps no lasting record of first places yet.' });
+    let data; try{ data=await bbRankGet(board); }catch(e){ return send(res,503,{error:'Rankings are busy - try again.'}); }
+    return send(res,200,{ ok:true, board, guild, rows:data.rows, me:bbRankMe(board,data,me), builtAt:data.t, buildMs:data.ms, ttl:BB_RANK_TTL, ...(board==='journal'?{of:BB_JOURNAL_TOTAL}:{}) }); }
 
   /* v986 (4 Oct City Wall audit #3, P0): /api/daily is RETIRED - no client calls it, and it paid 60-1,000 arena coins, 12 glyph
      fragments and 3 gear fragments every 20 hours to any account (no requestId, rolling clock, delayed save). */
