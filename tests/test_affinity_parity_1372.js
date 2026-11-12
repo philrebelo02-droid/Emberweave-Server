@@ -81,7 +81,7 @@ const CL = JSON.parse(run(`(()=>{ window._p2guard=true; state='battle'; battleTi
   /* (the client's damage() also gives the struck unit energy for the hit; the core has no such gain - so the edge is read as the difference from the same hit by a Bruiser) */
   fresh(); { const Mg=mk('vael','enemy',{role:'Mage'}), M=mk('vael','ally',{role:'Marksman'}), Br=mk('vael','ally',{role:'Bruiser'}); Mg.energy=50; hit(M,Mg,100,'phys'); const e1=Mg.energy; Mg.energy=50; hit(Br,Mg,100,'phys'); out.int=[e1,Mg.energy]; }
   /* Hex: a magic skill hit; a magic basic attack; a physical skill hit */
-  fresh(); { const B=mk('vael','enemy',{role:'Bruiser'}), Mg=mk('vael','ally',{role:'Mage'}); battleTime=5; hit(Mg,B,100,'magic'); const d1=(B._hexUntil||0)-battleTime, sl=B.slow||0;
+  fresh(); { const B=mk('vael','enemy',{role:'Bruiser'}), Mg=mk('vael','ally',{role:'Mage'}); battleTime=5; hit(Mg,B,100,'magic'); const d1=(B._hexUntil||0)-battleTime, sl=((B._hexUntil||0)>battleTime&&EDGE.hexMove===0.8)?1:0;   /* v1376 (Phil: "Change the movement speed to 20%"): Hex has its own 20% move slow, not the generic slow */
     const B2=mk('vael','enemy',{role:'Bruiser'}); _autoAtk=1; hit(Mg,B2,100,'magic'); const d2=(B2._hexUntil||0);
     const B3=mk('vael','enemy',{role:'Bruiser'}); _autoAtk=0; hit(Mg,B3,100,'phys'); const d3=(B3._hexUntil||0); out.hex=[+d1.toFixed(6),sl>0?1:0,d2,d3]; }
   /* Riposte: the Assassin hits at t=0 (back), t=1 (cooldown), t=3 (back), and once more while the Bruiser is stunned */

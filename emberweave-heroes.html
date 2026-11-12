@@ -13085,7 +13085,7 @@ const AFF_TIPS={
   Support:['Sundering grace','Beats Tank: its damage ignores 50% of a Tank\'s armour and magic resist, and allies attacking a Tank receive 20% more healing.'],
   Tank:['Shield wall','Beats Marksman: blocks 25% of a Marksman\'s attacks, and its taunt holds a Marksman 1 second longer.'],
   Marksman:['Interrupt','Beats Mage: every hit drains 10 energy from a Mage, delaying its ultimate.'],
-  Mage:['Hex','Beats Bruiser: its spells make a Bruiser attack 30% slower and move 45% slower for 2 seconds.'],
+  Mage:['Hex','Beats Bruiser: its spells make a Bruiser attack 30% slower and move 20% slower for 2 seconds.'],
   Bruiser:['Riposte','Beats Assassin: strikes back at once for 100% of its Attack when an Assassin hits it (once every 3 seconds).'],
   Assassin:['Silence the healer','Beats Support: its hits cut a Support\'s healing by 40% for 4 seconds and deal double damage to its shields.'],
   Water:['Water','Deals 20% more damage to Fire. Lightning beats it: Water deals 20% less to Lightning.'],
@@ -13156,7 +13156,7 @@ function affElemImg(e){ return `<i class="afbI afbE"><img src="${ICON_SRC.u(AFB_
 function affBadgesHTML(key,cls){ const c=affClassOf(key), e=affElemOf(key);
   return `<span class="afbW${cls?' '+cls:''}" data-afb-class="${c}" data-afb-elem="${e}">${affClassImg(c)}${affElemImg(e)}</span>`; }
 function classEdge(src,tgt){ if(!AFFINITIES_LIVE||!src||!tgt||src===tgt||src.team===tgt.team) return ''; const a=unitClass(src); return (a&&CLASS_BEATS[a]===unitClass(tgt))?a:''; }
-const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10, hexDur:2, hexAtk:1.3, riposteCd:3, healCut:0.40, healCutDur:4 };
+const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10, hexDur:2, hexAtk:1.3, hexMove:0.80, riposteCd:3, healCut:0.40, healCutDur:4 };
 function edgeTauntPlus(taunter,victim){ return AFFINITIES_LIVE&&(unitClass(taunter)==='Tank'&&unitClass(victim)==='Marksman')?EDGE.tauntPlus:0; }
 function dealDamage(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
   if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); return; }   /* Shield wall: the Tank is the one being shot */
@@ -13259,7 +13259,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _aut
   const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit);
   if(_edge&&tgt.alive&&src&&src.alive!==false){ try{   /* v1367 class edges that act after the hit */
     if(_edge==='Marksman'&&unitClass(tgt)==='Mage'){ tgt.energy=Math.max(0,(tgt.energy||0)-EDGE.drain); }
-    else if(_edge==='Mage'&&kind!=='phys'&&!_isAuto){ tgt._hexUntil=battleTime+EDGE.hexDur; try{ ccApply(src,tgt,'slow',EDGE.hexDur); }catch(_c){ tgt.slow=Math.max(tgt.slow||0,EDGE.hexDur); } }   /* through ccApply: CC_NERF / CC_DUR_MAX like every other control */
+    else if(_edge==='Mage'&&kind!=='phys'&&!_isAuto){ tgt._hexUntil=battleTime+EDGE.hexDur; }   /* v1376 (Phil 12 Nov: "Change the movement speed to 20%"): Hex slows movement 20% (EDGE.hexMove) on its own timer, not the generic 45% slow */   /* through ccApply: CC_NERF / CC_DUR_MAX like every other control */
     else if(_edge==='Assassin'){ tgt._healCutUntil=battleTime+EDGE.healCutDur; }
   }catch(_e){} }
  const _hpLost=Math.max(0,_hpBefore-tgt.hp); if(_isAuto&&(tgt._digHealT||0)>0&&tgt.alive&&src&&src.team!==tgt.team) healUnit(tgt,tgt.maxHp*(tgt._digHealPct||0));   /* v1308 Dig In: 1% max HP per enemy basic attack that lands */ 
@@ -16920,7 +16920,7 @@ function think(u,dt){
        (the nearest enemy when that unit is gone) at its own move speed for the whole fear, then comes back to fight. It still cannot attack or cast. */
     if(!u.immovable){ const _ff=(u._fearFrom&&u._fearFrom.alive)?u._fearFrom:nearestEnemy(u);
       if(_ff){ let _dx=u.x-_ff.x, _dy=u.y-_ff.y, _d=Math.hypot(_dx,_dy); if(_d<1){ _dx=(u.team==='ally')?-1:1; _dy=0; _d=1; }
-        const _mv=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*MOVE_MUL*dt;
+        const _mv=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*(((u._hexUntil||0)>battleTime)?EDGE.hexMove:1)*MOVE_MUL*dt;
         u.x=Math.max(60,Math.min(940,u.x+_dx/_d*_mv)); u.y=Math.max(80,Math.min(1340,u.y+_dy/_d*_mv)); u._walkT=0.25; if(Math.abs(_dx)>0.5) u._faceDir=_dx>0?1:-1; } }
     return; }   // (was: feared units held ground)
   /* v527 - timers for the rewired pack kits. All render/combat state, all decayed in ONE place
@@ -17004,7 +17004,7 @@ function think(u,dt){
   /* v790 (Phil: "and slow speed for slows") - the slow's STRENGTH comes from the skill that cast
      it, not a constant. This was 0.55 for every slow in the game from every hero at every level. */
   if(u.slow>0)u.slow-=dt; else if(u.slowMul!=null) u.slowMul=null;
-  const spd=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*MOVE_MUL*(((u._chaseT||0)>0)?(u._chaseMul||1):1);   // v309: +20% travel to match the stride; v1044 KonWu's chase after Phantom Step
+  const spd=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*(((u._hexUntil||0)>battleTime)?EDGE.hexMove:1)*MOVE_MUL*(((u._chaseT||0)>0)?(u._chaseMul||1):1);   // v309: +20% travel to match the stride; v1044 KonWu's chase after Phantom Step
   /* v542 (Phil, 9 Sep): "while a heroes ult animation is going on, they cannot use other animations including walk
      — unless CC'd then it breaks animation — since they cannot walk animation it also means they cannot move
      physically". The ULT CLIP ROOTS THE HERO: no step, no swing, no skill until the clip has played out (the lock

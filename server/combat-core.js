@@ -148,7 +148,7 @@ const AFF_ELEMENT={"konwu":"Neutral","grosk":"Water","vulmar":"Neutral","tick":"
 const ELEM_BEATS={Water:'Fire',Fire:'Ice',Ice:'Nature',Nature:'Lightning',Lightning:'Water'};
 const ELEM_BONUS=0.20;
 const CLASS_BEATS={Support:'Tank',Tank:'Marksman',Marksman:'Mage',Mage:'Bruiser',Bruiser:'Assassin',Assassin:'Support'};
-const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10, hexDur:2, hexAtk:1.3, riposteCd:3, healCut:0.40, healCutDur:4 };
+const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10, hexDur:2, hexAtk:1.3, hexMove:0.80, riposteCd:3, healCut:0.40, healCutDur:4 };
 /* the core never damages its own side (applyDamage is always foe -> foe), so the client's team test is src!==tgt here; a `side` tag wins when present */
 const _sameSide=(s,t)=>s===t||(s.side!=null&&s.side===t.side);
 function unitElement(u){ if(!u) return 'Neutral'; if(u.key==='aureth') return u._darkStance?'Dark':'Light'; return u.element||AFF_ELEMENT[u.key]||'Neutral'; }
