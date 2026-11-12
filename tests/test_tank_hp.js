@@ -22,17 +22,20 @@ const hp=async(k,tok)=>{ const s=await call('/api/admin/snapshot?hero='+k,null,t
   await call('/api/admin/led-grant',{heroKeys:keys,unlock:keys,stars:5,maxGlyphs:true,px:99000000,heroXp:99000000},tok);
   // the live situation: a melee tank's Orange board banked under the old (Bastion) path, migration marker absent
   await delay(500); await stop(); const db=JSON.parse(fs.readFileSync(dbFile,'utf8')); const g=db.users[id].glyphs;
-  g.boards.grosk.ascended.HP={val:120156,pct:false}; delete g.tankPath1019; fs.writeFileSync(dbFile,JSON.stringify(db)); await start(id);
+  g.boards.grosk.ascended.HP={val:120156,pct:false};
+  /* v1370 star track (Phil 11 Nov: stars are FLAT, no multiplier): "at max" is now 5 stars + the full star track (step 16, mythical done:
+     +6000 HP from stars). At plain 5 stars a melee tank reads ~16.4k, a magic tank ~14k. */
+  for(const k of keys) db.users[id].led.hero[k].ref=16; delete g.tankPath1019; fs.writeFileSync(dbFile,JSON.stringify(db)); await start(id);
   tok=(await call('/api/login',{name:'tankhp',pass:'password1'})).token;
   const after=JSON.parse(fs.readFileSync(dbFile,'utf8')).users[id].glyphs.boards.grosk.ascended.HP.val;
   ok(after<20000,'a board banked under the old Bastion path is recomputed at boot (HP banked '+after+')');
   const H={}; for(const k of keys) H[k]=await hp(k,tok);
   ok(H.grosk>=21000&&H.grosk<=23000&&H.vael>=21000&&H.vael<=23000,'melee tanks are about 22k at max (grosk '+H.grosk+', vael '+H.vael+')');
   ok(H.bloatus>=17000&&H.bloatus<=19000&&H.ambrel>=17000&&H.ambrel<=19000,'magic tanks are about 18k at max (bloatus '+H.bloatus+', ambrel '+H.ambrel+')');
-  // v1022 balance layer 1 (Phil "Balance looks good") raised the squishies' HP growth on purpose: the other classes now sit at their
-  // v1022 values (astra 11517, grimsby 13940, yenna 11619, lumi 11552). The check still catches any change not made on purpose: +-5%.
+  // v1022 balance layer 1 (Phil "Balance looks good") raised the squishies' HP growth on purpose; v1370 (flat star track, full mythical) re-measured
+  // the other classes at max: astra 15306, grimsby 16587, yenna 15349, lumi 15314 (were 11517 / 13940 / 11619 / 11552 at 5 stars x1.9). +-5%.
   const near=(v,x)=>v>=x*0.95&&v<=x*1.05;
-  ok(near(H.astra,11517)&&near(H.grimsby,13940)&&near(H.yenna,11619)&&near(H.lumi,11552),'other classes hold their v1022 HP ('+JSON.stringify({astra:H.astra,grimsby:H.grimsby,yenna:H.yenna,lumi:H.lumi})+')');
+  ok(near(H.astra,15306)&&near(H.grimsby,16587)&&near(H.yenna,15349)&&near(H.lumi,15314),'other classes hold their v1370 HP at max ('+JSON.stringify({astra:H.astra,grimsby:H.grimsby,yenna:H.yenna,lumi:H.lumi})+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_tank_hp.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

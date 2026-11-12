@@ -83,8 +83,8 @@ for (const L of [30, 60]) { const bad = sweep(S, L);
     'client owned-hero helpers at 60 = server acadCombat (AP ' + cl.ap + ', Armor ' + cl.ar + ', MR ' + cl.mr + ', crit ' + (cl.m.crit * 100).toFixed(2) + ' points of 100)'); }
 { // the server snapshot sends what specFrom assumes
   const snap = srv.slice(srv.indexOf('ex:{ techCrit:AC?AC.critRating:0'), srv.indexOf('skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses'));
-  ok(/techCritRes:AC\?AC\.critResRating:0/.test(snap) && /fApow:tt\.apow\+\(\(AC&&\(\(\(SIM\.HERO_BASE\[key\]\|\|\{\}\)\.apow\|\|0\)>0\|\|ledHeroLevel\(led,key\)>1\)\)\?AC\.apFlat:0\)/.test(snap)
-    && /techArmor:AC\?AC\.armorRating:0, techMr:AC\?AC\.mrRating:0/.test(snap) && /apMul:1,/.test(snap),
+  ok(/techCritRes:AC\?AC\.critResRating:0/.test(snap) && /fApow:tt\.apow\+(\(\(\(\(SIM\.HERO_BASE\[key\]\|\|\{\}\)\.apow\|\|0\)>0\|\|ledHeroLevel\(led,key\)>1\)\?SF\.apow:0\)\+)?\(\(AC&&\(\(\(SIM\.HERO_BASE\[key\]\|\|\{\}\)\.apow\|\|0\)>0\|\|ledHeroLevel\(led,key\)>1\)\)\?AC\.apFlat:0\)/.test(snap)
+    && /techArmor:\(?AC\?AC\.armorRating:0\)?(\+SF\.armor)?, techMr:\(?AC\?AC\.mrRating:0\)?(\+SF\.mr)?/.test(snap) && /apMul:1,/.test(snap),   /* v1370: + the star track's flat Armor / MR (SF) beside Academy's */
     'snapshotHeroFromServer sends crit ratings, the AP flat (ability heroes), Armor / MR ratings and apMul 1');
   ok(!/critFrac|dmgRedFrac|apMul:AC/.test(srv), 'no server path still sends an Academy fraction or multiplier'); }
 { // control: one side drifts -> the sweep fails

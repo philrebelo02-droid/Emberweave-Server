@@ -90,7 +90,7 @@ function checks(src) {
   const snap = host.snapFromSpecs([spec])[0];
   add('client unit from the server spec: healPowMul x1.10 and shieldStrMul x1.10, and the resolved snapshot keeps both', near(cu.h, 1.1) && near(cu.s, 1.1) && near(snap.healPowMul || 1, 1.1) && near(snap.shieldStrMul, 1.1), JSON.stringify(cu) + ' snap ' + snap.healPowMul + '/' + snap.shieldStrMul);
   const snapSrc = src.srv.slice(src.srv.indexOf('ex:{ techCrit:AC?AC.critRating:0'), src.srv.indexOf('skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses'));
-  add('snapshotHeroFromServer sends techHeal in ex (healPow) and on the spec (shieldStr)', /techHeal:AC\?\(AC\.healRating\|\|0\):0,/.test(snapSrc) && /techMr:AC\?AC\.mrRating:0, techHeal:AC\?\(AC\.healRating\|\|0\):0/.test(snapSrc), '');
+  add('snapshotHeroFromServer sends techHeal in ex (healPow) and on the spec (shieldStr)', /techHeal:AC\?\(AC\.healRating\|\|0\):0,/.test(snapSrc) && /techMr:\(?AC\?AC\.mrRating:0\)?(\+SF\.mr)?, techHeal:AC\?\(AC\.healRating\|\|0\):0/.test(snapSrc), '');   /* v1370: the star track adds its flat MR (+SF.mr) beside Academy MR on the spec; techHeal is unchanged */
   run('G.tech=' + JSON.stringify(lv(60, 'heal').lv));
   const ch = JSON.parse(run('JSON.stringify({m:mulsFromTotals({},{techHeal:techFlat("heal")}).healPow, ar:techArmorFlat(), mr:techMrFlat()})'));
   add('client owned-hero helpers: heal 60 -> healPow 0.10; an old G.tech.def 60 adds no Armor / MR', near(ch.m, 0.1) && ch.ar === 0 && ch.mr === 0, JSON.stringify(ch));

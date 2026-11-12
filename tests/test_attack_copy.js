@@ -92,6 +92,10 @@ function brokenTree(name, intact) {
   for (const f of ['server.js', ...fs.readdirSync(path.join(R.root, 'server')).filter(n => /\.js$/.test(n)).map(n => 'server/' + n)]) fs.copyFileSync(path.join(R.root, f), path.join(dir, f));   // this tree's code, whatever is committed (v1128: every server module - store-io.js is new)
   fs.symlinkSync(path.join(R.root, 'assets'), path.join(dir, 'assets'), 'junction');
   { const g = path.join(dir, 'emberweave-heroes.html'); fs.writeFileSync(g, require('./helpers/global-1254-1260.js').undoText(fs.readFileSync(path.join(R.root, 'emberweave-heroes.html'), 'utf8'))); }
+  { /* v1370 (Phil 11 Nov, approved): stars are flat stats, not a multiplier - the old star rule is put back in this copy (page, sim, spec) so the
+       fights still compare with 59eaefba; tests/test_refine_mythical_1369.js checks the star track itself */
+    const U = require('./helpers/star-track-undo-1370.js'), ed = (f, fn) => { const p = path.join(dir, f); fs.writeFileSync(p, fn(fs.readFileSync(p, 'utf8'))); };
+    ed('emberweave-heroes.html', U.undoPage); ed('server/sim.js', U.undoSim); ed('server.js', U.undoServer); }
   { /* v1289 (Phil 5 Nov: "Yenna, sorrel, gruel" -> 1 star): their stars also live in the server copy - undone like the page, so the
        fights still compare with 59eaefba */
     const undoStars = (f, re) => { const p = path.join(dir, f); if (!fs.existsSync(p)) return; let s = fs.readFileSync(p, 'utf8'); for (const k of ['gruel', 'sorrel', 'yenna']) s = s.replace(re(k), m => m.replace(/(stars"?:\s*)1/, '$12')); fs.writeFileSync(p, s); };

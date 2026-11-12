@@ -25,7 +25,7 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
   child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',REG_PER_MIN:'500',REG_ACCOUNTS_PER_IP:'500',PORT:String(port),DB_FILE:path.join(temp,'db.json')},stdio:'ignore',windowsHide:true});
   let ready=false; for(let i=0;i<200;i++){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}
   assert(ready,'throwaway server did not start');
-  try{browser=await chromium.launch({args:['--mute-audio']});}catch(_){browser=await chromium.launch({channel:'chrome',args:['--mute-audio']});}
+  try{browser=await chromium.launch({args:['--disable-audio-output'],ignoreDefaultArgs:['--mute-audio']});}catch(_){browser=await chromium.launch({channel:'chrome',args:['--disable-audio-output'],ignoreDefaultArgs:['--mute-audio']});}   /* never --mute-audio: it silenced Phil's own Chrome (9 Nov) */
   console.log('fold sweep (v1200) root='+root);
   const open=async(tag,hangWorld,routes)=>{
     const deviceId='fold-sweep-'+tag+'-'+Date.now();
@@ -124,9 +124,10 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
       await page.locator('#smBattle').click(); await page.waitForTimeout(600);
       await page.evaluate(()=>{ const s=document.getElementById('startBtn'); if(s) s.click(); });
       for(let i=0;i<160;i++){ if(await page.evaluate(()=>state==='battle'&&units.length>0)) break; await page.waitForTimeout(250); }
-      /* two allies start the fight at 12% health (display test only - the result is not what this checks): under 30% their death sheet
-         loads, the enemy finishes them, and each death clip plays to its end (6 s) */
-      await page.evaluate(()=>{ units.filter(u=>u.team==='ally'&&!u.summoned).slice(0,2).forEach(u=>{ u.hp=Math.max(1,Math.round(u.maxHp*0.12)); }); });
+      /* two allies start the fight at 4% health (display test only - the result is not what this checks): under 30% their death sheet
+         loads, the enemy finishes them, and each death clip plays to its end (6 s). v1370: was 12% - the flat star stats (+240 HP a star)
+         made 12% of a level-1 hero more than stage 1-1's enemies take off before the wave ends, so nobody died */
+      await page.evaluate(()=>{ units.filter(u=>u.team==='ally'&&!u.summoned).slice(0,2).forEach(u=>{ u.hp=Math.max(1,Math.round(u.maxHp*0.04)); }); });
       let t0=Date.now(); while(Date.now()-t0<60000){ const n=await page.evaluate(()=>units.concat(_corpses||[]).filter(u=>u.team==='ally'&&u._die&&u._die.end).length); if(n>=2) break; if(await page.evaluate(()=>state!=='battle')) break; await page.waitForTimeout(1000); }
       await page.waitForTimeout(1500);
       const s=await page.evaluate(()=>{ let stale=0, dead=0; units.concat(_corpses||[]).forEach(u=>{ if(u.team==='ally'&&u._die&&u._die.end) dead++; });

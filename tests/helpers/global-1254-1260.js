@@ -116,6 +116,9 @@ function undoText(s) {
   s = s.replace(/\r?\n  magmourn_ring: \{[^\n]*/, '');
   // v1317 (Phil 9 Nov "make dandra ult be 20%, smaller"): dandra_ult upSize 1.7 -> 1.36, put back for the older FX2_DEF == BASE checks (tests/test_dandra_ult_1317.js checks v1317)
   s = s.replace(/dandra_ult:\{u:[^\n]*?\/\* v1317[^\n]*\*\//, () => "dandra_ult:{u:'/assets/anim/fx/dandra_ult.webp?v=33',n:48,fw:542,fh:512,cols:6,rows:8,dur:2.6,disc:{cy:0.317,dh:0.247,dw:0.506},upright:true,upAbove:true,upAboveM:0.1,upAnchor:[0.5,0.48],upSize:1.7,upExtent:0.981},");
+  // v1370 (Phil 11 Nov "large zhari"): Zahri's Solar Impalement light-spear heroPx 641.9 -> 738.2 (x1.15), put back for the older FX2_DEF == BASE checks
+  // (tests/test_zahri_solar_1070.js checks the live size)
+  s = s.replace(/(zahrisolar:\{u:'\/assets\/anim\/fx\/zahri_solar\.webp\?v=1',n:96,fw:341,fh:341,cols:12,rows:8,dur:4\.0,tip:\[0\.1674,0\.5000\],heroPx:)738\.2\},   \/\* v1370 \(Phil 11 Nov: "large zhari"[^*]*\*\/   /, '$1641.9},   ');
   return s; }
 function page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-global1260-page-' + process.pid + '-' + made.length + '.html');

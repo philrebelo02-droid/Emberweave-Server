@@ -7,7 +7,8 @@ const { chromium } = require('playwright');
 const PORT=process.env.PORT||8871;
 (async()=>{
   let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n+(d?' — '+d:''))); };
-  let b; try{ b=await chromium.launch(); }catch(e){ b=await chromium.launch({channel:'chrome'}); }
+  const LA={args:['--disable-audio-output'],ignoreDefaultArgs:['--mute-audio']};   /* never --mute-audio: it silenced Phil's own Chrome (9 Nov) */
+  let b; try{ b=await chromium.launch(LA); }catch(e){ b=await chromium.launch(Object.assign({channel:'chrome'},LA)); }
   const pg=await (await b.newContext({viewport:{width:1000,height:520}})).newPage();
   await pg.goto('http://localhost:'+PORT+'/play',{waitUntil:'domcontentloaded'});
   await pg.waitForTimeout(2200);
@@ -27,8 +28,9 @@ const PORT=process.env.PORT||8871;
     const tot=sockStatTotal('vael');
     // v247 TYPED parity: armor/mr are DEFENSE RATINGS (glyph/gear pts ×3), pens are separate
     const ht0=HERO_TYPES.vael;
-    const exp={ armor:heroStat('vael',ht0.armor||0,'armor')+techArmorFlat()+(tot.armor||0)*3,
-      mr:heroStat('vael',ht0.mr||0,'mr')+techMrFlat()+(tot.mr||0)*3,
+    /* v1370 star track: stars add flat Armor / MR (starFlat, x1 rating points) beside Academy, like makeUnit and the server core */
+    const exp={ armor:heroStat('vael',ht0.armor||0,'armor')+techArmorFlat()+(typeof starFlat==='function'?starFlat('vael').armor:0)+(tot.armor||0)*3,
+      mr:heroStat('vael',ht0.mr||0,'mr')+techMrFlat()+(typeof starFlat==='function'?starFlat('vael').mr:0)+(tot.mr||0)*3,
       armorPen:(tot.armorPen||0), magicPen:(tot.magicPen||0),
       crit:Math.min(0.6,(tot.crit||0)*0.0005), critRes:Math.min(0.75,(tot.critRes||0)*0.0005),
       energyReg:(tot.energy||0)*0.01, regen:(tot.regen||0)*0.001 };
@@ -51,8 +53,8 @@ const PORT=process.env.PORT||8871;
     const soN=await api('/api/glyphs/slot-options?heroKey=sylthaine&slot=2');
     const bd=g2board('vael');
     const tot2=sockStatTotal('vael');
-    const exp2={ armor:heroStat('vael',ht0.armor||0,'armor')+techArmorFlat()+(tot2.armor||0)*3,
-      mr:heroStat('vael',ht0.mr||0,'mr')+techMrFlat()+(tot2.mr||0)*3,
+    const exp2={ armor:heroStat('vael',ht0.armor||0,'armor')+techArmorFlat()+(typeof starFlat==='function'?starFlat('vael').armor:0)+(tot2.armor||0)*3,
+      mr:heroStat('vael',ht0.mr||0,'mr')+techMrFlat()+(typeof starFlat==='function'?starFlat('vael').mr:0)+(tot2.mr||0)*3,
       armorPen:(tot2.armorPen||0), magicPen:(tot2.magicPen||0),
       crit:Math.min(0.6,(tot2.crit||0)*0.0005), critRes:Math.min(0.75,(tot2.critRes||0)*0.0005),
       energyReg:(tot2.energy||0)*0.01, regen:Math.min(0.012,(tot2.regen||0)*0.0001) };   /* v1026: HP regen 100 points = 1% (client and server) */   /* v1022 (Phil 4 Oct: "all of them 20 = 1%"): the client converts crit, crit resist and HP regen at 0.0005 per point */   /* v1010: v364 (Phil) made HP Regen 0.01%/pt capped at 6%/s in the client and server; this copy still used 0.1%/pt */
