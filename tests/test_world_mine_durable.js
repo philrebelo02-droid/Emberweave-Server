@@ -7,7 +7,7 @@ const source=require('node:fs').readFileSync(require('node:path').join(__dirname
 function fnSource(name){ const at=source.indexOf('function '+name+'('); assert.notEqual(at,-1,name+' exists');
   let i=source.indexOf('{',at),d=0; for(;i<source.length;i++){ if(source[i]==='{')d++; else if(source[i]==='}'&&--d===0)break; } return source.slice(at,i+1); }
 const generic=source.slice(source.indexOf('const DURABLE_USER_POLICIES='),source.indexOf('function worldSettlementDurable('));
-const SHARED=generic+';'+fnSource('saveDB')+';'+fnSource('_adoptUser')+';'+fnSource('durableUserCommit');
+const SHARED=generic+';'+fnSource('_saveFailedRetry')+';'+fnSource('_saveDBWrite')+';'+fnSource('saveDB')+';'+fnSource('_adoptUser')+';'+fnSource('durableUserCommit');   // v1372: saveDB writes through _saveDBWrite and retries a failure via _saveFailedRetry
 function box(DB){ const b={DB,DB_FILE:'isolated.json',PG_BOOT_PENDING:false,Date:{now:()=>1000},console:{error:()=>{}},pgSave:()=>{},fs:{writeFileSync:()=>{},renameSync:()=>{}},JSON,Object,Error,Array};
   vm.createContext(b); vm.runInContext(SHARED,b); return b; }
 function check(name){
