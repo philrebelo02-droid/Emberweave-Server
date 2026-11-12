@@ -25,7 +25,7 @@ for (const seed of [11, 22, 33]) {
   const r = JSON.parse(run(`(()=>{ const won=simCampaignReplay(${snaps}, ${JSON.stringify(W)}, ${seed}, [], false); return JSON.stringify({won, alive:globalThis._p2alive|0, d:globalThis._p2digest}); })()`));
   const B = JSON.parse(run('JSON.stringify(globalThis._ib)'));
   ok(B.length > 0 && B[0].al === 'vael', 'seed ' + seed + ': the fight starts with Vael alone on the field (' + (B[0] && B[0].al) + ')');
-  ok(B.some(b => b.full > 0 && b.w === 0), 'seed ' + seed + ': Vael\'s ult arrives in wave 1 (at ~75% HP)');
+  ok(B.some(b => b.full > 0 && b.w === 0), 'seed ' + seed + ': Vael\'s ult arrives in wave 1 (at ~90% HP)');
   const w2 = B.filter(b => b.w === 1).pop();   // the LAST wave-2 sample: the first ones are taken during the wave change, before the entries
   ok(w2 && w2.al.split(',').sort().join(',') === 'sylthaine,vael,vireo', 'seed ' + seed + ': by wave 2 all three are on the field (' + (w2 && w2.al) + ')');
   { const w2s = B.filter(b => b.w === 1 && !b.xf), first = w2s[0], j = w2s.find(b => b.sin != null);   // v1261 (Phil: "They start the fight then she joins after 5 seconds")
