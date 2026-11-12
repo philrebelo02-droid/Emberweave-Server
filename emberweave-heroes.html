@@ -1155,6 +1155,7 @@
   .set-warn{color:#c9a35e;}
   .set-in{background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:8px 10px;font-size:13px;width:100%;box-sizing:border-box;}
   .set-sel{flex:1 1 160px;width:auto;min-width:0;cursor:pointer;}
+  .gq-wrap{flex:1 1 230px;min-width:0;padding:4px 16px 2px;box-sizing:border-box;}.gq-track{position:relative;height:26px;}.gq-line{position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;background:#2a3550;border-radius:2px;pointer-events:none;}.gq-dot{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#2a3550;border:2px solid #0f1420;box-sizing:border-box;}.gq-dot.on{background:#d9a441;}.gq-rng{position:absolute;left:-11px;right:-11px;top:0;bottom:0;width:calc(100% + 22px);margin:0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;touch-action:none;}.gq-rng::-webkit-slider-runnable-track{height:26px;background:transparent;}.gq-rng::-moz-range-track{height:26px;background:transparent;}.gq-rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:2px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a8,#d9a441 55%,#8a5e14);border:2px solid #fff3cf;box-shadow:0 1px 4px rgba(0,0,0,.6);}.gq-rng::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a8,#d9a441 55%,#8a5e14);border:2px solid #fff3cf;box-shadow:0 1px 4px rgba(0,0,0,.6);}.gq-rng:focus-visible{outline:2px solid #ffd45e;outline-offset:2px;border-radius:12px;}.gq-lbls{position:relative;height:16px;margin-top:2px;}.gq-lbls span{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:#8b98a9;white-space:nowrap;}.gq-lbls span.on{color:#ffd45e;font-weight:800;}
   .set-row.set-snd{display:grid;grid-template-columns:minmax(84px,auto) minmax(60px,1fr) 38px;}
   .set-chk{display:flex;align-items:center;gap:6px;font-weight:700;color:#cdd6e4;}
   .set-pct{text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums;}
@@ -8687,7 +8688,8 @@ const ZOOM_PR_MAX=1.5;   /* v577: the BASELINE buffer stays at the old 1.5x ceil
 const ZOOM_PR_BONUS_MAX=3.5;
 /* Device-local renderer setting. Keep the adaptive High governor and apply the cap
    to the final buffer ratio, after zoom headroom and mode-specific limits. */
-const GRAPHICS_PRESETS=Object.freeze({high:Infinity,detailed:2.5,balanced:2,light:1.5,low:1});   /* v1373 (Phil 12 Nov: "Make 5 quality types. One between low and balanced. Another after balanced") */
+const GRAPHICS_PRESETS=Object.freeze({high:Infinity,detailed:2.5,balanced:2,light:1.5,low:1});
+const GRAPHICS_ORDER=['low','light','balanced','detailed','high'];   /* the slider, left to right */   /* v1373 (Phil 12 Nov: "Make 5 quality types. One between low and balanced. Another after balanced") */
 const GRAPHICS_STORAGE_KEY='ew_graphics_quality';
 let graphicsPreset='high';
 try{
@@ -32513,7 +32515,7 @@ function renderSettings(){
     </div>`;
   const graphicsCard = `<div class="set-sec">
     <div class="set-row"><label class="set-lbl" for="setGraphicsSel">${t('set.graphics')}</label>
-      <select id="setGraphicsSel" class="set-in set-sel" aria-describedby="setGraphicsHint">${Object.keys(GRAPHICS_PRESETS).map(preset=>`<option value="${preset}"${graphicsPreset===preset?' selected':''}>${t('set.graphics_'+preset)}</option>`).join('')}</select></div>
+      <div class="gq-wrap">${(()=>{ const L=GRAPHICS_ORDER, i=Math.max(0,L.indexOf(graphicsPreset)); return `<div class="gq-track"><div class="gq-line">${L.map((p,k)=>`<i class="gq-dot${k<=i?' on':''}" style="left:${k*25}%"></i>`).join('')}</div>`+`<input type="range" id="setGraphicsSel" class="gq-rng" min="0" max="${L.length-1}" step="1" value="${i}" aria-describedby="setGraphicsHint" aria-valuetext="${escapeHTML(t('set.graphics_'+L[i]))}"></div>`+`<div class="gq-lbls">${L.map((p,k)=>`<span class="${k===i?'on':''}" style="left:${k*25}%">${escapeHTML(t('set.graphics_'+p))}</span>`).join('')}</div>`; })()}</div></div>
     <div class="set-data" id="setGraphicsHint">${t('set.graphics_hint')}</div>
   </div>`;
   const notesCard = `<div class="set-sec"><button class="btn sm" id="setPatchNotes" style="width:100%">${uiIcon('quest-scroll')} Patch Notes</button></div>`;   /* v1364 (Phil 11 Nov: "put it under support") - shown signed in or not */
@@ -32547,7 +32549,9 @@ function renderSettings(){
     setFitTabs(b); if(setTab==='dev'&&devTab==='accounts') loadIntegrity(); });
   setFitTabs(b); setTimeout(()=>setFitTabs(b),400);
   try{ if(DEV.on&&devTab==='accounts'&&INTEG.reports&&INTEG.reports.length) renderIntegrity(); }catch(e){}
-  b.querySelector('#setGraphicsSel').onchange=e=>setGraphicsPreset(e.target.value);
+  { const rg=b.querySelector('#setGraphicsSel'), wrap=rg&&rg.closest('.gq-wrap');   /* v1373 (Phil 12 Nov: a slide bar with 5 dots - drag to the quality dot) */
+    const paint=()=>{ const i=+rg.value; wrap.querySelectorAll('.gq-dot').forEach((d,k)=>d.classList.toggle('on',k<=i)); wrap.querySelectorAll('.gq-lbls span').forEach((s,k)=>s.classList.toggle('on',k===i)); rg.setAttribute('aria-valuetext',t('set.graphics_'+GRAPHICS_ORDER[i])); };
+    if(rg){ rg.oninput=paint; rg.onchange=()=>{ paint(); setGraphicsPreset(GRAPHICS_ORDER[+rg.value]); }; } }
   { const ls=b.querySelector('#setLangSel'); if(ls) ls.onchange=()=>{ langSet(ls.value,{save:true}); }; }   // v1265 languages
   { const sm=b.querySelector('#snd_mute'); if(sm) sm.onchange=()=>{ sndMuteSet(sm.checked); sndUnlock(); }; }   // v1159 master mute (same flag as the top-right button)
   SND_CH.forEach(ch=>{ const so=b.querySelector('#snd_'+ch+'_on'), sv=b.querySelector('#snd_'+ch+'_vol'), sp=b.querySelector('#snd_'+ch+'_pct');   // v1049 audio settings

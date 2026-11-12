@@ -31,10 +31,11 @@ async function run(width,height,dpr){
   const select=page.locator('#setGraphicsSel');
   const settings=async()=>{await page.evaluate(()=>{setTab='general';show('settings');});await select.waitFor({timeout:10000});};
   await settings();
-  ok(await select.inputValue()==='high',width+' High default');
+  ok(await select.inputValue()==='4'&&(await page.evaluate(()=>document.querySelectorAll('.gq-dot').length))===5,width+' High default, slider with 5 dots');   // v1373: a 5-dot slider (Phil)
   const shot=async tag=>{if(process.env.SHOTS) await page.screenshot({path:path.join(process.env.SHOTS,width+'x'+height+'-'+tag+'.png')});};
   for(const preset of ['high','detailed','balanced','light','low']){   // v1373: 5 levels (Phil)
-    await select.selectOption(preset);
+    await page.evaluate(p=>{ const r=document.getElementById('setGraphicsSel'); r.value=String(GRAPHICS_ORDER.indexOf(p)); r.dispatchEvent(new Event('input')); r.dispatchEvent(new Event('change')); },preset);
+    ok(await page.evaluate(p=>graphicsPreset===p&&document.querySelector('.gq-lbls span.on').textContent===t('set.graphics_'+p),preset),width+' slider sets '+preset);
     await shot('settings-'+preset);
   }
   await page.evaluate(async()=>{
