@@ -27,7 +27,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     const classes=['Tank','Bruiser','Assassin','Marksman','Mage','Support'];
     const classKeys=classes.map(c=>Object.keys(bases).find(k=>bases[k].role===c));
     const rosterKeys=[...classKeys,...Object.keys(bases).filter(k=>!classKeys.includes(k)).slice(0,6)];
-    child.kill();await delay(350);
+    child.kill();for(let _i=0;_i<200&&child.exitCode===null&&child.signalCode===null;_i++){ if(_i===120) try{child.kill('SIGKILL');}catch(_){} await delay(50);} await delay(150);   /* 12 Nov: wait for the real exit - a server still shutting down could save over the edits below (suite b5834f39: yenna missing from the bench) */
     const db=JSON.parse(fs.readFileSync(dbFile,'utf8')),u=db.users[guest.profile.id];
     u.led.px=99000000;
     const T=require('../server/temple-of-ash.js');
