@@ -25,7 +25,7 @@ async function run(){
   };
   const start=async adminId=>{
     child=spawn(process.execPath,['server.js'],{cwd:root,windowsHide:true,stdio:'ignore',env:{...process.env,PORT:String(n),DB_FILE:db,ADMIN_IDS:adminId||'',NODE_ENV:'test',REG_PER_MIN:'200',REG_ACCOUNTS_PER_IP:'200'}});
-    for(let i=0;i<100;i++){
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ){   /* 11 Nov: a 60 s deadline, not an iteration count (was 100 tries) */
       if(child.exitCode!==null) throw Error('fixture server exited');
       try{if((await fetch(base+'/health')).ok)return;}catch(_){}
       await new Promise(r=>setTimeout(r,100));

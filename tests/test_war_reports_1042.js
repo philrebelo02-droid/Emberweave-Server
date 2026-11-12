@@ -23,7 +23,7 @@ async function server() {
   const start = async adminId => {
     child = spawn(process.execPath, ['server.js'], { cwd: root, windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '', DB_STORE: 'split',
       NODE_ENV: 'test', SIM_WORKERS: '0', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', WORLD_WAR_TEST_MS: '100', WORLD_CITY_TEST_MS: '100', SERVER_SECRET: 'war-mail-test' } });
-    for (let i = 0; i < 200; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); }
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 200 tries) */
     throw Error('server not ready');
   };
   const kill = async () => { if (!child) return; const c = child; child = null; c.kill(); await (async () => { const gone = () => c.exitCode !== null || c.signalCode !== null, ex = new Promise(r => { if (gone()) r(); else c.once('exit', r); }); await Promise.race([ex, new Promise(r => setTimeout(r, 3000))]); if (!gone()) { try { c.kill('SIGKILL'); } catch (_) {} await Promise.race([ex, new Promise(r => setTimeout(r, 10000))]); } })()   /* 11 Nov: until it has exited (the port is free) */; };

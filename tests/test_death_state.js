@@ -177,7 +177,7 @@ try {
     const INIT = (fs.readFileSync(path.join(__dirname, 'test_memory_budget_1140.js'), 'utf8').match(/const INIT = `([\s\S]*?)`;/) || [])[1];   // the budget test's own GPU tally (texImage2D / mipmaps / deletes)
     let browser;
     try {
-      for (let i = 0; i < 120; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 200)); }
+      for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(srv && srv.exitCode !== null); ) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 200)); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 120 tries) */
       browser = await chromium.launch({ headless: true, args: ['--disable-audio-output', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'], ignoreDefaultArgs: ['--mute-audio'] });   /* v1368b: no audio session, never --mute-audio */
       const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block',
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });

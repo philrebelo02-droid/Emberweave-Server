@@ -139,7 +139,7 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
     const port = await freePort(), base = 'http://127.0.0.1:' + port;
     const log = fs.openSync(path.join(tmp, 'srv.log'), 'a');
     srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: path.join(tmp, 'db.json'), RL_MUL: '1000', REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200', SIM_WORKERS: '0' }, stdio: ['ignore', log, log], windowsHide: true });
-    let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
+    let up = false; for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !up && !(srv && srv.exitCode !== null); ) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
     const args = ['--disable-audio-output', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];

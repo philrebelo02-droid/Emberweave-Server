@@ -22,7 +22,7 @@ async function startHelper(extra) {
   fs.writeFileSync(cfg, JSON.stringify(Object.assign({ key: KEY, port, host: '127.0.0.1', workers: 3, busyCpu: 5 }, extra || {})));
   const child = spawn(process.execPath, [path.join(root, 'server/sim-helper.js')], { env: { ...process.env, SIM_HELPER_CONFIG: cfg }, stdio: 'ignore', windowsHide: true });
   kids.push(child); const url = 'http://127.0.0.1:' + port;
-  for (let i = 0; i < 150; i++) { try { const j = await (await fetch(url + '/health')).json(); if (j.ready > 0) return { url, child }; } catch (e) {} await sleep(200); }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { try { const j = await (await fetch(url + '/health')).json(); if (j.ready > 0) return { url, child }; } catch (e) {} await sleep(200); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 150 tries) */
   throw Error('helper did not start');
 }
 const health = async url => (await fetch(url + '/health')).json();
@@ -87,5 +87,5 @@ async function waitReady(pool) { for (let i = 0; i < 150 && !pool.stats.ready; i
     for (const p of [P1, P2, P3]) p.close(); home.close();
     console.log('PASS ' + pass + ' checks');
   } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; }
-  finally { for (const k of kids) { try { k.kill(); } catch (e) {} } setTimeout(() => process.exit(), 300); }
+  finally { for (const k of kids) { try { k.kill(); } catch (e) {} } for (const k of kids) await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(k); process.exit(); }   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
 })();

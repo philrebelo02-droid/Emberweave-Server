@@ -13,7 +13,7 @@ function req(method,p,body,token){ return new Promise((res,rej)=>{ const d=body?
     token?{'x-token':token}:{}, d?{'content-length':Buffer.byteLength(d)}:{})},resp=>{ let b='';
     resp.on('data',c=>b+=c); resp.on('end',()=>{ try{res(JSON.parse(b));}catch(e){res({raw:b});} }); });
   r.on('error',rej); if(d)r.write(d); r.end(); }); }
-const done=code=>{ try{srv.kill();}catch(e){} process.exit(code); };
+const done=code=>{ try{srv.kill();}catch(e){} if(srv.exitCode!==null||srv.signalCode!==null) process.exit(code); srv.once('exit',()=>process.exit(code)); setTimeout(()=>{ try{srv.kill('SIGKILL');}catch(_){} },10000).unref(); setTimeout(()=>process.exit(code),20000).unref(); };   /* 11 Nov: exit once the server has (the port is free) */
 
 (async()=>{
   console.log('== v2 systems ship ON by default (no Railway variable needed) ==');

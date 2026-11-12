@@ -73,7 +73,7 @@ function tableSpecProblems(table, keys) {
   const log = fs.openSync(path.join(tmp, 'srv.log'), 'a');
   const srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0', ADMIN_IDS: '' }, stdio: ['ignore', log, log], windowsHide: true });
   try {
-    let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await new Promise(r => setTimeout(r, 100)); }
+    let up = false; for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !up && !(srv && srv.exitCode !== null); ) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await new Promise(r => setTimeout(r, 100)); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
     ck(up, 'server started');
     const call = async (r, b) => { const x = await fetch(base + r, { method: b ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }); let j = {}; try { j = await x.json(); } catch (_) {} return { status: x.status, data: j }; };
     { const r = await call('/api/register', { name: 'Ab<cd', pass: 'password1' });

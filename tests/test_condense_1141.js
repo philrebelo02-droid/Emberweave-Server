@@ -118,7 +118,7 @@ try {
   let browser;
   const get = (p, headers) => new Promise((res, rej) => { http.get(base + p, { headers: headers || {} }, r => { const ch = []; r.on('data', c => ch.push(c)); r.on('end', () => res({ s: r.statusCode, h: r.headers, b: Buffer.concat(ch) })); }).on('error', rej); });
   try {
-    for (let i = 0; i < 100; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 100 tries) */
     // 7. COMPRESSION
     const raw = fs.readFileSync(HTML);
     const r1 = await get('/play', { 'accept-encoding': 'gzip, deflate, br' });

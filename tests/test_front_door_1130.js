@@ -70,7 +70,7 @@ function startSrv(port, dbDir, extra) {
   child.stderr.on('data', d => { if (process.env.FD_DEBUG) process.stderr.write('[' + port + '] ' + d); });
   return child;
 }
-async function up(port) { for (let i = 0; i < 300; i++) { try { if ((await fetch('http://127.0.0.1:' + port + '/api/health')).ok) return true; } catch (_) {} await delay(100); } return false; }
+async function up(port) { for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { try { if ((await fetch('http://127.0.0.1:' + port + '/api/health')).ok) return true; } catch (_) {} await delay(100); } return false; }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
 const J = async (port, p, opt) => { try { const r = await fetch('http://127.0.0.1:' + port + p, opt); let j = null; try { j = await r.json(); } catch (_) {} return { status: r.status, j: j || {} }; } catch (e) { return { status: 0, j: {} }; } };
 const post = (port, p, b, tok) => J(port, p, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { 'x-token': tok } : {}) }, body: JSON.stringify(b || {}) });
 const assign = async port => (await J(port, '/api/front/assign')).j;

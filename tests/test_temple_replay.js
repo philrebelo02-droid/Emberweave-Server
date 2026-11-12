@@ -24,7 +24,7 @@ async function run(){
     const reg=await (await fetch(base+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,pass:'password1'})})).json();
     assert(reg.token,'test account registration');
     await fetch(base+'/api/ledger',{headers:{'x-token':reg.token}});
-    server.kill();await delay(350);
+    server.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(server);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
     const db=JSON.parse(fs.readFileSync(dbFile,'utf8')),u=db.users[reg.profile.id];
     const T=require('../server/temple-of-ash.js');
     u.led.px=99000000;u.led.temple=T.newState();u.led.temple.playerLevel=100;u.led.temple.keeperPoints=100000;

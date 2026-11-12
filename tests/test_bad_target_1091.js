@@ -13,7 +13,7 @@ function raw(target){ return new Promise(res=>{ const s=net.connect(port,'127.0.
 (async()=>{ try{
   port=await freePort();
   child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:path.join(dir,'db.json')},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<300;i++){ try{ if((await fetch('http://127.0.0.1:'+port+'/health')).ok) break; }catch(_){} await delay(100); }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(child && child.exitCode !== null); ){ try{ if((await fetch('http://127.0.0.1:'+port+'/health')).ok) break; }catch(_){} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
   const first=await raw('//');
   ok(/^HTTP\/1\.1 400/.test(first),'a bad target gets 400 ('+first.split('\r\n')[0]+')');
   const answers=[]; for(let i=0;i<30;i++) answers.push(await raw(['//','//[','//%','///','//a:b@:x'][i%5]));

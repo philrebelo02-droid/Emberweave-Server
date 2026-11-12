@@ -178,7 +178,7 @@ try {
       await ctx.close(); return out;
     };
     try {
-      for (let i = 0; i < 150; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }
+      for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 150 tries) */
       try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output'] }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output'] }); }
       const N = await probe(null);
       const ks = [...new Set(N.seen.map(s => s.k))];

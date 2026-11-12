@@ -76,7 +76,7 @@ let port,base,child,token='';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise((res,rej)=>{const s=net.createServer();s.once('error',rej);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>res(p));});});
 async function start(){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile,DATABASE_URL:''},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<150;i++){ if(child.exitCode!==null)throw new Error('throwaway server exited'); try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw new Error('server did not start'); }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ){ if(child.exitCode!==null)throw new Error('throwaway server exited'); try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw new Error('server did not start'); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 150 tries) */
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */ child=null; }
 async function call(route,method='GET',data){ const r=await fetch(base+route,{method,headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined}); return {status:r.status,data:await r.json().catch(()=>({}))}; }
 const post=(r,d)=>call(r,'POST',d);

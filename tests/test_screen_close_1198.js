@@ -19,7 +19,7 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
 (async()=>{ try{
   const port=await freePort(),base='http://127.0.0.1:'+port;
   child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',REG_PER_MIN:'500',REG_ACCOUNTS_PER_IP:'500',PORT:String(port),DB_FILE:path.join(temp,'db.json')},stdio:'ignore',windowsHide:true});
-  let ready=false; for(let i=0;i<200;i++){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}
+  let ready=false; for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(child && child.exitCode !== null); ){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count (was 200 tries) */
   assert(ready,'throwaway server did not start');
   try{browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args:['--disable-audio-output']});}catch(_){browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], channel:'chrome',args:['--disable-audio-output']});}
   console.log('screen close (v1198) root='+root);

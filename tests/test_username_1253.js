@@ -18,7 +18,7 @@ function start(name, port, env) {
   delete e.ADMIN_IDS; Object.assign(e, env);
   procs[name] = cp.spawn(process.execPath, ['server.js'], { cwd: dir, env: e, stdio: ['ignore', fs.openSync(path.join(tmp, name + '.log'), 'a'), fs.openSync(path.join(tmp, name + '.log'), 'a')] });
 }
-async function stop(name) { if (procs[name]) { procs[name].kill(); await sleep(1200); delete procs[name]; } }
+async function stop(name) { if (procs[name]) { procs[name].kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(procs[name]);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */ delete procs[name]; } }
 function call(port, p, body, token) {
   return new Promise(res => {
     const data = body ? JSON.stringify(body) : null;
@@ -80,6 +80,7 @@ const login = (port, name, pw) => call(port, '/api/login', { name, pass: pw });
     ok(a.status === 401, 'old rename: the nickname "Carlito" no longer signs in (got ' + a.status + ')');
   } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
   for (const n of Object.keys(procs)) procs[n].kill();
+  for (const n of Object.keys(procs)) await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(procs[n]);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
   console.log('test_username_1253.js: ' + pass + ' passed, ' + fail + ' failed');
   try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) {}
   process.exit(fail ? 1 : 0);

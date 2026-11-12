@@ -39,7 +39,7 @@ async function run() {
     child=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),windowsHide:true,
       stdio:'ignore',env:{...process.env,PORT:String(port),DB_FILE:db,ADMIN_IDS:adminId||'',REG_PER_MIN:'200',REG_ACCOUNTS_PER_IP:'200',
         NODE_ENV:'test',WORLD_MINE_TEST_MS:mineTestMs,WORLD_WAR_TEST_MS:warTestMs,WORLD_CITY_TEST_MS:cityTestMs}});
-    for(let i=0;i<180;i++) {
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) {   /* 11 Nov: a 60 s deadline, not an iteration count (was 180 tries) */
       if(child.exitCode!==null) throw Error('Fixture server exited before readiness');
       try { const r=await fetch(base+'/health'); if(r.ok) return; } catch (_) {}
       await new Promise(resolve=>setTimeout(resolve,100));

@@ -6,12 +6,12 @@ let pass=0,fail=0; const ck=(n,c,d)=>{c?(pass++,console.log('  ✓ '+n)):(fail++
 const PORT=8894, dir=fs.mkdtempSync(path.join(os.tmpdir(),'prayer-')), DB=path.join(dir,'db.json');
 let srv=null;
 function boot(extra){ srv=spawn(process.execPath,[path.join(__dirname,'..','server.js')],{env:Object.assign({},process.env,{PORT:String(PORT),DB_FILE:DB,REG_PER_MIN:'100',REG_ACCOUNTS_PER_IP:'100'},extra||{}),stdio:'ignore'}); }
-function stop(){ return new Promise(r=>{if(!srv)return r(); srv.once('exit',r); srv.kill(); setTimeout(r,800);});}
+function stop(){ return new Promise(r=>{ if(!srv||srv.exitCode!==null||srv.signalCode!==null) return r(); srv.once('exit',()=>r()); srv.kill(); setTimeout(()=>{ try{ srv.kill('SIGKILL'); }catch(_){} },10000); setTimeout(r,20000); });}   /* 11 Nov: until it has exited (the port is free; fixed PORT 8894) - was resolved after 800 ms */
 function req(method,p,b,tok){return new Promise((resolve,reject)=>{const data=b?JSON.stringify(b):null;
   const q=http.request({host:'localhost',port:PORT,path:p,method,headers:Object.assign({'content-type':'application/json'},tok?{'x-token':tok}:{},data?{'content-length':Buffer.byteLength(data)}:{})},res=>{let s='';res.on('data',c=>s+=c);res.on('end',()=>{try{resolve(JSON.parse(s));}catch(e){resolve({raw:s});}});});
   q.on('error',reject);if(data)q.write(data);q.end();});}
 (async()=>{
-  const up=async()=>{ for(let i=0;i<150;i++){ try{ await req('GET','/health'); return; }catch(e){ await new Promise(r=>setTimeout(r,200)); } } };   /* v1357 (flakes): a fixed 1.2 s was too short on a loaded host (ECONNREFUSED) */
+  const up=async()=>{ for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(srv && srv.exitCode !== null); ){ try{ await req('GET','/health'); return; }catch(e){ await new Promise(r=>setTimeout(r,200)); } } };   /* v1357 (flakes): a fixed 1.2 s was too short on a loaded host (ECONNREFUSED) */   /* 11 Nov: a 60 s deadline, not an iteration count (was 150 tries) */
   boot(); await up();
   const reg=await req('POST','/api/register',{name:'prayertest',pass:'password1'}), tok=reg.token, id=reg.profile&&reg.profile.id;
   ck('test account registered',!!tok&&!!id);

@@ -12,8 +12,8 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
 const dbOf=n=>{ const d=path.join(dir,'s'+n); fs.mkdirSync(d,{recursive:true}); return path.join(d,n+'.json'); };   // v1183: one folder per server (load guard)
 async function start(n,env){ ports[n]=ports[n]||await freePort();
   procs[n]=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(ports[n]),DB_FILE:dbOf(n),RL_MUL:'1000',REG_PER_MIN:'100',REG_ACCOUNTS_PER_IP:'100',ADMIN_IDS:'',ACCOUNT_LINK_SECRET:SECRET,ACCOUNT_DELETE_GRACE_MS:'0',...env},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<300;i++){ try{ if((await fetch('http://127.0.0.1:'+ports[n]+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start '+n); }
-async function stopAll(){ for(const n of Object.keys(procs)){ const c=procs[n]; c.kill(); for(let i=0;i<60&&c.exitCode===null;i++)await delay(50); delete procs[n]; } }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ){ try{ if((await fetch('http://127.0.0.1:'+ports[n]+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start '+n); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
+async function stopAll(){ for(const n of Object.keys(procs)){ const c=procs[n]; c.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(c);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */ delete procs[n]; } }
 async function call(n,route,data,tok){ const r=await fetch('http://127.0.0.1:'+ports[n]+route,{method:data?'POST':'GET',headers:{'Content-Type':'application/json',...(tok?{'x-token':tok}:{})},body:data?JSON.stringify(data):undefined});
   let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
 const disk=n=>JSON.parse(fs.readFileSync(dbOf(n),'utf8'));

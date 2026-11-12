@@ -234,6 +234,7 @@ function nameIndexCheck() {
     ok(!/v1184 drift/.test(logs), 'no name reached a world without the name index');
   } catch (e) { fail++; console.log('  FAIL harness: ' + (e && e.stack || e)); }
   for (const n of Object.keys(procs)) procs[n].kill();
+  for (const n of Object.keys(procs)) await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(procs[n]);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
   console.log((fail ? 'FAIL ' : 'PASS ') + pass + ' passed, ' + fail + ' failed  (logs ' + tmp + ')');
   process.exit(fail ? 1 : 0);
 })();

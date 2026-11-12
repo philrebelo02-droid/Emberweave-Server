@@ -186,7 +186,7 @@ try {
       await ctx.close(); return { s0, rows, errs };
     };
     try {
-      for (let i = 0; i < 100; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }
+      for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 150)); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 100 tries) */
       try { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output', '--js-flags=--expose-gc'] }); }
       const N = await loop('v1140', null, 5);
       const peakG = Math.max(...N.rows.map(r => Math.max(r.mid.gpu, r.vic.gpu))), peakB = Math.max(...N.rows.map(r => Math.max(r.mid.bmp, r.vic.bmp)));

@@ -28,7 +28,7 @@ function get(p) {
 }
 (async () => {
   let up = false;
-  for (let i = 0; i < 300 && !up; i++) { const r = await get('/health'); up = r.status === 200; if (!up) await sleep(200); }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !up; ) { const r = await get('/health'); up = r.status === 200; if (!up) await sleep(200); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
   ok(up, 'server started on port ' + port);
   if (up) {
     const r = await get('/.well-known/assetlinks.json');
@@ -55,7 +55,7 @@ function get(p) {
     const other = await get('/.well-known/other.json');
     ok(!/application\/json/.test(other.h['content-type'] || ''), 'only assetlinks.json is served from .well-known (other.json is not JSON)');
   }
-  srv.kill(); for (let i = 0; i < 60 && srv.exitCode === null && srv.signalCode === null; i++) await sleep(50);
+  srv.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(srv);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
   console.log((fail ? 'FAILED' : 'PASSED') + ': ' + pass + ' ok, ' + fail + ' failed');
   process.exit(fail ? 1 : 0);
 })();

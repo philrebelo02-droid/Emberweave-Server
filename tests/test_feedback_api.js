@@ -14,7 +14,7 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',reject);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
 async function start(){
   child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});
-  for(let i=0;i<100;i++){if(child.exitCode!==null)throw new Error('throwaway server exited');try{if((await fetch(base+'/health')).ok)return;}catch(_){} await delay(100);}
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ){if(child.exitCode!==null)throw new Error('throwaway server exited');try{if((await fetch(base+'/health')).ok)return;}catch(_){} await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count (was 100 tries) */
   throw new Error('throwaway server did not start');
 }
 async function stop(){if(!child)return;child.kill();for(let i=0;i<400&&child.exitCode===null&&child.signalCode===null;i++){ if(i===200) try{ child.kill('SIGKILL'); }catch(_){} await delay(50); }   /* 11 Nov: until it has exited (the port is free) */child=null;}

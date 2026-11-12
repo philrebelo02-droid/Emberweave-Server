@@ -35,4 +35,4 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     ok((await call('/api/funnel', { ev: 'tut-open' })).status === 401, 'signed-out calls are refused');
   } finally { srv.kill(); try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) {} }
   console.log('test_onboarding_1254.js: ' + pass + ' checks passed');
-})().catch(e => { srv.kill(); console.log('FAIL ' + e.message); process.exit(1); });
+})().catch(e => { srv.kill(); console.log('FAIL ' + e.message); process.exitCode = 1; });   /* 11 Nov: no process.exit - node exits once the killed server has */

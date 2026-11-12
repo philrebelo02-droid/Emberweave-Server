@@ -40,7 +40,7 @@ const CASES = [
   const srv = spawn(process.execPath, ['server.js'], { cwd: root, env, stdio: 'ignore', windowsHide: true });
   let b;
   try {
-    let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch('http://127.0.0.1:' + port + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
+    let up = false; for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !up && !(srv && srv.exitCode !== null); ) { try { up = (await fetch('http://127.0.0.1:' + port + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
     if (!up) throw new Error('server did not start');
     try { b = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  args: ['--disable-audio-output'] }); } catch (e) { b = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'],  channel: 'chrome', args: ['--disable-audio-output'] }); }
     const ctx = await b.newContext({ viewport: { width: 844, height: 390 } });

@@ -34,7 +34,7 @@ async function run(){
       stdio:'ignore',env:{...process.env,PORT:String(port),DB_FILE:db,ADMIN_IDS:adminId||'',
         REG_PER_MIN:'200',REG_ACCOUNTS_PER_IP:'200',NODE_ENV:'test',WORLD_MINE_TEST_MS:'20',
         WORLD_WAR_TEST_MS:'20',WORLD_CITY_TEST_MS:'20'}});
-    for(let i=0;i<180;i++){
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ){   /* 11 Nov: a 60 s deadline, not an iteration count (was 180 tries) */
       if(child.exitCode!==null) throw Error('Fixture server exited');
       try{ if((await fetch(base+'/health')).ok) return; }catch(_){}
       await new Promise(ok=>setTimeout(ok,100));

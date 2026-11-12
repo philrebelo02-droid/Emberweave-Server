@@ -27,7 +27,7 @@ let child,base;
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
 async function start(admin,dbFile,port){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,ADMIN_IDS:admin||''},stdio:'ignore',windowsHide:true});
   for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); }
-async function stop(){ if(child){ child.kill(); await delay(600); child=null; } }
+async function stop(){ if(child){ child.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(child);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */ child=null; } }
 const call=async(p,b,tok)=>{ const r=await fetch(base+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',...(tok?{'x-token':tok}:{})},body:b?JSON.stringify(b):undefined}); return r.json(); };
 (async()=>{ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-asprobe-')), dbFile=path.join(dir,'db.json'), port=await freePort(); base='http://127.0.0.1:'+port;
   const K1=['zahri','vael','grosk','lumi','astra'], K2=['brannus','yenna','sorrel','vulmar','aldren'], SNAP={};

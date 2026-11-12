@@ -14,7 +14,7 @@ const ROOT=path.join(__dirname,'..');
   const S=await H.startServer();
   const guest=await (await fetch(S.base+'/api/guest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:'lang-cov-'+Date.now()})})).json();
   await fetch(S.base+'/api/ledger',{headers:{'x-token':guest.token}});
-  S.srv.kill(); await H.delay(500);
+  S.srv.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(S.srv);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
   { const dbFile=path.join(S.tmp,'db.json'), db=JSON.parse(fs.readFileSync(dbFile,'utf8')), u=db.users[guest.profile.id];
     const bases=require('../server/sim.js').HERO_BASE; u.led=u.led||{}; u.led.unlocked=u.led.unlocked||{};
     for(const k of Object.keys(bases).slice(0,30)) u.led.unlocked[k]=true;
@@ -23,7 +23,7 @@ const ROOT=path.join(__dirname,'..');
   const h=await (async()=>{ // restart on the same DB, then the page
     const cp=require('child_process'); const port=+S.base.split(':').pop(); const log=fs.openSync(path.join(S.tmp,'srv2.log'),'a');
     const srv=cp.spawn(process.execPath,['server.js'],{cwd:ROOT,env:{...process.env,DATABASE_URL:'',DB_STORE:'',PORT:String(port),DB_FILE:path.join(S.tmp,'db.json'),RL_MUL:'1000',SIM_WORKERS:'0',ALLOW_NEW_GUESTS:'1'},stdio:['ignore',log,log],windowsHide:true});
-    for(let i=0;i<300;i++){ try{ if((await fetch(S.base+'/api/health')).ok) break; }catch(_){} await H.delay(100); }
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(srv && srv.exitCode !== null); ){ try{ if((await fetch(S.base+'/api/health')).ok) break; }catch(_){} await H.delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
     const { chromium }=require(path.join(ROOT,'node_modules','playwright'));
     const browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args:['--disable-audio-output','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu']});
     const ctx=await browser.newContext({viewport:{width:900,height:420}});

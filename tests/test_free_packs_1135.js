@@ -12,7 +12,7 @@ async function boot(env) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-free1135-')), port = await freePort();
   const child = cp.spawn(process.execPath, ['server.js'], { cwd: root, env: Object.assign({}, process.env, { ALLOW_NEW_GUESTS: '1', PORT: String(port), DB_FILE: path.join(dir, 'db.json'),
     SIM_WORKERS: '0', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', DB_STORE: '', DATABASE_URL: '', SHOP_TEST_PURCHASES: '' }, env), stdio: ['ignore', 'pipe', 'pipe'] });
-  for (let i = 0; i < 80; i++) { try { await fetch('http://127.0.0.1:' + port + '/api/health'); break; } catch (e) { await new Promise(r => setTimeout(r, 250)); } }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(child && child.exitCode !== null); ) { try { await fetch('http://127.0.0.1:' + port + '/api/health'); break; } catch (e) { await new Promise(r => setTimeout(r, 250)); } }   /* 11 Nov: a 60 s deadline, not an iteration count (was 80 tries) */
   const call = async (route, body, token) => { const r = await fetch('http://127.0.0.1:' + port + route, { method: body ? 'POST' : 'GET',
     headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { 'x-token': token } : {}), body: body ? JSON.stringify(body) : undefined });
     let j = {}; try { j = await r.json(); } catch (e) {} return { status: r.status, body: j }; };

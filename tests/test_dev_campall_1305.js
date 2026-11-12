@@ -15,7 +15,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     await start();
     const dev = 'cadev' + Date.now().toString(36), plain = 'capl' + Date.now().toString(36);
     await post('/api/register', { name: dev, pass: 'password1' }); const rp = await post('/api/register', { name: plain, pass: 'password1' });
-    await delay(1500); srv.kill(); await delay(1500);
+    await delay(1500); srv.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(srv);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
     const db = JSON.parse(fs.readFileSync(dbFile, 'utf8')); const du = Object.values(db.users).find(x => x.name === dev || x.login === dev); du.role = 'admin'; du.admin = true;
     fs.writeFileSync(dbFile, JSON.stringify(db)); await start();
     const refused = await post('/api/admin/led-grant', { campCleared: 160 }, (await post('/api/login', { name: plain, pass: 'password1' })).token);

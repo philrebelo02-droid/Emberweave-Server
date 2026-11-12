@@ -27,7 +27,7 @@ function start(port, env) {
   const c = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', ALLOW_NEW_GUESTS: '', RL_MUL: '1000', REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200', PORT: String(port), ...env }, stdio: ['ignore', log, log], windowsHide: true });
   procs.push(c); return c;
 }
-async function up(port) { for (let i = 0; i < 300; i++) { try { if ((await fetch('http://127.0.0.1:' + port + '/health')).ok) return true; } catch (_) {} await delay(100); } return false; }
+async function up(port) { for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ) { try { if ((await fetch('http://127.0.0.1:' + port + '/health')).ok) return true; } catch (_) {} await delay(100); } return false; }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
 async function stop(c) { if (c && c.exitCode === null) { c.kill(); await new Promise(r => { c.once('exit', r); setTimeout(r, 3000); }); } }
 const call = (port, p, body, tok) => fetch('http://127.0.0.1:' + port + p, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(tok ? { 'x-token': tok } : {}) }, body: body ? JSON.stringify(body) : undefined })
   .then(async r => { let j = {}; try { j = await r.json(); } catch (_) {} return { status: r.status, j }; }).catch(() => ({ status: 0, j: {} }));

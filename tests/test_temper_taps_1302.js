@@ -16,7 +16,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const name = 't20' + Date.now().toString(36);
     const reg = await (await fetch(base + '/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, pass: 'password1' }) })).json();
     const cat = await (await fetch(base + '/api/gear/catalog', { headers: { 'x-token': reg.token } })).json();
-    await delay(1500); srv.kill(); await delay(1500);
+    await delay(1500); srv.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(srv);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
     // seed: lots of dust + one built Grey item (the db file the server wrote)
     let raw = fs.readFileSync(dbFile, 'utf8'); const db = JSON.parse(raw); const u = Object.values(db.users).find(x => x.name === name || x.login === name);
     const grey = cat.items.find(d => d.quality === 'Grey');

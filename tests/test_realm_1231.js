@@ -48,7 +48,7 @@ let pass=0;const ok=(c,m)=>{assert(c,m);pass++;};
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'realm-1231-')),db=path.join(dir,'db.json'),port=await free(),base='http://127.0.0.1:'+port;let child=null;
   const req=async(m,r,d,t)=>(await fetch(base+r,{method:m,headers:{...(t?{'x-token':t}:{}),...(d?{'content-type':'application/json'}:{})},body:d?JSON.stringify(d):undefined})).json();
   const start=async admin=>{child=spawn(process.execPath,['server.js'],{cwd:root,windowsHide:true,stdio:'ignore',env:{...process.env,PORT:String(port),DB_FILE:db,ADMIN_IDS:admin||'',NODE_ENV:'test',SIM_WORKERS:'0',DATABASE_URL:'',REG_PER_MIN:'50',REG_ACCOUNTS_PER_IP:'50'}});
-    for(let i=0;i<300;i++){try{if((await fetch(base+'/health')).ok)return;}catch(e){}await new Promise(r=>setTimeout(r,100));}throw Error('no server');};
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(child && child.exitCode !== null); ){try{if((await fetch(base+'/health')).ok)return;}catch(e){}await new Promise(r=>setTimeout(r,100));}throw Error('no server');};   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
   const stop=async()=>{if(child){const c=child;child=null;c.kill();await new Promise(r=>setTimeout(r,700));}};
   try{
     await start();const a=await req('POST','/api/register',{name:'lakeTest',pass:'password1'});await stop();await start(a.profile.id);

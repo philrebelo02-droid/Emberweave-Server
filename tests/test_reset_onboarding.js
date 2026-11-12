@@ -16,7 +16,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     const port=await freePort(),base='http://127.0.0.1:'+port;
     child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:path.join(temp,'db.json')},stdio:'ignore',windowsHide:true});
     let ready=false;
-    for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}
+    for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(child && child.exitCode !== null); ){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count (was 100 tries) */
     assert(ready,'throwaway server did not start');
     const stale={tutStarted:true,tutRewarded:{win11:true},tutFocusStep:'quest11',questChainStep:1,squads:{campaign:['vireo']}};
     const deviceId='reset-onboarding-'+Date.now();

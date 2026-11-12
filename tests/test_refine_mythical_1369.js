@@ -160,8 +160,8 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const port = await freePort(), base = 'http://127.0.0.1:' + port; let child = null, token, id;
 async function start() { child = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, ALLOW_NEW_GUESTS: '1', DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile, SERVER_SECRET: SECRET }, stdio: 'ignore', windowsHide: true });
-  for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); } throw Error('no start'); }
-async function stop() { if (!child) return; child.kill(); for (let i = 0; i < 60 && child.exitCode === null; i++) await delay(50); child = null; }
+  for (const _t0 = Date.now(); Date.now() - _t0 < 60000 && !(child && child.exitCode !== null); ) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); } throw Error('no start'); }   /* 11 Nov: a 60 s deadline, not an iteration count (was 300 tries) */
+async function stop() { if (!child) return; child.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(child);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */ child = null; }
 async function call(route, data) { const r = await fetch(base + route, { method: data ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', 'x-token': token }, body: data ? JSON.stringify(data) : undefined });
   let j = {}; try { j = await r.json(); } catch (_) {} return { status: r.status, data: j }; }
 async function editDB(fn) { await delay(400); await stop(); const db = JSON.parse(fs.readFileSync(dbFile, 'utf8')); fn(db.users[id]); fs.writeFileSync(dbFile, JSON.stringify(db)); await start(); }

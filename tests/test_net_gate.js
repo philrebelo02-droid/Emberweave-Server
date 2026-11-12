@@ -42,4 +42,4 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
   }
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_net_gate.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+', page '+path.basename(page)+')');
-} catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { if(child){ child.kill(); await delay(300); } } })();
+} catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { if(child){ child.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(child);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */ } } })();
