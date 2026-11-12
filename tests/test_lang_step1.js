@@ -82,8 +82,8 @@ const GONE=[   // [pattern, what] - each must appear 0 times now
 ];
 const PAGE=html.replace(MOD,'');   // the strings themselves live in the module's EW_LANG_EN
 for(const [re,what] of GONE){ const n=(PAGE.match(new RegExp(re.source,'g'))||[]).length; ok(n===0,what+' is no longer hard-coded ('+n+' left)'); }
-// v1267 Settings tabs: General is the first tab, the fallback tab, and its pane opens with the Language row (no scrolling to find it)
-ok(/const TABS=\[\['general',t\('set\.tab_general'\)\]/.test(html)&&/\$\{pane\('general',langCard\+soundCard\)\}/.test(html)&&/if\(!TABS\.some\(x=>x\[0\]===setTab\)\) setTab='general';/.test(html),'Settings shows the Language card first, above the account (no scrolling to find it)');
+// v1267 Settings tabs (v1377: the General pane grew graphics/sound/guides cards after it - Language must still come first): General is the first tab, the fallback tab, and its pane opens with the Language row (no scrolling to find it)
+ok(/const TABS=\[\['general',t\('set\.tab_general'\)\]/.test(html)&&/\$\{pane\('general',langCard\+/.test(html)&&/if\(!TABS\.some\(x=>x\[0\]===setTab\)\) setTab='general';/.test(html),'Settings shows the Language card first, above the account (no scrolling to find it)');
 ok(/ls\.onchange=\(\)=>\{ langSet\(ls\.value,\{save:true\}\); \}/.test(html),'the Language select saves the pick');
 ok(/pushSave\(\); try\{ langAdoptSave\(\); \}catch\(e\)\{\}/.test(html),'a loaded cloud save adopts its language');
 
