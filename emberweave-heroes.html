@@ -2830,7 +2830,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #tech .hdrbox{position:absolute;z-index:2;left:4.5%;top:24%;width:27%;max-width:370px;background:none!important;border:0!important;padding:0;box-shadow:none;text-align:center}
 #tech .titlebar{border:0;background:none;padding:0}
 #tech h1{height:160px;margin:0;font-size:0;line-height:0;background:url('/assets/img/ui/academy-main/academy-wordmark.webp?v=1') center/contain no-repeat;color:transparent}
-#tech h1:not(.ac-title-art){background:none;color:#f7d895;font:700 42px/1.3 Georgia,serif;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
+#tech h1:not(.ac-title-art){background:none;color:#f7d895;-webkit-text-fill-color:#f7d895;text-shadow:0 2px 1px #5d2c13,0 5px 9px #000;font:700 42px/1.3 Georgia,serif;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
 #tech .sub{color:#f3dbac;font:italic 18px/1.6 Georgia,serif;max-width:270px;margin:10px auto 0;text-shadow:0 2px 5px #000}
 #tech #techPanel{width:100%;max-width:none;height:100%;margin:0;padding:0;border:0!important;outline:0;background:none!important;box-shadow:none!important;position:relative}
 #tech .ac-wallet{position:absolute;right:4.5%;top:30px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:3}
@@ -8153,7 +8153,8 @@ function acadRatePerHour(lvl){ return ACAD_RATE[Math.max(0,Math.min(ACADEMY_MAX,
 function learnResCost(track,lvl){ if(track==='academy'){ const n=ACAD_COST[(lvl|0)]||0; return {iron:n,crystal:n,silver:n,coal:n}; } const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},heal:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 function canAffordRes(c){ for(const k in c){ if((G.res[k]||0)<c[k]) return false; } return true; }
 function payRes(c){ for(const k in c){ G.res[k]=(G.res[k]||0)-c[k]; } }
-function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+(+v).toLocaleString()).join(' '); }
+/* v1377 (tester 12 Nov, Academy: "I don't know what the diamond, the chain, the hook, and the rock represent ... the stones mined on the map have different icons"): a cost shows the same mine art as the top bar and the map, not the old emoji */
+function resCostStr(c){ return Object.entries(c).map(([k,v])=>resIconHtml(k,14)+(+v).toLocaleString()).join(' '); }
 let G = JSON.parse(JSON.stringify(DEFAULT_G));
 function saveGLocalOnly(){ try{ localStorage.setItem('emberweave_save_v08', JSON.stringify(G)); }catch(e){} }
 function saveG(){ G.mtime=Date.now(); saveGLocalOnly(); if(ACC.token) cloudSync(); }
