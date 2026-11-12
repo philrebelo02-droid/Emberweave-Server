@@ -11501,7 +11501,7 @@ const DPR_SCHEME='v511-vsync-governor';   /* v511 - this const was REFERENCED in
    DECLARED. Reading it threw a ReferenceError inside the try, the catch swallowed it, and the entire
    saved-resolution branch below never ran on any device. Bumping this string retires every stale
    saved value once, for every player, with no cache clearing. */
-const QUAL={ dpr:1, max:2, min:1.5, good:0, bad:0, last:0, locked:false };   // v511 floor 0.75 -> 1.5
+const QUAL={ dpr:0, max:2, min:1.5, good:0, bad:0, last:0, locked:false };   /* v1373 (Phil 12 Nov: "Yes"): dpr starts at 0 so resize3D's if(!QUAL.dpr) qualityInit() really runs - phones start at their own resolution (v507/v511 intent); it was 1, so qualityInit never ran and phones started at 1.5x and topped out at 2x. Graphics setting (Balanced 2x, Low 1x) and the stutter governor still apply. */   // v511 floor 0.75 -> 1.5
 function qualityInit(){
   const dpr=window.devicePixelRatio||1;
   const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
