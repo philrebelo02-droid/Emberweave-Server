@@ -5,7 +5,7 @@
 "arena.rules_above_b":"自分より上位",
 "arena.rules_defenders":"不在の間は{b}があなたの順位を守ります。調整で設定しましょう — 自動で戦います。",
 "arena.defenders":"防衛メンバー",
-"arena.rules_daily":"毎日、順位に応じて{b}が支払われます。リセットは米国東部時間09:00です。",
+"arena.rules_daily":"毎日、順位に応じて{b}が支払われます。リセットは米国東部標準時09:00です。",
 "arena.rules_daily_b":"デイリー報酬",
 "arena.rules_bounty":"相手に表示される{gem}は、その相手に初めて勝ったときのダイヤ報酬です。",
 "arena.league_champion":"チャンピオン",

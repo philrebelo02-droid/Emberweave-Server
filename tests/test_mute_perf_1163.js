@@ -1,4 +1,4 @@
-/* v1163 LAG FIX - the mute button costs nothing while the player browses (Phil 16 Oct 2026: "Game is lagging alot lately", "While im
+/* v1163 LAG FIX (rewritten 12 Nov for today's game: the button is gone since v1358, see below) - the mute button costs nothing while the player browses (Phil 16 Oct 2026: "Game is lagging alot lately", "While im
    going through hero tab it was"). v1159-v1162 re-measured the button's spot every second (setInterval) with up to ~435 elementFromPoint
    probes on a busy window, forcing layout over the Heroes grid again and again.
    Real page (Chromium, phone 915x412, Phil's) on a local server with a temp DB; silent (--disable-audio-output + every destination through a gain of
@@ -72,17 +72,21 @@ const INIT = () => {
       const scroll = await pg.evaluate(() => ({ ms: window.__mp.ms, n: window.__mp.n, lt: window.__lt.n, ltms: window.__lt.ms, top: document.getElementById('heroesPanel').scrollTop }));
       const out = { idle: { msPerS: +(idle.ms / 5).toFixed(2), calls: idle.n, longTasks: idle.lt, longMs: Math.round(idle.ltms) }, scroll: { msPerS: +(scroll.ms / 5).toFixed(2), calls: scroll.n, longTasks: scroll.lt, longMs: Math.round(scroll.ltms) } };
       console.log('  ' + label.padEnd(8) + JSON.stringify(out)); R[label] = out; return out; };
+    /* 12 Nov (Phil: test today's game): the floating mute button was removed in v1358 (47540784, Phil 10 Nov "just remove the mute button"),
+       but muteBtnPlace still runs on every screen change (it also drives the chat bar, v1165). v1359 (ec954ad0) fixed its two re-check timers
+       re-arming each other for ever with no button (a wake-up every 0.9 s). So today: NO repeating wake-ups while the player browses. */
     const now = await measure(control ? 'BASE' : 'NOW');
     ck(now.idle.msPerS < 1 && now.scroll.msPerS < 1, (control ? 'BASE' : 'NOW') + ': under 1 ms per second in muteBtnPlace, idle (' + now.idle.msPerS + ') and scrolling the hero grid (' + now.scroll.msPerS + ')');
-    // NO BTN: the floor
-    await pg.evaluate(() => { window.muteBtnPlace = function () {}; const b = document.getElementById('muteBtn'); if (b) b.remove(); });
-    const nob = await measure('NO BTN');
-    ck(now.idle.longTasks + now.scroll.longTasks <= nob.idle.longTasks + nob.scroll.longTasks + 1, (control ? 'BASE' : 'NOW') + ': no more long tasks than with the button removed (' + (now.idle.longTasks + now.scroll.longTasks) + ' vs ' + (nob.idle.longTasks + nob.scroll.longTasks) + ')');
-    if (!control) {   // CONTROL: v1162's once-a-second re-measure put back
-      await pg.evaluate(() => { window.muteBtnPlace = window.__mpTimed(window.__mpReal); window.muteBtnPlace(true); window.__ctlIv = setInterval(() => window.muteBtnPlace(true), 1000); });
+    ck(now.idle.calls <= 1 && now.scroll.calls <= 1, (control ? 'BASE' : 'NOW') + ': no repeating muteBtnPlace wake-ups with the button gone (' + now.idle.calls + ' idle + ' + now.scroll.calls + ' scrolling calls in 5 s each)');
+    ck(await pg.evaluate(() => !document.getElementById('muteBtn')), 'no floating mute button on the page (v1358)');
+    if (!control) {   // CONTROL: v1358's check put back - 'same' needs a connected button, so with none the 0.9 s / 2.5 s re-checks re-arm for ever
+      await pg.evaluate(() => { window.muteBtnPlace = window.__mpTimed(function (force) { try { const b = document.getElementById('muteBtn'), sig = _muteSig(), same = sig === MUTE_SIG.s && (b && b.isConnected);
+          if (same && !force) return; if (!same) { MUTE_SIG.s = sig; MUTE_SIG.k = 0; } muteBtnPlaceNow(); try { updateChatVisibility(); } catch (e) {}
+          if (!same) { clearTimeout(MUTE_SIG.verify); clearTimeout(MUTE_SIG.verify2); MUTE_SIG.verify = setTimeout(() => { MUTE_SIG.verify = 0; muteBtnPlace(true); }, 900); MUTE_SIG.verify2 = setTimeout(() => { MUTE_SIG.verify2 = 0; muteBtnPlace(true); }, 2500); } } catch (e) {} });
+        window.muteBtnPlace(); });
       const c = await measure('CONTROL');
-      await pg.evaluate(() => clearInterval(window.__ctlIv));
-      ck(!(c.idle.msPerS < 1 && c.scroll.msPerS < 1), 'CONTROL: with a 1 s re-measure put back the budget check FAILS (' + c.idle.msPerS + ' / ' + c.scroll.msPerS + ' ms per second, ' + c.idle.calls + ' + ' + c.scroll.calls + ' calls)');
+      await pg.evaluate(() => { clearTimeout(MUTE_SIG.verify); clearTimeout(MUTE_SIG.verify2); window.muteBtnPlace = window.__mpReal; });
+      ck(!(c.idle.calls <= 1 && c.scroll.calls <= 1), 'CONTROL: with v1358\'s re-check loop put back the wake-up check FAILS (' + c.idle.calls + ' idle + ' + c.scroll.calls + ' scrolling calls)');
     }
     ck(errs.length === 0, 'no page errors', errs.slice(0, 3).join(' | '));
     await pg.evaluate(async () => { try { for (const c of (window.__AC || [])) await c.close(); } catch (e) {} });

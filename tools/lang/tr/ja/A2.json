@@ -40,7 +40,7 @@
 "skytour.registration_open":"登録受付中",
 "skytour.round":"ラウンド{n}",
 "skytour.finished":"終了",
-"skytour.desc":"隔週開催のギルド勝ち抜き戦 — 登録は{wt}とは逆の週末、サーバー時刻の土曜02:00〜月曜00:00。戦闘は火〜金の18〜20時（米国東部時間）、5つの城塞で行われます。",
+"skytour.desc":"隔週開催のギルド勝ち抜き戦 — 登録は{wt}とは逆の週末、サーバー時刻の土曜02:00〜月曜00:00。戦闘は火〜金の18〜20時（米国東部標準時）、5つの城塞で行われます。",
 "skytour.enter":"{name}に参加",
 "skytour.locks_at":"締切 {when}",
 "skytour.registered_n":"登録ギルド数: {n}",

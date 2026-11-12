@@ -155,7 +155,7 @@ async function serverChecks() {
 // ---------- 3. the client ----------
 async function clientChecks(info) {
   const { S, p1, site: siteId } = info, site = SG.byId(siteId);
-  const browser = await chromium.launch({ headless: true, executablePath: fs.existsSync(CHROME) ? CHROME : undefined });
+  const browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args: ['--disable-audio-output'], headless: true, executablePath: fs.existsSync(CHROME) ? CHROME : undefined });
   try {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 } }), page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto(S.base + '/play', { waitUntil: 'domcontentloaded' });
@@ -190,21 +190,21 @@ async function clientChecks(info) {
       siegeRefresh = keep; return res; }, [siteId, info.at19, info.at21]);
     ok(gate[0].dist === 19 && gate[0].dis === false && gate[1].dist === 21 && gate[1].dis === true && /21 squares/.test(gate[1].why), 'client gate: 19 squares Attack enabled, 21 disabled with the reason (' + JSON.stringify(gate) + ')');
     await page.evaluate(() => { G.castleX = null; G.castleY = null; }); await page.evaluate(() => siegeRefresh());
-    const banner = await page.evaluate(id => { const b = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"]'); return b && { name: b.querySelector('span').textContent, g: b.querySelector('.wmGarrison').textContent }; }, siteId);
-    ok(banner && banner.name === 'Ember Hold' && banner.g === '1/8', 'the holder banner is on the map with the garrison count: ' + JSON.stringify(banner));
+    const banner = await page.evaluate(id => { const b = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"]'); return b && { name: b.title, g: b.querySelector('.wmGarrison').textContent, shown: b.textContent }; }, siteId);
+    ok(banner && banner.name === 'Ember Hold' && banner.g === '1/8' && banner.shown === '1/8', 'the holder banner is on the map with the garrison count: ' + JSON.stringify(banner));
     // march ship + trail in proportion to a castle, at two zooms
     const sizes = [];
     for (const zf of ['close', 'max']) {
       sizes.push(await page.evaluate(zf => { const c = myCastlePos(); mapZoomCloseAt(c.x, c.y); if (zf === 'max') { const z = document.getElementById('wzone'); worldZoom = worldZoomBounds(z).max; applyWorldZoom(); }
         const now = Date.now(); G.marches = (G.marches || []).filter(m => m.id !== 'szTest'); G.marches.push({ id: 'szTest', dir: 'out', ctype: 'attack', tName: 'Size test', fx: c.x + 2, fy: c.y + 1, heroes: [], depart: now - 20000, arrive: now + 200000, home: now + 400000, out: 220000, resolved: false });
-        drawMarches(); const ship = document.querySelector('#marchVeh .marchShipWrap').getBoundingClientRect(), castle = document.querySelector('#wzoneInner .wnode.city.me .castle-spr').getBoundingClientRect();
+        drawMarches(); /* 12 Nov: the won siege's stationed line is drawn now too (its timer is empty) - measure THIS march's ship + timer (same left/top) */ const tEl = [...document.querySelectorAll('#marchVeh .marchTimer')].find(t => t.textContent.trim()), wEl = [...document.querySelectorAll('#marchVeh .marchShipWrap')].find(w => tEl && w.style.left === tEl.style.left && w.style.top === tEl.style.top); const ship = wEl.getBoundingClientRect(), castle = document.querySelector('#wzoneInner .wnode.city.me .castle-spr').getBoundingClientRect();
         const ln = document.querySelector('#marchG line'), w = +ln.getAttribute('stroke-width'), da = ln.getAttribute('stroke-dasharray').split(' ').map(Number), pctPx = WORLD_W / 100 * worldZoom;
-        const timer = [...document.querySelectorAll('#marchVeh .marchTimer')].pop().getBoundingClientRect();
+        const timer = tEl.getBoundingClientRect();
         G.marches = G.marches.filter(m => m.id !== 'szTest'); drawMarches();
-        return { zoom: worldZoom, ship: ship.width / castle.width, dash: (da[0] + w) * pctPx / castle.width, thick: w * pctPx / castle.width, gap: (da[1] - w) * pctPx / castle.width, timerH: timer.height, castle: castle.width }; }, zf));
+        return { zoom: worldZoom, shipSize: MARCH_SHIP.size, ship: ship.width / castle.width, dash: (da[0] + w) * pctPx / castle.width, thick: w * pctPx / castle.width, gap: (da[1] - w) * pctPx / castle.width, timerH: timer.height, castle: castle.width }; }, zf));
       await page.waitForTimeout(300); }
-    for (const s of sizes) ok(s.ship >= 0.9 && s.ship <= 1.5 && s.dash >= 0.25 && s.dash <= 0.5 && s.thick >= 0.08 && s.thick <= 0.16 && s.gap >= 0.25 && s.gap <= 0.5 && s.timerH >= 9 && s.timerH <= 22,
-      'zoom ' + s.zoom.toFixed(2) + ': ship ' + s.ship.toFixed(2) + ' castle, dash ' + s.dash.toFixed(2) + ' x ' + s.thick.toFixed(2) + ', gap ' + s.gap.toFixed(2) + ', timer ' + s.timerH.toFixed(1) + ' px (castle ' + s.castle.toFixed(1) + ' px)');
+    for (const s of sizes) ok(Math.abs(s.ship - s.shipSize) <= 0.05 && s.shipSize === 0.9 && s.dash >= 0.25 && s.dash <= 0.5 && s.thick >= 0.08 && s.thick <= 0.16 && s.gap >= 0.25 && s.gap <= 0.5 && s.timerH >= 9 && s.timerH <= 22,
+      'zoom ' + s.zoom.toFixed(2) + ': ship ' + s.ship.toFixed(3) + ' castle (v1249: 0.9 squares), dash ' + s.dash.toFixed(2) + ' x ' + s.thick.toFixed(2) + ', gap ' + s.gap.toFixed(2) + ', timer ' + s.timerH.toFixed(1) + ' px (castle ' + s.castle.toFixed(1) + ' px)');
     ok(Math.abs(sizes[0].ship - sizes[1].ship) < 0.05 && Math.abs(sizes[0].dash - sizes[1].dash) < 0.05, 'the proportions hold across zoom');
     // a mine being gathered stays drawn with its timer; a depleted one is removed
     const mine = await page.evaluate(async () => { const c = myCastlePos(); mapZoomCloseAt(c.x, c.y); await new Promise(r => setTimeout(r, 400)); await worldMineFieldCache().sync(true);
@@ -215,10 +215,15 @@ async function clientChecks(info) {
       const el = inner.querySelector('.wnode.mine[data-mine-id="' + n.id + '"]'), timer = inner.querySelector('#marchVeh .marchTimer.mining');
       const res = { gathering: !!el && el.classList.contains('mining') && !!el.querySelector('.wm-mine-spr'), timer: timer && timer.textContent, timerAbove: !!timer && !!el && timer.getBoundingClientRect().bottom <= el.querySelector('.wm-mine-spr').getBoundingClientRect().top + 2 };
       G.marches.find(m => m.id === 'mnTest').arrive = Date.now() - 1; paintWorldMineField(inner);
-      res.depleted = !inner.querySelector('.wnode.mine[data-mine-id="' + n.id + '"]');
+      /* 12 Nov (Phil: test today's game): since v1249 (dd9f35b8, "mine stock - 3 hauls shared, left shown") one gather does not empty a mine:
+         after your gather it stays while it has hauls left, and it is gone once its stock is 0 */
+      const after = inner.querySelector('.wnode.mine[data-mine-id="' + n.id + '"]'); res.stays = !!after && !(Number.isFinite(n.left) && n.left <= 0); res.left = n.left;
+      const realMines = worldMines; worldMines = () => realMines().map(m => m.id === n.id ? { ...m, left: 0 } : m);   // the server's field says this mine's stock is 0
+      try { paintWorldMineField(inner); res.depleted = !inner.querySelector('.wnode.mine[data-mine-id="' + n.id + '"]'); } finally { worldMines = realMines; paintWorldMineField(inner); }
       G.marches = G.marches.filter(m => m.id !== 'mnTest'); return res; });
     ok(!mine.none && mine.gathering && /^Mining /.test(mine.timer || '') && mine.timerAbove, 'a mine being gathered stays on the map with its timer above it (' + mine.timer + ')');
-    ok(mine.depleted, 'a depleted mine (gather over) is removed');
+    ok(mine.stays, 'after your gather a mine with hauls left stays on the map (left ' + mine.left + ')');
+    ok(mine.depleted, 'a depleted mine (stock 0) is removed');
     // end to end in the browser (player two): Attack -> the server march -> arrival -> the fight played HERE -> the report -> the receipt
     const p2 = info.p2, t2 = SG.byId(info.target2), page2 = await ctx.newPage(); page2.on('pageerror', e => errors.push(e.message));
     await page2.goto(S.base + '/play', { waitUntil: 'domcontentloaded' }); await page2.evaluate(t => { ACC.token = t; G.playerXP = 900000; }, p2.token);

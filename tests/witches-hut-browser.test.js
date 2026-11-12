@@ -63,7 +63,7 @@ async function run(){
     assert.ok(node);
     const secondNode=field.nodes.find(m=>m.level===1&&m.id!==node.id);
     assert.ok(secondNode);
-    browser=await chromium.launch({headless:true,executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
+    browser=await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args: ['--disable-audio-output'],headless:true,executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
     const page=await browser.newPage();
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
@@ -207,7 +207,7 @@ async function run(){
     });
     assert.equal(pictureGrid.lowest,pictureGrid.lastZ,'the whole-map view uses the cover level');
     assert.ok(pictureGrid.deepest<pictureGrid.lowest,'the closest view uses a deeper level');
-    assert.ok(pictureGrid.tiles.length>0&&pictureGrid.tiles.every(src=>new RegExp('^/assets/img/world-map/realm-'+pictureGrid.version+'/tiles/z\\d+/r\\d\\dc\\d\\d\\.webp\\?v=').test(src)),'tiles stream per view, versioned');
+    assert.ok(pictureGrid.tiles.length>0&&pictureGrid.tiles.every(src=>new RegExp('^/assets/img/world-map/realm-'+pictureGrid.version+'/tiles/z\\d+/r\\d{2,3}c\\d{2,3}\\.webp\\?v=').test(src)),'tiles stream per view, versioned');
     assert.match(pictureGrid.cover,new RegExp('realm-'+pictureGrid.version+'/cover\\.webp\\?v='));
     assert.deepEqual(pictureGrid.zoneKeys,['worldtree','crystor','draymon','tefron','alumron'],'zones are the realm\'s land masses');
     assert.equal(pictureGrid.live.level,'9','castles and mines show at the close view');
@@ -215,12 +215,16 @@ async function run(){
     await page.waitForFunction(()=>document.getElementById('worldTreeTerrain')?.naturalWidth>0,{timeout:10000});
     assert.equal(await page.locator('#worldTreeTarget img').count(),0,'World Tree is terrain on its island, not a floating sprite');
     // the tree's tap target still opens the World Tree menu (its panel's own content is the World Tree UI's tests, unchanged)
-    await page.evaluate(()=>{window._wtOpened=0;const ui=worldTreeActionsUI();if(ui){const real=ui.open;ui.open=function(id){if(id==='tree')window._wtOpened++;return real.apply(this,arguments);};}
-      document.getElementById('worldTreeTarget').addEventListener('click',()=>{if(!worldTreeActionsUI())window._wtOpened++;},true);});
+    /* 12 Nov (Phil: test today's game): since v1235 (c6376ea1, city siege) the World Tree is a siege site - a tap opens its siege panel
+       (openSiegePanel('tree')), which is where the World Tree's actions live now; the old menu (openWorldTreeMenu) is only the no-siege fallback. */
+    await page.evaluate(()=>{window._wtOpened=0;const real=window.openSiegePanel;window.openSiegePanel=function(id){if(id==='tree')window._wtOpened++;return real.apply(this,arguments);};
+      document.getElementById('worldTreeTarget').addEventListener('click',()=>{if(!window.EmberweaveWorldSiege&&!worldTreeActionsUI())window._wtOpened++;},true);});
     await page.addStyleTag({content:'#tutOffer{display:none!important}'});   // the tutorial offer card lies over the map in this fixture
     await page.locator('#worldTreeTarget').click({force:true});
     const wtDiag=await page.evaluate(()=>{const t=document.getElementById('worldTreeTarget').getBoundingClientRect();const top=document.elementFromPoint(t.left+t.width/2,t.top+t.height/2);return JSON.stringify({t:[t.left,t.top,t.width,t.height],top:top&&(top.id||top.className||top.tagName+' '+(top.parentElement&&(top.parentElement.id||top.parentElement.className))+' '+(top.getAttribute('src')||'').slice(0,60)),vw:innerWidth,vh:innerHeight,tele:_teleMode});});
-    assert.equal(await page.evaluate(()=>window._wtOpened),1,'tapping the tree on its island opens the World Tree menu '+wtDiag);
+    assert.equal(await page.evaluate(()=>window._wtOpened),1,'tapping the tree on its island opens the World Tree siege panel '+wtDiag);
+    await page.waitForFunction(()=>{const p=document.querySelector('#siegePanel');return !!p&&p.dataset.siteId==='tree'&&p.getBoundingClientRect().width>0;},null,{timeout:5000});
+    await page.evaluate(()=>document.querySelectorAll('#siegePanel').forEach(el=>el.remove()));
     await page.evaluate(()=>closeCityMenu());
     const boundaryTiles=await page.evaluate(()=>{
       const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner'),L=realmLevelFor(worldZoom),k=L.cellPx/(WORLD_W/GRID_COLS),T=REALM_MAP.META.tile;
@@ -261,7 +265,10 @@ async function run(){
     assert.ok(Math.abs(zoomRules.low.horizontalRange-Math.max(0,zoomRules.low.realmOverW))<=2,'sideways play only across the realm itself, never past it');
     assert.equal(zoomRules.low.city,'none','castles hide at the overview scale');
     assert.equal(zoomRules.low.mine,'none','mines hide at the overview scale');
-    assert.equal(zoomRules.low.tiles,0,'the cover alone draws the whole-map view');
+    /* 12 Nov: the old level is released ~250 ms after the cover is ready (no flash), not in the same tick - so the whole-map view is
+       checked on its own, after that settles (before the fix the deeper tiles stayed in the DOM for ever under/over the cover) */
+    const coverTiles=await page.evaluate(async()=>{ worldZoomTo(0); await new Promise(r=>setTimeout(r,1200)); return document.querySelectorAll('#wzoneInner #realmTiles img').length; });
+    assert.equal(coverTiles,0,'the cover alone draws the whole-map view');
     assert.equal(zoomRules.low.zoneLabel,'none','tiny region captions do not mark the whole-map picture');
     assert.ok(Math.abs(zoomRules.edge.right-zoomRules.edge.maxRight)<=2 &&
       Math.abs(zoomRules.edge.bottom-zoomRules.edge.maxBottom)<=2,'scrolling stops at the picture edges');
@@ -284,13 +291,10 @@ async function run(){
     },{token:admin.token,node});
     assert.ok(march&&march.serverMineId,'browser kept a server mine receipt');
     await new Promise(ok=>setTimeout(ok,70));
-    await page.evaluate(()=>marchTick());
-    await page.waitForFunction(id=>{
-      const m=G.marches.find(x=>x.serverMineId===id);
-      return !!m?.resolved;
-    },march.serverMineId,{timeout:10000});
+    await page.evaluate(id=>{ window._mineM1=G.marches.find(x=>x.serverMineId===id); marchTick(); },march.serverMineId);   // 12 Nov: keep the march object (a resolved march past its home time leaves G.marches on the next tick)
+    await page.waitForFunction(()=>!!window._mineM1?.resolved,null,{timeout:10000});
     const report=await page.evaluate(id=>({
-      mine:G.marches.find(m=>m.serverMineId===id),
+      mine:window._mineM1,
       mail:(G.mail?.mines||[]).slice(-1)
     }),march.serverMineId);
     assert.equal(report.mine.resolved,true);
@@ -325,32 +329,39 @@ async function run(){
     if(await signedIn.locator('#tutSkip').isVisible()) await signedIn.locator('#tutSkip').click();
     await signedIn.evaluate(()=>signOutFully());
     await signedIn.evaluate(()=>{ G.tutSkipped=true; document.querySelectorAll('#tutOffer').forEach(el=>el.remove()); });
+    await signedIn.addStyleTag({content:'#tutOffer{display:none!important}'});   // 12 Nov (Grok): a late offer card must not cover #splashPlay either
     await signedIn.locator('#splashPlay').click({timeout:5000});
     await signedIn.waitForFunction(()=>document.getElementById('rotateGate')?.style.display==='none',{timeout:10000});
-    await signedIn.evaluate(()=>show('account'));
-    await signedIn.locator('#acName').fill('witchBrowser');
-    await signedIn.locator('#acPass').fill('password1');
-    await signedIn.locator('#loginBtn').click({timeout:5000});
+    /* 12 Nov (Phil: test today's game): signed out, the game shows the sign-in gate (#authGate, v1144 5e1ae877 "sign-in first") over the
+       town - the old Account screen form (#acName / #loginBtn) is not reachable there, so sign in the way a player does: the gate's Sign in tab */
+    await signedIn.waitForFunction(()=>document.getElementById('authGate')?.style.display==='flex',{timeout:10000});
+    if(await signedIn.locator('#agTabIn').count()) await signedIn.locator('#agTabIn').click({timeout:5000});
+    await signedIn.locator('#agName').fill('witchBrowser');
+    await signedIn.locator('#agPass').fill('password1');
+    await signedIn.locator('#agGo').click({timeout:5000});
     if(await signedIn.locator('#tosAccept').isVisible()) await signedIn.locator('#tosAccept').click({timeout:5000});
     await signedIn.waitForFunction(()=>ACC?.name==='witchBrowser'&&!!ACC.token,null,{timeout:10000});
     await signedIn.waitForFunction(()=>playerLevel()>=20,null,{timeout:10000});
+    // the fixture account's save has not answered the tutorial offer, so the offer card covers the town - answer it as a player does (Skip)
+    await signedIn.evaluate(async()=>{ if(document.getElementById('tutOffer')||(!G.tutDone&&!G.tutSkipped)) await setTutorialGuideMode(true); });
     await signedIn.evaluate(()=>show('home'));
     await signedIn.locator('#townHots .hot[title="Witches Hut"] .hit').click({timeout:5000});
     await signedIn.waitForFunction(()=>document.getElementById('wallBody')?.textContent?.includes('Cauldron · Hut Lv'),{timeout:10000});
     await signedIn.evaluate(()=>show('world'));
     await signedIn.waitForFunction(()=>_worldServerAccount===ACC.token&&G.regionChosen,null,{timeout:10000});
-    await signedIn.waitForFunction(()=>Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length===399,null,{timeout:10000});
-    assert.equal(await signedIn.evaluate(()=>worldCities().filter(c=>c.bot).length),399,
-      'signed-in map renders the server-published NPC roster');
-    assert.equal(await signedIn.evaluate(()=>{
-      const local=REGION_KEYS.flatMap(regionBotRoster);
-      return local.every((bot,i)=>{
-        const server=SERVER_BOTS[i];
-        return server&&bot.id===server.id&&bot.level===server.level
-          &&bot.power===server.power&&bot.x===server.x&&bot.y===server.y
-          &&JSON.stringify(bot.team)===JSON.stringify(server.team);
-      });
-    }),true,'server NPC roster matches the existing client rules at the same account state');
+    /* 12 Nov (Phil: test today's game): since the viewport map (6d783bb7, 11 Oct) the server sends only the NPCs in the tiles the player
+       is looking at (plus march targets), not the whole 399 roster - so: some are sent, every one sent is drawn, and each matches the
+       client's own roster rules for that id. */
+    await signedIn.waitForFunction(()=>Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length>0,null,{timeout:10000});
+    const roster=await signedIn.evaluate(()=>{ const local=new Map(REGION_KEYS.flatMap(regionBotRoster).map(b=>[b.id,b]));
+      const drawn=new Set(worldCities().filter(c=>c.bot).map(c=>c.id));
+      return {sent:SERVER_BOTS.length,total:local.size,drawn:SERVER_BOTS.filter(b=>drawn.has(b.id)).length,extraDrawn:drawn.size-SERVER_BOTS.length,
+        same:SERVER_BOTS.every(server=>{ const bot=local.get(server.id); return !!bot&&bot.level===server.level&&bot.power===server.power&&bot.x===server.x&&bot.y===server.y
+          &&JSON.stringify(bot.team)===JSON.stringify(server.team); })}; });
+    assert.ok(roster.sent>0&&roster.sent<=roster.total&&roster.total===399,'the server sends the NPCs in view out of the 399 roster '+JSON.stringify(roster));
+    assert.equal(roster.drawn,roster.sent,'signed-in map renders every server-published NPC in view '+JSON.stringify(roster));
+    assert.equal(roster.extraDrawn,0,'and no NPC the server did not send '+JSON.stringify(roster));
+    assert.equal(roster.same,true,'server NPC roster matches the existing client rules at the same account state');
     await signedIn.locator('#wzone').waitFor({state:'visible',timeout:10000});
     await signedIn.evaluate(m=>openMineInfo(m),secondNode);
     await signedIn.locator('.citymenu [data-a="mine"]').click({timeout:5000});
@@ -364,8 +375,10 @@ async function run(){
     await signedIn.locator('#splashPlay').click({timeout:5000});
     await signedIn.waitForFunction(id=>G.marches?.some(m=>m.serverMineId===id),realMarch,{timeout:10000});
     await new Promise(ok=>setTimeout(ok,70));
-    await signedIn.evaluate(()=>marchTick());
-    await signedIn.waitForFunction(id=>G.marches.some(m=>m.serverMineId===id&&m.resolved),realMarch,{timeout:10000});
+    await signedIn.evaluate(id=>{ window._mineM=G.marches.find(m=>m.serverMineId===id); marchTick(); },realMarch);   // 12 Nov: keep the march object - a resolved march past its home time leaves G.marches on the next tick (the old wait raced it)
+    // 12 Nov (Grok): the wait timed out 3 of 14 runs because of a GAME bug, fixed with this test: the march's resolve-in-flight flag
+    // (m.resolving) is saved, so after this reload the trip waited up to 30 s for a reply the page can never hear (see test_mine_resolve_reload_1364.js).
+    await signedIn.waitForFunction(()=>!!window._mineM&&window._mineM.resolved===true,null,{timeout:10000});
     await signedIn.evaluate(()=>{ show('mail'); mailTab='mines'; renderMail(); });
     await signedIn.locator('#mailBody [data-battle]').last().click({timeout:5000});
     assert.equal(await signedIn.evaluate(()=>CUR.mode),'replay','signed-in mine mail opens its real battle replay');
@@ -385,6 +398,10 @@ async function run(){
       return {left:zone.scrollLeft,top:zone.scrollTop,zoom:worldZoom};
     });
     await signedIn.evaluate(p=>teleportPlace(p.x,p.y),target);
+    // 12 Nov (Grok, 2 fails in 8 runs): since v1359 ec954ad0 ("confirm double tap") Confirm takes no tap for its first 450 ms - a click the
+    // moment it shows was dropped and the teleport never sent. Wait out the guard as a player's second tap does.
+    await signedIn.locator('#_gcYes').waitFor({state:'visible',timeout:5000});
+    await signedIn.waitForTimeout(600);
     await signedIn.locator('#_gcYes').click({timeout:5000});
     await signedIn.waitForFunction(p=>G.castleX===p.x&&G.castleY===p.y,target,{timeout:10000});
     const afterSuccess=await signedIn.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>{
@@ -408,6 +425,9 @@ async function run(){
     await raidPage.goto(base+'/play',{waitUntil:'domcontentloaded'});
     await raidPage.evaluate(token=>{ ACC.token=token; G.playerXP=900000; },raider.token);
     if(await raidPage.locator('#tutSkip').isVisible()) await raidPage.locator('#tutSkip').click();
+    // 12 Nov (Grok): the tutorial offer card (#tutOffer) can appear AFTER the one-shot isVisible check above and then covers #splashPlay
+    // (Playwright: '#tutOffer subtree intercepts pointer events', 1 run in 3) - switch it off for good, the same way as the first page
+    await raidPage.addStyleTag({content:'#tutOffer{display:none!important}'}); await raidPage.evaluate(()=>{ G.tutSkipped=true; });
     await raidPage.locator('#splashPlay').click();
     await raidPage.waitForFunction(()=>document.getElementById('rotateGate')?.style.display==='none',{timeout:10000});
     const realCity=(await wholeMap(raider.token)).cities
@@ -420,12 +440,12 @@ async function run(){
     await raidPage.evaluate(async city=>{
       await startMarch('attack',{...city,real:true},['vael','sylthaine','vireo']);
     },realCity);
-    const raidStart=await raidPage.evaluate(defId=>G.marches.find(m=>m.tId===defId&&m.serverCityId),admin.profile.id);
+    const raidStart=await raidPage.evaluate(defId=>{ const m=G.marches.find(m=>m.tId===defId&&m.serverCityId); window._raidM=m; return m; },admin.profile.id);   // 12 Nov: keep the march object - marchTick drops a resolved march from G.marches once its home time has passed (a race for the old wait)
     assert.ok(raidStart?.serverCityId,'browser map registered a server city march');
     await new Promise(ok=>setTimeout(ok,35));
     await raidPage.evaluate(()=>marchTick());
-    await raidPage.waitForFunction(defId=>G.marches.some(m=>m.tId===defId&&m.resolved),admin.profile.id,{timeout:10000});
-    const cityMarch=await raidPage.evaluate(defId=>G.marches.find(m=>m.tId===defId)?.pvpRequestId,admin.profile.id);
+    await raidPage.waitForFunction(()=>!!window._raidM&&window._raidM.resolved===true,null,{timeout:10000});
+    const cityMarch=await raidPage.evaluate(()=>window._raidM.pvpRequestId);
     assert.ok(cityMarch,'browser city attack keeps an idempotent request ID');
     const verifiedRaid=await request('POST','/api/pvp/attack',{
       defId:admin.profile.id,marchId:raidStart.serverCityId,requestId:cityMarch
@@ -447,12 +467,19 @@ async function run(){
     await botPage.goto(base+'/play',{waitUntil:'domcontentloaded'});
     await botPage.evaluate(token=>{ ACC.token=token; G.playerXP=900000; },botPlayer.token);
     if(await botPage.locator('#tutSkip').isVisible()) await botPage.locator('#tutSkip').click();
+    // 12 Nov (Grok): the tutorial offer card (#tutOffer) can appear AFTER the one-shot isVisible check above and then covers #splashPlay
+    // (Playwright: '#tutOffer subtree intercepts pointer events', 1 run in 3) - switch it off for good, the same way as the first page
+    await botPage.addStyleTag({content:'#tutOffer{display:none!important}'}); await botPage.evaluate(()=>{ G.tutSkipped=true; });
     await botPage.locator('#splashPlay').click();
     await botPage.waitForFunction(()=>document.getElementById('rotateGate')?.style.display==='none',{timeout:10000});
     const botTrip=await botPage.evaluate(async(token)=>{
       ACC.token=token; G.playerXP=900000;
-      await fetchRealCities(true);
-      const bot=SERVER_BOTS[0];
+      /* 12 Nov: since the v1127 zoom gate the castle/NPC list is only asked for at the close map view (fetchRealCities returns without a
+         request otherwise, so SERVER_BOTS stayed null) - open the World map and zoom in first, as a player has to */
+      show('world'); await new Promise(ok=>setTimeout(ok,1500));
+      const zone=document.getElementById('wzone'); worldZoomTo(worldZoomBounds(zone).max); applyMapLOD();
+      for(let i=0;i<50&&!(Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length);i++){ await fetchRealCities(true); if(!(Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length)) await new Promise(ok=>setTimeout(ok,200)); }
+      const bot=SERVER_BOTS&&SERVER_BOTS[0];
       if(!bot||!await declareWarByMe(bot)) throw Error('Server bot war was not registered: '+(bot?.id||'no bot'));
       await new Promise(ok=>setTimeout(ok,35));
       await startMarch('attack',bot,['vael','sylthaine','vireo','vex','gruel','grosk']);
@@ -464,10 +491,10 @@ async function run(){
       'browser marks only the five server-registered fighters as marching');
     assert.equal(botTrip.extraBusy,false,'the sixth wall hero remains available');
     await new Promise(ok=>setTimeout(ok,70));
-    await botPage.evaluate(()=>marchTick());
-    await botPage.waitForFunction(id=>G.marches.some(m=>m.serverCityId===id&&m.resolved),botTrip.id,{timeout:10000});
+    await botPage.evaluate(id=>{ window._botM=G.marches.find(m=>m.serverCityId===id); marchTick(); },botTrip.id);   // 12 Nov: keep the march object (see the mine march above)
+    await botPage.waitForFunction(()=>!!window._botM?.resolved,null,{timeout:10000});
     const botReport=await botPage.evaluate(id=>({
-      march:G.marches.find(m=>m.serverCityId===id),
+      march:window._botM,
       report:(G.mail?.war||[]).find(m=>m.battle?.oppName===G.marches.find(x=>x.serverCityId===id)?.tName)
     }),botTrip.id);
     assert.equal(botReport.march.resolved,true);

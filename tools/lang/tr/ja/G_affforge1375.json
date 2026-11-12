@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "灰",
+ "forge.quality_green": "緑",
+ "forge.quality_blue": "青",
+ "forge.quality_blue_2": "青 +2",
+ "forge.quality_purple": "紫",
+ "forge.quality_purple_3": "紫 +3",
+ "forge.quality_gold_1": "金 +1",
+ "forge.quality_gold_4": "金 +4",
+ "forge.quality_orange": "橙",
+ "aff.water_t": "水",
+ "aff.fire_t": "火",
+ "aff.ice_t": "氷",
+ "aff.nature_t": "自然",
+ "aff.lightning_t": "雷",
+ "aff.light_t": "光",
+ "aff.dark_t": "闇",
+ "aff.neutral_t": "無",
+ "mcard.element": "属性"
+}

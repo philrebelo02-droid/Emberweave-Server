@@ -31,7 +31,8 @@
   "passDescAt": "content: shown through langDesc"
  },
  "text": {
-  "brand": ["Emberweave", "Emberweave Heroes", "Xanthyr Games", "Google", "Google Play", "Facebook", "Discord", "PvP", "EGP", "HP", "ATK", "AP", "DPS", "XP", "EXP", "Lv", "VIP", "NPC", "ID", "OK", "public_profile,email"]
+  "brand": ["Emberweave", "Emberweave Heroes", "Xanthyr Games", "Google", "Google Play", "Facebook", "Discord", "PvP", "EGP", "HP", "ATK", "AP", "DPS", "XP", "EXP", "Lv", "VIP", "NPC", "ID", "OK", "public_profile,email"],
+  "time": ["09:00 EST"]
  },
  "patterns": [],
  "lines": []

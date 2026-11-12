@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "Abu-abu",
+ "forge.quality_green": "Hijau",
+ "forge.quality_blue": "Biru",
+ "forge.quality_blue_2": "Biru +2",
+ "forge.quality_purple": "Ungu",
+ "forge.quality_purple_3": "Ungu +3",
+ "forge.quality_gold_1": "Emas +1",
+ "forge.quality_gold_4": "Emas +4",
+ "forge.quality_orange": "Oranye",
+ "aff.water_t": "Air",
+ "aff.fire_t": "Api",
+ "aff.ice_t": "Es",
+ "aff.nature_t": "Alam",
+ "aff.lightning_t": "Petir",
+ "aff.light_t": "Cahaya",
+ "aff.dark_t": "Kegelapan",
+ "aff.neutral_t": "Netral",
+ "mcard.element": "Elemen"
+}

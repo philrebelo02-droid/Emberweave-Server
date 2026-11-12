@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "เทา",
+ "forge.quality_green": "เขียว",
+ "forge.quality_blue": "น้ำเงิน",
+ "forge.quality_blue_2": "น้ำเงิน +2",
+ "forge.quality_purple": "ม่วง",
+ "forge.quality_purple_3": "ม่วง +3",
+ "forge.quality_gold_1": "ทอง +1",
+ "forge.quality_gold_4": "ทอง +4",
+ "forge.quality_orange": "ส้ม",
+ "aff.water_t": "น้ำ",
+ "aff.fire_t": "ไฟ",
+ "aff.ice_t": "น้ำแข็ง",
+ "aff.nature_t": "ธรรมชาติ",
+ "aff.lightning_t": "สายฟ้า",
+ "aff.light_t": "แสง",
+ "aff.dark_t": "ความมืด",
+ "aff.neutral_t": "ไร้ธาตุ",
+ "mcard.element": "ธาตุ"
+}

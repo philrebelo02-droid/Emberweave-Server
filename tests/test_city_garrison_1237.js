@@ -176,7 +176,11 @@ async function run(clientChecks) {
     // the enemy siege fights the GARRISON, and its win replaces it
     const sE = await S.req('POST', '/api/world/siege/start', { siteId: site.id, heroIds: b1.keys, requestId: 'b1s' }, b1.token, b1.ip);
     assert.ok(sE.body.ok, JSON.stringify(sE.body).slice(0, 200));
-    ok(sE.body.defenders === 'garrison' && sE.body.foe.length === 5 && sE.body.foe.every(f => a1.keys.includes(f.key)) && new Set(sE.body.foe.map(f => f.key)).size === 5, 'a siege on a garrisoned site fights the garrison heroes (' + sE.body.foe.map(f => f.key).join(',') + '), not the guards');
+    /* 12 Nov (Phil: test today's game): the foe is the heroes of the lines STILL stationed (the Return step above recalled gnLead's
+       brannus+mirelle line, so the garrison holds 4 different heroes, not 5) - checked against the DB, distinct, at most 5 */
+    const liveLines = Object.values(JSON.parse(fs.readFileSync(S.db, 'utf8')).users).flatMap(u => (u.worldCityMarches || []).filter(m => !m.recall && (m.station === site.id || (m.kind === 'garrison' && m.siteId === site.id))));
+    const want = [...new Set(liveLines.flatMap(m => m.heroIds || []))].slice(0, 5).sort();
+    ok(sE.body.defenders === 'garrison' && want.length >= 1 && JSON.stringify(sE.body.foe.map(f => f.key).sort()) === JSON.stringify(want) && sE.body.foe.every(f => a1.keys.includes(f.key)), 'a siege on a garrisoned site fights the garrison heroes (' + sE.body.foe.map(f => f.key).join(',') + ' = the stationed lines\' ' + want.join(',') + '), not the guards');
     await sleep(1700);
     const wE = await S.req('POST', '/api/world/siege/resolve', { marchId: sE.body.marchId, requestId: 'b1r', won: true, digest: claimWin(host, sE.body) }, b1.token, b1.ip);
     ok(wE.body.ok && wE.body.seized && wE.body.holder.name === 'Grey Banner' && wE.body.sentHome === before && wE.body.garrisoned && wE.body.lines === 1, 'the win takes ' + site.name + ' for Grey Banner, sends ' + wE.body.sentHome + ' old lines home and stations the attacker (1/8)');
@@ -209,8 +213,8 @@ function clientRunner(browser) {
     try {
       // your guild's site, full
       const pa = await open(a1);
-      const banner = await pa.evaluate(id => { const b = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"]'); return b && { name: b.querySelector('span').textContent, g: b.querySelector('.wmGarrison').textContent }; }, site.id);
-      ok(banner && banner.name === 'Iron Vow' && banner.g === '8/8', 'map: the holder banner reads Iron Vow 8/8 (' + JSON.stringify(banner) + ')');
+      const banner = await pa.evaluate(id => { const b = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"]'); return b && { name: b.title, g: b.querySelector('.wmGarrison').textContent, shown: b.textContent }; }, site.id);
+      ok(banner && banner.name === 'Iron Vow' && banner.g === '8/8' && banner.shown === '8/8', 'map: the holder banner reads Iron Vow 8/8 (' + JSON.stringify(banner) + ')');
       const cap = await pa.evaluate(() => { const id = EmberweaveWorldSiege.CAPITALS[0]; _siegeState.sites[id] = { type: 'guild', id: 'gx', name: 'Capital Test', lines: 3, cap: 10 }; drawSiegeHolders();
         const t = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"] .wmGarrison').textContent; delete _siegeState.sites[id]; drawSiegeHolders(); return t; });
       ok(cap === '3/10', 'map: a capital reads N/10 (' + cap + ')');
@@ -239,7 +243,7 @@ function clientRunner(browser) {
       const drawn = await pa.evaluate(async id => { const s = EmberweaveWorldSiege.byId(id); await syncWorldMarches(true); mapZoomCloseAt(s.x, s.y); drawMarches();
         const st = worldMarchCache().state(), v = EmberweaveWorldMarchVisual.views(st.rows, Date.now(), G.marches || []).filter(x => x.phase === 'stationed');
         return { n: v.length, atSite: v.every(x => Math.abs(x.x - s.x) < 1e-6 && Math.abs(x.y - s.y) < 1e-6 && x.from.x === x.to.x), timers: [...document.querySelectorAll('#marchVeh .marchTimer')].map(t => t.textContent) }; }, site.id);
-      ok(drawn.n === 1 && drawn.atSite && drawn.timers.includes('stationed'), 'map: the stationed line sits at the site centre with no return line or timer (' + JSON.stringify(drawn) + ')');
+      ok(drawn.n === 1 && drawn.atSite && drawn.timers.length >= 1 && drawn.timers.every(t => t === ''), 'map: the stationed line sits at the site centre with no return line or timer (' + JSON.stringify(drawn) + ')');
       // an enemy site: Attack + Close
       const pb = await open(b1); pn = await panel(pb, site.id);
       const gb = await pb.evaluate(id => document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"] .wmGarrison').textContent, site.id);
@@ -280,7 +284,7 @@ async function control() {
   let failed = false, browser = null;
   try {
     console.log('== module'); moduleChecks();
-    browser = await chromium.launch({ headless: true, executablePath: fs.existsSync(CHROME) ? CHROME : undefined });
+    browser = await chromium.launch({ ignoreDefaultArgs: ['--mute-audio'], args: ['--disable-audio-output'], headless: true, executablePath: fs.existsSync(CHROME) ? CHROME : undefined });
     console.log('== server + client'); await run(clientRunner(browser));
     if (!process.argv.includes('--this')) { console.log('== control ' + CONTROL); await control(); }
   } catch (e) { failed = true; console.error('FAIL ' + (e && e.stack || e)); }

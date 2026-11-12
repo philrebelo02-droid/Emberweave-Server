@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "धूसर",
+ "forge.quality_green": "हरा",
+ "forge.quality_blue": "नीला",
+ "forge.quality_blue_2": "नीला +2",
+ "forge.quality_purple": "बैंगनी",
+ "forge.quality_purple_3": "बैंगनी +3",
+ "forge.quality_gold_1": "सुनहरा +1",
+ "forge.quality_gold_4": "सुनहरा +4",
+ "forge.quality_orange": "नारंगी",
+ "aff.water_t": "जल",
+ "aff.fire_t": "अग्नि",
+ "aff.ice_t": "हिम",
+ "aff.nature_t": "प्रकृति",
+ "aff.lightning_t": "विद्युत",
+ "aff.light_t": "प्रकाश",
+ "aff.dark_t": "अंधकार",
+ "aff.neutral_t": "तटस्थ",
+ "mcard.element": "तत्व"
+}
