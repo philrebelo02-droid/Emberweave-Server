@@ -19562,7 +19562,7 @@ async function openPatchNotes(){ const old=document.getElementById('patchNotesOv
    Text only (Phil 6 Nov: the tutorial is text-only). Lines are t('ftut.<guide>.<n>'); speakers below. Once per account: G.ftutSeen[guide]=1 rides in
    the cloud save (BACKUP RULE). Never in a battle or result, never while the first-run tutorial runs, never over a modal (waits, then plays); a guide
    whose screen is left part-way plays again next time. Settings > General: Feature guides on/off (G.ftutOff) + Replay all guides.
-   The bar sits at the bottom of the screen it explains, or at the top when that covers fewer of the screen's buttons (measured, ftutPlace).
+   The bar never covers the screen's top row (Back, title, counters): it sits at the bottom when that is clear of the screen's buttons, else under the top row (measured, ftutPlace).
    Portraits: Grok's chest-up cut-outs /assets/img/ui/guides/guide-<hero>-v1.webp; until they land, the hero portrait stands in (.ftut-fb).
    Size/position: the --ftut-* variables on #ftutBar. */
 const FTUT_ART_V=1;
@@ -19652,24 +19652,46 @@ function ftutWatch(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); 
   if(G.ftutOff){ ftutEnd(false); return; }
   if(!ftutLive(g)||['battle','result','tutorial'].includes(state)){ const at=g.at; ftutEnd(false); setTimeout(()=>ftutCheck(at),300); return; }
   const host=ftutHost(g.at), hide=ftutBlocked(host); bar.classList.toggle('ftut-hold',hide); if(!hide) ftutPlace(); }
-/* bottom of the guide's screen, or its top when the bottom would cover more of that screen's buttons */
+/* v1377 (Grok hunt F1; Claude 12 Nov: "the feature-guide bar must never cover a screen's top row (Back, title, counters)"): ftutTopRow measures that
+   row - every visible Back button, button, title, icon or text whose top sits in the top 22% of the guide's screen - and the box AND the portrait stay
+   below it. The bottom is used only when the bar there covers none of the screen's buttons (pos:'bottom': or no more than anywhere else); else the bar sits
+   in the free band under the top row where it covers the fewest buttons (nearest the top row on a tie). Too short a band: the bar shrinks (ftut-slim:
+   smaller portrait, 2 text lines). */
+function ftutTopRow(host,r,L,W){ const lim=r.top+r.height*.22, T=Math.max(0,r.top); let hb=T;
+  host.querySelectorAll('*').forEach(el=>{ if(el.closest('#ftutBar')) return;
+    const q=el.ewGameRect(); if(q.width<4||q.height<4||q.height>80||q.top>lim||q.bottom<=T||q.right<=L||q.left>=L+W) return;
+    const media=el.matches('img,svg,canvas'); if(media&&q.width>W*.5) return;
+    if(!(media||el.matches('.backbtn,button,.btn,h1,h2,h3,input,select,[onclick]')||[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length>1))) return;
+    const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return;
+    if(q.bottom>hb) hb=q.bottom; });
+  return Math.min(hb,T+r.height*.5); }
 function ftutPlace(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); if(!g||!bar) return; const host=ftutHost(g.at); if(!host) return;
   const r=host.ewGameRect(), v=ewGameView(); const L=Math.max(0,r.left), T=Math.max(0,r.top), W=Math.min(v.width,r.right)-L, H=Math.min(v.height,r.bottom)-T;
   bar.style.left=L+'px'; bar.style.width=W+'px';
-  const box=bar.querySelector('.ftut-box'); const bh=Math.ceil(box.ewGameRect().height)+10;
-  const cost=(top)=>{ const y0=top?T:T+H-bh, y1=y0+bh; let a=0;
-    host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(el.closest('#ftutBar')) return;
-      const q=el.ewGameRect(); if(q.width<4||q.height<4) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return;
-      const ox=Math.max(0,Math.min(q.right,L+W)-Math.max(q.left,L)), oy=Math.max(0,Math.min(q.bottom,y1)-Math.max(q.top,y0)); a+=ox*oy; });
-    return a; };
-  const want=g.pos||(cost(false)<=cost(true)?'bottom':'top'); const top=want==='top';
+  const key=[g.k,Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)].join(','), now=Date.now();
+  if(!FTUT.row||FTUT.row.host!==host||FTUT.row.key!==key||now-FTUT.row.at>1500) FTUT.row={host,key,at:now,y:ftutTopRow(host,r,L,W)};
+  const hb=FTUT.row.y+4, btn=[];
+  host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(el.closest('#ftutBar')) return;
+    const q=el.ewGameRect(); if(q.width<4||q.height<4) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return; btn.push(q); });
+  const fit=()=>{ const box=bar.querySelector('.ftut-box'), row=bar.querySelector('.ftut-row'), p=bar.querySelector('.ftut-por').ewGameRect(), b=box.ewGameRect(), f=bar.querySelector('.ftut-foot').ewGameRect();
+    return {bh:Math.ceil(b.height)+10,rise:Math.max(0,Math.ceil(p.height-row.ewGameRect().height)),pl:p.left,pr:p.right,fl:f.left,fr:f.right,ft:f.top-b.top,fb:f.bottom-b.top}; };
+  bar.classList.remove('ftut-slim'); let m=fit(); if(T+H-hb<m.bh+m.rise){ bar.classList.add('ftut-slim'); m=fit(); }
+  const ov=(x0,x1,y0,y1)=>{ let a=0; btn.forEach(q=>{ a+=Math.max(0,Math.min(q.right,x1)-Math.max(q.left,x0))*Math.max(0,Math.min(q.bottom,y1)-Math.max(q.top,y0)); }); return a; };
+  /* the box lets taps through and is 80% see-through; the portrait hides what is under it and Skip/Next take the tap - they weigh more */
+  const cost=(y,top)=>{ const by=y+(top?4:0); return ov(L,L+W,by,by+m.bh-10)+3*(top?ov(m.pl,m.pr,by,by+m.bh-10+m.rise):ov(m.pl,m.pr,by-m.rise,by+m.bh-10))+4*ov(m.fl,m.fr,by+m.ft,by+m.fb); };
+  const yB=T+H-m.bh, yMax=T+H-m.bh-m.rise; let top=true, y=Math.min(hb,Math.max(T,yMax));
+  let best=Infinity; if(yMax>hb){ best=cost(hb,true); y=hb; for(let yy=hb+6;yy<yMax+6;yy+=6){ const y2=Math.min(yy,yMax), c=cost(y2,true); if(c<best-1){ best=c; y=y2; } } }
+  if(yB-m.rise>=hb){ const cb=cost(yB,false); if(cb<1||(g.pos==='bottom'&&cb<=best)){ top=false; y=yB; } }
   bar.classList.toggle('ftut-top',top); bar.classList.toggle('ftut-bottom',!top);
-  if(top){ bar.style.top=T+'px'; bar.style.bottom='auto'; } else { bar.style.top=(T+H-bh)+'px'; bar.style.bottom='auto'; } }
+  bar.style.top=y+'px'; bar.style.bottom='auto'; }
 function ftutReplayAll(){ G.ftutSeen={}; try{ saveG(); }catch(e){} }
 (function(){ const st=document.createElement('style'); st.textContent=
   '#ftutBar{--ftut-por:clamp(92px,calc(var(--ew-game-height,100vh)*.30),210px);--ftut-por-x:4px;--ftut-por-rise:clamp(22px,calc(var(--ew-game-height,100vh)*.08),76px);'+
   '--ftut-fs:clamp(13px,calc(var(--ew-game-height,100vh)*.034),19px);--ftut-max:1040px;position:fixed;z-index:30000;box-sizing:border-box;padding:0 8px 4px;pointer-events:none}'+
   '#ftutBar.ftut-top{padding:4px 8px 0}#ftutBar.ftut-hold{visibility:hidden}'+
+  /* v1377 F1: a short free band - smaller portrait, 2 text lines */
+  '#ftutBar.ftut-slim{--ftut-por:clamp(60px,calc(var(--ew-game-height,100vh)*.17),110px);--ftut-por-rise:8px;--ftut-fs:12px}'+
+  '#ftutBar.ftut-slim .ftut-text{min-height:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}'+
   '#ftutBar .ftut-row{position:relative;max-width:var(--ftut-max);margin:0 auto;pointer-events:none;-webkit-tap-highlight-color:transparent}'+
   /* v1376 (Phil 12 Nov: "the opaque dialogue boxes need to be like 20% so we can see through them, and make sure dialogue is out of the way always"):
      the box is ~20% dark with the gold frame edge only (no filled panel), and taps pass straight through it to the screen - only Skip and Next take a tap */
