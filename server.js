@@ -2515,6 +2515,9 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
     // before spending an attempt — glyph fragments on boss floors, gear fragments every floor.
     targets:(function(){ const f=Math.min(floor,DUNGEON_MAX_FLOOR); const rec=VAULT_ENC?vaultFloorRecord(f):null;
       return rec?{ glyphFragments:vaultGlyphFragsForFloor(f), gearFragments:(rec.gearFragments||[]).slice() }:null; })(),
+    /* v1374 (Phil 12 Nov: the Vault preview shows the floor's monster lineup; hover / double-tap one for its card): the floor's authored waves - the same
+       lineup /api/dungeon/start-battle hands the fight, so the enemy card can show the fight's own numbers before an attempt */
+    waves:(floor<=DUNGEON_MAX_FLOOR&&VAULT_ENC)?(function(){ try{ return JSON.parse(JSON.stringify(buildDungeonWaves(floor)||[])); }catch(e){ return []; } })():[],
     sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(p.sweep), paidLeft:Math.max(0,VAULT_SWEEP_PAID_COST.length+(p.sweep.extraPaid|0)-Math.max(0,(p.sweep.totalSweepsToday|0)-VAULT_SWEEP_FREE)), costs:VAULT_SWEEP_PAID_COST },
     lastTeamHeroIds:p.lastTeamHeroIds||[], activeAttemptId:p.activeAttempt?p.activeAttempt.id:null, version:p.version };
 }
