@@ -1,0 +1,15 @@
+{
+  "bonus13.coach.pick": "Elige tu escuadrón. Si tienes suficientes héroes, lleva hasta quince. Los repartiremos entre tres caminos.",
+  "bonus13.coach.roads": "Arriba, centro y abajo. Arrastra a un héroe a un camino o toca al héroe y luego el camino. Los tres combaten a la vez.",
+  "bonus13.coach.goal": "Cinco oleadas. Haz que regresen al menos dos caminos.",
+  "bonus13.coach.zoom": "¿Te cuesta ver quién está dónde? Toca Zoom para acercar el combate. También puedes usar dos dedos o la rueda del ratón.",
+  "bonus13.coach.zoom_gesture": "¿Te cuesta ver quién está dónde? Usa dos dedos o la rueda del ratón para acercar el combate.",
+  "bonus13.coach.boon": "Un cortafuegos. Elige una bendición para cada camino que siga combatiendo y confirma.",
+  "bonus13.coach.cross": "Ahora envía ayuda donde haga falta. Arrastra a un héroe al otro camino o toca al héroe y luego el camino. Su bendición va con él.",
+  "set.graphics": "Gráficos",
+  "set.graphics_high": "Alta",
+  "set.graphics_balanced": "Equilibrada",
+  "set.graphics_low": "Baja",
+  "set.graphics_hint": "Los ajustes más bajos reducen la resolución de los combates. Se guarda en este dispositivo.",
+  "hud.zoom": "Zoom"
+}
