@@ -31,9 +31,12 @@
    // v1243 (Phil 31 Oct, Android app: "when I swipe down it reduces the size of the game until the screen goes back to normal"): in the installed
    // full-screen app a swipe shows the system bars for a few seconds and the window shrinks under them. Keep the full size of this orientation
    // while that lasts; a shrink that stays 4 s (a real change), a typing field (keyboard) or a turn of the phone is taken at once.
-   if(fullApp()&&!input){const land=layoutW>=layoutH,now=Date.now();
+   // v1374 (Phil 12 Nov: "When i drag down my android settings it still shrinks the game, dont let the game changes sizes please"): the hold also
+   // covers the browser once the game went full screen (the shade drops it out; the next tap puts it back), and a small shrink (<=16% a side)
+   // is held for as long as the shade is down (the page has no focus) or up to 30 s; a big shrink (split screen) still lands after 4 s.
+   if((fullApp()||w.EW_WANT_FS)&&!input){const land=layoutW>=layoutH,now=Date.now();
     if(!big||big.land!==land||width>=big.w&&height>=big.h){big={land,w:width,h:height};since=0}
-    else if(width<=big.w&&height<=big.h&&(big.w-width>8||big.h-height>8)){if(!since)since=now;if(now-since<4000){width=big.w;height=big.h;w.setTimeout(refresh,4100)}else{big={land,w:width,h:height};since=0}}}
+    else if(width<=big.w&&height<=big.h&&(big.w-width>8||big.h-height>8)){if(!since)since=now;const small=width>=big.w*.84&&height>=big.h*.84,away=small&&d.hasFocus&&!d.hasFocus();if(now-since<4000||away||small&&now-since<30000){width=big.w;height=big.h;w.setTimeout(refresh,4100)}else{big={land,w:width,h:height};since=0}}}
    Object.assign(state,{rotated:rotate,physicalWidth:width,physicalHeight:height,width:rotate?height:width,height:rotate?width:height});
    const b=d.body,square=!rotate&&layoutW/layoutH>=.8&&layoutW/layoutH<=1.25;
    if(b.classList.contains('ew-rotated')!==rotate)b.classList.toggle('ew-rotated',rotate);

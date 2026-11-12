@@ -30,8 +30,13 @@ try{
   ok(s.w===2000&&s.h===923,'app: the swipe shows the bars (window 1890 wide) - the game keeps 2000 x 923 ('+s.w+' x '+s.h+')');
   r.tick(1500);s=r.set(2000,923);
   ok(s.w===2000,'app: the bars hide again - still 2000 x 923');
+  /* v1374 (Phil 12 Nov: "When i drag down my android settings it still shrinks the game"): a small shrink is held up to 30 s, a big one lands after 4 s */
   s=r.set(1890,923);r.tick(4200);s=r.set(1890,923);
-  ok(s.w===1890,'app: a shrink that stays 4 s is taken ('+s.w+')');
+  ok(s.w===2000,'app: the shade still down after 4 s - still 2000 x 923 ('+s.w+')');
+  r.tick(26500);s=r.set(1890,923);
+  ok(s.w===1890,'app: a small shrink that stays 30 s is taken ('+s.w+')');
+  s=r.set(2000,923);s=r.set(1200,600);r.tick(4200);s=r.set(1200,600);
+  ok(s.w===1200,'app: a big shrink (split screen) that stays 4 s is taken ('+s.w+')');
   s=r.set(923,2000);
   ok(s.w===2000&&s.h===923&&r.api.state.rotated,'app: turning the phone is taken at once (portrait rotates the game)');
   r.d.activeElement={tagName:'INPUT'};s=r.set(2000,500);
@@ -40,6 +45,8 @@ try{
   // ---- a plain browser tab: unchanged ----
   r=rig(false);r.set(2000,923);s=r.set(1890,923);
   ok(s.w===1890,'browser tab: a resize is taken at once, as before ('+s.w+')');
+  r.w.EW_WANT_FS=true;s=r.set(2000,923);s=r.set(1890,923);
+  ok(s.w===2000,'browser tab after the game went full screen: the shade keeps 2000 x 923 ('+s.w+')');
   r.done();
 }catch(e){ console.error('FAIL',e&&e.stack||e); process.exitCode=1; }
 if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }

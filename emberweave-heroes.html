@@ -68,7 +68,7 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<script src="/assets/ui/fold-viewport.js?v=1339"></script><script>/* v1372 hardening: if fold-viewport.js failed to load (a dropped request), the game's layout helpers fall back to the plain browser ones instead of throwing "ewGameRect is not a function" on every screen. A loaded fold-viewport.js always wins (it installs first). */(function(w){try{var E=w.Element&&w.Element.prototype;if(E&&typeof E.ewGameRect!=="function")Object.defineProperty(E,"ewGameRect",{configurable:true,value:function(){return this.getBoundingClientRect();}});[w.MouseEvent,w.Touch].forEach(function(T){if(!T)return;["X","Y"].forEach(function(a){if(!("ewGame"+a in T.prototype))Object.defineProperty(T.prototype,"ewGame"+a,{configurable:true,get:function(){return this["client"+a];}});});});if(typeof w.ewGameView!=="function")w.ewGameView=function(){return {width:w.innerWidth,height:w.innerHeight};};if(typeof w.ewGameElementFromPoint!=="function")w.ewGameElementFromPoint=function(x,y){return w.document.elementFromPoint(x,y);};if(!w.EWViewport)w.EWViewport={state:{rotated:false,width:0,height:0},fit:function(){},install:function(){}};}catch(e){}})(window);</script>
+<script src="/assets/ui/fold-viewport.js?v=1374"></script><script>/* v1372 hardening: if fold-viewport.js failed to load (a dropped request), the game's layout helpers fall back to the plain browser ones instead of throwing "ewGameRect is not a function" on every screen. A loaded fold-viewport.js always wins (it installs first). */(function(w){try{var E=w.Element&&w.Element.prototype;if(E&&typeof E.ewGameRect!=="function")Object.defineProperty(E,"ewGameRect",{configurable:true,value:function(){return this.getBoundingClientRect();}});[w.MouseEvent,w.Touch].forEach(function(T){if(!T)return;["X","Y"].forEach(function(a){if(!("ewGame"+a in T.prototype))Object.defineProperty(T.prototype,"ewGame"+a,{configurable:true,get:function(){return this["client"+a];}});});});if(typeof w.ewGameView!=="function")w.ewGameView=function(){return {width:w.innerWidth,height:w.innerHeight};};if(typeof w.ewGameElementFromPoint!=="function")w.ewGameElementFromPoint=function(x,y){return w.document.elementFromPoint(x,y);};if(!w.EWViewport)w.EWViewport={state:{rotated:false,width:0,height:0},fit:function(){},install:function(){}};}catch(e){}})(window);</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -34934,6 +34934,11 @@ function goLandscape(){
     } else lock();
   }catch(e){ lock(); }
 }
+/* v1374 (Phil 12 Nov, Android shade shrink): pulling the shade drops the browser out of full screen; the next tap puts it back (an installed app
+   is already full screen, so goLandscape skips it there). Only after the game asked for full screen once, and never while typing. */
+document.addEventListener('fullscreenchange',()=>{ if(document.fullscreenElement) window.EW_WANT_FS=true; });
+document.addEventListener('pointerdown',()=>{ try{ if(!window.EW_WANT_FS||document.fullscreenElement||document.webkitFullscreenElement) return;
+  const ae=document.activeElement; if(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)) return; goLandscape(); }catch(e){} },true);
 /* =============================== WORLD CHAT ================================= */
 // REAL CHAT ONLY (build 1787085000000): channels start empty — history comes from the
 // server ('chathist' on connect); no NPC seed lines, no fake whisper replies.

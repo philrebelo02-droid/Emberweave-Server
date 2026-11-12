@@ -10,7 +10,7 @@ assert.strictEqual(unitSwap('height: 100dvh; width: 3.5vw; min-height: 50vh;'), 
 assert.strictEqual(mediaSwap('(prefers-reduced-motion: reduce)'), '(prefers-reduced-motion: reduce)');
 assert(/layoutW\/layoutH<1;/.test(fv), 'an upright Fold (0.83) must turn');
 assert(/flipMedia\(rotate\);/.test(fv), 'fit() must apply the swap');
-assert(/fold-viewport\.js\?v=1339/.test(html), 'new script version');
+assert(+((html.match(/fold-viewport\.js\?v=(\d+)/)||[])[1]||0)>=1339, 'new script version');   // v1374 bumped it again (shade hold)
 function arenaProblems(h) { const o = []; if (/arenaRefreshLeft\(\)\}\/\$\{ARENA_FREE_REFRESH\}/.test(h)) o.push('refresh counter shown'); if (!/function useArenaRefresh\(\)\{ genArenaOpps\(\); saveG\(\); return true; \}/.test(h)) o.push('refresh still limited'); return o; }
 assert.deepStrictEqual(arenaProblems(html), []);
 // CONTROL: the old limited refresh must be caught
