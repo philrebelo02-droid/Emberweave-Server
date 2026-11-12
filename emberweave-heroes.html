@@ -19593,6 +19593,11 @@ const FTUT_GUIDES=[
   {k:'bonus',at:'campaign',ok:()=>(G.campaignCleared|0)>=3},{k:'affinity',at:'campaign',pos:'bottom',ok:()=>typeof AFFINITIES_LIVE==='undefined'||AFFINITIES_LIVE}
 ];
 const FTUT={cur:null,i:0,tick:0,retry:0,miss:{}};
+/* v1377 F1b (Claude 12 Nov: "never place the bar over the control the current line HIGHLIGHTs"): FTUT_HL['<guide>.<line>'] = a CSS selector inside the
+   guide's screen (the v3 script's [HIGHLIGHT: ...] cues fill it); ftutPlace keeps the box and the portrait off that control. */
+const FTUT_HL={};
+function ftutHL(){ const g=FTUT.cur; if(!g) return null; const sel=FTUT_HL[g.k+'.'+(FTUT.i+1)]||'.tut-target-glow,.ftut-hl'; const host=ftutHost(g.at); let el=null;   /* no map entry: a glowing control on the screen counts */
+  try{ el=host&&[...host.querySelectorAll(sel)].find(e=>e.getClientRects().length&&!e.closest('#ftutBar')); }catch(e){} return el||null; }
 /* the element a guide plays over: a screen, or an overlay the Island / Well open */
 function ftutHost(at){ if(at==='well') return document.getElementById('wlMap'); if(at==='emberdraft') return document.getElementById('edLobby');
   if(at==='province'){ const a=document.querySelectorAll('div.provScene'); return a.length?a[a.length-1]:null; }
@@ -19678,7 +19683,9 @@ function ftutPlace(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); 
   bar.classList.remove('ftut-slim'); let m=fit(); if(T+H-hb<m.bh+m.rise){ bar.classList.add('ftut-slim'); m=fit(); }
   const ov=(x0,x1,y0,y1)=>{ let a=0; btn.forEach(q=>{ a+=Math.max(0,Math.min(q.right,x1)-Math.max(q.left,x0))*Math.max(0,Math.min(q.bottom,y1)-Math.max(q.top,y0)); }); return a; };
   /* the box lets taps through and is 80% see-through; the portrait hides what is under it and Skip/Next take the tap - they weigh more */
-  const cost=(y,top)=>{ const by=y+(top?4:0); return ov(L,L+W,by,by+m.bh-10)+3*(top?ov(m.pl,m.pr,by,by+m.bh-10+m.rise):ov(m.pl,m.pr,by-m.rise,by+m.bh-10))+4*ov(m.fl,m.fr,by+m.ft,by+m.fb); };
+  const hl=ftutHL(), hq=hl?hl.ewGameRect():null, hov=(x0,x1,y0,y1)=>hq?Math.max(0,Math.min(hq.right,x1)-Math.max(hq.left,x0))*Math.max(0,Math.min(hq.bottom,y1)-Math.max(hq.top,y0)):0;
+  const cost=(y,top)=>{ const by=y+(top?4:0), p0=top?by:by-m.rise, p1=by+m.bh-10+(top?m.rise:0);
+    return ov(L,L+W,by,by+m.bh-10)+3*ov(m.pl,m.pr,p0,p1)+4*ov(m.fl,m.fr,by+m.ft,by+m.fb)+1e6*(hov(L,L+W,by,by+m.bh-10)+hov(m.pl,m.pr,p0,p1)); };   /* F1b: never on the highlighted control */
   const yB=T+H-m.bh, yMax=T+H-m.bh-m.rise; let top=true, y=Math.min(hb,Math.max(T,yMax));
   let best=Infinity; if(yMax>hb){ best=cost(hb,true); y=hb; for(let yy=hb+6;yy<yMax+6;yy+=6){ const y2=Math.min(yy,yMax), c=cost(y2,true); if(c<best-1){ best=c; y=y2; } } }
   if(yB-m.rise>=hb){ const cb=cost(yB,false); if(cb<1||(g.pos==='bottom'&&cb<=best)){ top=false; y=yB; } }
@@ -19708,9 +19715,11 @@ function ftutReplayAll(){ G.ftutSeen={}; try{ saveG(); }catch(e){} }
   '#ftutBar .ftut-box{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:12px;align-items:center;'+
   'padding:0 6px 0 calc(var(--ftut-por) + var(--ftut-por-x) - 8px)!important;color:#f5e7cf;text-align:left}'+
   '#ftutBar .ftut-head{grid-column:1;grid-row:1;display:flex;align-items:baseline;gap:10px}'+
-  '#ftutBar .ftut-name{font-family:Georgia,"Times New Roman",serif;font-weight:900;color:#ffd45e;font-size:calc(var(--ftut-fs)*1.08);line-height:1.15;text-shadow:0 1px 3px #000}'+
-  '#ftutBar .ftut-step{font-size:calc(var(--ftut-fs)*.78);color:#c9b48a}'+
-  '#ftutBar .ftut-text{grid-column:1;grid-row:2;font-size:var(--ftut-fs);line-height:1.3;margin:1px 0 0;min-height:2.6em;font-weight:600;text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000,0 0 10px rgba(0,0,0,.85)}'+
+  /* v1377 F1b (Claude: the 20% box shows the screen through it - the words must read over anything): a hard black outline (stroke painted under the fill) + the glow */
+  '#ftutBar .ftut-name,#ftutBar .ftut-step,#ftutBar .ftut-text{-webkit-text-stroke:3px #000;paint-order:stroke fill}'+
+  '#ftutBar .ftut-name{font-family:Georgia,"Times New Roman",serif;font-weight:900;color:#ffd45e;font-size:calc(var(--ftut-fs)*1.08);line-height:1.15;text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000}'+
+  '#ftutBar .ftut-step{font-size:calc(var(--ftut-fs)*.78);color:#e0cfa6;text-shadow:0 0 3px #000,0 0 6px #000}'+
+  '#ftutBar .ftut-text{grid-column:1;grid-row:2;font-size:var(--ftut-fs);line-height:1.3;margin:1px 0 0;min-height:2.6em;font-weight:600;color:#fff6e6;text-shadow:0 0 3px #000,0 0 6px #000,0 1px 2px #000,0 0 10px rgba(0,0,0,.85)}'+
   '#ftutBar .ftut-foot{grid-column:2;grid-row:1 / span 2;display:flex;align-items:center;gap:8px}'+
   '#ftutBar .ftut-foot .btn{min-height:30px;padding:3px 12px;font-size:calc(var(--ftut-fs)*.85)}'+
   '@media (max-width:560px){#ftutBar .ftut-foot{flex-direction:column-reverse;gap:5px}}';
