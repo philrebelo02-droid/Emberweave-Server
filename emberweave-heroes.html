@@ -799,6 +799,8 @@
     #campaign.active #portalTabs .btn{font-size:11px!important;min-height:35px!important;flex:0 0 auto!important;width:150px;max-width:30vw;white-space:nowrap}   /* v1298: same tab size, the bar hugs them */
     #campaign.active #starTrack{top:4px!important;left:80px!important;right:80px!important}
     #campaign.active #cmapHdr{top:42px!important;height:30px!important}   /* v1321: under the 38 px top bar, never on it */
+    #campaign.active #campGlossBtn,#campaign.active #campAffBtn{font-size:11px!important;padding-left:7px!important;padding-right:7px!important;gap:3px!important}   /* v1374 (Phil 12 Nov): smaller */
+    #campaign.active #campGlossBtn .stIc,#campaign.active #campAffBtn .stIc{width:16px!important;height:16px!important}
     #campaign.active>.backbtn,#campaign.active #campGlossBtn,#campaign.active #campAffBtn{top:4px!important;height:34px!important;min-height:34px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;padding-top:0!important;padding-bottom:0!important}
     #campaign.active #starTrack>div{border-color:#b8913f!important;border-radius:9px!important;box-sizing:border-box;min-height:34px!important}
     #campaign.active #cmapScroll{overflow-x:hidden!important;touch-action:auto!important}
@@ -13029,7 +13031,7 @@ function townHudPlace(){ try{ const h=document.getElementById('townHud'), m=docu
   h.style.right=Math.max(4,(pr.right-mr.left)/z+6)+'px'; h.style.top=Math.max(0,((mr.top+mr.height/2)-pr.top)/z-h.offsetHeight/2-(small?5:4))+'px'; }catch(e){} }   /* Phil: "raise slightly" */
 try{ window.addEventListener('resize',()=>setTimeout(townHudPlace,80)); }catch(e){}
 function affBtnPlace(){ try{ const g=document.getElementById('campGlossBtn'), a=document.getElementById('campAffBtn'); if(a) a.style.display=AFFINITIES_LIVE?'inline-flex':'none'; if(!AFFINITIES_LIVE||!g||!a||!g.offsetWidth) return;
-  const r=parseFloat(getComputedStyle(g).right)||8; a.style.right=(r+g.offsetWidth+6)+'px'; }catch(e){} }
+  const r=parseFloat(getComputedStyle(g).right)||8; a.style.right=(r+g.offsetWidth+6)+'px';   /* v1374 (Phil 12 Nov: "Make the affinity and glossary buttons smaller, the diamonds are sitting under them"): the diamond pill sits 6 px left of Affinities (it was pinned at 75% and slid under it on phones), and the star track ends before the pill */ const gem=document.getElementById('campGemF'), st=document.getElementById('starTrack'); if(gem){ const want=a.getBoundingClientRect().left-6-gem.getBoundingClientRect().width; for(let k=0;k<2;k++){ const cur=gem.getBoundingClientRect().left, now=parseFloat(getComputedStyle(gem).left)||0, sc=(gem.offsetWidth?gem.getBoundingClientRect().width/gem.offsetWidth:1)||1; gem.style.left=Math.round(now+(want-cur)/sc)+'px'; } if(st){ const target=gem.getBoundingClientRect().left-6; for(let k=0;k<2;k++){ const cur=st.getBoundingClientRect().right, now=parseFloat(getComputedStyle(st).right)||0, sc=(st.offsetWidth?st.getBoundingClientRect().width/st.offsetWidth:1)||1; st.style.setProperty('right',Math.round(now+(cur-target)/sc)+'px','important'); } }  const food=document.getElementById('campStamF'); if(food){ const tl=food.getBoundingClientRect().right+6; for(let k=0;k<2;k++){ const cur=st.getBoundingClientRect().left, now=parseFloat(getComputedStyle(st).left)||0, sc=(st.offsetWidth?st.getBoundingClientRect().width/st.offsetWidth:1)||1; st.style.setProperty('left',Math.round(now+(tl-cur)/sc)+'px','important'); } } } }catch(e){} }
 function openAffinities(){ const old=document.getElementById('affOv'); if(old) old.remove();
   const ov=document.createElement('div'); ov.id='affOv';
   ov.style.cssText='position:fixed;inset:0;z-index:13000;background:rgba(4,6,10,.82);display:flex;align-items:center;justify-content:center;padding:10px';
@@ -19351,7 +19353,7 @@ async function openPatchNotes(){ const old=document.getElementById('patchNotesOv
     items:(p.items||[]).filter(x=>typeof x==='string'&&!WHATSNEW_BLOCK.test(x))})).filter(p=>p.items.length);
   const ov=document.createElement('div'); ov.id='patchNotesOv';
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
-  ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:20px 18px;width:100%;max-width:420px;max-height:calc(var(--ew-game-height,100vh) * .86);display:flex;flex-direction:column;box-shadow:0 14px 44px #000b">
+  ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:20px 18px;width:100%;max-width:546px;max-height:calc(var(--ew-game-height,100vh) * .86);display:flex;flex-direction:column;box-shadow:0 14px 44px #000b">
       <div style="font-family:Georgia,serif;font-weight:900;font-size:21px;color:#ffd45e;text-shadow:0 1px 4px #000;text-align:center;margin-bottom:10px">Patch Notes</div>
       <div style="overflow-y:auto;flex:1;min-height:0;text-align:left">${list.length?list.map(p=>`<div style="margin:0 0 14px">
         <div style="font-weight:800;color:#e6edf3;font-size:14px">${escapeHTML(p.title||('Update '+p.ver))}</div>
@@ -19378,7 +19380,7 @@ async function whatsNewMaybe(){
   const show = ()=>{ if(state!=='home'){ _whatsNewDone=false; return; }
     const ov = document.createElement('div');
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
-    ov.innerHTML = `<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:20px 18px;width:100%;max-width:380px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 14px 44px #000b">
+    ov.innerHTML = `<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:20px 18px;width:100%;max-width:494px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 14px 44px #000b">
       <div style="font-family:Georgia,serif;font-weight:900;font-size:21px;color:#ffd45e;text-shadow:0 1px 4px #000;text-align:center;margin-bottom:10px">What's New</div>
       <div style="overflow-y:auto;flex:1;min-height:0;text-align:left">${fresh.map(p=>`<div style="margin:0 0 14px">
         <div style="font-weight:800;color:#e6edf3;font-size:14px">${escapeHTML(p.title||('Update '+p.ver))}</div>
