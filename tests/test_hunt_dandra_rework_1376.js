@@ -46,6 +46,10 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
     { const D=makeUnit('dandra','ally',100,300,30,{owned:false,rank:5}); D.pass=Object.assign({},D.pass||{},{contagion:true}); D.skillLv=[1,1,1,1];
       const A=makeUnit('vael','enemy',400,300,30,{owned:false,rank:1}), B=makeUnit('vael','enemy',400+METER,300,30,{owned:false,rank:1});
       units.length=0; units.push(D,A,B); battleTime=10; A.dots=[{color:'#f2d84a',dps:5,t:4,src:D}]; A._contagion=true; A._plagueColor='#f2d84a'; damage(A,1e9,'#fff'); out.swarm=+((B._beeCutUntil||0)-battleTime).toFixed(2); }
+    /* cast speed speeds the cast clip (Phil: "Cast speed just like attack speed should speed up the animation of the hero") */
+    { const _k=Object.keys(BATTLE_ANIM).find(k=>HERO_TYPES[k]&&!HERO_TYPES[k].monster&&BATTLE_ANIM[k].green&&BATTLE_ANIM[k].green.n>1&&!BATTLE_ANIM[k].green.pingpong); const V=makeUnit(_k,'ally',100,300,30,{owned:false,rank:5}); V.anim=V.anim||BATTLE_ANIM[_k]; units.length=0; units.push(V); battleTime=20;
+      V._castSlot='green'; startAbilityClip(V,'mendburst'); const h0=V._abilHold, s0=V._abilAnim;
+      V._abilAnim=null; V._abilHold=0; V.castMul=1.2; V.castT=5; startAbilityClip(V,'mendburst'); out.castClip={st:s0, h0:+(h0||0).toFixed(3), h1:+(V._abilHold||0).toFixed(3), m:V._castSpdMul}; }
     out.readG=stripIcons(_skillEffectStrRaw('dandra',1,100,1000)); out.readU=stripIcons(_skillEffectStrRaw('dandra',0,100,1000)); return out; });
   console.log(JSON.stringify(r));
   const exp=(pct)=>Math.round(10000*pct+0.30*1000+0.50*2000);
@@ -57,5 +61,6 @@ const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(chi
   ok(r.L1.ultEnergy===20&&r.L100.ultEnergy===35, "Queen's Call energy 20 -> 35 ("+r.L1.ultEnergy+' -> '+r.L100.ultEnergy+')');
   ok(Math.abs(r.L1.ultHaste-0.05)<0.001&&Math.abs(r.L100.ultHaste-0.20)<0.001&&Math.abs(r.L1.ultCast-0.05)<0.001&&Math.abs(r.L100.ultCast-0.20)<0.001, "Queen's Call attack + cast speed +5% -> +20% ("+r.L1.ultHaste+' -> '+r.L100.ultHaste+')');
   ok(/max HP \+ 30% Ability Power \+ 50% Healing Power/.test(r.readG)&&/energy/.test(r.readU), 'the Skills tab shows the new numbers ('+r.readG+' | '+r.readU+')');
+  ok(r.castClip&&r.castClip.h0>0&&Math.abs(r.castClip.h1-r.castClip.h0/1.2)<0.01&&r.castClip.m===1.2, 'a +20% cast speed plays the skill clip 1.2x faster ('+JSON.stringify(r.castClip)+')');
   ok(errs.length===0,'no page errors ('+errs.slice(0,3).join(' | ')+')');
 }catch(e){ console.error(e); fails++; } finally { finish('dandra rework'); await cleanup(); } })();

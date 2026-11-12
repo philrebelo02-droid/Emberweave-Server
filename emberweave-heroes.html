@@ -13790,7 +13790,10 @@ function startAbilityClip(u,type){
        is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
     const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
     if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4; u._abilStartAt=battleTime; if(typeof TIPFX!=='undefined'&&TIPFX[u.key]&&TIPFX[u.key][st]) spawnTipFx(u,st);   /* v1021: render-only clip clock (rush) */   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
-      const once=ppPer(A)/(A.fps||10);
+      /* v1376 (Phil 12 Nov: "Cast speed just like attack speed should speed up the animation of the hero"): a cast clip plays at the caster's
+         cast speed (castMul while castT runs - Queen's Call up, Drowsy Sting down), the way the swing plays at its attack speed (_atkSpdMul) */
+      u._castSpdMul=((u.castT||0)>0)?Math.max(0.25,Math.min(4,u.castMul||1)):1;
+      const once=ppPer(A)/(A.fps||10)/u._castSpdMul;
       u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
@@ -18639,7 +18642,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12)*WALK_ANIM_MUL;   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8))*WALK_ANIM_MUL; }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else if(st==='idle' && u._idleFrozen){ /* v521: no room for a whole idle - hold, never half of one */ }
-        else u._animAcc=(u._animAcc||0)+dt*(A.fps||10)*((u._dblSwing&&st===_atkSt)?2:1)*((st===_atkSt)?(u._atkSpdMul||1):1)*((st==='idle'&&CUR&&CUR.mode==='emberdraft')?ED_IDLE_FPS_MUL:1);   // v534: mirage double swing at 2x. v645: Emberdraft idles slower (Phil: "slow down the FPS on their idle")
+        else u._animAcc=(u._animAcc||0)+dt*(A.fps||10)*((u._dblSwing&&st===_atkSt)?2:1)*((st===_atkSt)?(u._atkSpdMul||1):1)*((st!==_atkSt&&st===u._abilAnim)?(u._castSpdMul||1):1)*((st==='idle'&&CUR&&CUR.mode==='emberdraft')?ED_IDLE_FPS_MUL:1);   // v534: mirage double swing at 2x. v645: Emberdraft idles slower (Phil: "slow down the FPS on their idle")
         // pingpong clips play forward THEN reverse (0..n-1..1) so the loop never hard-snaps back to frame 0
         let fr;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
