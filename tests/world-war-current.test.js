@@ -88,7 +88,8 @@ async function run(){
     await warp(firstRound.schedule.lockAt+60000);
     const live=await req('GET','/api/guild-war/match',null,a.token);
     assert.equal(live.match?.state,'live',JSON.stringify(live));
-    await new Promise(r=>setTimeout(r,350));
+    /* 12 Nov: the save is debounced - wait for the live match on disk (up to 10 s), not a fixed 350 ms (flaky in suite c8b4802a) */
+    for(let i=0;i<100;i++){ try{ const m=JSON.parse(fs.readFileSync(db,'utf8')).tournaments.current.matches; if(Object.values(m).some(x=>x.state==='live')) break; }catch(_){} await new Promise(r=>setTimeout(r,100)); }
     const locked=JSON.parse(fs.readFileSync(db,'utf8')).tournaments.current.matches;
     const lockedMatch=Object.values(locked).find(m=>m.state==='live');
     const lineFor=id=>Object.values(lockedMatch.sides).flatMap(side=>side.citadels)

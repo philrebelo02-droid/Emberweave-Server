@@ -313,8 +313,11 @@ try {
       // a death that ENDS ON THE BODY (end:'hold' - Ambrel, Askel, Grosk ..): an enemy's body stays drawn on its last cell after the 6 s (in _corpses, its sheets
       // kept), and leaving the fight for the hub clears it - no corpse and no death sheet outlives the fight (Vex's clip set to hold for this check)
       await pg.evaluate(() => { BATTLE_ANIM.vex.death.end = 'hold'; });
-      await lowAndWait('vex', 'enemy'); await kill(); const rh = await watch(Math.round(60 * (SECS + 1.5)));
-      const hEnd = rh.slice(Math.round(60 * SECS) + 6);
+      await lowAndWait('vex', 'enemy'); await kill(); let rh = await watch(Math.round(60 * (SECS + 1.5)));
+      /* 12 Nov (suite c8b4802a: cell 43 at st 2.0, frames 0.9 s apart on a loaded cluster): frames are counted, not timed - keep watching until
+         the body has sat on its last cell for 30 frames (bounded), then judge the hold from the moment it got there */
+      for (let k = 0; k < 12 && !(rh.length > 30 && rh.slice(-30).every(r => r.cell === 47)); k++) rh = rh.concat(await watch(60));
+      const h47 = rh.findIndex(r => r.cell === 47), hEnd = h47 < 0 ? [] : rh.slice(h47 + 6);
       await pg.evaluate(() => { window.requestAnimationFrame = window.__raf0; requestAnimationFrame(loop); endBattle(true); }); await pg.waitForTimeout(1200);
       await pg.evaluate(() => { try { document.getElementById('resultBtn').click(); } catch (e) {} }); await pg.waitForTimeout(800);
       await pg.evaluate(() => show('home')); await pg.waitForTimeout(2500);
