@@ -16,13 +16,17 @@ function capture(from,to,targetName,travelMs,gatherMs=0,pacing){
   if(pacing!==undefined)result.pacing={...pacing};
   return result;
 }
+/* 12 Nov (Grok, test_city_garrison_1237): a v1237 garrison line (kind 'garrison', or a won siege that stayed: station) waits in its site
+   until recalled - its homeAt is ~100 years out, not arriveAt + travel. project() refused it, so /api/world/marches sent route:null and
+   the map never drew the stationed line (the client's own check already allows it: stationed => homeAt >= arriveAt). */
+function stationedGarrison(m){ return !m.recall&&(m.kind==='garrison'||(m.kind==='siege'&&typeof m.station==='string')); }
 function project(march){
   const raw=march?.route;
   if(raw?.version!==1||raw.coordinateSpace!=='world-percent')return null;
   const route=capture(raw.from,raw.to,raw.targetName,raw.travelMs,raw.gatherMs,raw.pacing);
   if(!route||![march.depart,march.arriveAt,march.homeAt].every(Number.isFinite)
     ||march.arriveAt!==march.depart+route.travelMs+route.gatherMs
-    ||march.homeAt!==march.arriveAt+route.travelMs)return null;
+    ||(march.homeAt!==march.arriveAt+route.travelMs&&!(stationedGarrison(march)&&march.homeAt>march.arriveAt)))return null;
   return route;
 }
 module.exports={capture,project};

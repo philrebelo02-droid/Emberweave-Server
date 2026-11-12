@@ -38,6 +38,12 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     await delay(2500);
     const bar = () => pg.evaluate(() => { const w = document.getElementById('chatWidget'); if (!w) return null; const r = w.getBoundingClientRect(); return w.style.display !== 'none' && r.width > 0 && r.height > 0; });
     const step = async (name, f, want, wait) => { await pg.evaluate(f); await delay(wait || 1100); const v = await bar(); ck(v === want, name + ': the chat bar is ' + (want ? 'SHOWN' : 'hidden'), 'shown=' + v); };
+    /* 12 Nov (Phil: test today's game): the What's New window (z 20000, full screen) opens over the hub after sign-in; the bar
+       must stay hidden while it is open and come back when the player taps "Got it" - checked here instead of being skipped. */
+    const wn = await pg.evaluate(() => !!document.getElementById('_wnOk'));
+    ck(wn, "the What's New window is open over the hub after sign-in");
+    ck((await bar()) === false, "What's New open: the chat bar is hidden", 'shown=' + (await bar()));
+    if (wn) { await pg.click('#_wnOk'); await delay(1100); }
     const sock0 = await pg.evaluate(() => typeof CHATNET !== 'undefined' && CHATNET.ws ? CHATNET.ws.readyState : null);
     await step('the hub', () => show('home'), true);
     await step('the World view', () => show('world'), true, 1600);

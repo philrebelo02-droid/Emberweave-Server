@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "Серый",
+ "forge.quality_green": "Зелёный",
+ "forge.quality_blue": "Синий",
+ "forge.quality_blue_2": "Синий +2",
+ "forge.quality_purple": "Фиолетовый",
+ "forge.quality_purple_3": "Фиолетовый +3",
+ "forge.quality_gold_1": "Золотой +1",
+ "forge.quality_gold_4": "Золотой +4",
+ "forge.quality_orange": "Оранжевый",
+ "aff.water_t": "Вода",
+ "aff.fire_t": "Огонь",
+ "aff.ice_t": "Лёд",
+ "aff.nature_t": "Природа",
+ "aff.lightning_t": "Молния",
+ "aff.light_t": "Свет",
+ "aff.dark_t": "Тьма",
+ "aff.neutral_t": "Нейтральная",
+ "mcard.element": "Стихия"
+}

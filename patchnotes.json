@@ -304,7 +304,7 @@
       "New spell art for Sloe's Emerald Volley, Zahri's Solar Impalement and Noonday Stampede, Linnet's Rewrite the Pattern, Rafe Marrow's Dead Man's Fortune, and Ceraline's Sealing Wax and Court of the Final Candle.",
       "Ceraline: Court of the Final Candle can be aimed and encases everyone the wax touches. Living Tallow encases for 1 second, plus 0.015 seconds per skill level.",
       "Stamina meals come in pairs: ten a day at 50, 50, 100, 100, 200, 200, 400, 400, 600 and 600 diamonds.",
-      "Every daily reset now happens at 09:00 ET.",
+      "Every daily reset now happens at 09:00 EST.",
       "Arena coins and protection shields are now kept with your account.",
       "Chat: block and report other players. You can also delete your account.",
       "Stages 6-2, 6-5, 7-3, 7-7, 9-8, 10-1 and 3-10 made easier: enemies have 15% less health and damage (Elite follows). Vault floors 28 to 30, 44 and 49 eased the same way.",
@@ -374,11 +374,11 @@
     ]},
     {"ver": "0.86", "date": "30 September 2026", "title": "The World Tree wakes", "items": [
       "The World Tree on the world map now withers and regrows on a two-week cycle, and a timer under the tree counts down to its next event.",
-      "The first World Tree event is Saturday 3 October at 8 AM ET, then every two weeks - on the weekends between Guild Wars.",
+      "The first World Tree event is Saturday 3 October at 8 AM EST, then every two weeks - on the weekends between Guild Wars.",
       "The event itself (capturing and healing the tree) is not open yet - this is the tree and its timer."
     ]},
     {"ver": "0.85", "date": "30 September 2026", "title": "Guild Wars every other week", "items": [
-      "Skyfall Guild Wars now run every other week. Sign-ups open Saturday 02:00 and close Monday 00:00 server time; battles stay Tuesday to Friday, 6-8 PM ET.",
+      "Skyfall Guild Wars now run every other week. Sign-ups open Saturday 02:00 and close Monday 00:00 server time; battles stay Tuesday to Friday, 6-8 PM EST.",
       "The first fortnightly sign-up opens Saturday 10 October, then every two weeks.",
       "The Skyfall calendar marks the sign-up and battle days ahead."
     ]},

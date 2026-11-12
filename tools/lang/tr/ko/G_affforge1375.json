@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "회색",
+ "forge.quality_green": "초록",
+ "forge.quality_blue": "파랑",
+ "forge.quality_blue_2": "파랑 +2",
+ "forge.quality_purple": "보라",
+ "forge.quality_purple_3": "보라 +3",
+ "forge.quality_gold_1": "금색 +1",
+ "forge.quality_gold_4": "금색 +4",
+ "forge.quality_orange": "주황",
+ "aff.water_t": "물",
+ "aff.fire_t": "불",
+ "aff.ice_t": "얼음",
+ "aff.nature_t": "자연",
+ "aff.lightning_t": "번개",
+ "aff.light_t": "빛",
+ "aff.dark_t": "어둠",
+ "aff.neutral_t": "무속성",
+ "mcard.element": "속성"
+}

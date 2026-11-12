@@ -268,7 +268,7 @@
   {
    "line": 31330,
    "find": "'No more meals today — resets at 09:00 ET.'",
-   "replace": "t('shop.no_meals',{time:'09:00 ET'})"
+   "replace": "t('shop.no_meals',{time:'09:00 EST'})"
   },
   {
    "line": 31331,
@@ -288,7 +288,7 @@
   {
    "line": 31336,
    "find": "'No more gold today — resets at 09:00 ET.'",
-   "replace": "t('shop.no_gold',{time:'09:00 ET'})"
+   "replace": "t('shop.no_gold',{time:'09:00 EST'})"
   },
   {
    "line": 31337,
@@ -358,12 +358,12 @@
   {
    "line": 31392,
    "find": "Bought today: ${n}${out?' · sold out until 09:00 ET':''}",
-   "replace": "${t('shop.bought_today',{n})}${out?' · '+t('shop.sold_out_until',{time:'09:00 ET'}):''}"
+   "replace": "${t('shop.bought_today',{n})}${out?' · '+t('shop.sold_out_until',{time:'09:00 EST'}):''}"
   },
   {
    "line": 31393,
    "find": "'<span class=\"bs\">Back at 09:00 ET</span>'",
-   "replace": "'<span class=\"bs\">'+t('shop.back_at',{time:'09:00 ET'})+'</span>'"
+   "replace": "'<span class=\"bs\">'+t('shop.back_at',{time:'09:00 EST'})+'</span>'"
   },
   {
    "line": 31395,
@@ -388,12 +388,12 @@
   {
    "line": 31401,
    "find": "Bought today: ${n}${out?' · sold out until 09:00 ET':''}",
-   "replace": "${t('shop.bought_today',{n})}${out?' · '+t('shop.sold_out_until',{time:'09:00 ET'}):''}"
+   "replace": "${t('shop.bought_today',{n})}${out?' · '+t('shop.sold_out_until',{time:'09:00 EST'}):''}"
   },
   {
    "line": 31402,
    "find": "'<span class=\"bs\">Back at 09:00 ET</span>'",
-   "replace": "'<span class=\"bs\">'+t('shop.back_at',{time:'09:00 ET'})+'</span>'"
+   "replace": "'<span class=\"bs\">'+t('shop.back_at',{time:'09:00 EST'})+'</span>'"
   },
   {
    "line": 31404,

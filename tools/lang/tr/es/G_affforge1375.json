@@ -1,0 +1,20 @@
+{
+ "forge.quality_grey": "Gris",
+ "forge.quality_green": "Verde",
+ "forge.quality_blue": "Azul",
+ "forge.quality_blue_2": "Azul +2",
+ "forge.quality_purple": "Morado",
+ "forge.quality_purple_3": "Morado +3",
+ "forge.quality_gold_1": "Dorado +1",
+ "forge.quality_gold_4": "Dorado +4",
+ "forge.quality_orange": "Naranja",
+ "aff.water_t": "Agua",
+ "aff.fire_t": "Fuego",
+ "aff.ice_t": "Hielo",
+ "aff.nature_t": "Naturaleza",
+ "aff.lightning_t": "Rayo",
+ "aff.light_t": "Luz",
+ "aff.dark_t": "Oscuridad",
+ "aff.neutral_t": "Neutral",
+ "mcard.element": "Elemento"
+}

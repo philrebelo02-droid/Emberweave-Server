@@ -40,7 +40,7 @@
 "skytour.registration_open":"报名开放中",
 "skytour.round":"第{n}轮",
 "skytour.finished":"已结束",
-"skytour.desc":"每两周一次的公会淘汰赛——报名与 {wt} 错开周末进行，服务器时间周六 02:00 至周一 00:00。战斗于周二至周五 18:00–20:00（美东时间）在五座要塞间展开。",
+"skytour.desc":"每两周一次的公会淘汰赛——报名与 {wt} 错开周末进行，服务器时间周六 02:00 至周一 00:00。战斗于周二至周五 18:00–20:00（美东标准时间）在五座要塞间展开。",
 "skytour.enter":"参加 {name}",
 "skytour.locks_at":"锁定时间：{when}",
 "skytour.registered_n":"已报名公会：{n}",
