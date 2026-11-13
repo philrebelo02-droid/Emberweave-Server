@@ -2371,7 +2371,7 @@ function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
 const VAULT_MONSTERS={
   'skarrn':{hp:110,dmg:18,role:'Mage'}, 'skulk':{hp:155,dmg:16,role:'Warrior'}, 'volthex':{hp:155,dmg:16,role:'Warrior'},
   'cindertusk':{hp:155,dmg:16,role:'Warrior'}, 'ashen':{hp:155,dmg:16,role:'Warrior'}, 'sludgemaw':{hp:250,dmg:13,role:'Tank'},
-  'gnashul':{hp:155,dmg:16,role:'Warrior'}, 'bitwraith':{hp:110,dmg:18,role:'Mage'}, 'grundle':{hp:250,dmg:13,role:'Tank'},
+  'gnashul':{hp:155,dmg:16,role:'Warrior'}, 'bitwraith':{hp:110,dmg:16.2,role:'Mage'}, 'grundle':{hp:250,dmg:13,role:'Tank'},
   'vexmite':{hp:110,dmg:18,role:'Mage'}, 'lost soul':{hp:110,dmg:18,role:'Mage'}, 'trapjaw':{hp:250,dmg:13,role:'Tank'},
   'grushak':{hp:155,dmg:16,role:'Warrior'}, 'blackquill':{hp:110,dmg:18,role:'Mage'}, 'granith':{hp:250,dmg:13,role:'Tank'},
   'nightgloom':{hp:155,dmg:16,role:'Warrior'}, 'mordath':{hp:155,dmg:16,role:'Warrior'}, 'ooznik':{hp:155,dmg:16,role:'Warrior'},
