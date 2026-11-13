@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.75", "releases": "v1384", "items": [{"text": "Phil 12 Nov: skybridge corner-wide (ChatGPT) - \"that works\""}]},
     {"ver": "1.5.74", "releases": "v1382", "items": [{"text": "Grok: Guild Raid attempts = server count (2f873fa0)"}, {"text": "Phil: dev panel report buttons on top - NOT in notes"}]},
     {"ver": "1.5.73", "releases": "v1381", "items": [{"text": "Grok F5 Forge guide (5afb6263/54368fc5)"}, {"text": "closePopout order (363728e4)"}, {"text": "Dev panel revamp (b3434337) - NOT in patch notes (Phil)"}]},
     {"ver": "1.5.72", "releases": "v1380", "items": [{"text": "Phil 12 Nov: Starless Well Heroes + Boons buttons, all owned heroes, power with boons, original island size; pop-out right frame"}]},
