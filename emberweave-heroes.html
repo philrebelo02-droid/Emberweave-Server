@@ -32283,6 +32283,15 @@ function signinClaimToday(){ signinEnsure(); const d=signinNow(), day=d.getDate(
       if(!r||!r.ok){ bannerMsg(langMsg(r&&r.error)||ewT('signin.not_recorded')); renderSignin(); return; }
       saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges();
       let _shown=rew; try{ const mm=String(r.month||'').split('-'), sy=+mm[0], sm=(+mm[1])-1, sd=r.day|0; if(sy>2000&&sm>=0&&sm<12&&sd>=1&&(sd!==day||sm!==d.getMonth())) _shown=signinDayReward(sy,sm,sd); }catch(e){}   /* v1356 (audit): near the 09:00 reset the client's day can differ from the day the server paid */
+      const got=r.got;
+      if(got){
+        const frags=Object.entries(got.frags||{});
+        const label=got.gold!=null?t('signin2.n_gold',{n:got.gold}):
+          got.stamina!=null?t('shop.plus_stamina_cap',{n:got.stamina}):
+          got.gems!=null?t('shop.n_diamonds',{n:got.gems}):
+          frags.length===1&&HERO_TYPES[frags[0][0]]?t('signin2.week_label',{n:frags[0][1],hero:HERO_TYPES[frags[0][0]].name}):null;
+        if(label!==null) _shown={..._shown,label};
+      }
       showSigninReward(_shown, _shown.hero); renderSignin(); }).catch(function(){ _signinBusy=false; renderSignin(); });
     return; }
   rew.grant(); G.signinClaimed.push(day); saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges();
