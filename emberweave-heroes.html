@@ -33956,6 +33956,7 @@ const DVP_CSS=`
 .dvp-pill.tst{width:79px;background-image:url('${DVP_ART}pill-tester@2x.webp${DVP_ARTV}');background-size:79px 25px;color:#f3d9a0}
 .dvp-pill.bad{width:89px;background-image:url('${DVP_ART}pill-banned@2x.webp${DVP_ARTV}');background-size:89px 25px;color:var(--dvp-bad)}
 .dvp-pill.dev{color:var(--dvp-gold)}
+.dvp-pill.tst.on{width:82px;background-image:url('${DVP_ART}pill-online@2x.webp${DVP_ARTV}');background-size:82px 25px}.dvp-pill.bad.on{background-image:url('${DVP_ART}pill-online@2x.webp${DVP_ARTV}');background-size:89px 25px}   /* v1388 (Phil 13 Nov: "the gem should be green if someone is online"): Admin / Tester rows keep their label but show the green gem when online */
 .dvp-tag{display:inline-flex;align-items:center;margin-left:6px;padding:0 7px;border-radius:4px;border:1px solid var(--dvp-line);background:var(--dvp-tag-bg);color:var(--dvp-ink);font:14px var(--dvp-font);white-space:nowrap;vertical-align:2px}
 .dvp-tag.tst{color:#f3d9a0}.dvp-tag.bad{color:var(--dvp-bad)}.dvp-tag.on{color:var(--dvp-good)}
 /* items: 660x55 (Economy), 620x54 inside the 660x522 stack frame (Live Ops / QA left), 440x54 inside the detail frame */
@@ -34066,7 +34067,7 @@ window.addEventListener('resize',()=>{ try{ devPanelFit(); }catch(e){} });
 function devCssEnsure(){ if(document.getElementById('dvpCss')) return; const s=document.createElement('style'); s.id='dvpCss'; s.textContent=DVP_CSS; document.head.appendChild(s); }
 function devAgo(t){ if(!t) return 'never'; const s=Math.max(0,Math.floor((Date.now()-t)/1000)); if(s<60) return 'now'; const m=Math.floor(s/60); if(m<60) return m+' min ago';
   const h=Math.floor(m/60); if(h<24) return h+' h ago'; const d=Math.floor(h/24); return d===1?'Yesterday':(d<60?d+' days ago':new Date(t).toLocaleDateString()); }
-function devStatusPill(r){ return r.ban?'<span class="dvp-pill bad">Banned</span>':(r.dev?'<span class="dvp-pill dev">Admin</span>':(r.tester?'<span class="dvp-pill tst">Tester</span>':(r.online?'<span class="dvp-pill on">Online</span>':(r.guest?'<span class="dvp-pill off">Guest</span>':'<span class="dvp-pill off">Offline</span>')))); }
+function devStatusPill(r){ return r.ban?'<span class="dvp-pill bad'+(r.online?' on':'')+'">Banned</span>':(r.dev?'<span class="dvp-pill dev'+(r.online?' on':'')+'">Admin</span>':(r.tester?'<span class="dvp-pill tst'+(r.online?' on':'')+'">Tester</span>':(r.online?'<span class="dvp-pill on">Online</span>':(r.guest?'<span class="dvp-pill off">Guest</span>':'<span class="dvp-pill off">Offline</span>')))); }
 function devTagsHTML(r){ return (r.online?'<span class="dvp-tag on">Online</span>':'')+(r.tester?'<span class="dvp-tag tst">Test</span>':'')+(r.dev?'<span class="dvp-tag">Admin</span>':'')+
   (r.guest?'<span class="dvp-tag">Guest</span>':'')+(r.ban?'<span class="dvp-tag bad">Banned</span>':'')+(r.flag?'<span class="dvp-tag bad">Flag</span>':''); }
 /* ---- the window ---- */
