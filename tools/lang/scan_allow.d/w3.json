@@ -22,6 +22,7 @@
   "heroFormationDepth": "role data ('Warrior') used as a lookup default, never shown",
   "heroScaleMode": "damageProfile data compare ('Attack'), never shown",
   "dealDamage": "damageProfile data compares ('Magic','Healer'); its float words (NOT THERE, MISS) are drawn translated by ftShow",
+  "_dealDamageCore": "v1388: dealDamage's body, moved here unchanged (the Damage Done wrapper keeps the name) - the same damageProfile data compares ('Magic','Healer')",
   "sfxGo": "sound debug log reason (sfxNote), never shown",
   "sfxTailsOut": "sound debug log reason (sfxFade), never shown",
   "_fxCheck": "console.warn FX miss debugging, never shown",
