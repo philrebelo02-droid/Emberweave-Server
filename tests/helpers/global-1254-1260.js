@@ -12,6 +12,8 @@
 //   undoText(s)    -> the same rewrite on a source string (safe on an older page, and on one already rewritten)
 const fs = require('fs'), path = require('path');
 const SWAPS = [
+  // v1388 (tester via Phil 13 Nov: "bitwraith is a bit too strong, needs a 10% damage nerf"): Bitwraith dmg 16.2 back to 18 (tests/test_bitwraith_nerf_1388.js checks v1388 itself)
+  ['"name": "Bitwraith", "stars": 2, "swing": 1.4, "monster": true, "role": "Mage", "hp": 110, "dmg": 16.2,', '"name": "Bitwraith", "stars": 2, "swing": 1.4, "monster": true, "role": "Mage", "hp": 110, "dmg": 18,', /"name": "Bitwraith", [^}]*"dmg": (16\.2|18),/],
   // v1366 (Phil 11 Nov: "yes buff tick"): Tick's base damage 34 -> 28 and Mainspring 0.36 -> 0.28 back to BASE (tests/test_power_terms_1311 + test_affinities_1367 check v1366 itself)
   ["stars:1,hp:360,dmg:34,", "stars:1,hp:360,dmg:28,", /stars:1,hp:360,dmg:(34|28),/],
   ["name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,", "name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,", /name:'Mainspring',type:'punchflurry',hits:5,mul:0\.(36|28),/],
