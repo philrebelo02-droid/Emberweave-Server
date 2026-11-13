@@ -739,9 +739,8 @@ function localUserCounts(){ let acc=0, guests=0; for(const u of Object.values(DB
    a guest whose device then signs in to an existing account is marked linkedTo that account here (the device's guest, DB.guestByDevice) and not counted. */
 function guestLinkDevice(rawDev, u){ try{ const dk=devKey(String(rawDev||'').slice(0,64)); if(!dk||!DB.guestByDevice||!u) return [];
   const gid=DB.guestByDevice[dk], g=gid&&DB.users[gid]; if(g&&g.guest&&g.id!==u.id&&g.linkedTo!==u.id){ g.linkedTo=u.id; return [g.id]; } }catch(e){} return []; }
-const SAT_GUESTS={};   // Server 1: each satellite's last reported guest count {n, t}
 function totalUsersHere(){ const c=localUserCounts(); let g=c.guests, servers=1; const cut=Date.now()-3600000;
-  for(const k in SAT_GUESTS){ if(SAT_GUESTS[k].t>=cut){ g+=SAT_GUESTS[k].n|0; servers++; } } return { total:c.acc+g, accounts:c.acc, guests:g, servers }; }
+  for(const report of Object.values(DB.satGuests||{})){ if(report.t>=cut){ g+=report.n|0; servers++; } } return { total:c.acc+g, accounts:c.acc, guests:g, servers }; }
 async function totalUsersReport(){ if(!ACCOUNT_AUTHORITY) return null; try{ const r=await authorityCall('/api/internal/account/total',{ server:SERVER_ID||String(process.env.SERVER_NAME||''), guests:localUserCounts().guests });
   return (r&&r.status===200&&r.body&&typeof r.body.total==='number')?r.body:null; }catch(e){ return null; } }
 if(ACCOUNT_AUTHORITY){ const _tu=setInterval(()=>{ totalUsersReport(); }, 600000); if(_tu.unref) _tu.unref(); setTimeout(()=>{ totalUsersReport(); }, 20000); }
@@ -6288,7 +6287,11 @@ async function api(req,res,url){
     if(p==='/api/internal/account/comps'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')&&b.claims&&typeof b.claims==='object') COMP_SAT[sv]={ claims:b.claims, t:Date.now() };   /* v1384 */
       const cut=Date.now()-86400000; return send(res,200,{ comps:(Array.isArray(DB.comps)?DB.comps:[]).filter(c=>c&&(!c.until||c.until>cut)) }); }
     if(p==='/api/internal/account/comp-send'){ const r=compCreate(b.by, b); if(!r.ok) return send(res,r.status||400,{error:r.error}); writeDB(); return send(res,200,{ ok:true, comp:r.comp }); }
-    if(p==='/api/internal/account/total'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')) SAT_GUESTS[sv]={ n:Math.max(0,b.guests|0), t:Date.now() };   /* v1379 total users */
+    if(p==='/api/internal/account/total'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')&&sv!=='__proto__'){
+        DB.satGuests=DB.satGuests||{};
+        DB.satGuests[sv]={n:Math.max(0,b.guests|0),t:Date.now()};
+        writeDBNow([],['satGuests']);
+      }
       return send(res,200,totalUsersHere()); }
     /* v1184 SIGN-UP GATE: gid + tag = the satellite checked the password against its local copy of this account; a current tag means
        nothing is hashed here (lock, ban and state still come from here). Saved only when something changed, with the group save. */
