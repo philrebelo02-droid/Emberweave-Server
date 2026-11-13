@@ -44,6 +44,15 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
     await call('/api/well/move',{requestId:rid(),col:nc,row:step}); }
   s2=s2||{status:0,data:{error:'no guarded square reachable'}};
   ok(s2.status!==200&&/fallen/.test(s2.data.error||''),'the fallen hero cannot walk into the next fight ('+(s2.data.error||s2.status)+')');
+  const gemsBefore=(await call('/api/ledger')).data.gems;
+  const revived=await call('/api/well/resurrect',{requestId:rid(),hero:missing});
+  const repeat=await call('/api/well/resurrect',{requestId:rid(),hero:missing});
+  const view=(await call('/api/well/state')).data;
+  ok(revived.data.ok && !repeat.data.ok && view.resUsed===1 && view.resCost===50,
+    'the first revival is accepted once; the next fallen hero costs 50 diamonds');
+  ok(view.heroes[missing].hpFrac===1 && view.heroes[missing].energy===0 &&
+    !view.heroes[missing].dead && (await call('/api/ledger')).data.gems===gemsBefore,
+    'the free revive restores full health and zero energy without charging');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_well_fallen_1097.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.stack||e); process.exitCode=1; } finally { await stop(); } })();
