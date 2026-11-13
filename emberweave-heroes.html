@@ -19294,32 +19294,13 @@ let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, me
    account's diamond history and either clears it or bans for 1, 7 or 30 days. Nothing on this
    screen removes currency from a player — being suspected is not being guilty. */
 let INTEG={ reports:[], showAll:false, open:null, audit:null, busy:false };
-async function loadIntegrity(){
-  const host=document.getElementById('devIntegrity'); if(!host) return;
-  INTEG.busy=true; host.innerHTML='<div style="color:#8b98a9;font-size:11px">Loading reports…</div>';
-  const r=await api('/api/dev/reports'+(INTEG.showAll?'?all=1':'')).catch(()=>null);
-  INTEG.busy=false;
-  if(!r||r.error){ host.innerHTML='<div style="color:#ff8b8b;font-size:11px">'+escapeHTML((r&&r.error)||'Could not load reports.')+'</div>'; return; }
-  INTEG.reports=r.reports||[]; renderIntegrity();
-}
+async function loadIntegrity(){ return devReportsLoad(true); }   /* v1379: the Integrity desk is part of Dev > Reports (one queue) */
 function _intAgo(t){ const s=Math.max(0,Math.round((Date.now()-t)/1000));
   if(s<60)return s+'s ago'; if(s<3600)return Math.round(s/60)+'m ago'; if(s<86400)return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'; }
 function renderIntegrity(){
   const host=document.getElementById('devIntegrity'); if(!host) return;
   if(INTEG.open){ host.innerHTML=_intAuditHTML(); _wireIntegrity(host); return; }
-  if(!INTEG.reports.length){ host.innerHTML='<div style="color:#5ee89b;font-size:11.5px;padding:10px 2px">No open reports. Nothing has tripped the 2,000-in-a-minute threshold.</div>'; _wireIntegrity(host); return; }
-  host.innerHTML=INTEG.reports.map(r=>{
-    const ban=r.banned?`<span style="font-size:9.5px;color:#ff9a9a;border:1px solid #7a3a3a;border-radius:6px;padding:1px 5px">${r.banned.permanent?'banned permanently':'banned '+r.banned.daysLeft+'d left'}</span>`:'';
-    const modTag=r.kind==='moderation'?`<span style="font-size:9.5px;font-weight:800;color:#fff;background:#b0402c;border-radius:6px;padding:1px 6px;margin-right:4px">${escapeHTML(r.reasonLabel||'Report')}</span>`:'';
-    const res=r.resolved?`<span style="font-size:9.5px;color:#8b98a9">${escapeHTML(r.action||'resolved')}</span>`:'';
-    return `<div style="border:1px solid #2a3550;background:#0f1524;border-radius:10px;padding:9px 10px;margin-bottom:7px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div style="font-weight:800;font-size:12.5px;color:#ffd45e">${modTag}${escapeHTML(r.name)}</div>
-        <div style="font-size:10px;color:#8b98a9">${_intAgo(r.t)} ${ban} ${res}</div></div>
-      <div style="font-size:11px;color:#cdd6e4;margin-top:3px">${escapeHTML(r.detail)}</div>
-      <button class="btn sm" style="margin-top:7px;width:100%" data-intopen="${r.userId}" data-intrep="${r.id}">${r.kind==='moderation'?'Review':'Audit this account'}</button>
-    </div>`; }).join('');
-  _wireIntegrity(host);
+  devReportsPaint();
 }
 function _intAuditHTML(){
   const a=INTEG.audit;
@@ -19385,9 +19366,9 @@ let _resetName='';       // account whose password is being reset (set when the 
 let delStep='idle', _blocksCache=null, _blocksLoading=false;   /* v1097: Delete account step ('idle' | 'confirm'); the block list as last read from the server */
 function _blocksHTML(){ if(_blocksCache===null) return t('common.loading'); if(!_blocksCache.length) return t('set.none');
   return _blocksCache.map(x=>`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="flex:1;color:#cdd6e4">${escapeHTML(x.name||'')}</span><button class="btn xs secondary" data-unblock="${escAttr(x.id)}">${t('profile.unblock')}</button></div>`).join(''); }
-let devTab='economy';     // developer panel group: 'accounts' | 'economy' | 'battles' | 'servers' | 'debug' (v1267; old 'cheats'/'qa'/'integrity' map in)
+let devTab='players';     // developer panel tab (v1379): 'players' | 'reports' | 'economy' | 'servers' | 'qa' (devTabNorm maps the old group names in)
 /* v1267 Settings tabs: the open tab is kept per device (ew_set_tab). Code that opens Settings on a dev group (devTab=...) lands on Dev. */
-let setTab='', _devTabSeen='economy';
+let setTab='', _devTabSeen='players';
 function setFitTabs(root){ if(!root) return; root.querySelectorAll('.set-tabs .tab,.dvp-tab').forEach(el=>{ if(!el.clientWidth) return; el.style.fontSize='';
     let fs=parseFloat(getComputedStyle(el).fontSize)||12; while((el.scrollWidth>el.clientWidth+0.5||el.scrollHeight>el.clientHeight+0.5)&&fs>8){ fs-=0.5; el.style.fontSize=fs+'px'; } }); }
 try{ window.addEventListener('resize',()=>setFitTabs(document.getElementById('settingsBody'))); }catch(e){}
@@ -20933,6 +20914,8 @@ function renderForge(){
 let LED={st:null};
 function adoptLedger(st){ if(!st||typeof st!=='object') return; summonTableSync();
   try{ if('tester' in st && ACC && ACC.token && !!ACC.tester!==!!st.tester){ ACC.tester=!!st.tester; saveAcc(); } }catch(e){}   /* v1376: test account on / off */
+  try{ if('notice' in st) devNoticeShow(st.notice); }catch(e){}   /* v1379: the dev panel's maintenance notice */
+  try{ if(st.amail) adminMailAdopt(st.amail); }catch(e){}   /* v1379: a message from the dev panel lands in the Mail inbox */
   /* 27 Sep 2026 (Phil: "the server takes back diamonds when i 'buy' diamonds from shop the server takes it back within seconds" /
      "players cant have their purchased diamonds dissapearing" / "no rollbacks should happen"). The server kept the purchase (tested:
      300 -> 1500 and still 1500 after saves); the CLIENT rolled it back - any response that left the server BEFORE the purchase
@@ -33289,7 +33272,7 @@ function renderSettings(){
   const b=document.getElementById('settingsBody');
   DEV.on = isDevAcct();   // dev tools are unlocked purely by which cloud account is signed in
   const TST = !DEV.on && isTesterAcct();   // v1376: a test account - the Economy group + Reset all progress, nothing else
-  devTab=({cheats:'economy',qa:'debug',integrity:'accounts'})[devTab]||devTab; if(!['accounts','economy','battles','servers','debug'].includes(devTab)) devTab='economy';
+  devTab=devTabNorm(devTab);   /* v1379: players / reports / economy / servers / qa */
   const inp='background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:9px 10px;font-size:13px;width:100%';
   // ---- ACCOUNT: sign in / create a cloud account (syncs progress across devices) ----
   let account;
@@ -33400,51 +33383,8 @@ function renderSettings(){
       ${create?'':`<div style="text-align:center;margin-top:8px"><a href="#" id="acForgot" style="font-size:11px;color:#9ab0d6;text-decoration:none">${t('set.forgot')}</a></div>`}
       <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
   }
-  // ---- DEV tools: shown only when signed into a developer account ----
-  let dev='';
-  if(DEV.on||TST){
-    const act=(id,ic,label)=>`<button class="dvp-cell" data-dev="${id}"><span class="ic">${ic}</span>${label}</button>`;
-    /* v1267 (Phil 3 Nov: "Dev panel is even more messy"): five groups - every tool kept, each in one place */
-    const TABS=[['accounts',t('set.dev_accounts')],['economy',t('set.dev_economy')],['battles',t('set.dev_battles')],['servers',t('set.dev_servers')],['debug',t('set.dev_debug')]];
-    const dt=TST?'economy':devTab;
-    const tabBar=`<div class="dvp-tabs">`+TABS.map(([k,l])=>`<div class="dvp-tab${dt===k?' on':''}" data-devtab="${k}">${l}</div>`).join('')+`</div>`;
-    const _n=(v)=>{ v=Math.round(v||0); return v>=1000000?(v/1000000).toFixed(1)+'M':(v>=1000?(v/1000).toFixed(v>=100000?0:1)+'k':(''+v)); };
-    const statRow=`<div class="dvp-stats"><span class="dvp-chip">Lv ${playerLevel()}</span><span class="dvp-chip">\ud83e\ude99 ${_n(G.gold)}</span><span class="dvp-chip">\ud83d\udc8e ${_n(G.gems)}</span></div>`;
-    const battlesTab = dt!=='battles'?'':`
-      <div class="dvp-god"><b>\u2694 ${t('set2.dev_god')} <span class="sub">\u2014 ${t('set2.dev_god_sub')}</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
-      <div class="dvp-grid">${act('bots','\ud83e\udd16',t('set2.dev_bots'))}</div>`;
-    const serversTab = dt!=='servers'?'':`
-      <div class="dvp-grid">${act('backup','\ud83d\udcbe',t('set2.dev_backup'))}</div>
-      <button class="dvp-update" data-dev="update">\ud83d\udd04 ${t('set2.dev_update')}</button>`;
-    const debugTab = dt!=='debug'?'':`
-      <div class="dvp-grid">${act('perf','\ud83d\udcc9',t('set2.dev_perf'))}${act('fxmiss','\ud83c\udfaf',t('set2.dev_fxmiss'))}${act('cachelog','\ud83d\udcdc',t('set2.dev_cachelog'))}${act('orbs','\ud83d\udd25',t('set2.dev_orbs',{n:DEV.orbPreview|0}))}${act('dlart','\ud83d\udce6',t('set.update_all'))}${act('clrart','\ud83e\uddf9',t('set.clear_cache'))}</div>
-      <div class="dvp-sec">${t('common.save')}</div>
-      <div class="dvp-grid"><button class="dvp-cell" id="expBtn"><span class="ic">\ud83d\udcc4</span>${t('set.save_code')}</button></div>
-      <div id="saveOut" style="font-size:10px;color:#55617a;word-break:break-all;margin-top:6px"></div>`;
-    const cheatsTab = dt!=='economy'?'':`
-      <input class="dvp-filter" id="devFilter" placeholder="${t('set2.dev_filter')}" autocomplete="off">
-      <div class="dvp-sec">${t('set2.dev_currency')}</div>
-      <div class="dvp-grid">${act('gold','\ud83e\ude99',t('set2.dev_gold'))}${act('gems','\ud83d\udc8e',t('set2.dev_gems'))}${act('shards','\ud83d\udca0',t('set2.dev_shards'))}${act('pieces','\ud83e\uddf5',t('set2.dev_pieces'))}${act('arenacoin','\ud83c\udf9f',t('set2.dev_arenacoin'))}${act('guildcoins','\ud83c\udf96',t('set2.dev_guildcoins'))}</div>
-      <div class="dvp-sec">${t('set2.dev_progression')}</div>
-      <div class="dvp-grid">${act('stam','\u29d7',t('set2.dev_stam'))}${act('stam30','\u29d7',t('set2.dev_stam30'))}${act('level','\u2b06',t('set2.dev_level'))}${act('squadlvl','\ud83d\udcc8',t('set2.dev_squadlvl'))}${act('campstage','\ud83d\uddfa',t('set2.dev_campstage'))}${act('campall','\ud83d\uddfa',t('set2.dev_campall'))}${act('arena','\ud83c\udfc6',t('set2.dev_arena1'))}${act('shielditem','\ud83d\udee1',t('set2.dev_shields'))}</div>
-      <div class="dvp-sec">${t('set2.dev_roster')}</div>
-      <div class="dvp-grid">${act('heroes','\ud83e\uddb8',t('set2.dev_heroes'))}${act('lv100','\ud83d\udd1f',t('set2.dev_lvmax',{n:MAX_LEVEL}))}${act('maxteam','\u2728',t('set2.dev_maxteam'))}${act('givefrags','\ud83e\udde9',t('set2.dev_givefrags'))}</div>`;
-    const accountsTab = dt!=='accounts'?'':`
-      <div class="dvp-grid">${act('online','\ud83d\udc65',t('set2.dev_online'))}${act('accounts','\ud83d\uddc2',t('set2.dev_accounts'))}${act('newacct','\u2795',t('auth2.create_account'))}</div>
-      <div class="dvp-sec">${t('set2.dev_testers')}</div>
-      <div class="dvp-grid">${act('mktest','\u2795',t('set2.dev_test_new'))}${act('testers','\ud83d\uddc2',t('set2.dev_test_list'))}${act('settester','\ud83d\udc65',t('set2.dev_test_toggle'))}</div>
-      <div class="dvp-sec">${t('set2.dev_reports')}</div>
-      <div class="dvp-grid">${act('reports','\ud83d\udc1e',t('set2.dev_bugreports'))}${act('refresh','\ud83d\udd04',t('set2.dev_refresh'))}${act('clearlog','\ud83e\uddf9',t('set2.dev_clearlog'))}</div>
-      <div class="dvp-sec">${t('set2.dev_integrity')} \u00b7 +2,000 \ud83d\udc8e &lt; ${t('set2.dev_one_min')}</div>
-      <div class="dvp-grid">${act('intrefresh','\ud83d\udd04',t('set2.dev_intrefresh'))}${act('intall','\ud83d\uddc2',t('set2.dev_intall'))}</div>
-      <div id="devIntegrity" style="margin-top:8px"></div>`;
-    dev=`<style>.dvp{border:1px solid #2b7a55;background:linear-gradient(180deg,#12211b,#141b2b 70%)}.dvp-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.dvp-badge{font-size:11px;font-weight:800;letter-spacing:.5px;color:#0a140f;background:#5ee89b;border-radius:6px;padding:2px 7px}.dvp-title{font-weight:800;font-size:14px;color:#e6edf3}.dvp-who{font-size:11px;color:#8b98a9;font-weight:600}.dvp-stats{margin-left:auto;display:flex;gap:5px}.dvp-chip{font-size:11px;font-weight:700;background:#0f1622;border:1px solid #26324a;border-radius:999px;padding:3px 9px;color:#cdd8ea;white-space:nowrap}.dvp-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:4px;background:#0d1320;border:1px solid #24304a;border-radius:11px;padding:3px;margin-bottom:10px}.dvp-tab{display:flex;align-items:center;justify-content:center;min-width:0;min-height:30px;overflow:hidden;text-align:center;font-size:11px;line-height:1.15;font-weight:700;padding:5px 4px;border-radius:8px;cursor:pointer;color:#93a1b8;user-select:none}.dvp-tab.on{background:#5ee89b;color:#0a140f}.dvp-god{display:flex;align-items:center;gap:10px;background:#0f1622;border:1px solid #26324a;border-radius:11px;padding:9px 11px;margin-bottom:10px}.dvp-god b{font-size:12px;flex:1}.dvp-god .sub{color:#8b98a9;font-weight:500}.dvp-sw{width:44px;height:24px;border-radius:999px;background:#33405e;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s}.dvp-sw.on{background:#5ee89b}.dvp-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.dvp-sw.on::after{left:22px}.dvp-filter{width:100%;box-sizing:border-box;background:#0f1622;border:1px solid #26324a;border-radius:9px;padding:8px 10px;color:#e6edf3;font-size:12px;margin-bottom:10px}.dvp-filter::placeholder{color:#63708a}.dvp-sec{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin:10px 2px 6px}.dvp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dvp-cell{display:flex;align-items:center;gap:8px;background:#1b2334;border:1px solid #2b3852;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:11.5px;font-weight:600;color:#e6edf3;text-align:left;transition:border-color .12s,background .12s}.dvp-cell:hover{background:#222c42;border-color:#3d5488}.dvp-cell:active{transform:translateY(1px)}.dvp-cell .ic{font-size:15px;flex:0 0 auto}.dvp-update{width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border:0;border-radius:11px;background:linear-gradient(90deg,#3a6df0,#5a86ff);color:#fff;font-weight:800;font-size:12px;cursor:pointer}.dvp-out{font-size:11px;color:#5ee89b;margin-top:8px;min-height:14px}</style><div class="set-sec dvp">
-      <div class="dvp-hd"><span class="dvp-badge">${TST?'TEST':'DEV'}</span><span class="dvp-title">${TST?t('set2.tester_panel'):t('set2.dev_panel')}</span><span class="dvp-who">${escapeHTML(ACC.name||'')}</span>${statRow}</div>
-      ${TST?'':tabBar}${accountsTab}${cheatsTab}${battlesTab}${serversTab}${debugTab}
-      <div id="devDone" class="dvp-out"></div>
-      <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:300px;overflow:auto"></div>
-    </div>`;
-  }
+  // ---- DEV tools: shown only when signed into a developer account (v1379: devPanelHTML - five tabs; a test account gets only Economy) ----
+  const dev=(DEV.on||TST)?`<div class="set-sec"><button class="btn" id="dvpOpen" style="width:100%">${uiIcon('settings')} ${TST?t('set2.tester_panel'):t('set2.dev_panel')}</button></div>`:'';   /* v1379: the panel opens as its own window - one row of tabs, never under the Settings tabs */
   // save-management tools stay DEV-only (v1267: Reset all progress -> Account danger area, Show save code -> Dev > Debug views)
   const reportCard = (online()&&ACC.token) ? `<div class="set-sec">
     <div class="set-h">${uiIcon('bug')} ${t('set.report_title')}</div>
@@ -33491,7 +33431,7 @@ function renderSettings(){
       <div class="set-row"><button class="btn sm secondary" id="setFtutReplay">${t('ftut.set_replay')}</button></div></div>`;   /* v1376 feature guides */
   /* v1267 SETTINGS CLEANUP (Phil 4 Nov 2026): General / Account / Storage / Support / Dev (dev accounts only); the open tab is kept per device */
   const TABS=[['general',t('set.tab_general')],['account',t('set.tab_account')]].concat(ACC.token?[['storage',t('set.tab_storage')]]:[]).concat([['support',t('set.tab_support')]]).concat((DEV.on||TST)?[['dev',t('set.tab_dev')]]:[]);
-  if(DEV.on&&devTab!==_devTabSeen) setTab='dev';   // e.g. devTab='accounts'; show('settings') opens the Dev tab on that group
+  let _dvpJump=false; if(DEV.on&&devTab!==_devTabSeen){ setTab='dev'; _dvpJump=true; }   // e.g. devTab='reports'; show('settings') opens the dev panel on that tab
   _devTabSeen=devTab;
   if(!setTab){ try{ setTab=localStorage.getItem('ew_set_tab')||''; }catch(e){} }
   if(!TABS.some(x=>x[0]===setTab)) setTab='general';
@@ -33511,9 +33451,10 @@ function renderSettings(){
   b.querySelectorAll('[data-settab]').forEach(el=>el.onclick=()=>{ setTab=el.dataset.settab; try{ localStorage.setItem('ew_set_tab',setTab); }catch(e){}
     b.querySelectorAll('[data-settab]').forEach(x=>x.classList.toggle('on',x===el)); b.querySelectorAll('[data-pane]').forEach(x=>x.classList.toggle('on',x.dataset.pane===setTab));
     try{ const sc=document.getElementById('settings'); if(sc) sc.scrollTop=0; }catch(e){}
-    setFitTabs(b); if(DEV.on&&setTab==='dev'&&devTab==='accounts') loadIntegrity(); });
+    setFitTabs(b); if(setTab==='dev') devPanelOpen(); });
   setFitTabs(b); setTimeout(()=>setFitTabs(b),400);
-  try{ if(DEV.on&&devTab==='accounts'&&INTEG.reports&&INTEG.reports.length) renderIntegrity(); }catch(e){}
+  try{ if(!(DEV.on||TST)) devPanelClose(); else if(_dvpJump) devPanelOpen(); }catch(e){}   /* v1379: signed out of the dev account = the panel closes */
+  { const o=b.querySelector('#dvpOpen'); if(o) o.onclick=()=>devPanelOpen(); }
   { const rg=b.querySelector('#setGraphicsSel'), wrap=rg&&rg.closest('.gq-wrap');   /* v1373 (Phil 12 Nov: a slide bar with 5 dots - drag to the quality dot) */
     const paint=()=>{ const i=+rg.value; wrap.querySelectorAll('.gq-dot').forEach((d,k)=>d.classList.toggle('on',k<=i)); wrap.querySelectorAll('.gq-lbls span').forEach((s,k)=>s.classList.toggle('on',k===i)); rg.setAttribute('aria-valuetext',t(`set.graphics_${GRAPHICS_ORDER[i]}`)); };
     if(rg){ rg.oninput=paint; rg.onchange=()=>{ paint(); setGraphicsPreset(GRAPHICS_ORDER[+rg.value]); }; } }
@@ -33742,7 +33683,6 @@ function renderSettings(){
     acRSubmit.onclick=doSubmit;
     ['#acRCode','#acRNew','#acRNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
   // ---- dev tools wiring ----
-  const _exp=b.querySelector('#expBtn'); if(_exp) _exp.onclick=()=>{ b.querySelector('#saveOut').textContent=JSON.stringify(G); };
   const _rst=b.querySelector('#resetBtn'); if(_rst) _rst.onclick=()=>{
     gameConfirm(t('set2.reset_q',{bs:'<b>',be:'</b>'})+'<br><span style="font-size:11px;color:#8b98a9">'+t('set2.reset_body')+'</span>',async()=>{
       // 28 Aug: the server now resets the LEDGER too (campaign clears, stars, levels, unlocks) and
@@ -33759,9 +33699,6 @@ function renderSettings(){
       const pm=document.getElementById('profileModal'); if(pm) pm.classList.remove('active');
       updateHubChrome(); show('home');
     }); };
-  const dGod=b.querySelector('#devGod'); if(dGod) dGod.onclick=()=>{ DEV.god=!DEV.god; renderSettings(); };
-  b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); if(devTab==='accounts') loadIntegrity(); });
-  b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); }); const _flt=b.querySelector('#devFilter'); if(_flt){ _flt.oninput=()=>{ const q=_flt.value.trim().toLowerCase(); b.querySelectorAll('.dvp-cell').forEach(c=>{ c.style.display=(!q||(c.textContent||'').toLowerCase().includes(q))?'':'none'; }); b.querySelectorAll('.dvp-sec').forEach(sec=>{ const nx=sec.nextElementSibling; const any=nx&&[...nx.querySelectorAll('.dvp-cell')].some(c=>c.style.display!=='none'); sec.style.display=any?'':'none'; }); }; }
 }
 /* v564 - ONE implementation behind both entry points: the player-facing Offline Art card in
    Settings and the dev panel's QA tab. `report` is whatever each caller uses to show text, so the
@@ -33874,112 +33811,516 @@ async function runAssetClear(report){
   clearAssetCache().then(n=>{ report('\u2705 '+t('offart.cleared_caches',{n})); },
                         ()=>report(t('offart.clear_fail')));
 }
-const DEV_ECONOMY_ACTS=['gold','gems','shards','pieces','arenacoin','guildcoins','stam','stam30','level','squadlvl','campstage','campall','arena','shielditem','heroes','lv100','maxteam','givefrags'];   /* v1376: the Economy group = a test account's dev panel */
+/* ===================== v1379 DEV PANEL REVAMP (Phil 12 Nov 2026) =====================
+   Phil: "Please revamp my dev panel completely, its confusing and alot of redundant things" / "The players should have a sort also. By level,
+   name, last played, patron level" / "Launch is soon and I feel like my dev panel os flimsy" / "Wow me, make it flashy and organized. Functional
+   and no redundant things."
+   Five tabs, one job each:
+   - Players: every account - search (name, username, id), sort (Last played, Level, Name, Patron; tap again to flip), filter (All, Online,
+     Testers, Banned); tap a player = the player card (openPlayerAdmin) with every action on THAT player. Create test account sits here.
+   - Reports: ONE queue - players' bugs and ideas (Settings > report), chat reports and integrity spikes; Open / Resolved / All, one Refresh.
+   - Economy: grants on YOUR OWN account, one row per resource with an amount box, then the one-tap roster tools. A test account sees only this.
+   - Servers: this server (build, uptime, online, accounts), backups (Backup now, Download a copy), the maintenance notice, the five servers.
+   - QA: God mode, Performance HUD, FX misses, Cache log, Temple orb preview, Run test bots, Check for update, Save code.
+   The server decides every action (isDev; /api/admin/led-grant isDev||isTester) and logs it (DB.adminLog).
+   ART: every visual is in DVP_CSS, by class and CSS variable (--dvp-*), placeholder art from the game's own UI kit (emberdraft / building
+   frames and buttons). ChatGPT's dev panel package (Open Projects/DEV PANEL REVAMP 12NOV2026/art) drops in by changing the variables. */
+/* Phil 12 Nov: "6 tabs with 6 actually legitimate reasons to be a tab" - one job each; "Use tabs similar to how embers app tabs act" - one segmented strip */
+/* v1379 v3 LAYOUT (Phil 12 Nov on ChatGPT's mockups-v3: "This is good, the setup is good"): every tab is a list on the left and the selected
+   item's detail on the right (Players: table + player card; Reports: queue + the report; Servers: 5 rows + the server; Economy, Live Ops, QA:
+   rows + a side panel). A narrow window (portrait phone without the turn) puts the detail under the list. Header: servers healthy, online,
+   open reports. */
+const DVP_TABS=[['players','Players','players'],['reports','Reports','bug'],['economy','Economy','war-chest'],['liveops','Live Ops','horn'],['servers','Servers','world-online'],['qa','QA','chart']];
+function devTabNorm(v){ v=({accounts:'players',integrity:'reports',cheats:'economy',battles:'qa',debug:'qa'})[v]||v; return DVP_TABS.some(x=>x[0]===v)?v:'players'; }
+const DVP={ q:'', sort:'seen', dir:-1, filt:'all', rows:null, busy:false, err:'', shown:80, sel:null, selObj:null, rf:'open', rk:'all', items:null, rbusy:false, rerr:'', rsel:null,
+  st:null, sbusy:false, serr:'', svr:{}, ssel:0, lsel:'mail', mails:null, buys:null };
+const DVP_SORTS=[['seen','Last played'],['level','Level'],['name','Name'],['patron','Patron']];
+const DVP_FILTS=[['all','All players'],['online','Online'],['tester','Testers'],['banned','Banned']];
+const DVP_RF=[['open','Open reports'],['done','Resolved'],['all','All reports']];
+const DVP_RK=[['all','Every kind'],['tester','Testers'],['bug','Bugs'],['suggestion','Ideas'],['moderation','Chat reports'],['integrity','Cheat flags']];
+const devRkMatch=(x,k)=>k==='all'||(k==='tester'?!!x.tester:x.kind===k);
+const DVP_AMT_DEF={gold:100000,gems:2000,stam:100,arenacoin:5000,guildcoins:5000,shielditem:3,shards:500,pieces:200,level:5,squadlvl:5,campstage:5};
+const DVP_ART='/assets/img/ui/devpanel/';   /* ChatGPT's dev panel art (compact-2x-v2): every piece painted at 2x and shown at its 1x layout size */
+const DVP_ARTV='?v=1';
+const DVP_BTN=[48,54,59,60,61,62,65,70,72,73,97,99,100,112,114,115,117,142,171];   /* the painted 36 px button plates by width: btn-<w>-<normal|pressed|disabled|danger>@2x.webp */
+const DVP_CHIPS=[85,109,124,138];   /* header chip plates, 28 tall */
+const DVP_CSS=`
+/* v1379 THE DEV PANEL ART (ChatGPT's compact-2x-v2, layout.json in 1280x800): the fixed 1280x800 window, one uniform scale (devPanelFit).
+   Every painted piece sits at its exact layout box - no 9-slice, no stretch, no tiling: the window painting, the DEV PANEL wordmark, the
+   status chips, tabs (normal / selected) with their icons, the section, the 660 px row plates (normal / selected / header), the 660 / 620 / 440
+   px item plates, the 480x522 detail frame and the 660x522 stack frame, the 36 px buttons (normal / pressed / disabled, brown / gold / red,
+   a plate of the width the label needs: devArtFit) and the status pills with their gems. All text is live HTML on top. Pieces are @2x
+   (crisp up to a 2x scale) drawn at their 1x size. */
+.dvp,.pai-ov{--dvp-gold:#f3cc7e;--dvp-ink:#ffe8b6;--dvp-dim:#c9b391;--dvp-good:#a8e6a0;--dvp-bad:#ff9b8b;--dvp-warn:#ffc46b;--dvp-line:#9d733f;--dvp-line-soft:#765235;
+ --dvp-font:Georgia,'Times New Roman',serif;--dvp-search-bg:#140d09;--dvp-tag-bg:#20140c}
+.dvp-ov{position:fixed;inset:0;z-index:13000;background:rgba(5,4,3,.9);overflow:hidden}
+.dvp{position:absolute;left:50%;top:50%;width:1280px;height:800px;box-sizing:border-box;transform-origin:50% 50%;transform:translate(-50%,-50%) scale(var(--dvp-scale,1));
+ background:#160e0a url('${DVP_ART}window@2x.webp${DVP_ARTV}') 0 0/1280px 800px no-repeat;color:var(--dvp-ink);font:17px var(--dvp-font)}
+.dvp .stIc{width:22px;height:22px;vertical-align:-5px;margin-right:5px}
+/* header: the box 43,12 1194x60 - wordmark 81,12 236x60 · chips at y28, 28 tall · Close 1142,24 57x36 */
+.dvp-hd{position:absolute;left:43px;top:12px;width:1194px;height:60px}
+.dvp-title{position:absolute;left:38px;top:0;width:236px;height:60px;display:block}
+.dvp-title img{display:block;width:236px;height:60px}
+.dvp-title.txt{font:700 30px var(--dvp-font);letter-spacing:3px;color:var(--dvp-gold);text-shadow:0 2px 4px #000;line-height:60px;white-space:nowrap}
+.dvp-stats{position:absolute;left:300px;top:16px;width:780px;height:28px;display:flex;justify-content:center;gap:7px;overflow:hidden}
+.dvp-chip{flex:0 0 auto;height:28px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;justify-content:center;background:var(--dvp-chipbg) 0 0/100% 100% no-repeat;color:var(--dvp-ink);font:15px var(--dvp-font);white-space:nowrap}
+.dvp-chip b{color:#fff1d3;margin-right:4px}.dvp-chip.good b{color:var(--dvp-good)}.dvp-chip.warn b{color:var(--dvp-warn)}
+.dvp-close{position:absolute;left:1099px;top:12px;width:57px;height:36px;border:0;padding:0;background:url('${DVP_ART}close-normal@2x.webp${DVP_ARTV}') 0 0/57px 36px no-repeat;color:var(--dvp-ink);font:15px var(--dvp-font);cursor:pointer}
+.dvp-close:active{background-image:url('${DVP_ART}close-pressed@2x.webp${DVP_ARTV}')}
+/* tabs: 44,73, six 198.67x66 plates (normal / selected), each with its 42x42 icon */
+.dvp-tabs{position:absolute;left:44px;top:73px;width:1192px;height:66px;display:flex}
+.dvp-tab{position:relative;flex:0 0 198.666px;width:198.666px;height:66px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 6px;border:0;
+ background:url('${DVP_ART}tab@2x.webp${DVP_ARTV}') 0 0/100% 65px no-repeat;color:#d9c3a0;font:18px var(--dvp-font);cursor:pointer;white-space:nowrap}
+.dvp-tab .dvp-tic{width:42px;height:42px;flex:0 0 42px;display:block}
+.dvp-tab span{overflow:hidden;text-overflow:ellipsis}
+.dvp-tab:hover{color:#fff1d3}
+.dvp-tab.on{background-image:url('${DVP_ART}tab-on@2x.webp${DVP_ARTV}');background-size:100% 66px;color:#ffe2a8}
+/* the section 43,138 1194x635 */
+.dvp-body{position:absolute;left:43px;top:138px;width:1194px;height:635px;box-sizing:border-box;background:url('${DVP_ART}section@2x.webp${DVP_ARTV}') 0 0/1194px 635px no-repeat}
+/* inside: toolbar 19,18 1156x48 (buttons at y162) · split 19,82 1156x522: list 660 wide, detail 480 wide at 676 · status line 19,608 */
+.dvp-tool{position:absolute;left:19px;top:18px;width:1156px;height:48px;display:flex;gap:8px;align-items:center}
+.dvp-h{font:700 23px var(--dvp-font);color:#fff1d3;margin:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dvp-h2{font:700 21px var(--dvp-font);color:#fff1d3;margin:0 0 8px}
+.dvp-split{position:absolute;left:19px;top:82px;width:1156px;height:522px}
+.dvp-left{position:absolute;left:0;top:0;width:660px;height:522px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.dvp-left::-webkit-scrollbar,.dvp-right::-webkit-scrollbar{display:none}
+.dvp-right{position:absolute;left:676px;top:0;width:480px;height:522px;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:18px 20px;
+ background:url('${DVP_ART}detail@2x.webp${DVP_ARTV}') 0 0/480px 522px no-repeat}
+.dvp-foot{position:absolute;left:19px;top:608px;width:1156px;height:22px;overflow:hidden}
+.dvp-search{width:400px;flex:0 0 400px;height:40px;box-sizing:border-box;display:flex;align-items:center;gap:6px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;padding:0 10px}
+.dvp-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--dvp-ink);font:17px var(--dvp-font)}
+#dvpFilt{width:180px;flex:0 0 180px}#dvpSort{width:220px;flex:0 0 220px}#dvpRk{width:220px;flex:0 0 220px}#dvpRf{width:180px;flex:0 0 180px}
+.dvp-sel{height:40px;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 8px;font:16px var(--dvp-font)}
+/* buttons: one painted 36 px plate of the width the label needs (devArtFit picks it; --pn / --pp / --pd = normal / pressed / disabled) */
+.dvp-btn,.dvp-more{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;height:36px;box-sizing:border-box;padding:0 4px;border:0;border-radius:0;background:var(--pn) 0 0/100% 100% no-repeat;color:var(--dvp-ink);font:16px var(--dvp-font);cursor:pointer;white-space:nowrap;overflow:hidden}
+.dvp-btn.gold{color:#fff3d2;filter:brightness(1.45) saturate(1.15)}   /* the gold look: the same painted plate, lit (ChatGPT's gold has no plate of its own) */
+.dvp-btn.danger{color:#ffdccf}
+.dvp-btn:active,.dvp-more:active{background-image:var(--pp)}
+.dvp-btn:disabled,.dvp-btn[disabled]{background-image:var(--pd);color:#b8ac9c;cursor:default}
+.dvp-btn.ic .stIc{margin:0;width:22px;height:22px}
+.dvp-dir{display:inline-block;width:0;height:0;margin-left:6px;border-left:5px solid transparent;border-right:5px solid transparent;vertical-align:2px}
+.dvp-dir.dn{border-top:7px solid currentColor}.dvp-dir.up{border-bottom:7px solid currentColor}
+/* rows: the 660x53 plates (header / normal / selected), 5 px apart */
+.dvp-thead,.dvp-prow{display:grid;grid-template-columns:190px 70px 130px 100px 110px;align-items:center;column-gap:4px}
+.dvp-thead{position:sticky;top:0;z-index:1;width:660px;height:53px;box-sizing:border-box;padding:0 20px;margin-bottom:5px;background:#1a110c url('${DVP_ART}row-head@2x.webp${DVP_ARTV}') 0 0/660px 53px no-repeat}
+.dvp-thead button{border:0;background:none;padding:0;text-align:left;color:var(--dvp-dim);font:17px var(--dvp-font);cursor:pointer;white-space:nowrap;overflow:hidden}
+.dvp-thead button.on{color:var(--dvp-gold)}
+.dvp-list{display:flex;flex-direction:column;gap:5px}
+.dvp-prow,.dvp-rep,.dvp-left>.dvp-srow{width:660px;height:53px;box-sizing:border-box;padding:0 20px;border:0;background:url('${DVP_ART}row@2x.webp${DVP_ARTV}') 0 0/660px 53px no-repeat;color:var(--dvp-ink);text-align:left;cursor:pointer;font:18px var(--dvp-font)}
+.dvp-prow.on,.dvp-rep.on,.dvp-left>.dvp-srow.on{background-image:url('${DVP_ART}row-on@2x.webp${DVP_ARTV}')}
+.dvp-prow>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dvp-prow b{font-weight:400;color:#fff1d3}
+.dvp-rep,.dvp-left>.dvp-srow{display:flex;align-items:center;gap:10px;padding:0 9px 0 18px}
+.dvp-rep+.dvp-rep,.dvp-left>.dvp-srow+.dvp-srow{margin-top:5px}
+.dvp-rep.done{opacity:.6}
+/* status pills: the painted pills with their gems (online green, offline blue, tester amber, banned red) */
+.dvp-pill{display:inline-flex;align-items:center;height:25px;box-sizing:border-box;padding:0 0 0 26px;background:url('${DVP_ART}pill-offline@2x.webp${DVP_ARTV}') 0 0/83px 25px no-repeat;width:83px;color:#e8d8bb;font:15px var(--dvp-font);white-space:nowrap;overflow:hidden}
+.dvp-pill.on{width:82px;background-image:url('${DVP_ART}pill-online@2x.webp${DVP_ARTV}');background-size:82px 25px;color:var(--dvp-good)}
+.dvp-pill.tst{width:79px;background-image:url('${DVP_ART}pill-tester@2x.webp${DVP_ARTV}');background-size:79px 25px;color:#f3d9a0}
+.dvp-pill.bad{width:89px;background-image:url('${DVP_ART}pill-banned@2x.webp${DVP_ARTV}');background-size:89px 25px;color:var(--dvp-bad)}
+.dvp-pill.dev{color:var(--dvp-gold)}
+.dvp-tag{display:inline-flex;align-items:center;margin-left:6px;padding:0 7px;border-radius:4px;border:1px solid var(--dvp-line);background:var(--dvp-tag-bg);color:var(--dvp-ink);font:14px var(--dvp-font);white-space:nowrap;vertical-align:2px}
+.dvp-tag.tst{color:#f3d9a0}.dvp-tag.bad{color:var(--dvp-bad)}.dvp-tag.on{color:var(--dvp-good)}
+/* items: 660x55 (Economy), 620x54 inside the 660x522 stack frame (Live Ops / QA left), 440x54 inside the detail frame */
+.dvp-erow{display:flex;align-items:center;gap:10px;width:660px;height:55px;box-sizing:border-box;padding:0 13px 0 18px;background:url('${DVP_ART}item-660x55@2x.webp${DVP_ARTV}') 0 0/660px 55px no-repeat;color:var(--dvp-ink);font:18px var(--dvp-font)}
+.dvp-erow+.dvp-erow{margin-top:8px}
+.dvp-srow{display:flex;align-items:center;gap:10px;box-sizing:border-box;color:var(--dvp-ink);font:17px var(--dvp-font);text-align:left;border:0}
+.dvp-group .dvp-srow{width:620px;height:54px;padding:0 13px 0 16px;background:url('${DVP_ART}item-620@2x.webp${DVP_ARTV}') 0 0/620px 54px no-repeat}
+.dvp-group .dvp-srow.on{filter:brightness(1.25)}
+.dvp-right .dvp-srow{width:440px;height:54px;padding:0 9px 0 14px;background:url('${DVP_ART}item-440@2x.webp${DVP_ARTV}') 0 0/440px 54px no-repeat}
+.dvp-srow+.dvp-srow{margin-top:8px}
+button.dvp-srow{cursor:pointer}
+.dvp-srow b,.dvp-erow b,.dvp-rep b{font-weight:700;color:#fff1d3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}
+.dvp-sub{margin-left:auto;font:14px var(--dvp-font);color:var(--dvp-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;text-align:right}
+.dvp-srow .stIc,.dvp-erow .stIc{width:28px;height:28px;margin:0;flex:0 0 28px}
+.dvp-amt{flex:0 0 130px;width:130px;height:36px;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 10px;font:17px var(--dvp-font);text-align:right;margin-left:auto}
+.dvp[data-dvp="liveops"] .dvp-left,.dvp[data-dvp="qa"] .dvp-left{background:url('${DVP_ART}stack@2x.webp${DVP_ARTV}') 0 0/660px 522px no-repeat;padding:18px 20px;box-sizing:border-box}
+.dvp-group+.dvp-group{margin-top:16px}
+.dvp-kv{display:flex;justify-content:space-between;gap:12px;font:17px/1.6 var(--dvp-font)}
+.dvp-kv span{color:var(--dvp-dim);white-space:nowrap}.dvp-kv b{color:var(--dvp-ink);text-align:right;min-width:0;overflow-wrap:anywhere;font-weight:400}
+.dvp-kv b.good{color:var(--dvp-good)}.dvp-kv b.bad{color:var(--dvp-bad)}.dvp-kv b.warn{color:var(--dvp-warn)}
+.dvp-line{font:16px/1.45 var(--dvp-font);color:var(--dvp-ink);margin:0 0 8px}.dvp-line.dim{color:var(--dvp-dim)}
+.dvp-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.dvp-right input,.dvp-right select,.dvp-right textarea{width:100%;box-sizing:border-box;height:38px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 10px;font:16px var(--dvp-font);margin-top:8px}
+.dvp-right textarea{height:auto;padding:8px 10px;resize:none}
+.dvp-notice-now{font:16px/1.4 var(--dvp-font);color:var(--dvp-ink);background:#2a1c0a;border:1px solid var(--dvp-line);border-radius:4px;padding:8px 10px}
+.dvp-rep-tx{font:17px/1.5 var(--dvp-font);color:#f1e4c8;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}
+.dvp-rep-meta{font:15px var(--dvp-font);color:var(--dvp-dim);overflow-wrap:anywhere}
+.dvp-errs{font:13px/1.45 ui-monospace,Consolas,monospace;color:#ffcbbf}.dvp-errs div{overflow-wrap:anywhere;border-bottom:1px solid #2a1c1c;padding:2px 0}.dvp-errs span{color:var(--dvp-dim);margin-right:8px}
+.dvp-sw{width:56px;height:28px;flex:0 0 56px;border-radius:999px;border:1px solid var(--dvp-line);background:#2a1d14;position:relative;cursor:pointer;padding:0}
+.dvp-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#d9c8a6;transition:left .15s}
+.dvp-sw.on{background:#2e6b3c;border-color:var(--dvp-good)}.dvp-sw.on::after{left:31px;background:#fff}
+.dvp-empty{padding:20px 10px;text-align:center;color:var(--dvp-dim);font:17px var(--dvp-font)}.dvp-empty.bad{color:var(--dvp-bad)}
+.dvp-more{margin:8px auto 0}
+.dvp-count{text-align:center;font:14px var(--dvp-font);color:var(--dvp-dim);margin-top:6px}
+.dvp-out{font:15px/22px var(--dvp-font);color:var(--dvp-good);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dvp-out:empty{display:none}.dvp-out.bad{color:var(--dvp-bad)}
+.dvp-log{position:absolute;left:0;bottom:26px;width:100%;max-height:160px;overflow:auto;font:15px var(--dvp-font);color:#d8ccb4;overflow-wrap:anywhere}.dvp-log:empty{display:none}
+.dvp-foot:has(.dvp-log:not(:empty)){overflow:visible}
+.dvp-made{background:#1d2a1d;border:1px solid #4f7a4f;border-radius:4px;padding:8px 12px;color:#e6edf3;user-select:text;font-size:16px}
+.dvp-log>div:not(.dvp-made){background:#140e0a;border:1px solid var(--dvp-line);border-radius:4px;padding:6px 10px}
+.dvp-code{font-size:11px;color:#8d806c;word-break:break-all;margin-top:8px;max-height:140px;overflow:auto;user-select:text}
+/* the player card: inside the Players detail frame (440 px of content), or as its own fixed 900x640 window (scaled like the panel) elsewhere */
+.pai-ov{position:fixed;inset:0;background:rgba(5,4,3,.86);z-index:14000;overflow:hidden}
+.pai-card{position:absolute;left:50%;top:50%;width:900px;height:640px;box-sizing:border-box;transform-origin:50% 50%;transform:translate(-50%,-50%) scale(var(--dvp-scale,1));background:#20150f url('${DVP_ART}section@2x.webp${DVP_ARTV}') 0 0/1194px 635px no-repeat;border:2px solid #9d733f;border-radius:6px;padding:20px 24px;overflow:hidden;display:flex;flex-direction:column;color:var(--dvp-ink);font:17px var(--dvp-font)}
+.pai-card.inline{position:static;width:auto;height:auto;transform:none;background:none;border:0;border-radius:0;padding:0;display:block;overflow:visible}
+.pai-card .stIc{width:20px;height:20px;vertical-align:-4px}
+.pai-hd{display:flex;gap:10px;align-items:flex-start}
+.pai-hd>div:first-child{flex:1;min-width:0}
+.pai-nm{font:700 26px var(--dvp-font);color:#fff1d3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pai-sub,.pai-sum{font:15px/1.45 var(--dvp-font);color:var(--dvp-dim);margin-top:3px;overflow-wrap:anywhere}
+.pai-id{user-select:text}
+.pai-body{flex:1;overflow-y:auto;min-height:0;margin-top:8px}
+.pai-card.inline .pai-body{overflow:visible}
+.pai-msg{font:15px var(--dvp-font);margin:4px 0 0;color:var(--dvp-dim)}.pai-msg:empty{display:none}.pai-msg.good{color:var(--dvp-good)}.pai-msg.bad{color:var(--dvp-bad)}
+.pai-btns{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.pai-line{display:flex;gap:6px;align-items:center;margin:8px 0}
+.pai-line>input,.pai-line>select{flex:1 1 0;min-width:0}
+.pai-card input,.pai-card select,.pai-card textarea{height:36px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 8px;font:15px var(--dvp-font);min-width:0;box-sizing:border-box;width:100%;margin:0}
+.pai-card textarea{height:auto;padding:6px 8px;resize:none}
+.pai-card [hidden]{display:none!important}
+.pai-act{border-top:1px solid var(--dvp-line-soft);padding-top:8px;margin-top:8px}
+.pai-at{font:700 18px var(--dvp-font);color:var(--dvp-gold);margin-bottom:4px}
+.pai-tst .adm-tst{margin-top:0!important;min-width:0!important;display:flex;align-items:center;gap:8px}
+.pai-tst .adm-tst-st{margin:0!important;font:15px var(--dvp-font)!important}
+.pai-tst .adm-tst-b{width:auto;height:36px!important;min-height:0!important;padding:0 4px!important;border:0!important;border-radius:0!important;background:var(--pn) 0 0/100% 100% no-repeat!important;color:var(--dvp-ink)!important;font:16px var(--dvp-font)!important;box-shadow:none!important}
+.pai-note{font:15px var(--dvp-font);color:var(--dvp-dim);align-self:center}
+.pai-grid{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.pai-sec{background:#150f0bcc;border:1px solid var(--dvp-line-soft);border-radius:4px;padding:6px 10px}
+.pai-st{font:700 13px var(--dvp-font);letter-spacing:1px;text-transform:uppercase;color:var(--dvp-gold);margin-bottom:3px}
+.pai-r{display:flex;justify-content:space-between;gap:8px;font:15px/1.5 var(--dvp-font)}.pai-r span{color:var(--dvp-dim);white-space:nowrap}.pai-r b{color:var(--dvp-ink);font-weight:400;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pai-sec.wide .pai-r b{white-space:normal;overflow-wrap:anywhere}
+.pai-r b.warn{color:var(--dvp-warn)}.pai-r b.bad{color:var(--dvp-bad)}.pai-r b.good{color:var(--dvp-good)}
+.pai-err{font:15px var(--dvp-font);color:var(--dvp-bad)}
+.pai-raw{width:100%;height:260px!important;font:12px ui-monospace,Consolas,monospace!important;white-space:pre}
+`;
+/* the painted plates go on by size: each button gets the plate of its look (brown / gold / red) with the smallest painted width its label fits
+   (never stretched past the painted size: the box takes the plate's exact width); each header chip likewise */
+let _dvpMeasure=null;
+function dvpTextW(txt, font){ try{ _dvpMeasure=_dvpMeasure||document.createElement('canvas').getContext('2d'); _dvpMeasure.font=font; return _dvpMeasure.measureText(txt).width; }catch(e){ return txt.length*9; } }
+function devArtFit(root){ if(!root) return;
+  root.querySelectorAll('.dvp-btn,.dvp-more,.pai-tst .adm-tst-b').forEach(b=>{
+    const danger=b.classList.contains('danger'), L=DVP_BTN;
+    const ic=b.classList.contains('ic'), txt=(b.textContent||'').trim(), need=ic?56:Math.ceil(dvpTextW(txt,'16px Georgia'))+18;
+    const w=L.find(x=>x>=need)||L[L.length-1], key=(danger?'d':'n')+w; if(b.dataset.pw===key) return; b.dataset.pw=key;
+    const u=s=>`url('${DVP_ART}btn-${w}-${s}@2x.webp${DVP_ARTV}')`;
+    b.style.width=w+'px'; b.style.minWidth=w+'px'; b.style.setProperty('--pn',u(danger?'danger':'normal')); b.style.setProperty('--pp',u('pressed')); b.style.setProperty('--pd',u('disabled')); });
+  root.querySelectorAll('.dvp-chip').forEach(c=>{ const need=Math.ceil(dvpTextW((c.textContent||'').trim(),'15px Georgia'))+14, w=DVP_CHIPS.find(x=>x>=need)||DVP_CHIPS[DVP_CHIPS.length-1];
+    if(c.dataset.pw===String(w)) return; c.dataset.pw=String(w); c.style.width=w+'px'; c.style.setProperty('--dvp-chipbg',`url('${DVP_ART}chip-${w}@2x.webp${DVP_ARTV}')`); }); }
+function devArtWatch(el){ if(!el||el._dvpObs||typeof MutationObserver==='undefined') return; let raf=0;
+  el._dvpObs=new MutationObserver(()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; devArtFit(el); }); }); el._dvpObs.observe(el,{childList:true,subtree:true,characterData:true}); }
+/* one uniform scale: the fixed 1280x800 window (and a 900x640 player-card window) fills the game view, centred - never reflowed */
+function devPanelFit(){ const go=(ov,w,h)=>{ if(!ov) return; const W=ov.clientWidth, H=ov.clientHeight; if(!W||!H) return; const s=Math.min(W/w,H/h); ov.style.setProperty('--dvp-scale',String(+s.toFixed(4))); };
+  go(document.getElementById('dvpOv'),1280,800); document.querySelectorAll('.pai-ov').forEach(o=>go(o,900,640)); }
+window.addEventListener('resize',()=>{ try{ devPanelFit(); }catch(e){} });
+function devCssEnsure(){ if(document.getElementById('dvpCss')) return; const s=document.createElement('style'); s.id='dvpCss'; s.textContent=DVP_CSS; document.head.appendChild(s); }
+function devAgo(t){ if(!t) return 'never'; const s=Math.max(0,Math.floor((Date.now()-t)/1000)); if(s<60) return 'now'; const m=Math.floor(s/60); if(m<60) return m+' min ago';
+  const h=Math.floor(m/60); if(h<24) return h+' h ago'; const d=Math.floor(h/24); return d===1?'Yesterday':(d<60?d+' days ago':new Date(t).toLocaleDateString()); }
+function devStatusPill(r){ return r.ban?'<span class="dvp-pill bad">Banned</span>':(r.dev?'<span class="dvp-pill dev">Admin</span>':(r.tester?'<span class="dvp-pill tst">Tester</span>':(r.online?'<span class="dvp-pill on">Online</span>':(r.guest?'<span class="dvp-pill off">Guest</span>':'<span class="dvp-pill off">Offline</span>')))); }
+function devTagsHTML(r){ return (r.online?'<span class="dvp-tag on">Online</span>':'')+(r.tester?'<span class="dvp-tag tst">Test</span>':'')+(r.dev?'<span class="dvp-tag">Admin</span>':'')+
+  (r.guest?'<span class="dvp-tag">Guest</span>':'')+(r.ban?'<span class="dvp-tag bad">Banned</span>':'')+(r.flag?'<span class="dvp-tag bad">Flag</span>':''); }
+/* ---- the window ---- */
+function devPanelHTML(TST){ devCssEnsure();
+  const dt=TST?'economy':devTab;
+  const head=`<div class="dvp-hd">${TST?'<span class="dvp-title txt">TEST ACCOUNT</span>':`<span class="dvp-title" title="DEV PANEL"><img src="${DVP_ART}title@2x.webp${DVP_ARTV}" alt="DEV PANEL" width="236" height="60"></span>`}`+(TST?'<span class="dvp-stats"></span>':`<span class="dvp-stats" id="dvpHdStat">${devHdStat()}</span>`)+`<button class="dvp-close" data-dvclose="1" aria-label="Close">Close</button></div>`;
+  const tabs=TST?'':`<div class="dvp-tabs" role="tablist">${DVP_TABS.map(([k,l,ic])=>`<button class="dvp-tab${dt===k?' on':''}" role="tab" aria-selected="${dt===k}" data-devtab="${k}"><img class="dvp-tic" src="${DVP_ART}icon-${k==='liveops'?'live-ops':k}@2x.webp${DVP_ARTV}" alt="" width="42" height="42"><span>${l}</span></button>`).join('')}</div>`;
+  const body=({players:devPlayersHTML,reports:devReportsHTML,economy:devEconomyHTML,liveops:devLiveHTML,servers:devServersHTML,qa:devQaHTML})[dt](TST);
+  return `<div class="dvp" data-dvp="${dt}" role="dialog" aria-label="${escAttr(TST?t('set2.tester_panel'):t('set2.dev_panel'))}">${head}${tabs}<div class="dvp-body">${body}<div class="dvp-foot"><div id="devDone" class="dvp-out" role="status"></div><div id="devAdmin" class="dvp-log"></div></div></div></div>`; }
+function devHdStat(){ const s=DVP.st; if(!s) return '';
+  const known=SVR_LIST.filter(x=>DVP.svr[x.id]), up=known.filter(x=>DVP.svr[x.id].up).length;
+  const online=svrOn()&&known.some(x=>DVP.svr[x.id].online!=null)?known.reduce((a,x)=>a+((DVP.svr[x.id].online)|0),0):(s.online|0);
+  const health=svrOn()?(known.length?`<span class="dvp-chip ${up===SVR_LIST.length?'good':'warn'}"><b>${up}/${SVR_LIST.length}</b> servers healthy</span>`:''):`<span class="dvp-chip good"><b>${s.server?'Server '+escapeHTML(String(s.server)):'Server'}</b> up</span>`;
+  const n=s.notice&&(!s.notice.until||s.notice.until>Date.now());
+  const tu=s.totalUsers; const total=tu&&tu.total!=null?`<span class="dvp-chip" id="dvpTotalUsers" title="${escAttr((tu.accounts!=null?tu.accounts+' signed-up accounts + ':'')+tu.guests+' guest accounts'+(tu.servers?' on '+tu.servers+' server'+(tu.servers===1?'':'s'):''))}"><b>${(+tu.total).toLocaleString()}</b> total users</span>`:'';   /* v1379 (Phil: "Total Users number") */
+  return health+`<span class="dvp-chip"><b>${online}</b> online</span>`+total+`<span class="dvp-chip${s.openReports?' warn':''}"><b>${s.openReports|0}</b> open reports</span>`+(n?'<span class="dvp-chip warn"><b>Notice</b> on</span>':''); }
+/* ---- Players: table on the left, the player card on the right ---- */
+function devPlayersHTML(){
+  return `<div class="dvp-tool"><label class="dvp-search">${uiIcon('search')}<input id="dvpQ" type="search" placeholder="Name, username or ID" autocomplete="off" autocapitalize="off" spellcheck="false" value="${escAttr(DVP.q)}" aria-label="Search players"></label>`+
+    `<select id="dvpFilt" class="dvp-sel" aria-label="Show">${devFiltOpts()}</select>`+
+    `<select id="dvpSort" class="dvp-sel" aria-label="Sort">${DVP_SORTS.map(([k,l])=>[-1,1].map(d=>`<option value="${k}:${d}"${DVP.sort===k&&DVP.dir===d?' selected':''}>Sort · ${k==='name'?(d>0?'Name A-Z':'Name Z-A'):(k==='seen'?(d<0?'Last played':'Oldest played'):(l+(d<0?' high':' low')))}</option>`).join('')).join('')}</select>`+
+    `<button class="dvp-btn ic" data-dvrefresh="players" aria-label="Refresh">${uiIcon('refresh')}</button><button class="dvp-btn gold" data-dev="mktest">Create test account</button></div>`+
+    `<div class="dvp-split"><div class="dvp-left"><div class="dvp-thead" role="row">${[['name','Name'],['level','Level'],['seen','Last played'],['patron','Patron']].map(([k,l])=>`<button data-dvsort="${k}" class="${DVP.sort===k?'on':''}">${l}${DVP.sort===k?`<i class="dvp-dir ${DVP.dir<0?'dn':'up'}"></i>`:''}</button>`).join('')}<button disabled style="cursor:default">Status</button></div>`+
+    `<div id="dvpList" class="dvp-list">${devPlayersListHTML()}</div></div><div class="dvp-right" id="dvpDetail"></div></div>`; }
+function devFiltOpts(){ const R=DVP.rows||[]; const n={all:R.length,online:R.filter(r=>r.online).length,tester:R.filter(r=>r.tester).length,banned:R.filter(r=>r.ban).length};
+  return DVP_FILTS.map(([k,l])=>`<option value="${k}"${DVP.filt===k?' selected':''}>${l}${DVP.rows?' ('+n[k]+')':''}</option>`).join(''); }
+function devPlayersSorted(){ const q=DVP.q.trim().toLowerCase(), f=DVP.filt;
+  let R=(DVP.rows||[]).filter(r=>f==='all'||(f==='online'&&r.online)||(f==='tester'&&r.tester)||(f==='banned'&&r.ban));
+  if(q) R=R.filter(r=>String(r.name||'').toLowerCase().includes(q)||String(r.login||'').toLowerCase().includes(q)||String(r.id||'').toLowerCase().startsWith(q));
+  const key={seen:r=>+r.lastSeen||0, level:r=>r.level|0, name:r=>String(r.name||'').toLowerCase(), patron:r=>r.patron|0}[DVP.sort]||(r=>+r.lastSeen||0), d=DVP.dir;
+  return R.slice().sort((a,b)=>{ const x=key(a), y=key(b); const c=(typeof x==='string')?x.localeCompare(y):(x-y); return c?c*d:String(a.name||'').localeCompare(String(b.name||'')); }); }
+function devPlayersListHTML(){ if(DVP.err) return `<div class="dvp-empty bad">${escapeHTML(DVP.err)}</div>`; if(!DVP.rows) return `<div class="dvp-empty">${t('common.loading')}</div>`;
+  const R=devPlayersSorted(); if(!R.length) return `<div class="dvp-empty">No players match.</div>`;
+  return R.slice(0,DVP.shown).map(r=>`<button class="dvp-prow${r.id===DVP.sel?' on':''}" data-pid="${escAttr(r.id)}"><span><b>${escapeHTML(String(r.name||''))}</b></span><span>${r.level|0}</span><span>${devAgo(r.lastSeen)}</span>`+
+    `<span>${r.prestiged?'EDP '+(r.edp|0):'EGP '+(r.egp|0)}</span><span>${devStatusPill(r)}</span></button>`).join('')+
+    (R.length>DVP.shown?`<button class="dvp-more" data-dvmore="1">Show ${Math.min(80,R.length-DVP.shown)} more</button>`:'')+`<div class="dvp-count">${Math.min(R.length,DVP.shown)} of ${R.length}${R.length!==DVP.rows.length?' (of '+DVP.rows.length+' accounts)':' accounts'}</div>`; }
+function devPlayersPaint(b){ const host=document.getElementById('dvpList'); if(host) host.innerHTML=devPlayersListHTML(); const f=document.getElementById('dvpFilt'); if(f) f.innerHTML=devFiltOpts();
+  const det=document.getElementById('dvpDetail'); if(!det||!DVP.rows) return;
+  let r=DVP.sel&&(DVP.rows.find(x=>x.id===DVP.sel)||(DVP.selObj&&DVP.selObj.id===DVP.sel?DVP.selObj:null));
+  if(!r){ const S=devPlayersSorted(); r=S[0]||null; DVP.sel=r?r.id:null; if(host&&r){ const el=host.querySelector('[data-pid="'+CSS.escape(r.id)+'"]'); if(el) el.classList.add('on'); } }
+  if(!r){ det.innerHTML='<div class="dvp-empty">No player selected.</div>'; det.dataset.pid=''; return; }
+  if(det.dataset.pid!==r.id) openPlayerAdmin(r, b||document.getElementById('dvpOv'), det); }
+function devPlayerSelect(id, b){ DVP.sel=id; const host=document.getElementById('dvpList'); if(host) host.querySelectorAll('.dvp-prow').forEach(x=>x.classList.toggle('on',x.dataset.pid===id)); devPlayersPaint(b); }
+function devPlayersLoad(b, force){ if(!DEV.on) return; if(DVP.rows&&!force){ devPlayersPaint(b); return; } if(DVP.busy) return; DVP.busy=true;
+  api('/api/admin/accounts').then(d=>{ DVP.busy=false; if(!d||d.error||!Array.isArray(d.accounts)){ DVP.err=String((d&&d.error)||'Server unreachable'); } else { DVP.err=''; DVP.rows=d.accounts; }
+    devPlayersPaint(b); })
+    .catch(()=>{ DVP.busy=false; DVP.err='Server unreachable'; devPlayersPaint(b); }); }
+/* ---- Reports: the queue on the left, the selected report on the right ---- */
+function devReportsHTML(){ return `<div class="dvp-tool"><span class="dvp-h">Review queue</span><select id="dvpRk" class="dvp-sel" aria-label="Kind">${devRkOpts()}</select>`+
+  `<select id="dvpRf" class="dvp-sel" aria-label="Status">${DVP_RF.map(([k,l])=>`<option value="${k}"${DVP.rf===k?' selected':''}>${l}</option>`).join('')}</select>`+
+  `<button class="dvp-btn" data-dvrefresh="reports">Refresh</button></div><div class="dvp-split"><div class="dvp-left" id="dvpRList">${devReportsListHTML()}</div><div class="dvp-right" id="devIntegrity"></div></div>`; }
+function devReportsStatus(x){ return DVP.rf==='all'||(DVP.rf==='open'?!x.resolved:x.resolved); }
+function devRkOpts(){ const L=(DVP.items||[]).filter(devReportsStatus); return DVP_RK.map(([k,l])=>`<option value="${k}"${DVP.rk===k?' selected':''}>${l}${DVP.items?' ('+L.filter(x=>devRkMatch(x,k)).length+')':''}</option>`).join(''); }
+const DVP_RKIND={bug:'Bug',suggestion:'Idea',moderation:'Chat report',integrity:'Cheat flag'};
+function devReportsShown(){ return (DVP.items||[]).filter(x=>devReportsStatus(x)&&devRkMatch(x,DVP.rk)); }
+function devReportsListHTML(){ if(DVP.rerr) return `<div class="dvp-empty bad">${escapeHTML(DVP.rerr)}</div>`; if(!DVP.items) return `<div class="dvp-empty">${t('common.loading')}</div>`;
+  const L=devReportsShown(); if(!L.length) return `<div class="dvp-empty">Nothing in this queue.</div>`;
+  return L.slice(0,200).map(x=>`<button class="dvp-rep k-${x.kind}${x.resolved?' done':''}${x.id===DVP.rsel?' on':''}" data-rsel="${escAttr(x.id)}"><b>${escapeHTML(devRepTitle(x))}</b>${x.tester?'<span class="dvp-tag tst">Tester</span>':''}`+
+    `<span class="dvp-sub">${escapeHTML((x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}</span><span class="dvp-btn sm">Open</span></button>`).join(''); }
+function devRepTitle(x){ const s=String(x.text||'').replace(/\s+/g,' ').trim(); return s.length>64?s.slice(0,62)+'…':(s||'(no text)'); }
+function devReportDetailHTML(x){ if(!x) return '<div class="dvp-empty">Nothing in this queue.</div>';
+  return `<div class="dvp-h2">${escapeHTML(devRepTitle(x))}</div><div class="dvp-line">${escapeHTML((x.name||'?')+' · '+(x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}${x.tester?' <span class="dvp-tag tst">Tester</span>':''}</div>`+
+    `<div class="dvp-rep-tx">${escapeHTML(x.text)}</div>${x.meta?`<div class="dvp-rep-meta">${escapeHTML(x.meta)}</div>`:''}`+
+    `<div class="dvp-acts">${x.userId?`<button class="dvp-btn" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button>`:''}`+
+    `${(x.kind==='moderation'||x.kind==='integrity')&&x.userId?`<button class="dvp-btn" data-raudit="${escAttr(x.id)}" data-ruser="${escAttr(x.userId)}">${x.kind==='moderation'?'Review':'Audit'}</button>`:''}`+
+    `<button class="dvp-btn ${x.resolved?'':'gold'}" data-rres="${escAttr(x.id)}">${x.resolved?'Reopen':'Resolve'}</button></div>`; }
+function devReportsPaint(){ const host=document.getElementById('dvpRList'); if(host) host.innerHTML=devReportsListHTML(); const k=document.getElementById('dvpRk'); if(k) k.innerHTML=devRkOpts();
+  const det=document.getElementById('devIntegrity'); if(!det||INTEG.open) return; const L=devReportsShown();
+  let x=L.find(y=>y.id===DVP.rsel); if(!x){ x=L[0]||null; DVP.rsel=x?x.id:null; if(host&&x){ const el=host.querySelector('[data-rsel="'+CSS.escape(x.id)+'"]'); if(el) el.classList.add('on'); } }
+  det.innerHTML=devReportDetailHTML(x); }
+async function devReportsLoad(force){ if(!DEV.on) return; if(DVP.items&&!force){ devReportsPaint(); return; } if(DVP.rbusy) return; DVP.rbusy=true;
+  const [a,f]=await Promise.all([api('/api/dev/reports?all=1').catch(()=>null), api('/api/admin/feedback?all=1').catch(()=>null)]); DVP.rbusy=false;
+  if((!a||a.error)&&(!f||f.error)){ DVP.rerr=String((a&&a.error)||(f&&f.error)||'Server unreachable'); devReportsPaint(); return; }
+  DVP.rerr=''; const reps=((a&&a.reports)||[]).filter(r=>r.kind!=='balance'&&r.meta!=='test-bots'); INTEG.reports=reps;
+  const L=reps.map(r=>({src:'rep',id:r.id,kind:r.kind==='moderation'?'moderation':'integrity',label:r.reasonLabel||'',userId:r.userId||'',name:r.name||'',t:r.t||0,
+      text:String(r.detail||r.text||''),meta:[r.reporterName?'reported by '+r.reporterName:'',r.banned?banLabel(r.banned):'',r.action||''].filter(Boolean).join(' · '),resolved:!!r.resolved}))
+    .concat(((f&&f.items)||[]).map(x=>({src:'fb',id:x.id,kind:x.kind==='suggestion'?'suggestion':'bug',tester:!!x.tester,userId:x.userId||'',name:x.name||'',t:x.t||0,text:String(x.text||''),
+      meta:[x.level?'Lv '+x.level:'',x.screen||'',x.build?'build '+x.build:'',x.meta||''].filter(Boolean).join(' · '),resolved:!!x.done})));
+  L.sort((p,q)=>(q.t||0)-(p.t||0)); DVP.items=L; devReportsPaint(); }
+async function devAuditOpen(userId, reportId){ INTEG.open={id:userId,reportId}; INTEG.audit=null; renderIntegrity();
+  const a=await api('/api/dev/gem-audit?days=7&id='+encodeURIComponent(userId)).catch(()=>null); if(!INTEG.open) return; INTEG.audit=(a&&!a.error)?a:null;
+  if(!INTEG.audit){ INTEG.open=null; const d=document.getElementById('devDone'); if(d){ d.textContent=String((a&&a.error)||'Could not load the audit'); d.classList.add('bad'); } }
+  renderIntegrity(); }
+/* ---- Economy: grants to your OWN account on the left; roster tools and purchase support on the right ---- */
+function devEconomyHTML(TST){
+  const row=(k,ic,l)=>`<div class="dvp-erow">${ic}<b>${l}</b><input class="dvp-amt" type="number" inputmode="numeric" min="1" step="1" data-amt="${k}" value="${DVP_AMT_DEF[k]}" aria-label="${escAttr(l)}"><button class="dvp-btn gold sm" data-dev="${k}">Grant</button></div>`;
+  const cur=[['gold',hudIcon('gold'),'Gold'],['gems',hudIcon('gem'),'Diamonds'],['stam',uiIcon('res-stamina'),'Stamina'],['shards',uiIcon('hero'),'Fragments'],['arenacoin',uiIcon('res-arena-coins'),'Arena coins'],
+    ['guildcoins',uiIcon('res-guild-coins'),'Guild coins'],['shielditem',hudIcon('shield'),'Shields'],['pieces',uiIcon('mode-forge'),'Gear pieces'],['level',uiIcon('res-player-xp'),'Player levels'],['squadlvl',uiIcon('level-up'),'Squad hero levels'],['campstage',uiIcon('map'),'Campaign stages']];
+  const one=[['heroes',t('set2.dev_heroes')],['lv100','All heroes to level '+MAX_LEVEL],['maxteam','Max glyphs + stars'],['campall',t('set2.dev_campall')],['givefrags','One hero’s fragments']];
+  return `<div class="dvp-tool"><span class="dvp-h">Own account</span></div><div class="dvp-split"><div class="dvp-left">${cur.map(x=>row(...x)).join('')}</div><div class="dvp-right">`+
+    `<div class="dvp-h2">Roster</div>${one.map(([k,l])=>`<div class="dvp-srow"><b>${l}</b><button class="dvp-btn sm" data-dev="${k}" style="margin-left:auto">${k==='givefrags'?'Choose':'Apply'}</button></div>`).join('')}`+
+    (TST?'':`<div class="dvp-h2" style="margin-top:12px">Purchase support</div><div class="dvp-line dim">Find a purchase by order number, pack or player.</div>`+
+      `<div class="pai-line" style="display:flex;gap:6px"><input id="dvpBuyQ" placeholder="Order number, pack or player" aria-label="Find a purchase" style="margin-top:0"><button class="dvp-btn" data-dev="findbuy">Find purchase</button></div><div id="dvpBuys">${devBuysHTML()}</div>`)+
+    `</div></div>`; }
+function devBuysHTML(){ const L=DVP.buys; if(!L) return ''; if(!L.length) return '<div class="dvp-empty">No purchase found.</div>';
+  return L.map(x=>`<div class="dvp-srow"><b>${escapeHTML(x.label)}</b><span class="dvp-sub">${escapeHTML(x.name)} · ${new Date(x.t).toLocaleDateString()}${x.free?' · free':(x.usd?' · $'+(+x.usd).toFixed(2):'')}</span><button class="dvp-btn sm" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button></div>`).join(''); }
+/* ---- Live Ops: what goes out to everyone on the left; the composer on the right ---- */
+function devLiveHTML(){ return `<div id="dvpLive" style="display:contents">${devLiveInner()}</div>`; }
+function devLiveInner(){ const s=DVP.st; const n=s&&s.notice&&(!s.notice.until||s.notice.until>Date.now())?s.notice:null; const mails=DVP.mails||[];
+  const left=`<div class="dvp-group"><div class="dvp-h2">Messages</div>`+
+      `<button class="dvp-srow${DVP.lsel==='mail'?' on':''}" data-lsel="mail"><b>Mail all players</b><span class="dvp-sub">Inbox delivery</span><span class="dvp-btn sm gold">Draft mail</span></button>`+
+      `<button class="dvp-srow${DVP.lsel==='notice'?' on':''}" data-lsel="notice"><b>Announcement</b><span class="dvp-sub">${n?'Showing: '+escapeHTML(n.text):'Game-wide banner'}</span><span class="dvp-btn sm">Draft announcement</span></button></div>`+
+    `<div class="dvp-group"><div class="dvp-h2">Sent recently</div>${mails.length?mails.map(m=>`<div class="dvp-srow"><b>${escapeHTML(m.subj)}</b><span class="dvp-sub">${devAgo(m.t)}</span></div>`).join(''):'<div class="dvp-line dim">No mail to everyone in the last 14 days.</div>'}</div>`;
+  const right=DVP.lsel==='notice'
+    ? `<div class="dvp-h2">Announcement</div>${n?`<div class="dvp-notice-now">${escapeHTML(n.text)}${n.until?' · until '+new Date(n.until).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</div>`:'<div class="dvp-line dim">Nothing showing now.</div>'}`+
+      `<input id="dvpNotice" maxlength="160" placeholder="Server update in 10 minutes" aria-label="Banner text"><select id="dvpNoticeMin" aria-label="How long"><option value="0">Until cleared</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="180">3 hours</option><option value="1440">1 day</option></select>`+
+      `<div class="dvp-acts"><button class="dvp-btn gold" data-dev="noticeset">Show to players</button>${n?'<button class="dvp-btn danger" data-dev="noticeclr">Take it down</button>':''}</div>`
+    : `<div class="dvp-h2">Mail all players</div><input id="dvpAllSubj" maxlength="60" placeholder="Subject" aria-label="Subject"><textarea id="dvpAllText" rows="4" maxlength="500" placeholder="Message" aria-label="Message"></textarea>`+
+      `<div class="dvp-acts"><button class="dvp-btn gold" data-dev="mailall">Send to everyone</button></div>`;
+  return `<div class="dvp-tool"><span class="dvp-h">Player communications</span></div><div class="dvp-split"><div class="dvp-left">${left}</div><div class="dvp-right" id="dvpLiveR">${right}</div></div>`; }
+function devLivePaint(){ const h=document.getElementById('dvpLive'); if(!h) return; const keep={}; h.querySelectorAll('input,select,textarea').forEach(e=>{ if(e.id) keep[e.id]=e.value; });
+  const a=document.activeElement, fid=a&&h.contains(a)?a.id:''; h.innerHTML=devLiveInner(); for(const id in keep){ const e=h.querySelector('#'+id); if(e&&keep[id]) e.value=keep[id]; } if(fid){ const e=h.querySelector('#'+fid); if(e) e.focus(); } }
+function devMailAllLoad(){ if(!DEV.on) return; api('/api/admin/mail-all').then(d=>{ if(d&&d.ok){ DVP.mails=d.mails||[]; devLivePaint(); } }).catch(()=>{}); }
+/* ---- Servers: the five servers on the left, the selected one on the right ---- */
+function devServersHTML(){ return `<div class="dvp-tool"><span class="dvp-h">Server status</span><button class="dvp-btn" data-dvrefresh="servers">Refresh</button></div><div id="dvpSrv" style="display:contents">${devServersInner()}</div>`; }
+function devServerRows(){ const here=svrHere(); return svrOn()?SVR_LIST.map(x=>({ id:x.id, name:x.name, here:x.id===here, v:DVP.svr[x.id] })):[{ id:here, name:(DVP.st&&DVP.st.server)?'Server '+DVP.st.server:'This server', here:true, v:null }]; }
+function devServersInner(){ const s=DVP.st; const rows=devServerRows(); if(!DVP.ssel||!rows.some(r=>r.id===DVP.ssel)) DVP.ssel=(rows.find(r=>r.here)||rows[0]).id;
+  const kv=(k,v,c)=>`<div class="dvp-kv"><span>${escapeHTML(k)}</span><b${c?' class="'+c+'"':''}>${escapeHTML(String(v))}</b></div>`;
+  const up=(sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h>=48?Math.floor(h/24)+'d '+(h%24)+'h':(h?h+'h '+m+'m':m+'m'); };
+  const line=r=>{ if(r.here&&s) return (s.build||'')+' · '+(s.online|0)+' online'; const v=r.v; return v?(v.up?('build '+v.build+(v.online!=null?' · '+v.online+' online':'')):'Down'):'Checking'; };
+  const left=rows.map(r=>`<button class="dvp-srow${r.id===DVP.ssel?' on':''}" data-ssel="${r.id}"><b>${escapeHTML(r.name)}${r.here?' (here)':''}</b><span class="dvp-sub">${escapeHTML(line(r))}</span><span class="dvp-btn sm">Details</span></button>`).join('');
+  const r=rows.find(x=>x.id===DVP.ssel); let right='';
+  if(r.here){ if(!s) right=`<div class="dvp-empty${DVP.serr?' bad':''}">${DVP.serr?escapeHTML(DVP.serr):t('common.loading')}</div>`;
+    else { const bk=s.backups||{}, old=bk.last&&(Date.now()-bk.last.t>2*3600000);
+      right=`<div class="dvp-h2">${escapeHTML(r.name)}</div>${kv('Build',s.build||'—')}${kv('Running for',up(s.uptimeS|0))}${kv('Online now',s.online|0,'good')}${kv('Accounts',(s.accounts|0).toLocaleString())}${kv('Test accounts',s.testers|0)}${kv('Banned',s.banned|0,s.banned?'warn':'')}`+
+        `${kv('Last backup',bk.last?devAgo(bk.last.t):'None yet',bk.last?(old?'warn':'good'):'bad')}${kv('Backups kept',bk.count|0)}${kv('Pinned copy',bk.pinned?bk.pinned.real+' real players':'—')}`+
+        `<div class="dvp-acts"><button class="dvp-btn gold" data-dev="backupnow">Backup now</button><button class="dvp-btn" data-dev="backup">Download a copy</button></div>`+
+        `<div class="dvp-h2" style="margin-top:12px">Recent errors${s.saveFails?` <span class="dvp-tag bad">${s.saveFails} save</span>`:''}</div>${(s.errors&&s.errors.length)?`<div class="dvp-errs">${s.errors.map(e=>`<div><span>${devAgo(e.t)}</span>${escapeHTML(e.m)}</div>`).join('')}</div>`:'<div class="dvp-line dim">None since the server started.</div>'}`; } }
+  else { const v=r.v; right=`<div class="dvp-h2">${escapeHTML(r.name)}</div>${kv('State',v?(v.up?'Up':'Down'):'Checking',v?(v.up?'good':'bad'):'')}${v&&v.up?kv('Build',v.build):''}${v&&v.online!=null?kv('Online now',v.online,'good'):''}`+
+    `<div class="dvp-line dim" style="margin-top:8px">Backups and errors of ${escapeHTML(r.name)} are on its own dev panel.</div><div class="dvp-acts"><a class="dvp-btn" href="${escAttr(svrUrl(r.id))}">Go to ${escapeHTML(r.name)}</a></div>`; }
+  return `<div class="dvp-split"><div class="dvp-left">${left}</div><div class="dvp-right">${right}</div></div>`; }
+function devServersPaint(){ const hs=document.getElementById('dvpHdStat'); if(hs) hs.innerHTML=devHdStat(); devLivePaint(); const h=document.getElementById('dvpSrv'); if(!h) return; h.innerHTML=devServersInner(); }
+function devServersLoad(force){ if(!DEV.on) return; if(DVP.st&&!force){ devServersPaint(); return; } if(DVP.sbusy) return; DVP.sbusy=true;
+  api('/api/admin/status').then(d=>{ DVP.sbusy=false; if(!d||!d.ok){ DVP.serr=String((d&&d.error)||'Server unreachable'); } else { DVP.serr=''; DVP.st=d; } devServersPaint(); })
+    .catch(()=>{ DVP.sbusy=false; DVP.serr='Server unreachable'; devServersPaint(); });
+  if(svrOn()) SVR_LIST.forEach(s=>{ fetch('https://'+s.host+'/version.json?ts='+Date.now(),{cache:'no-store',mode:'cors'}).then(r=>r.ok?r.json():null)
+    .then(j=>{ DVP.svr[s.id]=(j&&j.build)?Object.assign(DVP.svr[s.id]||{},{up:true,build:j.build}):{up:false}; devServersPaint();
+      if(j&&j.build) fetch('https://'+s.host+'/api/front/status?ts='+Date.now(),{cache:'no-store',mode:'cors'}).then(r=>r.ok?r.json():null).then(f=>{ if(f&&f.ok&&DVP.svr[s.id]){ DVP.svr[s.id].online=f.active|0; devServersPaint(); } }).catch(()=>{}); })
+    .catch(()=>{ DVP.svr[s.id]={up:false}; devServersPaint(); }); }); }
+/* ---- QA: diagnostics on the left, tools on the right ---- */
+function devQaHTML(){ const row=(k,l,sub,btn)=>`<div class="dvp-srow"><b>${l}</b><span class="dvp-sub">${sub}</span><button class="dvp-btn sm" data-dev="${k}">${btn}</button></div>`;
+  return `<div class="dvp-tool"><span class="dvp-h">QA tools</span></div><div class="dvp-split"><div class="dvp-left"><div class="dvp-group"><div class="dvp-h2">Diagnostics</div>`+
+    `<div class="dvp-srow"><b>${t('set2.dev_god')}</b><span class="dvp-sub">${t('set2.dev_god_sub')}</span><button class="dvp-sw${DEV.god?' on':''}" id="devGod" role="switch" aria-checked="${!!DEV.god}" aria-label="${escAttr(t('set2.dev_god'))}" style="margin-left:8px"></button></div>`+
+    row('perf','Performance HUD','On or off in battle','Toggle')+row('fxmiss','FX misses','Effects that landed away from a unit','Show')+row('cachelog','Cache log','What Offline Art deleted','Show')+
+    row('orbs','Temple orbs preview',`<span id="dvpOrbsN">${DEV.orbPreview|0}</span>/5 on every hero card`,'Next')+`</div></div>`+
+    `<div class="dvp-right"><div class="dvp-h2">Tools</div>${row('bots','Simulations','Balance bots + every screen','Run')}${row('savecode','Save code','This device’s save','Export')}${row('update','Check for update','Reload the newest build','Reload')}<div id="saveOut" class="dvp-code"></div></div></div>`; }
+/* ---- open / render / wire ---- */
+function devPanelOpen(){ if(!(DEV.on||isTesterAcct())) return; devCssEnsure(); let ov=document.getElementById('dvpOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='dvpOv'; ov.className='dvp-ov'; ov.addEventListener('click',e=>{ if(e.target===ov) devPanelClose(); }); document.body.appendChild(ov); }
+  devPanelRender(); }
+function devPanelRender(){ const ov=document.getElementById('dvpOv'); if(!ov) return; const TST=!DEV.on&&isTesterAcct(); if(!DEV.on&&!TST){ ov.remove(); return; }
+  devTab=TST?'economy':devTabNorm(devTab); ov.innerHTML=devPanelHTML(TST); devPanelFit(); devArtWatch(ov); devArtFit(ov); devPaneWire(ov); devPaneLoad(ov); }
+function devPanelClose(){ const ov=document.getElementById('dvpOv'); if(ov) ov.remove(); INTEG.open=null; }
+function devPaneLoad(b){ if(!DEV.on||!document.getElementById('dvpOv')) return;
+  if(devTab==='players') devPlayersLoad(b); else if(devTab==='reports') devReportsLoad(); else if(devTab==='liveops') devMailAllLoad();
+  if(devTab==='servers'||devTab==='liveops'||!DVP.st) devServersLoad(true); else devServersPaint(); }
+function devPaneWire(b){ const root=b&&b.querySelector('.dvp'); if(!root) return;
+  const q=root.querySelector('#dvpQ'); if(q) q.oninput=()=>{ DVP.q=q.value; DVP.shown=80; devPlayersPaint(b); };
+  const fl=root.querySelector('#dvpFilt'); if(fl) fl.onchange=()=>{ DVP.filt=fl.value; DVP.shown=80; devPlayersPaint(b); };
+  const so=root.querySelector('#dvpSort'); if(so) so.onchange=()=>{ const [k,d]=so.value.split(':'); DVP.sort=k; DVP.dir=+d; DVP.shown=80; devSortMark(root); devPlayersPaint(b); };
+  const rf=root.querySelector('#dvpRf'); if(rf) rf.onchange=()=>{ DVP.rf=rf.value; devReportsPaint(); };
+  const rk=root.querySelector('#dvpRk'); if(rk) rk.onchange=()=>{ DVP.rk=rk.value; devReportsPaint(); };
+  const god=root.querySelector('#devGod'); if(god) god.onclick=()=>{ DEV.god=!DEV.god; god.classList.toggle('on',DEV.god); god.setAttribute('aria-checked',String(DEV.god)); };
+  root.addEventListener('click',e=>{ const el=e.target.closest('button,a'); if(!el||!root.contains(el)||el.id==='devGod') return; const ds=el.dataset;
+    if(ds.dvclose){ devPanelClose(); return; }
+    if(ds.devtab){ devTab=devTabNorm(ds.devtab); _devTabSeen=devTab; INTEG.open=null; devPanelRender(); return; }
+    if(ds.dev){ devAction(ds.dev, b); return; }
+    if(ds.dvsort){ if(DVP.sort===ds.dvsort) DVP.dir=-DVP.dir; else { DVP.sort=ds.dvsort; DVP.dir=ds.dvsort==='name'?1:-1; } DVP.shown=80; devSortMark(root); devPlayersPaint(b); return; }
+    if(ds.dvmore){ DVP.shown+=80; devPlayersPaint(b); return; }
+    if(ds.dvrefresh){ const d=root.querySelector('#devDone'); if(d) d.textContent='';
+      if(ds.dvrefresh==='players') devPlayersLoad(b,true); else if(ds.dvrefresh==='reports'){ INTEG.open=null; devReportsLoad(true); } else devServersLoad(true); return; }
+    if(ds.pid){ devPlayerSelect(ds.pid,b); return; }
+    if(ds.rsel){ DVP.rsel=ds.rsel; INTEG.open=null; root.querySelectorAll('[data-rsel]').forEach(x=>x.classList.toggle('on',x.dataset.rsel===ds.rsel)); devReportsPaint(); return; }
+    if(ds.ssel){ DVP.ssel=+ds.ssel; devServersPaint(); return; }
+    if(ds.lsel){ DVP.lsel=ds.lsel; devLivePaint(); return; }
+    if(ds.ropen){ DVP.sel=ds.ropen; DVP.selObj={id:ds.ropen,name:ds.rname||''}; DVP.q=''; DVP.filt='all'; devTab='players'; _devTabSeen=devTab; INTEG.open=null; devPanelRender(); return; }
+    if(ds.raudit){ devAuditOpen(ds.ruser, ds.raudit); return; }
+    if(ds.rres){ const x=(DVP.items||[]).find(y=>y.id===ds.rres); if(!x) return; el.disabled=true;
+      const p=x.src==='fb'?api('/api/admin/feedback','POST',{id:x.id,done:!x.resolved}):api('/api/admin/report','POST',{id:x.id,action:'resolve'});
+      p.then(d=>{ if(d&&d.ok){ x.resolved=x.src==='fb'?!!d.done:(d.resolved!=null?!!d.resolved:!x.resolved); const r=(INTEG.reports||[]).find(y=>y.id===x.id); if(r) r.resolved=x.resolved;
+          if(DVP.st&&x.resolved) DVP.st.openReports=Math.max(0,(DVP.st.openReports|0)-1); else if(DVP.st) DVP.st.openReports=(DVP.st.openReports|0)+1; const hs=document.getElementById('dvpHdStat'); if(hs) hs.innerHTML=devHdStat(); devReportsPaint(); }
+        else { el.disabled=false; const dd=root.querySelector('#devDone'); if(dd){ dd.textContent=String((d&&d.error)||'Failed'); dd.classList.add('bad'); } } }).catch(()=>{ el.disabled=false; }); return; }
+  }); }
+function devSortMark(root){ root.querySelectorAll('[data-dvsort]').forEach(x=>{ const on=x.dataset.dvsort===DVP.sort; x.classList.toggle('on',on); const i=x.querySelector('.dvp-dir'); if(i) i.remove();
+    if(on) x.insertAdjacentHTML('beforeend','<i class="dvp-dir '+(DVP.dir<0?'dn':'up')+'"></i>'); }); const so=root.querySelector('#dvpSort'); if(so) so.value=DVP.sort+':'+DVP.dir; }
+/* v1379: what the dev panel sends to players - the maintenance notice (a banner) and an admin's message (their Mail inbox), both from the ledger view */
+function devNoticeShow(n){ let el=document.getElementById('ewNotice'); let gone=''; try{ gone=sessionStorage.getItem('ew_notice_x')||''; }catch(e){}
+  if(!n||!n.text||gone===n.id||(n.until&&n.until<Date.now())){ if(el) el.remove(); return; }
+  if(el&&el.dataset.nid===n.id) return;
+  if(!el){ el=document.createElement('div'); el.id='ewNotice'; el.setAttribute('role','status'); document.body.appendChild(el); }
+  el.dataset.nid=n.id;
+  el.style.cssText='position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:15000;display:flex;align-items:center;gap:8px;max-width:min(620px,calc(var(--ew-game-width,100vw) - 32px));'+
+    'box-sizing:border-box;padding:7px 10px 7px 14px;background:linear-gradient(180deg,#3a2510f2,#1c1208f2);border:1px solid #c99a4a;border-radius:10px;box-shadow:0 6px 20px #000c;color:#ffe9b8;font:700 13px/1.35 Georgia,serif;pointer-events:auto';
+  el.innerHTML=`<img class="stIc" src="${ICON_SRC.u('notification-bell')}" alt="" style="width:20px;height:20px;flex:0 0 auto"><span style="min-width:0;overflow-wrap:anywhere">${escapeHTML(n.text)}</span>`+
+    `<button aria-label="Close" style="flex:0 0 auto;border:0;background:none;padding:4px;cursor:pointer;display:flex"><img class="stIc" src="${ICON_SRC.u('close')}" alt="" style="width:18px;height:18px;margin:0"></button>`;
+  el.querySelector('button').onclick=()=>{ try{ sessionStorage.setItem('ew_notice_x',n.id); }catch(e){} el.remove(); }; }
+function adminMailAdopt(L){ if(!Array.isArray(L)||!L.length) return; G.amSeen=Array.isArray(G.amSeen)?G.amSeen:[]; let added=0;
+  for(const m of L){ if(!m||!m.id||G.amSeen.includes(m.id)) continue; G.amSeen.push(m.id);
+    addMail('inbox',{from:String(m.from||'Emberweave Team'),subj:String(m.subj||''),body:String(m.text||''),t:+m.t||Date.now(),amid:m.id}); added++; }
+  if(added){ if(G.amSeen.length>60) G.amSeen=G.amSeen.slice(-60); try{ updateMailBadges(); }catch(e){} try{ saveG(); }catch(e){} } }
+const DEV_ECONOMY_ACTS=['gold','gems','stam','arenacoin','guildcoins','shielditem','shards','pieces','level','squadlvl','campstage','heroes','lv100','maxteam','campall','givefrags'];   /* v1376: the Economy group = a test account's dev panel; v1379: one row per resource (amount box), Arena #1 and the fixed +30 stamina gone */
 function devAction(a,b){
   if(isTesterAcct() && !DEV_ECONOMY_ACTS.includes(a)) return;   // a test account reaches the Economy actions only (the server gates every route too)
-  const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
+  const done=(m,bad)=>{ const d=b&&b.querySelector('#devDone'); if(d){ d.textContent=m; d.classList.toggle('bad',!!bad); } };
+  const fmt=n=>(+n||0).toLocaleString('en-US');
+  /* v1379: each Economy row has its own amount box (data-amt); a bare call (no box) uses the row's default */
+  const amt=()=>{ const el=b&&b.querySelector('[data-amt="'+a+'"]'); const v=el?Math.floor(+el.value||0):(DVP_AMT_DEF[a]||0); return v>0?v:0; };
+  if(DVP_AMT_DEF[a]!=null && !amt()){ done('Enter an amount above 0',true); return; }
+  const refused=()=>done('Server refused — not applied',true), offline=()=>done('Server unavailable — not applied',true);
   const grant=(payload,success)=>{ done('Applying on server…');
     api('/api/admin/led-grant','POST',payload).then(r=>{
-      if(!r||!r.ok||!r.ledger){ done('Server refused — not applied'); return; }
+      if(!r||!r.ok||!r.ledger){ refused(); return; }
       adoptLedger(r.ledger);
       if(r.devState){ G.arenaCoins=r.devState.arenaCoins|0; ACC.coins=G.arenaCoins;
         G.arenaRank=r.devState.arenaRank|0; G.bestArenaRank=r.devState.bestArenaRank|0;
         G.shieldItems=r.devState.shieldItems|0; }
       saveG(); updateHubChrome(); done(typeof success==='function'?success(r):success);
-    }).catch(()=>done('Server unavailable — not applied')); return; };
-  if(a==='dlart'){ runAssetDownload(done, null); return; }
-  if(a==='clrart'){ runAssetClear(done); return; }
+    }).catch(offline); return; };
   if(a==='cachelog'){ let L=[]; try{ L=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); }catch(e){}
     done(L.length? L.slice(-4).map(x=>x.t.slice(11,19)+' held '+x.held+', wanted to drop '+x.wanted+', dropped '+x.deleted+(x.blocked?' ('+x.blocked+')':'')).join(' | ')
                  : 'Offline Art has never deleted anything on this device.');
     return; }
   if(a==='fxmiss'){ const L=(window._fxMiss||[]);
-    done(L.length? L.slice(-6).map(x=>x.by+' \u2192 '+x.key+' ('+x.kind+') '+x.metres+'m from '+x.nearest).join(' | ')
+    done(L.length? L.slice(-6).map(x=>x.by+' → '+x.key+' ('+x.kind+') '+x.metres+'m from '+x.nearest).join(' | ')
                  : 'No FX has landed away from a unit since this page loaded.');
     return; }
-  if(a==='intrefresh'){ loadIntegrity(); done('Refreshing reports…'); return; }
-  if(a==='intall'){ INTEG.showAll=!INTEG.showAll; loadIntegrity(); done(INTEG.showAll?'Showing resolved reports too':'Showing open reports only'); return; }
-  if(a==='gold'){ grant({gold:100000},'+100,000 gold'); return; }
-  else if(a==='gems'){ grant({gems:2000},'+2,000 diamonds'); return; }
-  else if(a==='shards'){ grant({heroFrags:Object.fromEntries(HERO_KEYS.map(k=>[k,500]))},'+500 hero fragments for every hero'); return; }
-  else if(a==='pieces'){ grant({eqMats:{cloth:200,blade:200,wood:200,ore:200}},'+200 of each equipment piece'); return; }
-  /* 28 Aug (Phil: "I did force level myself in dev panel ... did it detect my jump and catch me?").
-     No — nothing caught him, and nothing punished him. These buttons were simply LYING. Levels, hero
-     XP, unlocks, stamina and campaign progress are all on SERVER_OWNED_SAVE_FIELDS, which the server
-     DELETES out of any save a browser uploads (v273: "the ledger owns progression"). So writing them
-     into G only changed this browser's copy; the next sign-in showed the ledger's real numbers and
-     the levels evaporated. Gold and diamonds already went through the ledger endpoint — progression
-     never got migrated with them. It does now, so a dev cheat is real progress or an honest error. */
-  else if(a==='stam'){ done('Refilling stamina…');
-    api('/api/admin/led-grant','POST',{stamina:999}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Stamina refilled'); } else done('Server refused — not applied'); }); return; }
-  else if(a==='stam30'){ done('Granting +30 stamina…');
-    api('/api/admin/led-grant','POST',{stamina:30}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('+30 stamina'); } else done('Server refused — not applied'); }); return; }
-  else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); const need=Math.max(0,(TROOP_CUM[nl]||0)-(G.playerXP||0));
+  if(a==='gold'){ const n=amt(); grant({gold:n},'+'+fmt(n)+' gold'); return; }
+  if(a==='gems'){ const n=amt(); grant({gems:n},'+'+fmt(n)+' diamonds'); return; }
+  if(a==='arenacoin'){ const n=amt(); grant({arenaCoins:n},'+'+fmt(n)+' arena coins'); return; }
+  if(a==='guildcoins'){ const n=amt(); grant({guildCoins:n},'+'+fmt(n)+' guild coins'); return; }
+  if(a==='shielditem'){ const n=Math.min(9999,amt()); grant({shieldItems:n},'+'+fmt(n)+' protection shields'); return; }
+  if(a==='shards'){ const n=Math.min(9999,amt()); grant({heroFrags:Object.fromEntries(HERO_KEYS.map(k=>[k,n]))},'+'+fmt(n)+' fragments for every hero'); return; }
+  if(a==='pieces'){ const n=Math.min(99999,amt()); grant({eqMats:{cloth:n,blade:n,wood:n,ore:n}},'+'+fmt(n)+' of each equipment piece'); return; }
+  /* 28 Aug (Phil: "I did force level myself in dev panel ... did it detect my jump and catch me?"): levels, hero XP, unlocks, stamina and
+     campaign progress are server-owned, so every one of these goes through the ledger endpoint - real progress or an honest error. */
+  if(a==='stam'){ const n=amt(); done('Adding stamina…');
+    api('/api/admin/led-grant','POST',{stamina:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('+'+fmt(n)+' stamina'); } else refused(); }).catch(offline); return; }
+  if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+amt()); const need=Math.max(0,(TROOP_CUM[nl]||0)-(G.playerXP||0));
     done('Levelling…');
-    api('/api/admin/led-grant','POST',{px:need}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('Now player level '+playerLevel()); } else done('Server refused — not applied'); }); return; }
-  else if(a==='squadlvl'){ const team=(G.team||[]).filter(Boolean); if(!team.length){ done('No squad selected'); return; }
+    api('/api/admin/led-grant','POST',{px:need}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('Now player level '+playerLevel()); } else refused(); }).catch(offline); return; }
+  if(a==='squadlvl'){ const team=(G.team||[]).filter(Boolean); if(!team.length){ done('No squad selected',true); return; } const add=amt();
     done('Levelling squad…');
-    Promise.all(team.map(k=>{ const cur=levelFromXP((G.heroXP&&G.heroXP[k])||0), nl=Math.min(MAX_LEVEL,cur+5);
+    Promise.all(team.map(k=>{ const cur=levelFromXP((G.heroXP&&G.heroXP[k])||0), nl=Math.min(MAX_LEVEL,cur+add);
       const need=Math.max(0,(HERO_CUM[nl]||0)-((G.heroXP&&G.heroXP[k])||0));
       return api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}); }))
       .then(async rs=>{ const last=[...rs].reverse().find(r=>r&&r.ok&&r.ledger); if(last)adoptLedger(last.ledger);
         await ledgerSync().catch(()=>null);
-        done(rs.every(r=>r&&r.ok)?'Squad +5 levels':'Some squad levels were refused; reload to review server progress');
-      }).catch(()=>done('Server unavailable; reload to review progress')); return; }
-  else if(a==='heroes'){ done('Unlocking…');
-    api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else done('Server refused — not applied'); }); return; }
-  /* v401 (4 Sep) — dev panel keeps pace with the patch (Phil: "dev panel should always be updated
-     to include all new patches"). The per-class ROLE_GROWTH curve is flat-per-level, so its shape
-     is only visible at the ends: this jumps EVERY unlocked hero straight to MAX_LEVEL. */
-  else if(a==='lv100'){ const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
-    done('Levelling '+keys.length+' heroes to '+MAX_LEVEL+'\u2026');
-    (async()=>{ let last=null,refused=0;
+        done(rs.every(r=>r&&r.ok)?'Squad +'+add+' levels':'Some squad levels were refused; reload to review server progress', !rs.every(r=>r&&r.ok));
+      }).catch(()=>done('Server unavailable; reload to review progress',true)); return; }
+  if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+amt()); done('Advancing campaign…');
+    api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else refused(); }).catch(offline); return; }
+  if(a==='heroes'){ done('Unlocking…');
+    api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else refused(); }).catch(offline); return; }
+  /* v401 (4 Sep): every unlocked hero straight to MAX_LEVEL */
+  if(a==='lv100'){ const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked',true); return; }
+    done('Levelling '+keys.length+' heroes to '+MAX_LEVEL+'…');
+    (async()=>{ let last=null,refusedN=0;
       for(let i=0;i<keys.length;i+=10){ const chunk=keys.slice(i,i+10);
         const rs=await Promise.all(chunk.map(k=>{ const need=Math.max(0,(HERO_CUM[MAX_LEVEL]||0)-((G.heroXP&&G.heroXP[k])||0));
           return need>0 ? api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}).catch(()=>null) : Promise.resolve({ok:true}); }));
-        refused+=rs.filter(r=>!r||!r.ok).length;
+        refusedN+=rs.filter(r=>!r||!r.ok).length;
         last=[...rs].reverse().find(r=>r&&r.ok&&r.ledger)||last;
         if(last)adoptLedger(last.ledger);
       }
       await ledgerSync().catch(()=>null);
-      done(refused?'Server refused '+refused+' of '+keys.length+' hero levels; reload to review progress':'All '+keys.length+' heroes at level '+MAX_LEVEL);
-    })().catch(()=>done('Server unavailable; reload to review progress')); return; }
-  else if(a==='campall'){ done('Unlocking every campaign stage…');   /* v1305 (Phil 7 Nov: "make an unlock all stages dev option in dev panel, it unlocks all campaign stages") */
-    api('/api/admin/led-grant','POST',{campCleared:CAMPAIGN_NODES}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); try{ saveG(); updateHubChrome(); }catch(e){} done('All '+CAMPAIGN_NODES+' campaign stages unlocked'); } else done('Server refused — not applied'); }); return; }
-  else if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+5); done('Advancing campaign…');
-    api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else done('Server refused — not applied'); }); return; }
-  else if(a==='konwu'){ done('Unlocking KonWu…');
-    api('/api/admin/led-grant','POST',{unlock:['konwu'],heroKeys:['konwu'],stars:MAX_STARS}).then(r=>{
-      if(r&&r.ok&&r.ledger){ adoptLedger(r.ledger); done('KonWu unlocked at '+MAX_STARS+' stars — put him in your team, then battle'); }
-      else done('Server refused — not applied'); }).catch(()=>done('Server unavailable — not applied')); return; }
-  else if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); return; }   /* Phil 27 Sep: view each orb count's art */
-  else if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs (server walks each board to Orange). */
-    const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
+      done(refusedN?'Server refused '+refusedN+' of '+keys.length+' hero levels; reload to review progress':'All '+keys.length+' heroes at level '+MAX_LEVEL, !!refusedN);
+    })().catch(()=>done('Server unavailable; reload to review progress',true)); return; }
+  if(a==='campall'){ done('Unlocking every campaign stage…');   /* v1305 (Phil 7 Nov: "make an unlock all stages dev option in dev panel, it unlocks all campaign stages") */
+    api('/api/admin/led-grant','POST',{campCleared:CAMPAIGN_NODES}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); try{ saveG(); updateHubChrome(); }catch(e){} done('All '+CAMPAIGN_NODES+' campaign stages unlocked'); } else refused(); }).catch(offline); return; }
+  if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs; v1312 (Phil 8 Nov): glyphs to the best quality each hero's current level allows */
+    const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked',true); return; }
     done('Maxing '+keys.length+' heroes…');
-    api('/api/admin/led-grant','POST',{heroKeys:keys,stars:MAX_STARS,maxGlyphs:true,toLevel:true})   /* v1312 (Phil 8 Nov): glyphs to the best quality each hero's current level allows */.then(async r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
+    api('/api/admin/led-grant','POST',{heroKeys:keys,stars:MAX_STARS,maxGlyphs:true,toLevel:true}).then(async r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
         try{ if(typeof glyphV2Sync==='function') await glyphV2Sync(); }catch(e){}
         done('All '+keys.length+' heroes: stars maxed, glyph boards raised to the best quality their level allows ('+(r.glyphsMaxed|0)+' boards). Reopen a hero to see it.'); }
-      else done('Server refused — not applied'); }); return; }
-  else if(a==='arena'){ grant({arenaRank:1},r=>(r.devState&&r.devState.arenaRank===1)?'Arena rank set to #1':t('set2.test_arena_kept')); return; }
-  else if(a==='arenacoin'){ grant({arenaCoins:5000},'+5,000 arena coins'); return; }
-  else if(a==='guildcoins'){ grant({guildCoins:5000},'+5,000 guild coins'); return; }
-  else if(a==='shielditem'){ grant({shieldItems:3},'+3 protection shields'); return; }
-  else if(a==='givefrags'){ openDevFragGranter(b); return; }
-  else if(a==='perf'){ PERF.on=!PERF.on; perfHUD(); done('Performance HUD '+(PERF.on?'ON — open a battle and screenshot it':'off')); return; }
-  else if(a==='update'){ devForceUpdate(); return; }
-  else if(a==='online'||a==='accounts'){ devAdminList(a,b); return; }
-  else if(a==='newacct'){ openDevCreateAccount(b); return; }
-  else if(a==='mktest'||a==='testers'||a==='settester'){ devTesterTools(a,b); return; }
-  else if(a==='backup'){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">Preparing backup…</span>';
-    api('/api/admin/backup').then(d=>{ if(!d||d.error){ if(out)out.innerHTML='<span style="color:#ff8b8b">'+((d&&d.error)||'Failed')+'</span>'; return; }
+      else refused(); }).catch(offline); return; }
+  if(a==='givefrags'){ openDevFragGranter(b); return; }
+  /* below: admin tools - the server refuses every admin route to anyone else */
+  if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); const c=document.getElementById('dvpOrbsN'); if(c) c.textContent=String(DEV.orbPreview); return; }   /* Phil 27 Sep: view each orb count's art */
+  if(a==='perf'){ PERF.on=!PERF.on; perfHUD(); done('Performance HUD '+(PERF.on?'ON — open a battle and screenshot it':'off')); return; }
+  if(a==='update'){ devForceUpdate(); return; }
+  if(a==='bots'){ runBalanceBots(b); return; }
+  if(a==='savecode'){ const o=b&&b.querySelector('#saveOut'); if(o) o.textContent=JSON.stringify(G); done('Save code below'); return; }
+  if(a==='mktest'){ const out=b&&b.querySelector('#devAdmin'); done(t('set2.test_working'));
+    api('/api/admin/test-account','POST',{}).then(d=>{ if(!d||!d.ok){ done(String((d&&d.error)||t('set2.test_failed')),true); return; } done('');
+      if(out) out.innerHTML='<div id="devTestMade" class="dvp-made">'+t('set2.test_made',{name:'<b>'+escapeHTML(d.name)+'</b>',pass:'<b>'+escapeHTML(d.pass)+'</b>'})+'</div>';
+      devPlayersLoad(b,true); }).catch(offline); return; }
+  if(a==='backup'){ done('Preparing backup…');
+    api('/api/admin/backup').then(d=>{ if(!d||d.error){ done(String((d&&d.error)||'Failed'),true); return; }
       try{ const blob=new Blob([JSON.stringify(d)],{type:'application/json'}); const url=URL.createObjectURL(blob);
         const a2=document.createElement('a'); a2.href=url; a2.download='emberweave-db-backup.json'; document.body.appendChild(a2); a2.click(); a2.remove(); URL.revokeObjectURL(url);
-        if(out)out.innerHTML='<span style="color:#5ee89b">'+uiIcon('check')+' Backup downloaded.</span>'; }catch(e){ if(out)out.innerHTML='<span style="color:#ff8b8b">Download failed.</span>'; } }); return; }
-  else if(a==='reports'){ devShowReports(b); return; }
-  else if(a==='bots'){ runBalanceBots(b); return; }
-  else if(a==='refresh'){ devShowReports(b); return; }   // manual refresh of the report/bot log
-  else if(a==='clearlog'){ api('/api/admin/report','POST',{action:'clearResolved'}).then(()=>devShowReports(b)); return; }
-  saveG(); updateHubChrome();
+        done('Backup downloaded.'); }catch(e){ done('Download failed.',true); } }).catch(offline); return; }
+  if(a==='backupnow'){ done('Writing a backup on the server…');
+    api('/api/admin/backup-now','POST',{}).then(d=>{ if(d&&d.ok){ done('Backup written on the server.'); devServersLoad(true); } else done(String((d&&d.error)||'Failed'),true); }).catch(offline); return; }
+  if(a==='findbuy'){ const q=((b&&b.querySelector('#dvpBuyQ')||{}).value||'').trim(); if(!q){ done('Type an order number, pack or player',true); return; } done('Searching…');
+    api('/api/admin/purchase?q='+encodeURIComponent(q)).then(d=>{ if(d&&d.ok){ DVP.buys=d.purchases||[]; done(DVP.buys.length+' found'); const h=b&&b.querySelector('#dvpBuys'); if(h) h.innerHTML=devBuysHTML(); } else done(String((d&&d.error)||'Failed'),true); }).catch(offline); return; }
+  if(a==='mailall'){ const sj=b&&b.querySelector('#dvpAllSubj'), tx=b&&b.querySelector('#dvpAllText'); const text=((tx&&tx.value)||'').trim(), subj=((sj&&sj.value)||'').trim();
+    if(!text){ done('Type the message first',true); return; }
+    gameConfirm('Send <b>'+escapeHTML(subj||'News from the team')+'</b> to <b>every player</b>\u2019s Mail?',()=>{ done('Sending…');
+      api('/api/admin/mail-all','POST',{subj,text}).then(d=>{ if(d&&d.ok){ if(tx) tx.value=''; if(sj) sj.value=''; done('Sent to every player\u2019s Mail'); devMailAllLoad(); } else done(String((d&&d.error)||'Failed'),true); }).catch(offline); }); return; }
+  if(a==='noticeset'||a==='noticeclr'){ const tx=b&&b.querySelector('#dvpNotice'), mn=b&&b.querySelector('#dvpNoticeMin');
+    const body=a==='noticeclr'?{clear:true}:{text:(tx&&tx.value)||'',minutes:+((mn&&mn.value)||0)};
+    if(a==='noticeset'&&!String(body.text).trim()){ done('Type the notice first',true); return; }
+    done('Working…'); api('/api/admin/notice','POST',body).then(d=>{ if(d&&d.ok){ if(DVP.st) DVP.st.notice=d.notice; done(a==='noticeclr'?'Notice cleared':'Notice is showing to players'); devServersPaint(); try{ devNoticeShow(d.notice?{id:d.notice.id,text:d.notice.text,until:d.notice.until}:null); }catch(e){} }
+      else done(String((d&&d.error)||'Failed'),true); }).catch(offline); return; }
 }
 /* v1376 TEST ACCOUNTS (Phil 12 Nov: "Can you make a test account?" / "Give me the rights to be able to do it by clicking them"). Admin only.
    Dev > Accounts > Test accounts: Create test account (a generated username + password, shown once), List test accounts, Make / remove
@@ -34006,19 +34347,6 @@ function adminPlayerMenu(el, who){ if(!DEV.on||!el||!who) return; closeChatLineM
   document.body.appendChild(pop); pop.addEventListener('click',e=>e.stopPropagation());
   adminTesterButton(pop, who);
   setTimeout(()=>document.addEventListener('click',closeChatLineMenu,{once:true}),0); }
-function devTesterTools(a,b){ const out=b&&b.querySelector('#devAdmin'); if(!out||!DEV.on) return;
-  const err=(d)=>'<span style="color:#ff8b8b">'+escapeHTML(String((d&&d.error)||t('set2.test_failed')))+'</span>';
-  if(a==='mktest'){ out.innerHTML='<span style="color:#8b98a9">'+t('set2.test_working')+'</span>';
-    api('/api/admin/test-account','POST',{}).then(d=>{ if(!d||!d.ok){ out.innerHTML=err(d); return; }
-      out.innerHTML='<div id="devTestMade" style="background:#0f1622;border:1px solid #2b7a55;border-radius:10px;padding:8px 10px;color:#e6edf3;user-select:text">'+t('set2.test_made',{name:'<b>'+escapeHTML(d.name)+'</b>',pass:'<b>'+escapeHTML(d.pass)+'</b>'})+'</div>'; }).catch(()=>{ out.innerHTML=err(null); }); return; }
-  if(a==='testers'){ out.innerHTML='<span style="color:#8b98a9">'+t('set2.test_working')+'</span>';
-    api('/api/admin/testers').then(d=>{ if(!d||!d.ok){ out.innerHTML=err(d); return; }
-      const L=d.testers||[]; out.innerHTML='<div style="font-weight:700;margin-bottom:4px">'+(d.prebeta?t('set2.test_count',{n:L.length}):t('set2.test_off'))+'</div>'+
-        (L.length?L.map(x=>'<div class="dvp-tst-row" data-tid="'+escapeHTML(x.id)+'" data-tn="'+escapeHTML(x.name)+'" style="padding:5px 0;border-bottom:1px solid #26324a"><b>'+escapeHTML(x.name)+'</b> <span style="color:#8b98a9">'+escapeHTML(x.login)+'</span></div>').join(''):'<div style="color:#8b98a9">'+t('set2.test_none')+'</div>');
-      out.querySelectorAll('.dvp-tst-row').forEach(row=>adminTesterButton(row,{id:row.dataset.tid,name:row.dataset.tn})); }).catch(()=>{ out.innerHTML=err(null); }); return; }
-  if(a==='settester'){ out.innerHTML='<div style="display:flex;gap:6px"><input id="devTstName" placeholder="'+escapeHTML(t('set2.test_user_ph'))+'" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:7px 9px;font-size:12px"><button class="btn xs" id="devTstFind">'+t('set2.test_find')+'</button></div><div id="devTstBox"></div>';
-    const inp=out.querySelector('#devTstName'), go=()=>{ const n=inp.value.trim(); const box=out.querySelector('#devTstBox'); box.innerHTML=''; if(n) adminTesterButton(box,{name:n}); };
-    out.querySelector('#devTstFind').onclick=go; inp.onkeydown=(e)=>{ if(e.key==='Enter') go(); }; setTimeout(()=>inp.focus(),30); return; } }
 // dev: search any hero in the database and grant 100 of their fragments
 function openDevFragGranter(b){
   const AMT=100, ov=document.createElement('div');
@@ -34047,22 +34375,6 @@ function openDevFragGranter(b){
       }catch(e){ msgEl.textContent='Server unavailable — fragments not added'; el.disabled=false; } }); }
   searchEl.oninput=()=>renderList(searchEl.value); renderList(''); setTimeout(()=>searchEl.focus(),40);
 }
-// dev: view the bug/balance report inbox
-function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)return; out.innerHTML='<span style="color:#8b98a9">Loading reports…</span>';
-  api('/api/admin/reports').then(d=>{ if(!d||d.error){ out.innerHTML='<span style="color:#ff8b8b">'+((d&&d.error)||'Failed')+'</span>'; return; }
-    const rs=(d.reports||[]).filter(r=>r.meta!=='test-bots' && r.kind!=='balance'); const ago=t=>{ const s=Math.floor((Date.now()-t)/1000); if(s<60)return s+'s'; const m=Math.floor(s/60); if(m<60)return m+'m'; const h=Math.floor(m/60); if(h<24)return h+'h'; return Math.floor(h/24)+'d'; };
-    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>'+uiIcon('bug')+' Reports: '+rs.length+'</b><button class="btn xs secondary" id="rpClear">Clear resolved</button></div>';
-    if(!rs.length) html+='<span style="color:#8b98a9">No reports yet.</span>';
-    else html+=rs.map(r=>`<div style="border-top:1px solid #1c2434;padding:6px 2px;${r.resolved?'opacity:.5':''}">
-      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='moderation'?'<span style="color:#ff8b8b">['+escapeHTML(r.reasonLabel||'Report')+']</span>':(r.kind==='balance'?uiIcon('npc'):uiIcon('bug'))} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
-      <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(String(r.text||r.detail||''))}</div>
-      ${r.meta?`<div style="font-size:9px;color:#6f7d90">${escapeHTML(r.meta)}</div>`:''}
-      <div style="display:flex;gap:6px;margin-top:3px"><button class="btn xs secondary" data-rr="${r.id}">${r.resolved?'Reopen':'Resolve'}</button><button class="btn xs secondary" data-rd="${r.id}" style="color:#ff8b8b">Delete</button></div></div>`).join('');
-    out.innerHTML=html;
-    const cl=out.querySelector('#rpClear'); if(cl) cl.onclick=()=>api('/api/admin/report','POST',{action:'clearResolved'}).then(()=>devShowReports(b));
-    out.querySelectorAll('[data-rr]').forEach(el=>el.onclick=()=>api('/api/admin/report','POST',{id:el.dataset.rr,action:'resolve'}).then(()=>devShowReports(b)));
-    out.querySelectorAll('[data-rd]').forEach(el=>el.onclick=()=>api('/api/admin/report','POST',{id:el.dataset.rd,action:'delete'}).then(()=>devShowReports(b)));
-  }); }
 // dev: automated balance bots — a fast model using the game's own stat/level/difficulty formulas.
 // Reports required level per chapter, difficulty flags, reachable depth, and rough time-to-L40 / time-to-purple.
 function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">'+uiIcon('npc')+' Simulating…</span>';
@@ -34136,7 +34448,7 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
   ];
   const texts=log.map(([n,m])=>n+' bot — '+m);
   // return to the QA tab and write the log to a fresh element (the smoke test navigated away)
-  devTab='battles'; show('settings'); const out2=document.getElementById('devAdmin');
+  devTab='qa'; devPanelOpen(); const out2=document.querySelector('#dvpOv #devAdmin');
   api('/api/admin/reports').then(d=>{ const existing=new Set(((d&&d.reports)||[]).filter(r=>r.kind==='balance').map(r=>r.text));
     const fresh=texts.filter(t=>!existing.has(t));
     if(out2){ out2.innerHTML='<div style="font-weight:800;margin-bottom:4px">'+uiIcon('npc')+' Test-bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
@@ -34145,46 +34457,6 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
     /* test-bot findings are NO LONGER filed to the inbox (Phil: they just clutter it) — log stays on-screen only */
   });
 }
-// dev: create an account from the panel
-function openDevCreateAccount(panel){ const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
-  const inp='background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:9px 10px;font-size:13px;width:100%';
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:320px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${uiIcon('plus')} Create Account</div><button class="btn sm secondary" id="caX">${uiIcon('close')}</button></div>
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <input id="caName" placeholder="Username" maxlength="16" autocomplete="off" style="${inp}">
-      <input id="caPass" type="password" placeholder="Password" autocomplete="off" style="${inp}">
-      <button class="btn" id="caGo">Create</button></div>
-    <div id="caMsg" style="font-size:11px;color:#ffd45e;margin-top:8px;min-height:14px"></div></div>`;
-  document.body.appendChild(ov); const close=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
-  ov.querySelector('#caX').onclick=close;
-  ov.querySelector('#caGo').onclick=()=>{ const name=(ov.querySelector('#caName').value||'').trim(), pass=(ov.querySelector('#caPass').value||''), m=ov.querySelector('#caMsg');
-    if(name.length<2){ m.textContent='Name needs 2+ characters.'; return; } if(!pass){ m.textContent='Enter a password.'; return; }
-    m.style.color='#8b98a9'; m.textContent='Creating…';
-    api('/api/admin/create','POST',{name,pass}).then(d=>{ if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='Created '+d.name; devAdminList('accounts',panel); setTimeout(close,1200); } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed'; } }); };
-}
-// dev-only: pull the live server lists (players online / all created accounts)
-function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!out)return;
-  out.innerHTML='<span style="color:#8b98a9">Loading…</span>';
-  api(kind==='online'?'/api/admin/online':'/api/admin/accounts').then(d=>{
-    if(!d||d.error){ out.innerHTML='<span style="color:#ff8b8b">'+escapeHTML((d&&d.error)||'Server unreachable')+'</span>'; return; }
-    const rows=(kind==='online'?d.online:d.accounts)||[];
-    const ago=t=>{ if(!t)return '—'; const s=Math.max(0,Math.floor((Date.now()-t)/1000));   /* v1251: a phone clock a second ahead read '-1s ago' */ if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; };
-    const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
-    let html='<div style="font-weight:800;margin-bottom:4px">'+(kind==='online'?uiIcon('players')+' Online now: '+rows.length:uiIcon('folder')+' Total accounts: '+rows.length)+'</div>';
-    if(!rows.length) html+='<span style="color:#8b98a9">None found.</span>';
-    else { html+='<div style="font-size:10px;color:#6f7d90;margin-bottom:4px">Tap a player for admin options.</div>';
-      html+=rows.map((r,idx)=>
-      '<div class="devrow" data-idx="'+idx+'" style="display:flex;align-items:center;gap:8px;border-top:1px solid #1c2434;padding:6px 4px;cursor:pointer">'
-      +'<span style="font-weight:700;flex:1">'+escapeHTML(r.name)+(r.mustReset?' <span style="color:#ffb454;font-size:10px">'+uiIcon('key')+' reset pending</span>':'')+'</span>'
-      +'<span style="color:#ffd45e">#'+r.rank+'</span>'
-      +'<span style="color:#8b98a9;text-align:right;white-space:nowrap;font-size:10px">'+(kind==='online'?ago(r.lastSeen):('made '+dt(r.created)))+'</span>'
-      +'<span style="color:#4a5570">›</span></div>'
-    ).join(''); }
-    out.innerHTML=html;
-    out.querySelectorAll('.devrow').forEach(el=>el.onclick=()=>openPlayerAdmin(rows[+el.dataset.idx], kind, b));
-  }); }
 /* v1097 (Phil 9 Oct): the admin's Ban menu - 1 / 7 / 14 / 28 days or Permanent, a reason, Unban when banned. host = an element
    to draw into; p = {id, name, ban}; opts.reportId resolves a report; opts.allowDelete keeps the old admin delete behind the menu. */
 function banLabel(b){ if(!b) return ''; return b.permanent?t('acct2.banned_perm'):t('acct2.banned_until',{date:new Date(b.until).toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}); }
@@ -34203,30 +34475,32 @@ function adminBanMenu(host, p, opts, onDone){ opts=opts||{}; if(!host||!p) retur
   const msg=host.querySelector('[data-banmsg]'), reason=()=>(host.querySelector('[data-banreason]').value||'').trim();
   const done=(d,txt)=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent=txt; p.ban=d.banned||null; if(onDone) onDone(d); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Failed'); } };
   host.querySelectorAll('[data-ban]').forEach(bt=>bt.onclick=()=>{ const v=bt.dataset.ban, perm=v==='permanent';
+   gameConfirm('Ban <b>'+escapeHTML(p.name||'')+'</b> '+(perm?'permanently':'for '+v+' day'+(v==='1'?'':'s'))+'?',()=>{   /* v1379: a ban asks first */
     msg.style.color='#8b98a9'; msg.textContent='Working...';
     api('/api/admin/ban','POST',Object.assign({playerId:p.id,reason:reason(),requestId:req('ban'+v),reportId:opts.reportId||undefined},perm?{permanent:true}:{days:+v}))
-      .then(d=>done(d,(p.name||'Account')+(perm?' banned permanently.':' banned for '+v+' day'+(v==='1'?'':'s')+'.'))); });
+      .then(d=>done(d,(p.name||'Account')+(perm?' banned permanently.':' banned for '+v+' day'+(v==='1'?'':'s')+'.'))); }); });
   const ub=host.querySelector('[data-unban]'); if(ub) ub.onclick=()=>{ msg.style.color='#8b98a9'; msg.textContent='Working...';
     api('/api/admin/unban','POST',{playerId:p.id,requestId:req('unban')}).then(d=>done(d,(p.name||'Account')+' unbanned.')); };
   const del=host.querySelector('[data-bandel]'); if(del) del.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(p.name||'')+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
     msg.style.color='#8b98a9'; msg.textContent='Deleting...'; api('/api/admin/delete','POST',{id:p.id,name:p.name}).then(d=>{ if(d&&d.ok){ if(opts.onDeleted) opts.onDeleted(); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
 }
-/* v1176: the player-info sections of the admin popup, drawn from GET /api/admin/player (server ledger, dev only, read-only) */
-function playerInfoFill(host, id){ if(!host||!id) return;
-  api('/api/admin/player?id='+encodeURIComponent(id)).then(d=>{ if(!host.isConnected) return;
-    if(!d||!d.ok||!d.player){ host.innerHTML='<div style="font-size:11px;color:#ff8b8b">'+escapeHTML(String((d&&d.error)||'Server unreachable'))+'</div>'; return; }
+/* v1176: the player-info sections of the admin popup, drawn from GET /api/admin/player (server ledger, dev only, read-only).
+   v1379: + Purchases (the last 10: "I paid and didn't get it") and Admin log (who did what to this player, when); resolves with the player */
+function playerInfoFill(host, id){ if(!host||!id) return Promise.resolve(null);
+  return api('/api/admin/player?id='+encodeURIComponent(id)).then(d=>{ if(!host.isConnected) return null;
+    if(!d||!d.ok||!d.player){ host.innerHTML='<div class="pai-err">'+escapeHTML(String((d&&d.error)||'Server unreachable'))+'</div>'; return null; }
     const P=d.player, I=P.identity||{}, G=P.progress||{}, C=P.currencies||{}, R=P.roster||null, A=P.account||null, Rp=P.reports||{}, X=P.integrity||{};
     const e=v=>escapeHTML(String(v==null?'':v)), n=v=>(+v||0).toLocaleString();
     const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
     const row=(k,v,c)=>'<div class="pai-r"><span>'+e(k)+'</span><b'+(c?' class="'+c+'"':'')+'>'+e(v)+'</b></div>';
-    const sec=(t,rows)=>'<div class="pai-sec"><div class="pai-st">'+e(t)+'</div>'+rows.join('')+'</div>';
+    const sec=(t,rows,wide)=>'<div class="pai-sec'+(wide?' wide':'')+'"><div class="pai-st">'+e(t)+'</div>'+rows.join('')+'</div>';
     const yn=v=>v?'Yes':'No', cp=m=>{ const c=(G.campaign||{})[m]; return c?(c.cleared?c.stage+'  ('+c.cleared+'/'+c.of+')':'none'):'—'; };
     const stars=h=>h.stars+' star'+(h.stars===1?'':'s')+(h.pips?' +'+h.pips:'')+(h.refine?' R'+h.refine:'');
     const pat=G.patron?(G.patron.prestiged?'EDP '+G.patron.edp:'EGP '+G.patron.egp):'—';
     const well=G.well?('Normal '+G.well.cleared.normal+' / Hard '+G.well.cleared.hard+(G.well.run?' · map '+G.well.run.map+(G.well.run.path?' '+G.well.run.path:'')+(G.well.run.done?' done':''):'')):'—';
     const S=[];
-    S.push(sec('Identity',[row('Account id',I.id),row('Server',I.server?'Server '+I.server:'—'),row('Created',dt(I.created)),row('Last seen',dt(I.lastSeen)),
-      row('Sign-in',I.guest?'Guest':'Signed in',I.guest?'warn':''),row('Email on file',yn(I.hasEmail)),row('Dev account',yn(I.dev),I.dev?'good':'')]));
+    S.push(sec('Identity',[row('Account id',I.id),row('Username',I.login||'—'),row('Server',I.server?'Server '+I.server:'—'),row('Created',dt(I.created)),row('Last seen',dt(I.lastSeen)),
+      row('Sign-in',I.guest?'Guest':'Signed in',I.guest?'warn':''),row('Email on file',yn(I.hasEmail)),row('Test account',yn(I.tester),I.tester?'good':''),row('Dev account',yn(I.dev),I.dev?'good':'')]));
     if(!P.ledger) S.push(sec('Progress',[row('Ledger','Not started yet','warn'),row('Arena rank','#'+(G.arenaRank|0))]));
     else {
       S.push(sec('Progress',[row('Player level','Lv '+(G.level|0)+' · '+n(G.xp)+' XP'),row('Patron',pat),row('Normal',cp('normal')),row('Elite',cp('elite')),row('Veteran',cp('veteran')),
@@ -34238,67 +34512,85 @@ function playerInfoFill(host, id){ if(!host||!id) return;
         row('Forge Dust',n(C.forgeDust)),row('Arena coins',n(C.arenaCoins)),row('Guild coins',n(C.guildCoins)),row('XP potions',n(C.xpPotions)),row('Shields',n(C.shields))]));
       if(R) S.push(sec('Roster',[row('Heroes',R.heroes),row('Team power',n(R.teamPower)),row('Roster power',n(R.rosterPower))]
         .concat((R.top||[]).map((h,i)=>row((i+1)+'. '+h.name,'Lv '+h.level+' · '+stars(h)+' · '+n(h.power))))));
-      if(A) S.push(sec('Account',[row('Packs claimed',n(A.packs)),row('Free packs',n(A.freePacks)),row('Plans',n(A.plans)),row('Diamonds bought',n(A.diamondsBought)),row('Temple level',G.templeLevel|0)]));
+      if(A) S.push(sec('Purchases',[row('Packs claimed',n(A.packs)),row('Free packs',n(A.freePacks)),row('Plans',n(A.plans)),row('Diamonds bought',n(A.diamondsBought)),row('Paid',A.usd?'$'+(+A.usd).toFixed(2):'—'),row('Temple level',G.templeLevel|0)]
+        .concat((A.recent||[]).map(x=>row(dt(x.t),x.label+(x.free?' (free)':(x.usd?' · $'+(+x.usd).toFixed(2):'')))))));
     }
     S.push(sec('Reports',[row('Reports sent',n(Rp.sent)),row('Latest',Rp.lastAt?dt(Rp.lastAt):'—')]));
     S.push(sec('Integrity',[row('Flag',X.flag?X.flag.reason:'None',X.flag?'bad':''),row('Cheat signals',n(X.cheatSignals)+(X.lastCheat?' · last '+dt(X.lastCheat.t):''),X.cheatSignals?'warn':''),
       row('Battle incidents',n(X.battleIncidents)+(X.lastIncident?' · '+X.lastIncident.why:''),X.battleIncidents?'warn':''),
       row('Reports on them',n(X.reportsAgainst)+(X.openReportsAgainst?' · '+X.openReportsAgainst+' open':''),X.openReportsAgainst?'warn':''),
-      row('Ban',I.ban?banLabel(I.ban):'None',I.ban?'bad':'')]));
+      row('Ban',I.ban?banLabel(I.ban):'None',I.ban?'bad':''),row('Progress reset',P.preReset?dt(P.preReset.t)+' by '+P.preReset.by+' (undo kept)':'—',P.preReset?'warn':'')]));
+    S.push(sec('Battle log',(P.incidents&&P.incidents.length)?P.incidents.map(x=>row(dt(x.t)+' · '+x.stage,x.why||x.mode)):[row('Flagged fights','None')],true));
+    S.push(sec('Admin log',(P.log&&P.log.length)?P.log.map(x=>row(dt(x.t)+' · '+x.by, x.act+(x.detail?' · '+x.detail:''))):[row('Actions','None yet')],true));
     host.innerHTML=S.join('');
-  }); }
-// admin options for one player (dev only)
-function openPlayerAdmin(r, kind, panel){ if(!r)return;
-  const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:12px';
-  const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
-  /* v1176 (Phil 16 Oct: "can you make it so that I can see their info? their level, diamonds, gold, top campaign/vault level etc etc"):
-     the player's info from the SERVER's ledger (GET /api/admin/player, dev only). The header holds the X with room under it for the
-     docked mute button; the info and the buttons scroll below it. */
-  ov.innerHTML=`<style>.pai-card{background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:12px 14px;width:100%;max-width:640px;max-height:100%;box-sizing:border-box;display:flex;flex-direction:column}
-.pai-hd{display:grid;grid-template-columns:1fr auto;gap:8px;flex:0 0 auto}.pai-nm{font-weight:800;font-size:16px;color:#e6edf3}.pai-sub{font-size:11px;color:#8b98a9;line-height:1.5;margin-top:2px}
-.pai-xc{display:flex;flex-direction:column;align-items:flex-end}.pai-xs{height:46px}
-.pai-body{overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:4px;padding-right:2px}.pai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;margin-bottom:8px}
-.pai-sec{background:#0f1622;border:1px solid #26324a;border-radius:10px;padding:6px 9px}.pai-st{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin-bottom:3px}
-.pai-r{display:flex;justify-content:space-between;gap:8px;font-size:11px;line-height:1.55}.pai-r span{color:#8b98a9;white-space:nowrap}.pai-r b{color:#e6edf3;font-weight:700;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pai-r b.warn{color:#ffb454}.pai-r b.bad{color:#ff8b8b}.pai-r b.good{color:#5ee89b}</style>
-  <div class="pai-card">
-    <div class="pai-hd"><div style="min-width:0"><div class="pai-nm">${escapeHTML(String(r.name||''))}</div>
-      <div class="pai-sub">Arena rank #${r.rank|0}${r.mustReset?'<br><b style="color:#ffb454">'+uiIcon('key')+' Password recovery is armed</b>':''}${r.ban?'<br><b style="color:#ff8b8b">'+escapeHTML(banLabel(r.ban))+'</b>'+(r.ban.reason?' - '+escapeHTML(String(r.ban.reason)):''):''}</div></div>
-      <div class="pai-xc"><button class="btn sm secondary" id="paX" aria-label="Close">${uiIcon('close')}</button><div class="pai-xs"></div></div></div>
-    <div class="pai-body"><div id="paInfo" class="pai-grid"><div style="font-size:11px;color:#8b98a9">Loading…</div></div>
-    <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-      <button class="btn sm" id="paGrant" style="background:#2e7d46">${hudIcon('gem')} +2000</button>
-      <button class="btn sm secondary" id="paTake">${hudIcon('gem')} −2000</button>
-    </div>
-    ${r.mustReset
-      ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
-      : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">${uiIcon('key')} Recover password</button>`}
-    <button class="btn sm secondary" id="paBan" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">${r.ban?'Banned - Unban / change':'Ban'}</button>
-    <div id="paBanBox"></div></div>
-  </div>`;
-  document.body.appendChild(ov); const close=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
-  ov.querySelector('#paX').onclick=close;
-  const msg=ov.querySelector('#paMsg');
-  playerInfoFill(ov.querySelector('#paInfo'), r.id);
-  adminTesterButton(ov.querySelector('.pai-body'),{id:r.id,name:r.name});   /* v1376 */
-  const gemAct=(path,label)=>{ msg.style.color='#8b98a9'; msg.textContent='Working…';
-    api(path,'POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent=label+' — '+d.name+' now has '+d.gems+' diamonds'+(d&&d.live?' — they will see it within a minute.':''); }
-      else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } if(d&&d.ok) playerInfoFill(ov.querySelector('#paInfo'), r.id); }); };
-  const gB=ov.querySelector('#paGrant'); if(gB) gB.onclick=()=>gemAct('/api/admin/grant','Granted 2000');   // no confirmation
-  const tB=ov.querySelector('#paTake');  if(tB) tB.onclick=()=>gemAct('/api/admin/take','Took 2000');      // no confirmation
-  /* v1097 (Phil 9 Oct): Delete became Ban; the old admin delete stays only behind the Ban menu */
-  const bB=ov.querySelector('#paBan'); if(bB) bB.onclick=()=>{ bB.style.display='none';
-    adminBanMenu(ov.querySelector('#paBanBox'), {id:r.id,name:r.name,ban:r.ban||null}, {allowDelete:true, onDeleted:()=>{ close(); devAdminList(kind,panel); }},
-      d=>{ r.ban=d.banned||null; devAdminList(kind,panel); }); };
-  const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
-    msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{
-      if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
-      else if(d&&d.error==='offline'){ msg.style.color='#ff8b8b'; msg.textContent='Reset endpoint not found — deploy the latest server.js to Railway, then retry.'; }
-      else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
-  const un=ov.querySelector('#paUndo'); if(un) un.onclick=()=>{ msg.textContent='Working…'; api('/api/admin/unreset','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); devAdminList(kind,panel); } else msg.textContent=(d&&d.error)||'Failed'; }); };
+    return P;
+  }).catch(()=>{ if(host.isConnected) host.innerHTML='<div class="pai-err">Server unreachable</div>'; return null; }); }
+/* v1379 THE PLAYER CARD: Dev > Players shows it on the right of the table (host = the detail pane); anywhere else (a report's name,
+   a chat name...) it opens as its own window. The player's info from the server plus every action on THAT player, the most used first:
+   Grant / Take one resource, Ban, Reset progress (Undo reset), Make tester, Delete account, Clear flag / recovery email, Raw save, Message.
+   Every destructive one asks first; the server checks the admin role and logs who / what / when. */
+const DVP_RES=[['gems','Diamonds'],['gold','Gold'],['stamina','Stamina'],['arenaCoins','Arena coins'],['guildCoins','Guild coins'],['frags','Hero fragments']];
+function openPlayerAdmin(r, panel, host){ if(!r||!r.id||!DEV.on)return; devCssEnsure();
+  const nm=escapeHTML(String(r.name||'')), adm=!!r.dev;
+  const card=document.createElement('div'); card.className='pai-card'+(host?' inline':''); if(!host){ card.setAttribute('role','dialog'); card.setAttribute('aria-label',String(r.name||'')); }
+  card.innerHTML=`<div class="pai-hd"><div style="min-width:0"><div class="pai-nm">${nm}</div>
+      <div class="pai-sub">${r.login&&r.login!==r.name?'@'+escapeHTML(String(r.login))+' · ':''}<span class="pai-id">${escapeHTML(String(r.id))}</span>${devTagsHTML(r)}</div>
+      <div class="pai-sum" id="paSum"></div></div>
+      ${host?'':`<div class="pai-xc"><button class="dvp-close" id="paX" aria-label="Close">Close</button></div>`}</div>
+    <div class="pai-body">
+      <div class="pai-line"><select id="paRes" aria-label="Resource">${DVP_RES.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
+        <select id="paHero" aria-label="Hero" hidden>${HERO_KEYS.map(k=>`<option value="${k}">${escapeHTML((HERO_TYPES[k]&&HERO_TYPES[k].name)||k)}</option>`).join('')}</select>
+        <input id="paAmt" type="number" inputmode="numeric" min="1" step="1" value="100" aria-label="Amount"></div>
+      <div class="pai-btns"><button class="dvp-btn gold" id="paGrant">Grant</button><button class="dvp-btn danger" id="paTake">Take</button>
+        ${adm?'<span class="pai-note">Admin account</span>':`<button class="dvp-btn danger" id="paBan">${r.ban?'Banned · change':'Ban'}</button>
+        <button class="dvp-btn danger" id="paReset">Reset progress</button><button class="dvp-btn" id="paUndo" hidden>Undo reset</button>
+        <span id="paTst" class="pai-tst"></span><button class="dvp-btn danger" id="paDel">Delete account</button>
+        <button class="dvp-btn" id="paFlag" hidden>Clear flag</button><button class="dvp-btn" id="paEmail" hidden>Clear recovery email</button>`}
+        <button class="dvp-btn" id="paRaw">Raw save</button></div>
+      <div id="paMsg" class="pai-msg" role="status"></div><div id="paBanBox"></div><div id="paRawBox"></div>
+      <div class="pai-act"><div class="pai-at">Message</div><input id="paSubj" maxlength="60" placeholder="Subject" aria-label="Subject">
+        <textarea id="paText" rows="2" maxlength="500" placeholder="Message" aria-label="Message" style="margin-top:6px"></textarea>
+        <div class="pai-line"><button class="dvp-btn" id="paSend">Send to their Mail</button></div></div>
+      <div id="paInfo" class="pai-grid"><div class="pai-err" style="color:var(--dvp-dim)">${t('common.loading')}</div></div>
+    </div>`;
+  let close;
+  if(host){ host.innerHTML=''; host.appendChild(card); host.dataset.pid=r.id; host.scrollTop=0; close=()=>{ host.innerHTML=''; host.dataset.pid=''; }; }
+  else { const ov=document.createElement('div'); ov.className='pai-ov'; ov.appendChild(card); document.body.appendChild(ov); devPanelFit(); devArtWatch(ov); close=()=>ov.remove();
+    ov.addEventListener('click',e=>{ if(e.target===ov)close(); }); card.querySelector('#paX').onclick=close; }
+  const $=s=>card.querySelector(s), msg=$('#paMsg');
+  const say=(m,c)=>{ msg.textContent=m; msg.className='pai-msg'+(c?' '+c:''); };
+  const after=()=>{ refill(); if(panel) devPlayersLoad(panel,true); };
+  const call=(path,body,ok)=>{ say(t('set2.test_working')); return api(path,'POST',Object.assign({id:r.id},body||{})).then(d=>{ if(d&&d.ok){ say(ok(d),'good'); after(); } else say(String((d&&d.error)||'Failed'),'bad'); return d; }).catch(()=>say('Server unreachable','bad')); };
+  const refill=()=>playerInfoFill($('#paInfo'), r.id).then(P=>{ if(!P) return; const I=P.identity||{}, X=P.integrity||{}, Gp=P.progress||{}, R=P.roster||{};
+    const sh=(id,on)=>{ const el=$(id); if(el) el.hidden=!on; };
+    sh('#paUndo',!!P.preReset); sh('#paFlag',!!X.flag); sh('#paEmail',!!I.hasEmail);
+    const sum=$('#paSum'); if(sum) sum.textContent=[I.server?'Server '+I.server:'', P.ledger?'Lv '+(Gp.level|0):'', R.teamPower?'Power '+(+R.teamPower).toLocaleString():'', 'Last seen '+devAgo(I.lastSeen)].filter(Boolean).join(' · ');
+    r.ban=I.ban||null; const bb=$('#paBan'); if(bb) bb.textContent=r.ban?'Banned · change':'Ban'; });
+  refill();
+  if(!adm) adminTesterButton($('#paTst'),{id:r.id,name:r.name});   /* v1376 */
+  const resSel=$('#paRes'), heroSel=$('#paHero'); resSel.onchange=()=>{ heroSel.hidden=resSel.value!=='frags'; };
+  const adj=(sign)=>{ const n=Math.floor(+$('#paAmt').value||0); if(!(n>0)){ say('Enter an amount above 0','bad'); return; }
+    const res=resSel.value, lbl=(DVP_RES.find(x=>x[0]===res)||[0,res])[1]+(res==='frags'?' ('+((HERO_TYPES[heroSel.value]||{}).name||heroSel.value)+')':'');
+    const go=()=>call('/api/admin/adjust',{res,amount:sign*n,hero:res==='frags'?heroSel.value:undefined},d=>(sign>0?'Gave ':'Took ')+Math.abs(d.delta).toLocaleString()+' '+lbl+' · now '+(+d.after).toLocaleString());
+    if(sign<0) gameConfirm('Take <b>'+n.toLocaleString()+' '+escapeHTML(lbl)+'</b> from <b>'+nm+'</b>?',go); else go(); };
+  $('#paGrant').onclick=()=>adj(1); $('#paTake').onclick=()=>adj(-1);
+  $('#paRaw').onclick=()=>{ const box=$('#paRawBox'); if(box.firstChild){ box.innerHTML=''; return; } say(t('set2.test_working'));
+    api('/api/admin/player?raw=1&id='+encodeURIComponent(r.id)).then(d=>{ if(!d||!d.ok){ say(String((d&&d.error)||'Failed'),'bad'); return; } say('');
+      box.innerHTML='<textarea class="pai-raw" readonly aria-label="Raw save"></textarea>'; box.firstChild.value=JSON.stringify(d.raw,null,1); }).catch(()=>say('Server unreachable','bad')); };
+  $('#paSend').onclick=()=>{ const text=($('#paText').value||'').trim(); if(!text){ say('Type the message first','bad'); return; }
+    call('/api/admin/message',{subj:($('#paSubj').value||'').trim(),text},()=>'Sent to '+(r.name||'')+'’s Mail').then(d=>{ if(d&&d.ok){ $('#paText').value=''; $('#paSubj').value=''; } }); };
+  if(adm) return;
+  $('#paBan').onclick=()=>{ const box=$('#paBanBox'); if(box.firstChild){ box.innerHTML=''; return; }
+    adminBanMenu(box,{id:r.id,name:r.name,ban:r.ban||null},{},d=>{ r.ban=d.banned||null; after(); }); };
+  $('#paReset').onclick=()=>gameConfirm('Reset <b>ALL</b> progress of <b>'+nm+'</b> to a fresh start?<br><span style="font-size:11px;color:#8b98a9">A copy is kept: Undo reset puts it back.</span>',
+    ()=>call('/api/admin/reset-progress',{},()=>'Progress reset · Undo reset can put it back'));
+  $('#paUndo').onclick=()=>gameConfirm('Put back <b>'+nm+'</b>’s progress from before the reset?<br><span style="font-size:11px;color:#8b98a9">Anything they did since the reset is replaced.</span>',
+    ()=>call('/api/admin/reset-progress',{undo:true},()=>'Progress put back'));
+  $('#paFlag').onclick=()=>call('/api/admin/clearflag',{},()=>'Flag cleared');
+  $('#paEmail').onclick=()=>gameConfirm('Clear <b>'+nm+'</b>’s recovery email?<br><span style="font-size:11px;color:#8b98a9">They can then add a new one with a code.</span>',
+    ()=>call('/api/admin/email',{action:'clear'},()=>'Recovery email cleared'));
+  $('#paDel').onclick=()=>gameConfirm('Delete the account <b>'+nm+'</b>?',()=>gameConfirm('<b style="color:#ff8b8b">Last check.</b> Delete <b>'+nm+'</b> for good?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',
+    ()=>{ say(t('set2.test_working')); api('/api/admin/delete','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); if(DVP.sel===r.id) DVP.sel=null; if(panel){ const dd=panel.querySelector('#devDone'); if(dd) dd.textContent=(d.name||r.name)+' deleted'; devPlayersLoad(panel,true); } } else say(String((d&&d.error)||'Failed'),'bad'); }).catch(()=>say('Server unreachable','bad')); }));
 }
 /* v585 — THE THING THAT WAS EATING THE OFFLINE ART.
    Phil: "it deletes all cache once i close the game". It did, and nothing in Offline Art was doing

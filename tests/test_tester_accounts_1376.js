@@ -97,13 +97,15 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
       await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await delay(400);
       pg.tok = await pg.evaluate(async ([n, p]) => { const r = await api('/api/login', 'POST', { name: n, pass: p }); ACC.token = r.token; ACC.id = r.profile.id; ACC.name = r.profile.name; ACC.admin = !!r.profile.admin; ACC.tester = !!r.profile.tester; G.tutStarted = true; G.tutDone = true; try { _whatsNewDone = true; } catch (e) {} document.body.classList.remove('gated'); show('home'); return r.token; }, [n, p]);
       await delay(800); return pg; };
-    const look = (pg) => pg.evaluate(() => { try { setTab = 'dev'; } catch (e) {} renderSettings(); const b = document.getElementById('settingsBody'); const q = s => b.querySelectorAll(s).length;
-      const acts = [...b.querySelectorAll('[data-dev]')].map(x => x.dataset.dev);
-      return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: (b.querySelector('.dvp-badge') || {}).textContent || '' }; });
-    const ECON = ['gold', 'gems', 'shards', 'pieces', 'arenacoin', 'guildcoins', 'stam', 'stam30', 'level', 'squadlvl', 'campstage', 'campall', 'arena', 'shielditem', 'heroes', 'lv100', 'maxteam', 'givefrags'];
+    /* v1379: the dev panel is its own window (devPanelOpen) with one row of 6 tabs; Settings > Dev opens it */
+    const look = (pg) => pg.evaluate(() => { try { setTab = 'dev'; } catch (e) {} renderSettings(); const b = document.getElementById('settingsBody'); try { if (b.querySelector('[data-settab="dev"]')) devPanelOpen(); } catch (e) {}
+      const o = document.getElementById('dvpOv') || document.createElement('div'); const q = s => o.querySelectorAll(s).length;
+      const acts = [...o.querySelectorAll('[data-dev]')].map(x => x.dataset.dev);
+      return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: ((x => x ? (x.querySelector('img') ? x.querySelector('img').alt : x.textContent) : '')(o.querySelector('.dvp-title'))) || '' }; });
+    const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'heroes', 'lv100', 'maxteam', 'campall', 'givefrags'];
     // tester
     const tpg = await page(TG, PW); tgTok = tpg.tok; let v = await look(tpg);
-    ck('page, tester: Settings has the Dev tab with ONLY the Economy group (no group tabs) + Reset all progress', v.devTabBtn && v.groups === 0 && v.reset && v.acts.length === ECON.length && v.acts.every(a => ECON.includes(a)) && v.badge === 'TEST', JSON.stringify(v));
+    ck('page, tester: Settings has the Dev tab with ONLY the Economy group (no group tabs) + Reset all progress', v.devTabBtn && v.groups === 0 && v.reset && v.acts.length === ECON.length && v.acts.every(a => ECON.includes(a)) && v.badge === 'TEST ACCOUNT', JSON.stringify(v));
     const tg2 = await tpg.evaluate(async () => { const box = document.createElement('div'); box.innerHTML = '<div id="devDone"></div><div id="devAdmin"></div>'; document.body.appendChild(box);
       devAction('gold', box); for (let i = 0; i < 40 && !/gold|refused|unavailable/i.test(box.querySelector('#devDone').textContent); i++) await new Promise(r => setTimeout(r, 150));
       const g1 = box.querySelector('#devDone').textContent; devAction('backup', box); devAction('online', box); await new Promise(r => setTimeout(r, 600));
@@ -113,9 +115,11 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     ck('page, tester: tapping a chat name shows no tester button', tChat === false);
     // admin
     const apg = await page(ADM, PW); aTok = apg.tok; v = await look(apg);
-    const vAcc = await apg.evaluate(() => { devTab = 'accounts'; setTab = 'dev'; renderSettings(); return [...document.getElementById('settingsBody').querySelectorAll('[data-dev]')].map(x => x.dataset.dev); });
-    ck('page, admin: the whole dev panel (5 groups, Economy shown, DEV badge) + Reset', v.devTabBtn && v.groups === 5 && v.reset && v.badge === 'DEV' && ECON.slice(0, 6).every(a => v.acts.includes(a)), JSON.stringify(v));
-    ck('page, admin: Dev > Accounts has the Test accounts tools', ['mktest', 'testers', 'settester', 'online', 'accounts'].every(a => vAcc.includes(a)), vAcc.join());
+    const vEco = await apg.evaluate(() => { devTab = 'economy'; devPanelRender(); return [...document.querySelectorAll('#dvpOv [data-dev]')].map(x => x.dataset.dev); });
+    const vAcc = await apg.evaluate(async () => { devTab = 'accounts'; devPanelRender(); for (let i = 0; i < 40 && !document.querySelector('#dvpOv .dvp-prow'); i++) await new Promise(r => setTimeout(r, 150));
+      return { acts: [...document.querySelectorAll('#dvpOv [data-dev]')].map(x => x.dataset.dev), rows: document.querySelectorAll('#dvpOv .dvp-prow').length, tab: document.querySelector('#dvpOv .dvp').dataset.dvp }; });
+    ck('page, admin: the whole dev panel (6 tabs, DEV badge) + Reset; the Economy tab has the Economy actions', v.devTabBtn && v.groups === 6 && v.reset && v.badge === 'DEV PANEL' && ECON.every(a => vEco.includes(a)), JSON.stringify([v, vEco]));
+    ck('page, admin: the old Accounts group lands on Players: every account listed + Create test account (testers by the Testers filter, tester on / off on the player card)', vAcc.tab === 'players' && vAcc.acts.includes('mktest') && vAcc.rows >= 3, JSON.stringify(vAcc));
     const aChat = await apg.evaluate(async (n) => { const el = document.createElement('span'); el.dataset.w = n; document.body.appendChild(el); chatLineMenu(el);
       const pop = document.getElementById('chmPop'); let bt = null, stx = ''; for (let i = 0; i < 40; i++) { bt = pop && pop.querySelector('.adm-tst-b'); if (bt && !bt.disabled) break; await new Promise(r => setTimeout(r, 150)); }
       const before = { label: bt && bt.textContent, state: pop.querySelector('.adm-tst-st').textContent }; bt.click();
