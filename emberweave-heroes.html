@@ -21051,7 +21051,7 @@ let SKY={ st:null, busy:false, assignSel:null, lane:null };   // lane = bridge v
    view — your citadel left, theirs right, defenders as chips at each end, the March order fires a
    troop march from your live citadel toward mid-bridge; a destroyed citadel shows fallen (tilted,
    dimmed, 💥). The roster rows stay as supporting UI, as specified. */
-const SKY_BRIDGE_BG='/assets/img/battlefields/guild-war-skybridge-01.webp';
+const SKY_BRIDGE_BG='/assets/img/battlefields/guild-war-skybridge-02.webp?v=1';   /* v1384 (Phil 12 Nov, ChatGPT's wider corner-to-corner Skybridge: "that works"): the bridge runs bottom-left corner to top-right corner */
 function skyOpenLane(i){ SKY.lane=(SKY.lane===i?null:i); renderGuild(); }
 /* v774 - lines read weakest to strongest, top to bottom, wherever they are listed. */
 function skyByPower(defs){ return (defs||[]).slice()
@@ -21068,7 +21068,7 @@ function skyBridgeHTML(m,i){
       ${skyByPower(c?c.defenders:[]).map(d=>chip(d,mine)).join('')||'<div style="font-size:9px;color:#999;text-shadow:0 1px 2px #000">— '+t('skyfall.undefended')+' —</div>'}
     </div>`; };
   return `<div class="panel" style="padding:0;overflow:hidden">
-    <div style="position:relative;width:100%;aspect-ratio:16/9;background:url('${SKY_BRIDGE_BG}') center/cover;border-radius:10px">
+    <div style="position:relative;width:100%;aspect-ratio:2023/777;background:url('${SKY_BRIDGE_BG}') center/cover;border-radius:10px">
       ${cit(you,true)}${cit(foe,false)}
       <div id="skyMarcher" style="position:absolute;left:12%;bottom:34%;font-size:22px;opacity:0;transition:left 1.15s ease-in,opacity .2s;text-shadow:0 2px 4px #000">${statusIcon('attack')}🏃</div>
       <div style="position:absolute;left:0;right:0;bottom:4%;text-align:center">
