@@ -6843,7 +6843,7 @@ async function api(req,res,url){
     /* v1383 (Phil 12 Nov: "yes link resolve to embers app" / "the report reader should be able to see my reports resolved"): the ids Phil resolved
        in the dev panel (adminDone, last 30 days) ride along, so Ember closes her filed copy and says so in Reports */
     const _cut=Date.now()-30*86400000, done=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.adminDone&&x.adminDone>_cut).map(x=>x.id).slice(-500);
-    return send(res,200,{items,done}); }
+    /* v1383 (Phil 12 Nov: "the reader should be able to see if i banned someone, or cleared them" / "and report is to ember so she can annotate it"): the dev panel's moderation actions (ban, unban, flag clear, report resolve) from the admin log, last 30 days */ const actions=(Array.isArray(DB.adminLog)?DB.adminLog:[]).filter(x=>x&&x.t>_cut&&/^(ban|unban|flag:clear|report:clear|feedback:done)/.test(String(x.act||''))).slice(-300).map(x=>({t:x.t,act:x.act,id:x.id,name:x.name,by:x.by,detail:x.detail})); return send(res,200,{items,done,actions}); }
   if(p==='/api/ember/feedback/ack' && req.method==='POST'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const ids=new Set((Array.isArray(b.ids)?b.ids:[]).slice(0,100).map(String));
