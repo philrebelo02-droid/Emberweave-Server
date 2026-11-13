@@ -961,6 +961,7 @@ function adminLog(me, act, u, detail){ try{ DB.adminLog=Array.isArray(DB.adminLo
     id:String((u&&u.id)||''), name:String((u&&u.name)||'').slice(0,40), detail:String(detail==null?'':detail).slice(0,240) });
   if(DB.adminLog.length>ADMIN_LOG_KEEP) DB.adminLog=DB.adminLog.slice(-ADMIN_LOG_KEEP); _dp('adminLog');
   console.log('[admin] '+((me&&me.name)||'?')+' '+act+' '+((u&&u.name)||'')+(detail?' - '+String(detail).slice(0,120):'')); }catch(e){} }
+function emberActionKey(x){ return 'A-'+(x.t||0)+'-'+String(x.act||'')+'-'+String(x.id||''); }   /* v1384: an admin action's ack key for Ember (t + act + target: unique per action) */
 function adminLogFor(id, n){ const L=Array.isArray(DB.adminLog)?DB.adminLog:[], out=[]; for(let i=L.length-1;i>=0&&out.length<(n||20);i--){ const x=L[i]; if(!id||x.id===id) out.push(x); } return out; }
 /* v1379: the maintenance notice (a banner every signed-in player sees on their next ledger sync, this server only) and an admin's message to
    one player (it lands in their Mail inbox; kept 14 days, 10 at most) - both ride the ledger view */
@@ -6906,13 +6907,22 @@ async function api(req,res,url){
       .sort((a,b)=>((a.kind==='cheat')-(b.kind==='cheat'))||((a.t||0)-(b.t||0))).slice(0,100);   /* v1251 (1 Nov: SoMalice's suggestion sat behind ~1,100 sim-bot cheat flags and never reached Ember): players' bugs and suggestions first, cheat flags after */
     /* v1383 (Phil 12 Nov: "yes link resolve to embers app" / "the report reader should be able to see my reports resolved"): the ids Phil resolved
        in the dev panel (adminDone, last 30 days) ride along, so Ember closes her filed copy and says so in Reports */
-    const _cut=Date.now()-30*86400000, done=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.adminDone&&x.adminDone>_cut).map(x=>x.id).slice(-500);
-    /* v1383 (Phil 12 Nov: "the reader should be able to see if i banned someone, or cleared them" / "and report is to ember so she can annotate it"): the dev panel's moderation actions (ban, unban, flag clear, report resolve) from the admin log, last 30 days */ const actions=(Array.isArray(DB.adminLog)?DB.adminLog:[]).filter(x=>x&&x.t>_cut&&/^(ban|unban|flag:clear|report:clear|feedback:done|compensation)/.test(String(x.act||''))).slice(-300).map(x=>({t:x.t,act:x.act,id:x.id,name:x.name,by:x.by,detail:x.detail})); return send(res,200,{items,done,actions}); }
+    const _cut=Date.now()-30*86400000, done=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.adminDone&&x.adminDone>_cut&&x.doneAcked!==x.adminDone).map(x=>x.id).slice(-500);   /* v1384 (Grok, Claude 12 Nov 21:49): a resolve Ember has acked is not sent again (was: every pull, forever) */
+    /* v1383 (Phil 12 Nov: "the reader should be able to see if i banned someone, or cleared them" / "and report is to ember so she can annotate it"): the dev panel's moderation actions (ban, unban, flag clear, report resolve) from the admin log, last 30 days */ const actions=(Array.isArray(DB.adminLog)?DB.adminLog:[]).filter(x=>x&&x.t>_cut&&!x.emberAck&&/^(ban|unban|flag:clear|report:clear|feedback:done|compensation)/.test(String(x.act||''))).slice(-300).map(x=>({key:emberActionKey(x),t:x.t,act:x.act,id:x.id,name:x.name,by:x.by,detail:x.detail}));   /* v1384: key = what Ember acks; an acked action is not sent again */ return send(res,200,{items,done,actions}); }
   if(p==='/api/ember/feedback/ack' && req.method==='POST'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const ids=new Set((Array.isArray(b.ids)?b.ids:[]).slice(0,100).map(String));
-    let n=0; for(const item of DB.feedback||[]){ if(ids.has(item.id)&&!item.received){item.received=true;item.receivedAt=Date.now();n++;} }
-    if(n){ _dp('feedback'); writeDB([],['feedback']); } return send(res,200,{ok:true,acknowledged:n}); }
+    /* v1384 ACK STICKS (Grok, Claude 12 Nov 21:49: S2-5 forwarded reports and cheat ids came back on every pull, ack answered 0): since v1383 the
+       pull also re-sends the ids Phil resolved (done) and the dev panel's moderation actions, and nothing could ack them - those items were
+       already received, so the ack matched nothing. The ack now also closes a resolve (doneAcked = that resolve's time: a reopen + resolve
+       is sent again) and an action (by its key). Saved with the feedback + adminLog pieces, so it holds across a restart. */
+    let n=0, d=0, a=0; const now=Date.now();
+    for(const item of DB.feedback||[]){ if(!item||!ids.has(String(item.id))) continue;
+      if(!item.received){item.received=true;item.receivedAt=now;n++;}
+      if(item.adminDone&&item.doneAcked!==item.adminDone){item.doneAcked=item.adminDone;d++;} }
+    if(ids.size&&Array.isArray(DB.adminLog)) for(const x of DB.adminLog){ if(x&&!x.emberAck&&ids.has(emberActionKey(x))){x.emberAck=now;a++;} }
+    if(n||d){ _dp('feedback'); } if(a){ _dp('adminLog'); } if(n||d||a) writeDB([],['feedback','adminLog']);
+    return send(res,200,{ok:true,acknowledged:n+d+a,items:n,done:d,actions:a}); }
   if(p==='/api/admin/reports'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const reports=(DB.reports||[]).slice().reverse().slice(0,200); return send(res,200,{reports, count:(DB.reports||[]).length}); }
   if(p==='/api/admin/report' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
