@@ -78,9 +78,9 @@ const EVIL = '<b class=pwn>x</b>&"\'', EVIL2 = '<img src=x onerror=__xss=1>', EV
     await screen('chat', () => { show('home'); ensureChatWidget(); const w = document.getElementById('chatWidget'); if (w) { w.style.display = 'block'; w.classList.remove('min'); } try { if (CHATNET.ws) CHATNET.ws.close(); } catch (e) {} setTimeout(chatConnect, 300); setTimeout(() => { try { chatTab = 'world'; renderChat(); } catch (e) {} }, 4500); }, 6000);
     if (seen.chat && !seen.chat.lit) console.log('  (chat debug) ' + await pg.evaluate(() => JSON.stringify({ n: (CHAT.world || []).length, w: (CHAT.world || []).slice(-2), conn: CHATNET.connected, tab: typeof chatTab !== 'undefined' && chatTab })));
     ck(seen.chat && seen.chat.lit, 'chat shows the legacy name literally');
-    await screen('dev panel list', async () => { devTab = 'accounts'; popoutScreen('settings'); await new Promise(r => setTimeout(r, 900)); document.querySelector('[data-dev="online"]').click(); }, 3000);
+    await screen('dev panel list', async () => { devTab = 'accounts'; popoutScreen('settings'); await new Promise(r => setTimeout(r, 900)); const sb = document.querySelector('#settingsBody [data-settab="dev"]'); if (sb) sb.click(); await new Promise(r => setTimeout(r, 600)); const t = document.querySelector('#dvpOv [data-devtab="players"]'); if (t) t.click(); }, 3000);   /* v1381: the revamped dev panel (Players tab) */
     ck(seen['dev panel list'] && seen['dev panel list'].lit && seen['dev panel list'].lit2, 'the dev panel list shows both legacy names literally');
-    await screen('dev panel popup', () => { const row = [...document.querySelectorAll('.devrow')].find(x => x.textContent.includes('<b class=pwn>')); row.click(); }, 3000);
+    await screen('dev panel popup', async () => { let row; for (let i = 0; i < 60 && !row; i++) { row = [...document.querySelectorAll('#dvpOv .dvp-prow')].find(x => x.textContent.includes('<b class=pwn>')); if (!row) await new Promise(r => setTimeout(r, 250)); } row.click(); }, 3000);   /* v1381: a player row opens the player card */
     ck(seen['dev panel popup'] && seen['dev panel popup'].lit, 'the player popup shows the legacy name literally');
     ck(errs.length === 0, 'no page errors', errs.join(' | '));
   } catch (e) { fail++; console.log('  FAIL ' + (e && e.stack || e)); }
