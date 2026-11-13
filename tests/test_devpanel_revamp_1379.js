@@ -152,12 +152,14 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
           const r = d.getBoundingClientRect(), p = d.parentElement.getBoundingClientRect(); const sb = d.querySelector('.dvp-body'); const tr = d.querySelector('.dvp-tabs'), t0 = tr.children[0].getBoundingClientRect(), tl = tr.lastElementChild.getBoundingClientRect();
           const oneLine = tr.children[0].offsetTop === tr.lastElementChild.offsetTop && [...tr.children].every(b => b.scrollWidth <= b.clientWidth + 1 && b.querySelector('span').scrollWidth <= b.querySelector('span').clientWidth + 1);
           const hit = document.elementFromPoint(t0.left + t0.width / 2, t0.top + t0.height / 2);
+          const ov = d.parentElement, sc = +getComputedStyle(ov).getPropertyValue('--dvp-scale'), want = Math.min(ov.clientWidth / 1280, ov.clientHeight / 800), rr = d.getBoundingClientRect(), orr = ov.getBoundingClientRect();
+          const fixed = d.offsetWidth === 1280 && d.offsetHeight === 800 && Math.abs(sc - want) < 0.002 && (Math.abs(Math.max(rr.width, rr.height) - Math.max(orr.width, orr.height)) < 3 || Math.abs(Math.min(rr.width, rr.height) - Math.min(orr.width, orr.height)) < 3);
           const L = d.querySelector('.dvp-left'), R = d.querySelector('.dvp-right'); const split = !L || !R || (R.offsetLeft >= L.offsetLeft + L.offsetWidth - 1 && Math.abs(R.offsetTop - L.offsetTop) < 4);
-          return { split, over: over.slice(0, 4), panelOut: r.right > p.right + 2 || r.left < p.left - 2 || r.bottom > p.bottom + 2, bodySide: sb.scrollWidth > sb.clientWidth + 2, tabs: d.querySelectorAll('[data-devtab]').length, oneLine, onTop: !!(hit && hit.closest('.dvp-tabs')) }; });
-        if (filled && !fit.over.length && !fit.panelOut && !fit.bodySide && fit.tabs === 6 && fit.oneLine && fit.onTop && fit.split) okTabs.push(tb); else bad.push(tb + ' ' + JSON.stringify({ filled, ...fit }));
+          return { fixed, sc, split, over: over.slice(0, 4), panelOut: r.right > p.right + 2 || r.left < p.left - 2 || r.bottom > p.bottom + 2, bodySide: sb.scrollWidth > sb.clientWidth + 2, tabs: d.querySelectorAll('[data-devtab]').length, oneLine, onTop: !!(hit && hit.closest('.dvp-tabs')) }; });
+        if (filled && !fit.over.length && !fit.panelOut && !fit.bodySide && fit.tabs === 6 && fit.oneLine && fit.onTop && fit.split && fit.fixed) okTabs.push(tb); else bad.push(tb + ' ' + JSON.stringify({ filled, ...fit }));
         if (SHOTS) await pg.screenshot({ path: path.join(SHOTS, 'devpanel-' + tb + '-' + lab + '.png') });
       }
-      ck('page, admin, ' + lab + ': all 6 tabs open and fill; ONE row of tabs, in one line, on top; list left + detail right; nothing wider than the panel', okTabs.length === 6, bad.join(' | '));
+      ck('page, admin, ' + lab + ': all 6 tabs open and fill; the fixed 1280x800 panel at one scale filling the view; ONE row of tabs; list left + detail right; nothing sideways', okTabs.length === 6, bad.join(' | '));
       // the player card at this size
       await openDev(pg, 'players'); await pg.waitForFunction(() => document.querySelectorAll('#dvpOv .dvp-prow').length > 0, null, { timeout: 15000 }).catch(() => {});
       const card = await pg.evaluate(async (n) => { const row = [...document.querySelectorAll('#dvpOv .dvp-prow')].find(x => x.textContent.includes(n)); if (!row) return { row: false }; row.click();
@@ -185,13 +187,6 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       const ok = got && got.dir === d && JSON.stringify(got.order) === JSON.stringify(e); sortRes.push(ok);
       ck('page, admin: sort by ' + key + (d < 0 ? ' (high to low / newest first)' : ' (low to high / A-Z / oldest first)') + ' matches the server numbers', ok, JSON.stringify({ got, e }));
     }
-    // a narrow window (a portrait phone the game does not turn): the detail drops below the list, nothing sideways
-    const narrow = await apg.evaluate(async () => { const d = document.querySelector('#dvpOv .dvp'); d.style.maxWidth = '420px'; await new Promise(r => setTimeout(r, 200));
-      const L = d.querySelector('.dvp-left'), R = d.querySelector('.dvp-right'), tr = d.querySelector('.dvp-tabs');
-      const out = { below: R.offsetTop >= L.offsetTop + L.offsetHeight - 1, oneLine: tr.children[0].offsetTop === tr.lastElementChild.offsetTop, side: d.querySelector('.dvp-body').scrollWidth > d.querySelector('.dvp-body').clientWidth + 2 };
-      d.style.maxWidth = ''; return out; });
-    if (SHOTS) { await apg.evaluate(() => { document.querySelector('#dvpOv .dvp').style.maxWidth = '420px'; }); await delay(250); await apg.screenshot({ path: path.join(SHOTS, 'devpanel-players-narrow-420.png') }); await apg.evaluate(() => { document.querySelector('#dvpOv .dvp').style.maxWidth = ''; }); }
-    ck('page, admin: in a narrow window the detail drops below the list, tabs stay one line, nothing sideways', narrow.below && narrow.oneLine && !narrow.side, JSON.stringify(narrow));
     // search + filter
     const sf = await apg.evaluate(async (n) => { const q = document.getElementById('dvpQ'); q.value = n; q.dispatchEvent(new Event('input')); await new Promise(r => setTimeout(r, 100));
       const one = [...document.querySelectorAll('#dvpOv .dvp-prow b')].map(x => x.textContent); q.value = ''; q.dispatchEvent(new Event('input'));
