@@ -29391,11 +29391,14 @@ function compRowsHTML(){ const now=Date.now(); const L=(COMP.list||[]).filter(c=
 function compCssEnsure(){ if(document.getElementById('compCss')) return; const s=document.createElement('style'); s.id='compCss';
   s.textContent='.mailrow.comp{border-color:#c99a4a!important;background:linear-gradient(180deg,#2c1f12,#1a130d)!important}.mailrow.comp.claimed{opacity:.75}'+
     '.comp-rw{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px}.comp-r{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#f1e4c8}.comp-r b{color:#ffe2a8}.comp-r .stIc{width:20px;height:20px;margin:0}'+
-    '.comp-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}.comp-done{color:#8fe0a0;font-weight:700;font-size:13px}.comp-exp{color:#a99b84;font-size:12px}.comp-msg{color:#ff9b8b;font-size:12px}';
+    '.comp-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}.comp-done{color:#8fe0a0;font-weight:700;font-size:13px}.comp-exp{color:#a99b84;font-size:12px}.comp-msg{color:#ff9b8b;font-size:12px}'+'#stageRewPop .srArt .stIc{width:44px;height:44px;margin:0}';
   document.head.appendChild(s); }
 async function compClaim(id, btn){ if(btn) btn.disabled=true;
   const r=await api('/api/comp/claim','POST',{ id, requestId:'comp-'+id+'-'+(ACC&&ACC.id||'') }).catch(()=>null);   // one receipt per compensation and player: a retry answers the same
-  if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); const c=(COMP.list||[]).find(x=>x.id===id); if(c) c.claimed=true; try{ saveG(); updateHubChrome(); }catch(e){} updateMailBadges(); if(state==='mail') renderMail(); return true; }
+  if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); const c=(COMP.list||[]).find(x=>x.id===id); if(c) c.claimed=true; try{ saveG(); updateHubChrome(); }catch(e){} updateMailBadges(); if(state==='mail') renderMail();
+    /* v1387 (Phil 13 Nov: "When i click claim on compensation mail it should pop up the rewards the same way like sweep in campaign"): the campaign sweep's reward pop-up, one tile per reward */
+    try{ if(c&&c.rewards&&!r.replayed) stageRewardPop(COMP_R.filter(([k])=>(c.rewards[k]|0)>0).map(([k,ic,key])=>({art:ic(), qty:c.rewards[k], name:ewT(key)})), ewT('mail.comp_tag')); }catch(e){}
+    return true; }
   if(btn){ btn.disabled=false; const m=btn.parentElement&&btn.parentElement.querySelector('.comp-msg'); if(m) m.textContent=String((r&&r.error)||ewT('mail.comp_failed')); } return false; }
 function pushWar(c,incoming,timing){ ensureMail(); const now=Date.now(), readyAt=timing?.readyAt||now+WAR_PREP_MS, expireAt=timing?.expireAt||now+WAR_TOTAL_MS;   // 30-min prep, 72h total
   G.wars=G.wars.filter(w=>!(!!w.incoming===!!incoming && w.name===c.name));   // one war per foe per direction

@@ -111,6 +111,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
         ck('page: Send asks first, then sends', sent.q && /Compensation sent/.test(sent.done), JSON.stringify(sent));
       }
       await apg.context().close();
+      const CLAIM_ID = lab === 'pc-1440x900' ? PCID : null;   /* v1387: the phone claims one of B's other unclaimed compensations, so the phone shows the claim pop too */
       const ppg = await page(B, PW, { width: w, height: h }); bTk = ppg.tok;
       const before = await ppg.evaluate(async () => { show('mail'); mailTab = 'inbox'; renderMail(); await new Promise(r => setTimeout(r, 300));
         const rows = [...document.querySelectorAll('#mailBody .mailrow.comp')]; const md = document.getElementById('mailDot');
@@ -121,11 +122,18 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       });
       ck('expiry shows hours below 48h and days above it', /48 h/.test(expiry[0]) && /2 days/.test(expiry[1]), expiry.join(' / '));
       if (SHOTS) await ppg.screenshot({ path: path.join(SHOTS, 'mail-compensation-before-' + lab + '.png') });
-      const after = await ppg.evaluate(async (id) => { const g0 = G.gold; const btn = document.querySelector('#mailBody [data-compclaim="' + id + '"]'); if (!btn) return { nobtn: true }; btn.click();
+      const after = await ppg.evaluate(async (id) => { if (!id) { const b0 = document.querySelector('#mailBody [data-compclaim]'); id = b0 && b0.dataset.compclaim; } const g0 = G.gold; const btn = document.querySelector('#mailBody [data-compclaim="' + id + '"]'); if (!btn) return { nobtn: true }; btn.click();
         for (let i = 0; i < 40 && document.querySelector('#mailBody [data-compclaim="' + id + '"]'); i++) await new Promise(r => setTimeout(r, 150));
         const row = document.querySelector('#mailBody .mailrow.comp[data-comp="' + id + '"]'); const md = document.getElementById('mailDot');
-        return { claimed: !!(row && row.querySelector('.comp-done')), gold: G.gold - g0, unclaimed: compUnclaimed(), badge: md ? md.textContent : '' }; }, PCID);
+        return { claimed: !!(row && row.querySelector('.comp-done')), gold: G.gold - g0, unclaimed: compUnclaimed(), badge: md ? md.textContent : '' }; }, CLAIM_ID);
+      /* v1387 (Phil 13 Nov): claiming pops the rewards like the campaign sweep */
+      await ppg.waitForTimeout(2600);
+      const pop = await ppg.evaluate(() => { const ov = document.getElementById('stageRewPop'); if (!ov) return { open: false };
+        const r = ov.querySelector('.srCard').getBoundingClientRect(); return { open: true, items: ov.querySelectorAll('.srItem').length, shown: ov.querySelectorAll('.srItem.on').length,
+          inView: r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, icon: (() => { const i = ov.querySelector('.srArt img'); return i ? Math.round(i.getBoundingClientRect().width) : 0; })() }; });
+      ck(lab + ': claim pops the rewards like a sweep', pop.open && pop.items >= 2 && pop.shown === pop.items && pop.inView && pop.icon >= 30, JSON.stringify(pop));
       if (SHOTS) await ppg.screenshot({ path: path.join(SHOTS, 'mail-compensation-after-' + lab + '.png') });
+      await ppg.evaluate(() => { const g = document.querySelector('#stageRewPop .srGo'); if (g) g.click(); });
       if (lab === 'pc-1440x900') {
         ck('page: player B\u2019s Mail shows the compensations at the top of the Inbox (1 to claim, 1 claimed) and the badge counts the unclaimed', before.n >= 2 && before.claimBtns >= 1 && before.claimed >= 1 && before.unclaimed >= 1 && /Thanks for testing/.test(before.txt.join(' ')), JSON.stringify(before));
         ck('page: Claim pays it (gold +5000), the mail now says Claimed, the unclaimed count drops', after.claimed && after.gold === 5000 && after.unclaimed === before.unclaimed - 1, JSON.stringify([before.unclaimed, after]));
