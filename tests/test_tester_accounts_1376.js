@@ -101,11 +101,11 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const look = (pg) => pg.evaluate(() => { try { setTab = 'dev'; } catch (e) {} renderSettings(); const b = document.getElementById('settingsBody'); try { if (b.querySelector('[data-settab="dev"]')) devPanelOpen(); } catch (e) {}
       const o = document.getElementById('dvpOv') || document.createElement('div'); const q = s => o.querySelectorAll(s).length;
       const acts = [...o.querySelectorAll('[data-dev]')].map(x => x.dataset.dev);
-      return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: (o.querySelector('.dvp-badge') || {}).textContent || '' }; });
+      return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: (o.querySelector('.dvp-title') || {}).textContent || '' }; });
     const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'heroes', 'lv100', 'maxteam', 'campall', 'givefrags'];
     // tester
     const tpg = await page(TG, PW); tgTok = tpg.tok; let v = await look(tpg);
-    ck('page, tester: Settings has the Dev tab with ONLY the Economy group (no group tabs) + Reset all progress', v.devTabBtn && v.groups === 0 && v.reset && v.acts.length === ECON.length && v.acts.every(a => ECON.includes(a)) && v.badge === 'TEST', JSON.stringify(v));
+    ck('page, tester: Settings has the Dev tab with ONLY the Economy group (no group tabs) + Reset all progress', v.devTabBtn && v.groups === 0 && v.reset && v.acts.length === ECON.length && v.acts.every(a => ECON.includes(a)) && v.badge === 'TEST ACCOUNT', JSON.stringify(v));
     const tg2 = await tpg.evaluate(async () => { const box = document.createElement('div'); box.innerHTML = '<div id="devDone"></div><div id="devAdmin"></div>'; document.body.appendChild(box);
       devAction('gold', box); for (let i = 0; i < 40 && !/gold|refused|unavailable/i.test(box.querySelector('#devDone').textContent); i++) await new Promise(r => setTimeout(r, 150));
       const g1 = box.querySelector('#devDone').textContent; devAction('backup', box); devAction('online', box); await new Promise(r => setTimeout(r, 600));
@@ -118,7 +118,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const vEco = await apg.evaluate(() => { devTab = 'economy'; devPanelRender(); return [...document.querySelectorAll('#dvpOv [data-dev]')].map(x => x.dataset.dev); });
     const vAcc = await apg.evaluate(async () => { devTab = 'accounts'; devPanelRender(); for (let i = 0; i < 40 && !document.querySelector('#dvpOv .dvp-prow'); i++) await new Promise(r => setTimeout(r, 150));
       return { acts: [...document.querySelectorAll('#dvpOv [data-dev]')].map(x => x.dataset.dev), rows: document.querySelectorAll('#dvpOv .dvp-prow').length, tab: document.querySelector('#dvpOv .dvp').dataset.dvp }; });
-    ck('page, admin: the whole dev panel (6 tabs, DEV badge) + Reset; the Economy tab has the Economy actions', v.devTabBtn && v.groups === 6 && v.reset && v.badge === 'DEV' && ECON.every(a => vEco.includes(a)), JSON.stringify([v, vEco]));
+    ck('page, admin: the whole dev panel (6 tabs, DEV badge) + Reset; the Economy tab has the Economy actions', v.devTabBtn && v.groups === 6 && v.reset && v.badge === 'DEV PANEL' && ECON.every(a => vEco.includes(a)), JSON.stringify([v, vEco]));
     ck('page, admin: the old Accounts group lands on Players: every account listed + Create test account (testers by the Testers filter, tester on / off on the player card)', vAcc.tab === 'players' && vAcc.acts.includes('mktest') && vAcc.rows >= 3, JSON.stringify(vAcc));
     const aChat = await apg.evaluate(async (n) => { const el = document.createElement('span'); el.dataset.w = n; document.body.appendChild(el); chatLineMenu(el);
       const pop = document.getElementById('chmPop'); let bt = null, stx = ''; for (let i = 0; i < 40; i++) { bt = pop && pop.querySelector('.adm-tst-b'); if (bt && !bt.disabled) break; await new Promise(r => setTimeout(r, 150)); }

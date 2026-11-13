@@ -78,7 +78,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
           if (/^(BUTTON|IMG)$/.test(el.tagName) || el.classList.contains('pai-sec')) { const g = el.getBoundingClientRect(); if (g.width && hit(g, mr) && el !== x && !x.contains(el)) over.push(el.tagName + '#' + el.id + '.' + el.className); }
           for (const n of el.childNodes) if (n.nodeType === 3 && /\S/.test(n.data)) { rg.selectNodeContents(n); for (const g of rg.getClientRects()) if (hit(g, mr)) over.push('text:' + n.data.trim().slice(0, 20)); } } }
       const btns = ['paGrant', 'paTake', 'paBan'].every(id => !!document.getElementById(id)) && !!(document.getElementById('paReset') || document.getElementById('paUndo'));
-      const card = document.querySelector('.pai-card').getBoundingClientRect();
+      const card = (document.getElementById('dvpDetail') || document.querySelector('.pai-card')).getBoundingClientRect();   /* v1379: the card sits in the Players tab's detail pane */
       return { t, secs, btns, docked: !!(mr && xr && m.dataset.why === 'win-under-x' && mr.top >= xr.bottom - 1 && Math.abs((mr.left + mr.width / 2) - (xr.left + xr.width / 2)) <= 2), why: m && m.dataset.why,
         mr: mr && [Math.round(mr.left), Math.round(mr.top), Math.round(mr.width)], xr: xr && [Math.round(xr.left), Math.round(xr.top), Math.round(xr.width)], over: [...new Set(over)].slice(0, 6),
         fits: card.left >= 0 && card.right <= innerWidth && card.top >= 0 && card.bottom <= innerHeight, wide: document.documentElement.scrollWidth <= innerWidth + 1 };

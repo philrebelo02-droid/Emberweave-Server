@@ -57,7 +57,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     ck('accounts list: the tester row says tester', (rows.find(r => r.name === TG) || {}).tester === true);
     // --- every new route: admin only (403 signed out, player, tester)
     const NEW = [['POST', '/api/admin/adjust', { id: plId, res: 'gems', amount: 5 }], ['POST', '/api/admin/message', { id: plId, text: 'hi' }], ['POST', '/api/admin/mail-all', { text: 'hi' }], ['GET', '/api/admin/mail-all'], ['POST', '/api/admin/notice', { text: 'x' }],
-      ['GET', '/api/admin/status'], ['GET', '/api/admin/player?raw=1&id=' + plId], ['POST', '/api/admin/backup-now', {}], ['GET', '/api/admin/log'], ['GET', '/api/admin/feedback'], ['POST', '/api/admin/feedback', { id: 'x', done: true }],
+      ['GET', '/api/admin/status'], ['GET', '/api/admin/purchase?q=gems'], ['GET', '/api/admin/player?raw=1&id=' + plId], ['POST', '/api/admin/backup-now', {}], ['GET', '/api/admin/log'], ['GET', '/api/admin/feedback'], ['POST', '/api/admin/feedback', { id: 'x', done: true }],
       ['POST', '/api/admin/reset-progress', { id: plId }], ['POST', '/api/admin/reset-progress', { id: plId, undo: true }]];
     const OLD = [['GET', '/api/admin/accounts'], ['GET', '/api/admin/online'], ['GET', '/api/admin/player?id=' + plId], ['POST', '/api/admin/ban', { playerId: plId, days: 1, requestId: 'r1' }],
       ['POST', '/api/admin/delete', { id: plId }], ['POST', '/api/admin/tester', { id: plId, on: true }], ['POST', '/api/admin/test-account', {}], ['GET', '/api/dev/reports'], ['POST', '/api/admin/report', { action: 'clearResolved' }]];
@@ -112,6 +112,8 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     await post('/api/report', { kind: 'bug', text: 'Tester: the forge shakes', screen: 'forge' }, tTok);
     const fbt = await get('/api/admin/feedback', aTok);
     ck('a test account report is marked tester in the queue (Testers filter)', (fbt.body.items || []).some(x => x.text === 'Tester: the forge shakes' && x.tester === true), JSON.stringify(fbt.body.items).slice(0, 300));
+    const buy = await get('/api/admin/purchase?q=' + encodeURIComponent(FX[1].name), aTok);
+    ck('Economy > Purchase support finds a player purchases (by player name)', buy.status === 200 && (buy.body.purchases || []).some(x => x.name === FX[1].name && x.usd === 600), JSON.stringify(buy.body).slice(0, 200));
     // --- the admin log
     let lg = await get('/api/admin/log?id=' + plId, aTok); const acts = (lg.body.log || []).map(x => x.act);
     ck('the admin log holds who / what / when for that player', ['grant', 'take', 'message', 'reset:progress', 'reset:undo', 'feedback:done'].every(a => acts.includes(a)) && lg.body.log.every(x => x.by === ADM && x.t > 0), acts.join());
@@ -141,7 +143,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
         const clicked = await pg.evaluate((tb) => { const b = document.querySelector('#dvpOv .dvp [data-devtab="' + tb + '"]'); if (!b) return false; b.click(); return true; }, tb);
         if (!clicked) { bad.push(tb + ': no tab button'); continue; }
         const filled = await pg.waitForFunction((tb) => { const d = document.querySelector('#dvpOv .dvp'); if (!d || d.dataset.dvp !== tb) return false;
-          const sel = { players: '.dvp-prow', reports: '.dvp-rep,.dvp-empty:not(.bad)', economy: '.dvp-erow', liveops: '#dvpLive .dvp-card #dvpNotice', servers: '.dvp-card', qa: '.dvp-tile' }[tb];
+          const sel = { players: '.dvp-prow', reports: '.dvp-rep,.dvp-empty:not(.bad)', economy: '.dvp-erow', liveops: '#dvpLive .dvp-srow', servers: '.dvp-srow', qa: '.dvp-srow' }[tb];
           if (tb === 'reports' && document.querySelector('#devIntegrity .dvp-empty') && /Loading/i.test(document.querySelector('#devIntegrity').textContent)) return false;
           return d.querySelectorAll(sel).length > 0; }, tb, { timeout: 15000 }).then(() => true).catch(() => false);
         await delay(250);
@@ -150,20 +152,21 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
           const r = d.getBoundingClientRect(), p = d.parentElement.getBoundingClientRect(); const sb = d.querySelector('.dvp-body'); const tr = d.querySelector('.dvp-tabs'), t0 = tr.children[0].getBoundingClientRect(), tl = tr.lastElementChild.getBoundingClientRect();
           const oneLine = tr.children[0].offsetTop === tr.lastElementChild.offsetTop && [...tr.children].every(b => b.scrollWidth <= b.clientWidth + 1 && b.querySelector('span').scrollWidth <= b.querySelector('span').clientWidth + 1);
           const hit = document.elementFromPoint(t0.left + t0.width / 2, t0.top + t0.height / 2);
-          return { over: over.slice(0, 4), panelOut: r.right > p.right + 2 || r.left < p.left - 2 || r.bottom > p.bottom + 2, bodySide: sb.scrollWidth > sb.clientWidth + 2, tabs: d.querySelectorAll('[data-devtab]').length, oneLine, onTop: !!(hit && hit.closest('.dvp-tabs')) }; });
-        if (filled && !fit.over.length && !fit.panelOut && !fit.bodySide && fit.tabs === 6 && fit.oneLine && fit.onTop) okTabs.push(tb); else bad.push(tb + ' ' + JSON.stringify({ filled, ...fit }));
+          const L = d.querySelector('.dvp-left'), R = d.querySelector('.dvp-right'); const split = !L || !R || (R.offsetLeft >= L.offsetLeft + L.offsetWidth - 1 && Math.abs(R.offsetTop - L.offsetTop) < 4);
+          return { split, over: over.slice(0, 4), panelOut: r.right > p.right + 2 || r.left < p.left - 2 || r.bottom > p.bottom + 2, bodySide: sb.scrollWidth > sb.clientWidth + 2, tabs: d.querySelectorAll('[data-devtab]').length, oneLine, onTop: !!(hit && hit.closest('.dvp-tabs')) }; });
+        if (filled && !fit.over.length && !fit.panelOut && !fit.bodySide && fit.tabs === 6 && fit.oneLine && fit.onTop && fit.split) okTabs.push(tb); else bad.push(tb + ' ' + JSON.stringify({ filled, ...fit }));
         if (SHOTS) await pg.screenshot({ path: path.join(SHOTS, 'devpanel-' + tb + '-' + lab + '.png') });
       }
-      ck('page, admin, ' + lab + ': all 6 tabs open and fill; ONE row of tabs, in one line, on top; nothing wider than the panel', okTabs.length === 6, bad.join(' | '));
+      ck('page, admin, ' + lab + ': all 6 tabs open and fill; ONE row of tabs, in one line, on top; list left + detail right; nothing wider than the panel', okTabs.length === 6, bad.join(' | '));
       // the player card at this size
       await openDev(pg, 'players'); await pg.waitForFunction(() => document.querySelectorAll('#dvpOv .dvp-prow').length > 0, null, { timeout: 15000 }).catch(() => {});
       const card = await pg.evaluate(async (n) => { const row = [...document.querySelectorAll('#dvpOv .dvp-prow')].find(x => x.textContent.includes(n)); if (!row) return { row: false }; row.click();
-        for (let i = 0; i < 60 && !(document.querySelectorAll('#paInfo .pai-sec').length >= 5); i++) await new Promise(r => setTimeout(r, 150));
-        const c = document.querySelector('.pai-card'); const cr = c.getBoundingClientRect(); const over = [...c.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !['SELECT', 'INPUT', 'TEXTAREA'].includes(el.tagName) && getComputedStyle(el).overflowX !== 'hidden').map(el => el.className || el.id).slice(0, 4);
+        for (let i = 0; i < 60 && !(document.querySelectorAll('#dvpDetail #paInfo .pai-sec').length >= 5 && /dPl/.test((document.querySelector('#dvpDetail .pai-nm') || {}).textContent || '')); i++) await new Promise(r => setTimeout(r, 150));
+        const c = document.querySelector('#dvpDetail .pai-card'); if (!c) return { row: true, inline: false }; const cr = document.getElementById('dvpDetail').getBoundingClientRect(); const over = [...c.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !['SELECT', 'INPUT', 'TEXTAREA'].includes(el.tagName) && getComputedStyle(el).overflowX !== 'hidden').map(el => el.className || el.id).slice(0, 4);
         return { row: true, ids: ['paGrant', 'paTake', 'paSend', 'paBan', 'paReset', 'paDel'].filter(id => !!document.getElementById(id)), secs: document.querySelectorAll('#paInfo .pai-sec').length, tst: !!document.querySelector('#paTst .adm-tst-b'), over, inView: cr.left >= -1 && cr.top >= -1 }; }, PL);
       if (SHOTS) await pg.screenshot({ path: path.join(SHOTS, 'devpanel-playercard-' + lab + '.png') });
-      ck('page, admin, ' + lab + ': tapping a player opens the card (Give, Take, Send, Ban, Reset, Delete, tester, info), nothing cut off sideways', card.row && card.ids.length === 6 && card.secs >= 5 && card.tst && !card.over.length && card.inView, JSON.stringify(card));
-      await pg.evaluate(() => { const o = document.querySelector('.pai-ov'); if (o) o.remove(); });
+      ck('page, admin, ' + lab + ': tapping a player shows the card on the right (Grant, Take, Send, Ban, Reset, Delete, tester, info), nothing cut off sideways', card.row && card.inline !== false && card.ids.length === 6 && card.secs >= 5 && card.tst && !card.over.length && card.inView, JSON.stringify(card));
+      
     }
     // --- the sort, all 4 keys, both directions (relative order of the six fixtures against the server's own numbers)
     await openDev(apg, 'players'); await apg.waitForFunction(() => document.querySelectorAll('#dvpOv .dvp-prow').length > 0, null, { timeout: 15000 }).catch(() => {});
@@ -182,6 +185,13 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       const ok = got && got.dir === d && JSON.stringify(got.order) === JSON.stringify(e); sortRes.push(ok);
       ck('page, admin: sort by ' + key + (d < 0 ? ' (high to low / newest first)' : ' (low to high / A-Z / oldest first)') + ' matches the server numbers', ok, JSON.stringify({ got, e }));
     }
+    // a narrow window (a portrait phone the game does not turn): the detail drops below the list, nothing sideways
+    const narrow = await apg.evaluate(async () => { const d = document.querySelector('#dvpOv .dvp'); d.style.maxWidth = '420px'; await new Promise(r => setTimeout(r, 200));
+      const L = d.querySelector('.dvp-left'), R = d.querySelector('.dvp-right'), tr = d.querySelector('.dvp-tabs');
+      const out = { below: R.offsetTop >= L.offsetTop + L.offsetHeight - 1, oneLine: tr.children[0].offsetTop === tr.lastElementChild.offsetTop, side: d.querySelector('.dvp-body').scrollWidth > d.querySelector('.dvp-body').clientWidth + 2 };
+      d.style.maxWidth = ''; return out; });
+    if (SHOTS) { await apg.evaluate(() => { document.querySelector('#dvpOv .dvp').style.maxWidth = '420px'; }); await delay(250); await apg.screenshot({ path: path.join(SHOTS, 'devpanel-players-narrow-420.png') }); await apg.evaluate(() => { document.querySelector('#dvpOv .dvp').style.maxWidth = ''; }); }
+    ck('page, admin: in a narrow window the detail drops below the list, tabs stay one line, nothing sideways', narrow.below && narrow.oneLine && !narrow.side, JSON.stringify(narrow));
     // search + filter
     const sf = await apg.evaluate(async (n) => { const q = document.getElementById('dvpQ'); q.value = n; q.dispatchEvent(new Event('input')); await new Promise(r => setTimeout(r, 100));
       const one = [...document.querySelectorAll('#dvpOv .dvp-prow b')].map(x => x.textContent); q.value = ''; q.dispatchEvent(new Event('input'));
@@ -190,10 +200,11 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     ck('page, admin: search finds the one player; the Testers filter shows only test accounts', sf.one.length === 1 && sf.one[0] === FX[2].name && sf.tst.length >= 1 && sf.tst.includes(TG) && !sf.tst.includes(PL), JSON.stringify(sf));
     // Give on the card changes the server balance
     const give = await apg.evaluate(async (n) => { const row = [...document.querySelectorAll('#dvpOv .dvp-prow')].find(x => x.querySelector('b').textContent === n); row.click();
-      for (let i = 0; i < 40 && !document.getElementById('paGrant'); i++) await new Promise(r => setTimeout(r, 100));
-      document.getElementById('paRes').value = 'gems'; document.getElementById('paAmt').value = '45'; document.getElementById('paGrant').click();
-      for (let i = 0; i < 60 && !/Gave/.test(document.getElementById('paMsg').textContent); i++) await new Promise(r => setTimeout(r, 100));
-      const m = document.getElementById('paMsg').textContent; document.querySelector('.pai-ov').remove(); return m; }, PL);
+      const det = () => document.getElementById('dvpDetail');
+      for (let i = 0; i < 60 && !(((det().querySelector('.pai-nm') || {}).textContent === n) && det().querySelector('#paInfo .pai-sec')); i++) await new Promise(r => setTimeout(r, 100));
+      det().querySelector('#paRes').value = 'gems'; det().querySelector('#paAmt').value = '45'; det().querySelector('#paGrant').click();
+      for (let i = 0; i < 60 && !/Gave/.test(det().querySelector('#paMsg').textContent); i++) await new Promise(r => setTimeout(r, 100));
+      return det().querySelector('#paMsg').textContent; }, PL);
     ck('page, admin: Give 45 diamonds on the card reaches the server', /Gave 45 Diamonds/.test(give) && ((await led(pTok)).gems | 0) === gem0 + 345, give);
     // economy row with an amount box
     const eco = await apg.evaluate(async () => { devTab = 'economy'; devPanelRender(); const inp = document.querySelector('#dvpOv [data-amt="gold"]'); inp.value = '4321';
@@ -203,9 +214,9 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     // --- tester page
     const tpg = await page(TG, PW); await openDev(tpg, 'players');
     const tv = await tpg.evaluate(() => { const b = document.getElementById('settingsBody'), o = document.getElementById('dvpOv') || document.createElement('div'); return { tabBtn: !!b.querySelector('[data-settab="dev"]'), tabs: o.querySelectorAll('[data-devtab]').length,
-      acts: [...o.querySelectorAll('.dvp [data-dev]')].map(x => x.dataset.dev), reset: !!b.querySelector('#resetBtn'), badge: (o.querySelector('.dvp-badge') || {}).textContent, pane: o.querySelector('.dvp') ? o.querySelector('.dvp').dataset.dvp : '', hd: (o.querySelector('.dvp-hd') || {}).textContent || '' }; });
+      acts: [...o.querySelectorAll('.dvp [data-dev]')].map(x => x.dataset.dev), reset: !!b.querySelector('#resetBtn'), badge: (o.querySelector('.dvp-title') || {}).textContent, pane: o.querySelector('.dvp') ? o.querySelector('.dvp').dataset.dvp : '', hd: (o.querySelector('.dvp-hd') || {}).textContent || '' }; });
     const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'heroes', 'lv100', 'maxteam', 'campall', 'givefrags'];
-    ck('page, tester: only the Economy tab (no tab bar, TEST badge) + Reset all progress', tv.tabBtn && tv.tabs === 0 && tv.pane === 'economy' && tv.reset && tv.badge === 'TEST' && tv.acts.length === ECON.length && tv.acts.every(a => ECON.includes(a)) && !/Lv [0-9]/.test(tv.hd), JSON.stringify(tv));
+    ck('page, tester: only the Economy tab (no tab bar, TEST badge) + Reset all progress', tv.tabBtn && tv.tabs === 0 && tv.pane === 'economy' && tv.reset && tv.badge === 'TEST ACCOUNT' && tv.acts.length === ECON.length && tv.acts.every(a => ECON.includes(a)) && !/Lv [0-9]/.test(tv.hd), JSON.stringify(tv));
     if (SHOTS) { await delay(200); await tpg.screenshot({ path: path.join(SHOTS, 'devpanel-tester-economy-phone-844x390.png') }); }
     const tAdm = await tpg.evaluate(async () => { const box = document.createElement('div'); box.innerHTML = '<div id="devDone"></div><div id="devAdmin"></div>'; document.body.appendChild(box);
       devAction('mktest', box); devAction('backupnow', box); devAction('noticeset', box); await new Promise(r => setTimeout(r, 600)); return box.textContent; });

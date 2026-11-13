@@ -33766,194 +33766,186 @@ async function runAssetClear(report){
    ART: every visual is in DVP_CSS, by class and CSS variable (--dvp-*), placeholder art from the game's own UI kit (emberdraft / building
    frames and buttons). ChatGPT's dev panel package (Open Projects/DEV PANEL REVAMP 12NOV2026/art) drops in by changing the variables. */
 /* Phil 12 Nov: "6 tabs with 6 actually legitimate reasons to be a tab" - one job each; "Use tabs similar to how embers app tabs act" - one segmented strip */
-const DVP_TABS=[['players','Players'],['reports','Reports'],['economy','Economy'],['liveops','Live Ops'],['servers','Servers'],['qa','QA']];
+/* v1379 v3 LAYOUT (Phil 12 Nov on ChatGPT's mockups-v3: "This is good, the setup is good"): every tab is a list on the left and the selected
+   item's detail on the right (Players: table + player card; Reports: queue + the report; Servers: 5 rows + the server; Economy, Live Ops, QA:
+   rows + a side panel). A narrow window (portrait phone without the turn) puts the detail under the list. Header: servers healthy, online,
+   open reports. */
+const DVP_TABS=[['players','Players','players'],['reports','Reports','bug'],['economy','Economy','war-chest'],['liveops','Live Ops','horn'],['servers','Servers','world-online'],['qa','QA','chart']];
 function devTabNorm(v){ v=({accounts:'players',integrity:'reports',cheats:'economy',battles:'qa',debug:'qa'})[v]||v; return DVP_TABS.some(x=>x[0]===v)?v:'players'; }
-const DVP={ q:'', sort:'seen', dir:-1, filt:'all', rows:null, busy:false, err:'', shown:60, rf:'open', rk:'all', items:null, rbusy:false, rerr:'', st:null, sbusy:false, serr:'', svr:{} };
+const DVP={ q:'', sort:'seen', dir:-1, filt:'all', rows:null, busy:false, err:'', shown:80, sel:null, selObj:null, rf:'open', rk:'all', items:null, rbusy:false, rerr:'', rsel:null,
+  st:null, sbusy:false, serr:'', svr:{}, ssel:0, lsel:'mail', mails:null, buys:null };
 const DVP_SORTS=[['seen','Last played'],['level','Level'],['name','Name'],['patron','Patron']];
-const DVP_FILTS=[['all','All'],['online','Online'],['tester','Testers'],['banned','Banned']];
-const DVP_RF=[['open','Open'],['done','Resolved'],['all','All']];
-const DVP_RK=[['all','All'],['tester','Testers'],['bug','Bugs'],['suggestion','Ideas'],['moderation','Chat reports'],['integrity','Cheat flags']];
+const DVP_FILTS=[['all','All players'],['online','Online'],['tester','Testers'],['banned','Banned']];
+const DVP_RF=[['open','Open reports'],['done','Resolved'],['all','All reports']];
+const DVP_RK=[['all','Every kind'],['tester','Testers'],['bug','Bugs'],['suggestion','Ideas'],['moderation','Chat reports'],['integrity','Cheat flags']];
 const devRkMatch=(x,k)=>k==='all'||(k==='tester'?!!x.tester:x.kind===k);
 const DVP_AMT_DEF={gold:100000,gems:2000,stam:100,arenacoin:5000,guildcoins:5000,shielditem:3,shards:500,pieces:200,level:5,squadlvl:5,campstage:5};
 const DVP_CSS=`
-.dvp,.pai-ov{--dvp-gold:#f3cc7e;--dvp-ink:#eee0c4;--dvp-dim:#a3a9b6;--dvp-good:#5ee89b;--dvp-bad:#ff8b8b;--dvp-warn:#ffb454;--dvp-line:#6b5230;
+.dvp,.pai-ov{--dvp-gold:#f3cc7e;--dvp-ink:#f1e4c8;--dvp-dim:#b9a88a;--dvp-good:#8fe0a0;--dvp-bad:#ff9b8b;--dvp-warn:#ffc46b;--dvp-line:#6e5434;--dvp-line-soft:#4a3824;
  --dvp-font:Georgia,'Times New Roman',serif;
- --dvp-frame:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') 230 fill / 38px stretch;
- --dvp-header-bg:linear-gradient(90deg,#3a2510cc,#1a1408aa 60%,transparent);
- --dvp-tabs-bg:#070b13;--dvp-tab-bg:transparent;--dvp-tab-on-bg:#111a2b;--dvp-pane-bg:#111a2bd9;--dvp-tab-press-bg:#1a2234;
- --dvp-row:url('/assets/img/ui/building-main/inset-card.webp?v=1') 50 190 50 190 fill / 0 30px stretch;
- --dvp-btn-bg:url('/assets/img/ui/building-main/action-primary.webp?v=1') center/100% 100% no-repeat;
- --dvp-btn-sec-bg:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100% no-repeat;
- --dvp-btn-danger-bg:url('/assets/img/ui/emberdraft-main/action-secondary.webp?v=1') center/100% 100% no-repeat;
- --dvp-btn-off-bg:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1') center/100% 100% no-repeat;
- --dvp-tile-bg:linear-gradient(180deg,#1b2740,#0f1626);--dvp-act-bg:linear-gradient(180deg,#1b2740,#0f1626);--dvp-act-danger-bg:linear-gradient(180deg,#3a1610,#1c0c0a);
- --dvp-search-bg:#0a1321;--dvp-chip-bg:#101827;--dvp-chip-on-bg:linear-gradient(180deg,#f6d58c,#b7863f);--dvp-card-bg:linear-gradient(180deg,#141d30,#0c1220);
- --dvp-tag-bg:#1a2335}
-.dvp-ov{position:fixed;inset:0;z-index:13000;background:rgba(4,6,10,.86);display:flex;align-items:stretch;justify-content:center;padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
-.dvp{position:relative;container-type:inline-size;box-sizing:border-box;width:100%;max-width:1180px;height:100%;display:flex;flex-direction:column;background:#0d1422;border:0;border-image:var(--dvp-frame);padding:28px 42px 20px;color:var(--dvp-ink);font-family:var(--dvp-font)}
-.dvp-x{flex:0 0 auto;margin-left:6px}
-.dvp-hd .dvp-x{margin-right:52px}
+ --dvp-panel-bg:radial-gradient(120% 80% at 30% 0%,#3a2516 0%,#1d140e 45%,#120d0a 100%);
+ --dvp-frame:none;--dvp-frame-border:2px solid #b8894a;--dvp-frame-shadow:0 0 0 1px #3a2814,inset 0 0 0 1px #5b4022,0 18px 60px #000c;
+ --dvp-tabs-bg:linear-gradient(180deg,#2e2117,#211710);--dvp-tab-bg:transparent;--dvp-tab-on-bg:#1a120d;--dvp-tab-press-bg:#2a1d14;
+ --dvp-pane-bg:#1a120d;--dvp-list-bg:#16100c;--dvp-row-bg:linear-gradient(180deg,#2a1e16,#20160f);--dvp-row-on-bg:linear-gradient(180deg,#3a2a1c,#2a1d13);
+ --dvp-card-bg:linear-gradient(180deg,#261a12,#1c130d);
+ --dvp-btn-bg:linear-gradient(180deg,#c9934c,#8a5a26);--dvp-btn-sec-bg:linear-gradient(180deg,#3a2919,#2a1d12);--dvp-btn-danger-bg:linear-gradient(180deg,#5a1f17,#3b130e);--dvp-btn-off-bg:#2a2420;
+ --dvp-act-bg:var(--dvp-btn-sec-bg);--dvp-act-danger-bg:var(--dvp-btn-danger-bg);
+ --dvp-search-bg:#120c08;--dvp-chip-bg:#1c140e;--dvp-chip-on-bg:linear-gradient(180deg,#f6d58c,#b7863f);--dvp-tag-bg:#1c140e}
+.dvp-ov{position:fixed;inset:0;z-index:13000;background:rgba(5,4,3,.82);display:flex;align-items:flex-start;justify-content:center;padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+.dvp{position:relative;container-type:inline-size;box-sizing:border-box;width:100%;max-width:1200px;height:auto;max-height:100%;display:flex;flex-direction:column;background:var(--dvp-panel-bg);border:var(--dvp-frame-border);border-image:var(--dvp-frame);border-radius:12px;box-shadow:var(--dvp-frame-shadow);padding:12px 20px 12px;color:var(--dvp-ink);font-family:var(--dvp-font)}
 .dvp .stIc{width:18px;height:18px;vertical-align:-4px}
-.dvp-hd{flex:0 0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;padding:6px 10px;border-radius:8px;background:var(--dvp-header-bg)}
-.dvp-badge{font:800 11px system-ui,sans-serif;letter-spacing:.8px;color:#2a1a08;background:var(--dvp-chip-on-bg);border-radius:5px;padding:2px 8px}
-.dvp-title{font:700 17px var(--dvp-font);color:var(--dvp-gold);text-shadow:0 2px 2px #000}
-.dvp-stats{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
-.dvp-chip{font:700 11.5px system-ui,sans-serif;background:#0b111c;border:1px solid var(--dvp-line);border-radius:999px;padding:2px 9px;color:var(--dvp-ink);white-space:nowrap}
-.dvp-chip .stIc{width:15px;height:15px;vertical-align:-3px;margin-right:3px}
-.dvp-chip.on{color:#0c2016;background:var(--dvp-good);border-color:var(--dvp-good)}.dvp-chip.warn{color:#2a1a08;background:var(--dvp-warn);border-color:var(--dvp-warn)}
-.dvp-tabs{flex:0 0 auto;display:flex;margin:0;padding:4px 4px 0;border-bottom:1px solid var(--dvp-line);border-radius:10px 10px 0 0;background:var(--dvp-tabs-bg)}
-.dvp-tab{flex:1 1 0;position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:38px;margin-bottom:-1px;padding:4px 8px;border:1px solid transparent;border-bottom:0;border-radius:10px 10px 0 0;background:var(--dvp-tab-bg);color:var(--dvp-dim);font:700 14px var(--dvp-font);cursor:pointer;white-space:nowrap;transition:color .12s}
+.dvp-hd{flex:0 0 auto;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:0 0 10px;min-height:36px}
+.dvp-title{font:700 24px var(--dvp-font);letter-spacing:2px;color:var(--dvp-gold);text-shadow:0 2px 2px #000;white-space:nowrap}
+.dvp-stats{flex:1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.dvp-chip{font:700 13px var(--dvp-font);background:#160f0a;border:1px solid var(--dvp-line);border-radius:5px;padding:4px 9px;color:var(--dvp-ink);white-space:nowrap}
+.dvp-chip b{color:var(--dvp-gold)}.dvp-chip.good b{color:var(--dvp-good)}.dvp-chip.warn{border-color:var(--dvp-warn)}.dvp-chip.warn b{color:var(--dvp-warn)}
+.dvp-close{flex:0 0 auto;min-height:36px;padding:4px 14px;border:1px solid var(--dvp-line);border-radius:5px;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:700 14px var(--dvp-font);cursor:pointer}
+.dvp-close:hover{border-color:var(--dvp-gold)}
+.dvp-tabs{flex:0 0 auto;display:flex;margin:0;padding:4px 4px 0;border:1px solid var(--dvp-line);border-bottom:1px solid var(--dvp-line);border-radius:8px 8px 0 0;background:var(--dvp-tabs-bg)}
+.dvp-tab{flex:1 1 0;position:relative;display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:38px;margin-bottom:-1px;padding:4px 6px;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;background:var(--dvp-tab-bg);color:var(--dvp-dim);font:14px var(--dvp-font);cursor:pointer;white-space:nowrap}
 .dvp-tab+.dvp-tab::before{content:'';position:absolute;left:-1px;top:28%;bottom:28%;width:1px;background:var(--dvp-line)}
 .dvp-tab span{overflow:hidden;text-overflow:ellipsis}
-.dvp-tab:hover{color:var(--dvp-ink)}
-.dvp-tab:active{background:var(--dvp-tab-press-bg)}
-.dvp-tab.on{background:var(--dvp-tab-on-bg);color:var(--dvp-gold);border-color:var(--dvp-line);text-shadow:0 1px 2px #000}
+.dvp-tab:hover{color:var(--dvp-ink)}.dvp-tab:active{background:var(--dvp-tab-press-bg)}
+.dvp-tab.on{background:var(--dvp-tab-on-bg);color:#fff1d3;border-color:var(--dvp-line);font-weight:700}
 .dvp-tab.on::before,.dvp-tab.on+.dvp-tab::before{display:none}
-.dvp-tabs+.dvp-body{background:var(--dvp-pane-bg);border:1px solid var(--dvp-line);border-top:0;border-radius:0 0 10px 10px;padding:10px 10px 6px}
-.dvp-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:2px}
-.dvp-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
-.dvp-search{flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:6px;background:var(--dvp-search-bg);border:1px solid #967140;border-radius:8px;padding:0 10px;min-height:40px;box-shadow:inset 0 2px 6px #0008}
-.dvp-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--dvp-ink);font-size:14px;font-family:inherit}
-.dvp-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:40px;padding:6px 20px;border:0;border-radius:0;background:var(--dvp-btn-bg);color:#fff4d6;font:700 13px var(--dvp-font);text-shadow:0 1px 2px #000,0 0 4px #000;cursor:pointer;white-space:nowrap}
-.dvp-btn.sec{background:var(--dvp-btn-sec-bg);color:var(--dvp-ink)}
-.dvp-btn.danger{background:var(--dvp-btn-danger-bg);color:#ffb3a6}
-.dvp-btn:disabled,.dvp-btn[disabled]{background:var(--dvp-btn-off-bg);color:#a9a394;cursor:default}
-.dvp-btn.sm{min-height:34px;padding:4px 16px;font-size:12px}
-.dvp-btn.ic{padding:6px 14px}
-.dvp-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:4px 0 6px}
-.dvp-chips>.stIc{opacity:.85}
-.dvp-sel{min-height:40px;background:var(--dvp-search-bg);border:1px solid #967140;border-radius:8px;color:var(--dvp-ink);padding:0 8px;font:700 13px var(--dvp-font);max-width:100%}
-.dvp-chip-b{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:3px 12px;border:1px solid var(--dvp-line);border-radius:999px;background:var(--dvp-chip-bg);color:#d8c7a4;font:700 12px var(--dvp-font);cursor:pointer}
-.dvp-chip-b b{font:700 10.5px system-ui,sans-serif;color:var(--dvp-dim)}
-.dvp-chip-b.on{background:var(--dvp-chip-on-bg);color:#2a1a08;border-color:#ffe1a0}
-.dvp-chip-b.on b{color:#4a3110}
-.dvp-dir{display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
-.dvp-dir.dn{border-top:6px solid currentColor}.dvp-dir.up{border-bottom:6px solid currentColor}
-.dvp-list{display:flex;flex-direction:column;gap:4px}
-.dvp-prow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:48px;padding:6px 32px;border:0;border-image:var(--dvp-row);background:none;color:var(--dvp-ink);text-align:left;cursor:pointer;font-family:var(--dvp-font)}
-.dvp-prow:hover,.dvp-prow:focus-visible{filter:brightness(1.18)}
-.dvp-pn{min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:2px 0}
-.dvp-pn b{font-size:14px;color:#fff1d3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-.dvp-pn small{font:11px system-ui,sans-serif;color:var(--dvp-dim);margin-left:6px}
-.dvp-ps{display:flex;gap:12px;font:700 12px system-ui,sans-serif;color:var(--dvp-ink);white-space:nowrap}
-.dvp-ps i{font-style:normal;font-weight:400;color:var(--dvp-dim);margin-right:4px}
-.dvp-tag{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:5px;border:1px solid #3a4a6a;background:var(--dvp-tag-bg);color:#cdd6e4;font:700 10px system-ui,sans-serif;letter-spacing:.3px;white-space:nowrap}
-.dvp-tag .stIc{width:13px;height:13px;vertical-align:-2px}
-.dvp-tag.on{color:#0c2016;background:#5ee89b;border-color:#5ee89b}.dvp-tag.tst{color:#bff3ff;border-color:#2b8aa0}.dvp-tag.dev{color:#2a1a08;background:var(--dvp-gold);border-color:var(--dvp-gold)}
-.dvp-tag.bad{color:#ffd0d0;background:#5a1a12;border-color:#a0382a}.dvp-tag.warn{color:#2a1a08;background:var(--dvp-warn);border-color:var(--dvp-warn)}
-.dvp-more{margin:4px auto 0;min-height:36px;padding:4px 18px;border:0;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:700 12px var(--dvp-font);cursor:pointer}
-.dvp-count{text-align:center;font:11px system-ui,sans-serif;color:var(--dvp-dim);margin-top:2px}
-.dvp-empty{padding:16px 6px;text-align:center;color:var(--dvp-dim);font-size:13px}.dvp-empty.bad{color:var(--dvp-bad)}
-.dvp-sec{font:800 11px system-ui,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--dvp-gold);margin:12px 2px 6px;display:flex;align-items:center;gap:8px}
-.dvp-sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--dvp-line),transparent)}
-.dvp-body>.dvp-sec:first-child{margin-top:2px}
-.dvp-egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:4px 8px}
-.dvp-erow{display:grid;grid-template-columns:24px minmax(0,1fr) 78px auto;align-items:center;gap:8px;min-height:50px;padding:4px 28px;border:0;border-image:var(--dvp-row)}
-.dvp-erow .stIc{width:24px;height:24px;margin:0}
-.dvp-el{font:700 13px var(--dvp-font);color:#fff1d3;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dvp-amt{width:100%;min-width:0;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid #967140;border-radius:6px;color:var(--dvp-ink);padding:6px 8px;font:700 13px system-ui,sans-serif;text-align:right}
-.dvp-erow .dvp-btn{min-height:36px;padding:4px 16px;font-size:12.5px}
-.dvp-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
-.dvp-tile{display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 12px;border:1px solid var(--dvp-line);border-radius:10px;box-shadow:inset 0 1px 0 #ffffff14,0 3px 8px #0006;background:var(--dvp-tile-bg);color:var(--dvp-ink);font:700 12.5px var(--dvp-font);text-align:left;line-height:1.2;cursor:pointer;text-shadow:0 1px 2px #000}
-.dvp-tile .stIc{width:22px;height:22px;flex:0 0 auto;margin:0}
-.dvp-tile:hover,.dvp-tile:focus-visible{border-color:var(--dvp-gold)}.dvp-tile:active{filter:brightness(1.25)}
-.dvp-god{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:6px 28px;margin-bottom:8px;border-image:var(--dvp-row)}
-.dvp-god b{font:700 14px var(--dvp-font);color:#fff1d3}.dvp-god small{display:block;font:11px system-ui,sans-serif;color:var(--dvp-dim)}
-.dvp-god>span{display:flex;align-items:center;gap:8px}
-.dvp-sw{width:48px;height:26px;border-radius:999px;border:1px solid var(--dvp-line);background:#26324a;position:relative;cursor:pointer;flex:0 0 auto;padding:0}
-.dvp-sw::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#cdd6e4;transition:left .15s}
-.dvp-sw.on{background:#2e7d46;border-color:#5ee89b}.dvp-sw.on::after{left:24px;background:#fff}
-.dvp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
-.dvp-card{background:var(--dvp-card-bg);border:1px solid var(--dvp-line);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 0 1px #0006,0 4px 10px #0006;min-width:0}
-.dvp-ct{font:700 14px var(--dvp-font);color:var(--dvp-gold);margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.dvp-kv{display:flex;justify-content:space-between;gap:10px;font:12.5px/1.75 system-ui,sans-serif}
-.dvp-kv span{color:var(--dvp-dim);white-space:nowrap}.dvp-kv b{color:var(--dvp-ink);text-align:right;min-width:0;overflow-wrap:anywhere}
-.dvp-kv b.good{color:var(--dvp-good)}.dvp-kv b.bad{color:var(--dvp-bad)}.dvp-kv b.warn{color:var(--dvp-warn)}
-.dvp-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.dvp-card input,.dvp-card select{width:100%;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid #967140;border-radius:6px;color:var(--dvp-ink);padding:8px 9px;font-size:13px;margin-top:6px;font-family:inherit}
-.dvp-card textarea{width:100%;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid #967140;border-radius:6px;color:var(--dvp-ink);padding:8px 9px;font:13px system-ui,sans-serif;margin-top:6px;resize:vertical}
-.dvp-card.wide{grid-column:1/-1}
-.dvp-errs{max-height:180px;overflow:auto;font:11.5px/1.5 ui-monospace,Consolas,monospace;color:#ffc9c0}.dvp-errs div{overflow-wrap:anywhere;border-bottom:1px solid #2a1c1c;padding:2px 0}.dvp-errs span{color:var(--dvp-dim);margin-right:8px}
-.pai-raw{width:100%;min-height:200px;font:11px ui-monospace,Consolas,monospace!important;white-space:pre}
-.dvp-sent{margin-top:8px;border-top:1px solid var(--dvp-line);padding-top:4px}
-.dvp-notice-now{font:13px/1.4 system-ui,sans-serif;color:var(--dvp-ink);background:#2a1c0a;border:1px solid var(--dvp-line);border-radius:6px;padding:6px 8px}
-.dvp-rep{background:var(--dvp-card-bg);border:1px solid #3a3550;border-left:3px solid var(--dvp-gold);border-radius:8px;padding:8px 10px;min-width:0}
-.dvp-rep.k-moderation{border-left-color:#d0503a}.dvp-rep.k-integrity{border-left-color:var(--dvp-warn)}.dvp-rep.k-suggestion{border-left-color:#5ab0ff}
+.dvp-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:8px;background:var(--dvp-pane-bg);border:1px solid var(--dvp-line);border-top:0;border-radius:0 0 8px 8px;padding:10px}
+.dvp-hd+.dvp-body{border-top:1px solid var(--dvp-line);border-radius:8px}
+.dvp-tool{flex:0 0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dvp-h{font:700 20px var(--dvp-font);color:#fff1d3;margin:0;flex:1 1 auto;white-space:nowrap}
+.dvp-h2{font:700 18px var(--dvp-font);color:#fff1d3;margin:0 0 6px}
+.dvp-split{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1.68fr) minmax(0,1fr);gap:12px;align-items:start}
+.dvp-left,.dvp-right{min-height:0;max-height:100%;min-width:0;overflow-y:auto;overflow-x:hidden;box-sizing:border-box}
+.dvp-right{background:var(--dvp-card-bg);border:1px solid var(--dvp-line);border-radius:6px;padding:10px 12px}
+.dvp-search{flex:1 1 200px;min-width:0;display:flex;align-items:center;gap:6px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:5px;padding:0 10px;min-height:36px}
+.dvp-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--dvp-ink);font:14px var(--dvp-font)}
+.dvp-sel{min-height:36px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:5px;color:var(--dvp-ink);padding:0 8px;font:14px var(--dvp-font);max-width:100%;min-width:0}
+.dvp-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:4px 14px;border:1px solid var(--dvp-line);border-radius:5px;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:14px var(--dvp-font);cursor:pointer;white-space:nowrap}
+.dvp-btn.gold{background:var(--dvp-btn-bg);color:#2a1606;border-color:#e3b36a;font-weight:700}
+.dvp-btn.danger{background:var(--dvp-btn-danger-bg);color:#ffd2c6;border-color:#8a3a2a}
+.dvp-btn:hover{filter:brightness(1.15)}
+.dvp-btn:disabled,.dvp-btn[disabled]{background:var(--dvp-btn-off-bg);color:#8d847a;cursor:default;filter:none}
+.dvp-btn.sm{min-height:30px;padding:2px 11px;font-size:13px}
+.dvp-btn.ic{padding:4px 9px}
+.dvp-dir{display:inline-block;width:0;height:0;margin-left:5px;border-left:4px solid transparent;border-right:4px solid transparent;vertical-align:2px}
+.dvp-dir.dn{border-top:5px solid currentColor}.dvp-dir.up{border-bottom:5px solid currentColor}
+.dvp-thead,.dvp-prow{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.6fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,.9fr);align-items:center;gap:6px}
+.dvp-thead{position:sticky;top:0;z-index:1;background:var(--dvp-list-bg);border:1px solid var(--dvp-line-soft);border-radius:5px;padding:0 10px;min-height:34px;margin-bottom:5px}
+.dvp-thead button{border:0;background:none;padding:6px 0;text-align:left;color:var(--dvp-dim);font:14px var(--dvp-font);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dvp-thead button.on{color:var(--dvp-gold)}
+.dvp-list{display:flex;flex-direction:column;gap:5px}
+.dvp-prow{width:100%;min-height:40px;padding:4px 10px;border:1px solid var(--dvp-line-soft);border-radius:5px;background:var(--dvp-row-bg);color:var(--dvp-ink);text-align:left;cursor:pointer;font:14px var(--dvp-font)}
+.dvp-prow>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dvp-prow b{font-weight:400;color:#fff1d3}
+.dvp-prow:hover{border-color:var(--dvp-line)}.dvp-prow.on{background:var(--dvp-row-on-bg);border-color:#e9d3a6}
+.dvp-pill{display:inline-block;padding:1px 8px;border:1px solid currentColor;border-radius:999px;font:13px var(--dvp-font);line-height:1.3}
+.dvp-pill.on{color:var(--dvp-good)}.dvp-pill.off{color:var(--dvp-dim)}.dvp-pill.tst{color:#f3d9a0}.dvp-pill.bad{color:var(--dvp-bad)}.dvp-pill.dev{color:var(--dvp-gold)}.dvp-pill.warn{color:var(--dvp-warn)}
+.dvp-tag{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:0 6px;border-radius:4px;border:1px solid var(--dvp-line);background:var(--dvp-tag-bg);color:var(--dvp-ink);font:12px var(--dvp-font);white-space:nowrap}
+.dvp-tag.tst{color:#f3d9a0}.dvp-tag.bad{color:var(--dvp-bad)}.dvp-tag.on{color:var(--dvp-good)}
+.dvp-srow,.dvp-erow,.dvp-rep{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;min-height:42px;padding:4px 8px 4px 10px;border:1px solid var(--dvp-line-soft);border-radius:5px;background:var(--dvp-row-bg);color:var(--dvp-ink);font:14px var(--dvp-font);text-align:left}
+.dvp-srow+.dvp-srow,.dvp-erow+.dvp-erow,.dvp-rep+.dvp-rep{margin-top:5px}
+button.dvp-srow,button.dvp-rep{cursor:pointer}
+.dvp-srow.on,.dvp-rep.on{background:var(--dvp-row-on-bg);border-color:#e9d3a6}
+.dvp-srow b,.dvp-erow b,.dvp-rep b{font-weight:700;color:#fff1d3;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dvp-sub{margin-left:auto;font:13px var(--dvp-font);color:var(--dvp-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dvp-srow .stIc,.dvp-erow .stIc{width:20px;height:20px;margin:0;flex:0 0 auto}
 .dvp-rep.done{opacity:.55}
-.dvp-rep-hd{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.dvp-rep-hd .dvp-tag{margin-left:0}
-.dvp-link{border:0;background:none;padding:0;color:var(--dvp-gold);font:700 13px var(--dvp-font);cursor:pointer;text-decoration:underline;text-decoration-color:#f3cc7e55}
-.dvp-when{margin-left:auto;font:11px system-ui,sans-serif;color:var(--dvp-dim)}
-.dvp-rep-tx{font:13px/1.45 system-ui,sans-serif;color:#e3e8f0;white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0}
-.dvp-rep-meta{font:11px system-ui,sans-serif;color:var(--dvp-dim);overflow-wrap:anywhere}
-.dvp-rep-act{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
-.dvp-out{font:12.5px system-ui,sans-serif;color:var(--dvp-good);margin-top:8px;min-height:15px;overflow-wrap:anywhere}.dvp-out.bad{color:var(--dvp-bad)}
-.dvp-log{font:11px system-ui,sans-serif;color:#c3ccd8;margin-top:6px;max-height:300px;overflow:auto;overflow-wrap:anywhere}
-.dvp-made{background:#0f1622;border:1px solid #2b7a55;border-radius:10px;padding:8px 10px;color:#e6edf3;user-select:text;font-size:13px}
-.dvp-code{font-size:10px;color:#6b7891;word-break:break-all;margin-top:6px;max-height:160px;overflow:auto;user-select:text}
-@container (max-width:560px){
- .dvp-tab{font-size:12px;padding:4px 2px}
- .dvp-prow{grid-template-columns:minmax(0,1fr);gap:2px;padding:6px 26px}
- .dvp-ps{gap:10px;font-size:11.5px}
- .dvp-egrid{grid-template-columns:minmax(0,1fr)}
- .dvp-erow{grid-template-columns:22px minmax(0,1fr) 70px auto;gap:6px;padding:4px 22px}
- .dvp-erow .dvp-btn{padding:4px 12px}
- .dvp-tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
- .dvp-stats{margin-left:0}
+.dvp-amt{flex:0 0 96px;width:96px;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:5px;color:var(--dvp-ink);padding:5px 8px;font:14px var(--dvp-font);text-align:right;margin-left:auto}
+.dvp-group{border:1px solid var(--dvp-line);border-radius:6px;padding:8px 10px;background:var(--dvp-card-bg)}
+.dvp-group+.dvp-group{margin-top:8px}
+.dvp-kv{display:flex;justify-content:space-between;gap:10px;font:14px/1.75 var(--dvp-font)}
+.dvp-kv span{color:var(--dvp-dim);white-space:nowrap}.dvp-kv b{color:var(--dvp-ink);text-align:right;min-width:0;overflow-wrap:anywhere;font-weight:400}
+.dvp-kv b.good{color:var(--dvp-good)}.dvp-kv b.bad{color:var(--dvp-bad)}.dvp-kv b.warn{color:var(--dvp-warn)}
+.dvp-line{font:14px/1.6 var(--dvp-font);color:var(--dvp-ink);margin:0 0 6px}.dvp-line.dim{color:var(--dvp-dim)}
+.dvp-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.dvp-right input,.dvp-right select,.dvp-right textarea{width:100%;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:5px;color:var(--dvp-ink);padding:7px 9px;font:14px var(--dvp-font);margin-top:6px}
+.dvp-right textarea{resize:vertical}
+.dvp-notice-now{font:14px/1.4 var(--dvp-font);color:var(--dvp-ink);background:#2a1c0a;border:1px solid var(--dvp-line);border-radius:5px;padding:6px 8px}
+.dvp-rep-tx{font:14px/1.5 var(--dvp-font);color:#f1e4c8;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}
+.dvp-rep-meta{font:13px var(--dvp-font);color:var(--dvp-dim);overflow-wrap:anywhere}
+.dvp-errs{max-height:200px;overflow:auto;font:12px/1.5 ui-monospace,Consolas,monospace;color:#ffcbbf}.dvp-errs div{overflow-wrap:anywhere;border-bottom:1px solid #2a1c1c;padding:2px 0}.dvp-errs span{color:var(--dvp-dim);margin-right:8px}
+.dvp-sw{width:46px;height:24px;border-radius:999px;border:1px solid var(--dvp-line);background:#2a1d14;position:relative;cursor:pointer;flex:0 0 auto;padding:0;margin-left:auto}
+.dvp-sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#d9c8a6;transition:left .15s}
+.dvp-sw.on{background:#2e6b3c;border-color:var(--dvp-good)}.dvp-sw.on::after{left:24px;background:#fff}
+.dvp-empty{padding:14px 6px;text-align:center;color:var(--dvp-dim);font:14px var(--dvp-font)}.dvp-empty.bad{color:var(--dvp-bad)}
+.dvp-more{display:block;margin:6px auto 0;min-height:32px;padding:2px 16px;border:1px solid var(--dvp-line);border-radius:5px;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:13px var(--dvp-font);cursor:pointer}
+.dvp-count{text-align:center;font:12px var(--dvp-font);color:var(--dvp-dim);margin-top:4px}
+.dvp-foot{flex:0 0 auto;max-height:30%;overflow:auto}
+.dvp-foot:empty{display:none}
+.dvp-out{font:13px var(--dvp-font);color:var(--dvp-good);overflow-wrap:anywhere}.dvp-out:empty{display:none}.dvp-out.bad{color:var(--dvp-bad)}
+.dvp-log{font:12px var(--dvp-font);color:#d8ccb4;overflow-wrap:anywhere}.dvp-log:empty{display:none}
+.dvp-made{background:#1d2a1d;border:1px solid #4f7a4f;border-radius:6px;padding:6px 10px;color:#e6edf3;user-select:text;font-size:14px}
+.dvp-code{font-size:10px;color:#8d806c;word-break:break-all;margin-top:6px;max-height:140px;overflow:auto;user-select:text}
+@container (max-width:640px){
+ .dvp-split{display:block;overflow-y:auto}
+ .dvp-left,.dvp-right{overflow:visible}
+ .dvp-right{margin-top:10px}
+ .dvp-tab{flex-direction:column;gap:0;font-size:12px;padding:3px 2px}
+ .dvp-tab .stIc{width:16px;height:16px;margin:0}
+ .dvp-title{font-size:19px;letter-spacing:1px;flex:1}
+ .dvp-stats{order:3;flex-basis:100%;justify-content:flex-start}
+ .dvp-thead,.dvp-prow{grid-template-columns:minmax(0,1.6fr) minmax(0,.55fr) minmax(0,1fr) minmax(0,.9fr)}
+ .dvp-thead>:nth-child(4),.dvp-prow>:nth-child(4){display:none}
 }
-.pai-ov{position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:14000;display:flex;align-items:center;justify-content:center;padding:12px}
-.pai-card{background:#101826;border:0;border-image:var(--dvp-frame);padding:26px 38px 18px;width:100%;max-width:720px;max-height:100%;box-sizing:border-box;display:flex;flex-direction:column;color:var(--dvp-ink);font-family:var(--dvp-font);container-type:inline-size}
+.pai-ov{position:fixed;inset:0;background:rgba(5,4,3,.82);z-index:14000;display:flex;align-items:center;justify-content:center;padding:12px}
+.pai-card{background:var(--dvp-panel-bg);border:2px solid #b8894a;border-radius:12px;padding:14px 18px;width:100%;max-width:720px;max-height:100%;box-sizing:border-box;display:flex;flex-direction:column;color:var(--dvp-ink);font-family:var(--dvp-font);container-type:inline-size}
+.pai-card.inline{background:none;border:0;border-radius:0;padding:0;max-width:none;max-height:none;display:block}
 .pai-card .stIc{width:17px;height:17px;vertical-align:-3px}
 .pai-hd{display:grid;grid-template-columns:1fr auto;gap:8px;flex:0 0 auto}
-.pai-nm{font:700 18px var(--dvp-font);color:var(--dvp-gold);text-shadow:0 2px 2px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pai-sub{font:11.5px/1.6 system-ui,sans-serif;color:var(--dvp-dim);margin-top:2px}
+.pai-nm{font:700 22px var(--dvp-font);color:#fff1d3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pai-sub,.pai-sum{font:14px/1.45 var(--dvp-font);color:var(--dvp-dim);margin-top:2px}
 .pai-id{user-select:text}
-.pai-xc{display:flex;flex-direction:column;align-items:flex-end}.pai-xs{height:30px}
-.pai-body{overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:2px;padding-right:2px}
-.pai-msg{font:12.5px system-ui,sans-serif;min-height:16px;margin:4px 0 0;color:var(--dvp-dim)}.pai-msg.good{color:var(--dvp-good)}.pai-msg.bad{color:var(--dvp-bad)}
-.pai-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
-.pai-act{background:var(--dvp-card-bg);border:1px solid var(--dvp-line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.pai-act.wide{grid-column:1/-1}
-.pai-at{font:700 13px var(--dvp-font);color:var(--dvp-gold);display:flex;align-items:center;gap:6px}
-.pai-line{display:flex;gap:6px;flex-wrap:wrap}
-.pai-line>*{flex:1 1 90px;min-width:0}
-.pai-card input,.pai-card select,.pai-card textarea{background:var(--dvp-search-bg);border:1px solid #967140;border-radius:6px;color:var(--dvp-ink);padding:7px 9px;font:13px system-ui,sans-serif;min-width:0;box-sizing:border-box;width:100%}
+.pai-body{overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:6px}
+.pai-card.inline .pai-body{overflow:visible}
+.pai-msg{font:13px var(--dvp-font);min-height:0;margin:4px 0 0;color:var(--dvp-dim)}.pai-msg.good{color:var(--dvp-good)}.pai-msg.bad{color:var(--dvp-bad)}
+.pai-btns{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pai-btns .dvp-btn{flex:0 0 auto}
+.pai-line{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.pai-line>input,.pai-line>select{flex:1 1 90px;min-width:0}
+.pai-card input,.pai-card select,.pai-card textarea{background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:5px;color:var(--dvp-ink);padding:6px 8px;font:14px var(--dvp-font);min-width:0;box-sizing:border-box;width:100%}
 .pai-card textarea{resize:vertical}
 .pai-card [hidden]{display:none!important}
-.pai-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;align-items:stretch}
-.pai-btns .dvp-btn{width:100%;min-height:42px;padding:6px 12px;justify-content:flex-start;white-space:normal;text-align:left;border:1px solid var(--dvp-line);border-radius:8px;background:var(--dvp-act-bg);color:var(--dvp-ink);font-size:12.5px}
-.pai-btns .dvp-btn.danger{background:var(--dvp-act-danger-bg);border-color:#a0382a;color:#ffc2b8}
-.pai-btns .dvp-btn:hover{border-color:var(--dvp-gold)}
-.pai-tst .adm-tst{margin-top:0!important;min-width:0!important}
-.pai-note{font:12px system-ui,sans-serif;color:var(--dvp-dim)}
-.pai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;margin-bottom:8px}
-.pai-sec{background:#0f1622;border:1px solid #2e3a52;border-radius:10px;padding:6px 9px;min-width:0}.pai-sec.wide{grid-column:1/-1}
-.pai-st{font:800 10px system-ui,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:var(--dvp-gold);margin-bottom:3px}
-.pai-r{display:flex;justify-content:space-between;gap:8px;font:11.5px/1.55 system-ui,sans-serif}.pai-r span{color:var(--dvp-dim);white-space:nowrap}.pai-r b{color:#e6edf3;font-weight:700;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pai-act{border-top:1px solid var(--dvp-line-soft);padding-top:8px;margin-top:8px}
+.pai-at{font:700 15px var(--dvp-font);color:var(--dvp-gold);margin-bottom:4px}
+.pai-tst .adm-tst{margin-top:0!important;min-width:0!important;display:flex;align-items:center;gap:8px}
+.pai-tst .adm-tst-st{margin:0!important;font:13px var(--dvp-font)!important}
+.pai-tst .adm-tst-b{width:auto!important;min-height:36px}
+.pai-note{font:13px var(--dvp-font);color:var(--dvp-dim)}
+.pai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;margin-top:8px}
+.pai-sec{background:#150f0b;border:1px solid var(--dvp-line-soft);border-radius:6px;padding:6px 9px;min-width:0}.pai-sec.wide{grid-column:1/-1}
+.pai-st{font:700 11px system-ui,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:var(--dvp-gold);margin-bottom:3px}
+.pai-r{display:flex;justify-content:space-between;gap:8px;font:12.5px/1.55 var(--dvp-font)}.pai-r span{color:var(--dvp-dim);white-space:nowrap}.pai-r b{color:var(--dvp-ink);font-weight:400;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .pai-sec.wide .pai-r b{white-space:normal;overflow-wrap:anywhere}
 .pai-r b.warn{color:var(--dvp-warn)}.pai-r b.bad{color:var(--dvp-bad)}.pai-r b.good{color:var(--dvp-good)}
-.pai-err{font:12px system-ui,sans-serif;color:var(--dvp-bad)}
-@container (max-width:520px){ .pai-acts{grid-template-columns:minmax(0,1fr)} .pai-btns{grid-template-columns:repeat(2,minmax(0,1fr))} .pai-grid{grid-template-columns:minmax(0,1fr)} }
+.pai-err{font:13px var(--dvp-font);color:var(--dvp-bad)}
+.pai-raw{width:100%;min-height:200px;font:11px ui-monospace,Consolas,monospace!important;white-space:pre}
 `;
 function devCssEnsure(){ if(document.getElementById('dvpCss')) return; const s=document.createElement('style'); s.id='dvpCss'; s.textContent=DVP_CSS; document.head.appendChild(s); }
-function devAgo(t){ if(!t) return 'never'; const s=Math.max(0,Math.floor((Date.now()-t)/1000)); if(s<60) return 'now'; const m=Math.floor(s/60); if(m<60) return m+'m ago';
-  const h=Math.floor(m/60); if(h<24) return h+'h ago'; const d=Math.floor(h/24); return d<60?d+'d ago':new Date(t).toLocaleDateString(); }
-function devTagsHTML(r){ return (r.online?'<span class="dvp-tag on">Online</span>':'')+(r.tester?'<span class="dvp-tag tst">Test</span>':'')+(r.dev?'<span class="dvp-tag dev">Admin</span>':'')+
-  (r.guest?'<span class="dvp-tag">Guest</span>':'')+(r.ban?'<span class="dvp-tag bad">Banned</span>':'')+(r.flag?'<span class="dvp-tag warn">Flag</span>':''); }
+function devAgo(t){ if(!t) return 'never'; const s=Math.max(0,Math.floor((Date.now()-t)/1000)); if(s<60) return 'now'; const m=Math.floor(s/60); if(m<60) return m+' min ago';
+  const h=Math.floor(m/60); if(h<24) return h+' h ago'; const d=Math.floor(h/24); return d===1?'Yesterday':(d<60?d+' days ago':new Date(t).toLocaleDateString()); }
+function devStatusPill(r){ return r.ban?'<span class="dvp-pill bad">Banned</span>':(r.dev?'<span class="dvp-pill dev">Admin</span>':(r.tester?'<span class="dvp-pill tst">Tester</span>':(r.online?'<span class="dvp-pill on">Online</span>':(r.guest?'<span class="dvp-pill off">Guest</span>':'<span class="dvp-pill off">Offline</span>')))); }
+function devTagsHTML(r){ return (r.online?'<span class="dvp-tag on">Online</span>':'')+(r.tester?'<span class="dvp-tag tst">Test</span>':'')+(r.dev?'<span class="dvp-tag">Admin</span>':'')+
+  (r.guest?'<span class="dvp-tag">Guest</span>':'')+(r.ban?'<span class="dvp-tag bad">Banned</span>':'')+(r.flag?'<span class="dvp-tag bad">Flag</span>':''); }
+/* ---- the window ---- */
 function devPanelHTML(TST){ devCssEnsure();
   const dt=TST?'economy':devTab;
-  /* Phil 12 Nov: "why is gold, diamonds and level on my dev panel thats not knowledge I need" - the header shows only what runs the game: the server, players online, the last backup */
-  const head=`<div class="dvp-hd"><span class="dvp-badge">${TST?'TEST':'DEV'}</span><span class="dvp-title">${TST?t('set2.tester_panel'):t('set2.dev_panel')}</span>`+
-    (TST?'':`<span class="dvp-stats" id="dvpHdStat">${devHdStat()}</span>`)+`<button class="btn sm secondary dvp-x" data-dvclose="1" aria-label="Close">${uiIcon('close')}</button></div>`;
-  const tabs=TST?'':`<div class="dvp-tabs" role="tablist">${DVP_TABS.map(([k,l])=>`<button class="dvp-tab${dt===k?' on':''}" role="tab" aria-selected="${dt===k}" data-devtab="${k}"><span>${l}</span></button>`).join('')}</div>`;
-  const body=({players:devPlayersHTML,reports:devReportsHTML,economy:devEconomyHTML,liveops:devLiveHTML,servers:devServersHTML,qa:devQaHTML})[dt]();
-  return `<div class="dvp" data-dvp="${dt}" role="dialog" aria-label="${escAttr(TST?t('set2.tester_panel'):t('set2.dev_panel'))}">${head}${tabs}<div class="dvp-body">${body}<div id="devDone" class="dvp-out" role="status"></div><div id="devAdmin" class="dvp-log"></div></div></div>`; }
-/* ---- Players ---- */
+  const head=`<div class="dvp-hd"><span class="dvp-title">${TST?'TEST ACCOUNT':'DEV PANEL'}</span>`+(TST?'<span class="dvp-stats"></span>':`<span class="dvp-stats" id="dvpHdStat">${devHdStat()}</span>`)+`<button class="dvp-close" data-dvclose="1" aria-label="Close">Close</button></div>`;
+  const tabs=TST?'':`<div class="dvp-tabs" role="tablist">${DVP_TABS.map(([k,l,ic])=>`<button class="dvp-tab${dt===k?' on':''}" role="tab" aria-selected="${dt===k}" data-devtab="${k}">${uiIcon(ic)}<span>${l}</span></button>`).join('')}</div>`;
+  const body=({players:devPlayersHTML,reports:devReportsHTML,economy:devEconomyHTML,liveops:devLiveHTML,servers:devServersHTML,qa:devQaHTML})[dt](TST);
+  return `<div class="dvp" data-dvp="${dt}" role="dialog" aria-label="${escAttr(TST?t('set2.tester_panel'):t('set2.dev_panel'))}">${head}${tabs}<div class="dvp-body">${body}<div class="dvp-foot"><div id="devDone" class="dvp-out" role="status"></div><div id="devAdmin" class="dvp-log"></div></div></div></div>`; }
+function devHdStat(){ const s=DVP.st; if(!s) return '';
+  const known=SVR_LIST.filter(x=>DVP.svr[x.id]), up=known.filter(x=>DVP.svr[x.id].up).length;
+  const online=svrOn()&&known.some(x=>DVP.svr[x.id].online!=null)?known.reduce((a,x)=>a+((DVP.svr[x.id].online)|0),0):(s.online|0);
+  const health=svrOn()?(known.length?`<span class="dvp-chip ${up===SVR_LIST.length?'good':'warn'}"><b>${up}/${SVR_LIST.length}</b> servers healthy</span>`:''):`<span class="dvp-chip good"><b>${s.server?'Server '+escapeHTML(String(s.server)):'Server'}</b> up</span>`;
+  const n=s.notice&&(!s.notice.until||s.notice.until>Date.now());
+  return health+`<span class="dvp-chip"><b>${online}</b> online</span><span class="dvp-chip${s.openReports?' warn':''}"><b>${s.openReports|0}</b> open reports</span>`+(n?'<span class="dvp-chip warn"><b>Notice</b> on</span>':''); }
+/* ---- Players: table on the left, the player card on the right ---- */
 function devPlayersHTML(){
-  return `<div class="dvp-bar"><label class="dvp-search">${uiIcon('search')}<input id="dvpQ" type="search" placeholder="Search name, username or id" autocomplete="off" autocapitalize="off" spellcheck="false" value="${escAttr(DVP.q)}" aria-label="Search players"></label>`+
-    `<select id="dvpFilt" class="dvp-sel" aria-label="Show">${devFiltOpts()}</select><button class="dvp-btn sec ic" data-dvrefresh="players" aria-label="Refresh">${uiIcon('refresh')}</button><button class="dvp-btn" data-dev="mktest">${uiIcon('plus')}<span>Test account</span></button></div>`+
-    `<div class="dvp-chips" role="group" aria-label="Sort">${uiIcon('sort')}${DVP_SORTS.map(([k,l])=>`<button class="dvp-chip-b${DVP.sort===k?' on':''}" data-dvsort="${k}" aria-pressed="${DVP.sort===k}">${l}${DVP.sort===k?`<i class="dvp-dir ${DVP.dir<0?'dn':'up'}"></i>`:''}</button>`).join('')}</div>`+
-    `<div id="dvpList" class="dvp-list">${devPlayersListHTML()}</div>`; }
+  return `<div class="dvp-tool"><label class="dvp-search">${uiIcon('search')}<input id="dvpQ" type="search" placeholder="Search name, username or ID" autocomplete="off" autocapitalize="off" spellcheck="false" value="${escAttr(DVP.q)}" aria-label="Search players"></label>`+
+    `<select id="dvpFilt" class="dvp-sel" aria-label="Show">${devFiltOpts()}</select>`+
+    `<select id="dvpSort" class="dvp-sel" aria-label="Sort">${DVP_SORTS.map(([k,l])=>[-1,1].map(d=>`<option value="${k}:${d}"${DVP.sort===k&&DVP.dir===d?' selected':''}>Sort · ${k==='name'?(d>0?'Name A-Z':'Name Z-A'):(k==='seen'?(d<0?'Last played':'Oldest played'):(l+(d<0?' high':' low')))}</option>`).join('')).join('')}</select>`+
+    `<button class="dvp-btn ic" data-dvrefresh="players" aria-label="Refresh">${uiIcon('refresh')}</button><button class="dvp-btn gold" data-dev="mktest">Create test account</button></div>`+
+    `<div class="dvp-split"><div class="dvp-left"><div class="dvp-thead" role="row">${[['name','Name'],['level','Level'],['seen','Last played'],['patron','Patron']].map(([k,l])=>`<button data-dvsort="${k}" class="${DVP.sort===k?'on':''}">${l}${DVP.sort===k?`<i class="dvp-dir ${DVP.dir<0?'dn':'up'}"></i>`:''}</button>`).join('')}<button disabled style="cursor:default">Status</button></div>`+
+    `<div id="dvpList" class="dvp-list">${devPlayersListHTML()}</div></div><div class="dvp-right" id="dvpDetail"></div></div>`; }
 function devFiltOpts(){ const R=DVP.rows||[]; const n={all:R.length,online:R.filter(r=>r.online).length,tester:R.filter(r=>r.tester).length,banned:R.filter(r=>r.ban).length};
   return DVP_FILTS.map(([k,l])=>`<option value="${k}"${DVP.filt===k?' selected':''}>${l}${DVP.rows?' ('+n[k]+')':''}</option>`).join(''); }
 function devPlayersSorted(){ const q=DVP.q.trim().toLowerCase(), f=DVP.filt;
@@ -33963,30 +33955,43 @@ function devPlayersSorted(){ const q=DVP.q.trim().toLowerCase(), f=DVP.filt;
   return R.slice().sort((a,b)=>{ const x=key(a), y=key(b); const c=(typeof x==='string')?x.localeCompare(y):(x-y); return c?c*d:String(a.name||'').localeCompare(String(b.name||'')); }); }
 function devPlayersListHTML(){ if(DVP.err) return `<div class="dvp-empty bad">${escapeHTML(DVP.err)}</div>`; if(!DVP.rows) return `<div class="dvp-empty">${t('common.loading')}</div>`;
   const R=devPlayersSorted(); if(!R.length) return `<div class="dvp-empty">No players match.</div>`;
-  return R.slice(0,DVP.shown).map(r=>`<button class="dvp-prow" data-pid="${escAttr(r.id)}"><span class="dvp-pn"><b>${escapeHTML(String(r.name||''))}</b>${r.login&&r.login!==r.name?`<small>@${escapeHTML(String(r.login))}</small>`:''}${devTagsHTML(r)}</span>`+
-    `<span class="dvp-ps"><span><i>Lv</i>${r.level|0}</span><span><i>Patron</i>${r.prestiged?'EDP '+(r.edp|0):'EGP '+(r.egp|0)}</span><span><i>Played</i>${devAgo(r.lastSeen)}</span></span></button>`).join('')+
-    (R.length>DVP.shown?`<button class="dvp-more" data-dvmore="1">Show ${Math.min(60,R.length-DVP.shown)} more</button>`:'')+`<div class="dvp-count">${Math.min(R.length,DVP.shown)} of ${R.length}${R.length!==DVP.rows.length?' (of '+DVP.rows.length+' accounts)':' accounts'}</div>`; }
-function devPlayersPaint(){ const host=document.getElementById('dvpList'); if(host) host.innerHTML=devPlayersListHTML(); const f=document.getElementById('dvpFilt'); if(f) f.innerHTML=devFiltOpts(); }
-function devPlayersLoad(b, force){ if(!DEV.on) return; if(DVP.rows&&!force){ devPlayersPaint(); return; } if(DVP.busy) return; DVP.busy=true;
-  api('/api/admin/accounts').then(d=>{ DVP.busy=false; if(!d||d.error||!Array.isArray(d.accounts)){ DVP.err=String((d&&d.error)||'Server unreachable'); } else { DVP.err=''; DVP.rows=d.accounts; } devPlayersPaint(); })
-    .catch(()=>{ DVP.busy=false; DVP.err='Server unreachable'; devPlayersPaint(); }); }
-/* ---- Reports: one queue (DB.reports = chat reports + integrity spikes, DB.feedback = players' bugs and ideas) ---- */
-function devReportsHTML(){ return `<div class="dvp-bar"><div class="dvp-chips" id="dvpRk" role="group" aria-label="Kind" style="flex:1 1 300px;margin:0">${devRkChips()}</div>`+
+  return R.slice(0,DVP.shown).map(r=>`<button class="dvp-prow${r.id===DVP.sel?' on':''}" data-pid="${escAttr(r.id)}"><span><b>${escapeHTML(String(r.name||''))}</b></span><span>${r.level|0}</span><span>${devAgo(r.lastSeen)}</span>`+
+    `<span>${r.prestiged?'EDP '+(r.edp|0):'EGP '+(r.egp|0)}</span><span>${devStatusPill(r)}</span></button>`).join('')+
+    (R.length>DVP.shown?`<button class="dvp-more" data-dvmore="1">Show ${Math.min(80,R.length-DVP.shown)} more</button>`:'')+`<div class="dvp-count">${Math.min(R.length,DVP.shown)} of ${R.length}${R.length!==DVP.rows.length?' (of '+DVP.rows.length+' accounts)':' accounts'}</div>`; }
+function devPlayersPaint(b){ const host=document.getElementById('dvpList'); if(host) host.innerHTML=devPlayersListHTML(); const f=document.getElementById('dvpFilt'); if(f) f.innerHTML=devFiltOpts();
+  const det=document.getElementById('dvpDetail'); if(!det||!DVP.rows) return;
+  let r=DVP.sel&&(DVP.rows.find(x=>x.id===DVP.sel)||(DVP.selObj&&DVP.selObj.id===DVP.sel?DVP.selObj:null));
+  if(!r){ const S=devPlayersSorted(); r=S[0]||null; DVP.sel=r?r.id:null; if(host&&r){ const el=host.querySelector('[data-pid="'+CSS.escape(r.id)+'"]'); if(el) el.classList.add('on'); } }
+  if(!r){ det.innerHTML='<div class="dvp-empty">No player selected.</div>'; det.dataset.pid=''; return; }
+  if(det.dataset.pid!==r.id) openPlayerAdmin(r, b||document.getElementById('dvpOv'), det); }
+function devPlayerSelect(id, b){ DVP.sel=id; const host=document.getElementById('dvpList'); if(host) host.querySelectorAll('.dvp-prow').forEach(x=>x.classList.toggle('on',x.dataset.pid===id)); devPlayersPaint(b); }
+function devPlayersLoad(b, force){ if(!DEV.on) return; if(DVP.rows&&!force){ devPlayersPaint(b); return; } if(DVP.busy) return; DVP.busy=true;
+  api('/api/admin/accounts').then(d=>{ DVP.busy=false; if(!d||d.error||!Array.isArray(d.accounts)){ DVP.err=String((d&&d.error)||'Server unreachable'); } else { DVP.err=''; DVP.rows=d.accounts; }
+    devPlayersPaint(b); })
+    .catch(()=>{ DVP.busy=false; DVP.err='Server unreachable'; devPlayersPaint(b); }); }
+/* ---- Reports: the queue on the left, the selected report on the right ---- */
+function devReportsHTML(){ return `<div class="dvp-tool"><span class="dvp-h">Review queue</span><select id="dvpRk" class="dvp-sel" aria-label="Kind">${devRkOpts()}</select>`+
   `<select id="dvpRf" class="dvp-sel" aria-label="Status">${DVP_RF.map(([k,l])=>`<option value="${k}"${DVP.rf===k?' selected':''}>${l}</option>`).join('')}</select>`+
-  `<button class="dvp-btn sec sm" data-dvrefresh="reports">${uiIcon('refresh')}<span>Refresh</span></button></div>`+
-  `<div id="devIntegrity" class="dvp-list">${devReportsListHTML()}</div>`; }
+  `<button class="dvp-btn" data-dvrefresh="reports">Refresh</button></div><div class="dvp-split"><div class="dvp-left" id="dvpRList">${devReportsListHTML()}</div><div class="dvp-right" id="devIntegrity"></div></div>`; }
 function devReportsStatus(x){ return DVP.rf==='all'||(DVP.rf==='open'?!x.resolved:x.resolved); }
-function devRkChips(){ const L=(DVP.items||[]).filter(devReportsStatus); return uiIcon('filter')+DVP_RK.map(([k,l])=>{ const n=L.filter(x=>devRkMatch(x,k)).length;
-  return `<button class="dvp-chip-b${DVP.rk===k?' on':''}" data-rk="${k}" aria-pressed="${DVP.rk===k}">${l}<b>${DVP.items?n:''}</b></button>`; }).join(''); }
+function devRkOpts(){ const L=(DVP.items||[]).filter(devReportsStatus); return DVP_RK.map(([k,l])=>`<option value="${k}"${DVP.rk===k?' selected':''}>${l}${DVP.items?' ('+L.filter(x=>devRkMatch(x,k)).length+')':''}</option>`).join(''); }
+const DVP_RKIND={bug:'Bug',suggestion:'Idea',moderation:'Chat report',integrity:'Cheat flag'};
+function devReportsShown(){ return (DVP.items||[]).filter(x=>devReportsStatus(x)&&devRkMatch(x,DVP.rk)); }
 function devReportsListHTML(){ if(DVP.rerr) return `<div class="dvp-empty bad">${escapeHTML(DVP.rerr)}</div>`; if(!DVP.items) return `<div class="dvp-empty">${t('common.loading')}</div>`;
-  const L=DVP.items.filter(x=>devReportsStatus(x)&&devRkMatch(x,DVP.rk)); if(!L.length) return `<div class="dvp-empty">Nothing here.</div>`;
-  const K={bug:['Bug','bug'],suggestion:['Idea','sparkle-new'],moderation:['Chat report','warning'],integrity:['Cheat flag','chart']};
-  return L.slice(0,150).map(x=>{ const k=K[x.kind]||K.bug; return `<div class="dvp-rep k-${x.kind}${x.resolved?' done':''}"><div class="dvp-rep-hd"><span class="dvp-tag">${uiIcon(k[1])}${escapeHTML(x.kind==='moderation'&&x.label?x.label:k[0])}</span>${x.tester?'<span class="dvp-tag tst">Tester</span>':''}`+
-    `<button class="dvp-link" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">${escapeHTML(x.name||'?')}</button><span class="dvp-when">${devAgo(x.t)}</span></div>`+
+  const L=devReportsShown(); if(!L.length) return `<div class="dvp-empty">Nothing in this queue.</div>`;
+  return L.slice(0,200).map(x=>`<button class="dvp-rep k-${x.kind}${x.resolved?' done':''}${x.id===DVP.rsel?' on':''}" data-rsel="${escAttr(x.id)}"><b>${escapeHTML(devRepTitle(x))}</b>${x.tester?'<span class="dvp-tag tst">Tester</span>':''}`+
+    `<span class="dvp-sub">${escapeHTML((x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}</span><span class="dvp-btn sm">Open</span></button>`).join(''); }
+function devRepTitle(x){ const s=String(x.text||'').replace(/\s+/g,' ').trim(); return s.length>64?s.slice(0,62)+'…':(s||'(no text)'); }
+function devReportDetailHTML(x){ if(!x) return '<div class="dvp-empty">Nothing in this queue.</div>';
+  return `<div class="dvp-h2">${escapeHTML(devRepTitle(x))}</div><div class="dvp-line">${escapeHTML((x.name||'?')+' · '+(x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}${x.tester?' <span class="dvp-tag tst">Tester</span>':''}</div>`+
     `<div class="dvp-rep-tx">${escapeHTML(x.text)}</div>${x.meta?`<div class="dvp-rep-meta">${escapeHTML(x.meta)}</div>`:''}`+
-    `<div class="dvp-rep-act">${(x.kind==='moderation'||x.kind==='integrity')&&x.userId?`<button class="dvp-btn sm" data-raudit="${escAttr(x.id)}" data-ruser="${escAttr(x.userId)}">${x.kind==='moderation'?'Review':'Audit'}</button>`:''}`+
-    `<button class="dvp-btn sm sec" data-rres="${escAttr(x.id)}">${uiIcon(x.resolved?'replay':'check')}${x.resolved?'Reopen':'Resolve'}</button></div></div>`; }).join(''); }
-function devReportsPaint(){ const host=document.getElementById('devIntegrity'); if(!host||INTEG.open) return; host.innerHTML=devReportsListHTML(); const k=document.getElementById('dvpRk'); if(k) k.innerHTML=devRkChips(); }
+    `<div class="dvp-acts">${x.userId?`<button class="dvp-btn" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button>`:''}`+
+    `${(x.kind==='moderation'||x.kind==='integrity')&&x.userId?`<button class="dvp-btn" data-raudit="${escAttr(x.id)}" data-ruser="${escAttr(x.userId)}">${x.kind==='moderation'?'Review':'Audit'}</button>`:''}`+
+    `<button class="dvp-btn ${x.resolved?'':'gold'}" data-rres="${escAttr(x.id)}">${x.resolved?'Reopen':'Resolve'}</button></div>`; }
+function devReportsPaint(){ const host=document.getElementById('dvpRList'); if(host) host.innerHTML=devReportsListHTML(); const k=document.getElementById('dvpRk'); if(k) k.innerHTML=devRkOpts();
+  const det=document.getElementById('devIntegrity'); if(!det||INTEG.open) return; const L=devReportsShown();
+  let x=L.find(y=>y.id===DVP.rsel); if(!x){ x=L[0]||null; DVP.rsel=x?x.id:null; if(host&&x){ const el=host.querySelector('[data-rsel="'+CSS.escape(x.id)+'"]'); if(el) el.classList.add('on'); } }
+  det.innerHTML=devReportDetailHTML(x); }
 async function devReportsLoad(force){ if(!DEV.on) return; if(DVP.items&&!force){ devReportsPaint(); return; } if(DVP.rbusy) return; DVP.rbusy=true;
   const [a,f]=await Promise.all([api('/api/dev/reports?all=1').catch(()=>null), api('/api/admin/feedback?all=1').catch(()=>null)]); DVP.rbusy=false;
   if((!a||a.error)&&(!f||f.error)){ DVP.rerr=String((a&&a.error)||(f&&f.error)||'Server unreachable'); devReportsPaint(); return; }
@@ -34000,53 +34005,55 @@ async function devAuditOpen(userId, reportId){ INTEG.open={id:userId,reportId}; 
   const a=await api('/api/dev/gem-audit?days=7&id='+encodeURIComponent(userId)).catch(()=>null); if(!INTEG.open) return; INTEG.audit=(a&&!a.error)?a:null;
   if(!INTEG.audit){ INTEG.open=null; const d=document.getElementById('devDone'); if(d){ d.textContent=String((a&&a.error)||'Could not load the audit'); d.classList.add('bad'); } }
   renderIntegrity(); }
-/* ---- Economy: your OWN account ---- */
-function devEconomyHTML(){
-  const row=(k,ic,l)=>`<div class="dvp-erow"><span class="dvp-eic">${ic}</span><span class="dvp-el">${l}</span><input class="dvp-amt" type="number" inputmode="numeric" min="1" step="1" data-amt="${k}" value="${DVP_AMT_DEF[k]}" aria-label="${escAttr(l)}"><button class="dvp-btn" data-dev="${k}">${uiIcon('plus')}Give</button></div>`;
-  const cur=[['gold',hudIcon('gold'),'Gold'],['gems',hudIcon('gem'),'Diamonds'],['stam',uiIcon('res-stamina'),'Stamina'],['arenacoin',uiIcon('res-arena-coins'),'Arena coins'],
-    ['guildcoins',uiIcon('res-guild-coins'),'Guild coins'],['shielditem',hudIcon('shield'),'Shields'],['shards',uiIcon('hero'),'Fragments'],['pieces',uiIcon('mode-forge'),'Gear pieces']];
-  const prog=[['level',uiIcon('res-player-xp'),'Player levels'],['squadlvl',uiIcon('level-up'),'Squad hero levels'],['campstage',uiIcon('map'),'Campaign stages']];
-  const one=[['heroes','lock-open',t('set2.dev_heroes')],['lv100','level-up','All heroes to level '+MAX_LEVEL],['maxteam','star-filled','Max all heroes: glyphs + stars'],['campall','finish-flag',t('set2.dev_campall')],['givefrags','gift','Fragments for one hero']];
-  return `<div class="dvp-sec">Currencies and items</div><div class="dvp-egrid">${cur.map(x=>row(...x)).join('')}</div>`+
-    `<div class="dvp-sec">Progress</div><div class="dvp-egrid">${prog.map(x=>row(...x)).join('')}</div>`+
-    `<div class="dvp-sec">Roster</div><div class="dvp-tiles">${one.map(([k,ic,l])=>`<button class="dvp-tile" data-dev="${k}">${uiIcon(ic)}<span>${l}</span></button>`).join('')}</div>`; }
-/* ---- Servers ---- */
-function devServersHTML(){ return `<div class="dvp-bar"><span class="dvp-sec" style="margin:0;flex:1">This server</span><button class="dvp-btn sec sm" data-dvrefresh="servers">${uiIcon('refresh')}<span>Refresh</span></button></div><div id="dvpSrv">${devServersInner()}</div>`; }
-function devServersInner(){ const s=DVP.st; if(!s) return `<div class="dvp-empty${DVP.serr?' bad':''}">${DVP.serr?escapeHTML(DVP.serr):t('common.loading')}</div>`;
-  const kv=(k,v,c)=>`<div class="dvp-kv"><span>${escapeHTML(k)}</span><b${c?' class="'+c+'"':''}>${escapeHTML(String(v))}</b></div>`;
-  const up=(sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h>=48?Math.floor(h/24)+'d '+(h%24)+'h':(h?h+'h '+m+'m':m+'m'); };
-  const bk=s.backups||{};
-  const old=bk.last&&(Date.now()-bk.last.t>2*3600000);
-  return `<div class="dvp-cards">`+
-    `<div class="dvp-card"><div class="dvp-ct">${uiIcon('world-online')}${s.server?'Server '+escapeHTML(String(s.server)):'This server'}</div>${kv('Build',s.build||'—')}${kv('Running for',up(s.uptimeS|0))}${kv('Online now',s.online|0,'good')}${kv('Accounts',(s.accounts|0).toLocaleString())}${kv('Test accounts',s.testers|0)}${kv('Banned',s.banned|0,s.banned?'warn':'')}${kv('Free packs (pre-beta)',s.prebeta?'On':'Off')}</div>`+
-    `<div class="dvp-card"><div class="dvp-ct">${uiIcon('save')}Backups</div>${kv('Last backup',bk.last?devAgo(bk.last.t):'None yet',bk.last?(old?'warn':'good'):'bad')}${kv('Hourly copies kept',bk.count|0)}${kv('Pinned copy',bk.pinned?bk.pinned.real+' real players':'—')}`+
-      `<div class="dvp-acts"><button class="dvp-btn sm" data-dev="backupnow">${uiIcon('save')}Backup now</button><button class="dvp-btn sm sec" data-dev="backup">${uiIcon('folder')}Download a copy</button></div></div>`+
-    (svrOn()?`<div class="dvp-card"><div class="dvp-ct">${uiIcon('link')}All servers</div>${SVR_LIST.map(x=>{ const v=DVP.svr[x.id]; return kv(x.name+(x.id===svrHere()?' (here)':''),v?(v.up?'Up · '+(v.online!=null?v.online+' online · ':'')+'build '+v.build:'Down'):'Checking',v?(v.up?'good':'bad'):''); }).join('')}</div>`:'')+
-    `<div class="dvp-card wide"><div class="dvp-ct">${uiIcon('warning')}Recent errors${s.saveFails?` <span class="dvp-tag bad">${s.saveFails} save</span>`:''}</div>${(s.errors&&s.errors.length)?`<div class="dvp-errs">${s.errors.map(e=>`<div><span>${devAgo(e.t)}</span>${escapeHTML(e.m)}</div>`).join('')}</div>`:kv('Since the server started','None')}</div>`+
-    `</div>`; }
-/* ---- Live Ops: talk to everyone - the announcement banner and a mail to every player ---- */
-function devLiveHTML(){ return `<div id="dvpLive">${devLiveInner()}</div>`; }
-function devLiveInner(){ const s=DVP.st; const kv=(k,v)=>`<div class="dvp-kv"><span>${escapeHTML(k)}</span><b>${escapeHTML(String(v))}</b></div>`;
-  const n=s&&s.notice&&(!s.notice.until||s.notice.until>Date.now())?s.notice:null;
-  const mails=DVP.mails;
-  return `<div class="dvp-cards">`+
-    `<div class="dvp-card"><div class="dvp-ct">${uiIcon('notification-bell')}Announcement banner</div>${!s?`<div class="dvp-empty">${t('common.loading')}</div>`:(n?`<div class="dvp-notice-now">${escapeHTML(n.text)}${n.until?' · until '+new Date(n.until).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</div>`:kv('Showing now','Nothing'))}`+
+/* ---- Economy: grants to your OWN account on the left; roster tools and purchase support on the right ---- */
+function devEconomyHTML(TST){
+  const row=(k,ic,l)=>`<div class="dvp-erow">${ic}<b>${l}</b><input class="dvp-amt" type="number" inputmode="numeric" min="1" step="1" data-amt="${k}" value="${DVP_AMT_DEF[k]}" aria-label="${escAttr(l)}"><button class="dvp-btn gold sm" data-dev="${k}">Grant</button></div>`;
+  const cur=[['gold',hudIcon('gold'),'Gold'],['gems',hudIcon('gem'),'Diamonds'],['stam',uiIcon('res-stamina'),'Stamina'],['shards',uiIcon('hero'),'Fragments'],['arenacoin',uiIcon('res-arena-coins'),'Arena coins'],
+    ['guildcoins',uiIcon('res-guild-coins'),'Guild coins'],['shielditem',hudIcon('shield'),'Shields'],['pieces',uiIcon('mode-forge'),'Gear pieces'],['level',uiIcon('res-player-xp'),'Player levels'],['squadlvl',uiIcon('level-up'),'Squad hero levels'],['campstage',uiIcon('map'),'Campaign stages']];
+  const one=[['heroes',t('set2.dev_heroes')],['lv100','All heroes to level '+MAX_LEVEL],['maxteam','Max all heroes: glyphs + stars'],['campall',t('set2.dev_campall')],['givefrags','Fragments for one hero']];
+  return `<div class="dvp-tool"><span class="dvp-h">Own account</span></div><div class="dvp-split"><div class="dvp-left">${cur.map(x=>row(...x)).join('')}</div><div class="dvp-right">`+
+    `<div class="dvp-h2">Roster</div>${one.map(([k,l])=>`<div class="dvp-srow"><b>${l}</b><button class="dvp-btn sm" data-dev="${k}" style="margin-left:auto">${k==='givefrags'?'Choose':'Apply'}</button></div>`).join('')}`+
+    (TST?'':`<div class="dvp-h2" style="margin-top:12px">Purchase support</div><div class="dvp-line dim">Find a purchase by order number, pack or player.</div>`+
+      `<div class="pai-line" style="display:flex;gap:6px"><input id="dvpBuyQ" placeholder="Order number, pack or player" aria-label="Find a purchase" style="margin-top:0"><button class="dvp-btn" data-dev="findbuy">Find purchase</button></div><div id="dvpBuys">${devBuysHTML()}</div>`)+
+    `</div></div>`; }
+function devBuysHTML(){ const L=DVP.buys; if(!L) return ''; if(!L.length) return '<div class="dvp-empty">No purchase found.</div>';
+  return L.map(x=>`<div class="dvp-srow"><b>${escapeHTML(x.label)}</b><span class="dvp-sub">${escapeHTML(x.name)} · ${new Date(x.t).toLocaleDateString()}${x.free?' · free':(x.usd?' · $'+(+x.usd).toFixed(2):'')}</span><button class="dvp-btn sm" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button></div>`).join(''); }
+/* ---- Live Ops: what goes out to everyone on the left; the composer on the right ---- */
+function devLiveHTML(){ return `<div id="dvpLive" style="display:contents">${devLiveInner()}</div>`; }
+function devLiveInner(){ const s=DVP.st; const n=s&&s.notice&&(!s.notice.until||s.notice.until>Date.now())?s.notice:null; const mails=DVP.mails||[];
+  const left=`<div class="dvp-group"><div class="dvp-h2">Messages</div>`+
+      `<button class="dvp-srow${DVP.lsel==='mail'?' on':''}" data-lsel="mail"><b>Mail all players</b><span class="dvp-sub">Inbox delivery</span><span class="dvp-btn sm gold">Draft mail</span></button>`+
+      `<button class="dvp-srow${DVP.lsel==='notice'?' on':''}" data-lsel="notice"><b>Announcement</b><span class="dvp-sub">${n?'Showing: '+escapeHTML(n.text):'Game-wide banner'}</span><span class="dvp-btn sm">Draft announcement</span></button></div>`+
+    `<div class="dvp-group"><div class="dvp-h2">Sent recently</div>${mails.length?mails.map(m=>`<div class="dvp-srow"><b>${escapeHTML(m.subj)}</b><span class="dvp-sub">${devAgo(m.t)}</span></div>`).join(''):'<div class="dvp-line dim">No mail to everyone in the last 14 days.</div>'}</div>`;
+  const right=DVP.lsel==='notice'
+    ? `<div class="dvp-h2">Announcement</div>${n?`<div class="dvp-notice-now">${escapeHTML(n.text)}${n.until?' · until '+new Date(n.until).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</div>`:'<div class="dvp-line dim">Nothing showing now.</div>'}`+
       `<input id="dvpNotice" maxlength="160" placeholder="Server update in 10 minutes" aria-label="Banner text"><select id="dvpNoticeMin" aria-label="How long"><option value="0">Until cleared</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="180">3 hours</option><option value="1440">1 day</option></select>`+
-      `<div class="dvp-acts"><button class="dvp-btn sm" data-dev="noticeset">${uiIcon('horn')}Show to players</button>${n?`<button class="dvp-btn sm danger" data-dev="noticeclr">${uiIcon('close')}Take it down</button>`:''}</div></div>`+
-    `<div class="dvp-card"><div class="dvp-ct">${uiIcon('inbox-sent')}Mail every player</div>`+
-      `<input id="dvpAllSubj" maxlength="60" placeholder="Subject" aria-label="Subject"><textarea id="dvpAllText" rows="3" maxlength="500" placeholder="Message" aria-label="Message"></textarea>`+
-      `<div class="dvp-acts"><button class="dvp-btn sm" data-dev="mailall">${uiIcon('inbox-sent')}Send to everyone</button></div>`+
-      (mails&&mails.length?`<div class="dvp-sent">${mails.map(m=>`<div class="dvp-kv"><span>${devAgo(m.t)}</span><b>${escapeHTML(m.subj)}</b></div>`).join('')}</div>`:'')+`</div>`+
-    `</div>`; }
+      `<div class="dvp-acts"><button class="dvp-btn gold" data-dev="noticeset">Show to players</button>${n?'<button class="dvp-btn danger" data-dev="noticeclr">Take it down</button>':''}</div>`
+    : `<div class="dvp-h2">Mail all players</div><input id="dvpAllSubj" maxlength="60" placeholder="Subject" aria-label="Subject"><textarea id="dvpAllText" rows="4" maxlength="500" placeholder="Message" aria-label="Message"></textarea>`+
+      `<div class="dvp-acts"><button class="dvp-btn gold" data-dev="mailall">Send to everyone</button></div>`;
+  return `<div class="dvp-tool"><span class="dvp-h">Player communications</span></div><div class="dvp-split"><div class="dvp-left">${left}</div><div class="dvp-right" id="dvpLiveR">${right}</div></div>`; }
 function devLivePaint(){ const h=document.getElementById('dvpLive'); if(!h) return; const keep={}; h.querySelectorAll('input,select,textarea').forEach(e=>{ if(e.id) keep[e.id]=e.value; });
   const a=document.activeElement, fid=a&&h.contains(a)?a.id:''; h.innerHTML=devLiveInner(); for(const id in keep){ const e=h.querySelector('#'+id); if(e&&keep[id]) e.value=keep[id]; } if(fid){ const e=h.querySelector('#'+fid); if(e) e.focus(); } }
 function devMailAllLoad(){ if(!DEV.on) return; api('/api/admin/mail-all').then(d=>{ if(d&&d.ok){ DVP.mails=d.mails||[]; devLivePaint(); } }).catch(()=>{}); }
-function devHdStat(){ const s=DVP.st; if(!s) return ''; const bk=(s.backups||{}).last, old=!bk||(Date.now()-bk.t>2*3600000);
-  return `<span class="dvp-chip">${uiIcon('world-online')}${s.server?'Server '+escapeHTML(String(s.server)):'Server'}</span><span class="dvp-chip on">${s.online|0} online</span>`+
-    `<span class="dvp-chip${old?' warn':''}">${uiIcon('save')}${bk?'Backup '+(devAgo(bk.t)==='now'?'just now':devAgo(bk.t)):'No backup yet'}</span>`+(s.notice&&(!s.notice.until||s.notice.until>Date.now())?`<span class="dvp-chip warn">${uiIcon('notification-bell')}Notice on</span>`:''); }
-function devServersPaint(){ const hs=document.getElementById('dvpHdStat'); if(hs) hs.innerHTML=devHdStat(); devLivePaint(); const h=document.getElementById('dvpSrv'); if(!h) return; const a=document.activeElement, keep=a&&h.contains(a)&&a.id?{id:a.id,v:a.value}:null;
-  const tv=(h.querySelector('#dvpNotice')||{}).value, mv=(h.querySelector('#dvpNoticeMin')||{}).value; h.innerHTML=devServersInner();
-  const ti=h.querySelector('#dvpNotice'), mi=h.querySelector('#dvpNoticeMin'); if(ti&&tv) ti.value=tv; if(mi&&mv) mi.value=mv; if(keep){ const e=h.querySelector('#'+keep.id); if(e) e.focus(); } }
+/* ---- Servers: the five servers on the left, the selected one on the right ---- */
+function devServersHTML(){ return `<div class="dvp-tool"><span class="dvp-h">Server status</span><button class="dvp-btn" data-dvrefresh="servers">Refresh</button></div><div id="dvpSrv" style="display:contents">${devServersInner()}</div>`; }
+function devServerRows(){ const here=svrHere(); return svrOn()?SVR_LIST.map(x=>({ id:x.id, name:x.name, here:x.id===here, v:DVP.svr[x.id] })):[{ id:here, name:(DVP.st&&DVP.st.server)?'Server '+DVP.st.server:'This server', here:true, v:null }]; }
+function devServersInner(){ const s=DVP.st; const rows=devServerRows(); if(!DVP.ssel||!rows.some(r=>r.id===DVP.ssel)) DVP.ssel=(rows.find(r=>r.here)||rows[0]).id;
+  const kv=(k,v,c)=>`<div class="dvp-kv"><span>${escapeHTML(k)}</span><b${c?' class="'+c+'"':''}>${escapeHTML(String(v))}</b></div>`;
+  const up=(sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h>=48?Math.floor(h/24)+'d '+(h%24)+'h':(h?h+'h '+m+'m':m+'m'); };
+  const line=r=>{ if(r.here&&s) return (s.build||'')+' · '+(s.online|0)+' online'; const v=r.v; return v?(v.up?('build '+v.build+(v.online!=null?' · '+v.online+' online':'')):'Down'):'Checking'; };
+  const left=rows.map(r=>`<button class="dvp-srow${r.id===DVP.ssel?' on':''}" data-ssel="${r.id}"><b>${escapeHTML(r.name)}${r.here?' (here)':''}</b><span class="dvp-sub">${escapeHTML(line(r))}</span><span class="dvp-btn sm">Details</span></button>`).join('');
+  const r=rows.find(x=>x.id===DVP.ssel); let right='';
+  if(r.here){ if(!s) right=`<div class="dvp-empty${DVP.serr?' bad':''}">${DVP.serr?escapeHTML(DVP.serr):t('common.loading')}</div>`;
+    else { const bk=s.backups||{}, old=bk.last&&(Date.now()-bk.last.t>2*3600000);
+      right=`<div class="dvp-h2">${escapeHTML(r.name)}</div>${kv('Build',s.build||'—')}${kv('Running for',up(s.uptimeS|0))}${kv('Online now',s.online|0,'good')}${kv('Accounts',(s.accounts|0).toLocaleString())}${kv('Test accounts',s.testers|0)}${kv('Banned',s.banned|0,s.banned?'warn':'')}`+
+        `${kv('Last backup',bk.last?devAgo(bk.last.t):'None yet',bk.last?(old?'warn':'good'):'bad')}${kv('Backups kept',bk.count|0)}${kv('Pinned copy',bk.pinned?bk.pinned.real+' real players':'—')}`+
+        `<div class="dvp-acts"><button class="dvp-btn gold" data-dev="backupnow">Backup now</button><button class="dvp-btn" data-dev="backup">Download a copy</button></div>`+
+        `<div class="dvp-h2" style="margin-top:12px">Recent errors${s.saveFails?` <span class="dvp-tag bad">${s.saveFails} save</span>`:''}</div>${(s.errors&&s.errors.length)?`<div class="dvp-errs">${s.errors.map(e=>`<div><span>${devAgo(e.t)}</span>${escapeHTML(e.m)}</div>`).join('')}</div>`:'<div class="dvp-line dim">None since the server started.</div>'}`; } }
+  else { const v=r.v; right=`<div class="dvp-h2">${escapeHTML(r.name)}</div>${kv('State',v?(v.up?'Up':'Down'):'Checking',v?(v.up?'good':'bad'):'')}${v&&v.up?kv('Build',v.build):''}${v&&v.online!=null?kv('Online now',v.online,'good'):''}`+
+    `<div class="dvp-line dim" style="margin-top:8px">Backups and errors of ${escapeHTML(r.name)} are on its own dev panel.</div><div class="dvp-acts"><a class="dvp-btn" href="${escAttr(svrUrl(r.id))}">Go to ${escapeHTML(r.name)}</a></div>`; }
+  return `<div class="dvp-split"><div class="dvp-left">${left}</div><div class="dvp-right">${right}</div></div>`; }
+function devServersPaint(){ const hs=document.getElementById('dvpHdStat'); if(hs) hs.innerHTML=devHdStat(); devLivePaint(); const h=document.getElementById('dvpSrv'); if(!h) return; h.innerHTML=devServersInner(); }
 function devServersLoad(force){ if(!DEV.on) return; if(DVP.st&&!force){ devServersPaint(); return; } if(DVP.sbusy) return; DVP.sbusy=true;
   api('/api/admin/status').then(d=>{ DVP.sbusy=false; if(!d||!d.ok){ DVP.serr=String((d&&d.error)||'Server unreachable'); } else { DVP.serr=''; DVP.st=d; } devServersPaint(); })
     .catch(()=>{ DVP.sbusy=false; DVP.serr='Server unreachable'; devServersPaint(); });
@@ -34054,12 +34061,14 @@ function devServersLoad(force){ if(!DEV.on) return; if(DVP.st&&!force){ devServe
     .then(j=>{ DVP.svr[s.id]=(j&&j.build)?Object.assign(DVP.svr[s.id]||{},{up:true,build:j.build}):{up:false}; devServersPaint();
       if(j&&j.build) fetch('https://'+s.host+'/api/front/status?ts='+Date.now(),{cache:'no-store',mode:'cors'}).then(r=>r.ok?r.json():null).then(f=>{ if(f&&f.ok&&DVP.svr[s.id]){ DVP.svr[s.id].online=f.active|0; devServersPaint(); } }).catch(()=>{}); })
     .catch(()=>{ DVP.svr[s.id]={up:false}; devServersPaint(); }); }); }
-/* ---- QA ---- */
-function devQaHTML(){ const tile=(k,ic,l)=>`<button class="dvp-tile" data-dev="${k}">${uiIcon(ic)}<span>${l}</span></button>`;
-  return `<div class="dvp-god"><span>${uiIcon('peace-shield')}<span><b>${t('set2.dev_god')}</b><small>${t('set2.dev_god_sub')}</small></span></span><button class="dvp-sw${DEV.god?' on':''}" id="devGod" role="switch" aria-checked="${!!DEV.god}" aria-label="${escAttr(t('set2.dev_god'))}"></button></div>`+
-    `<div class="dvp-tiles">${tile('perf','chart',t('set2.dev_perf'))}${tile('fxmiss','warning',t('set2.dev_fxmiss'))}${tile('cachelog','clipboard',t('set2.dev_cachelog'))}${tile('orbs','sparkle-new',t('set2.dev_orbs',{n:DEV.orbPreview|0}))}`+
-    `${tile('bots','npc',t('set2.dev_bots'))}${tile('update','refresh',t('set2.dev_update'))}${tile('savecode','save',t('set.save_code'))}</div><div id="saveOut" class="dvp-code"></div>`; }
-/* ---- loading + one delegated click handler per render ---- */
+/* ---- QA: diagnostics on the left, tools on the right ---- */
+function devQaHTML(){ const row=(k,l,sub,btn)=>`<div class="dvp-srow"><b>${l}</b><span class="dvp-sub">${sub}</span><button class="dvp-btn sm" data-dev="${k}">${btn}</button></div>`;
+  return `<div class="dvp-tool"><span class="dvp-h">QA tools</span></div><div class="dvp-split"><div class="dvp-left"><div class="dvp-group"><div class="dvp-h2">Diagnostics</div>`+
+    `<div class="dvp-srow"><b>${t('set2.dev_god')}</b><span class="dvp-sub">${t('set2.dev_god_sub')}</span><button class="dvp-sw${DEV.god?' on':''}" id="devGod" role="switch" aria-checked="${!!DEV.god}" aria-label="${escAttr(t('set2.dev_god'))}" style="margin-left:8px"></button></div>`+
+    row('perf','Performance HUD','On or off in battle','Toggle')+row('fxmiss','FX misses','Effects that landed away from a unit','Show')+row('cachelog','Cache log','What Offline Art deleted','Show')+
+    row('orbs','Temple orbs preview',`<span id="dvpOrbsN">${DEV.orbPreview|0}</span>/5 on every hero card`,'Next')+`</div></div>`+
+    `<div class="dvp-right"><div class="dvp-h2">Tools</div>${row('bots','Simulations','Balance bots + every screen','Run')}${row('savecode','Save code','This device’s save','Export')}${row('update','Check for update','Reload the newest build','Reload')}<div id="saveOut" class="dvp-code"></div></div></div>`; }
+/* ---- open / render / wire ---- */
 function devPanelOpen(){ if(!(DEV.on||isTesterAcct())) return; devCssEnsure(); let ov=document.getElementById('dvpOv');
   if(!ov){ ov=document.createElement('div'); ov.id='dvpOv'; ov.className='dvp-ov'; ov.addEventListener('click',e=>{ if(e.target===ov) devPanelClose(); }); document.body.appendChild(ov); }
   devPanelRender(); }
@@ -34068,31 +34077,36 @@ function devPanelRender(){ const ov=document.getElementById('dvpOv'); if(!ov) re
 function devPanelClose(){ const ov=document.getElementById('dvpOv'); if(ov) ov.remove(); INTEG.open=null; }
 function devPaneLoad(b){ if(!DEV.on||!document.getElementById('dvpOv')) return;
   if(devTab==='players') devPlayersLoad(b); else if(devTab==='reports') devReportsLoad(); else if(devTab==='liveops') devMailAllLoad();
-  if(devTab==='servers'||devTab==='liveops'||!DVP.st) devServersLoad(true); else devServersPaint(); }   /* the header's server / online / backup chips come from the same status */
+  if(devTab==='servers'||devTab==='liveops'||!DVP.st) devServersLoad(true); else devServersPaint(); }
 function devPaneWire(b){ const root=b&&b.querySelector('.dvp'); if(!root) return;
-  const q=root.querySelector('#dvpQ'); if(q) q.oninput=()=>{ DVP.q=q.value; DVP.shown=60; devPlayersPaint(); };
-  const fl=root.querySelector('#dvpFilt'); if(fl) fl.onchange=()=>{ DVP.filt=fl.value; DVP.shown=60; devPlayersPaint(); };
+  const q=root.querySelector('#dvpQ'); if(q) q.oninput=()=>{ DVP.q=q.value; DVP.shown=80; devPlayersPaint(b); };
+  const fl=root.querySelector('#dvpFilt'); if(fl) fl.onchange=()=>{ DVP.filt=fl.value; DVP.shown=80; devPlayersPaint(b); };
+  const so=root.querySelector('#dvpSort'); if(so) so.onchange=()=>{ const [k,d]=so.value.split(':'); DVP.sort=k; DVP.dir=+d; DVP.shown=80; devSortMark(root); devPlayersPaint(b); };
   const rf=root.querySelector('#dvpRf'); if(rf) rf.onchange=()=>{ DVP.rf=rf.value; devReportsPaint(); };
+  const rk=root.querySelector('#dvpRk'); if(rk) rk.onchange=()=>{ DVP.rk=rk.value; devReportsPaint(); };
   const god=root.querySelector('#devGod'); if(god) god.onclick=()=>{ DEV.god=!DEV.god; god.classList.toggle('on',DEV.god); god.setAttribute('aria-checked',String(DEV.god)); };
-  root.addEventListener('click',e=>{ const el=e.target.closest('button'); if(!el||!root.contains(el)) return; const ds=el.dataset;
+  root.addEventListener('click',e=>{ const el=e.target.closest('button,a'); if(!el||!root.contains(el)||el.id==='devGod') return; const ds=el.dataset;
     if(ds.dvclose){ devPanelClose(); return; }
     if(ds.devtab){ devTab=devTabNorm(ds.devtab); _devTabSeen=devTab; INTEG.open=null; devPanelRender(); return; }
     if(ds.dev){ devAction(ds.dev, b); return; }
-    if(ds.dvsort){ if(DVP.sort===ds.dvsort) DVP.dir=-DVP.dir; else { DVP.sort=ds.dvsort; DVP.dir=ds.dvsort==='name'?1:-1; }
-      root.querySelectorAll('[data-dvsort]').forEach(x=>{ const on=x.dataset.dvsort===DVP.sort; x.classList.toggle('on',on); x.setAttribute('aria-pressed',String(on)); const i=x.querySelector('.dvp-dir'); if(i) i.remove();
-        if(on) x.insertAdjacentHTML('beforeend','<i class="dvp-dir '+(DVP.dir<0?'dn':'up')+'"></i>'); }); DVP.shown=60; devPlayersPaint(); return; }
-    if(ds.dvmore){ DVP.shown+=60; devPlayersPaint(); return; }
+    if(ds.dvsort){ if(DVP.sort===ds.dvsort) DVP.dir=-DVP.dir; else { DVP.sort=ds.dvsort; DVP.dir=ds.dvsort==='name'?1:-1; } DVP.shown=80; devSortMark(root); devPlayersPaint(b); return; }
+    if(ds.dvmore){ DVP.shown+=80; devPlayersPaint(b); return; }
     if(ds.dvrefresh){ const d=root.querySelector('#devDone'); if(d) d.textContent='';
       if(ds.dvrefresh==='players') devPlayersLoad(b,true); else if(ds.dvrefresh==='reports'){ INTEG.open=null; devReportsLoad(true); } else devServersLoad(true); return; }
-    if(ds.pid){ const r=(DVP.rows||[]).find(x=>x.id===ds.pid); if(r) openPlayerAdmin(r,b); return; }
-    if(ds.rk){ DVP.rk=ds.rk; devReportsPaint(); return; }
-    if(ds.ropen){ const r=(DVP.rows||[]).find(x=>x.id===ds.ropen)||{id:ds.ropen,name:ds.rname}; openPlayerAdmin(r,b); return; }
+    if(ds.pid){ devPlayerSelect(ds.pid,b); return; }
+    if(ds.rsel){ DVP.rsel=ds.rsel; INTEG.open=null; root.querySelectorAll('[data-rsel]').forEach(x=>x.classList.toggle('on',x.dataset.rsel===ds.rsel)); devReportsPaint(); return; }
+    if(ds.ssel){ DVP.ssel=+ds.ssel; devServersPaint(); return; }
+    if(ds.lsel){ DVP.lsel=ds.lsel; devLivePaint(); return; }
+    if(ds.ropen){ DVP.sel=ds.ropen; DVP.selObj={id:ds.ropen,name:ds.rname||''}; DVP.q=''; DVP.filt='all'; devTab='players'; _devTabSeen=devTab; INTEG.open=null; devPanelRender(); return; }
     if(ds.raudit){ devAuditOpen(ds.ruser, ds.raudit); return; }
     if(ds.rres){ const x=(DVP.items||[]).find(y=>y.id===ds.rres); if(!x) return; el.disabled=true;
       const p=x.src==='fb'?api('/api/admin/feedback','POST',{id:x.id,done:!x.resolved}):api('/api/admin/report','POST',{id:x.id,action:'resolve'});
-      p.then(d=>{ if(d&&d.ok){ x.resolved=x.src==='fb'?!!d.done:(d.resolved!=null?!!d.resolved:!x.resolved); const r=(INTEG.reports||[]).find(y=>y.id===x.id); if(r) r.resolved=x.resolved; devReportsPaint(); }
+      p.then(d=>{ if(d&&d.ok){ x.resolved=x.src==='fb'?!!d.done:(d.resolved!=null?!!d.resolved:!x.resolved); const r=(INTEG.reports||[]).find(y=>y.id===x.id); if(r) r.resolved=x.resolved;
+          if(DVP.st&&x.resolved) DVP.st.openReports=Math.max(0,(DVP.st.openReports|0)-1); else if(DVP.st) DVP.st.openReports=(DVP.st.openReports|0)+1; const hs=document.getElementById('dvpHdStat'); if(hs) hs.innerHTML=devHdStat(); devReportsPaint(); }
         else { el.disabled=false; const dd=root.querySelector('#devDone'); if(dd){ dd.textContent=String((d&&d.error)||'Failed'); dd.classList.add('bad'); } } }).catch(()=>{ el.disabled=false; }); return; }
   }); }
+function devSortMark(root){ root.querySelectorAll('[data-dvsort]').forEach(x=>{ const on=x.dataset.dvsort===DVP.sort; x.classList.toggle('on',on); const i=x.querySelector('.dvp-dir'); if(i) i.remove();
+    if(on) x.insertAdjacentHTML('beforeend','<i class="dvp-dir '+(DVP.dir<0?'dn':'up')+'"></i>'); }); const so=root.querySelector('#dvpSort'); if(so) so.value=DVP.sort+':'+DVP.dir; }
 /* v1379: what the dev panel sends to players - the maintenance notice (a banner) and an admin's message (their Mail inbox), both from the ledger view */
 function devNoticeShow(n){ let el=document.getElementById('ewNotice'); let gone=''; try{ gone=sessionStorage.getItem('ew_notice_x')||''; }catch(e){}
   if(!n||!n.text||gone===n.id||(n.until&&n.until<Date.now())){ if(el) el.remove(); return; }
@@ -34186,7 +34200,7 @@ function devAction(a,b){
       else refused(); }).catch(offline); return; }
   if(a==='givefrags'){ openDevFragGranter(b); return; }
   /* below: admin tools - the server refuses every admin route to anyone else */
-  if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); const c=b&&b.querySelector('[data-dev="orbs"] span'); if(c) c.textContent=t('set2.dev_orbs',{n:DEV.orbPreview}); return; }   /* Phil 27 Sep: view each orb count's art */
+  if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); const c=document.getElementById('dvpOrbsN'); if(c) c.textContent=String(DEV.orbPreview); return; }   /* Phil 27 Sep: view each orb count's art */
   if(a==='perf'){ PERF.on=!PERF.on; perfHUD(); done('Performance HUD '+(PERF.on?'ON — open a battle and screenshot it':'off')); return; }
   if(a==='update'){ devForceUpdate(); return; }
   if(a==='bots'){ runBalanceBots(b); return; }
@@ -34202,6 +34216,8 @@ function devAction(a,b){
         done('Backup downloaded.'); }catch(e){ done('Download failed.',true); } }).catch(offline); return; }
   if(a==='backupnow'){ done('Writing a backup on the server…');
     api('/api/admin/backup-now','POST',{}).then(d=>{ if(d&&d.ok){ done('Backup written on the server.'); devServersLoad(true); } else done(String((d&&d.error)||'Failed'),true); }).catch(offline); return; }
+  if(a==='findbuy'){ const q=((b&&b.querySelector('#dvpBuyQ')||{}).value||'').trim(); if(!q){ done('Type an order number, pack or player',true); return; } done('Searching…');
+    api('/api/admin/purchase?q='+encodeURIComponent(q)).then(d=>{ if(d&&d.ok){ DVP.buys=d.purchases||[]; done(DVP.buys.length+' found'); const h=b&&b.querySelector('#dvpBuys'); if(h) h.innerHTML=devBuysHTML(); } else done(String((d&&d.error)||'Failed'),true); }).catch(offline); return; }
   if(a==='mailall'){ const sj=b&&b.querySelector('#dvpAllSubj'), tx=b&&b.querySelector('#dvpAllText'); const text=((tx&&tx.value)||'').trim(), subj=((sj&&sj.value)||'').trim();
     if(!text){ done('Type the message first',true); return; }
     gameConfirm('Send <b>'+escapeHTML(subj||'News from the team')+'</b> to <b>every player</b>\u2019s Mail?',()=>{ done('Sending…');
@@ -34415,54 +34431,47 @@ function playerInfoFill(host, id){ if(!host||!id) return Promise.resolve(null);
     host.innerHTML=S.join('');
     return P;
   }).catch(()=>{ if(host.isConnected) host.innerHTML='<div class="pai-err">Server unreachable</div>'; return null; }); }
-/* v1379 THE PLAYER CARD (Dev > Players, a report's name, the old Accounts list): the player's info from the server plus every action on THAT player,
-   the most used first - Grant / take one resource, Message (their Mail inbox), Test account, Ban / Unban, Reset progress / Undo reset, Clear flag,
-   Clear recovery email, Delete account. Every destructive one asks first; the server checks the admin role and logs who / what / when. */
+/* v1379 THE PLAYER CARD: Dev > Players shows it on the right of the table (host = the detail pane); anywhere else (a report's name,
+   a chat name...) it opens as its own window. The player's info from the server plus every action on THAT player, the most used first:
+   Grant / Take one resource, Ban, Reset progress (Undo reset), Make tester, Delete account, Clear flag / recovery email, Raw save, Message.
+   Every destructive one asks first; the server checks the admin role and logs who / what / when. */
 const DVP_RES=[['gems','Diamonds'],['gold','Gold'],['stamina','Stamina'],['arenaCoins','Arena coins'],['guildCoins','Guild coins'],['frags','Hero fragments']];
-function openPlayerAdmin(r, panel){ if(!r||!r.id||!DEV.on)return; devCssEnsure();
-  const ov=document.createElement('div'); ov.className='pai-ov';
+function openPlayerAdmin(r, panel, host){ if(!r||!r.id||!DEV.on)return; devCssEnsure();
   const nm=escapeHTML(String(r.name||'')), adm=!!r.dev;
-  ov.innerHTML=`<div class="pai-card" role="dialog" aria-label="${escAttr(String(r.name||''))}">
-    <div class="pai-hd"><div style="min-width:0"><div class="pai-nm">${nm}</div>
+  const card=document.createElement('div'); card.className='pai-card'+(host?' inline':''); if(!host){ card.setAttribute('role','dialog'); card.setAttribute('aria-label',String(r.name||'')); }
+  card.innerHTML=`<div class="pai-hd"><div style="min-width:0"><div class="pai-nm">${nm}</div>
       <div class="pai-sub">${r.login&&r.login!==r.name?'@'+escapeHTML(String(r.login))+' · ':''}<span class="pai-id">${escapeHTML(String(r.id))}</span>${devTagsHTML(r)}</div>
-      <div id="paMsg" class="pai-msg" role="status"></div></div>
-      <div class="pai-xc"><button class="btn sm secondary" id="paX" aria-label="Close">${uiIcon('close')}</button><div class="pai-xs"></div></div></div>
+      <div class="pai-sum" id="paSum"></div></div>
+      ${host?'':`<div class="pai-xc"><button class="dvp-close" id="paX" aria-label="Close">Close</button></div>`}</div>
     <div class="pai-body">
-      <div class="pai-acts">
-        <div class="pai-act"><div class="pai-at">${uiIcon('gift')} Grant or take</div>
-          <div class="pai-line"><select id="paRes" aria-label="Resource">${DVP_RES.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
-            <select id="paHero" aria-label="Hero" hidden>${HERO_KEYS.map(k=>`<option value="${k}">${escapeHTML((HERO_TYPES[k]&&HERO_TYPES[k].name)||k)}</option>`).join('')}</select>
-            <input id="paAmt" type="number" inputmode="numeric" min="1" step="1" value="100" aria-label="Amount"></div>
-          <div class="pai-line"><button class="dvp-btn" id="paGrant">${uiIcon('plus')}Give</button><button class="dvp-btn danger" id="paTake">${uiIcon('minus')}Take</button></div></div>
-        <div class="pai-act"><div class="pai-at">${uiIcon('mail')} Message</div>
-          <input id="paSubj" maxlength="60" placeholder="Subject" aria-label="Subject">
-          <textarea id="paText" rows="2" maxlength="500" placeholder="Message" aria-label="Message"></textarea>
-          <div class="pai-line"><button class="dvp-btn" id="paSend">${uiIcon('inbox-sent')}Send to their Mail</button></div></div>
-        <div class="pai-act wide"><div class="pai-at">${uiIcon('key')} Account</div>
-          <div class="pai-btns">
-            ${adm?'<div class="pai-note">Admin account</div>':`<div id="paTst" class="pai-tst"></div>
-            <button class="dvp-btn danger" id="paBan">${uiIcon('blocked')}${r.ban?'Banned · change':'Ban'}</button>
-            <button class="dvp-btn danger" id="paReset">${uiIcon('recycle')}Reset progress</button>
-            <button class="dvp-btn sec" id="paUndo" hidden>${uiIcon('replay')}Undo reset</button>
-            <button class="dvp-btn sec" id="paFlag" hidden>${uiIcon('warning')}Clear flag</button>
-            <button class="dvp-btn sec" id="paEmail" hidden>${uiIcon('mail')}Clear recovery email</button>
-            <button class="dvp-btn danger" id="paDel">${uiIcon('delete')}Delete account</button>`}
-            <button class="dvp-btn sec" id="paRaw">${uiIcon('clipboard')}Raw save</button>
-          </div><div id="paBanBox"></div><div id="paRawBox"></div></div>
-      </div>
-      <div id="paInfo" class="pai-grid"><div class="pai-err" style="color:#8b98a9">${t('common.loading')}</div></div>
-    </div></div>`;
-  document.body.appendChild(ov); const close=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
-  ov.querySelector('#paX').onclick=close;
-  const $=s=>ov.querySelector(s), msg=$('#paMsg');
+      <div class="pai-line"><select id="paRes" aria-label="Resource">${DVP_RES.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
+        <select id="paHero" aria-label="Hero" hidden>${HERO_KEYS.map(k=>`<option value="${k}">${escapeHTML((HERO_TYPES[k]&&HERO_TYPES[k].name)||k)}</option>`).join('')}</select>
+        <input id="paAmt" type="number" inputmode="numeric" min="1" step="1" value="100" aria-label="Amount"></div>
+      <div class="pai-btns"><button class="dvp-btn gold" id="paGrant">Grant</button><button class="dvp-btn danger" id="paTake">Take</button>
+        ${adm?'<span class="pai-note">Admin account</span>':`<button class="dvp-btn danger" id="paBan">${r.ban?'Banned · change':'Ban'}</button>
+        <button class="dvp-btn danger" id="paReset">Reset progress</button><button class="dvp-btn" id="paUndo" hidden>Undo reset</button>
+        <span id="paTst" class="pai-tst"></span><button class="dvp-btn danger" id="paDel">Delete account</button>
+        <button class="dvp-btn" id="paFlag" hidden>Clear flag</button><button class="dvp-btn" id="paEmail" hidden>Clear recovery email</button>`}
+        <button class="dvp-btn" id="paRaw">Raw save</button></div>
+      <div id="paMsg" class="pai-msg" role="status"></div><div id="paBanBox"></div><div id="paRawBox"></div>
+      <div class="pai-act"><div class="pai-at">Message</div><input id="paSubj" maxlength="60" placeholder="Subject" aria-label="Subject">
+        <textarea id="paText" rows="2" maxlength="500" placeholder="Message" aria-label="Message" style="margin-top:6px"></textarea>
+        <div class="pai-line"><button class="dvp-btn" id="paSend">Send to their Mail</button></div></div>
+      <div id="paInfo" class="pai-grid"><div class="pai-err" style="color:var(--dvp-dim)">${t('common.loading')}</div></div>
+    </div>`;
+  let close;
+  if(host){ host.innerHTML=''; host.appendChild(card); host.dataset.pid=r.id; host.scrollTop=0; close=()=>{ host.innerHTML=''; host.dataset.pid=''; }; }
+  else { const ov=document.createElement('div'); ov.className='pai-ov'; ov.appendChild(card); document.body.appendChild(ov); close=()=>ov.remove();
+    ov.addEventListener('click',e=>{ if(e.target===ov)close(); }); card.querySelector('#paX').onclick=close; }
+  const $=s=>card.querySelector(s), msg=$('#paMsg');
   const say=(m,c)=>{ msg.textContent=m; msg.className='pai-msg'+(c?' '+c:''); };
   const after=()=>{ refill(); if(panel) devPlayersLoad(panel,true); };
   const call=(path,body,ok)=>{ say(t('set2.test_working')); return api(path,'POST',Object.assign({id:r.id},body||{})).then(d=>{ if(d&&d.ok){ say(ok(d),'good'); after(); } else say(String((d&&d.error)||'Failed'),'bad'); return d; }).catch(()=>say('Server unreachable','bad')); };
-  const refill=()=>playerInfoFill($('#paInfo'), r.id).then(P=>{ if(!P) return; const I=P.identity||{}, X=P.integrity||{};
+  const refill=()=>playerInfoFill($('#paInfo'), r.id).then(P=>{ if(!P) return; const I=P.identity||{}, X=P.integrity||{}, Gp=P.progress||{}, R=P.roster||{};
     const sh=(id,on)=>{ const el=$(id); if(el) el.hidden=!on; };
     sh('#paUndo',!!P.preReset); sh('#paFlag',!!X.flag); sh('#paEmail',!!I.hasEmail);
-    r.ban=I.ban||null; const bb=$('#paBan'); if(bb) bb.innerHTML=uiIcon('blocked')+(r.ban?'Banned · change':'Ban'); });
+    const sum=$('#paSum'); if(sum) sum.textContent=[I.server?'Server '+I.server:'', P.ledger?'Lv '+(Gp.level|0):'', R.teamPower?'Power '+(+R.teamPower).toLocaleString():'', 'Last seen '+devAgo(I.lastSeen)].filter(Boolean).join(' · ');
+    r.ban=I.ban||null; const bb=$('#paBan'); if(bb) bb.textContent=r.ban?'Banned · change':'Ban'; });
   refill();
   if(!adm) adminTesterButton($('#paTst'),{id:r.id,name:r.name});   /* v1376 */
   const resSel=$('#paRes'), heroSel=$('#paHero'); resSel.onchange=()=>{ heroSel.hidden=resSel.value!=='frags'; };
@@ -34487,7 +34496,7 @@ function openPlayerAdmin(r, panel){ if(!r||!r.id||!DEV.on)return; devCssEnsure()
   $('#paEmail').onclick=()=>gameConfirm('Clear <b>'+nm+'</b>’s recovery email?<br><span style="font-size:11px;color:#8b98a9">They can then add a new one with a code.</span>',
     ()=>call('/api/admin/email',{action:'clear'},()=>'Recovery email cleared'));
   $('#paDel').onclick=()=>gameConfirm('Delete the account <b>'+nm+'</b>?',()=>gameConfirm('<b style="color:#ff8b8b">Last check.</b> Delete <b>'+nm+'</b> for good?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',
-    ()=>{ say(t('set2.test_working')); api('/api/admin/delete','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); if(panel){ const dd=panel.querySelector('#devDone'); if(dd) dd.textContent=(d.name||r.name)+' deleted'; devPlayersLoad(panel,true); } } else say(String((d&&d.error)||'Failed'),'bad'); }).catch(()=>say('Server unreachable','bad')); }));
+    ()=>{ say(t('set2.test_working')); api('/api/admin/delete','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); if(DVP.sel===r.id) DVP.sel=null; if(panel){ const dd=panel.querySelector('#devDone'); if(dd) dd.textContent=(d.name||r.name)+' deleted'; devPlayersLoad(panel,true); } } else say(String((d&&d.error)||'Failed'),'bad'); }).catch(()=>say('Server unreachable','bad')); }));
 }
 /* v585 — THE THING THAT WAS EATING THE OFFLINE ART.
    Phil: "it deletes all cache once i close the game". It did, and nothing in Offline Art was doing

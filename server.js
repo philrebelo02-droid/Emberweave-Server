@@ -6537,7 +6537,7 @@ async function api(req,res,url){
     return send(res,200,{accounts, count:accounts.length, online:accounts.filter(a=>a.online).length}); }
   /* ---- v1379 DEV PANEL REVAMP: the new admin routes. Admin only (isDev, 403 otherwise - a tester is refused too), each write rate-limited
      per admin and written to the admin log. ---- */
-  if(/^\/api\/admin\/(adjust|message|mail-all|notice|status|backup-now|log|feedback|reset-progress)$/.test(p)){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+  if(/^\/api\/admin\/(adjust|message|mail-all|notice|status|backup-now|log|feedback|reset-progress|purchase)$/.test(p)){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     if(req.method==='POST' && rateLimited(req,'admw:'+me.id,120,60000)) return send(res,429,{error:'Slow down - too many admin actions this minute.'});
     if(p==='/api/admin/log'){ const id=String(url.searchParams.get('id')||''); const n=Math.max(1,Math.min(300,parseInt(url.searchParams.get('n')||'100',10)||100));
       return send(res,200,{ ok:true, log:adminLogFor(id||null, n) }); }
@@ -6549,11 +6549,19 @@ async function api(req,res,url){
         uptimeS:Math.round(process.uptime()), now, accounts:us.length, online:us.filter(u=>(u.lastSeen||0)>=now-5*60000).length,
         guests:us.filter(u=>u.guest).length, testers:us.filter(testerTagged).length, banned:us.filter(u=>banInfo(u)).length,
         backups:{ count:n, last, pinned:pin?{ real:pin.real|0, at:pin.at||0 }:null }, notice:DB.notice||null, prebeta:PREBETA,
+        openReports:(Array.isArray(DB.reports)?DB.reports:[]).filter(r=>r&&!r.resolved&&r.kind!=='balance'&&r.meta!=='test-bots').length+(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.kind!=='cheat'&&!x.adminDone).length,
         errors:ERR_RING.slice(-25).reverse(), saveFails:ERR_RING.filter(x=>/save|write|storage|journal|fsync/i.test(x.m)).length }); }
     if(p==='/api/admin/feedback' && req.method==='GET'){ const all=url.searchParams.get('all')==='1';
       const L=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.kind!=='cheat'&&(all||!x.adminDone)).slice(-200).reverse()
         .map(x=>({ id:x.id, userId:x.userId, name:x.name, kind:x.kind, text:String(x.text||''), meta:String(x.meta||''), t:x.t||0, build:x.build||'', level:x.level|0, screen:x.screen||'', done:!!x.adminDone, tester:testerTagged(DB.users[x.userId]) }));
       return send(res,200,{ ok:true, items:L }); }
+    /* v1379 Economy > Purchase support: find a purchase by order number (the store's reference), pack id or player name - read-only */
+    if(p==='/api/admin/purchase' && req.method==='GET'){ const q=String(url.searchParams.get('q')||'').trim().toLowerCase().slice(0,80); if(q.length<2) return send(res,400,{error:'Type at least 2 characters.'});
+      const out=[]; for(const u of Object.values(DB.users||{})){ if(!u||u.isNpc||!u.led||!Array.isArray(u.led.purchases)) continue; const who=String(u.name||'').toLowerCase()===q||String(usernameOf(u)||'').toLowerCase()===q;
+        for(const x of u.led.purchases){ if(!x) continue; const o=SHOP_OFFER_BY_ID[x.id]; const hit=who||String(x.ref||'').toLowerCase().includes(q)||String(x.id||'').toLowerCase()===q;
+          if(hit) out.push({ userId:u.id, name:u.name, id:String(x.id||''), label:String((o&&(o.label||o.name))||x.id||''), t:+x.t||0, usd:+x.usd||0, free:!!x.free, ref:String(x.ref||'').slice(0,80) }); }
+        if(out.length>=200) break; }
+      out.sort((a,b)=>b.t-a.t); return send(res,200,{ ok:true, purchases:out.slice(0,30) }); }
     if(p==='/api/admin/mail-all' && req.method==='GET'){ const cut=Date.now()-ADMIN_MAIL_DAYS*86400000;
       return send(res,200,{ ok:true, mails:(Array.isArray(DB.mailAll)?DB.mailAll:[]).filter(m=>m.t>=cut).slice().reverse(), days:ADMIN_MAIL_DAYS }); }
     if(req.method!=='POST') return send(res,405,{error:'POST only'});
