@@ -62,11 +62,11 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
 
     /* ===== A) the player-info popup ===== */
     const opened = await pg.evaluate(async () => { try { if (typeof _serverAdmin !== 'undefined') _serverAdmin = true; } catch (e) {}
-      devTab = 'accounts'; popoutScreen('settings'); await new Promise(r => setTimeout(r, 900));
-      const b = document.querySelector('[data-dev="online"]'); if (!b) return 'no Players online button (dev panel not shown)'; b.click();
-      for (let i = 0; i < 40; i++) { await new Promise(r => setTimeout(r, 150)); const row = [...document.querySelectorAll('.devrow')].find(x => /StevenFixture/.test(x.textContent)); if (row) { row.click(); return 'ok'; } }
+      devTab = 'accounts'; popoutScreen('settings'); await new Promise(r => setTimeout(r, 900));   /* v1379: the old Accounts group = Dev > Players (its own window), Online filter */
+      try { devPanelOpen(); } catch (e) {} const f = document.getElementById('dvpFilt'); if (!f) return 'no Players tab (dev panel not shown)'; f.value = 'online'; f.dispatchEvent(new Event('change'));
+      for (let i = 0; i < 40; i++) { await new Promise(r => setTimeout(r, 150)); const row = [...document.querySelectorAll('#dvpOv .dvp-prow')].find(x => /StevenFixture/.test(x.textContent)); if (row) { row.click(); return 'ok'; } }
       return 'fixture row not listed'; });
-    ck(opened === 'ok', 'dev panel: Accounts > Players online lists the fixture player and the popup opens', opened);
+    ck(opened === 'ok', 'dev panel: Players (Online) lists the fixture player and the popup opens', opened);
     await pg.waitForFunction(() => { const i = document.getElementById('paInfo'); return i && i.querySelectorAll('.pai-sec').length >= 5; }, null, { timeout: 15000 }).catch(() => {});
     await delay(1500); try { await pg.evaluate(() => muteBtnPlace(true)); } catch (e) {} await delay(400);
     const A = await pg.evaluate(() => { if (!document.querySelector('.pai-card')) { const o = document.querySelector('#paX'); try { if (o) o.click(); } catch (e) {} return { t: '', secs: [], btns: false, docked: false, over: [], fits: false, wide: false }; } const info = document.getElementById('paInfo'), t = info ? info.innerText : '';
@@ -83,12 +83,12 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
         mr: mr && [Math.round(mr.left), Math.round(mr.top), Math.round(mr.width)], xr: xr && [Math.round(xr.left), Math.round(xr.top), Math.round(xr.width)], over: [...new Set(over)].slice(0, 6),
         fits: card.left >= 0 && card.right <= innerWidth && card.top >= 0 && card.bottom <= innerHeight, wide: document.documentElement.scrollWidth <= innerWidth + 1 };
     });
-    for (const s of ['identity', 'progress', 'currencies', 'roster', 'account', 'reports', 'integrity']) ck(A.secs.includes(s), 'popup section: ' + s, A.secs.join(','));
+    for (const s of ['identity', 'progress', 'currencies', 'roster', 'purchases', 'reports', 'integrity', 'admin log']) ck(A.secs.includes(s), 'popup section: ' + s, A.secs.join(','));
     ck(/23,456/.test(A.t) && /345,678/.test(A.t), 'diamonds 23,456 and gold 345,678 from the server ledger', A.t.slice(0, 300));
     ck(/5-7\s+\(47\/160\)/.test(A.t) && /Floor 12/.test(A.t), 'top Normal stage 5-7 (47/160) and Aether Vault floor 12', A.t.slice(0, 400));
     ck(/Lv \d+/.test(A.t) && /Forge Dust\s*512/.test(A.t) && /Ember Roasts\s*2/.test(A.t), 'player level, Forge Dust 512, Ember Roasts 2');
     ck(/Email on file\s*Yes/.test(A.t) && !/fixture@example\.com/.test(A.t), 'has email: Yes - the address itself is not shown');
-    ck(A.btns, 'the existing buttons stay (+2000, -2000, Recover password, Ban)');
+    ck(A.btns, 'the player card actions are there (Give, Take, Ban, Reset progress)');
     ck(!A.mr && A.over.length === 0, 'v1358 (the mute button is removed from the game): no mute button over this popup, nothing overlapped', JSON.stringify({ why: A.why, mr: A.mr, xr: A.xr, over: A.over }));
     ck(A.fits && A.wide, 'the popup fits 844x390 (no horizontal scroll)');
     { const em = (A.t.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{1F000}-\u{1F2FF}]/gu) || []).length; ck(em === 0, 'no emoji in the popup', em); }

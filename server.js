@@ -886,6 +886,26 @@ function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-supp
 const _hitWin={};   /* v1007 (re-audit Account N2): each key keeps its own window - the 10-minute sweeper used to wipe 24 h windows */
 function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now(); if(!(_hitWin[k]>=windowMs)) _hitWin[k]=windowMs;
   const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); if(arr.length>max){ _hits[k]=arr; return true; } arr.push(now); _hits[k]=arr; return arr.length>max; }   /* v1083 (scan 5 #4): a refused hit is not stored - a flood used to grow the list (and the filter) without bound */
+/* v1379 DEV PANEL REVAMP (Phil 12 Nov 2026: "Launch is soon and I feel like my dev panel os flimsy"): the ADMIN LOG. Every admin action (ban / unban,
+   grant / take, reset progress / undo, delete, create, tester on / off, message, notice, backup, report resolve, economy grants ...) is one line
+   {t, by, byId, act, id, name, detail}, newest last, the last 3000 kept, also printed as "[admin] ...". The dev panel's player card shows that
+   player's lines and GET /api/admin/log reads it (admin only). */
+const ADMIN_LOG_KEEP=3000;
+/* v1379: the last 60 server errors (console.error) for the dev panel's Servers tab - "recent errors and failed saves" without a shell */
+const ERR_RING=[]; { const _ce=console.error; console.error=function(...a){ try{ ERR_RING.push({ t:Date.now(), m:a.map(x=>(x&&x.message)?String(x.message):String(x)).join(' ').slice(0,300) }); if(ERR_RING.length>60) ERR_RING.shift(); }catch(e){} return _ce.apply(console,a); }; }
+function adminLog(me, act, u, detail){ try{ DB.adminLog=Array.isArray(DB.adminLog)?DB.adminLog:[];
+  DB.adminLog.push({ t:Date.now(), by:String((me&&me.name)||'').slice(0,40), byId:String((me&&me.id)||''), act:String(act||'').slice(0,40),
+    id:String((u&&u.id)||''), name:String((u&&u.name)||'').slice(0,40), detail:String(detail==null?'':detail).slice(0,240) });
+  if(DB.adminLog.length>ADMIN_LOG_KEEP) DB.adminLog=DB.adminLog.slice(-ADMIN_LOG_KEEP); _dp('adminLog');
+  console.log('[admin] '+((me&&me.name)||'?')+' '+act+' '+((u&&u.name)||'')+(detail?' - '+String(detail).slice(0,120):'')); }catch(e){} }
+function adminLogFor(id, n){ const L=Array.isArray(DB.adminLog)?DB.adminLog:[], out=[]; for(let i=L.length-1;i>=0&&out.length<(n||20);i--){ const x=L[i]; if(!id||x.id===id) out.push(x); } return out; }
+/* v1379: the maintenance notice (a banner every signed-in player sees on their next ledger sync, this server only) and an admin's message to
+   one player (it lands in their Mail inbox; kept 14 days, 10 at most) - both ride the ledger view */
+function noticeView(){ const n=DB.notice; if(!n||!n.text) return null; if(n.until&&n.until<Date.now()) return null; return { id:n.id, text:n.text, until:n.until||0 }; }
+const ADMIN_MAIL_DAYS=14, ADMIN_MAIL_KEEP=10;
+function adminMailView(u){ const cut=Date.now()-ADMIN_MAIL_DAYS*86400000;
+  const L=(Array.isArray(u&&u.adminMail)?u.adminMail:[]).concat(Array.isArray(DB.mailAll)?DB.mailAll:[]);   /* v1379: + Live Ops "Mail every player" */
+  const v=L.filter(m=>m&&m.t>=cut).map(m=>({ id:m.id, t:m.t, from:m.from, subj:m.subj, text:m.text })); return v.length?v:undefined; }
 // AUDIT (26 Aug, high): session tokens are no longer stored in plaintext. DB.tokens is keyed by
 // sha256(rawToken) with {id, iat, exp} metadata; the raw value exists only in the client. Tokens
 // expire after TOKEN_TTL_MS (default 90 days) with sliding renewal at half-life. Legacy plaintext
@@ -3789,10 +3809,45 @@ function banInfo(u){
    it never calls ensureLedger / portalProg / patronState on the real ledger (those create state) and never writes the DB.
    A WHITELIST built field by field from the server's ledger: no hash / salt / token / email / IP / device / save blob ever leaves. */
 function adminNodeLabel(n){ n=n|0; return n>0?(Math.ceil(n/10)+'-'+(((n-1)%10)+1)):'none'; }
+/* FULL progress reset (Phil 26 Aug: "Reset all progress" must really reset everything) - the player's own Reset all progress and, v1379, the dev
+   panel's Reset progress on a player (which first keeps a copy in u.preReset so Undo reset can put it back). */
+const PRE_RESET_KEYS=['led','econ','glyphs','gear','dust','flag','roster','team','wall'];
+function resetProgressOf(u){
+  delete u.glyphs; delete u.gear; u.dust=0;
+  if(DB.dungeonProgress) delete DB.dungeonProgress[u.id];
+  // rebuild the ledger at its starter state — the same shape a brand-new account is given
+  const led={ v:1, migratedAt:Date.now(), rev:1, refTrack:SIM.REFINE_TRACK_V, gold:0, gems:0, px:0,
+    hero:{}, unlocked:{}, frags:{},
+    camp:{ cleared:0, stars:{}, att:null },
+    stam:{ v:60, ts:Date.now() },
+    txs:[] };
+  for(const k of Object.keys(SIM.HERO_BASE)){
+    if(STARTER_HEROES.includes(k)) led.unlocked[k]=true;
+    led.hero[k]={ xp:0, stars:SIM.HERO_BASE[k].stars, pips:0, ref:0 };
+  }
+  if(led.portals!==undefined) delete led.portals;
+  u.led=led; u.econ=null; delete u.flag;
+  // A full reset must also clear the cloud-only tutorial and per-mode squad fields. Keeping the
+  // old __save advanced the guide to quest11 while the fresh ledger still had 0 stages cleared.
+  // Keep an explicit empty blob so a resumed guest cannot re-seed it from a stale device cache.
+  u.roster={__save:'{}'}; u.team=defaultTeam(); u.wall=defaultTeam();
+  ledTx(u,'account:reset',{}); }
+function preResetTake(u, by){ const o={}; for(const k of PRE_RESET_KEYS) if(u[k]!==undefined) o[k]=u[k];
+  o.dungeonProgress=(DB.dungeonProgress||{})[u.id]||null; u.preReset={ t:Date.now(), by:String(by||'').slice(0,40), data:JSON.stringify(o) }; }
+function preResetUndo(u){ if(!u.preReset||!u.preReset.data) return false; let o=null; try{ o=JSON.parse(u.preReset.data); }catch(e){ return false; }
+  for(const k of PRE_RESET_KEYS){ if(o[k]===undefined) delete u[k]; else u[k]=o[k]; }
+  DB.dungeonProgress=DB.dungeonProgress||{}; if(o.dungeonProgress) DB.dungeonProgress[u.id]=o.dungeonProgress; else delete DB.dungeonProgress[u.id];
+  delete u.preReset; if(u.led&&u.led.txs) ledTx(u,'account:reset-undo',{}); return true; }
+/* v1379: one row of the dev panel's player list - what the Players tab sorts by (level, name, last played, Patron level) and shows */
+function adminRow(u, now){ const led=(u.led&&u.led.migratedAt)?u.led:null; let lv=0, egp=0, edp=0, pre=false;
+  if(led){ try{ lv=ledPlayerLevel(led); }catch(e){} try{ const L=patronLevels({patron:led.patron, purchases:led.purchases}); egp=L.egp|0; edp=L.edp|0; pre=!!L.prestiged; }catch(e){} }
+  return { id:u.id, name:u.name, login:usernameOf(u), rank:u.rank, level:lv, patron:pre?15+edp:egp, egp, edp, prestiged:pre, created:u.created||0, lastSeen:u.lastSeen||0,
+    online:(u.lastSeen||0)>=(now||Date.now())-5*60000, mustReset:!!u.mustReset, email:u.email||'', flag:u.flag||null, ban:banInfo(u), tester:testerTagged(u), guest:!!u.guest, dev:isDev(u) }; }
 function adminPlayerInfo(u){
   const now=Date.now(), led=(u.led&&u.led.migratedAt)?u.led:null; if(led) ledRefTrack(led);
   const out={ identity:{ id:u.id, name:u.name, server:SERVER_ID||String(process.env.SERVER_NAME||''), created:u.created||0, lastSeen:u.lastSeen||0,
-      signedIn:!u.guest, guest:!!u.guest, hasEmail:!!u.email, dev:isDev(u), ban:banInfo(u) }, ledger:!!led };
+      signedIn:!u.guest, guest:!!u.guest, hasEmail:!!u.email, dev:isDev(u), ban:banInfo(u), login:usernameOf(u), tester:testerTagged(u) }, ledger:!!led,
+    preReset:u.preReset?{ t:u.preReset.t||0, by:u.preReset.by||'' }:null, log:adminLogFor(u.id,25) };
   const g=u.guildId&&(DB.guilds||{})[u.guildId];
   const guild=g?{ name:String(g.name||''), role:guildRankLabel(g,u.id) }   /* v1372: the member's rank name */:null;
   const dp=(DB.dungeonProgress||{})[u.id]||null;
@@ -3822,8 +3877,10 @@ function adminPlayerInfo(u){
     out.roster={ heroes:keys.length, teamPower, rosterPower:heroes.reduce((s,h)=>s+h.power,0), top:heroes.slice(0,5) };
     const buys=Array.isArray(led.purchases)?led.purchases:[]; let bought=0, freeN=0, planN=0, usd=0;
     for(const x of buys){ const o=x&&SHOP_OFFER_BY_ID[x.id]; if(!o) continue; if(x.free) freeN++; usd+=+x.usd||0; if(o.kind==='gems') bought+=o.amount|0; else planN++; }
-    out.account={ packs:buys.length, freePacks:freeN, plans:planN, diamondsBought:bought, usd:Math.round(usd*100)/100 };
+    out.account={ packs:buys.length, freePacks:freeN, plans:planN, diamondsBought:bought, usd:Math.round(usd*100)/100,
+      recent:buys.slice(-10).reverse().map(x=>{ const o=x&&SHOP_OFFER_BY_ID[x&&x.id]; return { id:String((x&&x.id)||''), label:String((o&&(o.label||o.name))||(x&&x.id)||''), t:+(x&&x.t)||0, usd:+(x&&x.usd)||0, free:!!(x&&x.free) }; }) };   /* v1379: "I paid and didn't get it" */
     const inc=Array.isArray(led.battleIncidents)?led.battleIncidents:[];
+    out.incidents=inc.slice(-6).reverse().map(x=>({ t:x.t||0, stage:String(x.stage||''), mode:String(x.mode||''), why:String(x.why||'').slice(0,160) }));   /* v1379: the card's Battle log */
     out.integrity={ battleIncidents:inc.length, lastIncident:inc.length?{ t:inc[inc.length-1].t||0, why:String(inc[inc.length-1].why||''), stage:String(inc[inc.length-1].stage||'') }:null };
   } else out.integrity={ battleIncidents:0, lastIncident:null };
   const fb=Array.isArray(DB.feedback)?DB.feedback:[], rp=Array.isArray(DB.reports)?DB.reports:[];
@@ -5196,7 +5253,7 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
 /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) - their own GET, fetched when a level is browsed, so the tables stay out of every ledger and saved fight */
 function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP }; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, tester:isTester(u)?1:0, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -6401,7 +6458,7 @@ async function api(req,res,url){
     } else if(lift) liftBan(u, me.name||me.id);
     else setBan(u,{days,permanent,reason:b.reason,by:me.name||me.id});
     if(!lift && b.reportId){ const rp=(DB.reports||[]).find(x=>x.id===String(b.reportId)); if(rp){ rp.resolved=true; rp.action=tag; _dp('reports'); } }
-    console.log('[ban] '+(me.name||me.id)+' '+tag+' '+(u.name||u.id));
+    console.log('[ban] '+(me.name||me.id)+' '+tag+' '+(u.name||u.id)); adminLog(me, tag, u, b.reason||'');
     return {status:200,body:{ ok:true, banned:banInfo(u), name:u.name, accountWide:!!(ACCOUNT_AUTHORITY&&u.gid) }}; }
   if((p==='/api/admin/ban'||p==='/api/admin/unban') && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
@@ -6417,7 +6474,7 @@ async function api(req,res,url){
   if(p==='/api/dev/report-clear' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const r=(DB.reports||[]).find(x=>x.id===String(b.id||''));
     if(!r) return send(res,404,{error:'no such report'});
-    r.resolved=true; r.action='cleared'; _dp('reports'); writeDB();
+    r.resolved=true; r.action='cleared'; _dp('reports'); adminLog(me,'report:clear',DB.users[r.userId]||{id:r.userId,name:r.name},r.id); writeDB();
     return send(res,200,{ok:true}); }
 
   // ---- developer/admin endpoints (only usable while signed into a dev account) ----
@@ -6441,7 +6498,7 @@ async function api(req,res,url){
     if(req.method!=='POST') return send(res,405,{error:'POST only'});
     const b=await body(req);
     if(p==='/api/admin/tester'){ const u=testerFind(b); const r=await testerSet(u, !!b.on, me);
-      if(!r.ok) return send(res,r.status||400,{error:r.error});
+      if(!r.ok) return send(res,r.status||400,{error:r.error}); adminLog(me, b.on?'tester:on':'tester:off', u, ''); writeDB();
       return send(res,200,{ ok:true, player:testerView(u) }); }
     if(!PREBETA) return send(res,400,{error:'Test accounts are switched off.'});
     let name=''; for(let i=0;i<40&&!name;i++){ const n='Tester'+crypto.randomBytes(4).toString('hex').slice(0,6); if(!badCharName(n)&&!nameTaken(n)) name=n; }
@@ -6459,23 +6516,91 @@ async function api(req,res,url){
         roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
       DB.byName[name.toLowerCase()]=id; nameIdxPut(u); loginIdxPut(u); _dpk('byName',name.toLowerCase()); }
     u.testAcct=1; const r=await testerSet(u, true, me, true);
-    if(!r.ok) return send(res,r.status||400,{error:r.error});
+    if(!r.ok) return send(res,r.status||400,{error:r.error}); adminLog(me,'test-account:create',u,''); writeDB();
     return send(res,200,{ ok:true, name, pass, player:testerView(u) }); }
   if(p==='/api/admin/player'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   /* v1176: one player's info for the dev panel - read-only, see adminPlayerInfo */
     if(req.method!=='GET') return send(res,405,{error:'GET only'});
     const tid=String(url.searchParams.get('id')||''), u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    if(url.searchParams.get('raw')==='1'){ let save=null; try{ save=parseSaveOf(u); }catch(e){}   /* v1379: the card's Raw save - the ledger and the cloud save as stored (read-only, no credentials) */
+      return send(res,200,{ ok:true, raw:{ id:u.id, name:u.name, ledger:u.led||null, save, gear:u.gear||null, glyphs:u.glyphs||null } }); }
     let info=null; try{ info=adminPlayerInfo(u); }catch(e){ console.error('admin player info failed:',e&&e.message); return send(res,500,{error:'Could not read that account.'}); }
     return send(res,200,{ok:true, player:info}); }
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const cutoff=Date.now()-5*60000;
+    const now=Date.now(), cutoff=now-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
-      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null,ban:banInfo(u)}));
+      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>adminRow(u,now));   /* v1379: + level, Patron, tester, guest (the Players tab sorts by them) */
     return send(res,200,{online, count:online.length}); }
   if(p==='/api/admin/accounts'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
-      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null,ban:banInfo(u)}));
-    return send(res,200,{accounts, count:accounts.length}); }
+    const now=Date.now(); const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
+      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>adminRow(u,now));
+    return send(res,200,{accounts, count:accounts.length, online:accounts.filter(a=>a.online).length}); }
+  /* ---- v1379 DEV PANEL REVAMP: the new admin routes. Admin only (isDev, 403 otherwise - a tester is refused too), each write rate-limited
+     per admin and written to the admin log. ---- */
+  if(/^\/api\/admin\/(adjust|message|mail-all|notice|status|backup-now|log|feedback|reset-progress)$/.test(p)){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    if(req.method==='POST' && rateLimited(req,'admw:'+me.id,120,60000)) return send(res,429,{error:'Slow down - too many admin actions this minute.'});
+    if(p==='/api/admin/log'){ const id=String(url.searchParams.get('id')||''); const n=Math.max(1,Math.min(300,parseInt(url.searchParams.get('n')||'100',10)||100));
+      return send(res,200,{ ok:true, log:adminLogFor(id||null, n) }); }
+    if(p==='/api/admin/status'){ const bdir=path.join(path.dirname(DB_FILE),'backups'); let last=null, n=0;
+      try{ for(const f of fs.readdirSync(bdir)){ if(!/^db-.*\.json$/.test(f)) continue; n++; const m=fs.statSync(path.join(bdir,f)).mtimeMs; if(!last||m>last.t) last={ name:f, t:Math.round(m) }; } }catch(e){}
+      let pin=null; try{ pin=_safety.readPinMeta(bdir); }catch(e){}
+      const now=Date.now(), us=Object.values(DB.users||{}).filter(u=>!u.isNpc);
+      return send(res,200,{ ok:true, server:SERVER_ID||String(process.env.SERVER_NAME||''), build:localBuildId()||null, version:(typeof SERVER_BUILD!=='undefined'?SERVER_BUILD:''),
+        uptimeS:Math.round(process.uptime()), now, accounts:us.length, online:us.filter(u=>(u.lastSeen||0)>=now-5*60000).length,
+        guests:us.filter(u=>u.guest).length, testers:us.filter(testerTagged).length, banned:us.filter(u=>banInfo(u)).length,
+        backups:{ count:n, last, pinned:pin?{ real:pin.real|0, at:pin.at||0 }:null }, notice:DB.notice||null, prebeta:PREBETA,
+        errors:ERR_RING.slice(-25).reverse(), saveFails:ERR_RING.filter(x=>/save|write|storage|journal|fsync/i.test(x.m)).length }); }
+    if(p==='/api/admin/feedback' && req.method==='GET'){ const all=url.searchParams.get('all')==='1';
+      const L=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.kind!=='cheat'&&(all||!x.adminDone)).slice(-200).reverse()
+        .map(x=>({ id:x.id, userId:x.userId, name:x.name, kind:x.kind, text:String(x.text||''), meta:String(x.meta||''), t:x.t||0, build:x.build||'', level:x.level|0, screen:x.screen||'', done:!!x.adminDone, tester:testerTagged(DB.users[x.userId]) }));
+      return send(res,200,{ ok:true, items:L }); }
+    if(p==='/api/admin/mail-all' && req.method==='GET'){ const cut=Date.now()-ADMIN_MAIL_DAYS*86400000;
+      return send(res,200,{ ok:true, mails:(Array.isArray(DB.mailAll)?DB.mailAll:[]).filter(m=>m.t>=cut).slice().reverse(), days:ADMIN_MAIL_DAYS }); }
+    if(req.method!=='POST') return send(res,405,{error:'POST only'});
+    const b=await body(req);
+    if(p==='/api/admin/mail-all'){ const text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500), subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60)||'News from the team';
+      if(!text) return send(res,400,{error:'Type the message first.'}); if(rateLimited(req,'admall:'+me.id,5,600000)) return send(res,429,{error:'Five mails to everyone in ten minutes - wait a little.'});
+      const m={ id:'AM-'+uid(), t:Date.now(), from:'Emberweave Team', subj, text, by:me.name||me.id };
+      DB.mailAll=(Array.isArray(DB.mailAll)?DB.mailAll:[]).concat([m]).slice(-ADMIN_MAIL_KEEP); _dp('mailAll'); adminLog(me,'mail:all',null,subj+': '+text); writeDB();
+      return send(res,200,{ ok:true, mail:m }); }
+    if(p==='/api/admin/feedback'){ const it=(Array.isArray(DB.feedback)?DB.feedback:[]).find(x=>x&&x.id===String(b.id||'')); if(!it) return send(res,404,{error:'not found'});
+      if(b.done) it.adminDone=Date.now(); else delete it.adminDone; _dp('feedback'); adminLog(me, b.done?'feedback:done':'feedback:reopen', DB.users[it.userId]||{id:it.userId,name:it.name}, it.id); writeDB([],['feedback']);
+      return send(res,200,{ ok:true, done:!!it.adminDone }); }
+    if(p==='/api/admin/notice'){ if(b.clear){ delete DB.notice; _dp('notice'); adminLog(me,'notice:clear',null,''); writeDB(); return send(res,200,{ ok:true, notice:null }); }
+      const text=String(b.text||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim().slice(0,160); if(!text) return send(res,400,{error:'Type the message first.'});
+      const mins=Math.max(0,Math.min(7*24*60,parseInt(b.minutes,10)||0));
+      DB.notice={ id:uid(), text, t:Date.now(), by:me.name||me.id, until:mins?Date.now()+mins*60000:0 }; _dp('notice'); adminLog(me,'notice:set',null,text+(mins?' ('+mins+' min)':'')); writeDB();
+      return send(res,200,{ ok:true, notice:DB.notice }); }
+    if(p==='/api/admin/backup-now'){ if(rateLimited(req,'admbk:'+me.id,3,300000)) return send(res,429,{error:'A backup was just made - wait a few minutes.'});
+      if(typeof _DB_LOAD_FAILED!=='undefined'&&_DB_LOAD_FAILED) return send(res,503,{error:'The world did not load - no backup made.'});
+      backupDB(); adminLog(me,'backup:now',null,''); return send(res,200,{ ok:true }); }
+    const u=testerFind(b); if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    if(p==='/api/admin/message'){ const text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500), subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60)||'A message from the team';
+      if(!text) return send(res,400,{error:'Type the message first.'});
+      u.adminMail=(Array.isArray(u.adminMail)?u.adminMail:[]).concat([{ id:'AM-'+uid(), t:Date.now(), from:'Emberweave Team', subj, text, by:me.name||me.id }]).slice(-ADMIN_MAIL_KEEP);
+      adminLog(me,'message',u,subj+': '+text); writeDB([u.id]); return send(res,200,{ ok:true, name:u.name }); }
+    if(p==='/api/admin/reset-progress'){ if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+      if(b.undo){ if(!u.preReset) return send(res,400,{error:'There is no reset to undo for this player.'});
+        if(!preResetUndo(u)) return send(res,500,{error:'The saved copy could not be read.'}); adminLog(me,'reset:undo',u,''); writeDB(); return send(res,200,{ ok:true, name:u.name, undone:true }); }
+      preResetTake(u, me.name||me.id); resetProgressOf(u); adminLog(me,'reset:progress',u,'copy kept for Undo reset'); writeDB(); return send(res,200,{ ok:true, name:u.name }); }
+    /* /api/admin/adjust {id|name, res, amount (minus takes), hero (frags)}: grant or take one resource on a player, never below 0, never past the cap */
+    const resK=String(b.res||''), amt=Math.trunc(+b.amount||0);
+    const LIM={ gems:1000000, gold:1000000000, stamina:10000, arenaCoins:1000000, guildCoins:1000000, frags:9999 };
+    if(!Object.prototype.hasOwnProperty.call(LIM,resK)) return send(res,400,{error:'Unknown resource.'});
+    if(!amt||Math.abs(amt)>LIM[resK]) return send(res,400,{error:'Amount must be 1 to '+LIM[resK].toLocaleString('en-US')+' (a minus amount takes).'});
+    const led=ensureLedger(u); let before=0, after=0, hk='';
+    const clamp=(v,cap)=>Math.max(0,Math.min(cap,v));
+    if(resK==='gems'){ before=Math.floor(+led.gems||0); led.gems=clamp(before+amt,ECON_CAP.gems); after=led.gems; }
+    else if(resK==='gold'){ before=Math.floor(+led.gold||0); led.gold=clamp(before+amt,ECON_CAP.gold); after=led.gold; }
+    else if(resK==='stamina'){ ledStamRegen(led); before=Math.floor(+led.stam.v||0); led.stam.v=clamp(before+amt,STAM_CEIL); after=led.stam.v; }
+    else if(resK==='arenaCoins'){ before=Math.max(0,u.coins|0); u.coins=clamp(before+amt,ECON_CAP.arenaCoins); after=u.coins; }
+    else if(resK==='guildCoins'){ before=led.guildCoins|0; led.guildCoins=clamp(before+amt,ECON_CAP.guildCoins); after=led.guildCoins; }
+    else { hk=String(b.hero||''); if(!SIM.HERO_BASE[hk]) return send(res,400,{error:'Choose a hero for the fragments.'}); led.frags=led.frags||{};
+      before=led.frags[hk]|0; led.frags[hk]=clamp(before+amt,9999); after=led.frags[hk]; }
+    const d=after-before; if(d>0&&resK!=='arenaCoins'&&resK!=='guildCoins') resourceGain(u, resK, d, 'admin:adjust', {devPanel:true});
+    adminLog(me, d>=0?'grant':'take', u, resK+(hk?' '+hk:'')+' '+(d>=0?'+':'')+d+' (now '+after+')');
+    ledTx(u,'admin:adjust',{[resK==='frags'?'heroFrags':resK]:hk?{[hk]:d}:d}); writeDB();
+    return send(res,200,{ ok:true, name:u.name, res:resK, hero:hk||undefined, before, after, delta:d }); }
   // admin: arm-recovery is RETIRED (audit crit #1). It used to set u.mustReset, which let the next
   // login bypass the password check — an account-takeover primitive. Recovery is now the verified
   // email flow only. This endpoint stays wired so old admin UIs don't 404, but it no longer arms
@@ -6490,19 +6615,19 @@ async function api(req,res,url){
   if(p==='/api/admin/unreset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
-    u.mustReset=false; writeDB(); return send(res,200,{ok:true, name:u.name}); }
+    u.mustReset=false; adminLog(me,'unreset',u,''); writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: clear or set a player's recovery email (for the "lost my old inbox" case — clearing lets them
   // bind a fresh email through the normal verified flow, since first-time binding sends the code to the new address)
   if(p==='/api/admin/email' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
-    if(b.action==='clear'){ delete u.email; delete u.emailChange; writeDB(); return send(res,200,{ok:true, name:u.name, email:''}); }
+    if(b.action==='clear'){ delete u.email; delete u.emailChange; adminLog(me,'email:clear',u,''); writeDB(); return send(res,200,{ok:true, name:u.name, email:''}); }
     const email=normalizeEmail(b.email); if(!email) return send(res,400,{error:'Enter a valid email address.'});
-    u.email=email; delete u.emailChange; writeDB(); return send(res,200,{ok:true, name:u.name, email}); }
+    u.email=email; delete u.emailChange; adminLog(me,'email:set',u,''); writeDB(); return send(res,200,{ok:true, name:u.name, email}); }
   // admin: clear an account's integrity flag (after reviewing / resetting them)
   if(p==='/api/admin/clearflag' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
-    if(!u||u.isNpc) return send(res,404,{error:'account not found'}); delete u.flag; writeDB(); return send(res,200,{ok:true, name:u.name}); }
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'}); delete u.flag; adminLog(me,'flag:clear',u,''); writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: create an account directly
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const name=cleanCharName(b.name);
@@ -6513,21 +6638,21 @@ async function api(req,res,url){
       const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass, cred });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
-      const lu=await linkedUser(r.body.gid, r.body.name, b.pass, { cred, tag:r.body.tag }); lu.rank=5000; writeDB(); return send(res,200,{ok:true, name:lu.name}); }
+      const lu=await linkedUser(r.body.gid, r.body.name, b.pass, { cred, tag:r.body.tag }); lu.rank=5000; adminLog(me,'account:create',lu,''); writeDB(); return send(res,200,{ok:true, name:lu.name}); }
     if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
     const c=await makeCredAsync(b.pass);   // v1184: on the thread pool
     if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   // v1184: again after the await
     const id=uid();
     DB.users[id]={ id, name, login:name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-    DB.byName[name.toLowerCase()]=id; nameIdxPut(DB.users[id]); loginIdxPut(DB.users[id]); _dpk('byName',name.toLowerCase()); writeDB(); return send(res,200,{ok:true, name}); }
+    DB.byName[name.toLowerCase()]=id; nameIdxPut(DB.users[id]); loginIdxPut(DB.users[id]); _dpk('byName',name.toLowerCase()); adminLog(me,'account:create',DB.users[id],''); writeDB(); return send(res,200,{ok:true, name}); }
   // admin: delete an account
   if(p==='/api/admin/delete' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     if(isDev(u)) return send(res,400,{error:'cannot delete a dev account'});
     /* v1012 (re-audit Guild #5) guild exit and v1097 personal-data removal: one shared path, deleteAccountData() */
-    const _nm=u.name; deleteAccountData(u);
+    const _nm=u.name; adminLog(me,'account:delete',u,''); deleteAccountData(u);
     writeDB(); return send(res,200,{ok:true, name:_nm}); }
   // admin: grant / take 2000 diamonds (edits the player's cloud save; forces them to reload it)
   if((p==='/api/admin/grant'||p==='/api/admin/take') && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -6535,6 +6660,7 @@ async function api(req,res,url){
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     const ng=adjustGems(u, p==='/api/admin/grant'?2000:-2000);
     if(ng==null) return send(res,400,{error:'That player has no cloud save yet — they must open the game once first.'});
+    adminLog(me, p==='/api/admin/grant'?'grant':'take', u, 'gems '+(p==='/api/admin/grant'?'+2000':'-2000')+' (now '+ng+')');
     if(!(u.led&&u.led.migratedAt)) dropTokens(tid);   // ledger accounts pick it up on the next ledgerSync (<=45s); kicking a live player mid-battle is worse than waiting
     writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng, live:!!(u.led&&u.led.migratedAt)}); }
   // admin: download the whole DB as a backup
@@ -6696,10 +6822,11 @@ async function api(req,res,url){
     const reports=(DB.reports||[]).slice().reverse().slice(0,200); return send(res,200,{reports, count:(DB.reports||[]).length}); }
   if(p==='/api/admin/report' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); DB.reports=DB.reports||[]; const r=DB.reports.find(x=>x.id===b.id);
-    if(b.action==='clearResolved'){ DB.reports=DB.reports.filter(x=>!x.resolved); _dp('reports'); writeDB(); return send(res,200,{ok:true}); }
+    if(b.action==='clearResolved'){ DB.reports=DB.reports.filter(x=>!x.resolved); _dp('reports'); adminLog(me,'report:clear-resolved',null,''); writeDB(); return send(res,200,{ok:true}); }
     if(!r) return send(res,404,{error:'not found'});
     if(b.action==='delete') DB.reports=DB.reports.filter(x=>x.id!==b.id); else r.resolved=!r.resolved;
-    _dp('reports'); writeDB(); return send(res,200,{ok:true}); }
+    adminLog(me,'report:'+(b.action==='delete'?'delete':(r.resolved?'resolve':'reopen')),DB.users[r.userId]||{id:r.userId,name:r.name},r.id);
+    _dp('reports'); writeDB(); return send(res,200,{ok:true, resolved:b.action==='delete'?undefined:!!r.resolved}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
   /* FULL self-reset (Phil 26 Aug: "Reset all progress" must really reset everything).
@@ -6737,25 +6864,7 @@ async function api(req,res,url){
       if(o&&DB.byName[o]===me.id){ _dpk('byName',o); delete DB.byName[o]; } DB.byName[String(out.name).toLowerCase()]=me.id; _dpk('byName',String(out.name).toLowerCase()); writeDB(); }
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
     if(p==='/api/account/reset-progress' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    delete me.glyphs; delete me.gear; me.dust=0;
-    if(DB.dungeonProgress) delete DB.dungeonProgress[me.id];
-    // rebuild the ledger at its starter state — the same shape a brand-new account is given
-    const led={ v:1, migratedAt:Date.now(), rev:1, refTrack:SIM.REFINE_TRACK_V, gold:0, gems:0, px:0,
-      hero:{}, unlocked:{}, frags:{},
-      camp:{ cleared:0, stars:{}, att:null },
-      stam:{ v:60, ts:Date.now() },
-      txs:[] };
-    for(const k of Object.keys(SIM.HERO_BASE)){
-      if(STARTER_HEROES.includes(k)) led.unlocked[k]=true;
-      led.hero[k]={ xp:0, stars:SIM.HERO_BASE[k].stars, pips:0, ref:0 };
-    }
-    if(led.portals!==undefined) delete led.portals;
-    me.led=led; me.econ=null; delete me.flag;
-    // A full reset must also clear the cloud-only tutorial and per-mode squad fields. Keeping the
-    // old __save advanced the guide to quest11 while the fresh ledger still had 0 stages cleared.
-    // Keep an explicit empty blob so a resumed guest cannot re-seed it from a stale device cache.
-    me.roster={__save:'{}'}; me.team=defaultTeam(); me.wall=defaultTeam();
-    ledTx(me,'account:reset',{});
+    resetProgressOf(me);   /* v1379: one reset for the player's own button and the dev panel's Reset progress on a player */
     writeDB(); return send(res,200,{ok:true, ledger:ledgerView(me)}); }
 
   // change / link recovery email — STEP 1: request a confirmation code. Signed-in only.
@@ -8682,6 +8791,7 @@ async function api(req,res,url){
       feedbackCheatSignal(tgt,'dev-team','TEST dev panel: team progression granted by '+(me.name||me.id)+
         ' (unlock '+(Array.isArray(b.unlock)?b.unlock.length:0)+', stars '+(b.stars|0)+
         ', hero XP '+(b.heroXp|0)+', max glyphs '+glyphsMaxed+').','dev panel',0);
+    adminLog(me, tgt===me?'economy:self':'economy:grant', tgt, Object.keys(b).filter(k=>k!=='userId'&&b[k]!=null&&b[k]!==false).map(k=>{ const v=b[k]; return k+((typeof v==='number')?' '+v:(Array.isArray(v)?' x'+v.length:'')); }).join(', '));
     ledTx(tgt,'admin:grant',Object.keys(grantedFrags).length?{heroFrags:grantedFrags}:{});
     writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt), glyphsMaxed,
       devState:{arenaCoins:tgt.coins|0,arenaRank:tgt.rank|0,bestArenaRank:tgt.bestRank!=null?(tgt.bestRank|0):5000,
