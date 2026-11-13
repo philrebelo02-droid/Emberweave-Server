@@ -101,7 +101,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const look = (pg) => pg.evaluate(() => { try { setTab = 'dev'; } catch (e) {} renderSettings(); const b = document.getElementById('settingsBody'); try { if (b.querySelector('[data-settab="dev"]')) devPanelOpen(); } catch (e) {}
       const o = document.getElementById('dvpOv') || document.createElement('div'); const q = s => o.querySelectorAll(s).length;
       const acts = [...o.querySelectorAll('[data-dev]')].map(x => x.dataset.dev);
-      return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: (o.querySelector('.dvp-title') || {}).textContent || '' }; });
+      return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: ((x => x ? (x.querySelector('img') ? x.querySelector('img').alt : x.textContent) : '')(o.querySelector('.dvp-title'))) || '' }; });
     const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'heroes', 'lv100', 'maxteam', 'campall', 'givefrags'];
     // tester
     const tpg = await page(TG, PW); tgTok = tpg.tok; let v = await look(tpg);

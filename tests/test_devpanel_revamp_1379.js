@@ -221,7 +221,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     // --- tester page
     const tpg = await page(TG, PW); await openDev(tpg, 'players');
     const tv = await tpg.evaluate(() => { const b = document.getElementById('settingsBody'), o = document.getElementById('dvpOv') || document.createElement('div'); return { tabBtn: !!b.querySelector('[data-settab="dev"]'), tabs: o.querySelectorAll('[data-devtab]').length,
-      acts: [...o.querySelectorAll('.dvp [data-dev]')].map(x => x.dataset.dev), reset: !!b.querySelector('#resetBtn'), badge: (o.querySelector('.dvp-title') || {}).textContent, pane: o.querySelector('.dvp') ? o.querySelector('.dvp').dataset.dvp : '', hd: (o.querySelector('.dvp-hd') || {}).textContent || '' }; });
+      acts: [...o.querySelectorAll('.dvp [data-dev]')].map(x => x.dataset.dev), reset: !!b.querySelector('#resetBtn'), badge: ((x => x ? (x.querySelector('img') ? x.querySelector('img').alt : x.textContent) : '')(o.querySelector('.dvp-title'))), pane: o.querySelector('.dvp') ? o.querySelector('.dvp').dataset.dvp : '', hd: (o.querySelector('.dvp-hd') || {}).textContent || '' }; });
     const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'heroes', 'lv100', 'maxteam', 'campall', 'givefrags'];
     ck('page, tester: only the Economy tab (no tab bar, TEST badge) + Reset all progress', tv.tabBtn && tv.tabs === 0 && tv.pane === 'economy' && tv.reset && tv.badge === 'TEST ACCOUNT' && tv.acts.length === ECON.length && tv.acts.every(a => ECON.includes(a)) && !/Lv [0-9]/.test(tv.hd), JSON.stringify(tv));
     if (SHOTS) { await delay(200); await tpg.screenshot({ path: path.join(SHOTS, 'devpanel-tester-economy-phone-844x390.png') }); }
