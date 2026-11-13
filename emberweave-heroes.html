@@ -17839,16 +17839,16 @@ function endBattle(won){
         if(G.arenaReports.attacks.length>10)G.arenaReports.attacks.length=10;
         _arepDef={seed:sd,mineSnap:snap,foe,atkName:(ACC.name||'A challenger')};   // sent to server so the DEFENDER gets a watchable report of this attack
       } }catch(e){}
-    const oldRank=G.arenaRank; let reward=0;
+    const oldRank=G.arenaRank, arenaOpponent=CUR.oppId, arenaToken=ACC.token; let reward=0;   /* v1387 (ChatGPT Arena hunt): a delayed result retry stays on ITS fight's opponent + account */
     saveG(); updateHubChrome();
     resultLater(async(ep)=>{ let newRank=oldRank;
       let d=null;
-      if(ACC.token && CUR.oppId){
+      if(arenaToken && ACC.token===arenaToken && arenaOpponent){
         /* v977 (3 Oct Arena audit #8): ONE requestId per fight; a lost reply is re-sent with the SAME id (the route keeps a receipt) */
         const _rid=uid8();
         /* v1360 (night smoke, world, P2): the attack squad reached the server only through the cloud save, which can leave ~10 s after BATTLE. In that window the server fought the OLD saved team - a fight won on screen with three Lv 94 heroes came back ARENA LOSS (it had fielded Vael Lv 1), the attempt was spent, and Record still said Victory. The squad that fought is sent with the result; the server keeps only heroes the account owns. */
         const _ateam=(Array.isArray(G.team)?G.team:[]).map(h=>(h&&typeof h==='object')?h.key:h).filter(k=>typeof k==='string'&&k).slice(0,5);
-        for(let _try=0;_try<3;_try++){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,team:_ateam,requestId:_rid});
+        for(let _try=0;_try<3;_try++){ if(ACC.token!==arenaToken) return; d=await api('/api/arena/result','POST',{oppId:arenaOpponent,won,def:_arepDef,team:_ateam,requestId:_rid});
           if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
         try{ if(d&&typeof d.won==='boolean'&&typeof _arepMine!=='undefined'&&_arepMine&&_arepMine.won!==d.won){ _arepMine.won=d.won; saveG(); } }catch(e){}   /* the Record row follows the server's verdict */   // v981: a refused save is re-sent too
         if(d&&d.arena) ARENA.att=d.arena;   /* v1097 (sweep #10) */
