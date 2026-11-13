@@ -17850,6 +17850,7 @@ function endBattle(won){
         const _ateam=(Array.isArray(G.team)?G.team:[]).map(h=>(h&&typeof h==='object')?h.key:h).filter(k=>typeof k==='string'&&k).slice(0,5);
         for(let _try=0;_try<3;_try++){ if(ACC.token!==arenaToken) return; d=await api('/api/arena/result','POST',{oppId:arenaOpponent,won,def:_arepDef,team:_ateam,requestId:_rid});
           if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
+        if(ACC.token!==arenaToken) return;   /* v1387 (ChatGPT): the account changed while the save was in flight - never apply its reply to the new account */
         try{ if(d&&typeof d.won==='boolean'&&typeof _arepMine!=='undefined'&&_arepMine&&_arepMine.won!==d.won){ _arepMine.won=d.won; saveG(); } }catch(e){}   /* the Record row follows the server's verdict */   // v981: a refused save is re-sent too
         if(d&&d.arena) ARENA.att=d.arena;   /* v1097 (sweep #10) */
         if(resultStale(ep)){ if(d) ledgerSync(); return; }
