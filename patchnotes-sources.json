@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.76", "releases": "v1385", "items": [{"text": "Phil 12 Nov: compensation (agent 4b9e44ad; ChatGPT translations)"}, {"text": "Phil 12 Nov: Island label strips; Forge guide bar (78b0ebd5)"}, {"text": "Grok: dev panel hunt fixes (bc4e7b8a), Ember ack sticks (ef2be096) - not in notes"}]},
     {"ver": "1.5.75", "releases": "v1384", "items": [{"text": "Phil 12 Nov: skybridge corner-wide (ChatGPT) - \"that works\""}]},
     {"ver": "1.5.74", "releases": "v1382", "items": [{"text": "Grok: Guild Raid attempts = server count (2f873fa0)"}, {"text": "Phil: dev panel report buttons on top - NOT in notes"}]},
     {"ver": "1.5.73", "releases": "v1381", "items": [{"text": "Grok F5 Forge guide (5afb6263/54368fc5)"}, {"text": "closePopout order (363728e4)"}, {"text": "Dev panel revamp (b3434337) - NOT in patch notes (Phil)"}]},

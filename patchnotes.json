@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.76", "date": "12 November 2026", "time": "22:30 EST", "title": "Compensation in Mail", "items": ["Compensation from the team now arrives in Mail with a Claim button.", "Island of Trials: the place names sit on clean plates.", "The Forge guide's Skip and Next buttons are back in the guide bar."]},
     {"ver": "1.5.75", "date": "12 November 2026", "time": "22:06 EST", "title": "New Skyfall bridge", "items": ["Skyfall: the bridge view has new art - a wider sky bridge running corner to corner."]},
     {"ver": "1.5.74", "date": "12 November 2026", "time": "21:27 EST", "title": "Guild Raid attempts", "items": ["Guild Raid shows the attempts you really have left (3 a day), the same number the server allows."]},
     {"ver": "1.5.73", "date": "12 November 2026", "time": "20:50 EST", "title": "Small fixes", "items": ["The Forge guide's Skip and Next buttons no longer sit on top of the Forge's own buttons.", "Closing a window stops a hero's story narration again."]},
