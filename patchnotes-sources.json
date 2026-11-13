@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.79", "releases": "v1388", "items": [{"text": "Phil 13 Nov: Damage Done panel after every fight (agent 9ef92e51; translations ChatGPT H1388)"}, {"text": "Tester via Phil 13 Nov: Bitwraith -10% damage (69478035)"}, {"text": "Phil 13 Nov: dev panel green gem when online (9638b524) - not in notes"}]},
     {"ver": "1.5.78", "releases": "v1387", "items": [{"text": "Phil 13 Nov: compensation claim pops rewards like sweep (b52cdeb1)"}, {"text": "ChatGPT: sign-in claim shows credited amount (5de464a6)"}, {"text": "ChatGPT: Arena result retry pinned to its fight + account (be9cb647, c282ac4a)"}, {"text": "ChatGPT: Skyfall ally citadel on the bridge deck (31684bd4, 329e9624)"}]},
     {"ver": "1.5.77", "releases": "v1386", "items": [{"text": "ChatGPT: compensation expiry units (397025f2)"}, {"text": "ChatGPT: Starless Well Heroes button before first fight (8ba0545a + Claude f29bd5a6)"}, {"text": "ChatGPT/Grok F5: total users kept across S1 restart (dbc10dc5) - dev panel, not in notes"}]},
     {"ver": "1.5.76", "releases": "v1385", "items": [{"text": "Phil 12 Nov: compensation (agent 4b9e44ad; ChatGPT translations)"}, {"text": "Phil 12 Nov: Island label strips; Forge guide bar (78b0ebd5)"}, {"text": "Grok: dev panel hunt fixes (bc4e7b8a), Ember ack sticks (ef2be096) - not in notes"}]},
