@@ -33827,12 +33827,12 @@ async function runAssetClear(report){
    open reports. */
 const DVP_TABS=[['players','Players','players'],['reports','Reports','bug'],['economy','Economy','war-chest'],['liveops','Live Ops','horn'],['servers','Servers','world-online'],['qa','QA','chart']];
 function devTabNorm(v){ v=({accounts:'players',integrity:'reports',cheats:'economy',battles:'qa',debug:'qa'})[v]||v; return DVP_TABS.some(x=>x[0]===v)?v:'players'; }
-const DVP={ q:'', sort:'seen', dir:-1, filt:'all', rows:null, busy:false, err:'', shown:80, sel:null, selObj:null, rf:'open', rk:'all', items:null, rbusy:false, rerr:'', rsel:null,
+const DVP={ q:'', sort:'seen', dir:-1, filt:'all', rows:null, busy:false, err:'', shown:80, sel:null, selObj:null, rf:'open', rk:'bug', items:null, rbusy:false, rerr:'', rsel:null,
   st:null, sbusy:false, serr:'', svr:{}, ssel:0, lsel:'mail', mails:null, buys:null };
 const DVP_SORTS=[['seen','Last played'],['level','Level'],['name','Name'],['patron','Patron']];
 const DVP_FILTS=[['all','All players'],['online','Online'],['tester','Testers'],['banned','Banned']];
 const DVP_RF=[['open','Open reports'],['done','Resolved'],['all','All reports']];
-const DVP_RK=[['all','Every kind'],['tester','Testers'],['bug','Bugs'],['suggestion','Ideas'],['moderation','Chat reports'],['integrity','Cheat flags']];
+/* Phil 12 Nov: "in the reports tab make 4 tabs its sorted by Bug, Suggestion, Player Report, Cheat Detection" */ const DVP_RK=[['bug','Bug'],['suggestion','Suggestion'],['moderation','Player Report'],['integrity','Cheat Detection']];
 const devRkMatch=(x,k)=>k==='all'||(k==='tester'?!!x.tester:x.kind===k);
 const DVP_AMT_DEF={gold:100000,gems:2000,stam:100,arenacoin:5000,guildcoins:5000,shielditem:3,shards:500,pieces:200,level:5,squadlvl:5,campstage:5};
 const DVP_ART='/assets/img/ui/devpanel/';   /* ChatGPT's dev panel art (compact-2x-v2): every piece painted at 2x and shown at its 1x layout size */
@@ -33884,7 +33884,7 @@ const DVP_CSS=`
 .dvp-foot{position:absolute;left:19px;top:608px;width:1156px;height:22px;overflow:hidden}
 .dvp-search{width:400px;flex:0 0 400px;height:40px;box-sizing:border-box;display:flex;align-items:center;gap:6px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;padding:0 10px}
 .dvp-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--dvp-ink);font:17px var(--dvp-font)}
-#dvpFilt{width:180px;flex:0 0 180px}#dvpSort{width:220px;flex:0 0 220px}#dvpRk{width:220px;flex:0 0 220px}#dvpRf{width:180px;flex:0 0 180px}
+#dvpFilt{width:180px;flex:0 0 180px}#dvpSort{width:220px;flex:0 0 220px}#dvpRk{flex:1 1 auto;width:auto}.dvp-rtabs{display:flex;gap:0;height:44px;box-sizing:border-box;border:1px solid #6b5228;border-radius:8px;padding:2px;background:#140d08}.dvp-rtab{flex:1 1 0;border:0;border-radius:6px;background:transparent;color:#b9a27e;font:700 17px var(--dvp-font);cursor:pointer;white-space:nowrap}.dvp-rtab:hover{color:#fff1d3}.dvp-rtab.on{background:linear-gradient(#6a4520,#4a2f15);color:#fff1d3;box-shadow:inset 0 0 0 1px #b8873d}.dvp-rtab b{margin-left:6px;color:#e9c66c}#dvpRf{width:180px;flex:0 0 180px}
 .dvp-sel{height:40px;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 8px;font:16px var(--dvp-font)}
 /* buttons: one painted 36 px plate of the width the label needs (devArtFit picks it; --pn / --pp / --pd = normal / pressed / disabled) */
 .dvp-btn,.dvp-more{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;height:36px;box-sizing:border-box;padding:0 4px;border:0;border-radius:0;background:var(--pn) 0 0/100% 100% no-repeat;color:var(--dvp-ink);font:16px var(--dvp-font);cursor:pointer;white-space:nowrap;overflow:hidden}
@@ -34059,12 +34059,12 @@ function devPlayersLoad(b, force){ if(!DEV.on) return; if(DVP.rows&&!force){ dev
     devPlayersPaint(b); })
     .catch(()=>{ DVP.busy=false; DVP.err='Server unreachable'; devPlayersPaint(b); }); }
 /* ---- Reports: the queue on the left, the selected report on the right ---- */
-function devReportsHTML(){ return `<div class="dvp-tool"><span class="dvp-h">Review queue</span><select id="dvpRk" class="dvp-sel" aria-label="Kind">${devRkOpts()}</select>`+
+function devReportsHTML(){ return `<div class="dvp-tool"><div class="dvp-rtabs" id="dvpRk" role="tablist">${devRkOpts()}</div>`+
   `<select id="dvpRf" class="dvp-sel" aria-label="Status">${DVP_RF.map(([k,l])=>`<option value="${k}"${DVP.rf===k?' selected':''}>${l}</option>`).join('')}</select>`+
   `<button class="dvp-btn" data-dvrefresh="reports">Refresh</button></div><div class="dvp-split"><div class="dvp-left" id="dvpRList">${devReportsListHTML()}</div><div class="dvp-right" id="devIntegrity"></div></div>`; }
 function devReportsStatus(x){ return DVP.rf==='all'||(DVP.rf==='open'?!x.resolved:x.resolved); }
-function devRkOpts(){ const L=(DVP.items||[]).filter(devReportsStatus); return DVP_RK.map(([k,l])=>`<option value="${k}"${DVP.rk===k?' selected':''}>${l}${DVP.items?' ('+L.filter(x=>devRkMatch(x,k)).length+')':''}</option>`).join(''); }
-const DVP_RKIND={bug:'Bug',suggestion:'Idea',moderation:'Chat report',integrity:'Cheat flag'};
+function devRkOpts(){ const L=(DVP.items||[]).filter(devReportsStatus); return DVP_RK.map(([k,l])=>`<button class="dvp-rtab${DVP.rk===k?' on':''}" role="tab" aria-selected="${DVP.rk===k}" data-rk="${k}">${l}${DVP.items?' <b>'+L.filter(x=>devRkMatch(x,k)).length+'</b>':''}</button>`).join(''); }
+const DVP_RKIND={bug:'Bug',suggestion:'Suggestion',moderation:'Player report',integrity:'Cheat detection'};
 function devReportsShown(){ return (DVP.items||[]).filter(x=>devReportsStatus(x)&&devRkMatch(x,DVP.rk)); }
 function devReportsListHTML(){ if(DVP.rerr) return `<div class="dvp-empty bad">${escapeHTML(DVP.rerr)}</div>`; if(!DVP.items) return `<div class="dvp-empty">${t('common.loading')}</div>`;
   const L=devReportsShown(); if(!L.length) return `<div class="dvp-empty">Nothing in this queue.</div>`;
@@ -34173,7 +34173,7 @@ function devPaneWire(b){ const root=b&&b.querySelector('.dvp'); if(!root) return
   const fl=root.querySelector('#dvpFilt'); if(fl) fl.onchange=()=>{ DVP.filt=fl.value; DVP.shown=80; devPlayersPaint(b); };
   const so=root.querySelector('#dvpSort'); if(so) so.onchange=()=>{ const [k,d]=so.value.split(':'); DVP.sort=k; DVP.dir=+d; DVP.shown=80; devSortMark(root); devPlayersPaint(b); };
   const rf=root.querySelector('#dvpRf'); if(rf) rf.onchange=()=>{ DVP.rf=rf.value; devReportsPaint(); };
-  const rk=root.querySelector('#dvpRk'); if(rk) rk.onchange=()=>{ DVP.rk=rk.value; devReportsPaint(); };
+  const rk=root.querySelector('#dvpRk'); if(rk) rk.onclick=e=>{ const t=e.target.closest('[data-rk]'); if(!t) return; DVP.rk=t.dataset.rk; DVP.rsel=null; devReportsPaint(); };
   const god=root.querySelector('#devGod'); if(god) god.onclick=()=>{ DEV.god=!DEV.god; god.classList.toggle('on',DEV.god); god.setAttribute('aria-checked',String(DEV.god)); };
   root.addEventListener('click',e=>{ const el=e.target.closest('button,a'); if(!el||!root.contains(el)||el.id==='devGod') return; const ds=el.dataset;
     if(ds.dvclose){ devPanelClose(); return; }
