@@ -745,6 +745,52 @@ function totalUsersHere(){ const c=localUserCounts(); let g=c.guests, servers=1;
 async function totalUsersReport(){ if(!ACCOUNT_AUTHORITY) return null; try{ const r=await authorityCall('/api/internal/account/total',{ server:SERVER_ID||String(process.env.SERVER_NAME||''), guests:localUserCounts().guests });
   return (r&&r.status===200&&r.body&&typeof r.body.total==='number')?r.body:null; }catch(e){ return null; } }
 if(ACCOUNT_AUTHORITY){ const _tu=setInterval(()=>{ totalUsersReport(); }, 600000); if(_tu.unref) _tu.unref(); setTimeout(()=>{ totalUsersReport(); }, 20000); }
+/* v1384 COMPENSATION (Phil 12 Nov: "where can i give server compensation?" -> "yes build it"). The dev panel's Live Ops sends rewards
+   (gold, diamonds, stamina, Ember Roasts, XP potions, arena / guild coins, Forge Dust, shields) with a subject and a message to every player on
+   all servers or the chosen ones, with an expiry (14 days by default). Each player sees it in Mail with a Claim button and claims ONCE per
+   compensation (u.compClaims[id]); only accounts that existed when it was sent qualify. The grant goes into the server ledger (ledTx
+   'compensation:<id>') under a requestId receipt, so a retry never pays twice.
+   One list for the whole game: Server 1 holds DB.comps. Servers 2-5 pull it over the account link every minute
+   (/api/internal/account/comps, link secret) and keep their own copy (it survives a restart); with the pull they report how many of their
+   players claimed each one, so the dev panel's claim count covers every server. A send made on Server 2-5 is made on Server 1. */
+const COMP_LIMITS=Object.freeze({ gold:10000000, gems:100000, stamina:1000, roasts:100, arenaCoins:100000, guildCoins:100000, dust:100000, shields:10,
+  pot_minor:100, pot_greater:100, pot_major:100, pot_superior:100 });
+const COMP_KEEP=60, COMP_SAT={};   // Server 1: each satellite's last reported claim counts {claims:{id:n}, t}
+function compRewardsClean(r){ const o={}; for(const k in COMP_LIMITS){ const n=Math.floor(+((r||{})[k])||0); if(n>0) o[k]=Math.min(COMP_LIMITS[k],n); } return o; }
+function compServersClean(s){ if(s==='all'||s==null) return 'all'; const L=[...new Set((Array.isArray(s)?s:[]).map(x=>String(x|0)).filter(x=>/^[1-9]$/.test(x)))].sort(); return L.length?L:null; }
+function compForHere(c){ const s=String(SERVER_ID||'1'); return !!c && (c.servers==='all' || (Array.isArray(c.servers)&&c.servers.map(String).includes(s))); }
+function compLive(c, now){ return !!c && compForHere(c) && (!c.until || c.until>(now||Date.now())); }
+function compEligible(c, u){ return !!u && !u.isNpc && (+u.created||0) <= (+c.t||0); }   // accounts that existed when it was sent
+function compView(u){ const now=Date.now(), cl=(u&&u.compClaims)||{}, out=[];
+  for(const c of (Array.isArray(DB.comps)?DB.comps:[])){ if(!compLive(c,now)||!compEligible(c,u)) continue;
+    out.push({ id:c.id, t:c.t, subj:c.subj, text:c.text, rewards:c.rewards, until:c.until||0, claimed:!!cl[c.id] }); }
+  return out.sort((a,b)=>b.t-a.t); }
+function compLocalClaims(){ const n={}; for(const u of Object.values(DB.users||{})){ const cl=u&&u.compClaims; if(cl) for(const id in cl) n[id]=(n[id]|0)+1; } return n; }
+function compGrant(u, c){ const led=ensureLedger(u), r=c.rewards||{};
+  if(r.gold) led.gold=Math.min(ECON_CAP.gold,(+led.gold||0)+r.gold);
+  if(r.gems) led.gems=Math.min(ECON_CAP.gems,(+led.gems||0)+r.gems);
+  if(r.stamina){ ledStamRegen(led); led.stam.v=Math.min(STAM_CEIL,(+led.stam.v||0)+r.stamina); }
+  if(r.roasts) led.stamItems=(led.stamItems|0)+r.roasts;
+  if(r.guildCoins) led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+r.guildCoins);
+  if(r.arenaCoins) u.coins=Math.min(ECON_CAP.arenaCoins,Math.max(0,u.coins|0)+r.arenaCoins);
+  if(r.dust) u.dust=Math.max(0,+u.dust||0)+r.dust;
+  if(r.shields) u.shields=Math.max(0,u.shields|0)+r.shields;
+  for(const t of ['minor','greater','major','superior']){ const n=r['pot_'+t]|0; if(n){ led.xpPotions=led.xpPotions||{}; led.xpPotions[t]=(led.xpPotions[t]|0)+n; } }
+  u.compClaims=u.compClaims||{}; u.compClaims[c.id]=Date.now();
+  ledTx(u,'compensation:'+c.id,{ gold:r.gold||0, gems:r.gems||0 }, true); }
+function compText(c){ const r=c.rewards||{}; return Object.keys(r).map(k=>r[k]+' '+k).join(', '); }
+function compCreate(by, b){ const rewards=compRewardsClean(b.rewards); if(!Object.keys(rewards).length) return { status:400, error:'Pick at least one reward.' };
+  const servers=compServersClean(b.servers); if(!servers) return { status:400, error:'Pick the servers.' };
+  const subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60), text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500);
+  if(!subj) return { status:400, error:'Type a subject.' };
+  const days=Math.max(1,Math.min(60,parseInt(b.days,10)||14)), now=Date.now();
+  const c={ id:'CP-'+uid(), t:now, by:String(by||'').slice(0,40), subj, text, rewards, servers, until:now+days*86400000 };
+  DB.comps=(Array.isArray(DB.comps)?DB.comps:[]).concat([c]).slice(-COMP_KEEP); _dp('comps'); return { ok:true, comp:c }; }
+async function compSync(){ if(!ACCOUNT_AUTHORITY) return false; try{
+  const r=await authorityCall('/api/internal/account/comps',{ server:SERVER_ID||String(process.env.SERVER_NAME||''), claims:compLocalClaims() });
+  if(!(r&&r.status===200&&r.body&&Array.isArray(r.body.comps))) return false;
+  const next=r.body.comps.slice(-COMP_KEEP); if(JSON.stringify(next)!==JSON.stringify(DB.comps||[])){ DB.comps=next; _dp('comps'); writeDB(); } return true; }catch(e){ return false; } }
+if(ACCOUNT_AUTHORITY){ const _cs=setInterval(()=>{ compSync(); }, Math.max(5000,+(process.env.COMP_SYNC_MS||60000))); if(_cs.unref) _cs.unref(); setTimeout(()=>{ compSync(); }, 8000); }
 // v946: the account checks, shared by this server's own endpoints and the account-server endpoints (bodies moved unchanged
 // from /api/login, /api/register, /api/reset-request and /api/reset-verify). Callers write the DB.
 /* v1184: async (the hash runs on the thread pool). The lock is checked before the hash and again after it, and the failure is counted on
@@ -5270,7 +5316,7 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
 /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) - their own GET, fetched when a level is browsed, so the tables stay out of every ledger and saved fight */
 function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP }; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -6238,6 +6284,9 @@ async function api(req,res,url){
   if(p.startsWith('/api/internal/account/') && req.method==='POST'){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
+    if(p==='/api/internal/account/comps'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')&&b.claims&&typeof b.claims==='object') COMP_SAT[sv]={ claims:b.claims, t:Date.now() };   /* v1384 */
+      const cut=Date.now()-86400000; return send(res,200,{ comps:(Array.isArray(DB.comps)?DB.comps:[]).filter(c=>c&&(!c.until||c.until>cut)) }); }
+    if(p==='/api/internal/account/comp-send'){ const r=compCreate(b.by, b); if(!r.ok) return send(res,r.status||400,{error:r.error}); writeDB(); return send(res,200,{ ok:true, comp:r.comp }); }
     if(p==='/api/internal/account/total'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')) SAT_GUESTS[sv]={ n:Math.max(0,b.guests|0), t:Date.now() };   /* v1379 total users */
       return send(res,200,totalUsersHere()); }
     /* v1184 SIGN-UP GATE: gid + tag = the satellite checked the password against its local copy of this account; a current tag means
@@ -6556,7 +6605,7 @@ async function api(req,res,url){
     return send(res,200,{accounts, count:accounts.length, online:accounts.filter(a=>a.online).length}); }
   /* ---- v1379 DEV PANEL REVAMP: the new admin routes. Admin only (isDev, 403 otherwise - a tester is refused too), each write rate-limited
      per admin and written to the admin log. ---- */
-  if(/^\/api\/admin\/(adjust|message|mail-all|notice|status|backup-now|log|feedback|reset-progress|purchase)$/.test(p)){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+  if(/^\/api\/admin\/(adjust|message|mail-all|notice|status|backup-now|log|feedback|reset-progress|purchase|compensation)$/.test(p)){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     if(req.method==='POST' && rateLimited(req,'admw:'+me.id,120,60000)) return send(res,429,{error:'Slow down - too many admin actions this minute.'});
     if(p==='/api/admin/log'){ const id=String(url.searchParams.get('id')||''); const n=Math.max(1,Math.min(300,parseInt(url.searchParams.get('n')||'100',10)||100));
       return send(res,200,{ ok:true, log:adminLogFor(id||null, n) }); }
@@ -6582,6 +6631,21 @@ async function api(req,res,url){
           if(hit) out.push({ userId:u.id, name:u.name, id:String(x.id||''), label:String((o&&(o.label||o.name))||x.id||''), t:+x.t||0, usd:+x.usd||0, free:!!x.free, ref:String(x.ref||'').slice(0,80) }); }
         if(out.length>=200) break; }
       out.sort((a,b)=>b.t-a.t); return send(res,200,{ ok:true, purchases:out.slice(0,30) }); }
+    /* v1384 COMPENSATION: GET the list with claim counts (every server: this server's own + what Servers 2-5 last reported); POST sends one */
+    if(p==='/api/admin/compensation' && req.method==='GET'){ if(ACCOUNT_AUTHORITY) await compSync(); const local=compLocalClaims(), cut=Date.now()-3*3600000;
+      const list=(Array.isArray(DB.comps)?DB.comps:[]).slice().reverse().map(c=>{ let n=local[c.id]|0; if(!ACCOUNT_AUTHORITY) for(const k in COMP_SAT){ if(COMP_SAT[k].t>=cut) n+=(COMP_SAT[k].claims[c.id]|0); }
+        return { id:c.id, t:c.t, by:c.by, subj:c.subj, text:c.text, rewards:c.rewards, servers:c.servers, until:c.until, claims:n, live:!c.until||c.until>Date.now() }; });
+      return send(res,200,{ ok:true, comps:list, limits:COMP_LIMITS, partial:!!ACCOUNT_AUTHORITY }); }
+    if(p==='/api/admin/compensation' && req.method==='POST'){ if(rateLimited(req,'admcomp:'+me.id,6,600000)) return send(res,429,{error:'Six compensations in ten minutes - wait a little.'});
+      const b=await body(req); let c=null;
+      if(ACCOUNT_AUTHORITY){ const r=await authorityCall('/api/internal/account/comp-send',Object.assign({},b,{ by:me.name||me.id }));
+        if(!r) return send(res,503,{error:'Server 1 is unreachable right now - try again in a minute.'});
+        if(r.status!==200||!r.body||!r.body.comp) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not send.'});
+        c=r.body.comp; await compSync(); }
+      else { const r=compCreate(me.name||me.id, b); if(!r.ok) return send(res,r.status||400,{error:r.error}); c=r.comp; }
+      const eligible=Object.values(DB.users||{}).filter(u=>compForHere(c)&&compEligible(c,u)).length;
+      adminLog(me,'compensation:send',null,c.subj+' · '+compText(c)+' · servers '+(c.servers==='all'?'all':c.servers.join(','))+' · '+eligible+' players here · until '+new Date(c.until).toISOString().slice(0,10));
+      writeDB(); return send(res,200,{ ok:true, comp:c, eligibleHere:eligible }); }
     if(p==='/api/admin/mail-all' && req.method==='GET'){ const cut=Date.now()-ADMIN_MAIL_DAYS*86400000;
       return send(res,200,{ ok:true, mails:(Array.isArray(DB.mailAll)?DB.mailAll:[]).filter(m=>m.t>=cut).slice().reverse(), days:ADMIN_MAIL_DAYS }); }
     if(req.method!=='POST') return send(res,405,{error:'POST only'});
@@ -6843,7 +6907,7 @@ async function api(req,res,url){
     /* v1383 (Phil 12 Nov: "yes link resolve to embers app" / "the report reader should be able to see my reports resolved"): the ids Phil resolved
        in the dev panel (adminDone, last 30 days) ride along, so Ember closes her filed copy and says so in Reports */
     const _cut=Date.now()-30*86400000, done=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.adminDone&&x.adminDone>_cut).map(x=>x.id).slice(-500);
-    /* v1383 (Phil 12 Nov: "the reader should be able to see if i banned someone, or cleared them" / "and report is to ember so she can annotate it"): the dev panel's moderation actions (ban, unban, flag clear, report resolve) from the admin log, last 30 days */ const actions=(Array.isArray(DB.adminLog)?DB.adminLog:[]).filter(x=>x&&x.t>_cut&&/^(ban|unban|flag:clear|report:clear|feedback:done)/.test(String(x.act||''))).slice(-300).map(x=>({t:x.t,act:x.act,id:x.id,name:x.name,by:x.by,detail:x.detail})); return send(res,200,{items,done,actions}); }
+    /* v1383 (Phil 12 Nov: "the reader should be able to see if i banned someone, or cleared them" / "and report is to ember so she can annotate it"): the dev panel's moderation actions (ban, unban, flag clear, report resolve) from the admin log, last 30 days */ const actions=(Array.isArray(DB.adminLog)?DB.adminLog:[]).filter(x=>x&&x.t>_cut&&/^(ban|unban|flag:clear|report:clear|feedback:done|compensation)/.test(String(x.act||''))).slice(-300).map(x=>({t:x.t,act:x.act,id:x.id,name:x.name,by:x.by,detail:x.detail})); return send(res,200,{items,done,actions}); }
   if(p==='/api/ember/feedback/ack' && req.method==='POST'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const ids=new Set((Array.isArray(b.ids)?b.ids:[]).slice(0,100).map(String));
@@ -8882,6 +8946,16 @@ async function api(req,res,url){
       return {ok:true, spent:{key:mk, n:EQ_CRAFT_MAT_COST}, ledger:ledgerView(me)};
     });
     return send(res, out&&out.ok?200:400, out); }
+  /* v1384 COMPENSATION: a player claims one compensation - once per compensation and player, under a requestId receipt (a retry answers the
+     same, never pays twice); the server checks it is live on this server, the account existed when it was sent and not claimed yet */
+  if(p==='/api/comp/claim' && req.method==='POST'){ if(!me) return send(res,401,{error:'auth'});
+    if(rateLimited(req,'compclaim:'+me.id,30,60000)) return send(res,429,{error:'Slow down.'});
+    const b=await body(req), reqId=String(b.requestId||'').slice(0,64); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':comp:'+reqId,()=>{ const c=(Array.isArray(DB.comps)?DB.comps:[]).find(x=>x&&x.id===String(b.id||''));
+      if(!c||!compLive(c)||!compEligible(c,me)) return { ok:false, error:'This compensation is no longer available.' };
+      if(me.compClaims&&me.compClaims[c.id]) return { ok:true, already:true, ledger:ledgerView(me) };
+      compGrant(me,c); return { ok:true, id:c.id, rewards:c.rewards, ledger:ledgerView(me) }; });
+    return send(res, out&&out.storageFailed?503:(out&&out.ok?200:400), out); }
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'ledgerGet:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1) */
     const _sig=()=>JSON.stringify([me.led?me.led.stam:null, me.led?me.led.rev:null, me.worldLocation||null, !!me.led]);
