@@ -21063,7 +21063,7 @@ function skyBridgeHTML(m,i){
   const canMarch=m.state==='live'&&mineHere&&foe&&!foe.destroyed&&you&&!you.destroyed;
   const chip=(d,mine)=>`<div style="font-size:9px;background:rgba(10,16,26,.82);border:1px solid ${d.alive?(mine?'#2b7a55':'#7a2b46'):'#333'};border-radius:6px;padding:2px 5px;margin-top:2px;color:${d.alive?'#e8eef6':'#666'}">${d.alive?statusIcon('shield'):statusIcon('death')} ${escapeHTML(d.name||'')}${d.alive?' '+d.hpPct+'%':''}</div>`;
   const cit=(c,mine)=>{ const dead=c&&c.destroyed;
-    return `<div style="position:absolute;top:6%;${mine?'left:3%':'right:3%'};width:31%;text-align:${mine?'left':'right'}">
+    return `<div style="position:absolute;${mine?'top:47%;left:10%':'top:6%;right:3%'};width:31%;text-align:${mine?'left':'right'}">
       <div style="font-size:26px;display:inline-block;${dead?'transform:rotate('+(mine?'-14':'14')+'deg) translateY(9px);opacity:.55;filter:grayscale(.7)':''}">${dead?statusIcon('crit-burst'):''}🏰</div>
       <div style="font-size:10px;font-weight:800;color:${dead?'#ff8b8b':(mine?'#5ee89b':'#ff8b8b')};text-shadow:0 1px 3px #000">${dead?t('skyfall.fallen')+' — ':''}${(L=>mine?t('skyfall.your_lane',{lane:L}):t('skyfall.enemy_lane',{lane:L}))(escapeHTML(lanes[i]?lanes[i].name:''))}</div>
       ${skyByPower(c?c.defenders:[]).map(d=>chip(d,mine)).join('')||'<div style="font-size:9px;color:#999;text-shadow:0 1px 2px #000">— '+t('skyfall.undefended')+' —</div>'}
