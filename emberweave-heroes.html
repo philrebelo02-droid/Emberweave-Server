@@ -19421,7 +19421,7 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
 let WELL_HEROVIEW=null, WELL_HEROVIEW_NEXT=null;   /* the Starless Well run opened the Heroes window: show only its heroes, with health + energy */
-function closePopout(){ if(WELL_HEROVIEW){ WELL_HEROVIEW=null; document.body.classList.remove('wlHeroView'); } try{ loreStop(); }catch(e){} try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
+function closePopout(){ try{ loreStop(); }catch(e){} if(WELL_HEROVIEW){ WELL_HEROVIEW=null; document.body.classList.remove('wlHeroView'); } try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
   try{ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none'; }catch(e){}
   try{ document.querySelectorAll('.popoutClose').forEach(x=>x.remove()); }catch(e){}
   if(_popout){ const was=_popout; _popout=null; try{ const el=document.getElementById(was); if(el){ el.classList.remove('popout'); if(was!==state) el.classList.remove('active'); } }catch(e){} }   /* v1198: the screen the player is ON keeps showing */
