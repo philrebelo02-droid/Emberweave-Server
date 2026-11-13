@@ -6840,7 +6840,10 @@ async function api(req,res,url){
     feedbackSweep();
     const items=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>!x.received)
       .sort((a,b)=>((a.kind==='cheat')-(b.kind==='cheat'))||((a.t||0)-(b.t||0))).slice(0,100);   /* v1251 (1 Nov: SoMalice's suggestion sat behind ~1,100 sim-bot cheat flags and never reached Ember): players' bugs and suggestions first, cheat flags after */
-    return send(res,200,{items}); }
+    /* v1383 (Phil 12 Nov: "yes link resolve to embers app" / "the report reader should be able to see my reports resolved"): the ids Phil resolved
+       in the dev panel (adminDone, last 30 days) ride along, so Ember closes her filed copy and says so in Reports */
+    const _cut=Date.now()-30*86400000, done=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.adminDone&&x.adminDone>_cut).map(x=>x.id).slice(-500);
+    return send(res,200,{items,done}); }
   if(p==='/api/ember/feedback/ack' && req.method==='POST'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const ids=new Set((Array.isArray(b.ids)?b.ids:[]).slice(0,100).map(String));
