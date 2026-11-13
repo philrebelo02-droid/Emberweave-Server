@@ -33801,8 +33801,8 @@ const DVP_CSS=`
 /* header 24,8 1232x58 - one compact line (Phil: "dont waste so much space at the top"): wordmark, status chips, Close */
 .dvp-hd{position:absolute;left:24px;top:8px;width:1232px;height:58px;display:flex;align-items:center;gap:14px;background:var(--dvp-header-bg)}
 .dvp-title{width:300px;flex:0 0 300px;font:700 34px var(--dvp-font);letter-spacing:3px;color:var(--dvp-gold);text-shadow:0 3px 3px #000;white-space:nowrap}
-.dvp-stats{flex:1;display:flex;justify-content:center;gap:10px;overflow:hidden;white-space:nowrap}
-.dvp-chip{font:22px var(--dvp-font);background:#160f0a;border:2px solid var(--dvp-line);border-radius:8px;padding:5px 14px;color:var(--dvp-ink);white-space:nowrap}
+.dvp-stats{flex:1;display:flex;justify-content:center;gap:8px;overflow:hidden;white-space:nowrap}
+.dvp-chip{font:20px var(--dvp-font);background:#160f0a;border:2px solid var(--dvp-line);border-radius:8px;padding:5px 11px;color:var(--dvp-ink);white-space:nowrap}
 .dvp-chip b{color:var(--dvp-gold)}.dvp-chip.good b{color:var(--dvp-good)}.dvp-chip.warn{border-color:var(--dvp-warn)}.dvp-chip.warn b{color:var(--dvp-warn)}
 .dvp-close{width:130px;height:50px;flex:0 0 130px;border:2px solid var(--dvp-line);border-radius:8px;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:700 24px var(--dvp-font);cursor:pointer}
 .dvp-close:hover{border-color:var(--dvp-gold)}
@@ -33947,7 +33947,8 @@ function devHdStat(){ const s=DVP.st; if(!s) return '';
   const online=svrOn()&&known.some(x=>DVP.svr[x.id].online!=null)?known.reduce((a,x)=>a+((DVP.svr[x.id].online)|0),0):(s.online|0);
   const health=svrOn()?(known.length?`<span class="dvp-chip ${up===SVR_LIST.length?'good':'warn'}"><b>${up}/${SVR_LIST.length}</b> servers healthy</span>`:''):`<span class="dvp-chip good"><b>${s.server?'Server '+escapeHTML(String(s.server)):'Server'}</b> up</span>`;
   const n=s.notice&&(!s.notice.until||s.notice.until>Date.now());
-  return health+`<span class="dvp-chip"><b>${online}</b> online</span><span class="dvp-chip${s.openReports?' warn':''}"><b>${s.openReports|0}</b> open reports</span>`+(n?'<span class="dvp-chip warn"><b>Notice</b> on</span>':''); }
+  const tu=s.totalUsers; const total=tu&&tu.total!=null?`<span class="dvp-chip" id="dvpTotalUsers" title="${escAttr((tu.accounts!=null?tu.accounts+' signed-up accounts + ':'')+tu.guests+' guest accounts'+(tu.servers?' on '+tu.servers+' server'+(tu.servers===1?'':'s'):''))}"><b>${(+tu.total).toLocaleString()}</b> total users</span>`:'';   /* v1379 (Phil: "Total Users number") */
+  return health+`<span class="dvp-chip"><b>${online}</b> online</span>`+total+`<span class="dvp-chip${s.openReports?' warn':''}"><b>${s.openReports|0}</b> open reports</span>`+(n?'<span class="dvp-chip warn"><b>Notice</b> on</span>':''); }
 /* ---- Players: table on the left, the player card on the right ---- */
 function devPlayersHTML(){
   return `<div class="dvp-tool"><label class="dvp-search">${uiIcon('search')}<input id="dvpQ" type="search" placeholder="Name, username or ID" autocomplete="off" autocapitalize="off" spellcheck="false" value="${escAttr(DVP.q)}" aria-label="Search players"></label>`+

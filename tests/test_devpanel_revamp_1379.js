@@ -23,7 +23,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       if (!c.__z) { c.__z = c.createGain(); c.__z.gain.value = 0; oc.call(c.__z, d); } return oc.call(this, c.__z, ...r); } return oc.call(this, d, ...r); }; };
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-dvp1379-')), dbFile = path.join(tmp, 'db.json'); let srv = null, br = null; const port = await freePort(), base = 'http://127.0.0.1:' + port;
-  const env0 = { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0', ADMIN_IDS: '', MUT_PER_MIN: '5000' };
+  const env0 = { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: dbFile, RL_MUL: '1000', REG_PER_MIN: '500', REG_ACCOUNTS_PER_IP: '500', SIM_WORKERS: '0', ADMIN_IDS: '', MUT_PER_MIN: '5000', ALLOW_NEW_GUESTS: '1' };
   delete env0.SHOP_FREE_PACKS;
   const start = async () => { srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: env0, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
     srv.log = ''; srv.stdout.on('data', d => { srv.log += d; }); srv.stderr.on('data', d => { srv.log += d; });
@@ -106,6 +106,16 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     // --- status + backup now
     r = await post('/api/admin/backup-now', {}, aTok); const st = await get('/api/admin/status', aTok);
     ck('Backup now writes a backup; status shows it, the build, players and the notice', r.status === 200 && st.status === 200 && st.body.backups && st.body.backups.last && st.body.backups.count >= 1 && st.body.accounts >= 9 && st.body.notice && st.body.notice.text === 'Server update in 10 minutes', JSON.stringify(st.body).slice(0, 300));
+    { const db = JSON.parse(fs.readFileSync(dbFile, 'utf8')); const real = Object.values(db.users).filter(u => !u.isNpc && u.role !== 'tester' && u.role !== 'admin' && !/^LT-/i.test(u.name || '')).length;
+      const tu = st.body.totalUsers || {};
+      ck('Total users = every account in the DB minus the crew (tester, admin): ' + real + ' (player + 6 fixtures)', tu.total === real && real === 7, JSON.stringify([tu, real])); }
+    { const tot = async () => ((await get('/api/admin/status', aTok)).body.totalUsers || {}).total;
+      const t0 = await tot(); const gA = (await post('/api/guest', { deviceId: 'dvp-dev-A-' + tag })).body; const t1 = await tot();
+      const up = await post('/api/register', { name: 'dUp' + tag, pass: PW, deviceId: 'dvp-dev-A-' + tag }, gA.token); const t2 = await tot();
+      ck('Total users: a new guest (device) counts 1; that guest upgraded to an account still counts 1 (same player)', t1 === t0 + 1 && !!(up.body && up.body.token) && t2 === t1, JSON.stringify([t0, t1, t2, up.status]));
+      const gB = (await post('/api/guest', { deviceId: 'dvp-dev-B-' + tag })).body; const t3 = await tot();
+      const li = await post('/api/login', { name: PL, pass: PW, deviceId: 'dvp-dev-B-' + tag }); pTok = li.body.token; const t4 = await tot();
+      ck('Total users: a guest whose device then signs in to a real account is linked to it and not counted twice', !!gB.token && t3 === t2 + 1 && !!pTok && t4 === t2, JSON.stringify([t2, t3, t4])); }
     ck('status carries the recent server errors list', Array.isArray(st.body.errors) && typeof st.body.saveFails === 'number', JSON.stringify(st.body.errors));
     const raw = await get('/api/admin/player?raw=1&id=' + plId, aTok);
     ck('Raw save on the card: the ledger and save as stored (no password hash)', raw.status === 200 && raw.body.raw && raw.body.raw.ledger && raw.body.raw.ledger.camp.cleared === 25 && !JSON.stringify(raw.body).includes('"hash"'), JSON.stringify(raw.body).slice(0, 200));
@@ -170,6 +180,8 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       ck('page, admin, ' + lab + ': tapping a player shows the card on the right (Grant, Take, Send, Ban, Reset, Delete, tester, info), nothing cut off sideways', card.row && card.inline !== false && card.ids.length === 6 && card.secs >= 5 && card.tst && !card.over.length && card.inView, JSON.stringify(card));
       
     }
+    { const chip = await apg.evaluate(() => { const c = document.getElementById('dvpTotalUsers'); const h = document.getElementById('dvpHdStat'); return c ? { t: c.textContent, n: +(c.querySelector('b').textContent.replace(/,/g, '')), fits: h.scrollWidth <= h.clientWidth + 1 } : null; });
+      ck('page, admin: the header shows "N total users" from the server, in the one header line', chip && /total users/.test(chip.t) && chip.n >= 7 && chip.fits, JSON.stringify(chip)); }
     // --- the sort, all 4 keys, both directions (relative order of the six fixtures against the server's own numbers)
     await openDev(apg, 'players'); await apg.waitForFunction(() => document.querySelectorAll('#dvpOv .dvp-prow').length > 0, null, { timeout: 15000 }).catch(() => {});
     const exp = (key, dir) => { const v = { seen: r => r.lastSeen, level: r => r.level, name: r => r.name.toLowerCase(), patron: r => r.patron }[key];

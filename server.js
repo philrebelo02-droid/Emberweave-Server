@@ -728,6 +728,23 @@ async function acctStatusSync(){
   }catch(e){ console.log('[account] status sync failed: '+e.message); }
   _acctSyncBusy=false; }
 if(ACCOUNT_AUTHORITY) setInterval(acctStatusSync, ACCOUNT_STATUS_MS);
+/* v1379 TOTAL USERS (Phil 12 Nov: "Make 1 more thing, Total Users number" / "This is totally devices that made an account"): every account
+   ever made on any server, guest (device) accounts included, the crew's own left out (test accounts, admins, LT- load-test accounts).
+   Server 1 holds every signed-up account (Servers 2-5 link theirs to it), so it counts those once; guests live only on the server that made
+   them, so each of Servers 2-5 reports its guest count to Server 1 (every 10 minutes and on each status read) and Server 1 adds them up.
+   The server keeps no device id per account (only a hashed per-device COUNT for the sign-up cap), so this counts accounts, not devices. */
+function crewAcct(u){ return testerTagged(u)||isDev(u)||/^LT-/i.test(String((u&&u.name)||'')); }
+function localUserCounts(){ let acc=0, guests=0; for(const u of Object.values(DB.users||{})){ if(!u||u.isNpc||crewAcct(u)) continue; if(u.guest){ if(!u.linkedTo) guests++; } else if(!ACCOUNT_AUTHORITY) acc++; } return { acc, guests }; }
+/* Phil: "If the guest is linked to an actual account it doesnt count twice". A guest upgraded to an account keeps its id (counted once as the account);
+   a guest whose device then signs in to an existing account is marked linkedTo that account here (the device's guest, DB.guestByDevice) and not counted. */
+function guestLinkDevice(rawDev, u){ try{ const dk=devKey(String(rawDev||'').slice(0,64)); if(!dk||!DB.guestByDevice||!u) return [];
+  const gid=DB.guestByDevice[dk], g=gid&&DB.users[gid]; if(g&&g.guest&&g.id!==u.id&&g.linkedTo!==u.id){ g.linkedTo=u.id; return [g.id]; } }catch(e){} return []; }
+const SAT_GUESTS={};   // Server 1: each satellite's last reported guest count {n, t}
+function totalUsersHere(){ const c=localUserCounts(); let g=c.guests, servers=1; const cut=Date.now()-3600000;
+  for(const k in SAT_GUESTS){ if(SAT_GUESTS[k].t>=cut){ g+=SAT_GUESTS[k].n|0; servers++; } } return { total:c.acc+g, accounts:c.acc, guests:g, servers }; }
+async function totalUsersReport(){ if(!ACCOUNT_AUTHORITY) return null; try{ const r=await authorityCall('/api/internal/account/total',{ server:SERVER_ID||String(process.env.SERVER_NAME||''), guests:localUserCounts().guests });
+  return (r&&r.status===200&&r.body&&typeof r.body.total==='number')?r.body:null; }catch(e){ return null; } }
+if(ACCOUNT_AUTHORITY){ const _tu=setInterval(()=>{ totalUsersReport(); }, 600000); if(_tu.unref) _tu.unref(); setTimeout(()=>{ totalUsersReport(); }, 20000); }
 // v946: the account checks, shared by this server's own endpoints and the account-server endpoints (bodies moved unchanged
 // from /api/login, /api/register, /api/reset-request and /api/reset-verify). Callers write the DB.
 /* v1184: async (the hash runs on the thread pool). The lock is checked before the hash and again after it, and the failure is counted on
@@ -6221,6 +6238,8 @@ async function api(req,res,url){
   if(p.startsWith('/api/internal/account/') && req.method==='POST'){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
+    if(p==='/api/internal/account/total'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')) SAT_GUESTS[sv]={ n:Math.max(0,b.guests|0), t:Date.now() };   /* v1379 total users */
+      return send(res,200,totalUsersHere()); }
     /* v1184 SIGN-UP GATE: gid + tag = the satellite checked the password against its local copy of this account; a current tag means
        nothing is hashed here (lock, ban and state still come from here). Saved only when something changed, with the group save. */
     if(p==='/api/internal/account/google'){
@@ -6368,7 +6387,7 @@ async function api(req,res,url){
         if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; if(applyAcctState(u, r.body.st)) writeDB(); }   // v1035: the password was just checked - current (v1184: a state change saves everything, as before)
         if(isBanned(u)){ saveSoon([u.id].concat(touched)); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
         const _dc=!!r.body.delCancelled||acctDelCancel(u);   /* v1232 */
-        dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched)); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:_dc||undefined }); }
+        dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched,guestLinkDevice(b.deviceId,u))); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:_dc||undefined }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
       // the account server did not answer: a player who has signed in here before can still get in with the local copy
       const lid=loginId(name), lu=lid&&DB.users[lid];   /* v1253 */
@@ -6379,7 +6398,7 @@ async function api(req,res,url){
     const u=r.u, id=u.id;
     if(isBanned(u)){ if(r.changed) saveSoon([id]); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
     dropTokens(id);   // single session: signing in here kicks any other device
-    const tok=issueToken(id); saveSoon([id]); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:r.delCancelled||undefined }); }
+    const tok=issueToken(id); saveSoon([id].concat(guestLinkDevice(b.deviceId,u))); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:r.delCancelled||undefined }); }
 
   // email password reset — step 1: request a one-time 6-digit code sent to the account's linked email.
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
@@ -6545,7 +6564,8 @@ async function api(req,res,url){
       try{ for(const f of fs.readdirSync(bdir)){ if(!/^db-.*\.json$/.test(f)) continue; n++; const m=fs.statSync(path.join(bdir,f)).mtimeMs; if(!last||m>last.t) last={ name:f, t:Math.round(m) }; } }catch(e){}
       let pin=null; try{ pin=_safety.readPinMeta(bdir); }catch(e){}
       const now=Date.now(), us=Object.values(DB.users||{}).filter(u=>!u.isNpc);
-      return send(res,200,{ ok:true, server:SERVER_ID||String(process.env.SERVER_NAME||''), build:localBuildId()||null, version:(typeof SERVER_BUILD!=='undefined'?SERVER_BUILD:''),
+      let tu=ACCOUNT_AUTHORITY?await totalUsersReport():totalUsersHere(); if(!tu){ const c=localUserCounts(); tu={ total:c.guests, accounts:null, guests:c.guests, servers:1, partial:true }; }
+      return send(res,200,{ ok:true, totalUsers:tu, server:SERVER_ID||String(process.env.SERVER_NAME||''), build:localBuildId()||null, version:(typeof SERVER_BUILD!=='undefined'?SERVER_BUILD:''),
         uptimeS:Math.round(process.uptime()), now, accounts:us.length, online:us.filter(u=>(u.lastSeen||0)>=now-5*60000).length,
         guests:us.filter(u=>u.guest).length, testers:us.filter(testerTagged).length, banned:us.filter(u=>banInfo(u)).length,
         backups:{ count:n, last, pinned:pin?{ real:pin.real|0, at:pin.at||0 }:null }, notice:DB.notice||null, prebeta:PREBETA,
