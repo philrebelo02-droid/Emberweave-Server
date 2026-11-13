@@ -3829,7 +3829,7 @@ body:has(#vtInfoPop) #mcLayer{z-index:20060}   /* the enemy card opens above the
 #skyisland{--it-title:url('/assets/img/ui/building-titles/island-of-trials-title.webp?v=1');--it-panel:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
 #skyisland>.titlebar{background:none!important;border:0!important;padding:0!important;width:min(360px,70%)!important;height:90px!important;max-width:90%!important;}
 #skyisland>.titlebar h1{height:100%;width:100%;font-size:0!important;-webkit-text-fill-color:transparent!important;background:var(--it-title) center/contain no-repeat!important;text-shadow:none!important;margin:0!important;}
-#skyIslandBody .islespot>div{position:relative;isolation:isolate;border-image:none!important;background:none!important;}
+#skyIslandBody .islespot>div{position:relative;isolation:isolate;border-image:none!important;background:none!important;border:0!important;padding:4px 20px!important;}   /* Phil 12 Nov ("look at the yellow around the plates"): the old plaque's 16px side borders were left on, a flat strip outside the ornate frame */
 #skyIslandBody .islespot>div::before{content:'';position:absolute;inset:-4px;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--it-panel) 25% fill / 16px / 0 stretch;}
 @media(max-height:560px){#skyisland>.titlebar{height:68px!important;width:min(300px,50%)!important;}}
 @media(max-width:700px){#skyisland>.titlebar{height:75px!important;width:62%!important;padding:0!important;}}
@@ -19587,7 +19587,7 @@ const FTUT_GUIDES=[
   {k:'province',at:'province',lv:10},{k:'emberdraft',at:'emberdraft',lv:25},
   {k:'guild',at:'guild',lv:13},{k:'skyfall',at:'skyfall',lv:13},{k:'watchtower',at:'watchtower',lv:20},
   {k:'wall',at:'wall',lv:()=>WALL_UNLOCK_LEVEL,ok:()=>WALL_TAB!=='cauldron'},{k:'hut',at:'wall',lv:()=>WALL_UNLOCK_LEVEL,ok:()=>WALL_TAB==='cauldron'},
-  {k:'world',at:'world',lv:()=>WALL_UNLOCK_LEVEL},{k:'tech',at:'tech',lv:()=>ACADEMY_UNLOCK_LEVEL},{k:'forge',at:'forge',lv:25,foot:'por'},
+  {k:'world',at:'world',lv:()=>WALL_UNLOCK_LEVEL},{k:'tech',at:'tech',lv:()=>ACADEMY_UNLOCK_LEVEL},{k:'forge',at:'forge',lv:25},   /* Phil 12 Nov (Skip / Next stacked on the portrait: "forge randomly has next/skip on top of the avatar"): Forge uses the normal bar like every guide */
   {k:'temple',at:'temple',lv:50},{k:'well',at:'well',lv:61},
   {k:'elite',at:'campaign',ok:()=>portalCleared('normal')>=10},{k:'veteran',at:'campaign',ok:()=>portalCleared('elite')>=10},
   {k:'bonus',at:'campaign',ok:()=>(G.campaignCleared|0)>=3},{k:'affinity',at:'campaign',pos:'bottom',ok:()=>typeof AFFINITIES_LIVE==='undefined'||AFFINITIES_LIVE}
