@@ -19319,7 +19319,7 @@ function _intAuditHTML(){
   return `<div style="border:1px solid #3a4a6a;background:#0f1524;border-radius:10px;padding:11px">
     <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:14px;color:#ffd45e">${escapeHTML(a.name)}</div>
       <button class="btn sm secondary" data-intback="1">← Back</button></div>${modHTML}
-    <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">${hudIcon('gem')} ${a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
+    <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">${hudIcon('gem')} ${a.balance==null?'—':a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
     <div style="font-size:11px;font-weight:800;margin:9px 0 4px">Where they came from</div>
     ${rows.length?rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:#cdd6e4;padding:2px 0;border-bottom:1px solid #1b2438"><span>${escapeHTML(k)}</span><b>+${v}</b></div>`).join(''):'<div style="font-size:11px;color:#8b98a9">No recorded gains in this window.</div>'}
     <div style="font-size:11px;font-weight:800;margin:10px 0 4px">Most recent</div>
@@ -33987,6 +33987,12 @@ button.dvp-srow{cursor:pointer}
 .pai-r b.warn{color:var(--dvp-warn)}.pai-r b.bad{color:var(--dvp-bad)}.pai-r b.good{color:var(--dvp-good)}
 .pai-err{font:15px var(--dvp-font);color:var(--dvp-bad)}
 .pai-raw{width:100%;height:260px!important;font:12px ui-monospace,Consolas,monospace!important;white-space:pre}
+/* v1383 (Grok dev panel hunt): the announcement banner (#ewNotice, z 15000) covered the panel's header chips and middle tabs while it showed -
+   it stays off the open panel (Live Ops shows the notice that is up). The report audit and the ban menu (the older 10.5-12 px look) are drawn
+   at the panel's text size, and the red ban buttons get light labels (dark text on red was unreadable). */
+body:has(#dvpOv) #ewNotice{display:none!important}
+.dvp #devIntegrity>div[style],.pai-card #paBanBox>div{zoom:1.4}
+.dvp [data-ban],.dvp [data-unban],.pai-card [data-ban],.pai-card [data-unban]{color:#fff!important;text-shadow:0 1px 2px #000}
 `;
 /* the painted plates go on by size: each button gets the plate of its look (brown / gold / red) with the smallest painted width its label fits
    (never stretched past the painted size: the box takes the plate's exact width); each header chip likewise */
