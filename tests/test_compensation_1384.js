@@ -115,6 +115,11 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       const before = await ppg.evaluate(async () => { show('mail'); mailTab = 'inbox'; renderMail(); await new Promise(r => setTimeout(r, 300));
         const rows = [...document.querySelectorAll('#mailBody .mailrow.comp')]; const md = document.getElementById('mailDot');
         return { n: rows.length, claimBtns: document.querySelectorAll('#mailBody [data-compclaim]').length, claimed: document.querySelectorAll('#mailBody .comp-done').length, badge: md ? md.textContent : '', unclaimed: compUnclaimed(), txt: rows.map(r => r.textContent.replace(/\s+/g, ' ').slice(0, 120)) }; });
+      const expiry = await ppg.evaluate(() => {
+        const now = Date.now();
+        return [compExpires({until: now + 47.5 * 3600000}), compExpires({until: now + 49 * 3600000})];
+      });
+      ck('expiry shows hours below 48h and days above it', /48 h/.test(expiry[0]) && /2 days/.test(expiry[1]), expiry.join(' / '));
       if (SHOTS) await ppg.screenshot({ path: path.join(SHOTS, 'mail-compensation-before-' + lab + '.png') });
       const after = await ppg.evaluate(async (id) => { const g0 = G.gold; const btn = document.querySelector('#mailBody [data-compclaim="' + id + '"]'); if (!btn) return { nobtn: true }; btn.click();
         for (let i = 0; i < 40 && document.querySelector('#mailBody [data-compclaim="' + id + '"]'); i++) await new Promise(r => setTimeout(r, 150));
@@ -129,6 +134,25 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     }
     ck('no page errors', errs.length === 0, errs.join(' | '));
     await br.close(); br = null;
+    await stop('s2');
+    await stop('s1');
+    await start('s1', P1, S1);
+    aTok = (await login(ADM, PW)).token;
+    const offline = await post('/api/admin/compensation', { subj: 'Satellite offline', rewards: { gold: 777 }, servers: ['2'], days: 2 }, aTok);
+    if (!offline.body.comp) throw new Error('offline send: ' + JSON.stringify(offline));
+    const offlineId = offline.body.comp.id;
+    await start('s2', P2, S2);
+    c2Tk = (await login(C2, PW, P2)).token;
+    let synced;
+    for (let i = 0; i < 100; i++) {
+      synced = await led(c2Tk, P2);
+      if ((synced.comps || []).some(c => c.id === offlineId)) break;
+      await delay(150);
+    }
+    ck('satellite receives compensation sent while it was offline', (synced.comps || []).some(c => c.id === offlineId));
+    await Promise.all(['concurrent-a', 'concurrent-b'].map(requestId => post('/api/comp/claim', { id: offlineId, requestId }, c2Tk, P2)));
+    const retry = await post('/api/comp/claim', { id: offlineId, requestId: 'concurrent-a' }, c2Tk, P2);
+    ck('concurrent claims and discarded-response retry credit one grant', retry.status === 200 && (await led(c2Tk, P2)).gold === synced.gold + 777);
     // --- restart, then expiry
     await stop('s1'); await start('s1', P1, S1); aTk = (await login(A, PW)).token; aTok = (await login(ADM, PW)).token;
     const ar = await led(aTk);

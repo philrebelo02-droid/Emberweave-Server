@@ -29379,7 +29379,7 @@ const COMP_R=[['gold',()=>hudIcon('gold'),'econ.gold'],['gems',()=>hudIcon('gem'
   ['pot_superior',()=>uiIcon('res-xp-potion'),'mail.comp_pot_superior'],['arenaCoins',()=>uiIcon('res-arena-coins'),'mail.comp_arena_coins'],['guildCoins',()=>uiIcon('res-guild-coins'),'econ.guild_coins'],
   ['dust',()=>uiIcon('res-forge-dust'),'econ.forge_dust'],['shields',()=>hudIcon('shield'),'gshop.protection_shield']];
 function compRewardsHTML(r){ return COMP_R.filter(([k])=>(r||{})[k]>0).map(([k,ic,key])=>`<span class="comp-r">${ic()}<b>${(+r[k]).toLocaleString()}</b> ${escapeHTML(ewT(key))}</span>`).join(''); }
-function compExpires(c){ if(!c.until) return ''; const ms=c.until-Date.now(); if(ms<=0) return ''; const h=Math.ceil(ms/3600000); return h>=48?ewT('mail.comp_exp_d',{n:Math.floor(h/24)}):ewT('mail.comp_exp_h',{n:h}); }
+function compExpires(c){ if(!c.until) return ''; const ms=c.until-Date.now(); if(ms<=0) return ''; const h=Math.ceil(ms/3600000); return ms>=48*3600000?ewT('mail.comp_exp_d',{n:Math.floor(h/24)}):ewT('mail.comp_exp_h',{n:h}); }
 function compRowsHTML(){ const now=Date.now(); const L=(COMP.list||[]).filter(c=>!c.until||c.until>now); if(!L.length) return '';
   return L.map(c=>`<div class="mailrow comp${c.claimed?' claimed':' unread'}" data-comp="${escAttr(c.id)}"><span class="mtime">${timeAgo(c.t)}</span>
     <div class="mfrom">${uiIcon('gift')} ${escapeHTML(ewT('mail.comp_tag'))}</div>
