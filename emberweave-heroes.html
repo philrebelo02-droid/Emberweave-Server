@@ -33798,35 +33798,35 @@ const DVP_CSS=`
 .dvp{position:absolute;left:50%;top:50%;width:1280px;height:800px;box-sizing:border-box;transform-origin:50% 50%;transform:translate(-50%,-50%) scale(var(--dvp-scale,1));
  background:var(--dvp-panel-bg);border:var(--dvp-frame-border);border-radius:16px;box-shadow:0 0 0 2px #3a2814,inset 0 0 0 2px #5b4022,0 20px 70px #000d;color:var(--dvp-ink);font:22px var(--dvp-font)}
 .dvp .stIc{width:28px;height:28px;vertical-align:-6px;margin-right:6px}
-/* header 24,14 1232x66 */
-.dvp-hd{position:absolute;left:24px;top:14px;width:1232px;height:66px;display:flex;align-items:center;gap:14px;background:var(--dvp-header-bg)}
-.dvp-title{width:300px;flex:0 0 300px;font:700 40px var(--dvp-font);letter-spacing:3px;color:var(--dvp-gold);text-shadow:0 3px 3px #000;white-space:nowrap}
+/* header 24,8 1232x58 - one compact line (Phil: "dont waste so much space at the top"): wordmark, status chips, Close */
+.dvp-hd{position:absolute;left:24px;top:8px;width:1232px;height:58px;display:flex;align-items:center;gap:14px;background:var(--dvp-header-bg)}
+.dvp-title{width:300px;flex:0 0 300px;font:700 34px var(--dvp-font);letter-spacing:3px;color:var(--dvp-gold);text-shadow:0 3px 3px #000;white-space:nowrap}
 .dvp-stats{flex:1;display:flex;justify-content:center;gap:10px;overflow:hidden;white-space:nowrap}
 .dvp-chip{font:22px var(--dvp-font);background:#160f0a;border:2px solid var(--dvp-line);border-radius:8px;padding:5px 14px;color:var(--dvp-ink);white-space:nowrap}
 .dvp-chip b{color:var(--dvp-gold)}.dvp-chip.good b{color:var(--dvp-good)}.dvp-chip.warn{border-color:var(--dvp-warn)}.dvp-chip.warn b{color:var(--dvp-warn)}
-.dvp-close{width:140px;height:56px;flex:0 0 140px;border:2px solid var(--dvp-line);border-radius:8px;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:700 24px var(--dvp-font);cursor:pointer}
+.dvp-close{width:130px;height:50px;flex:0 0 130px;border:2px solid var(--dvp-line);border-radius:8px;background:var(--dvp-btn-sec-bg);color:var(--dvp-ink);font:700 24px var(--dvp-font);cursor:pointer}
 .dvp-close:hover{border-color:var(--dvp-gold)}
-/* tabs 24,90 1232x66: six 205 px tabs */
-.dvp-tabs{position:absolute;left:24px;top:90px;width:1232px;height:66px;box-sizing:border-box;display:flex;padding:6px 6px 0;border:2px solid var(--dvp-line);border-bottom:0;border-radius:12px 12px 0 0;background:var(--dvp-tabs-bg)}
-.dvp-tab{position:relative;flex:0 0 203px;width:203px;height:60px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 8px;border:2px solid transparent;border-bottom:0;border-radius:12px 12px 0 0;background:var(--dvp-tab-bg);color:var(--dvp-dim);font:24px var(--dvp-font);cursor:pointer;white-space:nowrap}
-.dvp-tab+.dvp-tab::before{content:'';position:absolute;left:-1px;top:16px;bottom:16px;width:2px;background:var(--dvp-line)}
+/* tabs 24,70 1232x60: six 203 px tabs */
+.dvp-tabs{position:absolute;left:24px;top:70px;width:1232px;height:60px;box-sizing:border-box;display:flex;padding:6px 6px 0;border:2px solid var(--dvp-line);border-bottom:0;border-radius:12px 12px 0 0;background:var(--dvp-tabs-bg)}
+.dvp-tab{position:relative;flex:0 0 203px;width:203px;height:54px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 8px;border:2px solid transparent;border-bottom:0;border-radius:12px 12px 0 0;background:var(--dvp-tab-bg);color:var(--dvp-dim);font:24px var(--dvp-font);cursor:pointer;white-space:nowrap}
+.dvp-tab+.dvp-tab::before{content:'';position:absolute;left:-1px;top:14px;bottom:14px;width:2px;background:var(--dvp-line)}
 .dvp-tab span{overflow:hidden;text-overflow:ellipsis}
 .dvp-tab:hover{color:var(--dvp-ink)}.dvp-tab:active{background:var(--dvp-tab-press-bg)}
 .dvp-tab.on{background:var(--dvp-tab-on-bg);color:#fff1d3;border-color:var(--dvp-line);font-weight:700}
 .dvp-tab.on::before,.dvp-tab.on+.dvp-tab::before{display:none}
-/* body 24,156 1232x626 (a test account has no tabs: 24,90 1232x692) */
-.dvp-body{position:absolute;left:24px;top:156px;width:1232px;height:626px;box-sizing:border-box;background:var(--dvp-pane-bg);border:2px solid var(--dvp-line);border-radius:0 0 12px 12px}
-.dvp-hd+.dvp-body{top:90px;height:692px;border-radius:12px}
-/* inside the body: toolbar 16,14 1196x60 · split 16,86 1196x486 (left 760, gap 20, right 416) · status line 16,580 1196x36 */
+/* body 24,130 1232x656 (a test account has no tabs: 24,70 1232x716) */
+.dvp-body{position:absolute;left:24px;top:130px;width:1232px;height:656px;box-sizing:border-box;background:var(--dvp-pane-bg);border:2px solid var(--dvp-line);border-radius:0 0 12px 12px}
+.dvp-hd+.dvp-body{top:70px;height:716px;border-radius:12px}
+/* inside the body: toolbar 16,14 1196x60 · split 16,86 1196x516 (left 760, gap 20, right 416) · status line 16,610 1196x36 */
 .dvp-tool{position:absolute;left:16px;top:14px;width:1196px;height:60px;display:flex;gap:12px;align-items:center}
 .dvp-h{font:700 32px var(--dvp-font);color:#fff1d3;margin:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dvp-h2{font:700 28px var(--dvp-font);color:#fff1d3;margin:0 0 10px}
-.dvp-split{position:absolute;left:16px;top:86px;width:1196px;height:486px}
-.dvp-hd+.dvp-body .dvp-split{height:552px}
+.dvp-split{position:absolute;left:16px;top:86px;width:1196px;height:516px}
+.dvp-hd+.dvp-body .dvp-split{height:576px}
 .dvp-left{position:absolute;left:0;top:0;width:760px;height:100%;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding-right:6px}
 .dvp-right{position:absolute;left:780px;top:0;width:416px;height:100%;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;background:var(--dvp-card-bg);border:2px solid var(--dvp-line);border-radius:10px;padding:16px 18px}
-.dvp-foot{position:absolute;left:16px;top:580px;width:1196px;height:36px;overflow:hidden}
-.dvp-hd+.dvp-body .dvp-foot{top:646px}
+.dvp-foot{position:absolute;left:16px;top:610px;width:1196px;height:36px;overflow:hidden}
+.dvp-hd+.dvp-body .dvp-foot{top:670px}
 .dvp-search{width:360px;flex:0 0 360px;height:56px;box-sizing:border-box;display:flex;align-items:center;gap:8px;background:var(--dvp-search-bg);border:2px solid var(--dvp-line);border-radius:8px;padding:0 12px}
 .dvp-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--dvp-ink);font:22px var(--dvp-font)}
 #dvpFilt{width:210px;flex:0 0 210px}#dvpSort{width:250px;flex:0 0 250px}#dvpRk{width:280px;flex:0 0 280px}#dvpRf{width:230px;flex:0 0 230px}
