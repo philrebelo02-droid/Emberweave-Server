@@ -33935,7 +33935,7 @@ button.dvp-srow{cursor:pointer}
 .dvp-kv span{color:var(--dvp-dim);white-space:nowrap}.dvp-kv b{color:var(--dvp-ink);text-align:right;min-width:0;overflow-wrap:anywhere;font-weight:400}
 .dvp-kv b.good{color:var(--dvp-good)}.dvp-kv b.bad{color:var(--dvp-bad)}.dvp-kv b.warn{color:var(--dvp-warn)}
 .dvp-line{font:16px/1.45 var(--dvp-font);color:var(--dvp-ink);margin:0 0 8px}.dvp-line.dim{color:var(--dvp-dim)}
-.dvp-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.dvp-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#devIntegrity>.dvp-acts:first-child{margin:0 0 12px}
 .dvp-right input,.dvp-right select,.dvp-right textarea{width:100%;box-sizing:border-box;height:38px;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 10px;font:16px var(--dvp-font);margin-top:8px}
 .dvp-right textarea{height:auto;padding:8px 10px;resize:none}
 .dvp-notice-now{font:16px/1.4 var(--dvp-font);color:var(--dvp-ink);background:#2a1c0a;border:1px solid var(--dvp-line);border-radius:4px;padding:8px 10px}
@@ -34072,11 +34072,12 @@ function devReportsListHTML(){ if(DVP.rerr) return `<div class="dvp-empty bad">$
     `<span class="dvp-sub">${escapeHTML((x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}</span><span class="dvp-btn sm">Open</span></button>`).join(''); }
 function devRepTitle(x){ const s=String(x.text||'').replace(/\s+/g,' ').trim(); return s.length>64?s.slice(0,62)+'…':(s||'(no text)'); }
 function devReportDetailHTML(x){ if(!x) return '<div class="dvp-empty">Nothing in this queue.</div>';
-  return `<div class="dvp-h2">${escapeHTML(devRepTitle(x))}</div><div class="dvp-line">${escapeHTML((x.name||'?')+' · '+(x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}${x.tester?' <span class="dvp-tag tst">Tester</span>':''}</div>`+
-    `<div class="dvp-rep-tx">${escapeHTML(x.text)}</div>${x.meta?`<div class="dvp-rep-meta">${escapeHTML(x.meta)}</div>`:''}`+
-    `<div class="dvp-acts">${x.userId?`<button class="dvp-btn" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button>`:''}`+
+  /* Phil 12 Nov: "put Open Player, Audit, Resolve at the top of the message so when a new message comes these buttons arent bouncing around" */
+  return `<div class="dvp-acts">${x.userId?`<button class="dvp-btn" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button>`:''}`+
     `${(x.kind==='moderation'||x.kind==='integrity')&&x.userId?`<button class="dvp-btn" data-raudit="${escAttr(x.id)}" data-ruser="${escAttr(x.userId)}">${x.kind==='moderation'?'Review':'Audit'}</button>`:''}`+
-    `<button class="dvp-btn ${x.resolved?'':'gold'}" data-rres="${escAttr(x.id)}">${x.resolved?'Reopen':'Resolve'}</button></div>`; }
+    `<button class="dvp-btn ${x.resolved?'':'gold'}" data-rres="${escAttr(x.id)}">${x.resolved?'Reopen':'Resolve'}</button></div>`+
+    `<div class="dvp-h2">${escapeHTML(devRepTitle(x))}</div><div class="dvp-line">${escapeHTML((x.name||'?')+' · '+(x.kind==='moderation'&&x.label?x.label:DVP_RKIND[x.kind]||'Report')+' · '+devAgo(x.t))}${x.tester?' <span class="dvp-tag tst">Tester</span>':''}</div>`+
+    `<div class="dvp-rep-tx">${escapeHTML(x.text)}</div>${x.meta?`<div class="dvp-rep-meta">${escapeHTML(x.meta)}</div>`:''}`; }
 function devReportsPaint(){ const host=document.getElementById('dvpRList'); if(host) host.innerHTML=devReportsListHTML(); const k=document.getElementById('dvpRk'); if(k) k.innerHTML=devRkOpts();
   const det=document.getElementById('devIntegrity'); if(!det||INTEG.open) return; const L=devReportsShown();
   let x=L.find(y=>y.id===DVP.rsel); if(!x){ x=L[0]||null; DVP.rsel=x?x.id:null; if(host&&x){ const el=host.querySelector('[data-rsel="'+CSS.escape(x.id)+'"]'); if(el) el.classList.add('on'); } }
