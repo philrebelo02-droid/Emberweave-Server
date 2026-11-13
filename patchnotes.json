@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.5.78", "date": "13 November 2026", "time": "10:30 EST", "title": "Reward pop-ups and Arena fixes", "items": ["Compensation in Mail: tapping Claim now shows the rewards in a pop-up, like a campaign sweep.", "Daily sign-in: the claim message now shows the amount you actually received.", "Arena: a result that saves slowly is always recorded against the opponent you fought.", "Skyfall: your citadel now sits on the bridge."]},
     {"ver": "1.5.77", "date": "13 November 2026", "time": "01:45 EST", "title": "Starless Well fixes", "items": ["Starless Well: the Heroes button now shows from the start of a run, before the first fight.", "Compensation in Mail: the time left now switches from hours to days at exactly 48 hours."]},
     {"ver": "1.5.76", "date": "12 November 2026", "time": "22:30 EST", "title": "Compensation in Mail", "items": ["Compensation from the team now arrives in Mail with a Claim button.", "Island of Trials: the place names sit on clean plates.", "The Forge guide's Skip and Next buttons are back in the guide bar."]},
     {"ver": "1.5.75", "date": "12 November 2026", "time": "22:06 EST", "title": "New Skyfall bridge", "items": ["Skyfall: the bridge view has new art - a wider sky bridge running corner to corner."]},
