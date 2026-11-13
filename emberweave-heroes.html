@@ -18018,7 +18018,7 @@ function endBattle(won){
           +(fell?`<div style="color:#ffd45e;font-weight:700">${statusIcon('crit-burst')} ${ewT('result.killing_blow',{n:(r.reward&&r.reward.tier)|0})}</div>`
                  +`<div style="margin-top:3px">${hudIcon('gold')} ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · ${hudIcon('gem')} ${((r.reward&&r.reward.gems)|0)} · ${uiIcon('res-guild-coins')} ${((r.reward&&r.reward.guildCoins)|0)}</div>`
              :`<div style="margin-top:2px">${uiIcon('res-guild-coins')} ${ewT('result.guild_coins',{n:((r.reward&&r.reward.guildCoins)|0)})}</div>`)
-          +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">${ewT('result.raid_boss_hp',{hp:(r.raid.hp|0).toLocaleString(),max:(r.raid.max|0).toLocaleString(),n:(r.raid.attemptsLeft|0)})}</div>`:'')
+          +(graidAdopt(r.raid)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">${ewT('result.raid_boss_hp',{hp:(r.raid.hp|0).toLocaleString(),max:(r.raid.max|0).toLocaleString(),n:(r.raid.attemptsLeft|0)})}</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">${ewT('result.run_not_counted')}</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error&&langMsg(r.error))||ewT('result.no_realm')))}</span>`;
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
@@ -20194,6 +20194,7 @@ async function raidLaunch(){
   if(st&&st.busy) return;
   if(!st||st.error){ bannerMsg(st&&st.error==='offline'?t('net.connection_lost'):((st&&st.error)||t('raid.unreachable'))); return; }
   if(st.resumed&&Array.isArray(st.heroIds)&&st.heroIds.length) sq=st.heroIds.slice(0,TEAM_SIZE*2);   /* an open fight comes back with ITS squad */
+  if(st.raid) graidAdopt(st.raid);
   if(st.none){ bannerMsg(t('raid.none_left')); return; }
   const B=st.boss||{};
   const _sn=Array.isArray(st.snaps)?st.snaps:null;
@@ -30426,17 +30427,20 @@ function guildMemberCount(){ return (typeof GUILD_MEMBERS!=='undefined'?GUILD_ME
 
 // ---- GUILD RAID: one big boss the WHOLE guild chips down over time. Your assaults + passive damage from
 //      your guildmates (simulated) whittle its HP. When it falls everyone shares the spoils; a tougher one rises. ----
-const GUILD_RAID_ATTEMPTS=5;   // personal assaults per day
+/* v1382 (Grok, Claude 12 Nov 18:29): the raid attempt count is the SERVER's (server.js RAID_ATT, sent as raid.attemptsLeft /
+   raid.attemptsMax). The client keeps no count of its own - it remembers the last raid view the server sent (GRAID_SRV) and
+   reads that. The old 5-a-day client constant here disagreed with the server's 3. */
+let GRAID_SRV=null;
+function graidAdopt(raid){ if(raid&&typeof raid==='object'&&raid.attemptsLeft!=null) GRAID_SRV={attemptsLeft:Math.max(0,raid.attemptsLeft|0), attemptsMax:(raid.attemptsMax!=null?Math.max(0,raid.attemptsMax|0):null), at:Date.now()}; return raid; }
 const GUILD_BOSS_NAMES=['Gorehollow the Ravager','Sablewing the Black Wyrm','The Ashen Colossus','Molgra, Fist of Ruin','Vaelthrûn the Deathless','Ironmaw Behemoth'];
 function guildBossMax(level){ return Math.round(80000*Math.pow(1.6,level-1)); }
 function guildBossEnsure(){ if(!G.guild) return null;
   if(!G.guildBoss){ G.guildBoss={ level:1, max:guildBossMax(1), hp:guildBossMax(1), dmg:0, guildDmg:0, kills:0, day:'', used:0, lastTick:Date.now() }; }
   const gb=G.guildBoss; const dk=(typeof arenaDayKey==='function')?arenaDayKey():new Date().toDateString();
-  if(gb.day!==dk){ gb.day=dk; gb.used=0; }   // daily assault reset
   if(gb.max==null){ gb.max=guildBossMax(gb.level||1); } if(gb.lastTick==null) gb.lastTick=Date.now();
   return gb; }
 function guildBossName(gb){ return GUILD_BOSS_NAMES[((gb.level||1)-1)%GUILD_BOSS_NAMES.length]; }
-function guildBossAttemptsLeft(){ const gb=guildBossEnsure(); return gb?Math.max(0,GUILD_RAID_ATTEMPTS-(gb.used||0)):0; }
+function guildBossAttemptsLeft(){ return (G.guild&&GRAID_SRV)?GRAID_SRV.attemptsLeft:0; }   /* v1382: the server's count (0 until the server has answered) */
 function guildBossKillReward(gb, playerLanded){ const lv=gb.level;
   const cCoins=300*lv, cExp=250; G.guildCoins=(G.guildCoins||0)+cCoins; addGuildExp(cExp);
   let extra=''; if(playerLanded){ const cGold=800*lv, cGems=15+lv*3; G.gold=(G.gold||0)+cGold; G.gems=(G.gems||0)+cGems; txEarn('gold',cGold,'city'); txEarn('gems',cGems,'city'); extra=` · ${hudIcon('gold')} ${cGold} · ${hudIcon('gem')} ${cGems}`; }
@@ -30451,16 +30455,7 @@ function guildBossPassiveTick(){ const gb=guildBossEnsure(); if(!gb||gb.hp<=0) r
   gb.hp=Math.max(0,gb.hp-passive); gb.guildDmg=(gb.guildDmg||0)+passive;
   if(gb.hp<=0){ const r=guildBossKillReward(gb,false); saveG(); return {passiveKill:true, reward:r}; }
   return {passive}; }
-function guildBossAssault(){ const gb=guildBossEnsure(); if(!gb) return null;
-  if(guildBossAttemptsLeft()<=0) return {none:true};
-  gb.used=(gb.used||0)+1;
-  const dmg=Math.max(1, Math.round(bestTeamPower()*(1.4+Math.random()*0.8)));
-  gb.hp=Math.max(0,gb.hp-dmg); gb.dmg=(gb.dmg||0)+dmg;
-  const coins=Math.round(dmg/50); G.guildCoins=(G.guildCoins||0)+coins;
-  let killed=false, reward='';
-  if(gb.hp<=0){ killed=true; reward=guildBossKillReward(gb,true); }
-  saveG(); updateHubChrome();
-  return { dmg, coins, killed, reward }; }
+/* v1382: guildBossAssault (the retired offline instant assault, with its own count of 5) is gone - a raid attempt is a server fight. */
 
 // ---- GUILD WAR is now REAL & server-backed: weekly matchmaking pairs your guild against another
 //      real guild; your members duel the opponent guild's real member squads for shared war points.
@@ -30885,7 +30880,7 @@ async function renderGuildRaid(el){
   if(!el.firstChild) el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:22px">'+t('graid.loading')+'</div>';
   const d=await api('/api/guild/raid'); if(gen!==_raidGen||state!=='guild'||guildTab!=='raid') return; { const _n=document.getElementById('gTabBody'); if(_n) el=_n; }
   if(!d||d.error||!d.raid){ el.innerHTML='<div class="panel" style="text-align:center;padding:18px">'+t('graid.load_failed')+'</div>'; return; }
-  const r=d.raid, pct=Math.round(r.hp/r.max*100);
+  const r=graidAdopt(d.raid), pct=Math.round(r.hp/r.max*100);
   const medal=[uiIcon('rank-gold'),uiIcon('rank-silver'),uiIcon('rank-bronze'),'4.','5.','6.','7.','8.','9.','10.'];
   /* v671: one row of the Boss Contribution board - rank, name, share bar, per cent, damage. */
   const contribRow=(t,i)=>`<div style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:8px;margin-bottom:4px;background:rgba(10,14,22,.55);border:1px solid #242c3e"><span style="width:24px;flex:none;font-size:11px;color:#c9b78d">${medal[i]||(i+1)+'.'}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">${escapeHTML(t.name)}</span><span style="flex:none;width:70px"><span style="display:block;height:7px;border-radius:4px;background:#241a12;overflow:hidden"><i style="display:block;height:100%;width:${Math.max(2,Math.min(100,t.pct||0))}%;background:linear-gradient(90deg,#ffbf69,#e0483f)"></i></span></span><span style="flex:none;width:44px;text-align:right;font-size:11px;font-weight:800;color:#ffbf69">${(t.pct||0).toFixed(1)}%</span><span style="flex:none;width:60px;text-align:right;font-size:10.5px;color:#9ad">${(t.dmg||0).toLocaleString()}</span></div>`;
@@ -30919,7 +30914,7 @@ async function renderGuildRaid(el){
     if(state!=='guild'||guildTab!=='raid'||gen!==_raidGen){ clearInterval(window._raidPoll); window._raidPoll=null; return; }
     const live=await api('/api/guild/raid');
     if(!live||!live.raid||state!=='guild'||guildTab!=='raid'||gen!==_raidGen) return;
-    const q=live.raid, p2=Math.round(q.hp/q.max*100), host=document.getElementById('gTabBody')||el;
+    const q=graidAdopt(live.raid), p2=Math.round(q.hp/q.max*100), host=document.getElementById('gTabBody')||el;
     if(q.level!==r.level||q.name!==r.name||q.bossKey!==r.bossKey){ clearInterval(window._raidPoll); window._raidPoll=null; ewBgRender('guild',()=>{ if(state==='guild') renderGuild(); }); return; }   /* v1355 (audit): the boss changed under the poll */
     const txt=host.querySelector('#gbHpTxt');
     if(txt){ txt.textContent=t('graid.hp_line',{hp:q.hp.toLocaleString(),max:q.max.toLocaleString(),pct:p2});
