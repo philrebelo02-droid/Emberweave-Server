@@ -12113,7 +12113,7 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.pass=s.pass?JSON.parse(JSON.stringify(s.pass)):null;
   u.gearSkill=s.gearSkill?Object.assign({used:false},JSON.parse(JSON.stringify(s.gearSkill))):null;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18*UNIT_SIZE;   // re-apply the ranged reach gate after overriding stats
-  if(s.tal&&s.tal.length){ u._talList=s.tal.map(e=>[e[0],e[1]]); if(typeof TalentFx!=='undefined'&&TalentFx.attach) TalentFx.attach(u,s.key,u._talList); }   /* 14 Nov 2026 talents: the stat part is already in the numbers above - never applied twice */
+  if(s.tal&&s.tal.length){ u._talList=(Array.isArray(s.tal)?s.tal:[]).filter(Array.isArray).map(e=>[e[0],e[1]]); if(typeof TalentFx!=='undefined'&&TalentFx.attach) TalentFx.attach(u,s.key,u._talList); }   /* 14 Nov 2026 talents: the stat part is already in the numbers above - never applied twice */
   return u;
 }
 /* Headless deterministic fight resolver (Rule 3: attack/raid/mine decided by the two teams fighting on full auto).

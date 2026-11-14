@@ -41,3 +41,15 @@ test('an old v2 report (foe as {key, level, rank}) and an old line-model war lin
   const r=SIM.resolveLineBattle(SIM.makeLine(line,null,true),SIM.makeLine(['vex','tick'].map(k=>SIM.heroCombatStats(k,{level:60,stars:3,pips:0})),null,true),12);
   assert.equal(typeof r.won,'boolean');
 });
+
+test('a null or malformed entry inside a snap\'s talent list is ignored, on either side (14 Nov: it threw in buildUnitFromSnapshot)',()=>{
+  const learned=build('vael',20,60), snaps=H.snapFromSpecs([spec('vael',learned),spec('gruel')]);
+  const clean=clone(snaps), dirty=clone(snaps);
+  dirty[0].tal=[null].concat(dirty[0].tal.slice(0,2),[undefined,7,'rh_1_1',{0:'x',1:1}],dirty[0].tal.slice(2),[null]);   // junk around the real entries
+  for(const seed of [21,22]){
+    assert.deepEqual(ways(dirty,FOE,seed),ways(clean,FOE,seed),'the junk entries changed the fight (ally side)');
+    assert.equal(H.autoWatched(clone(FOE),clone(dirty),seed).digest,H.autoWatched(clone(FOE),clone(clean),seed).digest,'the junk entries changed the fight (enemy side)'); }
+  const odd=clone(snaps); odd[0].tal='not a list'; odd[1].tal={length:3};   // not a list at all: fights as nothing learned... and never throws
+  for(const seed of [23]){ const d=ways(odd,FOE,seed); assert.ok(d.every(x=>typeof JSON.parse(x).won==='boolean'));
+    const none=clone(snaps); delete none[0].tal; delete none[1].tal; assert.deepEqual(d,ways(none,FOE,seed),'a talent list that is not a list fights as no talents'); }
+});
