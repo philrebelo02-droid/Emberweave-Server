@@ -48,7 +48,8 @@
     if(M.points) T.on.at=T.on.at||[];                                         // the hero's rows read where her area skills land ('pt:<skill>'): the at hook must run for each of them
     if(M.summons) T.on.summon=T.on.summon||[];                                // his summons carry his rows (u._talS): the summon hook must run for each one he calls
     if(M.pages){ T.on.pagePre=T.on.pagePre||[]; T.on.page=T.on.page||[]; }   // rows ask "is this hit a Living Page" ('casting:page'): the two page hooks must run for each page spent
-    if(M.poison){ for(const k of ['poisQ','pois','spreadR','spread']) T.on[k]=T.on[k]||[]; }   // his poisons are his (Bloatus): the poison and Contagion hooks must run for each one
+    if(M.poison){ for(const k of ['poisQ','pois','spreadR','spread']) T.on[k]=T.on[k]||[]; }
+    if(M.lines) T.on.line=T.on.line||[];                                      // the hero's rows read the enemies on a line skill's line, in order (Calypsa's Tidal Ribbon): the line hook must run for each cast   // his poisons are his (Bloatus): the poison and Contagion hooks must run for each one
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
@@ -149,6 +150,7 @@
     else if(per.dots) n=countDots(u,per.dots);
     else if(per.field){ const x=per.of==='self'?u:per.of==='unit'?(ctx&&ctx.unit):per.of==='source'?(ctx&&ctx.src):(ctx&&ctx.tgt); n=x?(+x[per.field]||0):0; }
     else if(per.units) n=pick(T,u,per.units,ctx).length;
+    else if(per.fn) n=+T.fn[per.fn](API,T,u,ctx,per)||0;                         // a count the hero file works out (Calypsa's cuts on the line, the Water spent)
     else if(per.roll){ const q=T.s.roll[per.roll]; let sum=0; if(q){ const t0=E.now()-q.span; for(let i=0;i<q.e.length;i++) if(q.e[i][0]>t0) sum+=q.e[i][1]; } const st=amtOf(T,u,per.step,ctx); n=st>0?Math.floor(sum/st+1e-9):0; }
     if(per.max!=null) n=Math.min(per.max,n); return n; }
 
@@ -453,7 +455,7 @@
       for(const t of pick(T,u,a.on,ctx)){ if(!t.alive) continue; E.pushDot(t,d.dps*k,d.remaining*d.interval,d.interval,d.color,u,d.kind||'true'); const nd=t.dots[t.dots.length-1]; nd._talO=u.uid; nd._talK=a.copyDot; if(d._talF!=null) nd._talF=d._talF; } return; }
     if(a.untarget!=null){ const x=amtOf(T,u,a.untarget,ctx); if(x>0){ u._noTarget=true; u._noTargetT=Math.max(u._noTargetT||0,x); } return; }   // she cannot be targeted for that long (the engine's own untargetable state, as Hookline's evade)
     if(a.retarget){ const x=pick(T,u,a.retarget,ctx)[0]; if(x) ctx.tgt=x; return; }                // on skillTgt: the skill goes to that unit instead (when one is picked)
-    if(a.miss){ ctx.amt=0; u._talMiss=1; return; }                                                // on 'in': this hit misses her (the page leaves the hit before any damage)
+    if(a.miss){ ctx.amt=0; (ctx.tgt||u)._talMiss=1; return; }                                    // on 'in': this hit misses her; on 'teamIn': it misses the watched unit it was aimed at (the page leaves the hit before any damage)
     if(a.dodge){ ctx.dodged=true; return; }                                                       // on 'dodge': she dodges this hit
     if(a.weaken){ const f=a.weaken, cur=u[f], m=s.wk||(s.wk={}); if(cur==null||!(cur<1)){ m[f]=null; return; } if(m[f]===cur) return;   // a control on her that much weaker (a slow's strength), once per new value
       u[f]=1-(1-cur)*Math.max(0,1-amtOf(T,u,a.by,ctx)); m[f]=u[f]; return; }
@@ -673,11 +675,26 @@
     if(T.on.skillTgt) run(T,u,'skillTgt',ctx); if(ctx.tgt&&T.on.skillAt) run(T,u,'skillAt',ctx); return ctx.tgt||null; }
   /* a skill that travels lands (Hookline: she lands behind its mark). landPre: right before its strike - while it resolves the strike is that skill's ('casting');
      land: right after - 'land' rows ("the moment she lands behind someone") */
-  function landPre(u,t,skill){ const T=u._tal; T.s.cur=skill; if(T.on.landPre) run(T,u,'landPre',{u,src:u,tgt:t,skill}); }
-  function land(u,t,skill){ const T=u._tal; T.s.cur=null; if(T.on.land) run(T,u,'land',{u,src:u,tgt:t,skill}); }
+  function landPre(u,t,skill){ const T=u._tal; (T.s.lc||(T.s.lc=[])).push(T.s.cur); T.s.cur=skill; if(T.on.landPre) run(T,u,'landPre',{u,src:u,tgt:t,skill}); }   // the skill resolving before is put back by land (Calypsa: a counter fired inside one of her storm's pulses)
+  function land(u,t,skill){ const T=u._tal, L=T.s.lc; T.s.cur=(L&&L.length)?L.pop():null; if(T.on.land) run(T,u,'land',{u,src:u,tgt:t,skill}); }
   /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
      target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
   function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
+  /* ---- HER DODGES AND HER LINE (Calypsa). evade: the engine's evade window (evadecounter: Fighting Current) was spent on an enemy's hit (s); 'evade' rows
+     (ctx src = tgt = unit = the enemy she evaded). The counter and the Prismatic Scales blade that follow are landPre / land pairs ('counter', 'blade').
+     line: a line skill (piercethrow with deliver 'line': Tidal Ribbon) is about to send its sabers. Its enemies are measured exactly as the skill measures them
+     (projection from her on the line from -12 to its end, at most W off the line), in the order the sabers reach them. T.s.ln = {L: those enemies, P: how far
+     along the line each one is (px), raw: the skill's damage to each before the target's armor, spd: the sabers' speed, ux, uy, W, end}; 'line' rows
+     (ctx.amt = where the line ends in the engine's length unit, ctx.list = the enemies on it) may lengthen it (addM) or act; the enemies are then measured
+     again at the final end and 'lined' rows run (ctx.list). Returns the end the skill uses. ---- */
+  function evade(t,s){ const T=t._tal; if(T.on.evade) run(T,t,'evade',{u:t,src:s,tgt:s,unit:s}); }
+  function line(u,skill,o,foes,ux,uy,len,W,raw,spd){ const T=u._tal;
+    const on=end=>{ const L=[]; for(let i=0;i<foes.length;i++){ const e=foes[i]; if(!e||!e.alive) continue; const rx=e.x-u.x, ry=e.y-u.y, p=rx*ux+ry*uy; if(p<-12||p>end||Math.abs(rx*uy-ry*ux)>W) continue; L.push([e,p]); }
+      L.sort((a,b)=>a[1]-b[1]); return L; };
+    let L=on(len+24); const ln=T.s.ln={L:L.map(x=>x[0]),P:L.map(x=>x[1]),raw,spd,ux,uy,W,len,x:u.x,y:u.y,end:len+24,skill,o,n:0,i:-1};
+    const ctx={u,src:u,tgt:ln.L[ln.L.length-1]||null,skill,o,amt:len+24,raw,list:ln.L.slice()}; if(T.on.line.length) run(T,u,'line',ctx);
+    const end=Math.max(len+24,ctx.amt); if(end!==ln.end){ L=on(end); ln.L=L.map(x=>x[0]); ln.P=L.map(x=>x[1]); ln.end=end; }
+    if(T.on.lined) run(T,u,'lined',{u,src:u,tgt:ln.L[ln.L.length-1]||null,skill,o,raw,list:ln.L.slice()}); return end; }
   /* ---- HIS POISON (Bloatus). The page's plagueDot does not push a poison at once: it queues it (_pendingDots) and it lands 0.5 s later.
      poisQ: one of his poisons has just been queued (p = the queued entry). Where it comes from is kept on it (p._talC): 'spread' while his
      Contagion is spreading (spreadR .. spread below), else the skill of his being cast ('toxbreath', 'plaguesov'), else 'other'. 'poisQ' rows
@@ -780,6 +797,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),evade:guard(evade),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
