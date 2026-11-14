@@ -85,6 +85,10 @@ const HERO_BASE={
 /* v1311: heroes whose purple passive is FURY (client KITS[key].purple.pass==='fury') -> the attack-speed fraction per skillMul.
    The server has no kit table, so this mirrors it; tests/test_power_terms_1311.js checks it against the client KITS. */
 const PURPLE_FURY={quorrel:0.25, carn:0.25};
+/* v1391 (Phil 14 Nov: "buff vulmars passive, give it 5% increase ability power + .05 per skill level"): heroes whose purple passive also raises
+   Ability Power (client KITS[key].purple.apPct / apPerLv) -> atkM x (1 + pct + perLv x passive level 1..100); tests/test_vulmar_passive_1391.js checks it against the client KITS. */
+const PURPLE_AP={vulmar:{pct:0.05, perLv:0.0005}};
+function purpleApMul(key,lv){ const a=PURPLE_AP[key]; return a ? 1+a.pct+a.perLv*Math.max(1,Math.min(100,(lv|0)||1)) : 1; }
 const HERO61=require('../hero61.js');
 HERO_BASE.hero61=Object.assign({},HERO61.BASE);
 const HERO_PROFILES=require('../hero-profiles.js');
@@ -207,6 +211,7 @@ function heroCombatStats(key, opts){
      glyph ascension index); callers that pass no rank (NPC ladder, Vault specs) are unchanged. */
   const rank=opts.rank|0;
   if(rank>=3 && PURPLE_FURY[key]) u.speed*=1+PURPLE_FURY[key]*CORE.skillMul(u.skillLv[3]);
+  if(rank>=3 && PURPLE_AP[key]) u.atkM*=purpleApMul(key,u.skillLv[3]);   /* v1391: Vulmar's Unstepped Ability Power (= client makeUnit passApMul), same quality gate */
   // legacy aliases: scores (vaultTeamScore), plausibility gates, and views read these
   u.atk=Math.max(u.atkP,u.atkM);
   u.dr=(CORE.defToDR(u.armor,level)+CORE.defToDR(u.mr,level))/2;
@@ -252,7 +257,7 @@ function resolveTwoWaveBattle(teamSnaps, enemyWaveSnaps, seed){
   return { result:{won:true}, waveResults };
 }
 
-module.exports={ HERO_BASE, HERO_PROFILES, PURPLE_FURY, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE,
+module.exports={ HERO_BASE, HERO_PROFILES, PURPLE_FURY, PURPLE_AP, purpleApMul, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE,
   STAR_FLAT, STAR_FLAT_KEYS, REFINE_TIERS, REFINE_START, REFINE_MAX, REFINE_TRACK_V, refineClamp, refineTierIndex, refineTierAt, starFlatFrom, refineFromOld,
   /* v1372 AFFINITIES: elements + the six class edges, ON in every fight this file decides (Arena, Skyfall lines, war marches, the Vault /
      elite / trial estimates) - they live in the shared core's applyDamage / applyHeal / resolveBattle (server/combat-core.js, the mirror of the

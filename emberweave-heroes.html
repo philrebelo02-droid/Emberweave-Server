@@ -7091,7 +7091,7 @@ const KITS={
   konwu:{green:{deliver:'form',name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:5*METER,angle:45,cd:6,gfx:'konwu_green',gfxAt:'front',gdur:5.88},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10,knock:8*METER,stun:2,chase:1.5,kick:0.667,gfx:'konwu_blue',gfxR:3*METER,gdur:4.08},purple:{name:'Adamant Discipline',pass:'warden'}},
   // v1111 (Phil 10 Oct 2026: "grosk punch ability changing to 3 punches at 60% of attack damage"): Hammer Fists was 4 x 26%.
   grosk:{green:{deliver:'form',name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green',ownFx:'gpull',gdur:4.38},blue:{name:'Hammer Fists',type:'punchflurry',hits:3,armorMul:0.20,armorPerLv:0.10/99,desc:"Grosk throws three heavy punches at his target, each dealing 20% of his Armor as damage; every punch forces it to attack him and silences it.",hitTimes:[1.083,2.0,2.833],tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',ownFx:'gfist',gfxR:3*METER,gdur:3.92},purple:{name:'The Mirewall',pass:'mirewall'}},
-  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER,gdur:3.75,desc:"Vulmar seizes the nearest enemy with gravity and hurls it into the next one, damaging and stunning both."},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER,gdur:1.21,desc:"Gravity tendrils seize the farthest enemy on the field, silence it, and drag it to Vulmar's side."},purple:{name:'Unstepped',pass:'unstepped'}},
+  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER,gdur:3.75,desc:"Vulmar seizes the nearest enemy with gravity and hurls it into the next one, damaging and stunning both."},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER,gdur:1.21,desc:"Gravity tendrils seize the farthest enemy on the field, silence it, and drag it to Vulmar's side."},purple:{name:'Unstepped',pass:'unstepped',apPct:0.05,apPerLv:0.0005}},   /* v1391 (Phil 14 Nov: "buff vulmars passive, give it 5% increase ability power + .05 per skill level" / "along side the no control effects"): +5% + 0.05% x passive level Ability Power (passApMul); Vulmar's own fields, so Orryx's boss 'unstepped' is unchanged */
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,perLv:0.002,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,range:28*METER,width:34*UNIT_SIZE,cd:8,gfx:'sylthaine_green',noArt:true,pfx:'sylthaine_green',pscale:2.6,pdur:0.9,gdur:3.92},blue:{deliver:'form',name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{deliver:'form',name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',light:0.12,perLv:0.0006,cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
@@ -7268,6 +7268,12 @@ function lvAdd(base,per,lv){ return base+(per||0)*lvStep(lv); }
 function lvPct(x){ return (Math.round(x*1000+1e-6)/10)+'%'; }   // one decimal, halves round up (0.3985 -> 39.9%)
 function lvSec(x){ return (+(+x).toFixed(2))+'s'; }
 function passLv(u){ return ((u&&u.skillLv&&u.skillLv[3])|0)||1; }
+/* v1391 (Phil 14 Nov: "buff vulmars passive, give it 5% increase ability power + .05 per skill level"): a purple passive that carries apPct / apPerLv
+   (only KITS.vulmar.purple) multiplies the hero's finished Ability Power by 1 + apPct + apPerLv x passive level (1..100): 5.05% at level 1, 10% at 100.
+   makeUnit, heroPower (apPassPowerMul) and the server (server/sim.js PURPLE_AP, heroCombatStats) read the same numbers. */
+function passApPct(ab,lv){ return (ab&&ab.apPct!=null) ? ab.apPct+(ab.apPerLv||0)*Math.max(1,Math.min(100,(lv|0)||1)) : 0; }
+function passApMul(ab,lv){ return 1+passApPct(ab,lv); }
+function passApTxt(x){ return (Math.round(x*10000)/100)+'%'; }   /* two decimals: 5.05%, 7.5%, 10% */
 /* v1310 (Phil 8 Nov 2026: "reduce thick chittin to 3% per 3 seconds, maxing at 15% at level 1 and 25% at 100"): a warden passive whose kit
    carries its own wardenStep (Rhukk's Thick Chitin) stacks that flat step to its own cap; Adamant Discipline / Fired Clay / Tempered Steel /
    Unmovable Mass keep the shared 4% x skill / SKLV.wardenCap rule. */
@@ -7498,6 +7504,7 @@ const PASS_DESC_LV={
   instinct: lv=>'every fourth attack, melee or ranged, also deals '+lvPct(instinctPct(lv))+' of its damage as true damage that ignores Defense',
   killerinstinct: lv=>'every auto-attack opens a mortal wound - the target receives half healing for '+lvSec(3*skillMul(lv))+', and each new attack refreshes it',
   fury: lv=>'+'+lvPct(0.25*skillMul(lv))+' attack speed',
+  unstepped: (lv,ab)=>(ab&&ab.apPct!=null) ? (PASS_DESC.unstepped+', and his Ability Power is '+passApTxt(passApPct(ab,lv))+' higher (5% +'+passApTxt(ab.apPerLv||0)+' per passive level'+(((lv|0)||1)<100?'; next level '+passApTxt(passApPct(ab,((lv|0)||1)+1)):'')+')') : PASS_DESC.unstepped,   /* v1391: Vulmar's own apPct; any other 'unstepped' keeps the plain line */
   juggernaut: lv=>'heals '+lvPct(0.04*skillMul(lv))+' of max HP every second',
   unbroken: lv=>'once per battle, at 30% health, a shield worth '+lvPct(0.30*skillMul(lv))+' of max HP and heavy control resistance',
   sacredbells: lv=>'every 4s the bells ring: nearby allies take '+lvPct(0.10*skillMul(lv))+' less damage for the next few seconds',
@@ -7649,7 +7656,7 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     unwind:'{i:s:heal} every '+lvSec(SKLV.unwind(lv))+' one ally is cleansed', wrath:'{i:s:attack} +12% every 5s, compounding',
     coldsnap:'{i:s:slow} Chill adds +'+lvPct(SKLV.coldsnap(lv))+' frost ability damage taken per stack (max +'+lvPct(5*SKLV.coldsnap(lv))+'); expires after 10s', deepfreeze:'{i:s:slow} every 5s one enemy is frozen',
     stormdodge:lvPct(SKLV.stormdodge(lv))+' dodge while casting', selfregen:'{i:s:heal} steady regeneration in combat',
-    unstepped:'{i:s:shield} cannot be pulled, knocked or displaced', unstoppable:'{i:s:shield} cannot be slowed, stunned or displaced',
+    unstepped:'{i:s:shield} cannot be pulled, knocked or displaced'+((ab&&ab.apPct!=null)?' · {i:t:apow} +'+passApTxt(passApPct(ab,lv))+' ability power':''), unstoppable:'{i:s:shield} cannot be slowed, stunned or displaced',
     immolate:'{i:s:burn} burning aura: '+lvPct(SKLV.immolate(lv))+' of attack a second', debtaura:'{i:s:poison} nearby DoTs last '+lvPct(SKLV.debtaura(lv))+' longer',
     twinfonts:'{i:s:attack}/{i:s:heal} Dark drains '+Math.round((apw*0.4+2)*SKLV.twinfonts(lv))+'/s, Light regenerates '+lvPct(0.012*SKLV.twinfonts(lv))+' HP/s', deeproots:'{i:s:root} an ally below 30% is rooted and healed '+lvPct(0.25*sm)+' over 4 s', contagion:'{i:s:poison} his poison spreads on death ('+lvSec(SKLV.contagionDur(lv))+')',
     perfectpitch:'{i:s:shield} her heals also shield for '+lvPct(SKLV.pitch(lv))+' of the heal', stardust:'{i:s:burn} every attack leaves a '+lvPct(SKLV.stardust(lv))+' attack burn', bloodrage:'{i:s:attack} +1% dmg per 4% health lost, up to +'+lvPct(SKLV.bloodrageCap(lv)),
@@ -8034,6 +8041,7 @@ function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skil
    only when its source is there, so a hero with none of them prices to the bit as before. */
 const REF_ENEMY_CRIT=0.15, REF_CRIT_BONUS=0.6, HEAL_POWER_W_HEALER=1.0, HEAL_POWER_W_OTHER=0.25;
 function furyPowerMul(key){ const k=KITS[key]; return (k&&k.purple&&k.purple.pass==='fury'&&heroQuality(key)>=3) ? (1+0.25*skillMul(skillLevel(key,3))) : 1; }
+function apPassPowerMul(key){ const k=KITS[key]; return (k&&k.purple&&k.purple.apPct!=null&&heroQuality(key)>=3) ? passApMul(k.purple,skillLevel(key,3)) : 1; }   /* v1391: Vulmar's Unstepped Ability Power, priced as makeUnit applies it (= server.js unitCardPower via PURPLE_AP) */
 const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) lifted every class's EHP; K retuned so an Orange board reads ~25k power across classes
 let _powerBoon=null;   /* Starless Well (Phil 12 Nov: "The power in starless cards follows the boon buffs also"): {hp,atk,def} the run's boons add, exactly as server applyRun */
 const WELL_CLASS_OF={Tank:'Tank',Bruiser:'Bruiser',Brute:'Bruiser',Warrior:'Bruiser',Assassin:'Assassin',Marksman:'Marksman',Mage:'Mage',Support:'Support'};
@@ -8051,7 +8059,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
   const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;   const _bo=_powerBoon||{hp:0,atk:0,def:0};
   const atkP = (Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat)*(1+_bo.atk);
-  const atkM = (1+_bo.atk)*((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0);   /* v1099: Academy AP is a flat */
+  const atkM = (1+_bo.atk)*((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0)*apPassPowerMul(key);   /* v1099: Academy AP is a flat; v1391: x Vulmar's Unstepped Ability Power */
   const _sf=starFlat(key);   // v1369: star Armor / MR are flat rating points (x1), = the server core's armorRating / mrRating
   const armor= (1+_bo.def)*(heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat);
   const mr   = (1+_bo.def)*(heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat);
@@ -12206,7 +12214,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   if(key==='hollow'){ u._dropT=5.5; u._dropHidden=true; u._backHunter=true; u._dropHome={x:u.x,y:u.y};
     u.x=-9999; u.y=-9999; u._ax=u.x; u._ay=u.y; }
   if(rank>=3 && kit.purple){ const p=kit.purple.pass, pm=skillMul(u.skillLv[3]||1); u.passMul=pm;
-    if(p==='power') u.dmg*=1+0.15*pm; else if(p==='fury') u.atkInterval/=(1+0.25*pm); else { u.pass={[p]:true}; if(p==='unstepped') u.immovable=true; } }
+    if(p==='power') u.dmg*=1+0.15*pm; else if(p==='fury') u.atkInterval/=(1+0.25*pm); else { u.pass={[p]:true}; if(p==='unstepped') u.immovable=true; }
+    if(kit.purple.apPct!=null) u.apow*=passApMul(kit.purple,u.skillLv[3]); }   /* v1391: Vulmar's Unstepped also raises his finished Ability Power (= server/sim.js PURPLE_AP) */
   if(t.monster && MONSTER_KITS[key]){ const mk=MONSTER_KITS[key];   // batch-wired monsters auto-cast their 2 abilities (no rank gate)
     u.greenAb=mk.green||null; u.blueAb=mk.blue||null;
     u.greenCd=mk.green?mk.green.cd*0.5:0; u.blueCd=mk.blue?mk.blue.cd*0.75:0;
