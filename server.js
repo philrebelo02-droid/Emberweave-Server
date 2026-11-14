@@ -5963,7 +5963,14 @@ function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.are
    into a fight it is that hero"). One switch per mode, all off by default: off, the mode runs exactly as before.
    Plan and status: TALENT TREES 13NOV2026/WIRING/09 - EVERY MODE ON THE REAL ENGINE (plan and status).md */
 const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true', skyfall:process.env.REAL_ENGINE_SKYFALL==='true',
-  npcCastle:process.env.REAL_ENGINE_NPC_CASTLE==='true' });
+  npcCastle:process.env.REAL_ENGINE_NPC_CASTLE==='true', hitTiming:process.env.REAL_ENGINE_HIT_TIMING==='true' });
+/* 14 Nov 2026 D1 - REAL_ENGINE_HIT_TIMING. The single-wave world fights the server decides (city PvP against a player castle, the world-map
+   bot, the mines, the siege check) ran host.auto: a headless fight with no clip timing, every blow landing at the swing. The war mail /
+   report replay the player watches runs the same snaps and seed in the browser, where each blow lands on its clip's contact cell - so the
+   fight watched was a different fight from the one paid (finding F1, doc 09). With the switch on these fights are host.autoWatched, the
+   Arena's fight: the server lands each blow where the watched fight does, and the two are the same fight tick for tick. Off: host.auto,
+   exactly as before. */
+function worldAutoFight(host,a,b,seed){ return REAL_ENGINE.hitTiming?host.autoWatched(a,b,seed):host.auto(a,b,seed); }
 /* 14 Nov 2026 D2 - BOTS AND NPCS AS STRONG AS TODAY. A ladder bot / NPC castle has no saved hero: its record is {key, level, rank}. The line
    model read `rank` as star pips on the hero's base stars (snapshotNpcHero); on the real engine `rank` is the quality tier (green / blue /
    passive skills), and a bare unit has no star stats at all - so the same record is a different strength on the two engines. The owner's
@@ -8372,7 +8379,7 @@ async function api(req,res,url){
       const garrison=host.mineGarrison(march.node);
       if(garrison.length!==5) return {ok:false,error:'Mine garrison is incomplete.'};
       const seed=srvSeed('world-mine',me.id,march.id);
-      const battle=host.auto(march.snaps,garrison,seed);
+      const battle=worldAutoFight(host,march.snaps,garrison,seed);   // REAL_ENGINE_HIT_TIMING: the watched clip timing
       let digest;
       try{ digest=JSON.parse(battle.digest); }catch(e){ return {ok:false,error:'Mine battle result was incomplete.'}; }
       if(!digest||!Array.isArray(digest.u)||digest.won!==battle.won)
@@ -10136,7 +10143,7 @@ async function api(req,res,url){
           if(!march.snaps?.some(s=>s.hp>0))
             return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
           const seed=srvSeed('worldbot',me.id,march.id);
-          const fight=host.auto(march.snaps,march.botTeam,seed);
+          const fight=worldAutoFight(host,march.snaps,march.botTeam,seed);   // REAL_ENGINE_HIT_TIMING
           let digest;
           try{digest=JSON.parse(fight.digest);}catch(e){return {ok:false,error:'The battle result was incomplete.'};}
           if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
@@ -10247,7 +10254,7 @@ async function api(req,res,url){
           });
           bSnaps=cap(bSnaps.slice(0,defOwned.length),defWitch).concat(bSnaps.slice(defOwned.length).map((s,i)=>cap([s],garrison[i].w)[0]));   /* v1097: an ally's hero enters at its owner's HP */
           if(!aSnaps.some(s=>s.hp>0)) return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
-          const fight=host.auto(aSnaps,bSnaps,seed);
+          const fight=worldAutoFight(host,aSnaps,bSnaps,seed);   // REAL_ENGINE_HIT_TIMING
           let digest;
           try{ digest=JSON.parse(fight.digest); }catch(e){ return {ok:false,error:'City battle result was incomplete.'}; }
           if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
@@ -10625,7 +10632,7 @@ async function api(req,res,url){
       const won=b.won;
       // the replay is a check, never a verdict
       const host=simHost(); let rep=null, why=null;
-      if(!host) why='replay-unavailable'; else try{ rep=host.auto(march.snaps,march.foe,march.seed>>>0); }catch(e){ if(typeof SIM_NEEDED!=='undefined'&&e===SIM_NEEDED) throw e; why='replay-error'; }
+      if(!host) why='replay-unavailable'; else try{ rep=worldAutoFight(host,march.snaps,march.foe,march.seed>>>0); }   /* REAL_ENGINE_HIT_TIMING */catch(e){ if(typeof SIM_NEEDED!=='undefined'&&e===SIM_NEEDED) throw e; why='replay-error'; }
       const serverEnd=rep?String(rep.digest||''):'', match=!!serverEnd&&sha256hex(serverEnd)===sha256hex(clientEnd);
       if(!match){ why=why||'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{t:now,stage:'siege-'+site.id,mode:'siege',why,source:'auto',playerTruth:true,
