@@ -153,7 +153,9 @@ function loanSpec(ctx, key) {   // "tent heroes are loaned maxed for your level"
   const lvl = ctx.playerLevel(); let best = null;
   for (const k of Object.keys(ctx.led.unlocked || {})) { const s = ctx.campaignHeroSpec(ctx.me, k); if (s && (!best || (s.tt.hp + s.tt.atk * 6) > (best.tt.hp + best.tt.atk * 6))) best = s; }
   const base = ctx.SIM.HERO_BASE[key]; if (!base || !best) return null;
-  return Object.assign({}, best, { key, level: lvl, stars: 5, pips: 0, skillLv: [lvl, lvl, lvl, lvl], gearSkill: null }); }
+  const loan = Object.assign({}, best, { key, level: lvl, stars: 5, pips: 0, skillLv: [lvl, lvl, lvl, lvl], gearSkill: null });
+  delete loan.talents;   /* 14 Nov 2026 talents: `best` is ANOTHER hero's spec - its learned talents are that hero's ids and are not lent (tests/talents-line.test.js) */
+  return loan; }
 function applyRun(ctx, R, snaps) {
   for (const s of snaps) { const cls = CLASS_OF[(ctx.SIM.HERO_BASE[s.key] || {}).role] || 'Bruiser';
     let hp = 0, atk = 0, def = 0;
@@ -325,4 +327,4 @@ async function handle(p, method, ctx) {
   });
 }
 
-module.exports = { handle, genMap, poolFor, sweepPrize, fightWaves, foesFor, rng, BUFFS, cycleOf, OPEN, PCT, RES_COST };
+module.exports = { handle, genMap, poolFor, sweepPrize, fightWaves, foesFor, rng, BUFFS, cycleOf, OPEN, PCT, RES_COST, loanSpec };
