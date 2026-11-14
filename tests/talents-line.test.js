@@ -113,6 +113,7 @@ test('(a) switch off, or on with nothing learned: every line unit and every card
       assert.deepEqual(strip(sUnit(S,key,st,b)),want,m+' (fight unit)'); assert.deepEqual(strip(sUnit(S,key,st,b,CARD)),wantCard,m+' (card unit)');
       assert.equal(sPow(S,key,st,b),wantPow,m+' (power)'); n++; }
     assert.equal(cPow(key,st,null),wantPow,key+' L'+st.level+': the page prices the pre-talent number too');
+    if(st.level>=10&&st.level<100) assert.equal(cPow(key,st,build(key,[[0,61],[1,30]],100)),wantPow,key+' L'+st.level+': the page, like the server, gives a build the rules refuse no talents at all');
   }
   assert.ok(n>=ROSTER.length*3*5);
 });
