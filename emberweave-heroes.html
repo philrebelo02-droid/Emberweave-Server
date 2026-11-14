@@ -14497,14 +14497,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     // ---- Carn: an all-in swing that opens him up too. ----
     case 'reckless':{ if(!tgt)break; dealDamage(u,tgt,dB*(o.mul||2.4)*rm,'#b03a3a');
-      const cost=u.maxHp*(o.selfPct||0.06); if(DD.on) ddSelf(u,Math.max(0,Math.min(cost,u.hp-1))); u.hp=Math.max(1,u.hp-cost);
+      const cost=(u._tal&&u._tal.on.num)?TalentFx.num(u,'reckCost',u.maxHp*(o.selfPct||0.06)):u.maxHp*(o.selfPct||0.06);   /* TALENT HOOK num: Reckless Blow's cost (Carn's talents change it and write it down as Paid Out) */ if(DD.on) ddSelf(u,Math.max(0,Math.min(cost,u.hp-1))); u.hp=Math.max(1,u.hp-cost);
       floatTexts.push({x:u.x,y:u.y-10,txt:'-'+Math.round(cost),t:.9,color:'#b03a3a',vy:1.2,sz:12});
       burstAt(tgt.x,tgt.y,0xb03a3a,16); break; }
 
     // ---- Carn: the wound speaks. Damage scales with the health he has ALREADY LOST. ----
-    case 'bloodnova':{ const R=o.radius||2.8*METER, missing=1-(u.hp/u.maxHp);
+    case 'bloodnova':{ const R=o.radius||2.8*METER, missing=1-(u.hp/u.maxHp); const _vbB=!!(u._tal&&u._tal.on.num)&&TalentFx.num(u,'veinBody',0)>0;   /* TALENT HOOK num: with a Vein Burst talent of Carn's the circle reaches to the enemy's body edge (as Crimson Reap's) */
       const mul=(o.mul||0.7)*(1+(o.missingBonus||2.2)*missing);
-      enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)<=R){ dealDamage(u,e,dB*mul*rm,'#c0392b'); pushDot(e,_sD*0.15*sm,3,1,'#c0392b',u); } });
+      enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)-(_vbB?bodyR(e):0)<=R){ dealDamage(u,e,dB*mul*rm,'#c0392b'); pushDot(e,_sD*0.15*sm,3,1,'#c0392b',u); } });
       ringBurst(u.x,u.y,0xc0392b,20); burstAt(u.x,u.y,0x8a1f1f,16);
       floatTexts.push({x:u.x,y:u.y-12,txt:missing>0.5?'VEINS BURST':'Vein Burst',t:1.0,color:'#c0392b',vy:1,sz:13}); break; }
 
