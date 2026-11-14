@@ -1,0 +1,188 @@
+{
+ "what": "REAL_ENGINE_TRIAL strength check, 14 Nov 2026 (doc 09 section 11). Reference squad vael, sylthaine, vireo, vex, gruel; line = /api/trial/resolve with the switch off (8 tries a probe); real = host.campaign(frozen snaps, Vault floor waves x0.9 x k, seed, AUTO, vault). Frontiers by halving over floors 1-100; per-squad k by halving in log k over [0.15,1] at the line frontier (6 seeds a step); check at the geometric mean K with 8 seeds.",
+ "frontiers": [
+  {
+   "ref": {
+    "level": 20,
+    "stars": 2,
+    "skill": [
+     7,
+     7,
+     7,
+     7
+    ],
+    "asc": 2
+   },
+   "lineFrontier": 16,
+   "realFrontier": 6,
+   "realPassAtLineFrontier": 0,
+   "realPassAtLineFrontierPlus1": 0
+  },
+  {
+   "ref": {
+    "level": 40,
+    "stars": 3,
+    "skill": [
+     13,
+     13,
+     13,
+     13
+    ],
+    "asc": 4,
+    "gear": 1
+   },
+   "lineFrontier": 25,
+   "realFrontier": 19,
+   "realPassAtLineFrontier": 0.375,
+   "realPassAtLineFrontierPlus1": 0
+  },
+  {
+   "ref": {
+    "level": 60,
+    "stars": 4,
+    "skill": [
+     20,
+     20,
+     20,
+     20
+    ],
+    "asc": 6,
+    "gear": 1
+   },
+   "lineFrontier": 32,
+   "realFrontier": 21,
+   "realPassAtLineFrontier": 0.375,
+   "realPassAtLineFrontierPlus1": 0.25
+  }
+ ],
+ "frontierFights": {
+  "real": 162,
+  "line": 152
+ },
+ "calibration": {
+  "K": 0.805,
+  "perTeam": [
+   {
+    "ref": {
+     "level": 20,
+     "stars": 2,
+     "skill": [
+      7,
+      7,
+      7,
+      7
+     ],
+     "asc": 2
+    },
+    "lf": 16,
+    "k": 0.587
+   },
+   {
+    "ref": {
+     "level": 40,
+     "stars": 3,
+     "skill": [
+      13,
+      13,
+      13,
+      13
+     ],
+     "asc": 4,
+     "gear": 1
+    },
+    "lf": 25,
+    "k": 0.942
+   },
+   {
+    "ref": {
+     "level": 60,
+     "stars": 4,
+     "skill": [
+      20,
+      20,
+      20,
+      20
+     ],
+     "asc": 6,
+     "gear": 1
+    },
+    "lf": 32,
+    "k": 0.942
+   }
+  ],
+  "check": [
+   {
+    "lf": 16,
+    "kTeam": 0.587,
+    "atK": 0,
+    "atKplus1": 0,
+    "lineAt": {
+     "ref": {
+      "level": 20,
+      "stars": 2,
+      "skill": [
+       7,
+       7,
+       7,
+       7
+      ],
+      "asc": 2
+     },
+     "lineFrontier": 16,
+     "realFrontier": 6,
+     "realPassAtLineFrontier": 0,
+     "realPassAtLineFrontierPlus1": 0
+    }
+   },
+   {
+    "lf": 25,
+    "kTeam": 0.942,
+    "atK": 1,
+    "atKplus1": 0,
+    "lineAt": {
+     "ref": {
+      "level": 40,
+      "stars": 3,
+      "skill": [
+       13,
+       13,
+       13,
+       13
+      ],
+      "asc": 4,
+      "gear": 1
+     },
+     "lineFrontier": 25,
+     "realFrontier": 19,
+     "realPassAtLineFrontier": 0.375,
+     "realPassAtLineFrontierPlus1": 0
+    }
+   },
+   {
+    "lf": 32,
+    "kTeam": 0.942,
+    "atK": 1,
+    "atKplus1": 0.625,
+    "lineAt": {
+     "ref": {
+      "level": 60,
+      "stars": 4,
+      "skill": [
+       20,
+       20,
+       20,
+       20
+      ],
+      "asc": 6,
+      "gear": 1
+     },
+     "lineFrontier": 32,
+     "realFrontier": 21,
+     "realPassAtLineFrontier": 0.375,
+     "realPassAtLineFrontierPlus1": 0.25
+    }
+   }
+  ],
+  "fights": 156
+ }
+}
