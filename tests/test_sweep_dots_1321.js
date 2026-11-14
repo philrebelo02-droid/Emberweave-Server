@@ -31,7 +31,7 @@ E('G.heroXP.vael=0'); const lv1 = E('heroSkillsCanUp("vael")');
 ck('a level-1 hero (skills already at its level) shows no skills dot even with gold', lv1 === false);
 ck('Equipment: the dot follows the slot + that is green (gearCanCraft / owned fresh / gearPlan ok)', /if\(gearCanCraft\(st,d\)\|\|gearOwnedFresh\(st,d\.id\)\|\|gearPlan\(st,d,role\)\.ok\) return true;/.test(html));
 ck('Glyphs: all six slotted (Ascend) or the server\'s build-tree canBuild / canBuildAll for the next slot, asked once per glyph revision, two at a time', /if\(sl<0\) return true;/.test(html) && /HUP_GLY\[k\]=!!\(r\.canBuild\|\|r\.canBuildAll\)/.test(html) && /while\(_hupBusy<2&&_hupQ\.length\)/.test(html));
-ck('the hero card gets the dot bottom left; each tab with an upgrade gets one in its corner', /heroUpDotSet\(card,u\.skills\|\|u\.glyphs\|\|u\.equip\)/.test(html) && /\$\{_hup\[id\]\?'<span class="hupDot"><\/span>':''\}/.test(html) && /\.hupDot\{position:absolute;left:3px;bottom:3px/.test(html));
+ck('the hero card gets the dot bottom left; each tab with an upgrade gets one in its corner', /heroUpDotSet\(card,u\.skills\|\|u\.glyphs\|\|u\.equip(\|\|u\.talents)?\)/.test(html)   /* 14 Nov 2026: + talents (unspent talent points) */ && /\$\{_hup\[id\]\?'<span class="hupDot"><\/span>':''\}/.test(html) && /\.hupDot\{position:absolute;left:3px;bottom:3px/.test(html));
 ck('CONTROL: v1320 had no upgrade dots', !/hupDot/.test(old));
 
 // campaign top bar (Phil 9 Nov, arrows drawn: "Fix this" / "Center then better" / "Not touching the base/glossary buttons" / "Raise them slightly" / "Make it more pleasing to the eyes, these buttons and ui are all messed up")
