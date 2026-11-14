@@ -29658,7 +29658,7 @@ async function startMarch(ctype,c,heroes){
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg(statusIcon('shield')+' '+ewT('march.shield_broke')); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, real:!!c.real, fx:c.x, fy:c.y,
     serverCityId:serverMarch&&serverMarch.marchId,
-    siteId:(ctype==='siege'||ctype==='garrison')?c.siteId:undefined, siege:ctype==='siege'?{seed:serverMarch.seed,snaps:serverMarch.snaps,foe:serverMarch.foe}:undefined,
+    siteId:(ctype==='siege'||ctype==='garrison')?c.siteId:undefined, siege:ctype==='siege'?Object.assign({seed:serverMarch.seed,snaps:serverMarch.snaps,foe:serverMarch.foe},serverMarch.real?{real:1}:{}):undefined,
     tRank:c.rank, tPower:c.power||1, ally:!!c.ally,
     heroes:serverMarch?serverMarch.heroIds.slice():(heroes||[]).slice(),
     dTeam:(c.team||[]).slice(), depart:t,
@@ -29826,6 +29826,7 @@ function resolveMarch(m){
     if(!ACC.token||!m.serverCityId||!m.siege){ m.resolved=true; marchReport(statusIcon('attack')+' '+ewT('siege.not_resolved'),ewT('siege.not_registered')); saveG(); return false; }
     if(m.resolving && (m.resolvingAt||0)>=MARCH_PAGE_T0 && Date.now()-(m.resolvingAt||0)<30000) return false;
     m.resolving=true; m.resolvingAt=Date.now();
+    if(!m.siegeFight&&m.siege.real) m.siegeFight={won:false,digest:''};   /* REAL_ENGINE_SIEGE: the server fights this siege on arrival (its defenders read then); the war mail plays that fight back */
     if(!m.siegeFight){ let won=false, digest=''; try{ won=!!simFightResult(JSON.parse(JSON.stringify(m.siege.snaps)),JSON.parse(JSON.stringify(m.siege.foe)),m.siege.seed>>>0); digest=window._p2digest||''; }catch(e){ digest=''; }
       m.siegeFight={won,digest}; }
     m.siegeRid=m.siegeRid||uid8();

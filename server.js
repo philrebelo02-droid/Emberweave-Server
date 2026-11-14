@@ -4962,6 +4962,28 @@ function siegeDefenders(h,now){ const out=[], seen=new Set();
     for(const s of l.snaps){ if(out.length>=5) break; if(!s||!s.key||seen.has(s.key)||!(+s.hp>0)) continue; seen.add(s.key); out.push(JSON.parse(JSON.stringify(s))); }
     if(out.length>=5) break; }
   return out; }
+/* 14 Nov 2026 REAL_ENGINE_SIEGE (D3 + D4, doc 09 section 10). The defenders of a siege fought on the real engine, read when the fight
+   happens. A held site's garrison: the same lines and the same pick as siegeDefenders (arrived lines in order, each hero once, at most
+   five, a fallen hero stays out), but each hero is its owner's hero NOW (campaignHeroSpec resolved by the page: a gear, glyph, talent or
+   skill change made after the line garrisoned counts), at the HP the line carries (the same fraction of its health as the frozen snap;
+   the frozen HP itself when the health is unchanged) as its world-entry HP. A hero whose owner is gone, or no longer owns it, fights as
+   its frozen snap. No arrived line: the NPC guards (the site's guard lineup, as at the start). A site that is the attacker's own (its
+   guild took it while the army marched) is not fought live: the army fights the lineup frozen at the start, the rule before this switch.
+   Returns {foe, kind:'garrison'|'guards'} or null. */
+function siegeRealFoe(host,held,site,me,march,now){
+  if(held&&WORLD_SIEGE.ownedBy(held,me)) return {foe:JSON.parse(JSON.stringify(march.foe)),kind:march.defenders||'guards'};
+  const pick=[], seen=new Set();
+  for(const l of (held&&Array.isArray(held.garrison)?held.garrison:[])){ if(!(+l.arriveAt<=now)||!Array.isArray(l.snaps)) continue;
+    for(const s of l.snaps){ if(pick.length>=5) break; if(!s||!s.key||seen.has(s.key)||!(+s.hp>0)) continue; seen.add(s.key); pick.push({s,uid:l.uid}); }
+    if(pick.length>=5) break; }
+  if(!pick.length){ const g=host.mineGarrison(WORLD_SIEGE.guardNode(site)); return (Array.isArray(g)&&g.length===5)?{foe:g,kind:'guards'}:null; }
+  const specs=pick.map(p=>{ const owner=p.uid===me.id?me:DB.users[p.uid]; try{ return (owner&&owner.led&&ownsHeroK(owner.led,p.s.key))?campaignHeroSpec(owner,p.s.key):null; }catch(e){ return null; } });
+  const want=specs.filter(Boolean); let live=[]; try{ live=want.length?host.snapFromSpecs(JSON.parse(JSON.stringify(want))):[]; }catch(e){ live=[]; }
+  if(live.length!==want.length) live=want.map(()=>null);
+  let j=0; const foe=pick.map((p,i)=>{ const s=p.s, n=specs[i]?live[j++]:null; if(!n) return JSON.parse(JSON.stringify(s));
+    const hp=(n.maxHp===s.maxHp)?+s.hp:Math.max(1,Math.round(n.maxHp*Math.min(1,(+s.hp)/Math.max(1,+s.maxHp||1))));
+    return Object.assign({},n,{hp,worldEntryHpCap:hp}); });
+  return {foe,kind:'garrison'}; }
 /* v1240 (Phil 31 Oct: "im not in a guild anymore, i should instantly not own this"): only a guild holds a site. After any guild change
    (leave, kick, disband) - and once a minute on the World Map read, which also settles holders left over from before this rule - a
    holder that is no longer valid lets the site go (a guild that no longer exists; a v1235 player holder who is in no guild), and every
@@ -5963,7 +5985,8 @@ function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.are
    into a fight it is that hero"). One switch per mode, all off by default: off, the mode runs exactly as before.
    Plan and status: TALENT TREES 13NOV2026/WIRING/09 - EVERY MODE ON THE REAL ENGINE (plan and status).md */
 const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true', skyfall:process.env.REAL_ENGINE_SKYFALL==='true',
-  npcCastle:process.env.REAL_ENGINE_NPC_CASTLE==='true', hitTiming:process.env.REAL_ENGINE_HIT_TIMING==='true' });
+  npcCastle:process.env.REAL_ENGINE_NPC_CASTLE==='true', hitTiming:process.env.REAL_ENGINE_HIT_TIMING==='true',
+  siege:process.env.REAL_ENGINE_SIEGE==='true' });
 /* 14 Nov 2026 D1 - REAL_ENGINE_HIT_TIMING. The single-wave world fights the server decides (city PvP against a player castle, the world-map
    bot, the mines, the siege check) ran host.auto: a headless fight with no clip timing, every blow landing at the swing. The war mail /
    report replay the player watches runs the same snaps and seed in the browser, where each blow lands on its clip's contact cell - so the
@@ -10615,30 +10638,46 @@ async function api(req,res,url){
         const march={id:uid(),kind:'siege',siteId:site.id,siteName:site.name,heroIds:ids,snaps,foe,seed,engine:host.buildVersion||null,defenders:defenders.length?'garrison':'guards',
           depart:now,arriveAt:now+travel,homeAt:now+travel*2,resolved:false,target,
           route:WORLD_MARCH_ROUTE.capture(loc,target,site.name,travel,0,timing?.pacing)};
+        if(REAL_ENGINE.siege) march.realEngine=1;   // REAL_ENGINE_SIEGE: the engine is fixed at the start - a march never changes engine on the way
         marches.push(march);
-        return {ok:true,marchId:march.id,siteId:site.id,siteName:site.name,target,distance:WORLD_SIEGE.distance(loc,site),
+        const sr={ok:true,marchId:march.id,siteId:site.id,siteName:site.name,target,distance:WORLD_SIEGE.distance(loc,site),
           depart:now,arriveAt:march.arriveAt,homeAt:march.homeAt,travel,heroIds:ids,snaps,foe,seed,guardLevel:site.guardLevel,defenders:march.defenders};
+        if(march.realEngine) sr.real=1;   // the client does not fight this one: the server fights it on arrival and the client plays it back
+        return sr;
       }
       const march=marches.find(m=>m.id===String(b.marchId||'')&&m.kind==='siege');
       if(!march) return {ok:false,error:'No registered siege march.'};
       if(march.resolved) return march.receipt;
       if(now<march.arriveAt) return {ok:false,error:'The army has not reached '+march.siteName+'.',arriveAt:march.arriveAt};
       const site=WORLD_SIEGE.byId(march.siteId); if(!site) return {ok:false,error:'No such site.'};
+      let won, match, d=null, defKind=march.defenders||'guards', sreal=null;
+      if(march.realEngine){
+      /* REAL_ENGINE_SIEGE (D4): the server's fight is the result. The march's squad frozen at the start (D3: the attacker left with what it
+         had) against the defenders read now (siegeRealFoe, D3), fought with the watched clip timing (autoWatched): the war mail replays this
+         exact fight. The browser's {won, digest} is not used (it fought nothing). A march started with the switch off never comes here. */
+      const host=simHost(); if(!host) return {ok:false,storageFailed:true,error:'Siege battle engine unavailable.'};
+      const lf=siegeRealFoe(host,WORLD_SIEGE.holderOf(sieges,site.id),site,me,march,now);
+      if(!lf||!lf.foe.length) return {ok:false,storageFailed:true,error:'The site guards could not be resolved.'};
+      const rep=host.autoWatched(march.snaps,lf.foe,march.seed>>>0);
+      d=JSON.parse(rep.digest); won=!!rep.won; match=null; defKind=lf.kind;
+      sreal={foe:lf.foe,digest:rep.digest,durationSec:d.t};
+      } else {
       /* the verdict the player witnessed - the province's well-formedness rule */
-      const clientEnd=typeof b.digest==='string'?b.digest.slice(0,200000):''; let d=null;
+      const clientEnd=typeof b.digest==='string'?b.digest.slice(0,200000):'';
       try{ d=JSON.parse(clientEnd); }catch(e){}
       if(!d||typeof d.won!=='boolean'||typeof b.won!=='boolean'||d.won!==b.won||!Number.isFinite(d.t)||d.t<0||!Array.isArray(d.u))
         return {ok:false,unverified:true,error:'Battle result was incomplete - send the fight again.'};
-      const won=b.won;
+      won=b.won;
       // the replay is a check, never a verdict
       const host=simHost(); let rep=null, why=null;
       if(!host) why='replay-unavailable'; else try{ rep=worldAutoFight(host,march.snaps,march.foe,march.seed>>>0); }   /* REAL_ENGINE_HIT_TIMING */catch(e){ if(typeof SIM_NEEDED!=='undefined'&&e===SIM_NEEDED) throw e; why='replay-error'; }
-      const serverEnd=rep?String(rep.digest||''):'', match=!!serverEnd&&sha256hex(serverEnd)===sha256hex(clientEnd);
+      const serverEnd=rep?String(rep.digest||''):''; match=!!serverEnd&&sha256hex(serverEnd)===sha256hex(clientEnd);
       if(!match){ why=why||'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{t:now,stage:'siege-'+site.id,mode:'siege',why,source:'auto',playerTruth:true,
           engine:march.engine||null,seed:march.seed>>>0,server:serverEnd?sha256hex(serverEnd):null,client:sha256hex(clientEnd),
           serverWon:rep?!!rep.won:null,witnessedWon:won}]).slice(-20);
         if(rep&&serverEnd) flag={signal:'siege-replay:'+march.id,detail:'Siege replay mismatch at '+site.name+': serverWon '+!!rep.won+', witnessedWon '+won+', seed '+(march.seed>>>0)+'.'}; }
+      }
       // wounds from the fight the player saw (each hero at most its entry HP)
       const outcomes=march.snaps.map(s=>{ const row=d.u.find(u=>Array.isArray(u)&&u[0]===s.key&&u[1]==='ally');
         return {key:s.key,hp:row&&row[2]?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp}; });
@@ -10663,14 +10702,16 @@ async function api(req,res,url){
             if(owner!==me){ owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:false,t:now,marchId:m.id}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
           sieges.sites[site.id]={type:'guild',id:String(me.guildId),name:String(g.name||'Guild').slice(0,40),since:now,protectedUntil:now+WORLD_SIEGE.PROTECT_MS,by:me.id,byName:me.name,marchId:march.id,garrison:[]};
           sieges.rev=(sieges.rev|0)+1; seized=true; station(); }
-      } else if(march.defenders==='garrison'&&holder&&Array.isArray(holder.garrison)){   // v1237: the garrison held - its owners get a war mail line
+      } else if(defKind==='garrison'&&holder&&Array.isArray(holder.garrison)){   // v1237: the garrison held - its owners get a war mail line
         for(const uidOf of new Set(holder.garrison.map(l=>l.uid))){ const owner=other(uidOf); if(!owner) continue;
           owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:true,t:now}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
       march.resolved=true; march.resolvedAt=now;
       const hr=sieges.sites[site.id];
       march.receipt={ok:true,won,seized,garrisoned,sentHome,note,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),
-        lines:WORLD_SIEGE.garrisonCount(hr),cap:WORLD_SIEGE.garrisonCap(site),homeAt:march.homeAt,defenders:march.defenders||'guards',injuries,
+        lines:WORLD_SIEGE.garrisonCount(hr),cap:WORLD_SIEGE.garrisonCap(site),homeAt:march.homeAt,defenders:defKind,injuries,
         digestMatch:match,replayIncident:!match,playerTruth:true,replay:{seed:march.seed>>>0,snaps:march.snaps,foe:march.foe,engine:march.engine||null},witch:witchView(me,now)};
+      if(sreal) Object.assign(march.receipt,{digestMatch:null,replayIncident:false,playerTruth:false,real:1,   // REAL_ENGINE_SIEGE: the server's fight, played back from the war mail
+        replay:{seed:march.seed>>>0,snaps:march.snaps,foe:sreal.foe,engine:march.engine||null,real:1,digest:sreal.digest,durationSec:sreal.durationSec}});
       delete march.snaps;
       return march.receipt;
     }),'live');
