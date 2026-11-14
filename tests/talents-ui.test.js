@@ -156,12 +156,20 @@ test('flag on: tab order, the trees, the card, learn to the signature, a locked 
   const spentNow=T.spent('vael',before).total;
   await pg.evaluate(()=>{ talentCardHide(); document.querySelector('.tl-head').scrollIntoView({block:'start'}); });
   await pg.click('#tlReset'); assert.match(await pg.evaluate(()=>document.querySelector('#tlAsk span').textContent),new RegExp('Reset all '+spentNow+' talent points of Vael\\?'));
+  assert.match(await pg.evaluate(()=>document.getElementById('tlResetCost').textContent),/Costs\s*1000 \(you have\s*1000\)\./,'the confirm shows the price and her diamonds (Phil: "1000 diamonds to reset talents")'); assert.equal(await pg.evaluate(()=>document.getElementById('tlResetYes').disabled),false);
   await shot(pg,'desktop-06-reset-confirm');
   await pg.click('#tlResetNo'); assert.deepEqual(await build(pg),before); assert.equal(await pg.evaluate(()=>!!document.getElementById('tlAsk')),false);
   await pg.click('#tlReset'); await pg.click('#tlResetYes'); await pg.waitForFunction(()=>!(G.talents&&G.talents.vael));
   assert.equal(await pg.evaluate(()=>document.getElementById('tlPts').textContent),'Points: 0 / 91'); assert.equal(s.disk().led.talents.vael,undefined,'reset is saved; the hero has no entry');
   assert.equal(await pg.evaluate(()=>document.getElementById('tlReset').disabled),true,'nothing to reset');
+  assert.equal(await pg.evaluate(()=>G.gems),0,'1000 diamonds paid'); assert.equal(s.disk().led.gems,0);
   assert.equal(await pg.evaluate(()=>'vael' in (G.talents||{})),false,'a hero with nothing learned has no entry in G.talents');
+  // with fewer than 1000 diamonds the confirm says so and its Reset is off; the server refuses too
+  { const t1=T.trees('vael')[0].talents.find(x=>x[1]===1&&!x[7]); await pg.evaluate(id=>talentLearn('vael',id),t1[0]); await pg.waitForFunction(id=>(G.talents.vael||{r:{}}).r[id]===1&&!TAL.busy,t1[0]);
+    await pg.evaluate(()=>{ talentCardHide(); document.querySelector('.tl-head').scrollIntoView({block:'start'}); }); await pg.click('#tlReset');
+    assert.match(await pg.evaluate(()=>document.getElementById('tlResetCost').textContent),/Costs\s*1000 \(you have\s*0\)\. Not enough diamonds\./); assert.equal(await pg.evaluate(()=>document.getElementById('tlResetYes').disabled),true,'Reset is off');
+    const direct=await pg.evaluate(()=>api('/api/talents/reset','POST',{key:'vael',requestId:'ui-direct-reset'})); assert.equal(direct.ok,false); assert.match(direct.error,/Not enough diamonds/);
+    await shot(pg,'desktop-07-reset-short'); await pg.click('#tlResetNo'); assert.deepEqual(s.disk().led.talents.vael,{r:{[t1[0]]:1}},'nothing changed'); }
   // a hero under level 10, not painted yet: the plain tiles, no points, the reason on the card
   await openHero(pg,NOART,'talents'); assert.deepEqual(await tabs(pg),ORDER_ON);
   assert.equal(await pg.evaluate(()=>document.getElementById('tlPts').textContent),'Points: 0 / 0');
