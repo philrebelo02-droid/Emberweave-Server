@@ -1,0 +1,61 @@
+{
+ "seeds": 100,
+ "k": [
+  2.61,
+  2.42,
+  1.24,
+  2.03
+ ],
+ "check": {
+  "name": "L11 reference v tier 3",
+  "tier": 3,
+  "keys": [
+   "vael",
+   "sylthaine",
+   "vireo",
+   "vex",
+   "gruel"
+  ],
+  "level": 11,
+  "st": {
+   "stars": 2,
+   "skill": [
+    4,
+    4,
+    4,
+    4
+   ],
+   "asc": 1
+  },
+  "bot": [
+   {
+    "key": "aureth",
+    "level": 16,
+    "rank": 3
+   },
+   {
+    "key": "sylthaine",
+    "level": 14,
+    "rank": 3
+   },
+   {
+    "key": "vireo",
+    "level": 12,
+    "rank": 3
+   },
+   {
+    "key": "bloatus",
+    "level": 13,
+    "rank": 3
+   },
+   {
+    "key": "tick",
+    "level": 13,
+    "rank": 3
+   }
+  ],
+  "line": 0.53,
+  "mapped": 0.74,
+  "raw": 1
+ }
+}

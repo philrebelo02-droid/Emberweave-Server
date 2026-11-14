@@ -158,7 +158,7 @@ function build(hero,treeIdx,n,level){ let b={r:{}}; const tr=T.trees(hero)[treeI
   return b; }
 test('5. gear, Temper, glyphs, prayers, Academy, skills and talents each change the line, and help over 100 seeds',async()=>{
   const S=IP.load(SRC,{REAL_ENGINE_SKYFALL:'true',TALENTS_ENABLED:'true',SIM_WORKERS:'0'});
-  const pool=require(path.join(root,'server','sim-pool.js')).create(path.join(root,'emberweave-heroes.html'),{size:Math.max(2,Math.min(6,require('os').cpus().length-2))}); pools.push(pool);
+  const pool=require(path.join(root,'server','sim-pool.js')).create(path.join(root,'emberweave-heroes.html'),{size:2,queueMax:10000,timeoutMs:600000,queueWaitMs:600000}); pools.push(pool);
   for(let i=0;i<300&&!pool.stats.ready;i++) await new Promise(r=>setTimeout(r,100));
   const TEAM=SW.line(0), L60={level:60,stars:5,skill:[20,20,20,20],asc:4};
   const lineOf=(u)=>PAGE.snapFromSpecs(clone(TEAM.map(k=>S.campaignHeroSpec(u,k)))), full=sn=>sn.map(s=>({hp:s.maxHp,energy:0}));

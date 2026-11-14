@@ -86,8 +86,8 @@ test('2. switch on: the result, the rating and the defence report are the real e
     assert.equal(r.seed,r.real.seed); };
   // q1: Atk1 v Def1 - Def1's saved defence line-up, read live
   check(rOn[0],ON.getDB().users[wOn.A1.id],['vael','sylthaine','vireo'],PAGE.snapFromSpecs(clone(['vex','gruel','vael'].map(k=>ON.campaignHeroSpec(D1,k)))));
-  // q2: a bot fights as {key, level, rank}
-  check(rOn[1],ON.getDB().users[wOn.A1.id],['vael','vex'],[{key:'grosk',level:45,rank:2},{key:'tick',level:45,rank:2},{key:'fritz',level:45,rank:1}]);
+  // q2: a bot fights as its D2 unit (npcRealSpec: key, level, rank, base HP and attack x the tier's k - as strong as on the line model)
+  check(rOn[1],ON.getDB().users[wOn.A1.id],['vael','vex'],PAGE.snapFromSpecs(clone([{key:'grosk',level:45,rank:2},{key:'tick',level:45,rank:2},{key:'fritz',level:45,rank:1}].map(ON.npcRealSpec))));
   // q3: no squad sent = the saved team (owned heroes); Def2 has no defence line-up = its team
   check(rOn[3],ON.getDB().users[wOn.A2.id],['vex','gruel','vael'],PAGE.snapFromSpecs(clone(['vireo','vael'].map(k=>ON.campaignHeroSpec(ON.getDB().users[wOn.D2.id],k)))));
   // the rating follows the real verdict (applyResult: a win against a better rank takes it)

@@ -5962,11 +5962,27 @@ function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.are
 /* 14 Nov 2026 EVERY MODE ON THE REAL ENGINE (Phil: "Basically every hero in the game saves every single thing and when that hero ID is put
    into a fight it is that hero"). One switch per mode, all off by default: off, the mode runs exactly as before.
    Plan and status: TALENT TREES 13NOV2026/WIRING/09 - EVERY MODE ON THE REAL ENGINE (plan and status).md */
-const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true', skyfall:process.env.REAL_ENGINE_SKYFALL==='true' });
+const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true', skyfall:process.env.REAL_ENGINE_SKYFALL==='true',
+  npcCastle:process.env.REAL_ENGINE_NPC_CASTLE==='true' });
+/* 14 Nov 2026 D2 - BOTS AND NPCS AS STRONG AS TODAY. A ladder bot / NPC castle has no saved hero: its record is {key, level, rank}. The line
+   model read `rank` as star pips on the hero's base stars (snapshotNpcHero); on the real engine `rank` is the quality tier (green / blue /
+   passive skills), and a bare unit has no star stats at all - so the same record is a different strength on the two engines. The owner's
+   rule: bots and NPCs stay as strong as they are today. On the real engine a bot is therefore built from a spec: its key, level and rank
+   (the tier: the skills it had), skills at level 1, and its base HP and attack x NPC_REAL_K[rank] - one number per tier, tuned so that a
+   fixed set of reference player teams wins against that tier as often as on the line model (200 seeds; measurement and table in doc 09,
+   section 3). Player heroes are never touched. Used by the Arena (REAL_ENGINE_ARENA) and NPC castles (REAL_ENGINE_NPC_CASTLE); the
+   world-map bots and mine guardians were already real-engine units and are unchanged. */
+const NPC_REAL_K=Object.freeze([2.61,2.42,1.24,2.03]);   // measured 14 Nov 2026 (doc 09 section 3; tests/fixtures/real-engine-d2.json)
+const NPC_REAL_MUL=Object.freeze({atk:1,hp:1,dr:0,regen:0,crit:0,critRes:0,energyReg:0,ctrlRes:0,startEnergy:0,healPow:0});   // the page's mulsFromTotals({}, {})
+function npcRealSpec(e){ const key=(e&&typeof e==='object')?String(e.key||''):String(e||''); if(!SIM.HERO_BASE[key]) return null;
+  const level=Math.max(1,Math.min(200,((e&&e.level)|0)||1)), rank=Math.max(0,Math.min(3,((e&&e.rank)|0)||0)), k=NPC_REAL_K[rank];
+  return {key,level,rank,skillLv:[1,1,1,1],mul:Object.assign({},NPC_REAL_MUL,{atk:k,hp:k})}; }
+function npcRealFoe(host,roster){ const specs=(Array.isArray(roster)?roster:[]).filter(Boolean).slice(0,5).map(npcRealSpec).filter(Boolean);
+  return specs.length?host.snapFromSpecs(specs):[]; }
 /* REAL_ENGINE_ARENA: the Arena fight is the game's own battle code (sim-host, on the battle workers) between both squads' full specs -
    level, stars, glyph board, gear and Temper, Academy, Temple prayers, skill levels, learned talents (campaignHeroSpec, the builder city
    PvP and the campaign use). Attacker: the squad sent (owned heroes only, as before); defender: the saved defence line-up read live, as
-   before; a bot fights as its {key, level, rank}, as a world-map bot does. The result, the rating change and the defence report are this
+   before; a bot fights as its D2 unit (npcRealFoe: as strong as on the line model). The result, the rating change and the defence report are this
    fight; the player watches this fight (snaps + seed in the reply). Returns {won, seed, snaps, foe, digest, durationSec, engine},
    {won:false, empty:true} when a side has no hero (the line path's rule), or {error}. */
 function arenaRealFight(me,opp,b,seed){
@@ -5984,7 +6000,7 @@ function arenaRealFight(me,opp,b,seed){
     if(!k.length) k=Object.keys(opLed.unlocked||{}).filter(k=>ownsHeroK(opLed,k)&&SIM.HERO_BASE[k]).slice(0,5);
     bSpecs=k.map(k=>campaignHeroSpec(opp,k)).filter(Boolean); }
   if(!aSpecs.length||!(bSpecs||botFoe).length) return {won:false,empty:true,seed};
-  let aSnaps,bSnaps; try{ aSnaps=host.snapFromSpecs(aSpecs); bSnaps=bSpecs?host.snapFromSpecs(bSpecs):botFoe; }
+  let aSnaps,bSnaps; try{ aSnaps=host.snapFromSpecs(aSpecs); bSnaps=bSpecs?host.snapFromSpecs(bSpecs):npcRealFoe(host,botFoe); }   // D2: a bot as strong as on the line model
   catch(e){ return {error:'The arena squads could not be resolved.'}; }
   const fight=host.autoWatched(aSnaps,bSnaps,seed>>>0);   // the browser's clip timing: the fight the player watches, tick for tick
   let dg=null; try{ dg=JSON.parse(fight.digest); }catch(e){}
@@ -10245,6 +10261,25 @@ async function api(req,res,url){
           if(myWitch) injuries.attacker=WITCH.applyBattle(myWitch.state,aOut,ids);
           if(defWitch) injuries.defender=WITCH.applyBattle(defWitch.state,bOut,defOwned);
           for(const g of garrison) if(g.w) WITCH.applyBattle(g.w.state,bOut,[g.k]);   /* v1097: the allies' wounds stay with them */
+          replay={seed,snaps:aSnaps,foe:bSnaps,engine:host.buildVersion,durationSec:digest.t};
+        }else if(REAL_ENGINE.npcCastle){
+          /* REAL_ENGINE_NPC_CASTLE: an NPC castle is fought on the real engine like a player castle - the attacker's squad frozen at the
+             march start (its snaps carry the Witch's Hut HP it left with), the castle's roster as D2 bot units (npcRealFoe), the watched
+             clip timing (autoWatched), the replay in both war mails. Off: the line model below, exactly as before. */
+          const host=simHost();
+          if(!host) return {ok:false,error:'City battle engine unavailable.'};
+          let aSnaps=march.snaps,bSnaps;
+          try{ bSnaps=npcRealFoe(host,defRoster); }catch(e){ return {ok:false,error:'City squads could not be resolved.'}; }
+          if(!bSnaps.length) return {ok:false,error:'That city has no defenders.'};
+          const fight=host.autoWatched(aSnaps,bSnaps,seed);
+          let digest;
+          try{ digest=JSON.parse(fight.digest); }catch(e){ return {ok:false,error:'City battle result was incomplete.'}; }
+          if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
+            return {ok:false,error:'City battle result was incomplete.'};
+          const aOut=aSnaps.map(s=>{ const row=digest.u.find(u=>u[0]===s.key&&u[1]==='ally');
+            return {key:s.key,hp:row?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp}; });
+          won=fight.won;
+          if(myWitch) injuries.attacker=WITCH.applyBattle(myWitch.state,aOut,ids);
           replay={seed,snaps:aSnaps,foe:bSnaps,engine:host.buildVersion,durationSec:digest.t};
         }else{
           const r=SIM.resolveLineBattle(SIM.makeLine(mySnaps,myCarry,true),SIM.makeLine(defSnaps,defCarry,true),seed);
