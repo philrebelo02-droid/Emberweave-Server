@@ -52,6 +52,7 @@
     if(M.lines) T.on.line=T.on.line||[];                                      // the hero's rows read the enemies on a line skill's line, in order (Calypsa's Tidal Ribbon): the line hook must run for each cast   // his poisons are his (Bloatus): the poison and Contagion hooks must run for each one
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
+    if(T.on.shieldBreak) T.on.absorb=T.on.absorb||[];                         // rows about his shield breaking: the absorb hook must run for every hit on his shield (Brannus)
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
     T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     T.mv=!!T.on.moved;                                                        // rows about an ally being pushed, pulled or knocked up (Askel's Breakwater): the owner's tick looks for it
@@ -737,6 +738,13 @@
   function page(u,t){ const T=u._tal, s=T.s; if(!s.pgOn) return; s.pgOn=false; s.cur=s.pgC==null?null:s.pgC; s.pgC=null; if(T.on.page.length) run(T,u,'page',{u,src:u,tgt:t}); }
   function pageW0(u){ u._tal.s.pw0=u._pages||0; }
   function pageW(u,ab){ const T=u._tal; run(T,u,'pageW',{u,src:u,tgt:u.target,was:T.s.pw0||0,skill:ab&&ab.type}); }
+  /* ---- HIS SHIELD (Brannus). absorb: a hit (or a DoT tick, or a talent's damage) reaches a talented unit that holds a shield: damage() calls it after its own
+     reductions, right before the shield takes the hit. 'absorb' rows: ctx.amt = what the shield takes off this hit (at most all of it), ctx.broke = the hit
+     empties it. When it does, T.s.brk = now and 'shieldBreak' rows run (ctx.amt = what the shield held). A shield that runs out of time does not break.
+     T.s.shA adds up what his shields took, so a row that watches his shield grow can tell a new shield from one being worn down. ---- */
+  function absorb(u,a){ const T=u._tal, s=T.s, sh=u.shield||0; if(!(sh>0)||!(a>0)) return; const amt=Math.min(sh,a), broke=a>=sh; s.shA=(s.shA||0)+amt;
+    if(T.on.absorb&&T.on.absorb.length) run(T,u,'absorb',{u,tgt:u,unit:u,amt,broke});
+    if(broke){ s.brk=E.now(); if(T.on.shieldBreak) run(T,u,'shieldBreak',{u,tgt:u,unit:u,amt}); } }
   /* a cooldown was just set after a cast: slot 'green' | 'blue' */
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
@@ -797,6 +805,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),evade:guard(evade),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

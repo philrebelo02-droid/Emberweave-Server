@@ -12675,6 +12675,7 @@ function damage(u,a,c,noEnergy,crit){
     u._digStk=Math.min(10,(u._digStk||0)+st);
     u.hasteMul=Math.max(u.hasteMul||1,1+0.035*pm*u._digStk); u.hasteT=Math.max(u.hasteT||0,4); }
   if(u.pass&&u.pass.pridemomentum&&u.shield>0){ if(typeof SFX!=='undefined'&&SFX.loop&&!(u.dmgBuffT>0)) sfxPassive(u,'pridemomentum',4);   /* v1138 sound: the buff starts */ u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1+0.22*(u.passMul||1)); u.dmgBuffT=Math.max(u.dmgBuffT||0,4); }
+  if(u._tal&&u._tal.on.absorb&&u.shield>0&&a>0) TalentFx.absorb(u,a);   /* TALENT HOOK absorb: a hit reaches a talented unit's shield (what it takes off the shield, and whether it breaks it) */
   if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
   a=Math.max(0,a); HERO61.recordDamage(u,Math.min(Math.max(0,u.hp),a),battleTime); if(DD.on) ddTake(u,Math.min(Math.max(0,u.hp),a)); u.hp-=a; u.flash=.14;
   if(a>0&&u.templeDamageEnergy)u.energy=Math.min(100,u.energy+100*a/Math.max(1,u.maxHp)*u.templeDamageEnergy);
@@ -14674,7 +14675,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         foes.forEach(e=>{ if(!e.alive)return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*_ux+ry*_uy, side=rx*_uy-ry*_ux;
           if(pr<0||pr>_pl||Math.abs(side)>_W||(o.slamOne?e===tg2:dist({x:lx,y:ly},e)<_cR)) return;   // v1303: slamOne - every other enemy on the path is hit + knocked aside
           groundHazards.push({arrival:true,delay:Math.max(0.03,_dur*pr/_pl),run:function(){ if(!e.alive)return;
-            if(o.pathHit){ dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); burstAt(e.x,e.y,0xffcf40,8); }
+            if(o.pathHit){ if(u._tal) TalentFx.landPre(u,e,'chargePath'); dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); if(u._tal) TalentFx.land(u,e,'chargePath'); burstAt(e.x,e.y,0xffcf40,8); }   /* TALENT HOOK landPre / land: a hit on the charge's path (its hits are that skill's) */
             if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
               e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25);
               if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'knockaside');   /* TALENT HOOK pass: the charge has just knocked this enemy aside (Askel's talents: Flattened) */
@@ -15522,9 +15523,9 @@ function deliverLaunch(u,type,o){ try{
      and every other living enemy whose body (its hit radius e.r) the line from him to that enemy passes through takes the full effect once, when the
      wheel reaches it (its distance along the line at the shot's speed); the far enemy last, on the shot's own arrival. Seeded order, no art timing. */
   let _pierce=null;
-  if(mode==='shot'&&o.pierce){ const R=o.pierce.range||10*METER; let fz=null,fd=-1; enemiesOf(u).forEach(e=>{ if(!e.alive) return; const d=dist(u,e); if(d<=R&&d>fd){ fd=d; fz=e; } }); if(fz) tU=fz;
-    const px=tU.x-u.x, py=tU.y-u.y, pl=Math.hypot(px,py)||1, ux=px/pl, uy=py/pl; _pierce=[];
-    enemiesOf(u).forEach(e=>{ if(!e.alive||e===tU) return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*ux+ry*uy; if(pr<=0||pr>=pl) return; if(Math.abs(rx*uy-ry*ux)>(e.r||0)) return; _pierce.push({e,pr}); });
+  if(mode==='shot'&&o.pierce){ const R=(u._tal&&u._tal.on.num)?TalentFx.num(u,'rimR',o.pierce.range||10*METER):(o.pierce.range||10*METER);   /* TALENT HOOK num: the throw's reach */ let fz=null,fd=-1; enemiesOf(u).forEach(e=>{ if(!e.alive) return; const d=dist(u,e); if(d<=R&&d>fd){ fd=d; fz=e; } }); if(fz) tU=fz;
+    const px=tU.x-u.x, py=tU.y-u.y, pl=Math.hypot(px,py)||1, ux=px/pl, uy=py/pl; _pierce=[]; const _pw=(u._tal&&u._tal.on.num)?TalentFx.num(u,'rimW',0):0;   /* TALENT HOOK num: slack beside the throw's line */
+    enemiesOf(u).forEach(e=>{ if(!e.alive||e===tU) return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*ux+ry*uy; if(pr<=0||pr>=pl) return; if(Math.abs(rx*uy-ry*ux)>(e.r||0)+_pw) return; _pierce.push({e,pr}); });
     _pierce.sort((a,b)=>a.pr-b.pr); }
   try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].atLaunch&&FX16_ART[o.ownFx].mode!=='glide'&&TH&&scene) fx16Release(u,o.ownFx,o.dur||6,null,0); }catch(_e){}   /* v1178 Rim Breaker: the art is confirmed as the wheel leaves him (display only) */
   const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
