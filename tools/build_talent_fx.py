@@ -33,7 +33,19 @@ P_CRITD = re.compile(r"^" + WHO + r"'s critical hits deal " + NUM + r" more dama
 P_HEAL = re.compile(r"^" + WHO + r"'s (shields and )?heals are " + NUM + r" stronger per rank\.$")
 
 
-def parse(text):
+def subject_ok(text, hero_name):
+    """The sentence must be about the hero: its subject is the hero's full in-game name or its first word. A skill's name, a state's
+    name or 'The Promised ally' is not the hero, so that sentence is not a plain stat."""
+    t = text[6:] if text.startswith('RISK: ') else text
+    cut = min([i for i in (t.find(' has '), t.find(' gains '), t.find("'s critical hits"), t.find("'s shields and heals"), t.find("'s heals")) if i > 0] or [-1])
+    if cut < 0: return False
+    subj = t[:cut].strip().lower(); full = (hero_name or '').strip().lower()
+    return bool(full) and subj in (full, full.split(' ')[0])
+
+
+def parse(text, hero_name=None):
+    if hero_name is not None and not subject_ok(text, hero_name):
+        return None
     m = P_MAIN.match(text)
     if m:
         out = {}
@@ -63,9 +75,11 @@ for hero, h in data["heroes"].items():
     for tr in h["trees"]:
         for t in tr["talents"]:
             total += 1
-            r = parse(t[5])
+            r = parse(t[5], h.get("name") or hero)
             if r:
                 fx.setdefault(hero, {})[t[0]] = r; n += 1
+            elif parse(t[5]):
+                print("  no longer a plain stat (subject is not the hero):", hero, t[0], "|", t[5])
 MDIR = os.path.join(ROOT, "talents-mech")
 CRLF, LF = chr(13) + chr(10), chr(10)
 engine = io.open(os.path.join(MDIR, "_engine.js"), encoding="utf-8").read().replace(CRLF, LF)
