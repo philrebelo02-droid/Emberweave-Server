@@ -36,7 +36,7 @@
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
     const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
-      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
+      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
       if(c.stat){ (c.to?T.auras:T.stats).push(c); if(c.stat.nrg) T.nrg=true; return; }
@@ -44,6 +44,7 @@
     (M.always||[]).forEach((row,i)=>add('',row,i,1));
     for(const id of ids){ const rows=M.talents[id]; if(rows&&has(id)) rows.forEach((row,i)=>add(id,row,i,r[id])); }
     if(M.casting){ T.on.kit=T.on.kit||[]; T.on.cast=T.on.cast||[]; }        // the hero's rows ask "which skill is this hit from": keep the two skill hooks on
+    if(M.points) T.on.at=T.on.at||[];                                         // the hero's rows read where her area skills land ('pt:<skill>'): the at hook must run for each of them
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
@@ -102,9 +103,19 @@
       tm.splice(i--,1); const broke=now<e.until-1e-9; clearMark(u,t,e.name); if(t.alive&&e.ends&&T.on[e.ends]) run(T,u,e.ends,{u,tgt:t,unit:t,broke}); } }
   /* ---- ground zones: circles on the field that the owner's rows can ask about. T.s.zn[name] = [{x,y,r (pixels),until,centre}]. A unit is ON a zone
           when any part of its body is over it (centre:true: when its centre is inside, as the engine's own skill circles measure). No picture. ---- */
+  const zoneAt=z=>{ if(z.f&&z.f.alive){ z.x=z.f.x; z.y=z.f.y; } };            // a zone that follows a unit (Astra's Bright Nebula) stands where that unit stands; where it fell once it dies
   function inZone(T,x,name){ const L=T.s.zn[name]; if(!L||!x) return false; const now=E.now();
-    for(let i=0;i<L.length;i++){ const z=L[i]; if(now>=z.until) continue; const d=Math.hypot(x.x-z.x,x.y-z.y); if(z.centre?(d<z.r):(d-E.bodyR(x)<z.r)) return true; } return false; }
+    for(let i=0;i<L.length;i++){ const z=L[i]; if(now>=z.until) continue; zoneAt(z); const d=Math.hypot(x.x-z.x,x.y-z.y); if(z.centre?(d<z.r):(d-E.bodyR(x)<z.r)) return true; } return false; }
+  /* zones with an end event ({zone, ends:'event'}): the owner's tick fires it once when the zone's time is up. ctx.pt = where it stood, ctx.o.radius = its radius */
+  function zoneEnds(T,u){ const now=E.now(); for(const k in T.s.zn){ const L=T.s.zn[k]; for(let i=0;i<L.length;i++){ const z=L[i]; if(!z.ends||now<z.until) continue; L.splice(i--,1); zoneAt(z);
+        if(T.on[z.ends]) run(T,u,z.ends,{u,tgt:u.target,pt:{x:z.x,y:z.y,pt:true},o:{radius:z.r},zone:k}); } } }
+  /* recorded places: a mark may carry a spot ({mark, spot:'here' | 'pt' | 'pt:<skill>', awayFor}). away: the unit carries one of those marks and its centre is more than
+     m metres from that mark's spot (or the mark says it counts as away until awayFor runs out). Astra's Recorded / Out of Place */
+  function away(T,u,x,v){ if(!x||!v) return false; const L=Array.isArray(v.mark)?v.mark:[v.mark], now=E.now(), lim=(v.m||0)*E.METER();
+    for(let i=0;i<L.length;i++){ const m=markOf(u,x,L[i]); if(!m) continue; if(m.aw!=null&&now<m.aw) return true; if(m.sx!=null&&Math.hypot(x.x-m.sx,x.y-m.sy)>lim) return true; } return false; }
+  function spotOf(u,t,names){ const L=Array.isArray(names)?names:[names]; for(let i=0;i<L.length;i++){ const m=markOf(u,t,L[i]); if(m&&m.sx!=null) return {x:m.sx,y:m.sy}; } return null; }
   const zoneOn=(T,name)=>{ const L=T.s.zn[name]; if(!L) return false; const now=E.now(); for(let i=0;i<L.length;i++) if(now<L[i].until) return true; return false; };
+  const ptRef=(T,ctx,o)=>o==='pt'?((ctx&&ctx.pt)||null):(typeof o==='string'&&o.slice(0,3)==='pt:')?(T.s.pt[o.slice(3)]||null):undefined;   // 'pt': the point the event is about; 'pt:<skill>': where that skill of hers last landed
   const myDot=(u,d,tag)=>d._talO===u.uid&&(tag===true||d._talK===tag)&&d.remaining>0;   // tag true: any DoT of hers (her skills' DoTs she tagged, and her talents')
   function hasDot(u,t,tag){ if(!t||!t.dots) return false; for(let i=0;i<t.dots.length;i++) if(myDot(u,t.dots[i],tag)) return true; return false; }
   function countDots(u,tag){ let n=0; const U=E.units(); for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||!x.dots) continue; for(let j=0;j<x.dots.length;j++) if(myDot(u,x.dots[j],tag)) n++; } return n; }
@@ -146,6 +157,7 @@
     case 'gap': return (ctx&&ctx.tgt)?Math.max(0,gap(u,ctx.tgt))/E.METER():0;              // metres between her body and the target's
     case 'a0': return ctx?(ctx.a0||0):0;                                                 // a heal on a watched unit as it reached the talent rows
     case 'cut': return ctx?Math.max(0,(ctx.a0||0)-(ctx.amt||0)):0;                       // what the rows before have cut from that heal
+    case 'raw': return ctx?(ctx.raw||0):0;                                               // an area skill's damage to each enemy as the skill computes it, before the target's resist (the at hook)
     default: return 0; } }
   function amtOf(T,u,a,ctx){ if(typeof a==='number') return a; if(!a) return 0;
     if(a.left){ const x=a.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt), m=markOf(u,x,a.left); return (m&&m.until!=null)?Math.max(0,m.until-E.now()):0; }   // left: the seconds that mark of hers has left on that unit
@@ -163,9 +175,9 @@
     if(sel==='source') return (ctx&&ctx.src)?[ctx.src]:[]; if(sel==='unit') return (ctx&&ctx.unit)?[ctx.unit]:[];
     if(sel==='lastHit'){ const b=ctx&&ctx.tgt&&ctx.tgt._talBy; return (b&&b.alive&&b.team!==u.team)?[b]:[]; }       // the enemy that last hit the unit the event is about
     if(sel==='lowestAlly'){ const x=E.lowestAlly(u); return x?[x]:[]; }                 // the ally the engine itself picks as the most wounded (Harmony's centre)
-    if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } return []; }
-    const ref=o=>o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null;
-    const c=ref(sel.of||'self'); if(!c) return [];
+    if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } const p=ptRef(T,ctx,sel); return p?[p]:[]; }
+    const ref=o=>{ const p=ptRef(T,ctx,o); if(p!==undefined) return p; return o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null; };
+    const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
     const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally';
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
@@ -183,9 +195,10 @@
       if(sel.inZone&&!inZone(T,x,sel.inZone)) continue;
       if(sel.hpBelow!=null&&!(x.hp<sel.hpBelow*x.maxHp)) continue;
       if(sel.dot!=null&&!hasDot(u,x,sel.dot)) continue;                              // carries a DoT of hers (true: any)
+      if(sel.away&&!away(T,u,x,sel.away)) continue;                                  // away from a place she recorded for it
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
-      const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-E.bodyR(c)-E.bodyR(x)<R))) continue; out.push([x,d]); }
+      const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
     else if(od==='lowMax') out.sort((a,b)=>(a[0].maxHp||0)-(b[0].maxHp||0));        // the most fragile first (the lowest max HP, as Hookline itself ranks them)
@@ -257,6 +270,9 @@
     targetAlive:(T,u,v,c)=>!!c.tgt&&!!c.tgt.alive===v,     // the target still stands (a strike may have killed it)
     tgtNone:(T,u,v,c)=>!c.tgt===v,                          // the skill found no target
     dropBelow:(T,u,v,c)=>u.hp>=v*u.maxHp&&(u.hp+(u.shield||0)-(c.amt||0))<v*u.maxHp,   // this hit, as it reaches her (after armor, through her shield), would take her below that share
+    srcDot:(T,u,v,c)=>hasDot(u,c.src,v),                    // the attacker carries a DoT of hers ("burning enemies")
+    targetAway:(T,u,v,c)=>away(T,u,c.tgt,v), unitAway:(T,u,v,c)=>away(T,u,c.unit,v), srcAway:(T,u,v,c)=>away(T,u,c.src,v),   // {mark, m}: away from the place she recorded for it
+    targetUstBelow:(T,u,v,c)=>{ for(const k in v) if(!(ustGet(T,u,c.tgt,k)<v[k])) return false; return true; },   // the target carries fewer than that many of her unit stacks
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
   const fmin=(x,v)=>{ if(!x) return false; for(const f in v) if(!((+x[f]||0)>=v[f])) return false; return true; };
@@ -340,6 +356,7 @@
   function acts(T,u,list,ctx){ for(let i=0;i<list.length;i++){ const a=list[i]; if(a.if&&!ok(T,u,a.if,ctx)) continue; if(act(T,u,a,ctx)===false) break; } }
   const CLEANSE=['stunned','fearT','silencedT','_sleepT','slow'];
   function act(T,u,a,ctx){ const s=T.s;
+    if(a.after!=null){ s.dq.push({t:E.now()+amtOf(T,u,a.after,ctx),list:a.do||[],ctx:Object.assign({},ctx)}); return; }   // after: these actions that many seconds from now (the owner's tick runs them, with this event's context)
     if(a.stack){ const have=stGet(T,a.stack);
       if(a.spend!=null){ const n=a.spend==='all'?have:a.spend; if(a.spend!=='all'&&have<n) return false; if(!(n>0)) return;
         stSet(T,u,a.stack,have-n); if(a.then) acts(T,u,a.then,Object.assign({},ctx,{spent:n})); return; }
@@ -354,13 +371,16 @@
     if(a.mark){ const ts=pick(T,u,a.on,ctx); for(const t of ts){ if(a.clear){ if(a.fire!=null) endMark(T,u,t,a.mark,a.fire,ctx); else clearMark(u,t,a.mark); }
         else if(a.ends||a.while) timedMark(T,u,t,a.mark,a,ctx);
         else { const had=a.added?!!markOf(u,t,a.mark):true; setMark(T,u,t,a.mark,typeof a.dur==='object'?Object.assign({},a,{dur:amtOf(T,u,a.dur,ctx)}):a);
+          if(a.spot||a.awayFor!=null){ const m=markOf(u,t,a.mark); if(m){ const p=a.spot==='here'?t:(a.spot?pick(T,u,a.spot,ctx)[0]:null); if(p){ m.sx=p.x; m.sy=p.y; }   // spot: the place recorded with the mark ('here': where the unit stands now)
+              if(a.awayFor!=null) m.aw=E.now()+amtOf(T,u,a.awayFor,ctx); } }                                                                                  // awayFor: it counts as away from that place for so long
           if(!had&&T.on[a.added]) run(T,u,a.added,Object.assign({},ctx,{tgt:t})); } } return; }   // added: an event when the unit did not carry it before (newly on her list)
     if(a.zone){ const L=s.zn[a.zone]||(s.zn[a.zone]=[]);
       const at=a.at||'target', c=typeof at==='object'?{x:u[at.x],y:u[at.y]}:pick(T,u,at,ctx)[0]; if(!c||c.x==null) return;
-      const now=E.now(); for(let i=L.length-1;i>=0;i--) if(a.only||now>=L[i].until) L.splice(i,1); if(L.length>=24) L.shift();   // only: this one replaces the ones still down
-      L.push({x:c.x,y:c.y,r:a.radiusPx!=null?amtOf(T,u,a.radiusPx,ctx):amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre}); return; }   // radiusPx: a radius already in the engine's length unit (a skill's own `radius` option)
+      const now=E.now(); for(let i=L.length-1;i>=0;i--) if((a.only||now>=L[i].until)&&!L[i].ends) L.splice(i,1); if(L.length>=24) L.shift();   // only: this one replaces the ones still down (a zone with an end event stays until its tick fires it)
+      const z={x:c.x,y:c.y,r:a.radiusPx!=null?amtOf(T,u,a.radiusPx,ctx):amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre};   // radiusPx: a radius already in the engine's length unit (a skill's own `radius` option)
+      if(a.follow){ const f=pick(T,u,a.follow,ctx)[0]; if(f&&f.uid!=null) z.f=f; } if(a.ends) z.ends=a.ends; L.push(z); return; }   // follow: the zone moves with that unit; ends: its end event
     if(a.ustack){ const d=T.st[a.ustack]||{}, mx=d.max==null?Infinity:d.max, burst=[];
-      if(a.touch){ for(const t of pick(T,u,a.on,ctx)){ const v=ustGet(T,u,t,a.ustack); if(v>0) ustPut(T,u,t,a.ustack,v); } return; }   // touch: what it carries lapses again from now ("refreshed with the wound")
+      if(a.touch){ const dd=a.dur!=null?amtOf(T,u,a.dur,ctx):undefined; for(const t of pick(T,u,a.on,ctx)){ const v=ustGet(T,u,t,a.ustack); if(v>0) ustPut(T,u,t,a.ustack,v,dd); } return; }   // touch: what it carries lapses again from now ("refreshed with the wound"); dur: that long from now (with `longest`: never sooner than it would have)
       for(const t of pick(T,u,a.on,ctx)){ if(!t.alive) continue;
         if(a.set!=null){ ustPut(T,u,t,a.ustack,a.set==='max'?mx:Math.min(mx,amtOf(T,u,a.set,ctx))); if(a.burst) burst.push(t); continue; }   // set (burst: then each one's `full` event, after all are set)
         if(a.lock&&markOf(u,t,a.lock)) continue;                                                       // lock: each unit at most once every lockDur seconds from this action
@@ -372,6 +392,8 @@
     /* her skills' own DoTs made hers ({tagDots:'kit'} on kit, {tagDots:'<tag>', exact, emit} on cast): the DoTs the skill pushed in between, with her as the source, carry her tag,
        so their ticks run her rows (dotOut, dotTick, kill by a DoT). exact: a duration the skill's options give in part-seconds ends on a part tick (the engine counts whole ticks).
        ctx.dot / ctx.tgt: the DoT tagged last and its holder (Bleed Them Dry's wound); emit: an event for each DoT tagged */
+    if(a.tagDots&&a.last){ for(const t of pick(T,u,a.on,ctx)){ const D=t.dots, d=D&&D[D.length-1]; if(!d||d.src!==u||d._talO!=null) continue;   // last: the DoT her passive has just put on that unit (Astra's Stardust, pushed after the blow) becomes hers
+        d._talO=u.uid; d._talK=a.tagDots; if(a.emit&&T.on[a.emit]) run(T,u,a.emit,Object.assign({},ctx,{tgt:t,dot:d})); } return; }
     if(a.tagDots){ if(a.tagDots==='kit'){ const al=[]; for(const x of E.units()) if(x.alive&&x.team!==u.team&&x.dots) al.push([x,x.dots.length]); s.dl=al; return; }
       const L=s.dl||[]; s.dl=null; for(const e of L){ const D=e[0].dots; for(let i=e[1];i<D.length;i++){ const d=D[i]; if(d.src!==u||d._talO!=null) continue; d._talO=u.uid; d._talK=a.tagDots;
           if(a.exact&&ctx.o&&ctx.o.dur>0){ const q=ctx.o.dur/(d.interval||1); if(Math.abs(q-Math.round(q))>1e-9){ d.remaining=Math.ceil(q-1e-9); d._talF=q-(d.remaining-1); } }
@@ -393,6 +415,20 @@
       if(a.tagHots==='kit'){ s.hl=al.map(x=>[x,x.hots.length]); return; }
       for(const e of (s.hl||[])){ const H=e[0].hots; for(let i=e[1];i<H.length;i++) if(!H[i]._talU){ H[i]._talU=u; H[i]._talK=a.tagHots; } } s.hl=null; return; }
     if(a.unhot){ for(const x of E.units()){ const H=x.hots; if(!H) continue; for(let i=H.length-1;i>=0;i--) if(H[i]._talX===u.uid&&H[i]._talK===a.unhot) H.splice(i,1); } return; }   // her talent's heal over time stops
+    /* moving a unit: the engine's own drag (pulledBy / pullT / pullStop / pullSpeed, as Collapsing Star and Event Horizon set it); an immovable unit is not moved.
+       to: 'pt' | 'pt:<skill>' | {spot:<mark name(s)>} (the place recorded with that mark). secs: over that long, m metres (all the way when left out);
+       or speed: metres a second for secs ("drifts 0.2 m each second") */
+    if(a.pull!=null){ const M=E.METER(); for(const t of pick(T,u,a.pull,ctx)){ if(!t.alive||t.immovable||(t._gearImmovableT||0)>0) continue;
+        const p=(a.to&&a.to.spot)?spotOf(u,t,a.to.spot):pick(T,u,a.to,ctx)[0]; if(!p||p.x==null) continue; const dd=Math.hypot(p.x-t.x,p.y-t.y), tm=amtOf(T,u,a.secs,ctx)||0.3;
+        if(a.speed!=null){ const v=amtOf(T,u,a.speed,ctx)*M; if(!(v>0)) continue; t.pullStop=0; t.pullSpeed=v; }
+        else { const L=a.m!=null?Math.min(dd,amtOf(T,u,a.m,ctx)*M):dd; if(!(L>0)) continue; t.pullStop=dd-L; t.pullSpeed=Math.max(1,L/tm); }
+        t.pulledBy={x:p.x,y:p.y,alive:true}; t.pullT=tm; t._pullGhost=false; } return; }
+    if(a.extend){ const cap=E.ccCap(a.extend), by=amtOf(T,u,a.by,ctx); if(!(by>0)) return;      // a control already on the unit lasts that much longer (cut at the engine's cap)
+      for(const t of pick(T,u,a.on,ctx)) if(t.alive&&(t[a.extend]||0)>0){ let v=t[a.extend]+by; if(cap&&v>cap) v=cap; t[a.extend]=Math.max(t[a.extend],v); } return; }
+    if(a.dotRate!=null){ const k=(ctx.dt||0)*amtOf(T,u,a.dotRate,ctx); if(!(k>0)) return;          // her DoTs on those units tick that much faster (on a tick row: each tick comes sooner, the same number of ticks)
+      for(const t of pick(T,u,a.on,ctx)){ const D=t.dots; if(D) for(let i=0;i<D.length;i++) if(myDot(u,D[i],true)) D[i].acc+=k; } return; }
+    if(a.extendDot!=null){ const d=ctx.dot; if(!d||!(d.remaining>0)) return; const add=amtOf(T,u,a.extendDot,ctx)/(d.interval||1); if(!(add>0)) return;   // the DoT the event is about lasts that many seconds longer (a part tick at the end)
+      const n=d.remaining-1+(d._talF!=null?d._talF:1)+add; d.remaining=Math.ceil(n-1e-9); const f=n-(d.remaining-1); d._talF=(f<1-1e-9)?f:null; return; }
     if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=+t[a.field]||0; if(a.add!=null) v+=a.add; if(a.max!=null) v=Math.min(a.max,v); t[a.field]=v; } return; }   // an engine counter on a unit (Crescendo's ring count)
     if(a.kill){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) hurt(T,u,t,((t.hp||0)+(t.shield||0))*20+1,a.color,a.tag); return; }   // a talent kill: through the engine's own damage (a unit kept alive by a save stays alive)
     if(a.strip!=null){ for(const t of pick(T,u,a.on,ctx)) if((t.shield||0)>0) t.shield*=Math.max(0,1-a.strip); return; }   // that share of a unit's shield is gone
@@ -432,11 +468,13 @@
         t.shield=a.mode==='max'?Math.max(t.shield||0,x):(t.shield||0)+x; t.shieldT=Math.max(t.shieldT||0,d); if(a.emit&&T.on[a.emit]){ c2.amt=x; run(T,u,a.emit,c2); } } return; }   // mode max: as the engine's own skill shields (the larger one stays)
     if(a.unshield){ u.shield=0; return; }
     if(a.energy!=null){ for(const t of pick(T,u,a.on||'self',ctx)) t.energy=Math.max(0,Math.min(100,(t.energy||0)+a.energy)); return; }
-    if(a.dmg!=null){ const sc=a.scale==null?1:a.scale; let done=0;
+    if(a.dmg!=null){ const sc=a.scale==null?1:a.scale; let done=0, asked=0;
       for(const t of pick(T,u,a.on,ctx)){ const x=amtOf(T,u,a.dmg,Object.assign({},ctx,{tgt:t}))*sc; if(!(x>0)) continue; let y=x;   // the amount is read for each unit struck ("6% of its max HP")
         if(a.tag&&T.on['dmg:'+a.tag]){ const c2=Object.assign({},ctx,{tgt:t,amt:x}); run(T,u,'dmg:'+a.tag,c2); y=c2.amt; }   // rows may change this damage
-        done+=hurt(T,u,t,y,a.color,a.tag); }
-      if(a.emit&&done>0) run(T,u,a.emit,Object.assign({},ctx,{spent:done})); return; }
+        if(a.def) y*=E.defMul(u,t,a.def);                                                                    // def: the target's resist applies, as to her skill's own hit (a skill burst repeated by a talent)
+        asked+=y; done+=hurt(T,u,t,y,a.color,a.tag); }
+      if(a.emit&&done>0) run(T,u,a.emit,Object.assign({},ctx,{spent:done}));
+      if(a.emitAmt&&T.on[a.emitAmt]) run(T,u,a.emitAmt,Object.assign({},ctx,{spent:done,amt:asked})); return; }   // emitAmt: an event in any case, amt = the damage as dealt (before the target's shield)
     if(a.cd){ const f=a.cd==='blue'?'blueCd':'greenCd'; if(a.set!=null) u[f]=a.set; else if(a.mul!=null) u[f]=Math.max(0,(u[f]||0)*a.mul); else u[f]=Math.max(0,(u[f]||0)+a.add); return; }   // mul: the time left that many times
     if(a.slow!=null){ let d=a.dur||1; if(T.on.ccOut){ const c={u,src:u,field:'slow',amt:d}; run(T,u,'ccOut',c); d=c.amt; }
       for(const t of pick(T,u,a.on,ctx)){ t.slow=Math.max(t.slow||0,d); t.slowMul=Math.min(t.slowMul==null?1:t.slowMul,Math.max(0.05,1-a.slow)); } return; }
@@ -557,6 +595,9 @@
      land: right after - 'land' rows ("the moment she lands behind someone") */
   function landPre(u,t,skill){ const T=u._tal; T.s.cur=skill; if(T.on.landPre) run(T,u,'landPre',{u,src:u,tgt:t,skill}); }
   function land(u,t,skill){ const T=u._tal; T.s.cur=null; if(T.on.land) run(T,u,'land',{u,src:u,tgt:t,skill}); }
+  /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
+     target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
+  function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
   /* a cooldown was just set after a cast: slot 'green' | 'blue' */
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
@@ -582,6 +623,8 @@
     if(s.fresh){ s.fresh=false; startWave(T,u); }
     s.moved=(u.x!==u.px||u.y!==u.py);
     if(s.tm.length) tickMarks(T,u);
+    zoneEnds(T,u);
+    if(s.dq.length){ const now=E.now(); for(let i=0;i<s.dq.length;i++){ const q=s.dq[i]; if(now<q.t-1e-9) continue; s.dq.splice(i--,1); acts(T,u,q.list,q.ctx); } }   // what 'after' put off is due
     for(const k in s.w){ const w=s.w[k]; if(w.t>0&&w.t!==Infinity){ w.t-=dt; if(w.t<=1e-9){ w.t=0; if(T.on['end:'+k]) run(T,u,'end:'+k,{u,tgt:u.target}); } } }
     for(const k in s.k){ const st=s.k[k], d=T.st[k]; if(st.rf&&st.rf.length){ const now=E.now(); for(let i=0;i<st.rf.length;i++){ if(now<st.rf[i]-1e-9) continue; st.rf.splice(i--,1);   // a spent unit of a refilling pool is back
           if(stSet(T,u,k,st.n+1)>0&&d.refilled&&T.on[d.refilled]) run(T,u,d.refilled,{u,tgt:u}); } }
@@ -600,6 +643,6 @@
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
   const RUNTIME={bind,define,attach:guard(attach,()=>null),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

@@ -50,8 +50,221 @@
     if(T.shield) u.shieldStr=(u.shieldStr||1)*Math.max(0.05,1+T.shield);
     return u; }
   const has=(hero,id)=>!!(DATA.stats[hero]&&DATA.stats[hero][id]);
-  const TREES={"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vex":{"ids":["ropewalker","slow_cut","short_list"],"of":{"rw_10_1":0,"rw_10_2":0,"rw_10_4":0,"rw_11_1":0,"rw_11_2":0,"rw_11_3":0,"rw_12_1":0,"rw_12_2":0,"rw_12_3":0,"rw_12_4":0,"rw_13_2":0,"rw_1_1":0,"rw_1_3":0,"rw_1_4":0,"rw_2_1":0,"rw_2_2":0,"rw_2_3":0,"rw_3_1":0,"rw_3_3":0,"rw_3_4":0,"rw_4_1":0,"rw_4_2":0,"rw_4_3":0,"rw_5_1":0,"rw_5_2":0,"rw_5_3":0,"rw_5_4":0,"rw_6_1":0,"rw_6_2":0,"rw_6_3":0,"rw_6_4":0,"rw_7_1":0,"rw_7_3":0,"rw_7_4":0,"rw_8_1":0,"rw_8_2":0,"rw_8_3":0,"rw_9_1":0,"rw_9_3":0,"rw_9_4":0,"rw_n1":0,"rw_n2":0,"sc_10_1":1,"sc_10_2":1,"sc_10_4":1,"sc_11_1":1,"sc_11_2":1,"sc_11_3":1,"sc_12_1":1,"sc_12_2":1,"sc_12_3":1,"sc_12_4":1,"sc_13_2":1,"sc_1_1":1,"sc_1_3":1,"sc_1_4":1,"sc_2_1":1,"sc_2_2":1,"sc_2_3":1,"sc_3_1":1,"sc_3_3":1,"sc_3_4":1,"sc_4_1":1,"sc_4_2":1,"sc_4_3":1,"sc_5_1":1,"sc_5_2":1,"sc_5_3":1,"sc_5_4":1,"sc_6_1":1,"sc_6_2":1,"sc_6_3":1,"sc_6_4":1,"sc_7_1":1,"sc_7_2":1,"sc_7_3":1,"sc_7_4":1,"sc_8_1":1,"sc_8_3":1,"sc_9_2":1,"sc_9_4":1,"sc_n1":1,"sc_n2":1,"sl_10_1":2,"sl_10_2":2,"sl_10_3":2,"sl_11_1":2,"sl_11_2":2,"sl_11_4":2,"sl_12_1":2,"sl_12_2":2,"sl_12_3":2,"sl_12_4":2,"sl_13_2":2,"sl_1_1":2,"sl_1_2":2,"sl_1_4":2,"sl_2_1":2,"sl_2_2":2,"sl_2_3":2,"sl_3_1":2,"sl_3_3":2,"sl_3_4":2,"sl_4_1":2,"sl_4_2":2,"sl_4_3":2,"sl_5_2":2,"sl_5_3":2,"sl_5_4":2,"sl_6_1":2,"sl_6_2":2,"sl_6_3":2,"sl_6_4":2,"sl_7_1":2,"sl_7_3":2,"sl_7_4":2,"sl_8_1":2,"sl_8_2":2,"sl_8_3":2,"sl_9_2":2,"sl_9_3":2,"sl_9_4":2,"sl_n1":2,"sl_n2":2,"sl_n3":2}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
+  const TREES={"astra":{"ids":["slow_burn","held_star","second_sky"],"of":{"hs_10_1":1,"hs_10_2":1,"hs_10_3":1,"hs_11_1":1,"hs_11_2":1,"hs_11_4":1,"hs_12_2":1,"hs_12_3":1,"hs_12_4":1,"hs_13_3":1,"hs_1_1":1,"hs_1_3":1,"hs_1_4":1,"hs_2_1":1,"hs_2_2":1,"hs_2_4":1,"hs_3_1":1,"hs_3_3":1,"hs_3_4":1,"hs_4_1":1,"hs_4_2":1,"hs_4_3":1,"hs_5_2":1,"hs_5_3":1,"hs_5_4":1,"hs_6_1":1,"hs_6_2":1,"hs_6_4":1,"hs_7_1":1,"hs_7_2":1,"hs_7_4":1,"hs_8_1":1,"hs_8_3":1,"hs_8_4":1,"hs_9_2":1,"hs_9_3":1,"hs_9_4":1,"hs_n1":1,"hs_n2":1,"hs_n3":1,"sb_10_1":0,"sb_10_2":0,"sb_10_4":0,"sb_11_2":0,"sb_11_3":0,"sb_11_4":0,"sb_12_1":0,"sb_12_3":0,"sb_12_4":0,"sb_13_3":0,"sb_1_1":0,"sb_1_2":0,"sb_1_4":0,"sb_2_2":0,"sb_2_3":0,"sb_2_4":0,"sb_3_1":0,"sb_3_4":0,"sb_4_2":0,"sb_4_3":0,"sb_4_4":0,"sb_5_1":0,"sb_5_2":0,"sb_5_3":0,"sb_5_4":0,"sb_6_1":0,"sb_6_3":0,"sb_6_4":0,"sb_7_2":0,"sb_7_3":0,"sb_7_4":0,"sb_8_1":0,"sb_8_2":0,"sb_8_4":0,"sb_9_1":0,"sb_9_2":0,"sb_9_3":0,"sb_n1":0,"sb_n2":0,"sb_n3":0,"ss_10_1":2,"ss_10_3":2,"ss_10_4":2,"ss_11_1":2,"ss_11_2":2,"ss_11_3":2,"ss_12_1":2,"ss_12_2":2,"ss_12_4":2,"ss_13_2":2,"ss_1_1":2,"ss_1_3":2,"ss_1_4":2,"ss_2_1":2,"ss_2_3":2,"ss_2_4":2,"ss_3_1":2,"ss_3_2":2,"ss_3_3":2,"ss_4_1":2,"ss_4_2":2,"ss_4_4":2,"ss_5_1":2,"ss_5_2":2,"ss_5_3":2,"ss_5_4":2,"ss_6_1":2,"ss_6_3":2,"ss_6_4":2,"ss_7_2":2,"ss_7_3":2,"ss_7_4":2,"ss_8_1":2,"ss_8_2":2,"ss_8_3":2,"ss_9_1":2,"ss_9_2":2,"ss_9_4":2}},"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vex":{"ids":["ropewalker","slow_cut","short_list"],"of":{"rw_10_1":0,"rw_10_2":0,"rw_10_4":0,"rw_11_1":0,"rw_11_2":0,"rw_11_3":0,"rw_12_1":0,"rw_12_2":0,"rw_12_3":0,"rw_12_4":0,"rw_13_2":0,"rw_1_1":0,"rw_1_3":0,"rw_1_4":0,"rw_2_1":0,"rw_2_2":0,"rw_2_3":0,"rw_3_1":0,"rw_3_3":0,"rw_3_4":0,"rw_4_1":0,"rw_4_2":0,"rw_4_3":0,"rw_5_1":0,"rw_5_2":0,"rw_5_3":0,"rw_5_4":0,"rw_6_1":0,"rw_6_2":0,"rw_6_3":0,"rw_6_4":0,"rw_7_1":0,"rw_7_3":0,"rw_7_4":0,"rw_8_1":0,"rw_8_2":0,"rw_8_3":0,"rw_9_1":0,"rw_9_3":0,"rw_9_4":0,"rw_n1":0,"rw_n2":0,"sc_10_1":1,"sc_10_2":1,"sc_10_4":1,"sc_11_1":1,"sc_11_2":1,"sc_11_3":1,"sc_12_1":1,"sc_12_2":1,"sc_12_3":1,"sc_12_4":1,"sc_13_2":1,"sc_1_1":1,"sc_1_3":1,"sc_1_4":1,"sc_2_1":1,"sc_2_2":1,"sc_2_3":1,"sc_3_1":1,"sc_3_3":1,"sc_3_4":1,"sc_4_1":1,"sc_4_2":1,"sc_4_3":1,"sc_5_1":1,"sc_5_2":1,"sc_5_3":1,"sc_5_4":1,"sc_6_1":1,"sc_6_2":1,"sc_6_3":1,"sc_6_4":1,"sc_7_1":1,"sc_7_2":1,"sc_7_3":1,"sc_7_4":1,"sc_8_1":1,"sc_8_3":1,"sc_9_2":1,"sc_9_4":1,"sc_n1":1,"sc_n2":1,"sl_10_1":2,"sl_10_2":2,"sl_10_3":2,"sl_11_1":2,"sl_11_2":2,"sl_11_4":2,"sl_12_1":2,"sl_12_2":2,"sl_12_3":2,"sl_12_4":2,"sl_13_2":2,"sl_1_1":2,"sl_1_2":2,"sl_1_4":2,"sl_2_1":2,"sl_2_2":2,"sl_2_3":2,"sl_3_1":2,"sl_3_3":2,"sl_3_4":2,"sl_4_1":2,"sl_4_2":2,"sl_4_3":2,"sl_5_2":2,"sl_5_3":2,"sl_5_4":2,"sl_6_1":2,"sl_6_2":2,"sl_6_3":2,"sl_6_4":2,"sl_7_1":2,"sl_7_3":2,"sl_7_4":2,"sl_8_1":2,"sl_8_2":2,"sl_8_3":2,"sl_9_2":2,"sl_9_3":2,"sl_9_4":2,"sl_n1":2,"sl_n2":2,"sl_n3":2}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
   const MECH={};
+  MECH["astra"]=(function(){const module={exports:{}};
+/* ASTRA - what her learned talents do in a fight (the mechanics; her 9 plain stat talents are read from their tooltips by the generator).
+   Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
+   A correction to a number or a condition is an edit HERE, then:  python tools/build_talent_fx.py
+   How rows are written: WIRING/03 - MECHANICS LAYER (hooks, primitives, how to add a hero).md (section 14: what Astra added)
+   Her real kit (the code, not the tooltip wording):
+   - Starfire ('nova', green, cd 7): cast on the most crowded enemy group at any distance (it forms there 0.35 s later): 110% of ability power x skill level
+     to every enemy whose CENTRE is within 2.8 m of its centre (o.radius). No control.
+   - Nebula ('aoedot', blue, cd 9): the same placement; 50% of ability power up front to every enemy within 3 m (centre), and a burn on each of them
+     (#ffa657, magic: magic resist reduces each tick) of 50% ability power x skill level a second for 4 s (o.dur, whole seconds). The burn is put on AT THE
+     CAST: nothing in the game stays on the ground (its picture lasts about the same 4 s of fight time). Talents that speak of "inside Nebula" read its
+     circle as a talent zone that stays for its duration (zone 'neb', centre-measured as the skill measures).
+   - Collapsing Star ('gravcrush', ultimate, player-aimed or the densest group): every enemy whose centre is within 8 m of its centre takes 200% x level
+     and is stunned (the control table's area stun: 2.0 x the 30% cut = 1.4 s). It SETS a drag on every enemy that is not immovable (pulledBy / pullT 0.3 s),
+     but the engine's drag has no stopping distance for a point, so today NOBODY MOVES (a game fact, see the rulings file D1). "Enemies it drags in" = the
+     enemies in its circle that are not immovable (the ones the skill tries to drag).
+   - Stardust (passive): after EVERY hit of hers that lands (basic attacks AND skill hits, not DoT ticks) the enemy gets a new burn of 10% (+0.1 pt a level)
+     of her Attack stat each 0.5 s for 2 s (#6fe3d4). Each hit pushes its own burn: they already stack, with no limit, and never refresh.
+   - Her damage is magic. The page hook 'at' (this work) tells her rows where each of her three area skills strikes (its centre, its options, its
+     damage to each enemy before the target's resist); rows read that place as 'pt:nova' / 'pt:aoedot' / 'pt:gravcrush'.
+   "Her burns" = Stardust's, Nebula's and Burning Starfire's, made hers (tags 'sd', 'neb', 'bs'). "Burning" = carrying one of them.
+   Talents whose text cannot run against that kit are NOT guessed at: they are written up for the owner in WIRING/08 - ASTRA - talents that need a ruling.md. */
+const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
+const P=(name,b)=>({$:name,b:b||0});      // a base + everything her learned talents add to the named number
+const SF='nova', NEB='aoedot', CS='gravcrush';
+const FIRE='#ff8a3a', STAR='#cfe8ff';
+const HAZE_HOLD=0.04;                                                             // the Haze is renewed each tick on an enemy inside (a tick is 0.0273 s of fight)
+const OOP={mark:['rec','recX','sky'],m:P('oop.m',4)};                             // Out of Place: more than 4 m from the place she recorded for it
+const DRAG={team:'enemy',of:'pt:gravcrush',withinOpt:'radius',below:{immovable:1,_gearImmovableT:1e-9}};   // the enemies Collapsing Star drags in
+const IN_PT={team:'enemy',of:'pt',withinOpt:'radius'};                            // every enemy the skill (or the zone) holds, centre to centre as the skill measures
+const HC={team:'enemy',of:'target',within:2,skip:'target'};                       // Hot Core: enemies within 2 m of the one that Flares
+const LG={team:'enemy',of:'pt:gravcrush',within:4};                               // Letting Go: every enemy within 4 m of the centre
+const LIGHT=(b,$)=>({b,$,$m:'light.fast'});                                       // Light gained (Coin Turn: 10% more per rank)
+const SPEND_U={stack:'light',spend:'all',then:[{stack:'lspU',set:{pct:1,of:'spent'}},{emit:'lightSpent'}]};   // Collapsing Star spends the Held Star
+const HAZE=zone=>({on:'tick',req:'sb_1_1',if:{zone},do:[{mark:'haze',on:{team:'enemy',inZone:zone},dur:{b:HAZE_HOLD,$:'haze.linger'},ends:'hazeOff'}]});
+const REC=[{mark:'rec',on:{team:'enemy'},clear:true},{mark:'rec',on:{team:'enemy',of:'self',n:P('rec.n',3)},spot:'here'},{window:'rc',dur:P('rec.every',6)}];
+module.exports={
+  hero:'astra',
+  casting:true,                         // rows ask which of her skills a hit comes from
+  points:true,                          // rows read where her area skills strike (the 'at' hook)
+  states:{
+    heat:{unit:true,max:10,dur:P('heat.dur',4),full:'flare',chain:99,longest:true},   // Heat on each enemy: all of it fades 4 s after the last gain; at 10 it Flares
+    skyN:{unit:true,max:2,dur:8},                                                  // The Second Sky: drags back so far, on each enemy
+    light:{max:{b:100,$:'light.max'}},                                             // the Held Star
+    lsp:{}, lspU:{}, nHit:{}, bm:{}                                                // Light spent by this Starfire / this Collapsing Star; enemies this Starfire holds; burning enemies the star holds
+  },
+  /* needs: a talent that improves a mechanic does nothing without the talent that introduces it */
+  needs:{ sb_3_1:'sb_1_1', sb_5_1:'sb_1_1',
+          sb_2_4:'sb_1_4', sb_3_4:'sb_1_4', sb_n1:'sb_1_4', sb_4_4:'sb_1_4', sb_6_3:'sb_1_4', sb_6_4:'sb_1_4', sb_5_4:'sb_1_4', sb_8_4:'sb_1_4', sb_n2:'sb_1_4', sb_10_4:'sb_1_4',
+          sb_11_3:'sb_1_4', sb_11_4:'sb_1_4', sb_n3:'sb_1_4', sb_13_3:'sb_1_4',
+          hs_n1:'hs_1_1', hs_2_1:'hs_1_1', hs_4_1:'hs_1_1', hs_6_1:'hs_1_1', hs_8_1:'hs_1_1', hs_10_1:'hs_1_1', hs_11_1:'hs_1_1',
+          hs_2_4:'hs_1_4', hs_3_4:'hs_1_4', hs_n2:'hs_1_4', hs_5_3:'hs_1_4', hs_6_4:'hs_1_4', hs_8_4:'hs_1_4', hs_9_4:'hs_1_4', hs_10_3:'hs_1_4', hs_11_4:'hs_1_4',
+          hs_n3:'hs_1_4', hs_12_2:'hs_1_4', hs_12_3:'hs_1_4', hs_12_4:'hs_1_4', hs_13_3:'hs_1_4',
+          ss_2_1:'ss_1_1', ss_3_1:'ss_1_1', ss_4_1:'ss_1_1', ss_9_1:'ss_1_1', ss_11_2:'ss_1_1',
+          ss_2_3:'ss_1_3', ss_3_3:'ss_1_3', ss_5_3:'ss_1_3', ss_6_3:'ss_1_3', ss_7_4:'ss_1_3', ss_8_3:'ss_1_3', ss_10_3:'ss_1_3', ss_10_4:'ss_1_3', ss_11_3:'ss_1_3', ss_11_1:'ss_1_3', ss_12_4:'ss_1_3' },
+  /* run for her whenever she has any mechanic talent: her burns made hers, Nebula's circle on the ground, the Haze, the Held Star's spending */
+  always:[
+    {on:'hit',if:{selfPass:'stardust',targetAlive:true},do:[{tagDots:'sd',last:true,on:'target',emit:'sdOn'}]},   // the Stardust burn this hit just left
+    {on:'kit',skill:NEB,do:[{tagDots:'kit'}]}, {on:'cast',skill:NEB,do:[{tagDots:'neb',exact:true,emit:'nebOn'}]},  // Nebula's burns (Lingering Nebula / Thickening: a part second at the end)
+    {on:'at',skill:NEB,unless:'ss_5_1',do:[{zone:'neb',at:'pt',radiusPx:{opt:'radius'},dur:{opt:'dur',d:4},centre:true,ends:'nebEnd'}]},
+    HAZE('neb'), HAZE('star'),                                                     // with Haze learned: an enemy in a Nebula (or on the burning star) is in the Haze, and a while after
+    {on:'kit',req:'hs_12_3',if:{stackFull:'light'},do:[{window:'wol',dur:99}]}, {on:'cast',req:'hs_12_3',do:[{window:'wol',end:true}]},   // Weight of Light: full as the ability is cast
+    {on:'kit',skill:SF,req:'hs_1_4',do:[{stack:'lsp',set:0},{stack:'light',spend:'all',then:[{stack:'lsp',set:{pct:1,of:'spent'}},{emit:'lightSpent'}]}]},   // Starfire spends all the Light
+    {on:'kit',skill:CS,do:[{stack:'lspU',set:0},{window:'lg',end:true}]},
+    {on:'kit',skill:CS,req:'hs_5_3',do:[SPEND_U]},                                 // Imploding Star: Collapsing Star spends it all
+    {on:'kit',skill:CS,req:'hs_13_3',unless:'hs_5_3',if:{stackMin:{light:100}},do:[SPEND_U]}   // Letting Go: so does a Collapsing Star cast with 100 or more
+  ],
+  talents:{
+    /* ============================== SLOW BURN ============================== */
+    sb_1_1:[ {on:'tick',do:[{dotRate:R(0.10),on:{team:'enemy',has:'haze'}}]} ],                     // Haze: her burns on enemies in the Haze tick 10% faster (each tick comes sooner)
+    sb_1_2:[ {stat:{apow:R(0.01)},if:{any:[{some:{team:'enemy',has:'haze'}},{some:{team:'enemy',ust:{heat:5}}}]}} ],   // Starlight
+    sb_1_4:[ {on:'dotTick',do:[{ustack:'heat',on:'target',add:1}]},                                 // Heat: each tick of her burns
+             {on:'flare',if:{targetLacks:'flk'},do:[{mark:'flk',on:'target',dur:0.001},              //   a Flare (each enemy once in one chain of Flares)
+               {ustack:'heat',on:'target',set:0},{ustack:'heat',on:'target',set:P('cinders',0),if:{p:'cinders',targetHpBelow:0.5}},
+               {dmg:{pct:R(0.10),of:'apow'},on:'target',tag:'flare',color:FIRE,emitAmt:'flared'}]} ],
+    sb_2_3:[ {on:'dotOut',if:{tag:'sd'},more:R(0.04)} ],                                            // Bright Dust
+    sb_2_4:[ {param:'hc',add:1}, {on:'flared',do:[{dmg:{pct:R(0.30),of:'hit'},on:HC,tag:'hc',color:FIRE}]} ],   // Hot Core
+    sb_3_1:[ {param:'haze.linger',add:R(0.3)} ],                                                    // Thick Haze
+    sb_2_2:[ {on:'cd',skill:'green',add:R(-0.3)} ],                                                 // Quick Spark
+    sb_4_3:[ {on:'sdOn',do:[{extendDot:R(0.3)}]} ],                                                 // Dust Storm
+    sb_3_4:[ {on:'flared',req:'sb_2_4',do:[{ustack:'heat',on:HC,add:4}]} ],                         // Chain Flare: caught by another enemy's Flare
+    sb_n1:[  {on:'flared',do:[{heal:{pct:R(0.002),of:'maxHp'},on:'self'}]} ],                       // Starwarmed
+    sb_4_2:[ {param:'neb.r',add:R(0.2)}, {on:'kit',skill:NEB,opt:{radius:{addM:R(0.2)}}} ],         // Wide Nebula
+    sb_4_4:[ {on:'dmg:flare',more:R(0.03)} ],                                                       // Ignition Point
+    sb_5_1:[ {on:'dotOut',if:{targetHas:'haze'},more:R(0.02)} ],                                    // Haze Bite
+    sb_8_2:[ {on:'kit',skill:CS,opt:{radius:{addM:R(0.2)}}} ],                                      // Wider Horizon
+    sb_6_1:[ {param:'neb.dur',add:R(0.2)}, {on:'kit',skill:NEB,opt:{dur:{add:R(0.2)}}} ],           // Lingering Nebula
+    sb_6_3:[ {on:'hit',if:{casting:SF},do:[{ustack:'heat',on:'target',add:R(1)}]} ],               // Kindling Starfire
+    sb_6_4:[ {on:'flared',do:[{energy:R(2)}]} ],                                                    // Flare Feed
+    sb_7_2:[ {on:'kit',skill:CS,opt:{mul:{more:R(0.03)}}} ],                                        // Heavy Star
+    sb_7_3:[ {on:'hit',if:{casting:SF,targetAlive:true},do:[{dot:'bs',on:'target',amt:{pct:0.15,of:'apow'},dur:P('burn.long',2),every:0.5,color:FIRE}]} ],   // Burning Starfire
+    sb_7_4:[ {on:'teamHeal',if:{unitDot:true},less:R(0.03)} ],                                      // Searing
+    sb_8_1:[ {on:'kit',skill:NEB,opt:{dps:{more:R(0.05)}}} ],                                       // Settling Haze
+    sb_5_2:[ {on:'sdOn',if:{auto:true},do:[{copyDot:'sd',on:{team:'enemy',of:'target',n:1,skip:'target'}}]} ],   // Catching Fire
+    sb_5_4:[ {param:'heat.dur',add:R(0.4)} ],                                                       // Warmth Kept
+    sb_9_1:[ {on:'cast',skill:CS,do:[{zone:'neb',at:'pt:gravcrush',radius:{b:3,$:'neb.r'},dur:{b:4,$:'neb.dur'},centre:true,ends:'nebEnd'}]} ],   // Haze Collapse (reading: the circle, not a second cast)
+    sb_9_2:[ {on:'cd',less:R(0.01)} ],                                                              // Clear Night
+    sb_9_3:[ {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetDot:true},more:R(0.015)} ],  // Bright Ledger
+    sb_8_4:[ {on:'flared',do:[{slow:R(0.06),dur:2,on:'target'},{slow:R(0.06),dur:2,on:HC,if:{p:'hc'}}]} ],   // Long Flare
+    sb_10_2:[ {on:'in',if:{srcDot:true},less:R(0.015)} ],                                           // Heat Mirage
+    sb_n2:[  {param:'cinders',add:R(1)} ],                                                          // Cinders Kept (the Flare row reads it)
+    sb_10_4:[ {on:'kill',if:{any:[{tag:'flare'},{tag:'hc'}]},do:[{dmg:{pct:1,of:'hit'},on:{team:'enemy',of:'target',within:4,skip:'target'},tag:'nova2',color:FIRE},   // Supernova (reading: 4 m)
+               {slow:{rk:'sb_8_4',r:0.06},dur:2,on:{team:'enemy',of:'target',within:4,skip:'target'}}]} ],
+    sb_11_3:[ {on:'ccHit',if:{casting:CS,cc:['stunned'],talent:false},do:[{ustack:'heat',on:'target',add:R(3)}]} ],   // Crushed Sparks
+    sb_11_4:[ {stat:{aspd:R(-0.003)},per:{ust:'heat',of:'target'},to:{team:'enemy',ust:{heat:1}}} ],   // Fever
+    sb_12_1:[ {param:'burn.long',add:R(0.2)}, {on:['sdOn','nebOn'],do:[{extendDot:R(0.2)}]} ],      // Long Glow
+    sb_n3:[  {on:'hazeOff',do:[{ustack:'heat',on:'target',touch:true,dur:R(1)}]} ],                 // Carried Heat
+    sb_12_3:[ {on:'at',skill:CS,do:[{stack:'bm',set:{units:Object.assign({dot:true},IN_PT),max:5}}]}, {on:'out',if:{casting:CS},more:R(0.01),per:'bm'} ],   // Burning Mass
+    sb_13_3:[ {on:'cast',skill:CS,do:[{emit:'flare',on:DRAG},{zone:'star',at:'pt:gravcrush',radius:3,dur:5}]},   // Every Star Burns (SIGNATURE): the dragged Flare at once
+              {on:'tick',each:{team:'enemy'},if:{targetIn:'star'},period:0.5,do:[{ustack:'heat',on:'target',add:2}]} ],   //   the burning star: 2 Heat every 0.5 s within 3 m (and the Haze: always row)
+
+    /* ============================== THE HELD STAR ============================== */
+    hs_1_1:[ {param:'pt.on',add:1},                                                                 // Points: each enemy Starfire hits, 6 s, at most 3 on the field
+             {on:'hit',if:{casting:SF,targetAlive:true},do:[{mark:'pt',on:'target',dur:P('pt.dur',6),cap:3,added:'ptNew'}]},
+             {on:'out',if:{targetHas:'pt'},more:R(0.02)} ],
+    hs_1_3:[ {on:'out',if:{auto:false},ignoreMr:R(0.03)} ],                                         // Sharp Light
+    hs_1_4:[ {on:'hit',if:{auto:true},do:[{stack:'light',add:LIGHT(4,'light.auto')}]},              // Held Star: 4 Light a basic attack
+             {on:'cast',do:[{stack:'light',add:LIGHT(10)}]},                                        //   10 an ability (after it: Starfire spends what was there)
+             {on:'kit',skill:SF,opt:{mul:{more:R(0.001),per:'lsp'}}} ],                            //   0.1% more per Light spent
+    hs_2_2:[ {on:'kit',skill:SF,opt:{mul:{more:R(0.03)}}} ],                                        // Focused Starfire
+    hs_n1:[  {on:'out',if:{casting:SF,targetHas:'pt'},more:0.04},                                   // Fixed Stars (LINK)
+             {on:'kit',skill:SF,req:'ss_1_3',do:[{window:'fs',dur:99}]}, {on:'cast',skill:SF,req:'ss_1_3',do:[{window:'fs',end:true}]},
+             {on:'ptNew',req:'ss_1_3',if:{window:'fs',casting:SF},do:[{window:'fs',end:true},{mark:'recX',on:'target',spot:'here',dur:2}]} ],   //   with Recorded: the first new Point, 2 s
+    hs_2_4:[ {param:'light.max',add:R(15)} ],                                                       // Brighter Coin
+    hs_2_1:[ {param:'pt.dur',add:R(1)} ],                                                           // Long Points
+    hs_4_2:[ {on:'at',skill:SF,do:[{mark:'ctr',on:{team:'enemy'},clear:true},{mark:'ctr',on:Object.assign({n:1},IN_PT)}]},   // Tight Nova: the enemy nearest its centre
+             {on:'out',if:{casting:SF,targetHas:'ctr'},more:R(0.06)} ],
+    hs_4_3:[ {on:'kit',skill:CS,opt:{stun:{add:R(0.15),ccRaw:true}}} ],                            // Heavier Collapse
+    hs_3_4:[ {on:'kit',skill:SF,if:{stackMin:{lsp:100}},do:[{window:'ss',dur:99}]}, {on:'cast',skill:SF,do:[{window:'ss',end:true}]},   // Spent Star
+             {on:'hit',if:{casting:SF,window:'ss',targetAlive:true},do:[{stun:0.8,on:'target'}]} ],
+    hs_4_1:[ {on:'death',if:{who:'enemy',unitHas:'pt'},do:[{stack:'light',add:{r:8,$m:'light.fast'}}]} ],   // Point by Point
+    hs_n2:[  {on:'kit',skill:SF,if:{stackMin:{lsp:50}},do:[{energy:R(1)}]} ],                      // Bright Return
+    hs_5_3:[ {on:'kit',skill:CS,opt:{mul:{more:0.003,per:'lspU'}}} ],                               // Imploding Star (the spend: always row)
+    hs_5_4:[ {on:'kit',skill:CS,opt:{radius:{addM:2},mul:{more:-0.15}}} ],                          // Wide Collapse
+    hs_5_2:[ {on:'kit',skill:SF,opt:{radius:{addM:R(0.1)}}} ],                                      // Open Hand
+    hs_3_3:[ {on:'kit',skill:CS,opt:{mul:{more:R(0.03)}}} ],                                        // Collapsing Light
+    hs_6_1:[ {on:'out',if:{auto:true,targetHas:'pt'},more:R(0.08)} ],                               // Star Chart
+    hs_6_2:[ {on:'cd',skill:'green',add:R(-0.3)} ],                                                 // Quick Starfire
+    hs_6_4:[ {on:'wave',do:[{stack:'light',atLeast:R(6)}]} ],                                       // Hoard
+    hs_7_1:[ {on:'out',if:{auto:false},more:R(0.025)}, {on:'in',if:{srcMelee:false},more:R(0.02)} ],   // Glass Sky (RISK)
+    hs_7_2:[ {on:'at',skill:SF,do:[{after:0.5,do:[{dmg:{pct:0.5,of:'raw'},def:'magic',on:IN_PT,tag:'twin',color:STAR}]}]} ],   // Twin Starfire: the same spot 0.5 s later, half
+    hs_8_1:[ {on:'out',if:{casting:SF,targetHas:'pt'},more:R(0.04)} ],                              // Marked Points
+    hs_8_3:[ {on:'ccHit',if:{casting:CS,cc:['stunned'],talent:false},do:[{mark:'dc',on:'target',dur:3}]}, {on:'out',if:{targetHas:'dc'},more:R(0.02)} ],   // Deep Collapse
+    hs_8_4:[ {param:'light.fast',add:R(0.10)} ],                                                    // Coin Turn
+    hs_9_2:[ {on:'at',skill:SF,do:[{stack:'nHit',set:{units:IN_PT}}]}, {on:'out',if:{casting:SF},more:R(0.02),per:{stack:'nHit',over:1,max:4}} ],   // Crowded Sky
+    hs_9_3:[ {on:'out',if:{casting:CS,targetHpAbove:0.5},more:R(0.02)} ],                           // Great Mass
+    hs_9_4:[ {on:'tick',edge:true,once:'wave',if:{selfHpBelow:0.40},do:[{stack:'light',set:'max'}]} ],   // Flip
+    hs_10_1:[ {stat:{move:R(-0.04)},to:{team:'enemy',has:'pt'}} ],                                  // Pinned Points
+    hs_10_2:[ {on:'cd',less:R(0.01)} ],                                                             // Night Patience
+    hs_10_3:[ {on:'cast',skill:CS,do:[{stack:'light',add:{r:20,$m:'light.fast'}}]} ],               // Let It Go
+    hs_11_1:[ {on:'kit',skill:SF,if:{atLeast:{n:3,of:{team:'enemy',has:'pt'}}},do:[{window:'tl',dur:99}]},   // Three Lights: 3 Points as she casts
+              {on:'at',skill:SF,if:{window:'tl'},do:[{window:'tl',end:true},{emit:'tlBurst',on:{team:'enemy',has:'pt'}}]},
+              {on:'tlBurst',do:[{dmg:{pct:1,of:'raw'},def:'magic',on:{team:'enemy',of:'target',withinOpt:'radius'},tag:'tl',color:STAR}]} ],   //   a burst like Starfire's on each Point
+    hs_11_4:[ {on:'in',less:R(0.002),per:{stack:'light',div:10}} ],                                 // Patient Coin
+    hs_n3:[  {on:'lightSpent',do:[{stack:'light',add:{pct:R(0.10),of:'spent'}}]} ],                 // Kept Change
+    hs_12_2:[ {stat:{armor:R(0.03)},if:{stackMin:{light:50}}} ],                                    // Midnight Coat
+    hs_12_3:[ {on:'out',if:{auto:false,window:'wol'},more:R(0.02)} ],                               // Weight of Light (the window: always row)
+    hs_12_4:[ {param:'light.auto',add:R(1)} ],                                                      // Steady Coin
+    hs_13_3:[ {on:'kit',skill:CS,if:{stackMin:{lspU:100}},do:[{window:'lg',dur:99}]},               // Letting Go (SIGNATURE): cast with 100 or more Light
+              {on:'cast',skill:CS,if:{window:'lg'},do:[{window:'lg',end:true},{after:0.3,do:[       //   after the drag (its 0.3 s), on the centre
+                {dmg:{pct:2.5,of:'apow'},on:LG,tag:'lg',color:STAR},{extend:'stunned',by:1,on:LG},{mark:'pt',on:LG,dur:P('pt.dur',6),cap:3,if:{p:'pt.on'}}]}]} ],
+
+    /* ============================== THE SECOND SKY ============================== */
+    ss_1_1:[ {on:'hit',if:{casting:SF,targetAlive:true},do:[{mark:'orbit',on:'target',dur:P('orbit.dur',3),longest:true},   // Orbit
+               {pull:'target',to:'pt:nova',speed:R(0.2),secs:P('orbit.dur',3)}]} ],                 //   drifting 0.2 m a second toward where it burst
+    ss_1_3:[ {on:'wave',do:REC}, {on:'end:rc',do:REC},                                              // Recorded: every 6 s, the 3 enemies nearest her
+             {on:'out',if:{targetAway:OOP},more:R(0.03)} ],                                         //   Out of Place
+    ss_2_1:[ {param:'orbit.dur',add:R(0.5)} ],                                                      // Tight Orbit
+    ss_2_3:[ {param:'oop.m',add:R(-0.5)} ],                                                         // Four Degrees
+    ss_3_1:[ {on:'in',if:{srcHas:'orbit'},less:R(0.015)}, {on:'teamIn',if:{srcTeam:'enemy',targetTeam:'ally',srcHas:'orbit'},less:R(0.015)} ],   // Orbit Weight
+    ss_3_2:[ {stat:{move:R(-0.02)},if:{zone:'neb'},to:{team:'enemy',inZone:'neb'}} ],               // Clinging Nebula
+    ss_3_3:[ {on:'tick',do:[{slow:0.20,dur:0.2,on:{team:'enemy',away:OOP}}]} ],                     // Moved Star
+    ss_4_1:[ {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetHas:'orbit'},more:R(0.02)} ], // Bound to Orbit
+    ss_4_2:[ {stat:{aspd:R(-0.03)},if:{zone:'neb'},to:{team:'enemy',inZone:'neb'}} ],               // Dense Nebula
+    ss_4_4:[ {on:'cd',skill:'blue',add:R(-0.5)} ],                                                  // Patient Ledger
+    ss_5_1:[ {on:'at',skill:NEB,do:[{zone:'neb',at:'pt',radiusPx:{opt:'radius'},dur:{opt:'dur',d:4},centre:true,ends:'nebEnd',follow:Object.assign({n:1},IN_PT)}]} ],   // Bright Nebula
+    ss_5_2:[ {on:'at',skill:NEB,do:[{window:'dn',dur:1.5}]}, {stat:{move:-1},if:{window:'dn'},to:{team:'enemy',inZone:'neb'}} ],   // Dark Nebula (reading: held in place)
+    ss_5_3:[ {param:'rec.n',add:R(1)} ],                                                            // Second Entry
+    ss_5_4:[ {on:'ccIn',less:R(0.04)} ],                                                            // Star Calm
+    ss_6_1:[ {on:'kit',skill:SF,opt:{radius:{addM:R(0.1)}}} ],                                      // Wide Orbit
+    ss_6_3:[ {on:'teamIn',if:{srcIs:'ally',targetAway:OOP},more:R(0.03)} ],                         // Out of Turn
+    ss_6_4:[ {on:'kit',skill:CS,opt:{stun:{add:R(0.15),ccRaw:true}}} ],                            // Firm Hand
+    ss_7_2:[ {on:'kit',skill:NEB,opt:{dps:{more:R(0.03)}}} ],                                       // Nebula Weight
+    ss_7_3:[ {on:'kit',skill:CS,opt:{mul:{more:R(0.03)}}} ],                                        // Heavy Sky
+    ss_7_4:[ {on:'cast',skill:CS,do:[{mark:'recX',on:DRAG,spot:'pt:gravcrush',dur:P('rec.every',6)}]} ],   // Rewritten Sky
+    ss_8_2:[ {param:'neb.dur',add:R(0.3)}, {on:'kit',skill:NEB,opt:{dur:{add:R(0.3)}}} ],           // Thickening
+    ss_8_3:[ {param:'rec.every',add:R(1)} ],                                                        // Mark Kept
+    ss_9_1:[ {on:'tick',do:[{slow:R(0.03),dur:0.2,on:{team:'enemy',has:'orbit'}}]} ],               // Captured
+    ss_9_2:[ {on:'nebEnd',do:[{pull:IN_PT,to:'pt',secs:0.3},{stun:0.5,on:IN_PT}]} ],                // Star Nursery
+    ss_9_4:[ {on:'cd',less:R(0.01)} ],                                                              // Steady Count
+    ss_10_1:[ {on:'in',if:{srcBeyond:8},less:R(0.03)} ],                                            // Distant Observer
+    ss_10_3:[ {on:'in',if:{srcAway:OOP},less:R(0.015)}, {on:'teamIn',if:{srcTeam:'enemy',targetTeam:'ally',srcAway:OOP},less:R(0.015)} ],   // Old Sky
+    ss_10_4:[ {on:'death',if:{who:'enemy',unitAway:OOP},do:[{heal:{pct:R(0.01),of:'maxHp'},on:'self'}]} ],   // Ink and Starlight
+    ss_11_2:[ {on:'cast',skill:CS,do:[{mark:'orbit',on:DRAG,dur:R(0.4),longest:true},{pull:DRAG,to:'pt:gravcrush',speed:{rk:'ss_1_1',r:0.2},secs:R(0.4)}]} ],   // Star Gravity
+    ss_11_3:[ {on:'tick',each:{team:'enemy'},edge:true,if:{targetAway:OOP},do:[{pull:'target',to:{spot:OOP.mark},m:R(0.5),secs:0.3}]} ],   // Back Where It Was
+    ss_12_1:[ {stat:{move:R(0.03)}} ],                                                              // Night Breeze
+    ss_12_2:[ {on:'cast',skill:CS,do:[{silence:R(0.3),on:DRAG}]} ],                                 // Hushed Sky
+    ss_11_1:[ {on:'at',skill:CS,each:IN_PT,icd:12,if:{any:[{targetMin:{immovable:1}},{targetMin:{_gearImmovableT:1e-9}},{targetMin:{stunImmune:1}}]},   // Watcher's Calm
+               do:[{mark:'recX',on:'target',spot:'here',dur:R(2),awayFor:R(2)}]} ],
+    ss_12_4:[ {on:'in',less:R(0.01),per:{units:{team:'enemy',away:OOP},max:3}} ],                   // Many Wrong
+    ss_13_2:[ {on:'cast',skill:CS,do:[{mark:'sky',on:{team:'enemy'},spot:'here',dur:8},{ustack:'skyN',on:{team:'enemy'},set:0}]},   // The Second Sky (SIGNATURE)
+              {on:'tick',each:{team:'enemy',has:'sky'},if:{targetAway:{mark:'sky',m:2},targetLacks:'skyL',targetUstBelow:{skyN:2}},   //   more than 2 m from its mark: dragged back, stunned
+               do:[{mark:'skyL',on:'target',dur:0.35},{ustack:'skyN',on:'target',add:1},{pull:'target',to:{spot:'sky'},secs:0.3},{stun:0.6,on:'target'}]} ]
+  },
+  /* one sentence runs, another waits for a ruling */
+  partial:{},
+  /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
+  ruling:{
+    sb_5_3:'"stack on the same enemy, up to 3 at once, instead of refreshing": Stardust burns already stack with no limit and never refresh, so the sentence describes a game that is not there'
+  }
+};
+
+return module.exports;})();
   MECH["sylthaine"]=(function(){const module={exports:{}};
 /* SYLTHAINE - what her learned talents do in a fight (the mechanics; her 8 plain stat talents are read from their tooltips by the generator).
    Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
@@ -927,7 +1140,7 @@ return module.exports;})();
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
     const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
-      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
+      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
       if(c.stat){ (c.to?T.auras:T.stats).push(c); if(c.stat.nrg) T.nrg=true; return; }
@@ -935,6 +1148,7 @@ return module.exports;})();
     (M.always||[]).forEach((row,i)=>add('',row,i,1));
     for(const id of ids){ const rows=M.talents[id]; if(rows&&has(id)) rows.forEach((row,i)=>add(id,row,i,r[id])); }
     if(M.casting){ T.on.kit=T.on.kit||[]; T.on.cast=T.on.cast||[]; }        // the hero's rows ask "which skill is this hit from": keep the two skill hooks on
+    if(M.points) T.on.at=T.on.at||[];                                         // the hero's rows read where her area skills land ('pt:<skill>'): the at hook must run for each of them
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
@@ -993,9 +1207,19 @@ return module.exports;})();
       tm.splice(i--,1); const broke=now<e.until-1e-9; clearMark(u,t,e.name); if(t.alive&&e.ends&&T.on[e.ends]) run(T,u,e.ends,{u,tgt:t,unit:t,broke}); } }
   /* ---- ground zones: circles on the field that the owner's rows can ask about. T.s.zn[name] = [{x,y,r (pixels),until,centre}]. A unit is ON a zone
           when any part of its body is over it (centre:true: when its centre is inside, as the engine's own skill circles measure). No picture. ---- */
+  const zoneAt=z=>{ if(z.f&&z.f.alive){ z.x=z.f.x; z.y=z.f.y; } };            // a zone that follows a unit (Astra's Bright Nebula) stands where that unit stands; where it fell once it dies
   function inZone(T,x,name){ const L=T.s.zn[name]; if(!L||!x) return false; const now=E.now();
-    for(let i=0;i<L.length;i++){ const z=L[i]; if(now>=z.until) continue; const d=Math.hypot(x.x-z.x,x.y-z.y); if(z.centre?(d<z.r):(d-E.bodyR(x)<z.r)) return true; } return false; }
+    for(let i=0;i<L.length;i++){ const z=L[i]; if(now>=z.until) continue; zoneAt(z); const d=Math.hypot(x.x-z.x,x.y-z.y); if(z.centre?(d<z.r):(d-E.bodyR(x)<z.r)) return true; } return false; }
+  /* zones with an end event ({zone, ends:'event'}): the owner's tick fires it once when the zone's time is up. ctx.pt = where it stood, ctx.o.radius = its radius */
+  function zoneEnds(T,u){ const now=E.now(); for(const k in T.s.zn){ const L=T.s.zn[k]; for(let i=0;i<L.length;i++){ const z=L[i]; if(!z.ends||now<z.until) continue; L.splice(i--,1); zoneAt(z);
+        if(T.on[z.ends]) run(T,u,z.ends,{u,tgt:u.target,pt:{x:z.x,y:z.y,pt:true},o:{radius:z.r},zone:k}); } } }
+  /* recorded places: a mark may carry a spot ({mark, spot:'here' | 'pt' | 'pt:<skill>', awayFor}). away: the unit carries one of those marks and its centre is more than
+     m metres from that mark's spot (or the mark says it counts as away until awayFor runs out). Astra's Recorded / Out of Place */
+  function away(T,u,x,v){ if(!x||!v) return false; const L=Array.isArray(v.mark)?v.mark:[v.mark], now=E.now(), lim=(v.m||0)*E.METER();
+    for(let i=0;i<L.length;i++){ const m=markOf(u,x,L[i]); if(!m) continue; if(m.aw!=null&&now<m.aw) return true; if(m.sx!=null&&Math.hypot(x.x-m.sx,x.y-m.sy)>lim) return true; } return false; }
+  function spotOf(u,t,names){ const L=Array.isArray(names)?names:[names]; for(let i=0;i<L.length;i++){ const m=markOf(u,t,L[i]); if(m&&m.sx!=null) return {x:m.sx,y:m.sy}; } return null; }
   const zoneOn=(T,name)=>{ const L=T.s.zn[name]; if(!L) return false; const now=E.now(); for(let i=0;i<L.length;i++) if(now<L[i].until) return true; return false; };
+  const ptRef=(T,ctx,o)=>o==='pt'?((ctx&&ctx.pt)||null):(typeof o==='string'&&o.slice(0,3)==='pt:')?(T.s.pt[o.slice(3)]||null):undefined;   // 'pt': the point the event is about; 'pt:<skill>': where that skill of hers last landed
   const myDot=(u,d,tag)=>d._talO===u.uid&&(tag===true||d._talK===tag)&&d.remaining>0;   // tag true: any DoT of hers (her skills' DoTs she tagged, and her talents')
   function hasDot(u,t,tag){ if(!t||!t.dots) return false; for(let i=0;i<t.dots.length;i++) if(myDot(u,t.dots[i],tag)) return true; return false; }
   function countDots(u,tag){ let n=0; const U=E.units(); for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||!x.dots) continue; for(let j=0;j<x.dots.length;j++) if(myDot(u,x.dots[j],tag)) n++; } return n; }
@@ -1037,6 +1261,7 @@ return module.exports;})();
     case 'gap': return (ctx&&ctx.tgt)?Math.max(0,gap(u,ctx.tgt))/E.METER():0;              // metres between her body and the target's
     case 'a0': return ctx?(ctx.a0||0):0;                                                 // a heal on a watched unit as it reached the talent rows
     case 'cut': return ctx?Math.max(0,(ctx.a0||0)-(ctx.amt||0)):0;                       // what the rows before have cut from that heal
+    case 'raw': return ctx?(ctx.raw||0):0;                                               // an area skill's damage to each enemy as the skill computes it, before the target's resist (the at hook)
     default: return 0; } }
   function amtOf(T,u,a,ctx){ if(typeof a==='number') return a; if(!a) return 0;
     if(a.left){ const x=a.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt), m=markOf(u,x,a.left); return (m&&m.until!=null)?Math.max(0,m.until-E.now()):0; }   // left: the seconds that mark of hers has left on that unit
@@ -1054,9 +1279,9 @@ return module.exports;})();
     if(sel==='source') return (ctx&&ctx.src)?[ctx.src]:[]; if(sel==='unit') return (ctx&&ctx.unit)?[ctx.unit]:[];
     if(sel==='lastHit'){ const b=ctx&&ctx.tgt&&ctx.tgt._talBy; return (b&&b.alive&&b.team!==u.team)?[b]:[]; }       // the enemy that last hit the unit the event is about
     if(sel==='lowestAlly'){ const x=E.lowestAlly(u); return x?[x]:[]; }                 // the ally the engine itself picks as the most wounded (Harmony's centre)
-    if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } return []; }
-    const ref=o=>o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null;
-    const c=ref(sel.of||'self'); if(!c) return [];
+    if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } const p=ptRef(T,ctx,sel); return p?[p]:[]; }
+    const ref=o=>{ const p=ptRef(T,ctx,o); if(p!==undefined) return p; return o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null; };
+    const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
     const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally';
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
@@ -1074,9 +1299,10 @@ return module.exports;})();
       if(sel.inZone&&!inZone(T,x,sel.inZone)) continue;
       if(sel.hpBelow!=null&&!(x.hp<sel.hpBelow*x.maxHp)) continue;
       if(sel.dot!=null&&!hasDot(u,x,sel.dot)) continue;                              // carries a DoT of hers (true: any)
+      if(sel.away&&!away(T,u,x,sel.away)) continue;                                  // away from a place she recorded for it
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
-      const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-E.bodyR(c)-E.bodyR(x)<R))) continue; out.push([x,d]); }
+      const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
     else if(od==='lowMax') out.sort((a,b)=>(a[0].maxHp||0)-(b[0].maxHp||0));        // the most fragile first (the lowest max HP, as Hookline itself ranks them)
@@ -1148,6 +1374,9 @@ return module.exports;})();
     targetAlive:(T,u,v,c)=>!!c.tgt&&!!c.tgt.alive===v,     // the target still stands (a strike may have killed it)
     tgtNone:(T,u,v,c)=>!c.tgt===v,                          // the skill found no target
     dropBelow:(T,u,v,c)=>u.hp>=v*u.maxHp&&(u.hp+(u.shield||0)-(c.amt||0))<v*u.maxHp,   // this hit, as it reaches her (after armor, through her shield), would take her below that share
+    srcDot:(T,u,v,c)=>hasDot(u,c.src,v),                    // the attacker carries a DoT of hers ("burning enemies")
+    targetAway:(T,u,v,c)=>away(T,u,c.tgt,v), unitAway:(T,u,v,c)=>away(T,u,c.unit,v), srcAway:(T,u,v,c)=>away(T,u,c.src,v),   // {mark, m}: away from the place she recorded for it
+    targetUstBelow:(T,u,v,c)=>{ for(const k in v) if(!(ustGet(T,u,c.tgt,k)<v[k])) return false; return true; },   // the target carries fewer than that many of her unit stacks
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
   const fmin=(x,v)=>{ if(!x) return false; for(const f in v) if(!((+x[f]||0)>=v[f])) return false; return true; };
@@ -1231,6 +1460,7 @@ return module.exports;})();
   function acts(T,u,list,ctx){ for(let i=0;i<list.length;i++){ const a=list[i]; if(a.if&&!ok(T,u,a.if,ctx)) continue; if(act(T,u,a,ctx)===false) break; } }
   const CLEANSE=['stunned','fearT','silencedT','_sleepT','slow'];
   function act(T,u,a,ctx){ const s=T.s;
+    if(a.after!=null){ s.dq.push({t:E.now()+amtOf(T,u,a.after,ctx),list:a.do||[],ctx:Object.assign({},ctx)}); return; }   // after: these actions that many seconds from now (the owner's tick runs them, with this event's context)
     if(a.stack){ const have=stGet(T,a.stack);
       if(a.spend!=null){ const n=a.spend==='all'?have:a.spend; if(a.spend!=='all'&&have<n) return false; if(!(n>0)) return;
         stSet(T,u,a.stack,have-n); if(a.then) acts(T,u,a.then,Object.assign({},ctx,{spent:n})); return; }
@@ -1245,13 +1475,16 @@ return module.exports;})();
     if(a.mark){ const ts=pick(T,u,a.on,ctx); for(const t of ts){ if(a.clear){ if(a.fire!=null) endMark(T,u,t,a.mark,a.fire,ctx); else clearMark(u,t,a.mark); }
         else if(a.ends||a.while) timedMark(T,u,t,a.mark,a,ctx);
         else { const had=a.added?!!markOf(u,t,a.mark):true; setMark(T,u,t,a.mark,typeof a.dur==='object'?Object.assign({},a,{dur:amtOf(T,u,a.dur,ctx)}):a);
+          if(a.spot||a.awayFor!=null){ const m=markOf(u,t,a.mark); if(m){ const p=a.spot==='here'?t:(a.spot?pick(T,u,a.spot,ctx)[0]:null); if(p){ m.sx=p.x; m.sy=p.y; }   // spot: the place recorded with the mark ('here': where the unit stands now)
+              if(a.awayFor!=null) m.aw=E.now()+amtOf(T,u,a.awayFor,ctx); } }                                                                                  // awayFor: it counts as away from that place for so long
           if(!had&&T.on[a.added]) run(T,u,a.added,Object.assign({},ctx,{tgt:t})); } } return; }   // added: an event when the unit did not carry it before (newly on her list)
     if(a.zone){ const L=s.zn[a.zone]||(s.zn[a.zone]=[]);
       const at=a.at||'target', c=typeof at==='object'?{x:u[at.x],y:u[at.y]}:pick(T,u,at,ctx)[0]; if(!c||c.x==null) return;
-      const now=E.now(); for(let i=L.length-1;i>=0;i--) if(a.only||now>=L[i].until) L.splice(i,1); if(L.length>=24) L.shift();   // only: this one replaces the ones still down
-      L.push({x:c.x,y:c.y,r:a.radiusPx!=null?amtOf(T,u,a.radiusPx,ctx):amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre}); return; }   // radiusPx: a radius already in the engine's length unit (a skill's own `radius` option)
+      const now=E.now(); for(let i=L.length-1;i>=0;i--) if((a.only||now>=L[i].until)&&!L[i].ends) L.splice(i,1); if(L.length>=24) L.shift();   // only: this one replaces the ones still down (a zone with an end event stays until its tick fires it)
+      const z={x:c.x,y:c.y,r:a.radiusPx!=null?amtOf(T,u,a.radiusPx,ctx):amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre};   // radiusPx: a radius already in the engine's length unit (a skill's own `radius` option)
+      if(a.follow){ const f=pick(T,u,a.follow,ctx)[0]; if(f&&f.uid!=null) z.f=f; } if(a.ends) z.ends=a.ends; L.push(z); return; }   // follow: the zone moves with that unit; ends: its end event
     if(a.ustack){ const d=T.st[a.ustack]||{}, mx=d.max==null?Infinity:d.max, burst=[];
-      if(a.touch){ for(const t of pick(T,u,a.on,ctx)){ const v=ustGet(T,u,t,a.ustack); if(v>0) ustPut(T,u,t,a.ustack,v); } return; }   // touch: what it carries lapses again from now ("refreshed with the wound")
+      if(a.touch){ const dd=a.dur!=null?amtOf(T,u,a.dur,ctx):undefined; for(const t of pick(T,u,a.on,ctx)){ const v=ustGet(T,u,t,a.ustack); if(v>0) ustPut(T,u,t,a.ustack,v,dd); } return; }   // touch: what it carries lapses again from now ("refreshed with the wound"); dur: that long from now (with `longest`: never sooner than it would have)
       for(const t of pick(T,u,a.on,ctx)){ if(!t.alive) continue;
         if(a.set!=null){ ustPut(T,u,t,a.ustack,a.set==='max'?mx:Math.min(mx,amtOf(T,u,a.set,ctx))); if(a.burst) burst.push(t); continue; }   // set (burst: then each one's `full` event, after all are set)
         if(a.lock&&markOf(u,t,a.lock)) continue;                                                       // lock: each unit at most once every lockDur seconds from this action
@@ -1263,6 +1496,8 @@ return module.exports;})();
     /* her skills' own DoTs made hers ({tagDots:'kit'} on kit, {tagDots:'<tag>', exact, emit} on cast): the DoTs the skill pushed in between, with her as the source, carry her tag,
        so their ticks run her rows (dotOut, dotTick, kill by a DoT). exact: a duration the skill's options give in part-seconds ends on a part tick (the engine counts whole ticks).
        ctx.dot / ctx.tgt: the DoT tagged last and its holder (Bleed Them Dry's wound); emit: an event for each DoT tagged */
+    if(a.tagDots&&a.last){ for(const t of pick(T,u,a.on,ctx)){ const D=t.dots, d=D&&D[D.length-1]; if(!d||d.src!==u||d._talO!=null) continue;   // last: the DoT her passive has just put on that unit (Astra's Stardust, pushed after the blow) becomes hers
+        d._talO=u.uid; d._talK=a.tagDots; if(a.emit&&T.on[a.emit]) run(T,u,a.emit,Object.assign({},ctx,{tgt:t,dot:d})); } return; }
     if(a.tagDots){ if(a.tagDots==='kit'){ const al=[]; for(const x of E.units()) if(x.alive&&x.team!==u.team&&x.dots) al.push([x,x.dots.length]); s.dl=al; return; }
       const L=s.dl||[]; s.dl=null; for(const e of L){ const D=e[0].dots; for(let i=e[1];i<D.length;i++){ const d=D[i]; if(d.src!==u||d._talO!=null) continue; d._talO=u.uid; d._talK=a.tagDots;
           if(a.exact&&ctx.o&&ctx.o.dur>0){ const q=ctx.o.dur/(d.interval||1); if(Math.abs(q-Math.round(q))>1e-9){ d.remaining=Math.ceil(q-1e-9); d._talF=q-(d.remaining-1); } }
@@ -1284,6 +1519,20 @@ return module.exports;})();
       if(a.tagHots==='kit'){ s.hl=al.map(x=>[x,x.hots.length]); return; }
       for(const e of (s.hl||[])){ const H=e[0].hots; for(let i=e[1];i<H.length;i++) if(!H[i]._talU){ H[i]._talU=u; H[i]._talK=a.tagHots; } } s.hl=null; return; }
     if(a.unhot){ for(const x of E.units()){ const H=x.hots; if(!H) continue; for(let i=H.length-1;i>=0;i--) if(H[i]._talX===u.uid&&H[i]._talK===a.unhot) H.splice(i,1); } return; }   // her talent's heal over time stops
+    /* moving a unit: the engine's own drag (pulledBy / pullT / pullStop / pullSpeed, as Collapsing Star and Event Horizon set it); an immovable unit is not moved.
+       to: 'pt' | 'pt:<skill>' | {spot:<mark name(s)>} (the place recorded with that mark). secs: over that long, m metres (all the way when left out);
+       or speed: metres a second for secs ("drifts 0.2 m each second") */
+    if(a.pull!=null){ const M=E.METER(); for(const t of pick(T,u,a.pull,ctx)){ if(!t.alive||t.immovable||(t._gearImmovableT||0)>0) continue;
+        const p=(a.to&&a.to.spot)?spotOf(u,t,a.to.spot):pick(T,u,a.to,ctx)[0]; if(!p||p.x==null) continue; const dd=Math.hypot(p.x-t.x,p.y-t.y), tm=amtOf(T,u,a.secs,ctx)||0.3;
+        if(a.speed!=null){ const v=amtOf(T,u,a.speed,ctx)*M; if(!(v>0)) continue; t.pullStop=0; t.pullSpeed=v; }
+        else { const L=a.m!=null?Math.min(dd,amtOf(T,u,a.m,ctx)*M):dd; if(!(L>0)) continue; t.pullStop=dd-L; t.pullSpeed=Math.max(1,L/tm); }
+        t.pulledBy={x:p.x,y:p.y,alive:true}; t.pullT=tm; t._pullGhost=false; } return; }
+    if(a.extend){ const cap=E.ccCap(a.extend), by=amtOf(T,u,a.by,ctx); if(!(by>0)) return;      // a control already on the unit lasts that much longer (cut at the engine's cap)
+      for(const t of pick(T,u,a.on,ctx)) if(t.alive&&(t[a.extend]||0)>0){ let v=t[a.extend]+by; if(cap&&v>cap) v=cap; t[a.extend]=Math.max(t[a.extend],v); } return; }
+    if(a.dotRate!=null){ const k=(ctx.dt||0)*amtOf(T,u,a.dotRate,ctx); if(!(k>0)) return;          // her DoTs on those units tick that much faster (on a tick row: each tick comes sooner, the same number of ticks)
+      for(const t of pick(T,u,a.on,ctx)){ const D=t.dots; if(D) for(let i=0;i<D.length;i++) if(myDot(u,D[i],true)) D[i].acc+=k; } return; }
+    if(a.extendDot!=null){ const d=ctx.dot; if(!d||!(d.remaining>0)) return; const add=amtOf(T,u,a.extendDot,ctx)/(d.interval||1); if(!(add>0)) return;   // the DoT the event is about lasts that many seconds longer (a part tick at the end)
+      const n=d.remaining-1+(d._talF!=null?d._talF:1)+add; d.remaining=Math.ceil(n-1e-9); const f=n-(d.remaining-1); d._talF=(f<1-1e-9)?f:null; return; }
     if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=+t[a.field]||0; if(a.add!=null) v+=a.add; if(a.max!=null) v=Math.min(a.max,v); t[a.field]=v; } return; }   // an engine counter on a unit (Crescendo's ring count)
     if(a.kill){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) hurt(T,u,t,((t.hp||0)+(t.shield||0))*20+1,a.color,a.tag); return; }   // a talent kill: through the engine's own damage (a unit kept alive by a save stays alive)
     if(a.strip!=null){ for(const t of pick(T,u,a.on,ctx)) if((t.shield||0)>0) t.shield*=Math.max(0,1-a.strip); return; }   // that share of a unit's shield is gone
@@ -1323,11 +1572,13 @@ return module.exports;})();
         t.shield=a.mode==='max'?Math.max(t.shield||0,x):(t.shield||0)+x; t.shieldT=Math.max(t.shieldT||0,d); if(a.emit&&T.on[a.emit]){ c2.amt=x; run(T,u,a.emit,c2); } } return; }   // mode max: as the engine's own skill shields (the larger one stays)
     if(a.unshield){ u.shield=0; return; }
     if(a.energy!=null){ for(const t of pick(T,u,a.on||'self',ctx)) t.energy=Math.max(0,Math.min(100,(t.energy||0)+a.energy)); return; }
-    if(a.dmg!=null){ const sc=a.scale==null?1:a.scale; let done=0;
+    if(a.dmg!=null){ const sc=a.scale==null?1:a.scale; let done=0, asked=0;
       for(const t of pick(T,u,a.on,ctx)){ const x=amtOf(T,u,a.dmg,Object.assign({},ctx,{tgt:t}))*sc; if(!(x>0)) continue; let y=x;   // the amount is read for each unit struck ("6% of its max HP")
         if(a.tag&&T.on['dmg:'+a.tag]){ const c2=Object.assign({},ctx,{tgt:t,amt:x}); run(T,u,'dmg:'+a.tag,c2); y=c2.amt; }   // rows may change this damage
-        done+=hurt(T,u,t,y,a.color,a.tag); }
-      if(a.emit&&done>0) run(T,u,a.emit,Object.assign({},ctx,{spent:done})); return; }
+        if(a.def) y*=E.defMul(u,t,a.def);                                                                    // def: the target's resist applies, as to her skill's own hit (a skill burst repeated by a talent)
+        asked+=y; done+=hurt(T,u,t,y,a.color,a.tag); }
+      if(a.emit&&done>0) run(T,u,a.emit,Object.assign({},ctx,{spent:done}));
+      if(a.emitAmt&&T.on[a.emitAmt]) run(T,u,a.emitAmt,Object.assign({},ctx,{spent:done,amt:asked})); return; }   // emitAmt: an event in any case, amt = the damage as dealt (before the target's shield)
     if(a.cd){ const f=a.cd==='blue'?'blueCd':'greenCd'; if(a.set!=null) u[f]=a.set; else if(a.mul!=null) u[f]=Math.max(0,(u[f]||0)*a.mul); else u[f]=Math.max(0,(u[f]||0)+a.add); return; }   // mul: the time left that many times
     if(a.slow!=null){ let d=a.dur||1; if(T.on.ccOut){ const c={u,src:u,field:'slow',amt:d}; run(T,u,'ccOut',c); d=c.amt; }
       for(const t of pick(T,u,a.on,ctx)){ t.slow=Math.max(t.slow||0,d); t.slowMul=Math.min(t.slowMul==null?1:t.slowMul,Math.max(0.05,1-a.slow)); } return; }
@@ -1448,6 +1699,9 @@ return module.exports;})();
      land: right after - 'land' rows ("the moment she lands behind someone") */
   function landPre(u,t,skill){ const T=u._tal; T.s.cur=skill; if(T.on.landPre) run(T,u,'landPre',{u,src:u,tgt:t,skill}); }
   function land(u,t,skill){ const T=u._tal; T.s.cur=null; if(T.on.land) run(T,u,'land',{u,src:u,tgt:t,skill}); }
+  /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
+     target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
+  function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
   /* a cooldown was just set after a cast: slot 'green' | 'blue' */
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
@@ -1473,6 +1727,8 @@ return module.exports;})();
     if(s.fresh){ s.fresh=false; startWave(T,u); }
     s.moved=(u.x!==u.px||u.y!==u.py);
     if(s.tm.length) tickMarks(T,u);
+    zoneEnds(T,u);
+    if(s.dq.length){ const now=E.now(); for(let i=0;i<s.dq.length;i++){ const q=s.dq[i]; if(now<q.t-1e-9) continue; s.dq.splice(i--,1); acts(T,u,q.list,q.ctx); } }   // what 'after' put off is due
     for(const k in s.w){ const w=s.w[k]; if(w.t>0&&w.t!==Infinity){ w.t-=dt; if(w.t<=1e-9){ w.t=0; if(T.on['end:'+k]) run(T,u,'end:'+k,{u,tgt:u.target}); } } }
     for(const k in s.k){ const st=s.k[k], d=T.st[k]; if(st.rf&&st.rf.length){ const now=E.now(); for(let i=0;i<st.rf.length;i++){ if(now<st.rf[i]-1e-9) continue; st.rf.splice(i--,1);   // a spent unit of a refilling pool is back
           if(stSet(T,u,k,st.n+1)>0&&d.refilled&&T.on[d.refilled]) run(T,u,d.refilled,{u,tgt:u}); } }
@@ -1491,7 +1747,7 @@ return module.exports;})();
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
   const RUNTIME={bind,define,attach:guard(attach,()=>null),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
 

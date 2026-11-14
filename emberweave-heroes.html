@@ -14246,7 +14246,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         const _bx=m.x,_by=m.y; enemiesOf(u).forEach(e=>{ if(e.alive&&Math.hypot(e.x-_bx,e.y-_by)<(o.detR||2.6*METER)) dealDamage(u,e,apB*o.detonate*rm,'#e8d8b0','magic'); });
         try{ waxShatterFx(m); }catch(_e){}   /* v1115 22b: the wax splash where the coat was (display only) */
         m._waxCoatT=0; m._waxCoatBy=null; ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
-      const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
+      const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||1)*rm);   /* TALENT HOOK at: where this area skill strikes */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
       if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
@@ -14369,7 +14369,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          time (it was rel*clip*BATTLE_PACE after the cast: 22% slow, plus the whole cast late). Damage, radius, DoT and zone unchanged. */
       u._voidT=Math.max(0.01,rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE-castTimeFor(u,'ult')); u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
-    case 'aoedot':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657',u);}});burstAt(C.x,C.y,0xffa657,14);break;}
+    case 'aoedot':{const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||0));   /* TALENT HOOK at */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657',u);}});burstAt(C.x,C.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');ccApply(u,tgt,'stunned',o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');ccApply(u,tgt,'slow',2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=o.dur||5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
@@ -15092,7 +15092,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         e._liftT=L; e._liftL=L; e._liftBy=u; e._liftDmg=amt; e._liftStun=o.slamStun||1.0;   /* not 'stun': the control table would rewrite it (Phil set 1 s) */
         e._castT=0; e.castAnim=0; e._animLockT=0; e._lockPri=0; e._abilHold=0; e._atkHold=0; e._ultRootT=0; });   /* the lift itself holds them (think) - no stun under it, so the total is lift + slam stun */
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
-    case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
+    case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||2.0)*rm);   /* TALENT HOOK at */
       enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); ccApply(u,e,'stunned',o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
