@@ -127,7 +127,7 @@ module.exports={
     ds_5_4:[ {on:'teamIn',if:{targetHas:'sour',srcTeam:'ally'},more:R(0.02)} ],                     // Tin Ear (her whole team, her own hits too)
     ds_6_1:[ {on:'chordDone',do:[{energy:R(1)}]} ],                                                 // Feedback
     ds_6_2:[ {on:'dmg:wound',more:R(0.05)} ],                                                       // Cutting Voice
-    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)} ],                                 // Clarity. PARTIAL: the Broken Chord half waits
+    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)}, {on:'dmg:chord',more:R(0.03)} ],  // Clarity: Grand Symphony ignores 3% magic resist per rank; Broken Chord deals 3% more per rank
     ds_6_4:[ {on:'healOut',less:R(0.04)}, {on:'out',more:R(0.04)} ],                                // Harsh Voice (RISK)
     ds_7_2:[ {on:'pitch',if:{who:'ally'},do:[{ustack:'dis',on:{team:'enemy',of:'target',n:1},add:1}]} ],   // Shrill Pitch
     ds_7_4:[ {on:'disGain',if:{targetHas:'sour'},do:[{dmg:{pct:R(0.03),of:'apow',k:1},on:'target',tag:'sting',color:SONG}]} ],   // Off-Beat Sting: per stack that lands
@@ -200,13 +200,10 @@ module.exports={
                do:[{stack:'str',spend:1,then:[{emit:'snap'}]},{heal:{pct:R(0.02),of:'tgtMaxHp'},pow:true,on:'target'}]} ],
     li_13_2:[ {on:'kit',skill:'symphony',if:{stackMin:{bars:6}},do:[{window:'fnote',dur:99}]},      // The Final Note (SIGNATURE). PARTIAL: the Strings' strike waits
               {on:'healOut',if:{window:'fnote',casting:'symphony'},more:1.5}, {on:'out',if:{window:'fnote',casting:'symphony'},more:1.5},
-              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{stack:'str',set:0},{stack:'bars',add:-3}]} ]
+              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{dmg:{pct:0.20,of:'apow',x:'str'},on:{team:'enemy',of:'self'},color:SONG},{stack:'str',set:0},{stack:'bars',add:-3}]} ]   //   each String that snaps strikes every enemy for 20% of her ability power (no Snap Back, no Twang)
   },
   /* one sentence runs, another waits for a ruling */
-  partial:{
-    ds_2_3:'"Broken Chord ignores magic resist": talent damage already lands as stated (not reduced by magic resist), so there is nothing to ignore',
-    li_13_2:'"all her Strings snap at once to strike every enemy": the strike has no size'
-  },
+  partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
   ruling:{}
 };

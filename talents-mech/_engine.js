@@ -172,6 +172,7 @@
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
     const out=[], U=E.units();
+    const tg=sel.targeting?pick(T,u,sel.targeting,ctx):null; if(tg&&!tg.length) return [];   // targeting: the units whose current target is one the selector picks ("the enemy attacking her lowest-HP ally")
     let bh=null; if(sel.behind){ let sx=0,sy=0,k=0; for(let i=0;i<U.length;i++){ const x=U[i]; if(x.alive&&x.team!==u.team){ sx+=x.x; sy+=x.y; k++; } } if(!k) return []; bh={x:sx/k,y:sy/k}; bh.d=Math.hypot(c.x-bh.x,c.y-bh.y); }   // behind: farther from the enemy side (the middle of the living enemies) than `of`
     for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||x===skip||x._dropHidden||x._noTarget) continue;
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
@@ -189,6 +190,7 @@
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       if(bh&&!(Math.hypot(x.x-bh.x,x.y-bh.y)>bh.d)) continue;
+      if(tg&&tg.indexOf(x.target)<0) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-E.bodyR(c)-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
@@ -255,6 +257,10 @@
     any:(T,u,v,c)=>v.some(x=>ok(T,u,x,c)),                  // at least one of these condition sets holds ("Snagged or Blindsided")
     np:(T,u,v)=>!T.P[v],                                    // no learned talent adds to that named number (a fork that switches a behaviour off)
     selfMin:(T,u,v)=>fmin(u,v),                             // an engine counter on the owner: {field: at least}
+    wasOff:(T,u,v,c)=>!((c.was||0)>0)===v,                  // on 'pass': her passive's timer on the target was off before this swing (a new wound)
+    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner: {field: below}
+    srcArea:(T,u,v,c)=>{ const s=c.src; let t=null; if(s&&s._castSlot&&!c.auto) t=s._castSlot==='ult'?(s.abilityOverride||(s.t&&s.t.ability)):(s._castSlot==='blue'?(s.blueAb&&s.blueAb.type):(s.greenAb&&s.greenAb.type));   // the hit comes from a skill the engine lists as an area (radius / cone / line) skill
+      return !!(t&&E.areaSkill&&E.areaSkill(t))===v; },
     unitUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.unit,k)<v[k]) return false; return true; },
     unitDot:(T,u,v,c)=>hasDot(u,c.unit,v),                  // the unit the event is about carries a DoT of hers
     targetRow:(T,u,v,c)=>!!(c.tgt&&c.tgt.t&&c.tgt.t.row===v), // the game's own combat row of that hero ('Back'); a monster has none
@@ -388,7 +394,7 @@
     if(a.untarget!=null){ const x=amtOf(T,u,a.untarget,ctx); if(x>0){ u._noTarget=true; u._noTargetT=Math.max(u._noTargetT||0,x); } return; }   // she cannot be targeted for that long (the engine's own untargetable state, as Hookline's evade)
     if(a.retarget){ const x=pick(T,u,a.retarget,ctx)[0]; if(x) ctx.tgt=x; return; }                // on skillTgt: the skill goes to that unit instead (when one is picked)
     if(a.miss){ ctx.amt=0; u._talMiss=1; return; }                                                // on 'in': this hit misses her (the page leaves the hit before any damage)
-    if(a.dodge){ ctx.dodged=true; return; }                                                       // on 'dodge': she dodges this hit
+    if(a.dodge){ ctx.dodged=a.dodge==='quiet'?'quiet':true; if(a.dodge==='quiet') ctx.stop=true; return; }   // quiet: a dodge that does not count as one for her other dodge talents (no 'dodged' rows; no other dodge row is asked)                                                       // on 'dodge': she dodges this hit
     if(a.weaken){ const f=a.weaken, cur=u[f], m=s.wk||(s.wk={}); if(cur==null||!(cur<1)){ m[f]=null; return; } if(m[f]===cur) return;   // a control on her that much weaker (a slow's strength), once per new value
       u[f]=1-(1-cur)*Math.max(0,1-amtOf(T,u,a.by,ctx)); m[f]=u[f]; return; }
     if(a.restore){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) t[a.restore]=ctx.was||0; return; }   // an engine timer back to what it was before her passive wrote it (ctx.was)
@@ -564,7 +570,7 @@
     if(T.on.aimed) run(T,t,'aimed',ctx);
     if(kind==='true'||sure||!T.on.dodge) return false;
     ctx.dodged=false; run(T,t,'dodge',ctx); if(!ctx.dodged) return false;
-    if(T.on.dodged) run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
+    if(T.on.dodged&&ctx.dodged!=='quiet') run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
   /* after the 'in' rows: a row said this hit misses her ({miss:true}) - the page leaves the hit before any damage */
   function miss(t){ const m=!!t._talMiss; t._talMiss=0; return m; }
   /* her passive just acted on t at a swing (Vex's Killer Instinct): passPre right before (what the engine timer was), pass right after: 'pass' rows (ctx.was) */

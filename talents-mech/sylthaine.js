@@ -95,6 +95,8 @@ module.exports={
     /* ============================== SHATTERPOINT ============================== */
     sp_1_1:[ {on:'hit',if:{auto:true},do:[{stack:'hailc',add:1}]},                                  // Hailstones: every 4th basic attack
              {on:'hit',if:{auto:true,stackMin:{hailc:P('hail.n',4)}},do:[{stack:'hailc',set:0},{dmg:{pct:R(0.06),of:'apow'},on:'target',tag:'hail',color:ICE},CHILL('target'),{emit:'hail'}]} ],
+    sp_9_2:[ {on:'blizzTick',do:[{dmg:{pct:{rk:'sp_2_2',r:0.08},of:'apow'},scale:R(0.08),on:{team:'enemy',inZone:'blizz',has:'frz'},tag:'gr',color:ICE}]} ],   // Glass Rain: each Blizzard tick on a frozen enemy, 8% per rank of an Icebreaker (the freeze stays)
+    sp_12_1:[ {on:'dmg:hail',do:[{dmg:{pct:R(0.15),of:'hit'},on:{team:'enemy',of:'target',within:3,n:1,skip:'target'},color:ICE}]} ],   // Storm of Hail: the nearest other enemy within 3 m of the target
     sp_1_3:[ {on:'out',if:{srcFlag:'_frostHit',targetMin:{_chillStacks:1}},ignoreMr:R(0.02)} ],     // Biting Cold
     sp_1_4:[ {on:'tick',if:{stackEmpty:'ht'},period:1,rate:P('focus.rate',1),do:[{stack:'focus',add:1}]},   // Cold Focus: a full second without damage
              {on:'tick',do:[{stack:'ht',set:0}]},
@@ -165,7 +167,14 @@ module.exports={
     sw_5_1:[ {on:'teamIn',if:{targetHas:'snowsh',srcTeam:'enemy'},less:R(0.02)} ],                  // Snowbound
     sw_5_4:[ {on:'thawed',do:[{heal:{pct:R(0.10),of:'hit'},on:{team:'ally',others:true,of:'target',skip:'target',n:1},emit:'gave'}]} ],   // Running Water (reading: the ally nearest the one healed)
     sw_6_1:[ {on:'snowGone',if:{broke:true},do:[{dmg:{pct:R(0.20),of:'apow'},on:{team:'enemy',of:'unit',within:2},color:ICE}]} ],   // Avalanche: the shield was used up
-    sw_6_2:[ {on:'ccOut',if:GP_FREEZE,add:R(0.2)} ],                                                // Cold Sleep. PARTIAL: the Ice Tomb half waits with Ice Tomb
+    sw_6_2:[ {on:'ccOut',if:GP_FREEZE,add:R(0.2)},                                                  // Cold Sleep: Glacial Prison freezes 0.2 s longer per rank
+             {param:'tomb.heal',add:R(0.03)} ],                                                    //   and an ally Ice Tomb encases heals 3% more per rank
+    sw_5_2:[ {on:'tick',each:{team:'ally',others:true},edge:true,if:{targetHpBelow:0.25},do:[{mark:'tombq',on:'target',unique:true}]},   // Ice Tomb: an ally below 25%...
+             {on:'cast',skill:'freeze',do:[{emit:'itomb',on:'holder:tombq'}]},              //   ...her next Glacial Prison (it still freezes its enemy) encases that ally too
+             {on:'itomb',do:[{mark:'tombq',on:'target',clear:true},{mark:'itb',on:'target',dur:1.5,ends:'itbEnd'},{timer:'stunned',min:1.5,on:'target'}]},   //   cannot act...
+             {on:'teamIn',if:{targetHas:'itb'},mul:0},                                              //   ...or be hurt for 1.5 s
+             {on:'itbEnd',do:[{heal:{pct:{b:0.10,$:'tomb.heal'},of:'tgtMaxHp'},pow:true,on:'target',emit:'gave'}]} ],   //   then heals 10% of its max HP
+    sw_5_3:[ {on:'skillTgt',skill:'freeze',do:[{retarget:{team:'enemy',targeting:{team:'ally',others:true,order:'lowHp',n:1},order:'near',n:1}}]} ],   // Warden's Prison: the enemy attacking her lowest-HP ally
     sw_6_3:[ {stat:{apow:R(0.015)},if:{stackMin:{snow:10}}} ],                                      // Wintermind
     sw_7_2:[ {on:'teamIn',if:{window:'bliz',targetTeam:'ally',targetIn:'blizz',srcTeam:'enemy'},less:0.20} ],   // Quiet Ward
     sw_7_3:[ {param:'orb.slow',add:R(0.04)} ],                                                      // Frost Veil
@@ -192,16 +201,9 @@ module.exports={
               {on:'tombEnd',do:[{stack:'snow',spend:'all',then:[{heal:{pct:0.01,of:'tgtMaxHp',x:'spent'},pow:true,on:'target',emit:'gave'}]}]} ]
   },
   /* one sentence runs, another waits for a ruling */
-  partial:{
-    sw_6_2:'"an ally encased by Ice Tomb heals 3% more": Ice Tomb itself waits for a ruling; the longer Glacial Prison freeze runs'
-  },
+  partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
-  ruling:{
-    sp_9_2:'Blizzard ticks and the Icebreaker: does a tick end the freeze?',
-    sp_12_1:'no "behind the target" on an open field',
-    sw_5_2:'Glacial Prison is an enemy skill: turning it onto an ally is new engine behaviour',
-    sw_5_3:'Glacial Prison takes the target the engine gives it: choosing another is new engine behaviour'
-  },
+  ruling:{},
   fn:{
     /* Crushing Orb / Splitting Orb: which enemies the orb meets first and last. The same line as the skill's own code (the farthest enemy within
        its range, and every enemy within its width of that line); 'orb1' = the nearest along it, 'orbEnd' = the farthest (where it ends). */

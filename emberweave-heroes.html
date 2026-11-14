@@ -7392,7 +7392,7 @@ function lvPct(x){ return (Math.round(x*1000+1e-6)/10)+'%'; }   // one decimal, 
 function lvSec(x){ return (+(+x).toFixed(2))+'s'; }
 function passLv(u){ return ((u&&u.skillLv&&u.skillLv[3])|0)||1; }
 /* talents (14 Nov 2026, Vael's rulings): Blood Rage as a number the talent runtime can read - the same expression as the hit line in _dealDamageCore */
-if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ bloodRage:u=>(u&&u.pass&&u.pass.bloodrage&&(u._brTaken||0)>0)?Math.min(SKLV.bloodrageCap(passLv(u)),0.25*u._brTaken/Math.max(1,u.maxHp||1)):0 });
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ areaSkill:t=>ULT_RADIUS.includes(t)||ULT_CONE.includes(t)||ULT_LINE.includes(t), bloodRage:u=>(u&&u.pass&&u.pass.bloodrage&&(u._brTaken||0)>0)?Math.min(SKLV.bloodrageCap(passLv(u)),0.25*u._brTaken/Math.max(1,u.maxHp||1)):0 });
 /* v1310 (Phil 8 Nov 2026: "reduce thick chittin to 3% per 3 seconds, maxing at 15% at level 1 and 25% at 100"): a warden passive whose kit
    carries its own wardenStep (Rhukk's Thick Chitin) stacks that flat step to its own cap; Adamant Discipline / Fired Clay / Tempered Steel /
    Unmovable Mass keep the shared 4% x skill / SKLV.wardenCap rule. */
@@ -15496,6 +15496,7 @@ function deliverLaunch(u,type,o){ try{
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
   const _far=(o.farthest>0)?enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest):null;   /* v1030: Swampcall - the N farthest enemies */
   let tU=(_far&&_far.length)?_far[0]:(deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u)));   /* v935: the shot flies to the enemy the spell will affect */
+  if(u._tal&&u._tal.on.skillTgt&&tU) tU=TalentFx.skillTgt(u,type,tU,o)||tU;   /* TALENT HOOK skillTgt: a learned talent may choose a delivered skill's target before it is launched (Warden's Prison) */
   if(mode==='shot'&&!tU) return false;
   /* v1180 Rim Breaker (Phil 16 Oct: "it should be thrown at the furthest person within 10 meters, and strikes anyone along the way, stunning them"):
      o.pierce - the shot flies at the FURTHEST living enemy within o.pierce.range of him at the release (none in range: the target it had, as before),

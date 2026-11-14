@@ -4,15 +4,15 @@
    Run: node --test tests/talents-mech-sylthaine.test.js */
 const test=require('node:test'),assert=require('node:assert/strict');
 const {FX,FXN,T,V,near,secs,lab,lost,stack,mark,full,accounting,determinism,snaps,spec}=require('./talents-lab.js');
-const H='sylthaine', S=ids=>full(H,ids);
+const H='sylthaine', S=ids=>full(H,ids), vm=require('node:vm'), {NOW}=require('./talents-lab.js');
 test.afterEach(()=>{ FX.define(H,null); const e=FX.errors(), n=FXN.errors(); FX.errorsReset(); FXN.errorsReset(); assert.equal(e.n+n.n,0,'a talent hook threw: '+(e.last||n.last)); });
 const sure=L=>{ for(const f of L.F) f.level=1; };                      // her controls always land (no level-gap miss roll)
 const free=(L,f)=>{ f.stunned=0; };
 const setStack=(L,name,n)=>{ L.T.s.k[name]={n,t:0,idle:0}; };
 const chill=(f,n)=>{ f._chillStacks=n; f._chillT=n>0?10:0; };
 
-test('Sylthaine: every talent is accounted for - 8 plain stats, 105 with rows (1 in part), 4 waiting for a ruling',()=>{
-  accounting(H,[117,8,105,4,1]);
+test('Sylthaine: every talent is accounted for - 8 plain stats, 109 with rows, nothing in part or waiting (the rulings of 14 Nov)',()=>{
+  accounting(H,[117,8,109,0,0]);
   const M=FXN.mech(H); for(const id of ['ws_1_1','sp_2_2','sw_1_1','ws_13_2','sp_13_2','sw_13_2']) assert.ok(M.talents[id],id);
 });
 
@@ -248,3 +248,38 @@ test('Sylthaine / Cold Snap refusal: without her passive there is no Chill at al
   V.cast(v,'green',F[1]); V.hit(F[0],v,10); L.T.s.k.hailc={n:3,t:0,idle:0}; V.hit(v,F[0],10,{auto:true});
   assert.equal(F[0]._chillStacks+F[1]._chillStacks,0,'no Chill'); assert.equal(stack(L,'snow'),0,'no Snow');
 });
+
+/* ------------------------------ Sylthaine's rulings (WIRING/10, 14 Nov 2026) ------------------------------ */
+test('Sylthaine rulings / Glass Rain (a soft shatter each Blizzard tick, the freeze stays), Storm of Hail (one nearby enemy)',()=>{
+  const L=lab(H,S(['sp_2_2','sp_9_2']),{foes:2}), {v,F}=L, ap=v.apow, rIB=T.talent(H,'sp_2_2').ranks, rGR=T.talent(H,'sp_9_2').ranks;
+  L.put(F[1],0,3); V.cc(v,F[1],'stunned',3/V.ccNerf); assert.ok(F[1].stunned>0); const h1=F[1].hp, h0=F[0].hp;
+  V.cast(v,'ult',F[1]); v.stunned=0; secs(0.55); v.stunned=1e6;
+  near((h1-F[1].hp)-(h0-F[0].hp),ap*0.08*rIB*0.08*rGR,'the frozen enemy took 8% x '+rGR+' of an Icebreaker (8% x '+rIB+' of her ability power) more than the one beside it',1e-3);
+  assert.ok(F[1].stunned>0,'and stays frozen');
+  const G=lab(H,S(['sp_1_1','sp_12_1']),{foes:3}), ap2=G.v.apow, rH=T.talent(H,'sp_1_1').ranks, rS=T.talent(H,'sp_12_1').ranks;
+  setStack(G,'hailc',P_HAIL(G)); const n1=G.F[1].hp, n2=G.F[2].hp; V.hit(G.v,G.F[0],10,{auto:true});
+  near(n1-G.F[1].hp,ap2*0.06*rH*0.15*rS,'Storm of Hail: the nearest other enemy within 3 m takes 15% x '+rS+' of the Hailstone',1e-3); assert.equal(G.F[2].hp,n2,'only one, and not one 5 m away');
+  near(lost(G.F[1],()=>V.hit(G.v,G.F[0],10,{auto:true})),0,'a basic attack that is not a Hailstone: nothing');
+});
+const P_HAIL=G=>3;   // the 4th basic attack is a Hailstone: three already counted
+
+test('Sylthaine rulings / Ice Tomb (the prison still freezes its enemy, the ally is encased too) and Cold Sleep\'s half',()=>{
+  const L=lab(H,S(['sw_5_2','sw_6_2']),{foes:1,allies:1}), {v,F,A}=L; sure(L); const a=A[0], f=F[0], rC=T.talent(H,'sw_6_2').ranks; a.stunned=0; f.stunned=0;
+  V.cast(v,'blue',f); assert.ok(!(a.stunned>0)&&!(a.stunned>1e5),'no ally low: nothing'); a.stunned=0; f.stunned=0;
+  a.hp=a.maxHp*0.20; V.step(1); a.stunned=0; V.cast(v,'blue',f); assert.ok(f.stunned>2,'Glacial Prison still freezes its enemy');
+  assert.ok(a.stunned>=1.5-1e-9,'the ally is encased: it cannot act'); near(lost(a,()=>V.hit(f,a,1000,{kind:'true'})),0,'and cannot be hurt');
+  const hp=a.hp; secs(1.55); near(a.hp-hp,a.maxHp*(0.10+0.03*rC)*(v.healPowMul||1),'when it breaks: 10% of its max HP, Cold Sleep 3% x '+rC+' more',1e-6);
+  assert.ok(lost(a,()=>V.hit(f,a,1000,{kind:'true'}))>0,'and it can be hurt again');
+  a.stunned=0; f.stunned=0; V.cast(v,'blue',f); assert.ok(!(a.stunned>0),'only her NEXT prison after the ally dropped');
+});
+
+test('Sylthaine rulings / Warden\'s Prison: Glacial Prison is sent to the enemy attacking her lowest-HP ally before it is launched',()=>{
+  const launch=(L,t)=>{ const v=L.v; v.target=t; v._castLv=10; v._castSM=1; v._castSlot='blue'; vm.runInContext('deliverLaunch',NOW.ctx)(v,'freeze',v.blueAb); v._castLv=0; v._castSlot=null; secs(0.6); };
+  const L=lab(H,S(['sw_5_3']),{foes:2,allies:2}), {F,A}=L; sure(L); A[1].hp=A[1].maxHp*0.3; F[1].target=A[1]; F[0].target=A[0]; for(const f of F) f.stunned=0;
+  launch(L,F[0]); assert.ok(F[1].stunned>0,'the prison goes to the enemy attacking her lowest-HP ally'); assert.ok(!(F[0].stunned>0),'not to her own target');
+  for(const f of F){ f.stunned=0; f.target=null; } L.v.blueCd=0; launch(L,F[0]); assert.ok(F[0].stunned>0,'nobody attacks that ally: her own target');
+  const P=lab(H,null,{foes:2,allies:2}); sure(P); P.A[1].hp=P.A[1].maxHp*0.3; P.F[1].target=P.A[1]; for(const f of P.F) f.stunned=0;
+  launch(P,P.F[0]); assert.ok(P.F[0].stunned>0&&!(P.F[1].stunned>0),'without the talent: her own target, as before');
+});
+
+test('Sylthaine rulings / Winter Calm (the name; the talent unchanged)',()=>{ assert.equal(T.talent(H,'ws_3_3').name,'Winter Calm'); });

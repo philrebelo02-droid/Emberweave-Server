@@ -166,7 +166,13 @@ module.exports={
              {on:'out',if:{casting:'hookline',targetHas:'sl'},more:R(0.03)} ],
     sl_4_1:[ {on:'lockpick',do:[{untarget:R(0.1)}]} ],                                                // Spring the Trap
     sl_5_2:[ {on:'dodged',do:[{window:'ctr',dur:99}]}, {on:'out',if:{window:'ctr',auto:true},more:0.30,do:[{window:'ctr',end:true}]} ],   // Counter-Cut
-    sl_5_3:[ {on:'in',less:2,per:{field:'_talDodge',of:'self'}} ],                                    // Rolling with It
+    sl_5_3:[ {on:'in',less:2,per:{field:'_talDodge',of:'self',max:0.20}} ],                           // Rolling with It: twice her dodge chance, 40% in all
+    sl_n1:[  {on:'in',if:{srcArea:true,srcTeam:'enemy'},less:R(0.02)} ],                             // Wide Berth: hits of enemy skills of the area kinds (the engine's own radius / cone / line lists)
+    sl_10_2:[ {on:'dodge',if:{selfMin:{_ultRootT:1e-9}},do:[{dodge:'quiet'},{stack:'td',add:1}]},    // Tempest Dance: while her ultimate holds her she dodges every attack (not a dodge for her other dodge talents)...
+              {on:'tick',edge:true,if:{selfBelow:{_ultRootT:1e-9},stackMin:{td:1}},do:[{stack:'tdb',add:{stack:'td'}},{stack:'td',set:0}]},   //   ...kept for her NEXT Razor Tempest...
+              {on:'kit',skill:'triplecleave',opt:{mul:{more:R(0.03),per:{stack:'tdb',max:[10,5,10/3]}}}},   //   ...3% per rank each, +30% at most
+              {on:'cast',skill:'triplecleave',do:[{stack:'tdb',set:0}]} ],
+    sc_5_2:[ {on:'pass',if:{wasOff:true,targetMin:{shield:1e-9}},do:[{strip:0.30,on:'target'}]} ],   // Gaping Wound: when the wound opens on a shielded enemy, the shield loses 30% (once per wound)
     sl_5_4:[ {stat:{move:R(0.05)},if:{targetHas:'sl'}} ],                                             // Keep Up
     sl_6_2:[ {stat:{crit:R(0.04)},if:{window:'ctr'}} ],                                               // Make Them Miss
     sl_6_3:[ {on:'in',less:R(0.01)} ],                                                                // Loose Shoulders
@@ -199,9 +205,5 @@ module.exports={
   /* one sentence runs, another waits for a ruling */
   partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
-  ruling:{
-    sc_5_2:'"shields on a wounded enemy absorb 30% less": a shield in the game is one number that soaks a hit whole; "absorb less" has two readings (a smaller shield, or part of each hit passing through)',
-    sl_n1:'"attacks that hit more than one target": the game does not know, when a hit lands on her, whether the same attack hits anyone else',
-    sl_10_2:'"during its three cuts" / "the next cut": Razor Tempest\'s three cuts land in the same instant, so no attack can come between them'
-  }
+  ruling:{}
 };

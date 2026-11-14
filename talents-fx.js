@@ -150,6 +150,8 @@ module.exports={
     /* ============================== SHATTERPOINT ============================== */
     sp_1_1:[ {on:'hit',if:{auto:true},do:[{stack:'hailc',add:1}]},                                  // Hailstones: every 4th basic attack
              {on:'hit',if:{auto:true,stackMin:{hailc:P('hail.n',4)}},do:[{stack:'hailc',set:0},{dmg:{pct:R(0.06),of:'apow'},on:'target',tag:'hail',color:ICE},CHILL('target'),{emit:'hail'}]} ],
+    sp_9_2:[ {on:'blizzTick',do:[{dmg:{pct:{rk:'sp_2_2',r:0.08},of:'apow'},scale:R(0.08),on:{team:'enemy',inZone:'blizz',has:'frz'},tag:'gr',color:ICE}]} ],   // Glass Rain: each Blizzard tick on a frozen enemy, 8% per rank of an Icebreaker (the freeze stays)
+    sp_12_1:[ {on:'dmg:hail',do:[{dmg:{pct:R(0.15),of:'hit'},on:{team:'enemy',of:'target',within:3,n:1,skip:'target'},color:ICE}]} ],   // Storm of Hail: the nearest other enemy within 3 m of the target
     sp_1_3:[ {on:'out',if:{srcFlag:'_frostHit',targetMin:{_chillStacks:1}},ignoreMr:R(0.02)} ],     // Biting Cold
     sp_1_4:[ {on:'tick',if:{stackEmpty:'ht'},period:1,rate:P('focus.rate',1),do:[{stack:'focus',add:1}]},   // Cold Focus: a full second without damage
              {on:'tick',do:[{stack:'ht',set:0}]},
@@ -220,7 +222,14 @@ module.exports={
     sw_5_1:[ {on:'teamIn',if:{targetHas:'snowsh',srcTeam:'enemy'},less:R(0.02)} ],                  // Snowbound
     sw_5_4:[ {on:'thawed',do:[{heal:{pct:R(0.10),of:'hit'},on:{team:'ally',others:true,of:'target',skip:'target',n:1},emit:'gave'}]} ],   // Running Water (reading: the ally nearest the one healed)
     sw_6_1:[ {on:'snowGone',if:{broke:true},do:[{dmg:{pct:R(0.20),of:'apow'},on:{team:'enemy',of:'unit',within:2},color:ICE}]} ],   // Avalanche: the shield was used up
-    sw_6_2:[ {on:'ccOut',if:GP_FREEZE,add:R(0.2)} ],                                                // Cold Sleep. PARTIAL: the Ice Tomb half waits with Ice Tomb
+    sw_6_2:[ {on:'ccOut',if:GP_FREEZE,add:R(0.2)},                                                  // Cold Sleep: Glacial Prison freezes 0.2 s longer per rank
+             {param:'tomb.heal',add:R(0.03)} ],                                                    //   and an ally Ice Tomb encases heals 3% more per rank
+    sw_5_2:[ {on:'tick',each:{team:'ally',others:true},edge:true,if:{targetHpBelow:0.25},do:[{mark:'tombq',on:'target',unique:true}]},   // Ice Tomb: an ally below 25%...
+             {on:'cast',skill:'freeze',do:[{emit:'itomb',on:'holder:tombq'}]},              //   ...her next Glacial Prison (it still freezes its enemy) encases that ally too
+             {on:'itomb',do:[{mark:'tombq',on:'target',clear:true},{mark:'itb',on:'target',dur:1.5,ends:'itbEnd'},{timer:'stunned',min:1.5,on:'target'}]},   //   cannot act...
+             {on:'teamIn',if:{targetHas:'itb'},mul:0},                                              //   ...or be hurt for 1.5 s
+             {on:'itbEnd',do:[{heal:{pct:{b:0.10,$:'tomb.heal'},of:'tgtMaxHp'},pow:true,on:'target',emit:'gave'}]} ],   //   then heals 10% of its max HP
+    sw_5_3:[ {on:'skillTgt',skill:'freeze',do:[{retarget:{team:'enemy',targeting:{team:'ally',others:true,order:'lowHp',n:1},order:'near',n:1}}]} ],   // Warden's Prison: the enemy attacking her lowest-HP ally
     sw_6_3:[ {stat:{apow:R(0.015)},if:{stackMin:{snow:10}}} ],                                      // Wintermind
     sw_7_2:[ {on:'teamIn',if:{window:'bliz',targetTeam:'ally',targetIn:'blizz',srcTeam:'enemy'},less:0.20} ],   // Quiet Ward
     sw_7_3:[ {param:'orb.slow',add:R(0.04)} ],                                                      // Frost Veil
@@ -247,16 +256,9 @@ module.exports={
               {on:'tombEnd',do:[{stack:'snow',spend:'all',then:[{heal:{pct:0.01,of:'tgtMaxHp',x:'spent'},pow:true,on:'target',emit:'gave'}]}]} ]
   },
   /* one sentence runs, another waits for a ruling */
-  partial:{
-    sw_6_2:'"an ally encased by Ice Tomb heals 3% more": Ice Tomb itself waits for a ruling; the longer Glacial Prison freeze runs'
-  },
+  partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
-  ruling:{
-    sp_9_2:'Blizzard ticks and the Icebreaker: does a tick end the freeze?',
-    sp_12_1:'no "behind the target" on an open field',
-    sw_5_2:'Glacial Prison is an enemy skill: turning it onto an ally is new engine behaviour',
-    sw_5_3:'Glacial Prison takes the target the engine gives it: choosing another is new engine behaviour'
-  },
+  ruling:{},
   fn:{
     /* Crushing Orb / Splitting Orb: which enemies the orb meets first and last. The same line as the skill's own code (the farthest enemy within
        its range, and every enemy within its width of that line); 'orb1' = the nearest along it, 'orbEnd' = the farthest (where it ends). */
@@ -665,7 +667,13 @@ module.exports={
              {on:'out',if:{casting:'hookline',targetHas:'sl'},more:R(0.03)} ],
     sl_4_1:[ {on:'lockpick',do:[{untarget:R(0.1)}]} ],                                                // Spring the Trap
     sl_5_2:[ {on:'dodged',do:[{window:'ctr',dur:99}]}, {on:'out',if:{window:'ctr',auto:true},more:0.30,do:[{window:'ctr',end:true}]} ],   // Counter-Cut
-    sl_5_3:[ {on:'in',less:2,per:{field:'_talDodge',of:'self'}} ],                                    // Rolling with It
+    sl_5_3:[ {on:'in',less:2,per:{field:'_talDodge',of:'self',max:0.20}} ],                           // Rolling with It: twice her dodge chance, 40% in all
+    sl_n1:[  {on:'in',if:{srcArea:true,srcTeam:'enemy'},less:R(0.02)} ],                             // Wide Berth: hits of enemy skills of the area kinds (the engine's own radius / cone / line lists)
+    sl_10_2:[ {on:'dodge',if:{selfMin:{_ultRootT:1e-9}},do:[{dodge:'quiet'},{stack:'td',add:1}]},    // Tempest Dance: while her ultimate holds her she dodges every attack (not a dodge for her other dodge talents)...
+              {on:'tick',edge:true,if:{selfBelow:{_ultRootT:1e-9},stackMin:{td:1}},do:[{stack:'tdb',add:{stack:'td'}},{stack:'td',set:0}]},   //   ...kept for her NEXT Razor Tempest...
+              {on:'kit',skill:'triplecleave',opt:{mul:{more:R(0.03),per:{stack:'tdb',max:[10,5,10/3]}}}},   //   ...3% per rank each, +30% at most
+              {on:'cast',skill:'triplecleave',do:[{stack:'tdb',set:0}]} ],
+    sc_5_2:[ {on:'pass',if:{wasOff:true,targetMin:{shield:1e-9}},do:[{strip:0.30,on:'target'}]} ],   // Gaping Wound: when the wound opens on a shielded enemy, the shield loses 30% (once per wound)
     sl_5_4:[ {stat:{move:R(0.05)},if:{targetHas:'sl'}} ],                                             // Keep Up
     sl_6_2:[ {stat:{crit:R(0.04)},if:{window:'ctr'}} ],                                               // Make Them Miss
     sl_6_3:[ {on:'in',less:R(0.01)} ],                                                                // Loose Shoulders
@@ -698,11 +706,7 @@ module.exports={
   /* one sentence runs, another waits for a ruling */
   partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
-  ruling:{
-    sc_5_2:'"shields on a wounded enemy absorb 30% less": a shield in the game is one number that soaks a hit whole; "absorb less" has two readings (a smaller shield, or part of each hit passing through)',
-    sl_n1:'"attacks that hit more than one target": the game does not know, when a hit lands on her, whether the same attack hits anyone else',
-    sl_10_2:'"during its three cuts" / "the next cut": Razor Tempest\'s three cuts land in the same instant, so no attack can come between them'
-  }
+  ruling:{}
 };
 
 return module.exports;})();
@@ -836,7 +840,7 @@ module.exports={
     ds_5_4:[ {on:'teamIn',if:{targetHas:'sour',srcTeam:'ally'},more:R(0.02)} ],                     // Tin Ear (her whole team, her own hits too)
     ds_6_1:[ {on:'chordDone',do:[{energy:R(1)}]} ],                                                 // Feedback
     ds_6_2:[ {on:'dmg:wound',more:R(0.05)} ],                                                       // Cutting Voice
-    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)} ],                                 // Clarity. PARTIAL: the Broken Chord half waits
+    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)}, {on:'dmg:chord',more:R(0.03)} ],  // Clarity: Grand Symphony ignores 3% magic resist per rank; Broken Chord deals 3% more per rank
     ds_6_4:[ {on:'healOut',less:R(0.04)}, {on:'out',more:R(0.04)} ],                                // Harsh Voice (RISK)
     ds_7_2:[ {on:'pitch',if:{who:'ally'},do:[{ustack:'dis',on:{team:'enemy',of:'target',n:1},add:1}]} ],   // Shrill Pitch
     ds_7_4:[ {on:'disGain',if:{targetHas:'sour'},do:[{dmg:{pct:R(0.03),of:'apow',k:1},on:'target',tag:'sting',color:SONG}]} ],   // Off-Beat Sting: per stack that lands
@@ -909,13 +913,10 @@ module.exports={
                do:[{stack:'str',spend:1,then:[{emit:'snap'}]},{heal:{pct:R(0.02),of:'tgtMaxHp'},pow:true,on:'target'}]} ],
     li_13_2:[ {on:'kit',skill:'symphony',if:{stackMin:{bars:6}},do:[{window:'fnote',dur:99}]},      // The Final Note (SIGNATURE). PARTIAL: the Strings' strike waits
               {on:'healOut',if:{window:'fnote',casting:'symphony'},more:1.5}, {on:'out',if:{window:'fnote',casting:'symphony'},more:1.5},
-              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{stack:'str',set:0},{stack:'bars',add:-3}]} ]
+              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{dmg:{pct:0.20,of:'apow',x:'str'},on:{team:'enemy',of:'self'},color:SONG},{stack:'str',set:0},{stack:'bars',add:-3}]} ]   //   each String that snaps strikes every enemy for 20% of her ability power (no Snap Back, no Twang)
   },
   /* one sentence runs, another waits for a ruling */
-  partial:{
-    ds_2_3:'"Broken Chord ignores magic resist": talent damage already lands as stated (not reduced by magic resist), so there is nothing to ignore',
-    li_13_2:'"all her Strings snap at once to strike every enemy": the strike has no size'
-  },
+  partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
   ruling:{}
 };
@@ -1095,6 +1096,7 @@ return module.exports;})();
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
     const out=[], U=E.units();
+    const tg=sel.targeting?pick(T,u,sel.targeting,ctx):null; if(tg&&!tg.length) return [];   // targeting: the units whose current target is one the selector picks ("the enemy attacking her lowest-HP ally")
     let bh=null; if(sel.behind){ let sx=0,sy=0,k=0; for(let i=0;i<U.length;i++){ const x=U[i]; if(x.alive&&x.team!==u.team){ sx+=x.x; sy+=x.y; k++; } } if(!k) return []; bh={x:sx/k,y:sy/k}; bh.d=Math.hypot(c.x-bh.x,c.y-bh.y); }   // behind: farther from the enemy side (the middle of the living enemies) than `of`
     for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||x===skip||x._dropHidden||x._noTarget) continue;
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
@@ -1112,6 +1114,7 @@ return module.exports;})();
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       if(bh&&!(Math.hypot(x.x-bh.x,x.y-bh.y)>bh.d)) continue;
+      if(tg&&tg.indexOf(x.target)<0) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-E.bodyR(c)-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
@@ -1178,6 +1181,10 @@ return module.exports;})();
     any:(T,u,v,c)=>v.some(x=>ok(T,u,x,c)),                  // at least one of these condition sets holds ("Snagged or Blindsided")
     np:(T,u,v)=>!T.P[v],                                    // no learned talent adds to that named number (a fork that switches a behaviour off)
     selfMin:(T,u,v)=>fmin(u,v),                             // an engine counter on the owner: {field: at least}
+    wasOff:(T,u,v,c)=>!((c.was||0)>0)===v,                  // on 'pass': her passive's timer on the target was off before this swing (a new wound)
+    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner: {field: below}
+    srcArea:(T,u,v,c)=>{ const s=c.src; let t=null; if(s&&s._castSlot&&!c.auto) t=s._castSlot==='ult'?(s.abilityOverride||(s.t&&s.t.ability)):(s._castSlot==='blue'?(s.blueAb&&s.blueAb.type):(s.greenAb&&s.greenAb.type));   // the hit comes from a skill the engine lists as an area (radius / cone / line) skill
+      return !!(t&&E.areaSkill&&E.areaSkill(t))===v; },
     unitUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.unit,k)<v[k]) return false; return true; },
     unitDot:(T,u,v,c)=>hasDot(u,c.unit,v),                  // the unit the event is about carries a DoT of hers
     targetRow:(T,u,v,c)=>!!(c.tgt&&c.tgt.t&&c.tgt.t.row===v), // the game's own combat row of that hero ('Back'); a monster has none
@@ -1311,7 +1318,7 @@ return module.exports;})();
     if(a.untarget!=null){ const x=amtOf(T,u,a.untarget,ctx); if(x>0){ u._noTarget=true; u._noTargetT=Math.max(u._noTargetT||0,x); } return; }   // she cannot be targeted for that long (the engine's own untargetable state, as Hookline's evade)
     if(a.retarget){ const x=pick(T,u,a.retarget,ctx)[0]; if(x) ctx.tgt=x; return; }                // on skillTgt: the skill goes to that unit instead (when one is picked)
     if(a.miss){ ctx.amt=0; u._talMiss=1; return; }                                                // on 'in': this hit misses her (the page leaves the hit before any damage)
-    if(a.dodge){ ctx.dodged=true; return; }                                                       // on 'dodge': she dodges this hit
+    if(a.dodge){ ctx.dodged=a.dodge==='quiet'?'quiet':true; if(a.dodge==='quiet') ctx.stop=true; return; }   // quiet: a dodge that does not count as one for her other dodge talents (no 'dodged' rows; no other dodge row is asked)                                                       // on 'dodge': she dodges this hit
     if(a.weaken){ const f=a.weaken, cur=u[f], m=s.wk||(s.wk={}); if(cur==null||!(cur<1)){ m[f]=null; return; } if(m[f]===cur) return;   // a control on her that much weaker (a slow's strength), once per new value
       u[f]=1-(1-cur)*Math.max(0,1-amtOf(T,u,a.by,ctx)); m[f]=u[f]; return; }
     if(a.restore){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) t[a.restore]=ctx.was||0; return; }   // an engine timer back to what it was before her passive wrote it (ctx.was)
@@ -1487,7 +1494,7 @@ return module.exports;})();
     if(T.on.aimed) run(T,t,'aimed',ctx);
     if(kind==='true'||sure||!T.on.dodge) return false;
     ctx.dodged=false; run(T,t,'dodge',ctx); if(!ctx.dodged) return false;
-    if(T.on.dodged) run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
+    if(T.on.dodged&&ctx.dodged!=='quiet') run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
   /* after the 'in' rows: a row said this hit misses her ({miss:true}) - the page leaves the hit before any damage */
   function miss(t){ const m=!!t._talMiss; t._talMiss=0; return m; }
   /* her passive just acted on t at a swing (Vex's Killer Instinct): passPre right before (what the engine timer was), pass right after: 'pass' rows (ctx.was) */
