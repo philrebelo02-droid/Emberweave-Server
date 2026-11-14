@@ -48,6 +48,7 @@
     if(M.points) T.on.at=T.on.at||[];                                         // the hero's rows read where her area skills land ('pt:<skill>'): the at hook must run for each of them
     if(M.summons) T.on.summon=T.on.summon||[];                                // his summons carry his rows (u._talS): the summon hook must run for each one he calls
     if(M.pages){ T.on.pagePre=T.on.pagePre||[]; T.on.page=T.on.page||[]; }   // rows ask "is this hit a Living Page" ('casting:page'): the two page hooks must run for each page spent
+    if(M.poison){ for(const k of ['poisQ','pois','spreadR','spread']) T.on[k]=T.on[k]||[]; }   // his poisons are his (Bloatus): the poison and Contagion hooks must run for each one
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
@@ -672,6 +673,25 @@
   /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
      target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
   function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
+  /* ---- HIS POISON (Bloatus). The page's plagueDot does not push a poison at once: it queues it (_pendingDots) and it lands 0.5 s later.
+     poisQ: one of his poisons has just been queued (p = the queued entry). Where it comes from is kept on it (p._talC): 'spread' while his
+     Contagion is spreading (spreadR .. spread below), else the skill of his being cast ('toxbreath', 'plaguesov'), else 'other'. 'poisQ' rows
+     (ctx tgt, amt = its strength a second, skill = where it comes from) may change its strength (more / less / mul on ctx.amt).
+     pois: the queued poison has landed (right after the page's pushDot): the DoT becomes his (_talO / _talK = where it came from, so its ticks run
+     his dotOut / dotTick rows), then 'pois' rows (ctx tgt, dot, skill, was = the enemy already carried a poison of his). Talent poisons of the hero
+     file run the same 'pois' rows themselves.
+     spreadR / spread: his Contagion is about to spread from a dead enemy (dead): spreadR returns the reach (r, the engine's own number; 'spreadR'
+     rows change ctx.amt, ctx.unit = the dead enemy; a row may set ctx.body: the reach is then measured body to body, see spreadIn); every poison queued until spread() is a spread; then 'spread' rows (ctx.unit = the dead enemy,
+     k = how many it spread to, vic = those enemies). Turned on by poison:true in the hero file. ---- */
+  function poisQ(src,p){ const T=src._tal, s=T.s, k=s.spr?'spread':(s.cur||'other'); const ctx={u:src,src,tgt:p.t,amt:p.dps,skill:k,unit:s.spr?s.spr.dead:null};
+    if(T.on.poisQ&&T.on.poisQ.length) run(T,src,'poisQ',ctx); p.dps=Math.max(0,ctx.amt); p._talC=k; if(s.spr) s.spr.v.push(p.t); }
+  function pois(src,t,p){ const T=src&&src._tal; if(!T||!t) return; const D=t.dots, d=D&&D[D.length-1]; if(!d||d.src!==src||d._talO!=null) return;
+    let was=false; for(let i=0;i<D.length-1;i++) if(myDot(src,D[i],true)){ was=true; break; }
+    d._talO=src.uid; d._talK=p._talC; if(T.on.pois&&src.alive) run(T,src,'pois',{u:src,src,tgt:t,dot:d,skill:p._talC,was}); }
+  function spreadR(o,dead,r){ const T=o._tal; T.s.spr={dead,v:[],body:false}; const ctx={u:o,src:o,tgt:dead,unit:dead,amt:r,skill:'contagion',body:false}; if(T.on.spreadR) run(T,o,'spreadR',ctx); T.s.spr.body=!!ctx.body; return Math.max(0,ctx.amt); }
+  /* spreadIn: is enemy e within that reach of the dead enemy? Centre to centre, as the game's own Contagion measures; body to body when a spreadR row said so (ctx.body) */
+  function spreadIn(o,dead,e,r){ const sp=o._tal.s.spr, d=Math.hypot(e.x-dead.x,e.y-dead.y); return (sp&&sp.body)?(d-E.bodyR(dead)-E.bodyR(e)<r):(d<r); }
+  function spread(o,dead){ const T=o._tal, sp=T.s.spr; T.s.spr=null; if(!sp||!o.alive||!T.on.spread) return; run(T,o,'spread',{u:o,src:o,unit:dead,tgt:dead,k:sp.v.length,vic:sp.v}); }
   /* ---- HIS SUMMONS (Aldren). summon: summonUnit has just made a summon of his (its stats set, before it joins the field): it carries him as x._talS (never on a
      snap: summons are not snapped), and 'summon' rows run (ctx.unit = ctx.tgt = the summon, key, extra = called by his talents, not by his skill).
      Its hits run his 'sOut' rows (change the hit) and 'sHit' / 'sKill' rows (after it landed; ctx.src = ctx.unit = the summon); its lifetime running out while
@@ -741,6 +761,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

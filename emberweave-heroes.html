@@ -12703,7 +12703,9 @@ function damage(u,a,c,noEnergy,crit){
       floatTexts.push({x:u.x,y:u.y-14,txt:'DEBT CALLED IN',t:1.3,color:'#8a7a3a',vy:1,sz:13}); }
     if(u._contagion && u.dots && u.dots.some(d=>d.color===u._plagueColor)){   // only the carrier's own plague/curse spreads — a stray bleed or burn does not // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
       const _cgDur=(u._plagueColor==='#f2d84a')?5:SKLV.contagionDur(contagionLv(u.team));   /* v1376 (Phil 12 Nov: "Swarm move on make it 5 seconds") - Dandra's bees */   /* v1112: the spread lasts 4 s + 0.02 s a level of the strongest Contagion on the other side */
-      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ { const _cd=u.dots.find(d=>d.color===u._plagueColor); plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f',_cd&&_cd.src,_cd&&_cd.kind); } e._contagion=true; if(u._plagueColor==='#f2d84a'){ e._beeCutUntil=battleTime+_cgDur; const _bs=(u.dots.find(d=>d.color===u._plagueColor)||{}).src; e._beeCut=beeHealCut((_bs&&_bs.pass&&_bs.pass.contagion)?passLv(_bs):contagionLv(u.team)); } e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
+      const _cgO=(u.dots.find(d=>d.color===u._plagueColor)||{}).src, _cgT=!!(_cgO&&_cgO._tal&&_cgO._tal.on.spread), _cgR=_cgT?TalentFx.spreadR(_cgO,u,2.6*METER):2.6*METER;   /* TALENT HOOK spreadR: the reach of a talented hero's Contagion (Bloatus); every poison queued until the spread hook below is a spread */
+      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&(_cgT?TalentFx.spreadIn(_cgO,u,e,_cgR):Math.hypot(e.x-u.x,e.y-u.y)<_cgR)){ { const _cd=u.dots.find(d=>d.color===u._plagueColor); plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f',_cd&&_cd.src,_cd&&_cd.kind); } e._contagion=true; if(u._plagueColor==='#f2d84a'){ e._beeCutUntil=battleTime+_cgDur; const _bs=(u.dots.find(d=>d.color===u._plagueColor)||{}).src; e._beeCut=beeHealCut((_bs&&_bs.pass&&_bs.pass.contagion)?passLv(_bs):contagionLv(u.team)); } e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
+      if(_cgT) TalentFx.spread(_cgO,u);   /* TALENT HOOK spread: his Contagion has spread (to whom) */
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
       if(typeof SFX!=='undefined'&&SFX.loop) sfxSpread(u);   /* v1138 sound: the plague's owner's passive */
       if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
@@ -15168,10 +15170,11 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'toxbreath':{ const reach=15*METER, pd=apB*(o.dps||0.5), con=!!(u.pass&&u.pass.contagion);
       // aim at the FURTHEST enemy within 15m (that is Bloatus's target); everyone along the line gets hit.
       let aim=null,best=-1; enemiesOf(u).forEach(e=>{ const dd=dist(u,e); if(dd<=reach&&dd>best){best=dd;aim=e;} });
+      if(u._tal&&u._tal.on.skillTgt) aim=TalentFx.skillTgt(u,type,aim,o)||aim;   /* TALENT HOOK skillTgt: the enemy the breath aims at (a talent may turn it) */
       const tx=aimCtr?aimCtr.x:(aim?aim.x:(tgt?tgt.x:u.x+(u.team==='ally'?reach:-reach))), ty=aimCtr?aimCtr.y:(aim?aim.y:(tgt?tgt.y:u.y));
       u._castT=Math.max(u._castT||0,0.75);   /* v1045: he is breathing out (exhale frames 27-44) - no swing until the gas is out, so the v1031 swing rule does not cut the breath and no blow lands unseen */
       spawnBeamFx('toxcone',u,tx,ty,0.45,0.3);                  /* v1045 (Phil 6 Oct: "please check bloatus toxic breath spell FX"): the green gas plume (was the thin dark toxbeam streak) shoots mouth -> target over his exhale (frames 27-39 = 0.45 s), then thins out 0.3 s */
-      const dd=Math.max(1,Math.hypot(tx-u.x,ty-u.y)), ux=(tx-u.x)/dd, uy=(ty-u.y)/dd, half=1.4*METER;
+      const dd=Math.max(1,Math.hypot(tx-u.x,ty-u.y)), ux=(tx-u.x)/dd, uy=(ty-u.y)/dd, half=(u._tal&&u._tal.on.num)?TalentFx.num(u,'breathW',1.4*METER):1.4*METER;   /* TALENT HOOK num: the plume's half-width */
       enemiesOf(u).forEach(e=>{ let pr=(e.x-u.x)*ux+(e.y-u.y)*uy; if(pr<0)pr=0; if(pr>dd)pr=dd; const cx=u.x+ux*pr, cy=u.y+uy*pr;
         if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f',u,'magic'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: without the colour the spread test never matched and Contagion never fired
       floatTexts.push({x:u.x,y:u.y-12,txt:'TOXIC BREATH',t:.9,color:'#a6e05a',vy:1,sz:12}); break; }
@@ -15213,8 +15216,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); });
       break; }
     case 'plaguesov':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f',u,'magic'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
-      ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
+      const _psC=(u._tal&&u._tal.on.skillTgt)?(TalentFx.skillTgt(u,type,u,o)||u):u;   /* TALENT HOOK skillTgt: the ring's centre (Bloatus himself; a talent may move it) */
+      enemiesOf(u).forEach(e=>{ if(dist(_psC,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f',u,'magic'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
+      ringBurst(_psC.x,_psC.y,0x8fbf3f,28); burstAt(_psC.x,_psC.y,0x6f9f3f,24); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Vireo (bard support) — heals/shields scale off ability power ----
     case 'crescendo':{
       u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
@@ -16499,9 +16503,9 @@ function plagueDot(t,dps,dur,interval,color,src,kind){ if(!t)return;
   /* v1311 (Phil 8 Nov: "check this game wide, for effects accidentally earning multiple gains"): Compound Interest is applied ONCE, in
      pushDot - this function used to stretch the duration too, so a plague DoT near Grimsby lasted (1+x)^2 longer (10 s -> 14 s at L1). */
   if(!t)return; const k=dotKind(color); const curse=!!(color&&/8a5cff|7a3fb0|b06bff|c9a6ff|9a6fff/i.test(color));
-  if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5,src,kind}); }
+  if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5,src,kind}); if(src&&src._tal&&src._tal.on.poisQ) TalentFx.poisQ(src,_pendingDots[_pendingDots.length-1]);   /* TALENT HOOK poisQ: a poison of a talented hero (Bloatus) is queued - his rows note where it comes from and may change its strength */ }
   else pushDot(t,dps,dur,interval,color,src,kind); }
-function updatePendingDots(dt){ for(let i=_pendingDots.length-1;i>=0;i--){ const p=_pendingDots[i]; p.delay-=dt; if(p.delay<=0){ if(p.t&&p.t.alive)pushDot(p.t,p.dps,p.dur,p.interval,p.color,p.src,p.kind); _pendingDots.splice(i,1);} } }
+function updatePendingDots(dt){ for(let i=_pendingDots.length-1;i>=0;i--){ const p=_pendingDots[i]; p.delay-=dt; if(p.delay<=0){ if(p.t&&p.t.alive)pushDot(p.t,p.dps,p.dur,p.interval,p.color,p.src,p.kind); if(p._talC&&p.t&&p.t.alive) TalentFx.pois(p.src,p.t,p);   /* TALENT HOOK pois: that queued poison has landed (only poisQ sets _talC) */ _pendingDots.splice(i,1);} } }
 // Universal DoT status FX: ANY unit (hero or monster) carrying a bleed/poison/burn DoT shows the matching effect
 // at its feet for the DoT's lifetime. Classified by the dot's colour. Burn = a small fire patch under the feet.
 /* v1141 (Phil, 15 Oct: "Debuffs like burn, bleed, poison, curse, wax ... should be under their feet"): every damage-over-time colour the
