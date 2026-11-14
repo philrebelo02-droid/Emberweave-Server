@@ -580,7 +580,7 @@ function chatChipOk(bt){ if(!bt||typeof bt!=='object'||Array.isArray(bt)) return
     for(const u of a){ if(!u||typeof u!=='object'||typeof u.key!=='string'||u.key.length>32) return null; } }
   for(const f of ['mine','mineSnap','foe']) for(const u of (bt[f]||[])){ let s=''; try{ s=JSON.stringify(u); }catch(e){ return null; } if(s.length>2000) return null; }
   /* v1088 (scan 9 #3): only the fields watchBattle reads are kept - a padded chip (8 KB each) was stored and served to every member on every poll */
-  const out={}; if(bt.v!=null) out.v=bt.v|0; if(bt.seed!=null) out.seed=(+bt.seed)>>>0; if(typeof bt.oppName==='string') out.oppName=bt.oppName.slice(0,16); if(bt.won!=null) out.won=!!bt.won;
+  const out={}; if(bt.v!=null) out.v=bt.v|0; if(bt.seed!=null) out.seed=(+bt.seed)>>>0; if(typeof bt.oppName==='string') out.oppName=bt.oppName.slice(0,16); if(bt.won!=null) out.won=!!bt.won; if(typeof bt.engine==='string') out.engine=bt.engine.slice(0,40);   /* v1391: the build that fought it */
   for(const f of ['mine','mineSnap','foe']) if(Array.isArray(bt[f])) out[f]=bt[f]; return out; }
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
   let d='', len=0, done=false;
@@ -5889,7 +5889,7 @@ function arenaTopAdd(rec){ DB.arenaTop=Array.isArray(DB.arenaTop)?DB.arenaTop:[]
   if(DB.arenaTop.length>200){ const keep=new Set(arenaTopRanked().slice(0,10).map(x=>x.id)); DB.arenaTop=DB.arenaTop.filter((x,i)=>i<200||keep.has(x.id)); } }
 function arenaTopRanked(){ return (DB.arenaTop||[]).filter(Boolean).slice().sort((a,b)=>(arenaTopScore(b)-arenaTopScore(a))||(b.t-a.t)); }
 function arenaTopList(uid){ return arenaTopRanked().slice(0,10).map(x=>{ let up=0,down=0; for(const k in (x.votes||{})){ if(x.votes[k]>0)up++; else down++; }
-  return { id:x.id, seed:x.seed, mineSnap:x.mineSnap, foe:x.foe, won:x.won, atkName:x.atkName, defName:x.defName, atkRank:x.atkRank, defRank:x.defRank, t:x.t, up, down, mine:(x.votes||{})[uid]||0 }; }); }
+  return { id:x.id, seed:x.seed, mineSnap:x.mineSnap, foe:x.foe, won:x.won, engine:x.engine||null, atkName:x.atkName, defName:x.defName, atkRank:x.atkRank, defRank:x.defRank, t:x.t, up, down, mine:(x.votes||{})[uid]||0 }; }); }
 function applyResult(me, opp, won){
   const before=me.rank;
   if(won && opp && opp.rank < me.rank && !(testerTagged(me) && !opp.isNpc && !testerTagged(opp))){   /* v1376: a test account never takes a real player's rank */
@@ -10167,7 +10167,7 @@ async function api(req,res,url){
         d.pvpMail=d.pvpMail||[];
         /* v1042: both players' war mail gets the report WITH the fight (the replay the server fought: attacker's squad vs the
            defender's wall, same seed) - the receipt that used to hold it lasts an hour now. Delivered by /api/pvp/reports + ack. */
-        const mailBattle=replay?{v:2,seed:replay.seed,mineSnap:replay.snaps,foe:replay.foe,won:!!won,oppName:me.name,attacker:me.name,defender:d.name}:undefined;
+        const mailBattle=replay?{v:2,seed:replay.seed,mineSnap:replay.snaps,foe:replay.foe,won:!!won,oppName:me.name,attacker:me.name,defender:d.name,engine:replay.engine||null}:undefined;   /* v1391: the viewer compares the engine with its own */
         d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds, marchId:march.id, battle:mailBattle, wallPct, wallFell:!!wallFell, newLoc:wallFell?{x:wallFell.x,y:wallFell.y}:undefined});
         if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
         for(const o of new Set(garrison.map(g=>g.o))){ o.pvpMail=o.pvpMail||[]; o.pvpMail.push({id:uid(),kind:'defend-report',from:me.name,to:d.name,won,t:Date.now(),marchId:march.id}); if(o.pvpMail.length>20) o.pvpMail=o.pvpMail.slice(-20); }   /* v1097 */
@@ -10803,9 +10803,10 @@ async function api(req,res,url){
       if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; goldReward=creditGold(me,led,goldReward,'arena:win'); ledTx(me,'arena:win',{gold:goldReward}); } }
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length && arenaDefOk(me,opp,b.def)){   /* v1078 (scan #6): only a report of the two real squads, size-capped */   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
-      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now() });
+      const _defEngine=(typeof b.def.engine==='string')?b.def.engine.slice(0,40):null;   /* v1391: the build that fought it - the viewer says when it is not its own */
+      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now(), engine:_defEngine });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10;
-      arenaTopAdd({ seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24), defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank }); }
+      arenaTopAdd({ seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24), defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank, engine:_defEngine }); }
     me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
     /* v267 (80/20 §9): rank-milestone diamonds are paid HERE, from the server's own rank record —
        the client used to award them itself through the generic earn endpoint. */
