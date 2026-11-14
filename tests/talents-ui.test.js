@@ -13,13 +13,13 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const STEP=JSON.parse(/const D_HERO_STEP=(\[[^\]]+\])/.exec(fs.readFileSync(path.join(root,'server.js'),'utf8'))[1]);
 const xpFor=level=>{ let x=0; for(let L=2;L<=level;L++) x+=STEP[L-2]; return x; };
 const SHOTS=process.env.TALENT_SHOTS||''; if(SHOTS) fs.mkdirSync(SHOTS,{recursive:true});
-const NOART='konwu';   // a hero whose talent art is not painted yet (he is seeded at level 9: no points)
+const LOW='konwu';     // a hero seeded at level 9: no points, his talents not open yet (his art was painted on 14 Nov: the rule holds whatever art exists)
 const ORDER_ON=['stats','glyphs','talents','equip','skills','lore'], ORDER_OFF=['stats','glyphs','equip','skills','lore'];
 
 async function server(flag){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'emberweave-talents-ui-')),file=path.join(dir,'db.json');
   const user={id:'talent-ui-user',name:'Talent Screen',created:start-1000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},qc:{wish:0},
-    led:{v:1,migratedAt:start-1000,rev:1,gold:100000,gems:1000,px:2000000000,hero:{vael:{xp:xpFor(100),stars:1,pips:0,ref:0},[NOART]:{xp:xpFor(9),stars:1,pips:0,ref:0}},unlocked:{vael:true,[NOART]:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:TEMPLE.newState(),txs:[],quests:{claimed:{},chainStep:0}}};
+    led:{v:1,migratedAt:start-1000,rev:1,gold:100000,gems:1000,px:2000000000,hero:{vael:{xp:xpFor(100),stars:1,pips:0,ref:0},[LOW]:{xp:xpFor(9),stars:1,pips:0,ref:0}},unlocked:{vael:true,[LOW]:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:TEMPLE.newState(),txs:[],quests:{claimed:{},chainStep:0}}};
   fs.writeFileSync(file,JSON.stringify({users:{[user.id]:user},byName:{'talent screen':user.id},tokens:{[crypto.createHash('sha256').update(token).digest('hex')]:{id:user.id,iat:start,exp:start+90*86400000}},seeded:true,seedVersion:3,heroIdV:3,guilds:{},idem:{},feedback:[],reports:[],meta:{rollSecret:'talent-ui-test'}}));
   const s=net.createServer(); await new Promise(r=>s.listen(0,'127.0.0.1',r)); const port=s.address().port; await new Promise(r=>s.close(r));
   let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',SIM_WORKERS:'0',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else delete env.TALENTS_ENABLED; delete env.CLOCK_FILE;
@@ -162,15 +162,18 @@ test('flag on: tab order, the trees, the card, learn to the signature, a locked 
   assert.equal(await pg.evaluate(()=>document.getElementById('tlPts').textContent),'Points: 0 / 91'); assert.equal(s.disk().led.talents.vael,undefined,'reset is saved; the hero has no entry');
   assert.equal(await pg.evaluate(()=>document.getElementById('tlReset').disabled),true,'nothing to reset');
   assert.equal(await pg.evaluate(()=>'vael' in (G.talents||{})),false,'a hero with nothing learned has no entry in G.talents');
-  // a hero under level 10, not painted yet: the plain tiles, no points, the reason on the card
-  await openHero(pg,NOART,'talents'); assert.deepEqual(await tabs(pg),ORDER_ON);
+  // a hero under level 10: no points, every talent shown as not open (whatever art is painted for him: dimmed if any), the reason on the card
+  await openHero(pg,LOW,'talents'); assert.deepEqual(await tabs(pg),ORDER_ON);
   assert.equal(await pg.evaluate(()=>document.getElementById('tlPts').textContent),'Points: 0 / 0');
   assert.match(await pg.evaluate(()=>document.querySelector('.tl-pts span').textContent),/Talents open at hero level 10/,'shown while the hero is under level 10');
-  assert.equal(await pg.evaluate(()=>document.querySelectorAll('.tl-cell img.tl-art').length),0); assert.equal(await pg.evaluate(()=>document.querySelectorAll('.tl-cell.no').length),T.trees(NOART)[0].talents.length);
+  const low=await pg.evaluate(()=>({cells:document.querySelectorAll('.tl-cell').length,no:document.querySelectorAll('.tl-cell.no').length,can:document.querySelectorAll('.tl-cell.can,.tl-cell.some,.tl-cell.max').length,
+    art:document.querySelectorAll('.tl-cell img.tl-art').length,dim:document.querySelectorAll('.tl-cell.no img.tl-art').length}));
+  assert.equal(low.cells,T.trees(LOW)[0].talents.length,'the whole tree is drawn'); assert.equal(low.no,low.cells,'every talent is shown as not open'); assert.equal(low.can,0,'none learnable or learned');
+  assert.equal(low.dim,low.art,'the art painted for him ('+low.art+' tiles) is all on not-open tiles');
   assert.equal(await pg.evaluate(()=>!!document.querySelector('#heroDetailBody .hd-tab[data-tab="talents"] .hupDot')),false,'no points, no red dot');
   await shot(pg,'desktop-07-no-art-hero');
-  const nf=T.trees(NOART)[0].talents[0]; await pg.dblclick('#tl_'+nf[0]); await wait(500);
-  assert.match(await pg.evaluate(()=>document.querySelector('#tlCard .tl-cw').textContent),/Talents open at hero level 10/); assert.equal(s.disk().led.talents[NOART],undefined);
+  const nf=T.trees(LOW)[0].talents[0]; await pg.dblclick('#tl_'+nf[0]); await wait(500);
+  assert.match(await pg.evaluate(()=>document.querySelector('#tlCard .tl-cw').textContent),/Talents open at hero level 10/); assert.equal(s.disk().led.talents[LOW],undefined);
   assert.deepEqual(await fits(pg),[]);
   assert.deepEqual(pg._errs,[],'no page errors'); assert.equal(pg._dialogs,0,'no browser alert / confirm / prompt');
 } finally{ if(pg) await pg.context().close(); await s.stop(); } });
@@ -204,7 +207,7 @@ test('flag on, a phone (390 x 844, touch): tab row fits, tap opens the card, dou
   // reset on the phone
   await pg.evaluate(()=>document.querySelector('.tl-head').scrollIntoView({block:'start'}));
   await pg.tap('#tlReset'); assert.deepEqual(await fits(pg),[]); await shot(pg,'phone-05-reset-confirm'); await pg.tap('#tlResetYes'); await pg.waitForFunction(()=>!(G.talents&&G.talents.vael));
-  await openHero(pg,NOART,'talents'); assert.deepEqual(await fits(pg),[]);
+  await openHero(pg,LOW,'talents'); assert.deepEqual(await fits(pg),[]);
   await pg.evaluate(()=>document.querySelector('#heroDetailBody .hd-tabbar').scrollIntoView({block:'center'})); await shot(pg,'phone-06-no-art-hero');
   assert.deepEqual(pg._errs,[],'no page errors'); assert.equal(pg._dialogs,0);
 } finally{ if(pg) await pg.context().close(); await s.stop(); } });
@@ -252,7 +255,7 @@ test('flag on, a phone in landscape (844 x 390): at least 4 tiers of the board w
   // every other tab is exactly as it was before the Talents tab was opened
   await pg.tap('#heroDetailBody .hd-tab[data-tab="stats"]'); assert.deepEqual(await lay(),stats0,'Stats after Talents = Stats before');
   for(const tab of ['glyphs','equip','skills','lore']){ await pg.tap('#heroDetailBody .hd-tab[data-tab="'+tab+'"]'); const l=await lay(); assert.equal(l.short,false,tab); assert.equal(l.leftPos,'static',tab); assert.equal(l.leftH,stats0.leftH,tab+': the full hero header'); }
-  await openHero(pg,NOART,'talents'); await wait(300); assert.equal((await lay()).short,true); assert.match(await pg.evaluate(()=>document.querySelector('.tl-pts span').textContent),/level 10/); assert.deepEqual(await fits(pg),[]); await shot(pg,'landscape-06-no-art-hero');
+  await openHero(pg,LOW,'talents'); await wait(300); assert.equal((await lay()).short,true); assert.match(await pg.evaluate(()=>document.querySelector('.tl-pts span').textContent),/level 10/); assert.deepEqual(await fits(pg),[]); await shot(pg,'landscape-06-no-art-hero');
   assert.deepEqual(pg._errs,[],'no page errors'); assert.equal(pg._dialogs,0);
 } finally{ if(pg) await pg.context().close(); await s.stop(); } });
 
