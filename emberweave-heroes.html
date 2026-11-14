@@ -7387,6 +7387,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ summon:
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ skillMul:lv=>skillMul(lv) });
 /* 14 Nov 2026 (Aureth's talents): Twin Fonts' strength at its level, and the shield Duality's Light stance writes (its own expression), so a talent can give the font he is not in, or the Light shield, at the game's own size */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ twinMul:u=>SKLV.twinfonts(passLv(u)), lightShield:(u,o)=>u.maxHp*skLvNum('duality',o||{},(u._castLv|0)||1)+(u.apow||0)*2 });
+/* 14 Nov 2026 (Askel's talents): a skill's own number at its level (Rallying Ground's damage reduction) and the game's timed control-resist bonus, so a talent can rally an ally as the banner does */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ skLvNum:(type,o,lv)=>skLvNum(type,o,lv), ctrlBonus:(a,amt,dur,cap)=>ctrlBonusSet(a,amt,dur,cap) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -14669,11 +14671,15 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           groundHazards.push({arrival:true,delay:Math.max(0.03,_dur*pr/_pl),run:function(){ if(!e.alive)return;
             if(o.pathHit){ dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); burstAt(e.x,e.y,0xffcf40,8); }
             if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
-              e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); } }}); }); }
+              e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25);
+              if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'knockaside');   /* TALENT HOOK pass: the charge has just knocked this enemy aside (Askel's talents: Flattened) */
+              } }}); }); }
       if(o.allyShield) alliesOf(u).forEach(a=>{ if(!a.alive)return; a.shield=Math.max(a.shield||0,a.maxHp*o.allyShield); a.shieldT=Math.max(a.shieldT||0,o.shieldDur||5); burstAt(a.x,a.y,0x9fe0ff,8); });   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): March's shield had no timer and stacked */
       u._dash={x0:u.x,y0:u.y,x1:lx,y1:ly,t:0,dur:_dur,run:function(){ u.attackAnim=.2; u._rushLandAt=battleTime;   /* v1021: render-only stamp - the ult clip's impact frames start here */
+        if(u._tal) TalentFx.landPre(u,tg2,'charge');   /* TALENT HOOK landPre: the charge's slam on arrival is that skill's (Askel's talents: Rut, Gored, Stampede) */
         if(o.slamOne){ if(tg2.alive){ dealDamage(u,tg2,_cD,'#ffcf40'); if(o.stun&&ccApply(u,tg2,'stunned',o.stun)&&o.stunFull) tg2.stunned=Math.max(tg2.stunned||0,o.stunFull); } }   // v1303: the slam is ONE enemy - the one he charged; stunFull = Phil's 3 s past the 2.8 s stacking ceiling (this skill only)
         else enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
+        if(u._tal) TalentFx.land(u,tg2,'charge');   /* TALENT HOOK land: the charge's slam has landed */
         burstAt(lx,ly,0xffcf40,20); }};
       u._castT=Math.max(u._castT||0,_dur); break; }
     /* v534 NOONDAY STAMPEDE (Zahri) - Phil, 9 Sep: "a line aimed up that can go up to 20 meter, when you use it she charges to the
@@ -18504,6 +18510,7 @@ function _updateBattleCore(dt){
     if(DD.on){ const _pa=DD.actor; DD.actor=u; try{ think(u,dt); } finally{ DD.actor=_pa; } } else think(u,dt);if(u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
   rivetHookTick(dt);   /* v1137: Rivet's automatic chain hook (no-op without Rivet) */
   for(let i=0;i<units.length;i++){ const u=units[i]; if(u._tal&&u.alive) TalentFx.tick(u,dt); }   /* TALENT HOOK tick */
+  for(let i=0;i<units.length;i++){ const u=units[i]; if(u._tal&&!u.alive&&u._tal.s.ghost) TalentFx.fallen(u,dt); }   /* TALENT HOOK fallen: a fallen hero whose talent keeps standing (Askel's standard), until the wave ends */
   // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
@@ -18648,6 +18655,7 @@ function _updateBattleCore(dt){
         if(a.stunned>0||a.fearT>0||(a.silencedT||0)>0||(a._airT||0)>0){
           u.energy=Math.min(100,u.energy+4*(u.passMul||1));
           a.drMul=Math.min(a.drMul||1,0.75); a.drT=Math.max(a.drT||0,1.5);
+          if(u._tal&&u._tal.on.pass) TalentFx.pass(u,a,'unshaken');   /* TALENT HOOK pass: Unshaken Herd has just covered this held ally (Askel's talents: Steadfast, the held ally) */
           firePassiveFx(u,a,{aboveBar:true}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'unshaken',1.5);
           burstAt(a.x,a.y,0x8a6b3f,6); } }); } }
     // Trail of Splendor (Velvetplume): every buff she lands also leaves a small stacking shield.

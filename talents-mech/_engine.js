@@ -53,6 +53,7 @@
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
     T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
+    T.mv=!!T.on.moved;                                                        // rows about an ally being pushed, pulled or knocked up (Askel's Breakwater): the owner's tick looks for it
     u._tal=T; return T; }
 
   /* ---- named stacks / pools (T.st[name] = {max, dur, fade:{after,every,lose,unless}, wave:'reset'}) ---- */
@@ -498,6 +499,10 @@
     if(a.stun!=null||a.silence!=null){ const f=a.stun!=null?'stunned':'silencedT', secs=amtOf(T,u,a.stun!=null?a.stun:a.silence,ctx); if(!(secs>0)) return;
       for(const t of pick(T,u,a.on,ctx)) if(t.alive) control(T,u,t,f,secs,a.asIs); return; }                                           // the stated seconds, written straight on (no resist roll, no seeded draw)
     if(a.endCc){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) t[a.endCc]=0; return; }                                   // a control on that unit ends now (a shattered freeze)
+    /* a push, pull or knock-up undone (on a 'moved' row): the unit is put back where it stood at the owner's last tick, with the knock / pull it had then (Askel's Breakwater) */
+    if(a.unmove){ const m=s.mv||{}; for(const t of pick(T,u,a.unmove,ctx)){ const p=m[t.uid]; if(!p||!t.alive) continue;
+        t.x=p[0]; t.y=p[1]; t._ax=t.x; t._ay=t.y; t._airT=p[2]; t.pullT=p[3]; t.pulledBy=p[4]; t.pullStop=p[5]; t.pullSpeed=p[6]; } return; }
+    if(a.ghost!=null){ s.ghost=!!a.ghost; return; }                                                // ghost: his 'fallenTick' rows keep running after he falls, until the wave ends (Askel's standard stays standing)
     if(a.timer){ const x=amtOf(T,u,a.min,ctx); for(const t of pick(T,u,a.on,ctx)) if(t.alive&&!((t[a.timer]||0)>=x)) t[a.timer]=x; return; }   // an engine timer on a unit is raised to at least that ('_chillT': Chill lasts longer)
     if(a.atOne){ for(const t of pick(T,u,a.atOne,ctx)) if(t.hp<1) t.hp=1; ctx.stop=true; return; }                                 // on a teamLethal row: that unit does not die from this blow
     if(a.window){ const w=s.w[a.window]||(s.w[a.window]={t:0,n:0,cdT:0,at:-1,wave:false});
@@ -554,7 +559,7 @@
   /* ---- stats that change during the fight (rows {stat:{...}, per, if}): the difference is applied to the unit's own number, so whatever
           else the engine does to that number is kept. atk, armor, mr, move: "x more" (multiply); aspd: attack speed; crit, lifesteal: added;
           immovable: a flag. Recomputed once a tick; a number is touched only when its total changed. ---- */
-  const S_MUL={atk:'dmg',armor:'armorRating',mr:'mrRating',move:'speed',apow:'apow',heal:'healPowMul'}, S_ADD={crit:'glyphCrit',lifesteal:'lifestealStat',dodge:'_talDodge'};   // dodge: her talent dodge chance (read by the dodge rows' chance)
+  const S_MUL={atk:'dmg',armor:'armorRating',mr:'mrRating',move:'speed',apow:'apow',heal:'healPowMul'}, S_ADD={crit:'glyphCrit',lifesteal:'lifestealStat',dodge:'_talDodge',ctrl:'ctrlRes'};   // dodge: her talent dodge chance (read by the dodge rows' chance); ctrl: control resist (Askel's Calves Behind), the total never above the game's 85%
   function restat(T,u){ if(!T.stats.length) return; const tot={}, ctx={u,tgt:u.target};
     for(let i=0;i<T.stats.length;i++){ const row=T.stats[i]; if(row.if&&!ok(T,u,row.if,ctx)) continue; const n=row.per!=null?cnt(T,u,row.per,ctx):1; if(!n) continue; for(const k in row.stat) tot[k]=(tot[k]||0)+row.stat[k]*n; }
     setStats(u,tot,T.s.ap,T.s.z);
@@ -565,7 +570,7 @@
     for(const k in S_MUL){ const nw=Math.max(0,1+(tot[k]||0)), old=ap[k]==null?1:ap[k]; if(nw===old) continue; const f=S_MUL[k];
       if(old===0) u[f]=(z[k]||0)*nw; else if(nw===0){ z[k]=(u[f]||0)/old; u[f]=0; } else u[f]=(u[f]||0)/old*nw; ap[k]=nw; }
     { const nw=Math.max(0.05,1+(tot.aspd||0)), old=ap.aspd==null?1:ap.aspd; if(nw!==old){ u.atkInterval=u.atkInterval*old/nw; ap.aspd=nw; } }
-    for(const k in S_ADD){ const f=S_ADD[k], old=ap[k]||0; let nw=tot[k]||0; if(k==='crit') nw=Math.min(nw,Math.max(0,0.6-((u[f]||0)-old))); if(nw!==old){ u[f]=(u[f]||0)-old+nw; ap[k]=nw; } }
+    for(const k in S_ADD){ const f=S_ADD[k], old=ap[k]||0; let nw=tot[k]||0; if(k==='crit') nw=Math.min(nw,Math.max(0,0.6-((u[f]||0)-old))); if(k==='ctrl') nw=Math.min(nw,Math.max(0,0.85-((u[f]||0)-old))); if(nw!==old){ u[f]=(u[f]||0)-old+nw; ap[k]=nw; } }
     { const nw=!!tot.immovable; if(nw!==!!ap.imm){ if(nw){ ap.immWas=u.immovable; u.immovable=true; } else u.immovable=ap.immWas; ap.imm=nw; } } }
   /* stat rows that sit on OTHER units ({stat, to:<who>, per, if}: an aura, a debuff on marked enemies). Each tick: who is picked now, what they get; a unit
      no longer picked gets its numbers back. T.s.au = [{x: the unit, ap, z, g0, b0}], in the order units were first touched. Taken off when the owner dies. */
@@ -575,7 +580,7 @@
       for(let j=0;j<us.length;j++){ const x=us[j]; let e=null; for(let q=0;q<au.length;q++) if(au[q].x===x){ e=au[q]; break; }
         if(!e){ e={x,ap:{},z:{},tot:null,g0:null,b0:null}; au.push(e); } const c2={u,tgt:x}, n=row.per!=null?cnt(T,u,row.per,c2):1; if(!n) continue;
         const tot=e.tot||(e.tot={}); for(const k in row.stat) tot[k]=(tot[k]||0)+row.stat[k]*n; } }
-    for(let i=0;i<au.length;i++){ const e=au[i], x=e.x; if(!x.alive){ au.splice(i--,1); continue; } if(!sameTot(e.tot,e.lt)||(e.tot&&'crit' in e.tot)) setStats(x,e.tot||{},e.ap,e.z); e.lt=e.tot;   // the same totals as last tick: nothing to change (crit: its cap reads the unit's own crit, so always)
+    for(let i=0;i<au.length;i++){ const e=au[i], x=e.x; if(!x.alive){ au.splice(i--,1); continue; } if(!sameTot(e.tot,e.lt)||(e.tot&&('crit' in e.tot||'ctrl' in e.tot))) setStats(x,e.tot||{},e.ap,e.z); e.lt=e.tot;   // the same totals as last tick: nothing to change (crit, ctrl: their caps read the unit's own number, so always)
       if(e.ap.cdRate){ for(const f of CDF){ const k=f==='greenCd'?'g0':'b0', was=e[k], cur=x[f]; if(was!=null&&cur>0&&was>cur&&was-cur<=dt*4) x[f]=cur-(was-cur)*e.ap.cdRate; e[k]=x[f]; } }   // what the cooldown recovered this tick, that share given back / taken
       else{ e.g0=null; e.b0=null; if(!e.tot){ au.splice(i--,1); } } } }
   const CDF=['greenCd','blueCd'];
@@ -738,6 +743,7 @@
   function tick(u,dt){ const T=u._tal, s=T.s;
     if(T.watch){ const U=E.units(); for(let i=0;i<U.length;i++){ const x=U[i], w=x._talW; if(!w) x._talW=[u]; else if(w.indexOf(u)<0) w.push(u); } }
     if(s.fresh){ s.fresh=false; startWave(T,u); }
+    if(T.mv) moves(T,u);
     s.moved=(u.x!==u.px||u.y!==u.py);
     if(s.tm.length) tickMarks(T,u);
     zoneEnds(T,u); if(s.zc) zoneCatch(T,u);
@@ -752,6 +758,19 @@
     if(T.on.tick) run(T,u,'tick',{u,tgt:u.target,dt});
     restat(T,u); auras(T,u,dt); }
 
+  /* ---- pushed, pulled or knocked up (Askel's Breakwater). Each tick of a hero with 'moved' rows: for every living hero of his own side, a knock-up / knock-back
+          (the engine's _airT raised) or a new pull (pullT raised or a new pulledBy) since his last tick runs 'moved' (ctx.unit = ctx.tgt = that unit, kind 'knock' |
+          'pull', from = where it stood at his last tick, a point). Then what the unit is now is kept for the next tick; {unmove:<who>} puts it back. No draw. ---- */
+  function moves(T,u){ const s=T.s, m=s.mv||(s.mv={}), U=E.units();
+    for(let i=0;i<U.length;i++){ const x=U[i]; if(x.team!==u.team||x._summon) continue; if(!x.alive){ delete m[x.uid]; continue; }
+      const p=m[x.uid], air=+x._airT||0, pl=+x.pullT||0;
+      if(p&&T.on.moved){ const kind=air>p[2]+1e-9?'knock':((pl>0&&(x.pulledBy!==p[4]||pl>p[3]+1e-9))?'pull':null);
+        if(kind) run(T,u,'moved',{u,unit:x,tgt:x,kind,from:{x:p[0],y:p[1],pt:true}}); }
+      m[x.uid]=[x.x,x.y,+x._airT||0,+x.pullT||0,x.pulledBy,x.pullStop,x.pullSpeed]; } }
+  /* a fallen talented hero whose rows said {ghost:true}: his 'fallenTick' rows run each tick (ctx.dt) until the wave ends (the page's per-wave reset). Page: one guarded
+     line after the tick hook. Nothing else of his runs: his auras were taken off at his death, and no other hook runs for a dead hero's rows */
+  function fallen(u,dt){ const T=u._tal, s=T.s; if(s.fresh){ s.ghost=false; return; } if(T.on.fallenTick) run(T,u,'fallenTick',{u,dt}); }
+
   const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
   /* A hook never lets an error out into the fight: it is counted (TalentFx.errors() - the tests require zero) and the hook answers as if the hero
      had no talent row there. An error is as deterministic as anything else here, so device and server still agree. Diagnostics only: nothing in a
@@ -761,6 +780,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
