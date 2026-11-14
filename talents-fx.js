@@ -50,7 +50,7 @@
     if(T.shield) u.shieldStr=(u.shieldStr||1)*Math.max(0.05,1+T.shield);
     return u; }
   const has=(hero,id)=>!!(DATA.stats[hero]&&DATA.stats[hero][id]);
-  const TREES={"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}}};
+  const TREES={"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
   const MECH={};
   MECH["sylthaine"]=(function(){const module={exports:{}};
 /* SYLTHAINE - what her learned talents do in a fight (the mechanics; her 8 plain stat talents are read from their tooltips by the generator).
@@ -464,6 +464,221 @@ module.exports={
 };
 
 return module.exports;})();
+  MECH["vireo"]=(function(){const module={exports:{}};
+/* VIREO - what her learned talents do in a fight (the mechanics; her 8 plain stat talents are read from their tooltips by the generator).
+   Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
+   A correction to a number or a condition is an edit HERE, then:  python tools/build_talent_fx.py
+   How rows are written: WIRING/03 - MECHANICS LAYER (hooks, primitives, how to add a hero).md
+   Her real kit (the code, not the tooltip wording):
+   - Crescendo ('crescendo', green, cd 7): heals EVERY ally, herself included, for 200% of her ability power x the ring (healFrom: her healing power
+     applies), then pushes a heal over time of 40% AP x the ring each second for 5 s (o.dur; healing power does NOT apply to it). The ring count is the
+     engine's `_crescStk`: +1 a cast, at most 4, +25% a ring. NOTHING ever resets it in a fight: from the 4th Crescendo on, every one rings at 4.
+   - Harmony ('harmonyshield', blue, cd 9): every ally whose centre is within 10 m (o.radius) of the MOST WOUNDED ally (lowestAlly: lowest HP share)
+     gets shield = max(its shield, 240% AP x o.mul) for 12 s (o.dur). No damage, no heal.
+   - Grand Symphony ('symphony', ult): every ally on the field healed 30% AP (healFrom), every enemy hit for 30% AP magic (dealDamage).
+   - Perfect Pitch (passive): each Crescendo / Symphony heal also writes shield = max(shield, heal x 50%+ (40%+ on Symphony)), shieldT 5 s (6 s).
+   - Her basic attacks are magic (damageProfile Healer). One shield number per unit: every shield in the game is the same pool.
+   "Her heals" below = the heals of her skills: Crescendo's heal and each tick of its mending, Grand Symphony's heal. Heals her talents make (Encore,
+   Choir Dome, Held Note...) are not "her heals" for her other talents (no cascades, 03 section 6.2). "An ally" = another hero on her side.
+   Talents whose text cannot run against that kit are NOT guessed at: they are written up for the owner in WIRING/06 - VIREO - talents that need a ruling.md. */
+const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
+const P=(name,b)=>({$:name,b:b||0});      // a base + everything her learned talents add to the named number
+const AL={team:'ally',others:true};       // her allies: the other heroes on her side (never a summon)
+const SONG='#e0b6ff';
+const CHORD_SEL={team:'enemy',of:'target',within:P('chord.r',2)};              // the shattering enemy and every enemy within 2 m of it (body to body)
+const ENCORE=[{atOne:'unit'},{heal:{pct:{rk:'lh_4_4',r:0.08,$m:'enc.more'},of:'tgtMaxHp'},pow:true,on:'unit'},{emit:'encore',on:'unit'}];   // kept at 1 HP, healed 8% x Encore's rank
+const PPW=(sk,d)=>({on:'pitch',if:{p:'pp.on',casting:sk},do:[{later:[{shield:{pct:P('pp.more',1),of:'hit'},mode:'max',dur:P('pp.dur',d),on:'target'}]}]});   // Perfect Pitch rewritten once the skill is done
+const DB={r:0.05,$:'db.more'};                                                  // Keep Time's Downbeat bonus (Accent adds to it)
+module.exports={
+  hero:'vireo',
+  casting:true,                         // rows ask which of her skills a heal or a hit comes from
+  states:{
+    ring:{max:P('ring.cap',4)},         // her Crescendo ring, as her talents count it (4; 6 with Swelling Chorus; 2 with Steady Choir)
+    dis:{unit:true,max:5,dur:P('dis.dur',4),step:P('dis.step',0),gain:'disGain',full:'chord',chain:P('chain',0)},   // Dissonance, on each enemy
+    bravo:{}, accel:{max:10}, bars:{max:6},
+    str:{max:P('str.n',6),start:'max',refill:P('str.rt',10),refilled:'retune'}   // Strings: whole ones; a snapped one retunes on its own clock
+  },
+  /* needs: a talent that improves a mechanic does nothing without the talent that introduces it */
+  needs:{ lh_2_1:'lh_1_1', lh_4_2:'lh_2_2', lh_9_2:'lh_7_2', lh_6_2:'lh_5_2', lh_6_3:'lh_5_3',
+          lh_5_4:'lh_4_4', lh_8_4:'lh_4_4', lh_7_4:'lh_4_4', lh_10_4:'lh_4_4', lh_11_4:'lh_4_4', lh_12_4:'lh_4_4',
+          ds_1_3:'ds_1_1', ds_1_4:'ds_1_1', ds_2_1:'ds_1_1', ds_3_1:'ds_1_1', ds_4_2:'ds_1_1', ds_5_1:'ds_1_1', ds_7_2:'ds_1_1', ds_8_3:'ds_1_1', ds_9_2:'ds_1_1', ds_11_1:'ds_1_1', ds_11_2:'ds_1_1',
+          ds_4_1:'ds_3_1', ds_n1:'ds_3_1', ds_6_1:'ds_3_1', ds_8_1:'ds_3_1', ds_9_1:'ds_3_1', ds_12_1:'ds_3_1', ds_10_1:'ds_3_1',
+          ds_5_2:'ds_4_2', ds_10_3:'ds_4_2', ds_6_2:'ds_5_2', ds_6_3:'ds_5_3',
+          ds_4_4:'ds_3_4', ds_5_4:'ds_3_4', ds_7_4:'ds_3_4', ds_8_4:'ds_3_4', ds_10_4:'ds_3_4', ds_11_4:'ds_3_4', ds_12_4:'ds_3_4',
+          li_2_1:'li_1_1', li_3_1:'li_1_1', li_4_1:'li_1_1', li_5_1:'li_1_1', li_5_3:'li_1_1', li_7_1:'li_1_1', li_7_2:'li_1_1', li_8_1:'li_1_1', li_9_1:'li_1_1', li_11_1:'li_1_1', li_12_1:'li_1_1',
+          li_6_1:'li_5_1', li_6_3:'li_5_3', li_10_1:'li_3_1',
+          li_4_2:'li_2_2', li_5_2:'li_2_2', li_6_2:'li_2_2', li_9_2:'li_2_2', li_11_2:'li_2_2', li_12_2:'li_2_2', li_13_2:'li_2_2',
+          li_3_4:'li_1_4', li_4_4:'li_1_4', li_5_4:'li_1_4', li_6_4:'li_1_4', li_7_4:'li_1_4', li_8_4:'li_1_4', li_10_4:'li_1_4', li_11_4:'li_1_4', li_12_4:'li_1_4' },
+  /* run for her whenever she has any mechanic talent: her ring count, her Crescendo mending made hers, Harmony's dome, Perfect Pitch's shield as an event */
+  always:[
+    {on:'kit',skill:'crescendo',do:[{stack:'ring',add:1},{tagHots:'kit'}]},
+    {on:'cast',skill:'crescendo',do:[{tagHots:'crescendo'}]},
+    {on:'kit',skill:'harmonyshield',if:{window:'harm'},do:[{emit:'domeEnd'}]},                       // a new Harmony replaces the one still up
+    {on:'end:harm',do:[{emit:'domeEnd'}]},
+    {on:'kit',skill:'harmonyshield',do:[{zone:'harm',at:'lowestAlly',radiusPx:{opt:'radius',d:0},dur:{opt:'dur',d:12},centre:true,only:true},{window:'harm',dur:{opt:'dur',d:12}}]},   // the dome: 10 m around the most wounded ally, where it was cast
+    {on:'healed',if:{casting:['crescendo','symphony'],selfPass:'perfectpitch'},do:[{emit:'pitch',amt:{pct:1,of:'pitch'}}]},
+    PPW('crescendo',5), PPW('symphony',6)
+  ],
+  talents:{
+    /* ============================== THE LISTENING HALL ============================== */
+    lh_1_1:[ {on:'healed',if:{who:'ally'},do:[{mark:'listen',on:'target',dur:P('listen.dur',4),longest:true},{emit:'listened'}]},   // Rapt Attention: every ally she heals is Listening
+             {on:'teamIn',if:{targetHas:'listen',srcTeam:'enemy'},less:R(0.01)} ],                  //   and takes less damage
+    lh_2_3:[ {param:'pp.on',add:1}, {param:'pp.more',add:R(0.04)} ],                                // Warm Tone: Perfect Pitch shields larger
+    lh_n1:[  {on:'cd',skill:'green',add:R(-0.2)} ],                                                 // Breath Control
+    lh_2_1:[ {param:'listen.dur',add:R(0.5)} ],                                                     // Hushed Hall
+    lh_2_2:[ {on:'hotEnd',if:{tag:'crescendo',who:'ally'},do:[{hot:{pct:{r:0.10,$m:'song.more'},of:'hit'},perTick:true,dur:P('held.dur',5),every:1,on:'target',htag:'held'},{window:'held',dur:P('held.dur',5)}]},   // Held Note
+             {on:'hurt',if:{window:'held'},do:[{unhot:'held'},{window:'held',end:true}]} ],         //   for as long as she is not hit
+    lh_3_1:[ {on:'teamIn',if:{targetHas:'listen',srcTeam:'enemy',targetIs:Object.assign({has:'listen',order:'lowHp',n:1},AL)},less:0.08} ],   // Front Row
+    lh_4_2:[ {param:'held.dur',add:R(1)} ],                                                         // Sustain
+    lh_3_3:[ {on:'kit',skill:'harmonyshield',opt:{mul:{more:R(0.03)}}} ],                           // Wide Dome
+    lh_n2:[  {on:'teamIn',if:{srcHas:'listen',auto:true,targetTeam:'enemy'},more:0.02},             // Sing Along (LINK)
+             {on:'teamIn',req:'ds_1_1',if:{srcHas:'listen',auto:true,targetTeam:'enemy'},do:[{ustack:'dis',on:'target',add:1,lock:'singL',lockDur:1}]} ],   //   with Off Key: 1 Dissonance (each enemy once a second)
+    lh_4_1:[ {on:'teamIn',if:{srcHas:'listen',targetTeam:'enemy'},more:R(0.01)} ],                  // Rapt Crowd
+    lh_8_3:[ {param:'pp.on',add:1}, {param:'pp.dur',add:R(0.4)} ],                                  // Bright Timbre
+    lh_4_4:[ {on:'teamLethal',by:'unit',once:'fight',if:{who:'ally',unitHas:'listen'},do:ENCORE} ], // Encore
+    lh_5_1:[ {on:'teamIn',if:{srcHas:'spb',srcTeam:'enemy'},less:R(0.01)}, {on:'in',if:{srcHas:'spb'},less:R(0.01)},   // Spellbound: enemies that hit a Listening ally deal less
+             {on:'teamIn',if:{targetHas:'listen',srcTeam:'enemy'},do:[{mark:'spb',on:'source',dur:2}]} ],
+    lh_5_4:[ {on:'encore',do:[{mark:'curt',on:'target',dur:3}]}, {on:'teamIn',if:{targetHas:'curt',srcTeam:'enemy'},less:R(0.04)} ],   // Curtain Call
+    lh_6_1:[ {on:'healOut',if:{who:'ally',targetHpBelow:0.40},more:R(0.02)} ],                      // Second Verse
+    lh_9_3:[ {on:'healOut',skill:'crescendo',if:{targetIn:'harm'},more:R(0.03)} ],                  // Harmonic Swell (its heal and its mending)
+    lh_8_4:[ {on:'encore',do:[{shield:{pct:R(0.05),of:'tgtMaxHp'},dur:5,pow:true,on:'target'}]} ],  // Bis (reading: lasts 5 s, as her Perfect Pitch shields)
+    lh_7_2:[ {on:'cast',skill:'harmonyshield',do:[{mark:'listen',on:Object.assign({inZone:'harm'},AL),dur:{opt:'dur',d:12},longest:true},{emit:'listened'}]},   // Choir Dome: Listening for the dome's 12 s
+             {on:'tick',period:1,if:{zone:'harm'},do:[{heal:{pct:{b:0.01,$:'dome.mend',$m:'song.more'},of:'tgtMaxHp'},pow:true,on:Object.assign({inZone:'harm'},AL)}]} ],   //   and it mends 1% of their max HP each second
+    lh_7_4:[ {on:'encore',do:[{stack:'bravo',add:1}]}, {stat:{heal:R(0.02)},per:'bravo'} ],         // Bravo
+    lh_8_1:[ {on:'healOut',if:{targetHas:'listen'},more:R(0.02)} ],                                 // Listen Closely
+    lh_9_2:[ {param:'dome.mend',add:R(0.002)} ],                                                    // Resounding Dome
+    lh_5_2:[ {param:'ring.cap',add:2}, {param:'pp.on',add:1},                                       // Swelling Chorus: up to 6 rings, +25% a ring as the engine's own
+             {on:'healOut',skill:'crescendo',more:1/7,per:{stack:'ring',over:4}}, {on:'pitch',if:{casting:'crescendo'},more:1/7,per:{stack:'ring',over:4}} ],
+    lh_5_3:[ {param:'ring.cap',add:-2}, {param:'ring.ecap',add:-2},                                 // Steady Choir: never louder than the 2nd ring...
+             {on:'kit',skill:'crescendo',opt:{dur:{add:3}},do:[{field:'_crescStk',on:'self',max:P('ring.ecap',3)}]} ],   //   ...and its mending lasts 3 s longer
+    lh_9_1:[ {on:'teamIn',by:'target',icd:6,if:{targetHas:'listen',srcTeam:'enemy',hitMin:{pct:0.15,of:'tgtMaxHp'}},do:[{mark:'rsil',on:'target'}]},   // Rapt Silence
+             {on:'healOut',if:{targetHas:'rsil',casting:['crescendo','symphony']},mul:2,do:[{mark:'rsil',on:'target',clear:true}]} ],
+    lh_6_2:[ {on:'healOut',skill:'crescendo',if:{stackMin:{ring:5}},more:R(0.05)} ],                // Long Swell: the 5th and 6th rings
+    lh_6_3:[ {on:'healOut',skill:'crescendo',if:{hot:true,targetHpBelow:0.50},more:R(0.04)} ],      // Even Breath: Steady Choir's mending
+    lh_10_1:[ {stat:{heal:R(0.03)},if:{atLeast:{n:4,of:Object.assign({has:'listen'},AL)}}} ],      // Full House
+    lh_10_3:[ {on:'cast',skill:'crescendo',do:[{cleanse:1,on:Object.assign({ctrl:true,order:'lowHp',n:R(1)},AL)}]} ],   // Clean Tone
+    lh_10_4:[ {on:'encore',do:[{heal:{pct:R(0.02),of:'tgtMaxHp'},pow:true,on:Object.assign({skip:'target'},AL)}]} ],   // Last Bow
+    lh_11_1:[ {on:'in',if:{atLeast:{n:3,of:Object.assign({has:'listen'},AL)}},less:R(0.015)} ],    // Stage Presence
+    lh_11_2:[ {on:'cast',skill:'harmonyshield',do:[{mark:'hsh',on:Object.assign({inZone:'harm'},AL)}]},   // Dome Song: the allies inside it
+             {on:'domeEnd',do:[{heal:{pct:0.5,of:'tgtShield'},pow:true,on:Object.assign({has:'hsh'},AL)},{mark:'hsh',on:{team:'ally'},clear:true}]} ],
+    lh_11_4:[ {on:'encore',do:[{mark:'saved',on:'target'}]}, {on:'healOut',if:{targetHas:'saved'},more:R(0.03)} ],   // Unbroken Tone
+    lh_12_1:[ {on:'healed',by:'target',icd:3,if:{who:'ally',targetHas:'listen'},do:[{energy:R(1),on:'target'}]} ],   // Rising Applause
+    lh_12_2:[ {param:'song.more',add:R(0.03)} ],                                                    // The Long Note: Held Note and Choir Dome
+    lh_12_3:[ {on:'healed',if:{who:'ally',overMin:0,selfPass:'perfectpitch'},do:[{later:[{shield:{pct:R(0.10),of:'over'},dur:P('pp.dur',5),on:'target'}]}]} ],   // Mastery of Song
+    lh_12_4:[ {param:'enc.more',add:R(0.05)} ],                                                     // Encore Bell
+    lh_13_2:[ {on:'listened',if:{some:AL,none:Object.assign({lacks:'listen'},AL)},do:[{window:'ovat',dur:6,cd:30}]},   // Standing Ovation (SIGNATURE): every ally Listening
+              {on:'healOut',if:{window:'ovat'},more:0.40},                                          //   heals 40% stronger
+              {on:'healed',if:{window:'ovat'},do:[{later:[{shield:{pct:1,of:'heal'},dur:5,on:'target'}]}]},   //   every heal also shields for its full amount
+              {on:'teamLethal',if:{window:'ovat',who:'ally'},do:ENCORE} ],                          //   any ally who would die is caught by Encore
+
+    /* ============================== DISSONANCE ============================== */
+    ds_1_1:[ {on:'healed',if:{who:'ally'},do:[{ustack:'dis',on:{team:'enemy',of:'target',n:1},add:1,lock:'disL',lockDur:1,emit:'disHeal'}]},   // Off Key: the enemy nearest the ally she heals
+             {on:'hit',unless:'ds_13_2',if:{casting:'symphony'},do:[{ustack:'dis',on:'target',add:P('sym.dis',1)}]},   //   Grand Symphony: every enemy it hits
+             {on:'teamIn',if:{targetTeam:'enemy',kind:'magic',targetUst:{dis:1}},more:R(0.01),per:{ust:'dis',of:'target'}} ],   //   each stack: more magic damage taken (from anyone)
+    ds_1_3:[ {on:'out',if:{kind:'magic',targetUst:{dis:1}},more:R(0.02)} ],                         // Sharp Voice
+    ds_1_4:[ {on:'hit',if:{auto:true},icd:[4,3,2],do:[{ustack:'dis',on:'target',add:1}]} ],         // Quick Bow
+    ds_2_1:[ {param:'dis.dur',add:R(1)} ],                                                          // Grating
+    ds_2_2:[ {on:'out',if:{casting:'symphony'},more:R(0.04)} ],                                     // Loud Finale
+    ds_3_1:[ {on:'chord',do:[{ustack:'dis',on:'target',set:0},{dmg:{pct:R(0.20),of:'apow'},on:CHORD_SEL,tag:'chord',color:SONG},{emit:'chordDone'}]} ],   // Broken Chord
+    ds_4_2:[ {on:'cast',skill:'crescendo',unless:'ds_5_2',do:[{dmg:{pct:R(0.10),of:'lastHeal'},on:{team:'enemy',ust:{dis:1},order:'most:dis',n:1},tag:'refrain',color:SONG}]} ],   // Biting Refrain
+    ds_n1:[  {on:'chordDone',do:[{heal:{pct:R(0.06),of:'apow'},pow:true,on:Object.assign({order:'lowHp',n:1},AL)}]} ],   // Resolution
+    ds_3_4:[ {on:'tick',period:6,do:[{mark:'sour',on:{team:'enemy',order:'high:dmg',n:1},dur:P('sour.dur',3),unique:true},{emit:'sour',on:'holder:sour'}]},   // Sour Note
+             {on:'teamIn',if:{srcHas:'sour'},less:R(0.03)}, {on:'in',if:{srcHas:'sour'},less:R(0.03)} ],
+    ds_4_1:[ {param:'chord.r',add:R(0.3)} ],                                                        // Shrapnel Chord
+    ds_5_2:[ {on:'cast',skill:'crescendo',do:[{dmg:{pct:{rk:'ds_4_2',r:0.10},of:'lastHeal'},on:{team:'enemy',ust:{dis:3}},tag:'wound',color:SONG}]} ],   // Wound Song
+    ds_5_3:[ {on:'tick',period:1,req:'ds_1_1',if:{zone:'harm'},do:[{ustack:'dis',on:{team:'enemy',inZone:'harm'},add:1}]},   // Silent Dome: 1 Dissonance a second inside
+             {on:'tick',period:0.5,if:{zone:'harm'},do:[{slow:P('sdome.slow',0.20),dur:0.6,on:{team:'enemy',inZone:'harm'}}]} ],   //   and 20% slower
+    ds_4_4:[ {param:'sour.dur',add:R(0.5)} ],                                                       // Flat Ear
+    ds_5_1:[ {stat:{aspd:R(-0.01)},to:{team:'enemy',ust:{dis:3}}} ],                                // Ringing Ears
+    ds_6_3:[ {param:'sdome.slow',add:R(0.05)} ],                                                    // Hum of the Dome
+    ds_5_4:[ {on:'teamIn',if:{targetHas:'sour',srcTeam:'ally'},more:R(0.02)} ],                     // Tin Ear (her whole team, her own hits too)
+    ds_6_1:[ {on:'chordDone',do:[{energy:R(1)}]} ],                                                 // Feedback
+    ds_6_2:[ {on:'dmg:wound',more:R(0.05)} ],                                                       // Cutting Voice
+    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)} ],                                 // Clarity. PARTIAL: the Broken Chord half waits
+    ds_6_4:[ {on:'healOut',less:R(0.04)}, {on:'out',more:R(0.04)} ],                                // Harsh Voice (RISK)
+    ds_7_2:[ {on:'pitch',if:{who:'ally'},do:[{ustack:'dis',on:{team:'enemy',of:'target',n:1},add:1}]} ],   // Shrill Pitch
+    ds_7_4:[ {on:'disGain',if:{targetHas:'sour'},do:[{dmg:{pct:R(0.03),of:'apow',k:1},on:'target',tag:'sting',color:SONG}]} ],   // Off-Beat Sting: per stack that lands
+    ds_8_1:[ {param:'chain',add:R(1)} ],                                                            // Chain Reaction
+    ds_8_3:[ {on:'disHeal',chance:R(0.10),do:[{ustack:'dis',on:{team:'enemy',of:'unit',n:1,skipN:1},add:1}]} ],   // Projection: the next-nearest enemy to that ally
+    ds_8_4:[ {on:'sour',do:[{silence:R(0.3),on:'target'}]} ],                                       // Long Silence
+    ds_9_1:[ {on:'chordDone',do:[{ustack:'dis',on:CHORD_SEL,add:2}]} ],                             // Splitting Chord
+    ds_9_2:[ {stat:{apow:R(0.002)},per:{ust:'dis',of:'field',max:25}} ],                            // Cacophony
+    ds_9_3:[ {on:'out',if:{casting:'symphony',targetHpBelow:0.50},more:R(0.03)} ],                  // Cold Stage
+    ds_12_3:[ {stat:{hp:R(-0.01),apow:R(0.02)}} ],                                                  // Thin Voice (RISK)
+    ds_10_3:[ {on:'dmg:refrain',more:R(0.03)}, {on:'dmg:wound',more:R(0.03)} ],                     // Harsh Timbre
+    ds_10_4:[ {on:'teamHeal',if:{unitHas:'sour'},less:R(0.05)} ],                                   // Tone Deaf
+    ds_11_1:[ {param:'dis.step',add:R(0.6)} ],                                                      // Afterring
+    ds_11_2:[ {param:'sym.dis',add:1} ],                                                            // Fortissimo: 2 a hit (each one at 5 sets off Broken Chord, as every Dissonance does)
+    ds_11_4:[ {on:'in',if:{srcHas:'sour'},less:R(0.015)} ],                                         // Discord Ward
+    ds_12_1:[ {on:'dmg:chord',more:R(0.05)} ],                                                      // Composer's Spite
+    ds_12_2:[ {on:'out',if:{casting:'symphony'},more:R(0.03),per:'ring'} ],                         // Ruinous Swell
+    ds_10_1:[ {on:'dmg:chord',if:{targetMin:{shield:1e-6}},more:R(0.05)}, {on:'chordDone',do:[{strip:R(0.10),on:CHORD_SEL}]} ],   // Crack the Glass
+    ds_12_4:[ {on:'death',if:{unitHas:'sour'},do:[{mark:'sour',on:{team:'enemy',order:'high:dmg',n:1},dur:{r:1,b:3,$:'sour.dur'},unique:true},{emit:'sour',on:'holder:sour'}]} ],   // Sour Finale
+    ds_13_2:[ {on:'cast',skill:'symphony',do:[{mark:'wmB',on:{team:'enemy'},clear:true},{ustack:'dis',on:{team:'enemy'},set:'max',burst:true},{window:'wm',dur:5}]},   // The Whole Music (SIGNATURE)
+              {on:'tick',if:{window:'wm'},do:[{kill:true,on:{team:'enemy',hpBelow:0.12,boss:false},tag:'wm',color:SONG},   //   below 12% while it plays: falls silent and dies
+                {dmg:{pct:0.06,of:'tgtMaxHp'},on:{team:'enemy',hpBelow:0.12,boss:true,lacks:'wmB'},tag:'wm',color:SONG},{mark:'wmB',on:{team:'enemy',hpBelow:0.12,boss:true}}]} ],   //   a boss: 6% of its max HP, once per Symphony
+
+    /* ============================== THE LIVING INSTRUMENT ============================== */
+    li_1_1:[ {on:'tick',period:2,rate:P('beat.rate',1),rateUp:[{add:P('beat.low',0),if:{selfHpBelow:0.40}},{add:P('beat.acc',0),per:'accel'}],do:[{emit:'beat'}]},   // Keep Time: a Beat every 2 s
+             {on:'beat',if:{noWindow:'final'},every:P('db.n',4),do:[{emit:'downbeat'}]}, {on:'beat',if:{window:'final'},do:[{emit:'downbeat'}]},   //   every 4th a Downbeat
+             {on:'downbeat',do:[{window:'db',dur:99}]},                                              //   it waits for her next heal or attack
+             {on:'out',if:{window:'db',auto:true},more:DB,do:[{window:'db',end:true}]},
+             {on:'kit',if:{window:'db',casting:['crescendo','symphony']},do:[{window:'dbc',dur:99},{window:'db',end:true}]},
+             {on:'healOut',if:{window:'dbc'},more:DB}, {on:'out',if:{window:'dbc'},more:DB}, {on:'cast',do:[{window:'dbc',end:true}]} ],
+    li_1_3:[ {on:'cd',mul:[1/1.01,1/1.02,1/1.03,1/1.04,1/1.05]} ],                                  // Practised Hands: her skills come back 1% faster
+    li_1_4:[ {on:'in',if:{hitMin:{pct:0.10,of:'maxHp'},stackMin:{str:1}},less:R(0.06),do:[{stack:'str',spend:1,then:[{emit:'snap'}]}]} ],   // Rib Strings
+    li_2_1:[ {on:'downbeat',do:[{energy:R(1)}]} ],                                                  // Metronome
+    li_2_2:[ {on:'tick',period:P('bar.t',8),do:[{stack:'bars',add:1}]}, {stat:{apow:R(0.005)},per:'bars'} ],   // The Unfinished Score
+    li_3_1:[ {on:'downbeat',do:[{energy:{b:3,$:'cue.more'},on:Object.assign({below:{energy:100},order:'high:energy',n:1},AL)}]} ],   // Cue
+    li_3_3:[ {on:'ccIn',less:R(0.04)} ],                                                            // Poise
+    li_3_4:[ {param:'str.rt',add:R(-0.6)} ],                                                        // Retune
+    li_4_1:[ {param:'db.more',add:R(0.01)} ],                                                       // Accent
+    li_4_2:[ {on:'wave',once:'fight',do:[{stack:'bars',atLeast:R(1)}]} ],                           // Rehearsed
+    li_4_4:[ {on:'snap',do:[{dmg:{pct:R(0.15),of:'apow'},on:'source',tag:'twang',color:SONG}]} ],   // Twang: the attacker
+    li_5_1:[ {param:'db.n',add:-1} ],                                                               // Waltz Time
+    li_5_2:[ {stat:{heal:R(0.003)},per:'bars'} ],                                                   // Memorised
+    li_5_3:[ {on:'downbeat',do:[{dmg:{pct:0.30,of:'apow'},on:{team:'enemy',n:P('march.n',1)},tag:'march',color:SONG}]} ],   // March Time
+    li_5_4:[ {on:'in',less:R(0.003),per:'str'} ],                                                   // Strung Tight
+    li_6_1:[ {on:'downbeat',do:[{cd:'blue',add:R(-0.2)}]} ],                                        // Three-Step
+    li_6_2:[ {param:'bar.t',add:R(-0.5)} ],                                                         // Sight Reading
+    li_6_3:[ {param:'march.n',add:R(1)} ],                                                          // Drumline
+    li_6_4:[ {stat:{apow:R(0.02)},per:{stack:'str',missing:true}} ],                                // Frayed Edge (RISK)
+    li_7_1:[ {param:'beat.rate',add:R(0.01)} ],                                                     // Quick Tempo
+    li_7_2:[ {on:'kit',skill:'crescendo',if:{window:'dbc'},do:[{stack:'ring',add:1},{field:'_crescStk',on:'self',add:1,max:P('ring.ecap',3)},{window:'sm2',dur:99}]},   // Second Movement: 2 rings
+             {on:'cd',skill:'green',if:{window:'sm2'},add:-1,do:[{window:'sm2',end:true}]} ],       //   and back 1 s sooner
+    li_7_4:[ {stat:{armor:R(0.002),mr:R(0.002)},per:'str'} ],                                       // Taut Frame
+    li_8_1:[ {param:'beat.low',add:R(0.06)} ],                                                      // Rallentando
+    li_8_4:[ {param:'str.n',add:R(1)} ],                                                            // Spare Strings
+    li_9_1:[ {param:'beat.acc',add:0.03}, {on:'downbeat',do:[{stack:'accel',add:1}]} ],             // Accelerando
+    li_9_2:[ {on:'kit',skill:'harmonyshield',opt:{mul:{more:R(0.01),per:'bars'}}} ],                // Long Rehearsal
+    li_9_3:[ {on:'kit',once:'wave',do:[{window:'ov',dur:99}]},                                      // Overture: her first skill each wave
+             {on:'kit',skill:'harmonyshield',if:{window:'ov'},opt:{mul:{more:R(0.04)}}},
+             {on:'healOut',if:{window:'ov'},more:R(0.04)}, {on:'out',if:{window:'ov'},more:R(0.04)}, {on:'cast',do:[{window:'ov',end:true}]} ],
+    li_10_1:[ {param:'cue.more',add:R(1)} ],                                                        // Conductor's Eye
+    li_10_4:[ {on:'snap',if:{stackEmpty:'str'},do:[{heal:{pct:R(0.06),of:'maxHp'},pow:true,on:'self'},{stack:'str',refillIn:3}]} ],   // Snap Back
+    li_11_1:[ {on:'downbeat',do:[{window:'pocket',dur:1}]}, {on:'in',if:{window:'pocket'},less:R(0.03)} ],   // In the Pocket
+    li_11_2:[ {stat:{nrg:0.25},if:{stackMin:{bars:6}}} ],                                           // Memory of the Whole
+    li_11_4:[ {on:'retune',do:[{heal:{pct:R(0.01),of:'maxHp'},pow:true,on:'self'}]} ],              // Fine Tuning
+    li_12_1:[ {on:'downbeat',icd:8,do:[{energy:R(1),on:AL}]} ],                                     // Tempo Giusto
+    li_12_2:[ {on:'out',if:{window:'db',auto:true,stackMin:{bars:6}},more:R(0.03)},                 // Last Rehearsal: the Downbeat bonus at 6 Bars
+              {on:'healOut',if:{window:'dbc',stackMin:{bars:6}},more:R(0.03)}, {on:'out',if:{window:'dbc',stackMin:{bars:6}},more:R(0.03)} ],
+    li_10_3:[ {on:'out',if:{casting:'symphony'},more:R(0.02)}, {on:'healOut',if:{casting:'symphony'},more:R(0.02)} ],   // Bowing Arm
+    li_12_4:[ {on:'teamIn',icd:4,if:{targetTeam:'ally',hero:true,srcTeam:'enemy',targetHpBelow:0.25,stackMin:{str:1}},mul:0.5,   // Heartstrings
+               do:[{stack:'str',spend:1,then:[{emit:'snap'}]},{heal:{pct:R(0.02),of:'tgtMaxHp'},pow:true,on:'target'}]} ],
+    li_13_2:[ {on:'kit',skill:'symphony',if:{stackMin:{bars:6}},do:[{window:'fnote',dur:99}]},      // The Final Note (SIGNATURE). PARTIAL: the Strings' strike waits
+              {on:'healOut',if:{window:'fnote',casting:'symphony'},more:1.5}, {on:'out',if:{window:'fnote',casting:'symphony'},more:1.5},
+              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{stack:'str',set:0},{stack:'bars',add:-3}]} ]
+  },
+  /* one sentence runs, another waits for a ruling */
+  partial:{
+    ds_2_3:'"Broken Chord ignores magic resist": talent damage already lands as stated (not reduced by magic resist), so there is nothing to ignore',
+    li_13_2:'"all her Strings snap at once to strike every enemy": the strike has no size'
+  },
+  /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
+  ruling:{}
+};
+
+return module.exports;})();
   /* ====================================================================================================================
      MECHANICS RUNTIME  (source: talents-mech/_engine.js - tools/build_talent_fx.py copies it into talents-fx.js)
      What a learned talent DOES in a fight, beyond plain stats. The page's fight code calls a small fixed set of hooks, each
@@ -502,14 +717,16 @@ return module.exports;})();
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
     const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
-      s:{k:{},w:{},lim:{},m:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
+      s:{k:{},w:{},lim:{},m:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
-      if(c.stat){ (c.to?T.auras:T.stats).push(c); return; }
+      if(c.stat){ (c.to?T.auras:T.stats).push(c); if(c.stat.nrg) T.nrg=true; return; }
       for(const ev of (Array.isArray(c.on)?c.on:[c.on])) (T.on[ev]=T.on[ev]||[]).push(c); };
     (M.always||[]).forEach((row,i)=>add('',row,i,1));
     for(const id of ids){ const rows=M.talents[id]; if(rows&&has(id)) rows.forEach((row,i)=>add(id,row,i,r[id])); }
     if(M.casting){ T.on.kit=T.on.kit||[]; T.on.cast=T.on.cast||[]; }        // the hero's rows ask "which skill is this hit from": keep the two skill hooks on
+    if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
+    for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
     T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.teamLethal||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     u._tal=T; return T; }
 
@@ -517,7 +734,25 @@ return module.exports;})();
   const stGet=(T,name)=>{ const k=T.s.k[name]; return k?k.n:0; };
   function stMax(T,u,name){ const d=T.st[name]; return (!d||d.max==null)?Infinity:amtOf(T,u,d.max,null); }
   function stSet(T,u,name,n){ const d=T.st[name]||{}, k=T.s.k[name]||(T.s.k[name]={n:0,t:0,idle:0}); const was=k.n;
-    k.n=Math.max(0,Math.min(stMax(T,u,name),n)); if(k.n>was){ k.idle=0; if(d.dur) k.t=d.dur; } return k.n-was; }
+    k.n=Math.max(0,Math.min(stMax(T,u,name),n)); if(k.n>was){ k.idle=0; if(d.dur) k.t=d.dur; }
+    if(d.refill&&k.n<was){ const rf=k.rf||(k.rf=[]), at=E.now()+amtOf(T,u,d.refill,null); for(let i=Math.round(was-k.n);i>0;i--) rf.push(at); }   // refill: each unit spent comes back on its own after that many seconds
+    return k.n-was; }
+  /* stacks a hero keeps ON OTHER UNITS (states.<name> = {unit:true, max, dur, step, gain:'event', full:'event', chain}: Vireo's Dissonance). Stored with her marks
+     (t._talM[uid]['#'+name] = {v, until}); all of it lapses `dur` after the last gain, or with `step` one stack at a time, `step` seconds apart. Read lazily (no tick). */
+  function ustGet(T,u,t,name){ const o=t&&t._talM&&t._talM[u.uid], m=o&&o['#'+name]; if(!m) return 0; const now=E.now();
+    if(now>=m.until){ const st=(T.st[name]&&T.st[name].step)||0; if(!(st>0)){ delete o['#'+name]; return 0; }
+      const k=Math.floor((now-m.until)/st+1e-9)+1; m.v-=k; m.until+=k*st; if(m.v<=0){ delete o['#'+name]; return 0; } }
+    return m.v; }
+  function ustPut(T,u,t,name,n){ const M=t._talM||(t._talM={}), o=M[u.uid]||(M[u.uid]={}); if(!(n>0)){ delete o['#'+name]; return; }
+    o['#'+name]={v:n,until:E.now()+amtOf(T,u,(T.st[name]&&T.st[name].dur)||Infinity,null)}; }
+  /* a unit stack reached its max: the state's `full` event. Inside such an event a further unit reaching max is set off only while the cascade allowance
+     (`chain`) lasts, and after the current one (no re-entry): one at a time, in order. */
+  function ustFull(T,u,t,d,ctx){ const s=T.s; if(!d.full||!T.on[d.full]) return;
+    if(s.fq){ if(s.fb>0&&s.fq.indexOf(t)<0){ s.fb--; s.fq.push(t); } return; }
+    s.fq=[t]; s.fb=amtOf(T,u,d.chain||0,null);
+    try{ while(s.fq.length){ const x=s.fq.shift(); if(x.alive) run(T,u,d.full,Object.assign({},ctx,{tgt:x,unit:x})); } } finally{ s.fq=null; } }
+  const ustField=(T,u,name)=>{ let n=0; const U=E.units(); for(let i=0;i<U.length;i++){ const x=U[i]; if(x.alive&&x.team!==u.team) n+=ustGet(T,u,x,name); } return n; };
+  const isBoss=x=>!!((x.t&&x.t.isboss)||x._raidBoss);
   const winOn=(T,name)=>{ const w=T.s.w[name]; return !!w&&w.t>0; };
 
   /* ---- marks: on the OTHER unit, keyed by the owner's uid: t._talM[uid][name] = {t0, until, v} ---- */
@@ -527,7 +762,8 @@ return module.exports;})();
     if(a.unique){ const old=T.s.m[name]; if(old&&old!==t&&old.alive&&old._talM&&old._talM[u.uid]) delete old._talM[u.uid][name]; T.s.m[name]=t; }
     const M=t._talM||(t._talM={}), o=M[u.uid]||(M[u.uid]={}), prev=o[name];
     const live=prev&&(prev.until==null||now<prev.until);                     // marking the same unit again keeps the mark's age
-    o[name]={t0:live?prev.t0:now,until:a.dur!=null?now+a.dur:null,v:prev?prev.v:0}; }
+    let until=a.dur!=null?now+a.dur:null; if(a.longest&&live&&(prev.until==null||(until!=null&&prev.until>until))) until=prev.until;   // longest: a shorter mark never cuts a longer one
+    o[name]={t0:live?prev.t0:now,until,v:prev?prev.v:0}; }
   function clearMark(u,t,name){ if(t&&t._talM&&t._talM[u.uid]) delete t._talM[u.uid][name]; }
   /* a mark with a clock that tells its owner when it is over: {mark, dur, while:'field of the holder that must stay above 0', ends:'event'}.
      The owner's tick ends it when the time is up or the field ran out first; {mark, clear:true, fire:true} ends it now. ctx.broke: it ended before
@@ -553,7 +789,8 @@ return module.exports;})();
   function cnt(T,u,per,ctx){ if(per==null) return 1;
     if(typeof per==='string'){ if(per==='spent') return ctx?(ctx.spent||0):0; if(T.st[per]) return stGet(T,per); const w=T.s.w[per]; return (w&&w.t>0)?w.n:0; }
     let n=0;
-    if(per.stack) n=stGet(T,per.stack);
+    if(per.stack){ n=stGet(T,per.stack); if(per.missing) n=Math.max(0,stMax(T,u,per.stack)-n); if(per.over!=null) n=Math.max(0,n-per.over); }   // missing: how many short of full; over: how many above that count
+    else if(per.ust) n=per.of==='field'?ustField(T,u,per.ust):ustGet(T,u,per.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt),per.ust);   // a unit stack: on the target, or on every enemy of the field
     else if(per.window){ const w=T.s.w[per.window]; n=(w&&w.t>0)?w.n:0; }
     else if(per.markAge){ const m=markOf(u,ctx&&ctx.tgt,per.markAge); n=m?Math.floor((E.now()-m.t0)/(per.every||1)+1e-9):0; }
     else if(per.dots) n=countDots(u,per.dots);
@@ -572,11 +809,15 @@ return module.exports;})();
     case 'atk': return (u.dmg||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1)*E.rage();
     case 'hit': return ctx?(ctx.amt||0):0; case 'hpLost': return ctx?(ctx.hpLost||0):0; case 'overkill': return ctx?(ctx.overkill||0):0;
     case 'over': return ctx?(ctx.over||0):0; case 'spent': return ctx?(ctx.spent||0):0;
+    case 'heal': return ctx?(ctx.heal||0):0;                                              // a heal of hers as it was offered (after her talents and healing power, before the room left)
+    case 'lastHeal': return T.s.lh||0;                                                    // the last heal her skill gave one ally, as the skill computed it (before talents and healing power)
+    case 'pitch': return ctx?(ctx.raw||0)*E.pitch(u,T.s.cur==='symphony'):0;             // Perfect Pitch's shield for this heal, as the skill writes it
+    case 'tgtShield': return (ctx&&ctx.tgt)?(ctx.tgt.shield||0):0;
     case 'lifesteal': return ctx?(ctx.hpLost||0)*((u._lifestealT>0)?(u._lifestealPct||0):0):0;
     default: return 0; } }
   function amtOf(T,u,a,ctx){ if(typeof a==='number') return a; if(!a) return 0;
     if(a.opt) return ((ctx&&ctx.o&&typeof ctx.o[a.opt]==='number'&&ctx.o[a.opt])||a.d||0)*(a.mul==null?1:a.mul);
-    if(a.field||a.units||a.stack) return cnt(T,u,a,ctx);
+    if(a.field||a.units||a.stack||a.ust) return cnt(T,u,a,ctx);
     let x=(a.flat||0)+(a.pct?a.pct*baseOf(T,u,a.of,ctx):0); if(a.x!=null) x*=cnt(T,u,a.x,ctx); if(a.k&&ctx&&ctx.k!=null) x*=ctx.k; return x; }
 
   /* ---- who: 'self' | 'target' | 'source' | 'unit' | 'holder:<mark>' | {team:'enemy'|'ally', of:'self'|'target'|'unit'|'source', within: metres,
@@ -588,6 +829,7 @@ return module.exports;})();
     if(sel==null||sel==='target') return (ctx&&ctx.tgt)?[ctx.tgt]:[]; if(sel==='self') return [u];
     if(sel==='source') return (ctx&&ctx.src)?[ctx.src]:[]; if(sel==='unit') return (ctx&&ctx.unit)?[ctx.unit]:[];
     if(sel==='lastHit'){ const b=ctx&&ctx.tgt&&ctx.tgt._talBy; return (b&&b.alive&&b.team!==u.team)?[b]:[]; }       // the enemy that last hit the unit the event is about
+    if(sel==='lowestAlly'){ const x=E.lowestAlly(u); return x?[x]:[]; }                 // the ally the engine itself picks as the most wounded (Harmony's centre)
     if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } return []; }
     const ref=o=>o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null;
     const c=ref(sel.of||'self'); if(!c) return [];
@@ -598,12 +840,21 @@ return module.exports;})();
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
       if(!foe&&(x._summon||(sel.others&&x===u))) continue;
       if(sel.has&&!markOf(u,x,sel.has)) continue;
+      if(sel.lacks&&markOf(u,x,sel.lacks)) continue;
+      if(sel.ust){ let okU=true; for(const k in sel.ust) if(ustGet(T,u,x,k)<sel.ust[k]) okU=false; if(!okU) continue; }   // carries at least that many of her unit stacks
+      if(sel.ctrl&&!CLEANSE.some(f=>(x[f]||0)>0)) continue;                         // is under a control effect
+      if(sel.boss!=null&&isBoss(x)!==sel.boss) continue;
+      if(sel.below){ let okB=true; for(const f in sel.below) if(!((+x[f]||0)<sel.below[f])) okB=false; if(!okB) continue; }
       if(sel.min&&!fmin(x,sel.min)) continue;
       if(sel.inZone&&!inZone(T,x,sel.inZone)) continue;
       if(sel.hpBelow!=null&&!(x.hp<sel.hpBelow*x.maxHp)) continue;
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-E.bodyR(c)-E.bodyR(x)<R))) continue; out.push([x,d]); }
-    if(sel.order==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp); else if(sel.order==='near'||sel.n) out.sort((a,b)=>a[1]-b[1]);   // stable: ties keep the units' own order
+    const od=typeof sel.order==='string'?sel.order:'';
+    if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
+    else if(od.slice(0,5)==='high:'){ const f=od.slice(5); out.sort((a,b)=>(+b[0][f]||0)-(+a[0][f]||0)); }              // the highest engine number first ('high:dmg': the highest attack)
+    else if(od.slice(0,5)==='most:'){ const nm=od.slice(5); out.sort((a,b)=>ustGet(T,u,b[0],nm)-ustGet(T,u,a[0],nm)); }   // the most of her unit stacks first
+    else if(od==='near'||sel.n) out.sort((a,b)=>a[1]-b[1]);   // stable: ties keep the units' own order
     const from=sel.skipN||0; return (sel.n?out.slice(from,from+sel.n):out.slice(from)).map(e=>e[0]); }
 
   /* ---- conditions (the `if` of a row or of an action; all must hold) ---- */
@@ -651,6 +902,14 @@ return module.exports;})();
     talent:(T,u,v,c)=>!!c.talent===v,                       // the control comes from a talent action (not from a skill of the hero)
     some:(T,u,v,c)=>pick(T,u,v,c).length>0,                 // at least one unit matches the selector
     targetWithin:(T,u,v,c)=>!!c.tgt&&gap(u,c.tgt)<v*E.METER(), unitWithin:(T,u,v,c)=>!!c.unit&&gap(u,c.unit)<v*E.METER(),
+    kind:(T,u,v,c)=>c.kind===v,                             // the hit's damage kind ('magic', 'phys')
+    hot:(T,u,v,c)=>!!c.hot===v,                             // the heal is a tick of a heal over time (not the skill's own heal)
+    p:(T,u,v)=>!!T.P[v],                                    // a named number some learned talent adds to (a row that only matters when one of them is learned)
+    targetUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.tgt,k)<v[k]) return false; return true; },   // the target carries at least that many of her unit stacks
+    targetIs:(T,u,v,c)=>!!c.tgt&&pick(T,u,v,c).indexOf(c.tgt)>=0,   // the target is one of the units the selector picks ("the lowest-HP Listening ally")
+    atLeast:(T,u,v,c)=>pick(T,u,v.of,c).length>=v.n,       // at least n units match
+    none:(T,u,v,c)=>pick(T,u,v,c).length===0,               // no unit matches
+    hero:(T,u,v,c)=>!!c.tgt&&!c.tgt._summon===v,            // the target is a hero, not a summon
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
   const fmin=(x,v)=>{ if(!x) return false; for(const f in v) if(!((+x[f]||0)>=v[f])) return false; return true; };
@@ -662,6 +921,9 @@ return module.exports;})();
                | icd: seconds | every: n (each n-th time) | chance: p (the only place the seeded stream is drawn, and last, so nothing else changes how often) */
   const PROC_SKIP={out:1,hit:1,crit:1,heal:1};          // a row does not react to what the hero's own talent actions do, unless it says procs:true
   function run(T,u,ev,ctx){ const rows=T.on[ev]; if(!rows) return; const s=T.s;
+    const st0=ctx.stop; if(st0) ctx.stop=false;           // an event set off after a row said "stop" (a save, then its 'encore') still runs all its rows; the stop is kept for the outer event
+    try{ runRows(T,u,ev,ctx,rows,s); } finally{ if(st0) ctx.stop=true; } }
+  function runRows(T,u,ev,ctx,rows,s){
     for(let i=0;i<rows.length;i++){ const row=rows[i]; const L0=s.lim[row.key]||(s.lim[row.key]={t:0,n:0,c:0,w:-1,was:false,acc:0,busy:0,by:null});
       if(L0.busy) continue;                               // never re-entered by its own consequences
       if(ctx.proc&&!row.procs&&PROC_SKIP[ev]) continue;
@@ -678,7 +940,9 @@ return module.exports;})();
   function fire(T,u,row,ev,ctx,L,L0){ const s=T.s;
       const pass=!row.if||ok(T,u,row.if,ctx);
       if(row.edge){ const was=L.was; L.was=pass; if(!pass||was) return; }
-      else if(row.period){ if(!pass){ L.acc=0; return; } L.acc+=(ctx.dt||0)*(row.rate==null?1:row.rate); if(L.acc<row.period-1e-9) return; L.acc-=row.period; }
+      else if(row.period){ if(!pass){ L.acc=0; return; } let rt=row.rate==null?1:row.rate;
+        if(row.rateUp) for(let q=0;q<row.rateUp.length;q++){ const x=row.rateUp[q]; if(x.if&&!ok(T,u,x.if,ctx)) continue; rt+=x.add*(x.per!=null?cnt(T,u,x.per,ctx):1); }   // rateUp: the clock runs that much faster while each condition holds (or per stack)
+        L.acc+=(ctx.dt||0)*rt; if(L.acc<row.period-1e-9) return; L.acc-=row.period; }
       else if(!pass) return;
       if(row.once==='wave'&&L.w===s.wave) return;
       if(row.once==='fight'&&L.n>0) return;
@@ -710,6 +974,7 @@ return module.exports;})();
       if(op.set!=null) v=op.set;
       if(op.add!=null) v=(v||0)+op.add*m/(op.ccRaw?(E.ccDur(1)||1):1);       // ccRaw: seconds as the player gets them (the engine shortens every control afterwards)
       if(op.mul!=null) v=(v||0)*op.mul;
+      if(op.more!=null) v=(v||0)*(1+op.more*m);                                  // more: x (1 + x per count) - "the shield is 1% larger per Bar"
       if(op.bonus!=null) v=1+((v||1)-1)*(1+op.bonus*m);                        // strengthens the part above 1 (a "+10%" multiplier of 1.1)
       ctx.o[k]=v; } }
 
@@ -731,6 +996,7 @@ return module.exports;})();
       if(a.spend!=null){ const n=a.spend==='all'?have:a.spend; if(a.spend!=='all'&&have<n) return false; if(!(n>0)) return;
         stSet(T,u,a.stack,have-n); if(a.then) acts(T,u,a.then,Object.assign({},ctx,{spent:n})); return; }
       if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k&&k.n>0&&d&&d.dur) k.t=d.dur; return; }
+      if(a.refillIn!=null){ const k=s.k[a.stack]; if(k&&k.rf){ const at=E.now()+a.refillIn; for(let i=0;i<k.rf.length;i++) if(k.rf[i]>at) k.rf[i]=at; } return; }   // every spent unit comes back that soon
       if(a.set!=null){ stSet(T,u,a.stack,a.set==='max'?stMax(T,u,a.stack):amtOf(T,u,a.set,ctx)); return; }
       if(a.keep!=null){ const n=have*Math.max(0,Math.min(1,a.keep)); stSet(T,u,a.stack,a.whole?Math.floor(n+1e-9):n); return; }   // keep that share (whole: rounded down)
       if(a.atLeast!=null){ if(have<a.atLeast) stSet(T,u,a.stack,a.atLeast); return; }
@@ -741,8 +1007,25 @@ return module.exports;})();
         else if(a.ends||a.while) timedMark(T,u,t,a.mark,a,ctx); else setMark(T,u,t,a.mark,typeof a.dur==='object'?Object.assign({},a,{dur:amtOf(T,u,a.dur,ctx)}):a); } return; }
     if(a.zone){ const L=s.zn[a.zone]||(s.zn[a.zone]=[]);
       const at=a.at||'target', c=typeof at==='object'?{x:u[at.x],y:u[at.y]}:pick(T,u,at,ctx)[0]; if(!c||c.x==null) return;
-      const now=E.now(); for(let i=L.length-1;i>=0;i--) if(now>=L[i].until) L.splice(i,1); if(L.length>=24) L.shift();
-      L.push({x:c.x,y:c.y,r:amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre}); return; }
+      const now=E.now(); for(let i=L.length-1;i>=0;i--) if(a.only||now>=L[i].until) L.splice(i,1); if(L.length>=24) L.shift();   // only: this one replaces the ones still down
+      L.push({x:c.x,y:c.y,r:a.radiusPx!=null?amtOf(T,u,a.radiusPx,ctx):amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre}); return; }   // radiusPx: a radius already in the engine's length unit (a skill's own `radius` option)
+    if(a.ustack){ const d=T.st[a.ustack]||{}, mx=d.max==null?Infinity:d.max, burst=[];
+      for(const t of pick(T,u,a.on,ctx)){ if(!t.alive) continue;
+        if(a.set!=null){ ustPut(T,u,t,a.ustack,a.set==='max'?mx:Math.min(mx,amtOf(T,u,a.set,ctx))); if(a.burst) burst.push(t); continue; }   // set (burst: then each one's `full` event, after all are set)
+        if(a.lock&&markOf(u,t,a.lock)) continue;                                                       // lock: each unit at most once every lockDur seconds from this action
+        const was=ustGet(T,u,t,a.ustack), add=amtOf(T,u,a.add==null?1:a.add,ctx); if(!(add>0)) continue;
+        const nw=Math.min(mx,was+add), got=nw-was; ustPut(T,u,t,a.ustack,nw); if(a.lock) setMark(T,u,t,a.lock,{dur:a.lockDur||1});
+        if(got>0){ const c2=Object.assign({},ctx,{tgt:t,k:got}); if(d.gain&&T.on[d.gain]) run(T,u,d.gain,c2); if(a.emit&&T.on[a.emit]) run(T,u,a.emit,c2); }
+        if(nw>=mx) ustFull(T,u,t,d,ctx); }                                                             // "reaches 5": any gain that leaves it full
+      for(const t of burst) ustFull(T,u,t,d,ctx); return; }
+    if(a.later){ if(s.cur!=null) s.later.push([a.later,ctx]); else acts(T,u,a.later,ctx); return; }   // later: once the skill being cast has finished (its own shields written), else now
+    if(a.tagHots){ const al=[]; for(const x of E.units()) if(x.alive&&x.team===u.team&&x.hots) al.push(x);   // the heals over time her skill is about to push / just pushed become hers (their ticks run her rows)
+      if(a.tagHots==='kit'){ s.hl=al.map(x=>[x,x.hots.length]); return; }
+      for(const e of (s.hl||[])){ const H=e[0].hots; for(let i=e[1];i<H.length;i++) if(!H[i]._talU){ H[i]._talU=u; H[i]._talK=a.tagHots; } } s.hl=null; return; }
+    if(a.unhot){ for(const x of E.units()){ const H=x.hots; if(!H) continue; for(let i=H.length-1;i>=0;i--) if(H[i]._talX===u.uid&&H[i]._talK===a.unhot) H.splice(i,1); } return; }   // her talent's heal over time stops
+    if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=+t[a.field]||0; if(a.add!=null) v+=a.add; if(a.max!=null) v=Math.min(a.max,v); t[a.field]=v; } return; }   // an engine counter on a unit (Crescendo's ring count)
+    if(a.kill){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) hurt(T,u,t,((t.hp||0)+(t.shield||0))*20+1,a.color,a.tag); return; }   // a talent kill: through the engine's own damage (a unit kept alive by a save stays alive)
+    if(a.strip!=null){ for(const t of pick(T,u,a.on,ctx)) if((t.shield||0)>0) t.shield*=Math.max(0,1-a.strip); return; }   // that share of a unit's shield is gone
     if(a.call){ const f=E.fx&&E.fx[a.call]; if(!f) return; const n=a.n==null?1:Math.floor(amtOf(T,u,a.n,ctx)+1e-9);                 // one of the engine's own effects, by name (bind: fx)
       for(const t of pick(T,u,a.on,ctx)){ for(let i=0;i<n&&t.alive;i++){ if(f(t,u)===false) break; if(a.emit&&T.on[a.emit]) run(T,u,a.emit,Object.assign({},ctx,{tgt:t,proc:true})); } } return; }   // the effect may refuse (false); emit: once per application
     if(a.stun!=null||a.silence!=null){ const f=a.stun!=null?'stunned':'silencedT', secs=amtOf(T,u,a.stun!=null?a.stun:a.silence,ctx); if(!(secs>0)) return;
@@ -770,15 +1053,17 @@ return module.exports;})();
       for(const t of pick(T,u,a.on||'self',ctx)){ if(!t.alive) continue; const c2=Object.assign({},ctx,{tgt:t}); c2.amt=amtOf(T,u,A,c2)*pw;
         if(a.tag&&T.on['heal:'+a.tag]) run(T,u,'heal:'+a.tag,c2);                                   // rows may change this heal ("... heals 5% more on allies below half")
         if(!(c2.amt>0)) continue;
-        if(a.hot!=null){ const every=a.every||1, dur=amtOf(T,u,a.dur,ctx)||3; E.pushHot(t,c2.amt/Math.max(1,Math.round(dur/every)),dur,every); } else E.healUnit(t,c2.amt);
+        if(a.hot!=null){ const every=a.every||1, dur=amtOf(T,u,a.dur,ctx)||3; E.pushHot(t,a.perTick?c2.amt:c2.amt/Math.max(1,Math.round(dur/every)),dur,every);   // perTick: the amount is each tick's heal
+          if(a.htag){ const h=t.hots[t.hots.length-1]; if(h){ h._talX=u.uid; h._talK=a.htag; } } } else E.healUnit(t,c2.amt);   // htag: her talent's heal over time, so a row can stop it (unhot)
         if(a.emit&&T.on[a.emit]) run(T,u,a.emit,c2); } return; }
     if(a.shield!=null){ const d=amtOf(T,u,a.dur,ctx)||4, pw=a.pow?(u.shieldStrMul||1):1;
       for(const t of pick(T,u,a.on||'self',ctx)){ const c2=Object.assign({},ctx,{tgt:t}), x=amtOf(T,u,a.shield,c2)*pw; if(!(x>0)) continue;
-        t.shield=(t.shield||0)+x; t.shieldT=Math.max(t.shieldT||0,d); if(a.emit&&T.on[a.emit]){ c2.amt=x; run(T,u,a.emit,c2); } } return; }
+        t.shield=a.mode==='max'?Math.max(t.shield||0,x):(t.shield||0)+x; t.shieldT=Math.max(t.shieldT||0,d); if(a.emit&&T.on[a.emit]){ c2.amt=x; run(T,u,a.emit,c2); } } return; }   // mode max: as the engine's own skill shields (the larger one stays)
     if(a.unshield){ u.shield=0; return; }
     if(a.energy!=null){ for(const t of pick(T,u,a.on||'self',ctx)) t.energy=Math.max(0,Math.min(100,(t.energy||0)+a.energy)); return; }
-    if(a.dmg!=null){ const x=amtOf(T,u,a.dmg,ctx)*(a.scale==null?1:a.scale); let done=0;
-      if(x>0) for(const t of pick(T,u,a.on,ctx)){ let y=x; if(a.tag&&T.on['dmg:'+a.tag]){ const c2=Object.assign({},ctx,{tgt:t,amt:x}); run(T,u,'dmg:'+a.tag,c2); y=c2.amt; }   // rows may change this damage
+    if(a.dmg!=null){ const sc=a.scale==null?1:a.scale; let done=0;
+      for(const t of pick(T,u,a.on,ctx)){ const x=amtOf(T,u,a.dmg,Object.assign({},ctx,{tgt:t}))*sc; if(!(x>0)) continue; let y=x;   // the amount is read for each unit struck ("6% of its max HP")
+        if(a.tag&&T.on['dmg:'+a.tag]){ const c2=Object.assign({},ctx,{tgt:t,amt:x}); run(T,u,'dmg:'+a.tag,c2); y=c2.amt; }   // rows may change this damage
         done+=hurt(T,u,t,y,a.color,a.tag); }
       if(a.emit&&done>0) run(T,u,a.emit,Object.assign({},ctx,{spent:done})); return; }
     if(a.cd){ const f=a.cd==='blue'?'blueCd':'greenCd'; if(a.set!=null) u[f]=a.set; else u[f]=Math.max(0,(u[f]||0)+a.add); return; }
@@ -789,17 +1074,19 @@ return module.exports;})();
     if(a.cleanse){ for(const t of pick(T,u,a.on||'self',ctx)) for(const f of CLEANSE) if((t[f]||0)>0){ t[f]=0; break; } return; }
     if(a.undying!=null){ s.undy=Math.max(s.undy,a.undying); if(u.hp<1) u.hp=1; ctx.stop=true; return; }
     if(a.roll){ const q=s.roll[a.roll]||(s.roll[a.roll]={span:a.span||3,e:[]}); q.span=a.span||3; const now=E.now(); q.e.push([now,amtOf(T,u,a.add,ctx)]); while(q.e.length&&q.e[0][0]<=now-q.span) q.e.shift(); return; }
-    if(a.emit){ if(a.on==null&&a.k==null){ run(T,u,a.emit,ctx); return; }                           // on:<who>: once for each such unit (it becomes the event's target); k: a size the event's amounts read
+    if(a.emit){ if(a.amt!=null){ run(T,u,a.emit,Object.assign({},ctx,{amt:amtOf(T,u,a.amt,ctx)})); return; }   // amt: the event carries that number (its rows may change it)
+      if(a.on==null&&a.k==null){ run(T,u,a.emit,ctx); return; }                           // on:<who>: once for each such unit (it becomes the event's target); k: a size the event's amounts read
       for(const t of (a.on==null?[ctx.tgt]:pick(T,u,a.on,ctx))) run(T,u,a.emit,Object.assign({},ctx,{tgt:t,k:a.k==null?ctx.k:a.k})); return; }
     if(a.fn){ return T.fn[a.fn](API,T,u,ctx,a); } }
 
   /* ---- stats that change during the fight (rows {stat:{...}, per, if}): the difference is applied to the unit's own number, so whatever
           else the engine does to that number is kept. atk, armor, mr, move: "x more" (multiply); aspd: attack speed; crit, lifesteal: added;
           immovable: a flag. Recomputed once a tick; a number is touched only when its total changed. ---- */
-  const S_MUL={atk:'dmg',armor:'armorRating',mr:'mrRating',move:'speed',apow:'apow'}, S_ADD={crit:'glyphCrit',lifesteal:'lifestealStat'};
+  const S_MUL={atk:'dmg',armor:'armorRating',mr:'mrRating',move:'speed',apow:'apow',heal:'healPowMul'}, S_ADD={crit:'glyphCrit',lifesteal:'lifestealStat'};
   function restat(T,u){ if(!T.stats.length) return; const tot={}, ctx={u,tgt:u.target};
     for(let i=0;i<T.stats.length;i++){ const row=T.stats[i]; if(row.if&&!ok(T,u,row.if,ctx)) continue; const n=row.per!=null?cnt(T,u,row.per,ctx):1; if(!n) continue; for(const k in row.stat) tot[k]=(tot[k]||0)+row.stat[k]*n; }
-    setStats(u,tot,T.s.ap,T.s.z); }
+    setStats(u,tot,T.s.ap,T.s.z);
+    if(T.nrg){ const e=u.energy||0, p=T.s.e0; if(p!=null&&e>p&&tot.nrg>0) u.energy=Math.min(100,e+(e-p)*tot.nrg); T.s.e0=u.energy||0; } }   // nrg: ultimate energy she gained since the last tick, that share more (from any source)
   function setStats(u,tot,ap,z){
     { const nw=Math.max(0.05,1+(tot.hp||0)), old=ap.hp==null?1:ap.hp; if(nw!==old){ const k=nw/old; u.maxHp*=k; u.hp*=k; ap.hp=nw; } }     // max HP: the HP he has keeps its share
     ap.cdRate=tot.cdRate||0;                                                                                                                // cooldowns recover that much faster (negative: slower); see auras()
@@ -849,7 +1136,22 @@ return module.exports;})();
   /* skill options, before the skill resolves (returns a changed copy) and after it resolved */
   const skTgt=(u,o)=>(o&&o._arrived&&o._tgtU)||u.target;                 // a skill that travels to its target lands on the unit it was thrown at
   function kit(u,type,o){ const T=u._tal, ctx={u,tgt:skTgt(u,o),skill:type,o:Object.assign({},o)}; T.s.cur=type; run(T,u,'kit',ctx); return ctx.o; }
-  function cast(u,type,o){ const T=u._tal; T.s.cur=null; run(T,u,'cast',{u,tgt:skTgt(u,o),skill:type,o:o||{}}); }
+  function cast(u,type,o){ const T=u._tal; T.s.cur=null; const q=T.s.later; if(q.length){ T.s.later=[]; for(let i=0;i<q.length;i++) acts(T,u,q[i][0],q[i][1]); }   // what rows put off until the skill had finished
+    run(T,u,'cast',{u,tgt:skTgt(u,o),skill:type,o:o||{}}); }
+  /* HER HEALS. healOut: a heal of a skill of hers (the page's healFrom, src = her): 'healOut' rows change it (before her healing power, as healFrom applies it),
+     the engine heals through its own healFrom, then 'healed' rows see it land: amt = HP it restored, heal = what was offered (after healing power),
+     over = what did not fit (0 unless it filled the room left), raw = the skill's own number, skill = the skill being cast. Never lets an error out, and
+     always heals exactly once. hotPre / hotPost: the same for each tick of a heal over time her rows made hers (tagHots), then 'hotEnd' on its last tick. */
+  function healOut(s,t,a){ const T=s._tal; let ctx=null;
+    try{ ctx={u:s,src:s,tgt:t,unit:t,amt:a,raw:a,skill:T.s.cur,hot:false}; if(T.s.cur) T.s.lh=a; run(T,s,'healOut',ctx); a=Math.max(0,ctx.amt); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); ctx=null; }
+    const hp0=t.hp, room=Math.max(0,E.healCap(t)-hp0); T.hb=1; try{ E.healFrom(s,t,a); } finally{ T.hb=0; }
+    if(ctx) try{ ctx.heal=a*(s.healPowMul||1); landed(T,s,t,ctx,hp0,room); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); } }
+  function landed(T,o,t,c,hp0,room){ const got=Math.max(0,t.hp-hp0); c.amt=got; c.over=(got>=room-1e-9)?Math.max(0,c.heal-room):0; if(T.on.healed) run(T,o,'healed',c); }
+  function hotPre(t,h){ const o=h._talU, T=o&&o._tal; if(!T||!o.alive) return null;
+    const ctx={u:o,src:o,tgt:t,unit:t,amt:h.hps,raw:h.hps,skill:h._talK,hot:true}; run(T,o,'healOut',ctx);
+    const keep=h.hps; h.hps=Math.max(0,ctx.amt); return {keep,ctx,hp0:t.hp,room:Math.max(0,E.healCap(t)-t.hp)}; }
+  function hotPost(t,h,k){ const o=h._talU, T=o._tal, c=k.ctx; c.heal=h.hps; h.hps=k.keep; landed(T,o,t,c,k.hp0,k.room);
+    if(h.remaining<=1&&T.on.hotEnd) run(T,o,'hotEnd',{u:o,tgt:t,unit:t,amt:k.keep,tag:h._talK}); }
   /* a number the engine keeps inside a skill's own code (a channel's radius, a proc chance): rows {on:'num',skill:'<name>', add / addM / more / mul} */
   function num(u,name,v){ const ctx={u,skill:name,amt:v,tgt:u.target}; run(u._tal,u,'num',ctx); return ctx.amt; }
   /* a control effect LANDED (after the resist roll): 'ccHit' for the one who applied it. direct: the engine wrote this
@@ -889,7 +1191,9 @@ return module.exports;})();
     s.moved=(u.x!==u.px||u.y!==u.py);
     if(s.tm.length) tickMarks(T,u);
     for(const k in s.w){ const w=s.w[k]; if(w.t>0&&w.t!==Infinity){ w.t-=dt; if(w.t<=1e-9){ w.t=0; if(T.on['end:'+k]) run(T,u,'end:'+k,{u,tgt:u.target}); } } }
-    for(const k in s.k){ const st=s.k[k], d=T.st[k]; if(!d||!(st.n>0)) continue;
+    for(const k in s.k){ const st=s.k[k], d=T.st[k]; if(st.rf&&st.rf.length){ const now=E.now(); for(let i=0;i<st.rf.length;i++){ if(now<st.rf[i]-1e-9) continue; st.rf.splice(i--,1);   // a spent unit of a refilling pool is back
+          if(stSet(T,u,k,st.n+1)>0&&d.refilled&&T.on[d.refilled]) run(T,u,d.refilled,{u,tgt:u}); } }
+      if(!d||!(st.n>0)) continue;
       if(d.dur){ st.t-=dt; if(st.t<=1e-9){ st.n=0; continue; } }
       if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt; if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.lose||1)); } } }
     if(s.undy>0) s.undy=Math.max(0,s.undy-dt);
@@ -904,7 +1208,7 @@ return module.exports;})();
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
   const RUNTIME={bind,define,attach:guard(attach,()=>null),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
 
