@@ -66,22 +66,29 @@ for hero, h in data["heroes"].items():
             r = parse(t[5])
             if r:
                 fx.setdefault(hero, {})[t[0]] = r; n += 1
-body = json.dumps({"v": data.get("v", 0), "stats": fx}, separators=(",", ":"), sort_keys=True)
 MDIR = os.path.join(ROOT, "talents-mech")
 CRLF, LF = chr(13) + chr(10), chr(10)
 engine = io.open(os.path.join(MDIR, "_engine.js"), encoding="utf-8").read().replace(CRLF, LF)
 mech_heroes = sorted(f[:-3] for f in os.listdir(MDIR) if f.endswith(".js") and not f.startswith("_"))
-trees, mech_src = {}, []
+trees, mech_src, rowed = {}, [], {}
 for hero in mech_heroes:
     if hero not in data["heroes"]:
         sys.exit("talents-mech/%s.js: no such hero in talents-data.js" % hero)
     h = data["heroes"][hero]
     trees[hero] = {"ids": [tr["id"] for tr in h["trees"]], "of": {t[0]: i for i, tr in enumerate(h["trees"]) for t in tr["talents"]}}
     text = io.open(os.path.join(MDIR, hero + ".js"), encoding="utf-8").read().replace(CRLF, LF)
+    rowed[hero] = sorted(set(re.findall(r"^ {4}([a-z]+_[a-z0-9]+(?:_[0-9]+)?): *\[", text, re.M)))
     for tid in sorted(set(re.findall(r"^ {4}([a-z]+_[a-z0-9]+(?:_[0-9]+)?): *\[", text, re.M))):   # the row lists of `talents:`
         if tid not in trees[hero]["of"]:
             sys.exit("talents-mech/%s.js: talent id %s is not in talents-data.js" % (hero, tid))
     mech_src.append("  MECH[%s]=(function(){const module={exports:{}};%s%s%sreturn module.exports;})();%s" % (json.dumps(hero), LF, text, LF, LF))
+# A talent with hand-authored rows is not a plain stat, even when its sentence matches a stat pattern ("Counter-Cut's counter-cut has 4% more
+# critical chance per rank." is about one strike, not about the hero): the rows are the talent's whole effect, so a talent is never counted twice.
+for hero, ids in rowed.items():
+    for tid in ids:
+        if fx.get(hero, {}).pop(tid, None) is not None:
+            n -= 1
+body = json.dumps({"v": data.get("v", 0), "stats": fx}, separators=(",", ":"), sort_keys=True)
 mech_block = "  const TREES=" + json.dumps(trees, separators=(",", ":"), sort_keys=True) + ";" + LF + "  const MECH={};" + LF + "".join(mech_src) + engine
 js = r'''/* Talents in a fight: shared by the page and the server's battle host (it runs this same file). No rendering, no RNG.
    DATA is built by tools/build_talent_fx.py from talents-data.js - do not edit it by hand.

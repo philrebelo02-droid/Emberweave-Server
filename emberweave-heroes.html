@@ -13602,6 +13602,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
      effect running, the condition and the RNG draws are exactly what they were (deterministic fights and the server sim agree). */
   const _gSure=!!src&&kind!=='true'&&(((src._gearSureUntil||0)>battleTime)||((src._gearSureN||0)>0)); if(_gSure&&!((src._gearSureUntil||0)>battleTime)) src._gearSureN--;
   const _gEva=(tgt&&(tgt._gearEvaUntil||0)>battleTime)?(tgt._gearEva||0):0;
+  if(tgt._tal&&(tgt._tal.on.aimed||tgt._tal.on.dodge)&&src&&src.team!==tgt.team&&TalentFx.dodge(tgt,src,_isAuto,kind,_gSure)){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#c9a6ff',vy:1.3,sz:13}); return; }   /* TALENT HOOK dodge: an enemy's hit coming at a talented unit (its 'aimed' rows), and its talent dodge (the seeded roll is inside a learned row only) */
   if(kind!=='true'&&!_gSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.0005))){
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); return; }   // Evasion vs Accuracy
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
@@ -13626,6 +13627,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(_talPc) _preCrit=_talPc[0];
   if(src&&src._tal&&src._tal.on.out) amt=TalentFx.out(src,tgt,amt,kind,_isAuto,_crit);   /* TALENT HOOK out: the attacker's learned talents */
   if((tgt._tal&&tgt._tal.on.in)||tgt._talW) amt=TalentFx.inc(tgt,src,amt,kind,_isAuto,_crit);   /* TALENT HOOK in: the target's learned talents, and team-wide ones watching it */
+  if(tgt._talMiss&&TalentFx.miss(tgt)) return;   /* TALENT HOOK miss: one of the target's 'in' rows made this hit miss (only a talent sets _talMiss) */
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   if(_edge==='Assassin'&&(tgt.shield||0)>0) tgt.shield-=Math.min(tgt.shield,amt);   /* Silence the healer: double damage to a shield - only a blow that lands */
   const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit);
@@ -14509,8 +14511,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const _R=(o.range||28*METER);
       const _choices=enemiesOf(u).filter(e=>e.alive&&dist(u,e)<=_R);
       const _backMages=_choices.filter(e=>HERO_PROFILES[e.key]&&HERO_PROFILES[e.key].class==='Mage'&&HERO_PROFILES[e.key].combatRow==='Back');
-      const _mark=(_backMages.length?_backMages:_choices)
+      let _mark=(_backMages.length?_backMages:_choices)
                    .sort((a,b)=>(a.maxHp||a.hp||0)-(b.maxHp||b.hp||0))[0] || null;
+      if(u._tal&&u._tal.on.skillTgt) _mark=TalentFx.skillTgt(u,'hookline',_mark,o);   /* TALENT HOOK skillTgt: Hookline's mark, and its options before the strike is sized */
       if(!_mark) break;                                   // nothing in reach: the leap does not fire
       burstAt(u.x,u.y,0x7a3fa0,14);
       // behind = on the far side of the mark from where she started, along that same line
@@ -14530,8 +14533,10 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       u._dash={x0:u.x,y0:u.y,x1:_lx,y1:_ly,t:0,dur:_T,air:true,ease:hookReelEase(Math.hypot(_dx,_dy),Math.hypot(_lx-u.x,_ly-u.y)||1),run:function(){
         u._ax=u.x; u._ay=u.y; u.attackAnim=.18;
         u._faceDir=(_mark.x>=u.x)?1:-1;                   // she lands past them and turns back
+        if(u._tal) TalentFx.landPre(u,_mark,'hookline');   /* TALENT HOOK landPre: the strike that follows is Hookline's */
         if(_mark.alive) dealDamage(u,_mark,_HD,'#c9a6ff');
         u._noTarget=true; u._noTargetT=_ev;   // evasive beat after the behind-target strike
+        if(u._tal) TalentFx.land(u,_mark,'hookline');   /* TALENT HOOK land: she has landed behind the mark */
         burstAt(u.x,u.y,0x7a3fa0,18); try{ hookSlashFx(_mark); }catch(_e){}
         floatTexts.push({x:_mark.x,y:_mark.y-12,txt:'BEHIND YOU',t:1.0,color:'#c9a6ff',vy:1,sz:12}); }};
       break; }
@@ -17472,7 +17477,9 @@ function think(u,dt){
             floatTexts.push({x:t.x,y:t.y-8,txt:'VENOM',t:.8,color:'#3f8f5c',vy:1.1,sz:11}); } }
         // Killer Instinct (Vex, 11 Sep 2026): EVERY auto leaves a mortal wound that keeps refreshing.
         // Phil: "her passive should apply a mortal wound that lasts 3 seconds everytime she keeps auto attacking it re applies".
+        if(u._tal&&u._tal.on.pass&&t&&u.pass.killerinstinct) TalentFx.passPre(u,t);   /* TALENT HOOK passPre: the wound timer before Killer Instinct writes it */
         if(u.pass.killerinstinct&&t){ t.mortalT=Math.max(t.mortalT||0,3*_pm);
+          if(u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'killerinstinct');   /* TALENT HOOK pass: Killer Instinct just opened its wound on t */
           firePassiveFx(u,t,{aboveBar:true});
           floatTexts.push({x:t.x,y:t.y-8,txt:'-heal',t:.7,color:'#c0392b',vy:1.1,sz:11}); }
         // Loaded Hand (Cardwraith): every fourth basic attack draws a stronger random suit.
