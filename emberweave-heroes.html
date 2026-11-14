@@ -7369,7 +7369,14 @@ function healPowRating(u){ return Math.max(0,((u&&u.healPowMul)||1)-1)/0.0005; }
 function dandraHealAmt(u,tgt,pct){ return tgt.maxHp*pct+0.30*(u.apow||0)+0.50*healPowRating(u); }
 /* v1311 (Phil 8 Nov 2026, Veyr Weightless Predator: "no reset it per wave"): what a hero gains DURING a wave that must not carry into the
    next one is cleared here - called at the top of buildEnemyWave (live battle and the headless replay both build each wave through it). */
-function resetPerWave(){ try{ for(const u of units){ if(u&&u._wlCrit){ u.glyphCrit=Math.max(0,(u.glyphCrit||0)-u._wlCrit); u._wlCrit=0; } } }catch(e){} }
+function resetPerWave(){ try{ for(const u of units){ if(u&&u._wlCrit){ u.glyphCrit=Math.max(0,(u.glyphCrit||0)-u._wlCrit); u._wlCrit=0; } } }catch(e){}
+  for(const u of units){ if(u&&u._tal) TalentFx.wave(u); } }   /* TALENT HOOK wave: only a unit with a learned mechanic talent has u._tal */
+/* 14 Nov 2026 TALENT MECHANICS (talents-fx.js, built from talents-mech/): the fight's own functions, handed over once. Every hook call site below is one
+   line behind `u._tal` (set only by TalentFx.attach for a hero with a learned mechanic talent) or `u._talW` (set only by such a hero, on the units
+   of its fight) - a fight in which nobody has learned a mechanic talent runs exactly the code it ran before. Search "TALENT HOOK" for all of them. */
+if(typeof TalentFx!=='undefined'&&TalentFx.bind) TalentFx.bind({ units:()=>units, now:()=>battleTime, rage:()=>rageMul, rnd:()=>brnd(), METER:()=>METER,
+  dist:(a,b)=>dist(a,b), damage:(u,a,c,ne)=>damage(u,a,c,ne), healUnit:(u,a)=>healUnit(u,a), healCap:u=>worldHealCap(u), pushDot:(t,dps,dur,iv,col,src,kind)=>pushDot(t,dps,dur,iv,col,src,kind),
+  defMul:(s,t,k)=>defMul(s,t,k), ccDur:d=>ccDur(d), bodyR:u=>bodyR(u) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -12104,7 +12111,7 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.pass=s.pass?JSON.parse(JSON.stringify(s.pass)):null;
   u.gearSkill=s.gearSkill?Object.assign({used:false},JSON.parse(JSON.stringify(s.gearSkill))):null;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18*UNIT_SIZE;   // re-apply the ranged reach gate after overriding stats
-  if(s.tal&&s.tal.length) u._talList=s.tal.map(e=>[e[0],e[1]]);   /* 14 Nov 2026 talents: the stat part is already in the numbers above - never applied twice */
+  if(s.tal&&s.tal.length){ u._talList=s.tal.map(e=>[e[0],e[1]]); if(typeof TalentFx!=='undefined'&&TalentFx.attach) TalentFx.attach(u,s.key,u._talList); }   /* 14 Nov 2026 talents: the stat part is already in the numbers above - never applied twice */
   return u;
 }
 /* Headless deterministic fight resolver (Rule 3: attack/raid/mine decided by the two teams fighting on full auto).
@@ -12362,7 +12369,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   if(owned) TempleEffects.applyClient(u,S?S.templeBonuses:templeBonusesClient(key));
   /* 14 Nov 2026 TALENTS (Phil: "they are only activated when someone clicks learn talent"): the hero's learned talents - the server's frozen list
      on a spec, this account's mirror (G.talents) for a hero built from the local save. No list, or an empty one: nothing below runs. */
-  if(owned){ const _tl=S?S.talents:talentListLocal(key); if(_tl&&_tl.length&&typeof TalentFx!=='undefined'){ TalentFx.applyStats(u,key,_tl); u._talList=_tl.map(e=>[e[0],e[1]]); } }
+  if(owned){ const _tl=S?S.talents:talentListLocal(key); if(_tl&&_tl.length&&typeof TalentFx!=='undefined'){ TalentFx.applyStats(u,key,_tl); u._talList=_tl.map(e=>[e[0],e[1]]); if(TalentFx.attach) TalentFx.attach(u,key,u._talList); } }
   return u;
 }
 function talentListLocal(key){ try{ const b=(typeof G!=='undefined'&&G&&G.talents)?G.talents[key]:null; if(!b||typeof TALENTS==='undefined') return null; if(TALENTS.invalid(key,b,heroLevel(key))) return null;   /* = server talentListFor: a build the rules no longer accept fights, and is priced, with NO talents */ const l=TALENTS.learned(key,b); return l.length?l:null; }catch(e){ return null; } }
@@ -12671,7 +12678,9 @@ function damage(u,a,c,noEnergy,crit){
     floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?_crit:((c&&c!=='#fff'&&c!=='#ffd9a8')?c:_base),vy:crit?1.5:1,crit:!!crit,sz:crit?16:11}); }   // don't render 0-damage popups (fully-mitigated hits)
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
+  if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
+    if(u._tal||u._talW) TalentFx.death(u);   /* TALENT HOOK death */
     if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
     // Overdue (Grimsby): a debt that outlives the debtor is served on the room.
     if((u._debtStk||0)>0 && u._debtOwner && u._debtOwner.alive){
@@ -13608,9 +13617,13 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
+  let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0)+((src&&src._wpnCrit)||0);   /* v1137: + Rivet's revolver (15% on that hit; 0 on every other unit) */   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<Math.max(0,cc-((tgt&&tgt.defenseStat)||0))))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+Math.max(0,bonus-tgt.critRes);   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), floor = a normal hit; = combat-core */ amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
+  if(_talPc) _preCrit=_talPc[0];
+  if(src&&src._tal&&src._tal.on.out) amt=TalentFx.out(src,tgt,amt,kind,_isAuto,_crit);   /* TALENT HOOK out: the attacker's learned talents */
+  if((tgt._tal&&tgt._tal.on.in)||tgt._talW) amt=TalentFx.inc(tgt,src,amt,kind,_isAuto,_crit);   /* TALENT HOOK in: the target's learned talents, and team-wide ones watching it */
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   if(_edge==='Assassin'&&(tgt.shield||0)>0) tgt.shield-=Math.min(tgt.shield,amt);   /* Silence the healer: double damage to a shield - only a blow that lands */
   const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit);
@@ -13637,6 +13650,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a',src);
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
   if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4',src);   /* v1112: 10% + 0.1 pt a level */
+  if((src&&src._tal)||tgt._tal) TalentFx.hit(src,tgt,_hpLost,amt,kind,_isAuto,_crit,_hpBefore);   /* TALENT HOOK hit / kill / hurt */
   /* v1137 (Phil 14 Oct): Rivet's old six-step Whatever's Loaded cycle (stun, splash, bleed, slow, chain, heavy shot) lived here, on every hit he dealt. It is REPLACED by his ten weapons - each basic attack's effect is its weapon's (rivetFire), the chain hook is automatic (rivetHookTick). */
 }
 // Hollow's bleed stacks: the third one ruptures for a burst and clears the set.
@@ -14108,6 +14122,7 @@ function ccApply(u, t, field, dur){
   if(!t || !(dur > 0)) return false;
   if(field==='stunned' && u && u._holdFx && t!==u){ try{ holdUnder(u._holdFx,t); }catch(e){} }   /* v829: bind/freeze - the held unit draws behind its spell */
   dur=ccDur(dur);   /* v818: every control 30% shorter - the one place they all land */
+  if((t._tal&&t._tal.on.ccIn)||(u&&u._tal&&u._tal.on.ccOut)) dur=TalentFx.cc(u,t,field,dur);   /* TALENT HOOK cc: seconds of a control effect */
   { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
   /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
      deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
@@ -14165,7 +14180,7 @@ function _doEffectSfx(u,type,o){ if(typeof SFX==='undefined'||!SFX.loop||!u||!u.
   const p=SFX.cx, n0=groundHazards.length, s0=sfxSnap(u); SFX.cx=c; try{ return _doEffectCore.apply(this,arguments); } finally{ SFX.cx=p; sfxAdopt(c,n0,s0); } }
 function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
   o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
-  o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */ const _kLv=(u._castLv|0)||1;   /* v1112: the level of the slot that fired, for skLvNum */
+  o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1); if(u._tal&&u._tal.on.kit) o=TalentFx.kit(u,type,o);   /* TALENT HOOK kit: skill options */   /* v786/v789 */ const _kLv=(u._castLv|0)||1;   /* v1112: the level of the slot that fired, for skLvNum */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
@@ -15226,6 +15241,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   if(_debuffArt){ try{ debuffArtAll(u,o,tgt,aimCtr,type,_debuffSnap); }catch(e){} }   /* v595 */
   if(_gearSpellCrit)u._gearSpellCrit=false;
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
+  if(u._tal&&u._tal.on.cast) TalentFx.cast(u,type,o);   /* TALENT HOOK cast: after the skill resolved */
 }
 /* v552: one buff plate per affected unit, hung above that unit's health bar and following it. 'Affected' = any buff field
    changed by the cast (hp, shield, ward, haste, damage buff, DR, HoT count, lifesteal, cleanse, bulwark, regen). If the cast
@@ -15502,7 +15518,8 @@ function beeHealCut(lv){ return Math.min(0.9, BEE_HEAL_CUT+0.002*Math.max(1,lv|0
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
   if((u._healCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._healCutUntil>battleTime) a*=1-EDGE.healCut;   /* v1367 Silence the healer */
   if((u._beeCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._beeCutUntil>battleTime) a*=1-(u._beeCut||BEE_HEAL_CUT);   /* v1376 The Swarm Moves On */
-  if(typeof AFFINITIES_LIVE!=='undefined'&&AFFINITIES_LIVE&&u.target&&u.target.alive&&unitClass(u.target)==='Tank'&&u.target.team!==u.team&&units.some(o=>o.alive&&o.team===u.team&&unitClass(o)==='Support')) a*=1+EDGE.healBonus;   /* v1367 Sundering grace: allies attacking a Tank heal more while a Support fights beside them */ if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a; if(DD.on) ddHeal(u,a,null);
+  if(typeof AFFINITIES_LIVE!=='undefined'&&AFFINITIES_LIVE&&u.target&&u.target.alive&&unitClass(u.target)==='Tank'&&u.target.team!==u.team&&units.some(o=>o.alive&&o.team===u.team&&unitClass(o)==='Support')) a*=1+EDGE.healBonus;   /* v1367 Sundering grace: allies attacking a Tank heal more while a Support fights beside them */ if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; if(u._tal&&u._tal.on.heal) TalentFx.heal(u,a);   /* TALENT HOOK heal: sees the heal before it is cut to the room left */
+  a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a; if(DD.on) ddHeal(u,a,null);
   /* v527 - healing that travels. Golden Thread (Threadseer) sends part of what SHE receives to
      the ally nearest death; Dreamthread (Lysara) shares between the two allies she linked.
      _healing guards the one hop so a link can never feed itself in a loop. */
@@ -17399,8 +17416,8 @@ function think(u,dt){
       }
     }}   // an impossible target keeps its energy; the valid ult fires this tick
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
-  if(u.key!==HERO61.KEY && !silenced && u.greenAb){u.greenCd-=dt*((u.castT||0)>0?(u.castMul||1):1);if(u.greenCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1); u._castLv=((u.skillLv&&u.skillLv[1])|0)||1;   /* v787 */castKit(u,u.greenAb);u._castSM=1; u._castLv=0;u.greenCd=u.greenAb.cd;}}
-  if(u.key!==HERO61.KEY && !silenced && u.blueAb){u.blueCd-=dt*((u.castT||0)>0?(u.castMul||1):1);if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1); u._castLv=((u.skillLv&&u.skillLv[2])|0)||1;   /* v787 */castKit(u,u.blueAb);u._castSM=1; u._castLv=0;u.blueCd=u.blueAb.cd;}}
+  if(u.key!==HERO61.KEY && !silenced && u.greenAb){u.greenCd-=dt*((u.castT||0)>0?(u.castMul||1):1);if(u.greenCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1); u._castLv=((u.skillLv&&u.skillLv[1])|0)||1;   /* v787 */castKit(u,u.greenAb);u._castSM=1; u._castLv=0;u.greenCd=u.greenAb.cd; if(u._tal&&u._tal.on.cd) u.greenCd=TalentFx.cd(u,'green',u.greenCd);   /* TALENT HOOK cd */ }}
+  if(u.key!==HERO61.KEY && !silenced && u.blueAb){u.blueCd-=dt*((u.castT||0)>0?(u.castMul||1):1);if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1); u._castLv=((u.skillLv&&u.skillLv[2])|0)||1;   /* v787 */castKit(u,u.blueAb);u._castSM=1; u._castLv=0;u.blueCd=u.blueAb.cd; if(u._tal&&u._tal.on.cd) u.blueCd=TalentFx.cd(u,'blue',u.blueCd);   /* TALENT HOOK cd */ }}
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else if((u._chaseT||0)>0 && u._chaseTg && u._chaseTg.alive) u.target=u._chaseTg;   // v1044 KonWu runs down the mark he kicked away
   else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
@@ -18444,6 +18461,7 @@ function _updateBattleCore(dt){
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
     if(DD.on){ const _pa=DD.actor; DD.actor=u; try{ think(u,dt); } finally{ DD.actor=_pa; } } else think(u,dt);if(u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
   rivetHookTick(dt);   /* v1137: Rivet's automatic chain hook (no-op without Rivet) */
+  for(let i=0;i<units.length;i++){ const u=units[i]; if(u._tal&&u.alive) TalentFx.tick(u,dt); }   /* TALENT HOOK tick */
   // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
@@ -18668,7 +18686,7 @@ function _updateBattleCore(dt){
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt),u); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // MMO-style status effects: DoT / HoT ticks + buff/debuff timers
   units.forEach(u=>{ if(!u.alive)return;
-    for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; if(DD.on){ const _g=DD.tag.get(d), _p=DD.hit; DD.hit={src:d.src,l:_g?_g.l:'passive'}; try{ damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); } finally{ DD.hit=_p; } } else damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
+    for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; const _talD=((u._tal&&u._tal.on.dotIn)||d._talK)?TalentFx.dotPre(u,d):null;   /* TALENT HOOK dot tick (before) */ if(DD.on){ const _g=DD.tag.get(d), _p=DD.hit; DD.hit={src:d.src,l:_g?_g.l:'passive'}; try{ damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); } finally{ DD.hit=_p; } } else damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); if(_talD) TalentFx.dotPost(u,d,_talD);   /* TALENT HOOK dot tick (after) */ d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; if(DD.on){ const _g=DD.tag.get(h), _p=DD.healBy; DD.healBy=_g?_g.src:null; try{ healUnit(u,h.hps); } finally{ DD.healBy=_p; } } else healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
