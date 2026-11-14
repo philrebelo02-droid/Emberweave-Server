@@ -32,6 +32,34 @@ test('no talents: every snap is identical to the pre-talent game, and so is a wh
   for(const seed of [11,90210,424242]) assert.equal(fight(NOW,a,seed),fight(BASE,b,seed),'seed '+seed);
 });
 
+/* 14 Nov 2026, the mechanics layer (hooks in the fight code): the same guarantee over more of the game - other stages, more seeds, and
+   single-wave fights between two real line-ups (both sides without talents; the enemy side built from snaps as in marches / city fights). */
+test('no talents, hook layer in place: campaign stages and two-sided fights are identical to the pre-talent game, seed by seed',{skip:!BASE},()=>{
+  const ENC=JSON.parse(fs.readFileSync(path.join(root,'server/campaign-encounters.json'),'utf8'));
+  const teams=[TEAM,['rhukk','astra','lumi','hollow','grosk'],['bloatus','fritz','dandra','konwu','ceraline']];
+  let n=0;
+  for(const [ti,team] of teams.entries()){ const a=snaps(NOW,team.map(k=>spec(k,70))), b=snaps(BASE,team.map(k=>spec(k,70))); assert.deepEqual(a,b);
+    for(const node of [12,34,60,90]){ const w=ENC.find(e=>e.node===node).waves; for(const seed of [3+ti,1000003*(ti+1),987654321]){
+      const f=(h,sn)=>{ const r=h.campaign(JSON.parse(JSON.stringify(sn)),w,seed,[[0,'auto',-1,1,null,null]]); return JSON.stringify([r.won,r.stars,r.digest]); };
+      assert.equal(f(NOW,a),f(BASE,b),'campaign node '+node+' team '+ti+' seed '+seed); n++; } }
+    const foe=snaps(NOW,teams[(ti+1)%teams.length].map(k=>spec(k,68))), foeB=snaps(BASE,teams[(ti+1)%teams.length].map(k=>spec(k,68)));
+    for(const seed of [5,77,31337,20261114]){ const g=(h,x,y)=>JSON.stringify(h.auto(JSON.parse(JSON.stringify(x)),JSON.parse(JSON.stringify(y)),seed));
+      assert.equal(g(NOW,a,foe),g(BASE,b,foeB),'two-sided fight team '+ti+' seed '+seed); n++; } }
+  assert.ok(n>=48);
+});
+
+/* the enemy side has talents (mechanics included), the ally side has none: the untalented side's units carry no talent state of their own, and the
+   fight is the same fight twice */
+test('talents on one side only: the other side is built exactly as before (same snaps, no talent state), and the fight repeats',()=>{
+  const all=[]; for(const tr of T.trees('vael')) for(const t of tr.talents) all.push([t[0],t[4]]); all.sort((x,y)=>x[0]<y[0]?-1:1);
+  const plain=snaps(NOW,TEAM.map(k=>spec(k,80))), tal=snaps(NOW,TEAM.map(k=>spec(k,80,k==='vael'?all:null)));
+  assert.deepEqual(tal.slice(1),plain.slice(1)); assert.ok(plain.every(s=>!('tal' in s)));
+  for(const seed of [9,99,999]){ const f=(x,y)=>JSON.stringify(NOW.auto(JSON.parse(JSON.stringify(x)),JSON.parse(JSON.stringify(y)),seed));
+    assert.equal(f(plain,tal),f(plain,tal),'enemy talented, seed '+seed); assert.equal(f(tal,plain),f(tal,plain),'ally talented, seed '+seed); assert.notEqual(f(plain,tal),f(plain,plain),'and the talents do change that fight'); }
+  const u=NOW.sandbox.buildUnitFromSnapshot(JSON.parse(JSON.stringify(plain[0])),'ally',0,0), w=NOW.sandbox.buildUnitFromSnapshot(JSON.parse(JSON.stringify(tal[0])),'enemy',0,0);
+  assert.ok(!('_tal' in u)&&!('_talList' in u),'no talents: no talent field on the unit'); assert.ok(w._tal,'the talented Vael carries his mechanics');
+});
+
 test('an empty learned list is the same as no list',()=>{
   const a=snaps(NOW,TEAM.map(k=>spec(k,60))), e=snaps(NOW,TEAM.map(k=>spec(k,60,[])));
   assert.deepEqual(a,e);
