@@ -123,6 +123,7 @@
     else if(per.dots) n=countDots(u,per.dots);
     else if(per.field){ const x=per.of==='self'?u:per.of==='unit'?(ctx&&ctx.unit):per.of==='source'?(ctx&&ctx.src):(ctx&&ctx.tgt); n=x?(+x[per.field]||0):0; }
     else if(per.units) n=pick(T,u,per.units,ctx).length;
+    else if(per.fn) n=+T.fn[per.fn](API,T,u,ctx,per)||0;                         // a count the hero file works out (Vael's Blood Rage stacks)
     else if(per.roll){ const q=T.s.roll[per.roll]; let sum=0; if(q){ const t0=E.now()-q.span; for(let i=0;i<q.e.length;i++) if(q.e[i][0]>t0) sum+=q.e[i][1]; } const st=amtOf(T,u,per.step,ctx); n=st>0?Math.floor(sum/st+1e-9):0; }
     if(per.max!=null) n=Math.min(per.max,n); return n; }
 
@@ -306,7 +307,7 @@
     const n=(row.per!=null?cnt(T,u,row.per,ctx):1)*(row.scale==null?1:row.scale);
     if(row.more!=null) ctx.amt*=1+row.more*n;
     if(row.less!=null) ctx.amt*=Math.max(0,1-row.less*n);
-    if(row.mul!=null) ctx.amt*=row.mul;
+    if(row.mul!=null){ ctx.amt*=row.mul; if(row.mul===0) ctx.mv=0; }   // a hit made to deal nothing ("cannot be hurt") is immunity, not reduction: the 95% ceiling leaves it at 0
     if(row.add!=null) ctx.amt+=row.add*n;
     if(row.critMore!=null&&ctx.crit) ctx.amt*=1+row.critMore*n;
     if(row.ignoreArmor!=null&&ctx.kind==='phys'&&ctx.tgt&&ctx.src){ const src=ctx.src, a=E.defMul(src,ctx.tgt,'phys');
@@ -315,7 +316,7 @@
       if(a>0){ const sv=t.mrRating; t.mrRating=(sv||0)*Math.max(0,1-row.ignoreMr*n); const b=E.defMul(ctx.src,t,'magic'); t.mrRating=sv; ctx.amt*=b/a; } }
     if(row.addM!=null) ctx.amt+=row.addM*n*E.METER();                              // metres, for a number the engine keeps in its own length unit
     if(row.divert!=null){ const cut=ctx.amt*Math.min(1,row.divert*n);            // the owner takes this share of the hit in the target's place
-      if(cut>0){ ctx.amt-=cut; E.damage(u,cut,'#ffb37a',true); if(T.on.diverted) run(T,u,'diverted',Object.assign({},ctx,{spent:cut})); } }
+      if(cut>0){ ctx.amt-=cut; ctx.mv=(ctx.mv==null?1:ctx.mv)*(1-Math.min(1,row.divert*n)); E.damage(u,cut,'#ffb37a',true); if(T.on.diverted) run(T,u,'diverted',Object.assign({},ctx,{spent:cut})); } }
     if(row.force) ctx.force=true;
     if(row.opt&&ctx.o) for(const k in row.opt){ const op=row.opt[k], m=op.per!=null?cnt(T,u,op.per,ctx):1; let v=ctx.o[k];
       if(op.set!=null) v=op.set;
@@ -343,7 +344,7 @@
     if(a.stack){ const have=stGet(T,a.stack);
       if(a.spend!=null){ const n=a.spend==='all'?have:a.spend; if(a.spend!=='all'&&have<n) return false; if(!(n>0)) return;
         stSet(T,u,a.stack,have-n); if(a.then) acts(T,u,a.then,Object.assign({},ctx,{spent:n})); return; }
-      if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k&&k.n>0&&d&&d.dur) k.t=d.dur; return; }
+      if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k){ k.idle=0; if(k.n>0&&d&&d.dur) k.t=d.dur; } return; }   // touch: its lapse starts again, and its fade waits again (as a gain would)
       if(a.refillIn!=null){ const k=s.k[a.stack]; if(k&&k.rf){ const at=E.now()+a.refillIn; for(let i=0;i<k.rf.length;i++) if(k.rf[i]>at) k.rf[i]=at; } return; }   // every spent unit comes back that soon
       if(a.set!=null){ stSet(T,u,a.stack,a.set==='max'?stMax(T,u,a.stack):amtOf(T,u,a.set,ctx)); return; }
       if(a.keep!=null){ const n=have*Math.max(0,Math.min(1,a.keep)); stSet(T,u,a.stack,a.whole?Math.floor(n+1e-9):n); return; }   // keep that share (whole: rounded down)
@@ -484,10 +485,11 @@
   /* outgoing damage: in _dealDamageCore once the hit has landed and its crit is known, just before the HP is removed */
   function out(src,tgt,amt,kind,auto,crit){ const T=src._tal, ctx={u:src,src,tgt,amt,kind,auto:!!auto,crit:!!crit,proc:T.s.d>0}; run(T,src,'out',ctx); return ctx.amt; }
   /* incoming damage: the same place. The target's own rows ('in'), then the rows of talented units watching it ('teamIn': team-wide effects) */
-  function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
-    if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; }
+  function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal, a0=amt; let mv=1; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
+    if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }
     const W=tgt._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===tgt||!o.alive||!To||!To.on.teamIn) continue;
-      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; }
+      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }
+    tgt._talIr=(amt!==a0)?[a0,mv]:null;   // the 95% ceiling (the page's drPreOf): the hit before these rows, and the share of it not moved onto another unit (divert)
     return amt; }
   /* crit: just before the engine decides the hit's crit. A row may force it (returns true); otherwise the engine's own value / roll stands */
   function crit(src,tgt,pre,kind,auto){ const T=src._tal, ctx={u:src,src,tgt,kind,auto:!!auto,proc:T.s.d>0,force:false}; run(T,src,'crit',ctx); return ctx.force?true:pre; }
@@ -497,6 +499,22 @@
       if(T.on.hit) run(T,src,'hit',ctx);
       if(T.on.kill&&hpBefore>0&&!tgt.alive){ ctx.overkill=Math.max(0,-tgt.hp); run(T,src,'kill',ctx); } }
     if(tgt._tal&&tgt._tal.on.hurt&&src&&src.team!==tgt.team&&tgt.alive){ const T=tgt._tal; run(T,tgt,'hurt',{u:tgt,src,tgt,amt,hpLost,kind,auto:!!auto,crit:!!crit}); } }
+  /* the 95% ceiling's balance measurement (tests/balance-dr-ceiling.test.js): what the incoming rows of tgt and of the units watching it WOULD do to a
+     hit of `amt`, with no side effect - no action, no seeded draw, no limiter spent, no divert taken. Rows that hang on a chance, on counting events
+     (every / edge / period) or on per-unit limiters are left out. Returns {amt, mv}: the hit after the rows, and the share not moved onto another unit
+     (0: the rows make it deal nothing - immunity). Never called by a fight. */
+  function incProbe(tgt,src,amt,kind,auto){ let mv=1; const ctx0={src,tgt,kind,auto:!!auto,crit:false};
+    const one=(T,o,ev)=>{ const rows=T.on[ev]; if(!rows) return; const ctx=Object.assign({},ctx0,{u:o,amt});
+      for(const row of rows){ if(row.chance!=null||row.every||row.edge||row.period||row.each||row.by||row.skill) continue;
+        const L=T.s.lim[row.key]; if(L&&((row.once==='wave'&&L.w===T.s.wave)||(row.once==='fight'&&L.n>0)||(row.uses&&L.n>=row.uses)||(row.icd&&E.now()<L.t))) continue;
+        if(row.if&&!ok(T,o,row.if,ctx)) continue; const n=(row.per!=null?cnt(T,o,row.per,ctx):1)*(row.scale==null?1:row.scale);
+        if(row.more!=null) ctx.amt*=1+row.more*n; if(row.less!=null) ctx.amt*=Math.max(0,1-row.less*n); if(row.add!=null) ctx.amt+=row.add*n;
+        if(row.mul!=null){ ctx.amt*=row.mul; if(row.mul===0) mv=0; }
+        if(row.divert!=null){ const sh=Math.min(1,row.divert*n); ctx.amt*=1-sh; mv*=1-sh; } }
+      amt=ctx.amt; };
+    if(tgt._tal&&tgt._tal.on.in&&src&&src.team!==tgt.team) one(tgt._tal,tgt,'in');
+    const W=tgt._talW; if(W) for(const o of W) if(o!==tgt&&o.alive&&o._tal&&o._tal.on.teamIn) one(o._tal,o,'teamIn');
+    return {amt,mv}; }
   /* a hit is about to kill: a row may keep the unit alive (action `undying`); while that holds, it cannot drop below 1 HP */
   function lethal(u){ const T=u._tal; if(T.s.undy>0){ u.hp=1; return; } run(T,u,'lethal',{u,tgt:u}); if(T.s.undy>0&&u.hp<1) u.hp=1; }
   /* a unit died: its own 'die' rows, then 'death' for every talented unit watching it */
@@ -563,11 +581,11 @@
   function cc(by,t,field,dur,tal){ if(t._tal&&t._tal.on.ccIn){ const c={u:t,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(t._tal,t,'ccIn',c); dur=c.amt; }
     if(by&&by._tal&&by._tal.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; } return dur; }
   /* a DoT tick: before it (the target's 'dotIn' rows, and a talent DoT's shorter last tick), and after it (the owner's 'dotTick', a kill by the DoT) */
-  function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps; const T=u._tal;
+  function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps, p=x; const T=u._tal;   // p: the tick without the target's own DoT rows (the 95% ceiling's reference)
     if(T&&T.on.dotIn){ const ctx={u,src:d.src,tgt:u,amt:x,dot:d}; run(T,u,'dotIn',ctx); x=ctx.amt; }
-    const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; }   // the owner's rows change her own DoT's tick
-    if(d._talF!=null&&d.remaining<=1) x*=d._talF; d.dps=x; d._talNow=true; return keep; }
-  function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
+    const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const xi=x, c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; p=xi>0?p*x/xi:x; }   // the owner's rows change her own DoT's tick
+    if(d._talF!=null&&d.remaining<=1){ x*=d._talF; p*=d._talF; } d.dps=x; d._talNow=true; if(x<p) u._talDp=p; return keep; }   // _talDp: read by the page's dotTickAmt for this tick
+  function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; if(u._talDp!=null) u._talDp=null; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
     if(T.on.dotTick&&o.alive) run(T,o,'dotTick',{u:o,src:o,tgt:u,dot:d,tag:d._talK,amt:Math.max(0,((keep[1]||0)-Math.max(0,u.hp))+((keep[2]||0)-(u.shield||0)))});   // amt: what the tick took off (HP and shield)
     if(!u.alive&&T.on.kill&&o.alive) run(T,o,'kill',{u:o,src:o,tgt:u,dot:d,overkill:0,viaDot:true}); }
   /* between waves (the page's per-wave reset): 'waveEnd' now; the new wave's start is run on the unit's next tick, when the field is set */
@@ -587,7 +605,8 @@
           if(stSet(T,u,k,st.n+1)>0&&d.refilled&&T.on[d.refilled]) run(T,u,d.refilled,{u,tgt:u}); } }
       if(!d||!(st.n>0)) continue;
       if(d.dur){ st.t-=dt; if(st.t<=1e-9){ st.n=0; continue; } }
-      if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt; if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.lose||1)); } } }
+      if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt*(d.fade.rate==null?1:Math.max(0,d.fade.rate));   // rate: the fade's clock (0.5 = it fades half as fast)
+        if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.pct!=null?st.n*d.fade.pct:(d.fade.lose||1))); } } }   // pct: it loses that share of what it holds
     if(s.undy>0) s.undy=Math.max(0,s.undy-dt);
     if(T.on.tick) run(T,u,'tick',{u,tgt:u.target,dt});
     restat(T,u); auras(T,u,dt); }
@@ -600,6 +619,6 @@
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
   const RUNTIME={bind,define,attach:guard(attach,()=>null),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),incProbe,healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

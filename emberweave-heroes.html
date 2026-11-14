@@ -12643,7 +12643,20 @@ function ddRender(S,onDone){ const old=document.getElementById('ddPop'); if(old)
   ov.querySelectorAll('.ddList').forEach(l=>l.addEventListener('scroll',hide,{passive:true}));
   ov.querySelector('.ddGo').onclick=()=>{ ov.remove(); if(typeof onDone==='function') try{ onDone(); }catch(e){ console&&console.error&&console.error(e); } };
   return ov; }
-function damage(u,a,c,noEnergy,crit){
+/* THE 95% CEILING (Phil, 14 Nov 2026: "no one in the game should ever be over 95% damage reduction"). Everything that reduces a hit ON THE
+   UNIT THAT TAKES IT, combined - Armor / Magic Resist (defMul), Block, Croc Drop, Mirewall, Packmaster, the talents' incoming rows, and
+   here drMul (Last Stand, Shield Wall, banners...), glyph / gear / Temple reduction (glyphDR), Bulwark, Adamant Discipline, Unmovable Mass - never
+   removes more than 95%: the unit loses at least DR_FLOOR of the hit as it was before its reductions. _drPre is that amount, set by the line that
+   calls damage() (dealDamage: drPreOf; a DoT or ground-hazard tick: dotTickAmt) and read once here. A plain damage() call (talent damage, a
+   percent-of-max-HP strike, true damage, a diverted share) has no reductions before damage(): its own amount is the reference.
+   NOT reductions, untouched: shields (they soak and run out), misses / dodges / evades / a block that stops a whole hit (they leave before this),
+   immunity (HERO61.immune, untargetable, held at 1 HP), damage moved onto another unit (Weigh the Debt, the talents' divert), the attacker's
+   own modifiers (element, a crushed attack), and crit resist (it shrinks a crit's bonus, never a hit below a normal one). The same ceiling sits in the
+   server's line model (server/combat-core.js applyDamage). Tested: tests/balance-dr-ceiling.test.js */
+const DR_FLOOR=0.05;
+let _drPre=-1;
+function drPreOf(t,amt,f){ let a=amt; const ir=t._talIr; if(ir){ t._talIr=null; a=Math.max(amt,ir[0]*ir[1]); } return f>0?a/f:a; }   /* the talents' incoming rows: _talIr = [the hit before them, the share not moved away] (talents-mech/_engine.js inc) */
+function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1;
   if(HERO61.immune(u,battleTime))return;
   if(DEV.god && u.team==='ally'){ return; }   // dev god-mode: your team takes no damage
   if(u.drT>0)a*=u.drMul;                 // active damage-reduction cooldown (Shield Wall etc.)
@@ -12654,6 +12667,7 @@ function damage(u,a,c,noEnergy,crit){
   if(u.pass&&u.pass.unmovable){ if(!noEnergy){ u._mmHits=(u._mmHits||0)+1; if(u._mmHits>=3&&(u.wardenStk||0)<5){ u._mmHits=0; u.wardenStk=(u.wardenStk||0)+1;
       try{ firePassiveFx(u); ringBurst(u.x,u.y,0x6fb7c9,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#6fb7c9',vy:1}); }catch(_e){} } }
     if(u.wardenStk) a*=(1-wardenCut(u)); }   /* v1112 */
+  if(a<DR_FLOOR*_drRef) a=DR_FLOOR*_drRef;   /* the 95% ceiling: every reduction above, and the ones before damage() was called, take at most 95% */
   /* v894 - Layered Hide: each direct hit hardens one layer (was never counted) */
   if(u.pass&&u.pass.layered&&!noEnergy&&!((u._layT||0)>0)) u._layStk=(u._layStk||0)+1;
 
@@ -13533,7 +13547,8 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
   if(src&&src.pass&&src.pass.bloodrage&&(src._brTaken||0)>0) amt*=1+Math.min(SKLV.bloodrageCap(passLv(src)),0.25*src._brTaken/Math.max(1,src.maxHp||1));   /* v1024 Blood Rage (Vael): +1% per 4% max HP taken this fight, cap +25% */
   if(src&&(src._devourT||0)>0&&src._devourBonus) amt+=src._devourBonus;   // Feed Them: the pack's strength, carried
-  if(tgt&&tgt._packN) amt/=1+0.05*tgt._packN*(tgt.passMul||1);
+  let _drF=1;   /* the 95% ceiling (Phil 14 Nov 2026): the share of this hit the TARGET's own reductions have left so far (see DR_FLOOR at damage()) */
+  if(tgt&&tgt._packN){ const _pk=1+0.05*tgt._packN*(tgt.passMul||1); amt/=_pk; _drF/=_pk; }
   // Weigh the Debt (Gruel): a marked enemy's damage is partly redirected into him, and he heals off it.
   if(src&&(src._debtT||0)>0&&src._debtTo&&src._debtTo.alive&&src._debtTo!==tgt&&tgt&&tgt.team===src._debtTo.team){
     const cut=amt*(src._debtPct||0.35); amt-=cut; const g=src._debtTo;
@@ -13541,11 +13556,11 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
     floatTexts.push({x:g.x,y:g.y-10,txt:'COLLECTED',t:.7,color:'#b9a06a',vy:1,sz:10}); }
   // The Mirewall (Grosk): his lowest-health ally takes 20% less, and 35% of what they avoid lands on HIM instead - he heals back half of it.
   if(tgt&&tgt._mwBy&&tgt._mwBy.alive&&tgt._mwBy!==tgt&&src&&src.team!==tgt.team){
-    const g=tgt._mwBy, cut=amt*SKLV.mirewall(passLv(g)); amt-=cut;   /* v1112: cap 35% + 0.1 pt a level */
+    const g=tgt._mwBy, cut=amt*SKLV.mirewall(passLv(g)); amt-=cut; _drF*=1-SKLV.mirewall(passLv(g));   /* v1112: cap 35% + 0.1 pt a level */
     const take=cut*0.35; if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,take),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,take))); g.hp=Math.max(1,g.hp-take);} healUnit(g,take*0.5);
     if((g._mwFxT||0)<=0){ g._mwFxT=0.7; floatTexts.push({x:g.x,y:g.y-10,txt:'MIREWALL',t:.6,color:'#9ad07a',vy:1,sz:10}); } }
   // Croc Drop's plant: while Grosk lives, the whole team eats 20% -> 35% less (by skill level) for 3s (v1308).
-  if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team) amt*=1-(tgt._mwDrPct||0.20);
+  if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team){ amt*=1-(tgt._mwDrPct||0.20); _drF*=1-(tgt._mwDrPct||0.20); }
   // Drowsy (Dandra): sleep breaks the moment they're hit.
   if(tgt&&(tgt._sleepT||0)>0){ tgt._sleepT=0; tgt.stunned=0; }
 
@@ -13609,15 +13624,15 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
   /* v1309: the rating, the shreds and the pen are read in defMul(src,tgt,kind) - the one place, shared with every DoT tick and ground-hazard tick */
-  if(kind==='magic'){ amt*=defMul(src,tgt,'magic'); }      // MR vs Magic Pen
+  if(kind==='magic'){ const _dm=defMul(src,tgt,'magic'); amt*=_dm; _drF*=_dm; }      // MR vs Magic Pen
   else if(kind==='split'){ /* v1150 (Phil 15 Oct): Aureth's auto - 70% of the hit is physical (Armor vs Armor Pen, Block halves only that part),
        30% magic (MR vs Magic Pen). One hit: one evasion roll, one crit, one number (the total), one lifesteal off the HP removed. */
     const _sp=(src&&src.t&&src.t.autoSplit)||{phys:1,mag:0};
     let _ph=amt*_sp.phys*defMul(src,tgt,'phys'); const _mg=amt*_sp.mag*defMul(src,tgt,'magic');
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); }
-    amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }
-  else if(kind!=='true'){ amt*=defMul(src,tgt,'phys'); // Armor vs Armor Pen
-    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
+    if(amt>0) _drF*=(_ph+_mg)/amt; amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }
+  else if(kind!=='true'){ const _dm=defMul(src,tgt,'phys'); amt*=_dm; _drF*=_dm; // Armor vs Armor Pen
+    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; _drF*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
@@ -13630,7 +13645,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(tgt._talMiss&&TalentFx.miss(tgt)) return;   /* TALENT HOOK miss: one of the target's 'in' rows made this hit miss (only a talent sets _talMiss) */
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   if(_edge==='Assassin'&&(tgt.shield||0)>0) tgt.shield-=Math.min(tgt.shield,amt);   /* Silence the healer: double damage to a shield - only a blow that lands */
-  const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit);
+  const _hpBefore=tgt.hp; _drPre=drPreOf(tgt,amt,_drF); damage(tgt,amt,color,!!silent,_crit);
   if(_edge&&tgt.alive&&src&&src.alive!==false){ try{   /* v1367 class edges that act after the hit */
     if(_edge==='Marksman'&&unitClass(tgt)==='Mage'){ tgt.energy=Math.max(0,(tgt.energy||0)-EDGE.drain); }
     else if(_edge==='Mage'&&kind!=='phys'&&!_isAuto){ tgt._hexUntil=battleTime+EDGE.hexDur; }   /* v1376 (Phil 12 Nov: "Change the movement speed to 20%"): Hex slows movement 20% (EDGE.hexMove) on its own timer, not the generic 45% slow */   /* through ccApply: CC_NERF / CC_DUR_MAX like every other control */
@@ -13685,7 +13700,8 @@ function dotDmgKind(src,color,kind){ if(kind) return kind; const f=color?DOT_KIN
   if(f==='bleed') return 'phys'; if(f==='curse') return 'magic';
   return (src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys'; }
 /* v1309: the tick's damage after the target's Armor / Magic Resist (no source recorded = unchanged) */
-function dotTickAmt(src,tgt,amt,kind){ return (DOT_MITIGATION&&src)?amt*defMul(src,tgt,kind):amt; }
+function dotTickAmt(src,tgt,amt,kind){ _drPre=(tgt._talDp!=null)?tgt._talDp:amt;   /* the 95% ceiling: the tick before the target's reductions (_talDp: before its talents' DoT rows) */
+  return (DOT_MITIGATION&&src)?amt*defMul(src,tgt,kind):amt; }
 function pushDot(t,dps,dur,interval,color,src,kind){   // v1309: src (the caster) and kind decide the tick's Armor / MR mitigation
   // Compound Interest (Grimsby): a debt near him is slower to clear — every DoT on an enemy
   // within his aura lasts 20% longer. Applies to the WHOLE team's damage-over-time, not just his.
