@@ -30,7 +30,7 @@
     const r={}, ids=[]; for(const e of list){ const n=e&&(e[1]|0); if(n>0&&typeof e[0]==='string'&&!(e[0] in r)){ r[e[0]]=n; ids.push(e[0]); } }
     ids.sort();
     const tr=TREES[hero], pts={}; if(tr) for(const id of ids){ const t=tr.of[id]; if(t!=null) pts[tr.ids[t]]=(pts[tr.ids[t]]||0)+r[id]; }
-    const live=row=>!((row.req&&!r[row.req])||(row.unless&&r[row.unless])||(row.pts&&!((pts[row.pts[0]]||0)>=row.pts[1])));
+    const live=row=>!((row.req&&!r[row.req])||(row.reqAny&&!row.reqAny.some(id=>r[id]))||(row.unless&&r[row.unless])||(row.pts&&!((pts[row.pts[0]]||0)>=row.pts[1])));   // reqAny: only if one of those talents is learned (Ambrel: a state that several talents read)
     const NEED=M.needs||{}, has=id=>!NEED[id]||!!r[NEED[id]];              // needs: {talent: the talent that introduces what it improves} - without that one it does nothing
     const P={}; let any=false;
     for(const id of ids){ const rows=M.talents[id]; if(!rows) continue; any=true; if(!has(id)) continue;
@@ -51,7 +51,7 @@
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
-    T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
+    T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     u._tal=T; return T; }
 
   /* ---- named stacks / pools (T.st[name] = {max, dur, fade:{after,every,lose,unless}, wave:'reset'}) ---- */
@@ -290,6 +290,7 @@
     unitUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.unit,k)<v[k]) return false; return true; },
     unitDot:(T,u,v,c)=>hasDot(u,c.unit,v),                  // the unit the event is about carries a DoT of hers
     targetRow:(T,u,v,c)=>!!(c.tgt&&c.tgt.t&&c.tgt.t.row===v), // the game's own combat row of that hero ('Back'); a monster has none
+    srcRow:(T,u,v,c)=>!!(c.src&&c.src.t&&c.src.t.row===v),   // the attacker's combat row (Ambrel's Buttress: enemies in the back row)
     targetAlive:(T,u,v,c)=>!!c.tgt&&!!c.tgt.alive===v,     // the target still stands (a strike may have killed it)
     tgtNone:(T,u,v,c)=>!c.tgt===v,                          // the skill found no target
     dropBelow:(T,u,v,c)=>u.hp>=v*u.maxHp&&(u.hp+(u.shield||0)-(c.amt||0))<v*u.maxHp,   // this hit, as it reaches her (after armor, through her shield), would take her below that share
@@ -470,6 +471,10 @@
         if(a.speed!=null){ const v=amtOf(T,u,a.speed,ctx)*M; if(!(v>0)) continue; t.pullStop=0; t.pullSpeed=v; }
         else { const L=a.m!=null?Math.min(dd,amtOf(T,u,a.m,ctx)*M):dd; if(!(L>0)) continue; t.pullStop=dd-L; t.pullSpeed=Math.max(1,L/tm); }
         t.pulledBy={x:p.x,y:p.y,alive:true}; t.pullT=tm; t._pullGhost=false; } return; }
+    /* pushing a unit away: the same engine drag, toward the point m metres beyond it on the line from `from` (default the owner) through it; an immovable unit is not moved */
+    if(a.push!=null){ const M=E.METER(), c=pick(T,u,a.from||'self',ctx)[0]; if(!c||c.x==null) return; const m=amtOf(T,u,a.m,ctx)*M, tm=amtOf(T,u,a.secs,ctx)||0.3; if(!(m>0)) return;
+      for(const t of pick(T,u,a.push,ctx)){ if(!t.alive||t===c||t.immovable||(t._gearImmovableT||0)>0) continue; let dx=t.x-c.x, dy=t.y-c.y; const L=Math.hypot(dx,dy); if(L<1){ dx=(t.team===u.team)?-1:1; dy=0; } else { dx/=L; dy/=L; }
+        t.pulledBy={x:t.x+dx*m,y:t.y+dy*m,alive:true}; t.pullStop=0; t.pullSpeed=Math.max(1,m/tm); t.pullT=tm; t._pullGhost=false; } return; }   // Ambrel's Open Doors
     if(a.extend){ const cap=E.ccCap(a.extend), by=amtOf(T,u,a.by,ctx); if(!(by>0)) return;      // a control already on the unit lasts that much longer (cut at the engine's cap)
       for(const t of pick(T,u,a.on,ctx)) if(t.alive&&(t[a.extend]||0)>0){ let v=t[a.extend]+by; if(cap&&v>cap) v=cap; t[a.extend]=Math.max(t[a.extend],v); } return; }
     if(a.dotRate!=null){ const k=(ctx.dt||0)*amtOf(T,u,a.dotRate,ctx); if(!(k>0)) return;          // her DoTs on those units tick that much faster (on a tick row: each tick comes sooner, the same number of ticks)
@@ -535,7 +540,9 @@
       for(const t of pick(T,u,a.on,ctx)){ t.slow=Math.max(t.slow||0,d); t.slowMul=Math.min(t.slowMul==null?1:t.slowMul,Math.max(0.05,1-a.slow)); } return; }
     if(a.slowMore!=null){ const m=E.slowMul(u); for(const t of pick(T,u,a.on,ctx)) if((t.slow||0)>0) t.slowMul=Math.min(t.slowMul==null?1:t.slowMul,Math.max(0.05,1-(1-m)*(1+a.slowMore))); return; }   // the slow his skill just applied, that much stronger
     if(a.taunt!=null){ for(const t of pick(T,u,a.on,ctx)){ t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,a.taunt); } return; }
-    if(a.cleanse){ for(const t of pick(T,u,a.on||'self',ctx)) for(const f of CLEANSE) if((t[f]||0)>0){ t[f]=0; break; } return; }
+    if(a.cleanse){ for(const t of pick(T,u,a.on||'self',ctx)){
+        if(a.cleanse==='all'){ if(t.dots&&t.dots.length) t.dots.length=0; t.stunned=0; t.fearT=0; t.silencedT=0; t.slow=0; t.mortalT=0; continue; }   // all: what the game's own cleanse removes (Incense of Penance: every DoT, stun, fear, silence, slow and Mortal Wound)
+        for(const f of CLEANSE) if((t[f]||0)>0){ t[f]=0; break; } } return; }
     if(a.undying!=null){ s.undy=Math.max(s.undy,a.undying); if(u.hp<1) u.hp=1; ctx.stop=true; return; }
     if(a.roll){ const q=s.roll[a.roll]||(s.roll[a.roll]={span:a.span||3,e:[]}); q.span=a.span||3; const now=E.now(); q.e.push([now,amtOf(T,u,a.add,ctx)]); while(q.e.length&&q.e[0][0]<=now-q.span) q.e.shift(); return; }
     if(a.emit){ if(a.amt!=null){ run(T,u,a.emit,Object.assign({},ctx,{amt:amtOf(T,u,a.amt,ctx)})); return; }   // amt: the event carries that number (its rows may change it)
@@ -625,7 +632,8 @@
     if(direct&&T&&T.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur}; run(T,by,'ccOut',c); let d=c.amt; const cap=E.ccCap(field); if(cap&&d>cap) d=cap; if(d>dur){ t[field]=Math.max(t[field]||0,d); dur=d; } }
     if(T&&T.on.ccHit) run(T,by,'ccHit',{u:by,src:by,tgt:t,field,amt:dur}); }
   /* healing about to land on u: 'teamHeal' for the talented units watching it (an enemy's healing cut, an ally's raised) */
-  function healIn(u,a){ const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamHeal) continue; const c={u:o,tgt:u,unit:u,amt:a,a0:a}; run(To,o,'teamHeal',c); a=c.amt; }
+  function healIn(u,a){ const T0=u._tal; if(T0&&T0.on.healMe&&u.alive){ const c={u,tgt:u,unit:u,amt:a,a0:a}; run(T0,u,'healMe',c); a=Math.max(0,c.amt); }   // healMe: healing about to land on the talented unit itself (its own rows; teamHeal is for the others it watches)
+    const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamHeal) continue; const c={u:o,tgt:u,unit:u,amt:a,a0:a}; run(To,o,'teamHeal',c); a=c.amt; }
     return Math.max(0,a); }
   /* a Chill the hero's own skill just put on t (Sylthaine's Cold Snap): 'chill' rows. Only when her passive is unlocked - without it the skill applies no Chill */
   function chill(u,t){ if(!(u.pass&&u.pass.coldsnap)||!t) return; run(u._tal,u,'chill',{u,src:u,tgt:t}); }

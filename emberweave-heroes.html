@@ -7383,6 +7383,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bind) TalentFx.bind({ units:()=>units
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ summon:(o,key,dur,off)=>summonUnit(o,key,dur,off), unsummon:p=>killSummon(p),
   castSlot:(u,slot,t)=>{ const ab=slot==='blue'?u.blueAb:u.greenAb; if(!ab||!t||!t.alive) return; const k=[u.target,u._castSM,u._castLv], lv=(u.skillLv&&u.skillLv[slot==='blue'?2:1])||1;
     u.target=t; u._castLv=lv; u._castSM=skillMul(lv); try{ _doEffectCore(u,ab.type,Object.assign({},ab,ab.deliver?{_arrived:true,_tgtU:t}:{})); } finally{ u.target=k[0]; u._castSM=k[1]; u._castLv=k[2]; } } });
+/* 14 Nov 2026 (Ambrel's talents): the skill-level multiplier, so a talent can deal a skill's damage at its level (A Building That Would Not Be Left: Divine Mass at half strength) */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ skillMul:lv=>skillMul(lv) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -14321,7 +14323,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
       floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
       ringBurst(C.x,C.y,0x4aa8d8,22); break; }
-    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
+    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||1.2)*rm);   /* TALENT HOOK at: where the slam lands (Ambrel's Doors Slam Twice) */ enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
       /* v529 - an aoeStun may also SILENCE. The Magistrant's "Gag Order" was a plain stun: the name
          promised a silencing and the panel just said "slams an area". */
       if(o.silence){ ccApply(u,e,'silencedT',o.silence); e._castT=0; e.castAnim=0; }}});
@@ -18619,6 +18621,7 @@ function _updateBattleCore(dt){
       alliesOf(u).forEach(a=>{ if(!a.alive||dist(u,a)>6*METER)return; n++;
         a.drMul=Math.min(a.drMul||1,1-0.10*(u.passMul||1)); a.drT=Math.max(a.drT||0,4.2);
         burstAt(a.x,a.y,0xffe8b0,6); });
+      if(u._tal&&u._tal.on.pass) TalentFx.pass(u,u,'sacredbells');   /* TALENT HOOK pass: Sacred Bells just rang (Ambrel's talents: Peals, Clangour, the bells' cut made stronger) */
       if(n){ ringBurst(u.x,u.y,0xffe8b0,16); firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'sacredbells'); } } }
     // Unbroken Dawn (Dawnbringer): the one time the light will not let him fall.
     if(u.pass.unbroken && !u._ubUsed && u.hp>0 && u.hp/u.maxHp<0.30){ u._ubUsed=1;
