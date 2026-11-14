@@ -304,7 +304,7 @@ test('Vael: every talent is accounted for - a plain stat, mechanic rows, or the 
   const all=[]; for(const tr of T.trees('vael')) for(const t of tr.talents) all.push(t[0]);
   const st=all.filter(id=>FXN.has('vael',id)), me=all.filter(id=>VAEL.talents[id]), ru=all.filter(id=>VAEL.ruling[id]);
   assert.equal(all.length,124); assert.equal(st.length+me.length+ru.length,124); assert.equal(new Set(st.concat(me,ru)).size,124);
-  assert.deepEqual([st.length,me.length,ru.length,Object.keys(VAEL.partial).length],[9,94,21,3]);
+  assert.deepEqual([st.length,me.length,ru.length,Object.keys(VAEL.partial).length],[9,115,0,0],'every one of his talents runs (the rulings of 14 Nov)');
   for(const id of Object.keys(VAEL.talents).concat(Object.keys(VAEL.ruling),Object.keys(VAEL.partial))) assert.ok(T.talent('vael',id),id+' is a real talent id');
   for(const id of Object.keys(VAEL.partial)) assert.ok(VAEL.talents[id],id+': a partial talent has rows');
   /* every rank of every talent resolves to finite numbers */
@@ -545,6 +545,109 @@ test('Vael / signatures: The Last Harvest (and its 91-point line), Heart of Iron
 });
 
 /* ====================================================== PART 3: WHOLE FIGHTS ====================================================== */
+/* ------------------------------ Vael's rulings (WIRING/10, 14 Nov 2026): the 21 talents that waited, and the 3 half-wired ones ------------------------------ */
+const RAGE=(v,stacks)=>{ v._brTaken=stacks/25*v.maxHp; };            // Blood Rage = 0.25 x taken / max HP: `stacks` whole percent
+test('Vael rulings / Blood Rage stacks: Battle Rhythm, Forged Will, Bloodied Resolve, Iron in the Blood - per 1% of Blood Rage, each capped at 15%',()=>{
+  const L=lab(full(['rh_2_3','ib_5_1','ib_8_3','aw_12_3']),{foes:1,bigVael:true}), {v,F}=L, T0=L.T;
+  const b={ai:v.atkInterval,mr:v.mrRating,hp:v.maxHp}; v._tal=undefined; const base=lost(v,()=>V.hit(F[0],v,1000,{kind:'true'})); v._tal=T0;
+  near(lost(v,()=>V.hit(F[0],v,1000,{kind:'true'})),base,'no Blood Rage yet: nothing'); V.step(1); near(v.atkInterval,b.ai,'');
+  RAGE(v,10); V.step(1); assert.equal(L.T.s.br,10,'10% of Blood Rage = 10 stacks');
+  near(v.atkInterval,b.ai/1.09,'Battle Rhythm: 0.3% x 3 x 10'); near(v.mrRating,b.mr*1.15,'Forged Will: 0.3% x 5 x 10 = 15% (just at its cap)'); near(v.maxHp,b.hp*1.10,'Bloodied Resolve: 0.2% x 5 x 10');
+  near(lost(v,()=>V.hit(F[0],v,1000,{kind:'true'})),base*0.88,'Iron in the Blood: 0.6% x 2 x 10 = 12% less');
+  RAGE(v,25); V.step(1); assert.equal(L.T.s.br,25);
+  near(v.atkInterval,b.ai/1.15,'Battle Rhythm capped at 15%'); near(v.mrRating,b.mr*1.15,'Forged Will capped at 15%'); near(v.maxHp,b.hp*1.15,'Bloodied Resolve capped at 15%');
+  near(lost(v,()=>V.hit(F[0],v,1000,{kind:'true'})),base*0.85,'Iron in the Blood capped at 15%');
+  v._brTaken=0; V.step(1); assert.equal(L.T.s.br,25,'Blood Rage never goes down: the stacks are kept');
+  v.pass={}; const L2=lab(full(['aw_12_3']),{foes:1,bigVael:true}); L2.v.pass={}; RAGE(L2.v,20); V.step(1); near(lost(L2.v,()=>V.hit(L2.F[0],L2.v,1000,{kind:'true'})),base,'without the Blood Rage passive: no stacks');
+});
+
+test('Vael rulings / Bloodthirst: Bloodthirst Edge, Heavy Blows, Last Word, Ironclad Swing, White Hot',()=>{
+  const L=lab(full(['rh_4_3','ib_3_3','ib_12_3','ib_9_3','ib_3_1']),{foes:2,bigVael:true}), {v,F}=L, T0=L.T;
+  v._tal=undefined; const base=lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})); v._tal=T0; const fd=F[0].dmg;
+  near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),base,'outside Bloodthirst: plain');
+  V.cast(v,'blue'); near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),base*1.15*1.20,'while Bloodthirst runs: 5% x 3 and 4% x 5 more');
+  near(lost(F[1],()=>V.hit(v,F[1],1000)),base,'a hit that is not his attack: plain');
+  V.hit(v,F[0],1000,{auto:true}); V.step(1); near(F[0].dmg,fd*0.95,'Ironclad Swing: the target hits 1% x 5 softer'); secs(1); V.hit(v,F[0],1000,{auto:true}); V.step(1); near(F[0].dmg,fd*0.95,'it does not stack with itself');
+  secs(3.1); near(F[0].dmg,fd,'3 s after the last attack it is gone');
+  secs(4); near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),base,'Bloodthirst over: plain');
+  v.hp=v.maxHp*0.15; V.step(1); near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),base,'Last Word waits for his NEXT Bloodthirst'); v.hp=v.maxHp;
+  V.cast(v,'blue'); near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),base*1.15*1.20*1.45,'Last Word: that Bloodthirst, 15% x 3 more');
+  secs(6.5); V.cast(v,'blue'); near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),base*1.15*1.20,'only that one');
+  /* White Hot */
+  L.T.s.k.temper={n:19,t:0,idle:0}; near(lost(F[0],()=>V.cast(v,'blue')),0,'19 Temper: no strike');
+  L.T.s.k.temper={n:20,t:0,idle:0}; const atk=v.dmg*(v.dmgBuffT>0?v.dmgBuffMul:1)*vm.runInContext('rageMul',NOW.ctx);
+  near(lost(F[0],()=>V.cast(v,'blue')),atk,'20 Temper: the enemy within 2 m takes one hit of 100% of his attack');
+  near(lost(F[1],()=>V.cast(v,'blue')),0,'not the enemy 5.98 m away');
+});
+
+test('Vael rulings / Last Stand and Warcry: Red Stand, Red Tide',()=>{
+  const L=lab(full(['rh_7_2']),{foes:1,bigVael:true}), {v,F}=L, d0=v.dmg;
+  V.cast(v,'ult'); assert.ok(!(v.drT>0&&v.drMul<1),'Red Stand: Last Stand gives no damage reduction'); assert.ok(v._lifestealT>0&&v._lifestealPct>=1,'its lifesteal stays'); V.step(1); near(v.dmg,d0*1.20,'+20% attack while it lasts');
+  secs(5.2); near(v.dmg,d0,'and gone after');
+  const L2=lab(full(['rh_5_2']),{foes:2,bigVael:true}); for(const f of L2.F) f.lvl=f.level=1; const atk=L2.v.dmg*vm.runInContext('rageMul',NOW.ctx);
+  V.cast(L2.v,'green'); const fe=L2.F.filter(f=>(f.fearT||0)>0&&f._fearFrom===L2.v); assert.ok(fe.length>=1,'Warcry fears someone');
+  for(const f of L2.F){ const d=f.dots.find(x=>x._talO===L2.v.uid); if(fe.includes(f)){ assert.ok(d,'Red Tide: a feared enemy bleeds'); near(d.dps,atk*0.04*(L2.v.dmgBuffT>0?L2.v.dmgBuffMul:1),'4% of his attack a second'); assert.equal(d.remaining,3,'for 3 s'); } else assert.ok(!d,'an enemy not feared does not'); }
+});
+
+test('Vael rulings / fades: Temper (Annealed, Blood Temper), the Blood Bank (Hoarder)',()=>{
+  let L=lab(full(['ib_1_1']),{foes:1,bigVael:true}); const {v,F}=L;
+  L.T.s.k.temper={n:10,t:0,idle:0}; secs(1.9); assert.equal(stack(L,'temper'),10); secs(0.2); assert.equal(stack(L,'temper'),9,'1 Temper every 2 s with no hit');
+  secs(1.5); V.hit(F[0],v,100,{kind:'true'}); secs(1.5); assert.equal(stack(L,'temper'),9,'being hit restarts the wait'); V.hit(v,F[0],100); assert.equal(stack(L,'temper'),10); secs(1.9); assert.equal(stack(L,'temper'),10,'hitting restarts it');
+  L.T.s.k.temper.n=20; V.hit(v,F[0],100); secs(1.9); assert.equal(stack(L,'temper'),20,'at full Temper a hit still restarts it'); secs(0.2); assert.equal(stack(L,'temper'),19);
+  L=lab(full(['ib_1_1','ib_4_1']),{foes:1,bigVael:true}); L.T.s.k.temper={n:10,t:0,idle:0}; secs(3.9); assert.equal(stack(L,'temper'),10,'Annealed 10% x 5: twice as slow'); secs(0.2); assert.equal(stack(L,'temper'),9);
+  L=lab(full(['ib_1_1','rh_n2']),{foes:1,bigVael:true}); L.T.s.k.temper={n:10,t:0,idle:0}; V.dot(L.F[0],1,8,1,L.v); const d=L.F[0].dots[L.F[0].dots.length-1]; d._talO=L.v.uid; d._talK='bleed';
+  secs(6); assert.ok(stack(L,'temper')>=10,'Blood Temper: no fade while an enemy carries his bleed (its ticks even add Temper)'); const tb=stack(L,'temper'); L.F[0].dots.length=0; secs(2.1); assert.equal(stack(L,'temper'),tb-1,'and it fades again once it is gone');
+  const L3=lab(full(['rh_n2']),{foes:1,bigVael:true}); L3.T.s.k.temper={n:10,t:0,idle:0}; V.dot(L3.F[0],1,8,1,L3.v); const d3=L3.F[0].dots[L3.F[0].dots.length-1]; d3._talO=L3.v.uid; d3._talK='bleed'; secs(2.1); assert.equal(stack(L3,'temper'),9,'without Forge Heat the hold is not there');
+  /* the Blood Bank */
+  L=lab(full(['ib_2_2']),{foes:1}); L.T.s.k.bank={n:500,t:0,idle:0}; secs(4.9); assert.equal(stack(L,'bank'),500); secs(0.2); near(stack(L,'bank'),475,'after 4 s with no overheal: 5% of what it holds each second'); secs(1); near(stack(L,'bank'),451.25);
+  V.wave(); V.step(1); assert.equal(stack(L,'bank'),0,'emptied between waves');
+  L=lab(full(['ib_2_2','ib_11_2']),{foes:1}); L.T.s.k.bank={n:500,t:0,idle:0}; secs(8); assert.equal(stack(L,'bank'),500,'Hoarder: no fade'); V.wave(); V.step(1); assert.equal(stack(L,'bank'),500,'and kept between waves');
+});
+
+test('Vael rulings / Old Road, Charge the Breach (the Warcry taunt), Breach Momentum',()=>{
+  let L=lab(full(['aw_1_4']),{foes:1,allies:1}); const sp=L.v.speed; L.A[0].hp=L.A[0].maxHp*0.6; V.step(1); near(L.v.speed,sp,'his lowest-HP ally above 50%: plain');
+  L.A[0].hp=L.A[0].maxHp*0.4; V.step(1); near(L.v.speed,sp*1.09,'below 50%: 3% x 3 faster'); L.A[0].hp=L.A[0].maxHp; V.step(1); near(L.v.speed,sp,'');
+  L=lab(full(['aw_5_3','aw_6_3']),{foes:3,allies:1,bigVael:true}); const {v,F,A}=L, T0=L.T; v._tal=undefined; const base=lost(F[1],()=>V.hit(v,F[1],1000)); v._tal=T0;
+  V.cast(v,'green'); assert.equal(F[0].forcedTarget,v,'Warcry taunts the enemy closest to his lowest-HP ally'); assert.ok(F[0].forcedTargetT>=2-1e-9,'for 2 s'); assert.notEqual(F[2].forcedTarget,v,'not another');
+  for(let i=0;i<3;i++) near(lost(F[1],()=>V.hit(v,F[1],1000)),base*1.12,'Breach Momentum: hit '+(i+1)+' of 3, 4% x 3 more'); near(lost(F[1],()=>V.hit(v,F[1],1000)),base,'the 4th: plain');
+  L=lab(full(['aw_5_3','aw_6_3']),{foes:1,bigVael:true}); V.cast(L.v,'green'); assert.notEqual(L.F[0].forcedTarget,L.v,'no ally: nobody to stand for, no taunt');
+});
+
+test('Vael rulings / Change of Guard (he stands in for the Oath ally), Oathkeeper, Living Wall',()=>{
+  const L=lab(full(['aw_4_4','aw_7_4','aw_10_4']),{foes:1,allies:1,bigVael:true}), {v,F,A}=L; v.glyphDR=0; A[0].glyphDR=0; assert.equal(L.T.s.m.oath,A[0],'the ally under his Oath');
+  const ally=()=>lost(A[0],()=>V.hit(F[0],A[0],1000,{kind:'true'})); near(ally(),880,'the Oath alone: 4% x 3 of the hit is his');
+  A[0].hp=A[0].maxHp*0.2; V.step(1); near(v.shield,v.maxHp*0.16,'below 25%: a shield of 2% x 5 + Oathkeeper 2% x 3 of his max HP');
+  let mine=0; const took=lost(A[0],()=>{ mine=lost(v,()=>V.hit(F[0],A[0],1000,{kind:'true'})); }); near(took,0,'for 2 s the ally takes nothing'); near(mine,1000,'every hit lands on Vael');
+  secs(2.1); near(ally(),880,'2 s later: the Oath share again');
+  A[0].hp=A[0].maxHp; V.step(1); A[0].hp=A[0].maxHp*0.2; V.step(1); assert.ok(L.T.s.w.guard.t>0,'Oathkeeper: once more'); secs(2.1);
+  A[0].hp=A[0].maxHp; V.step(1); A[0].hp=A[0].maxHp*0.2; V.step(1); assert.ok(!(L.T.s.w.guard.t>0),'and no third time');
+  /* Living Wall */
+  const W=lab(full(['aw_7_1']),{foes:2,allies:2,bigVael:true}); for(const a of W.A) a.glyphDR=0; W.put(W.A[1],0,-11);
+  near(lost(W.A[0],()=>V.hit(W.F[0],W.A[0],1000,{kind:'true'})),925,'behind him (farther from the enemies than he is) and within 4 m: 1.5% x 5 less');
+  near(lost(W.A[1],()=>V.hit(W.F[0],W.A[1],1000,{kind:'true'})),1000,'behind but 7 m away: plain');
+  W.put(W.A[0],3,4.5); near(lost(W.A[0],()=>V.hit(W.F[0],W.A[0],1000,{kind:'true'})),1000,'beside him on the enemy side: plain');
+});
+
+test('Vael rulings / Hold the Gate, Gatekeeper\'s Wrath, The Ashford Gate: stopped and forced to face him',()=>{
+  const L=lab(full(['aw_7_2','aw_12_2']),{foes:2,bigVael:true}), {v,F}=L; for(const f of F) f.glyphDR=0;
+  const s0=F[0].speed; V.step(1); near(F[0].speed,s0,'before Last Stand: free');
+  let hp=F[0].hp; V.cast(v,'ult'); V.step(1); assert.equal(F[0].speed,0,'an enemy within 2 m during Last Stand is stopped'); assert.equal(F[0].forcedTarget,v,'and must attack him'); assert.ok(F[0].forcedTargetT>1.9);
+  near(hp-F[0].hp,v.maxHp*0.05,'Gatekeeper\'s Wrath: 1% x 5 of his max HP'); assert.notEqual(F[1].forcedTarget,v,'not the enemy 6 m away');
+  secs(0.9); assert.equal(F[0].speed,0,'0.5 s + 0.1 x 5 = 1 s'); secs(0.2); assert.ok(F[0].speed>0,'then free'); hp=F[0].hp; secs(1); near(F[0].hp,hp,'once per enemy each Last Stand');
+  secs(4); V.cast(v,'ult'); V.step(1); assert.equal(F[0].speed,0,'the next Last Stand stops it again');
+  /* the signature */
+  const G=lab(full(['aw_12_2','aw_13_2']),{foes:2,allies:1,bigVael:true}); G.v.glyphDR=0; G.A[0].glyphDR=0; const sc0=stack(G,'scars');
+  G.A[0].hp=G.A[0].maxHp*0.35; V.step(1); assert.ok(G.T.s.w.gate.t>0,'an ally below 40%: he is the Gate'); V.step(1); assert.equal(G.F[0].speed,0,'an enemy within 2 m is stopped'); assert.equal(G.F[0].forcedTarget,G.v);
+  let me=0; const al=lost(G.A[0],()=>{ me=lost(G.v,()=>V.hit(G.F[0],G.A[0],1000,{kind:'true'})); }); near(al,0,'a hit on the ally behind him...'); near(me,1000,'...lands on him'); assert.equal(stack(G,'scars'),sc0+1,'and gives a Scar');
+  secs(6.1); near(lost(G.A[0],()=>V.hit(G.F[0],G.A[0],1000,{kind:'true'})),1000,'6 s later: over');
+  G.A[0].hp=G.A[0].maxHp; V.step(1); G.A[0].hp=G.A[0].maxHp*0.35; V.step(1); assert.ok(!(G.T.s.w.gate.t>0),'cooldown 30 s');
+});
+
+test('Vael rulings / Heart of Iron: his Temper becomes shield too (1% of max HP each, spent)',()=>{
+  const L=lab(full(['ib_13_2']),{foes:1}), {v}=L; L.T.s.k.temper={n:12,t:0,idle:0}; v.shield=0; v.hp=v.maxHp*0.25; V.step(1);
+  near(v.shield,v.maxHp*0.12,'12 Temper = 12% of his max HP'); assert.equal(stack(L,'temper'),0,'the Temper is spent');
+});
+
 const TEAM=['vael','sylthaine','vireo','vex','gruel'];
 const ENC=JSON.parse(fs.readFileSync(path.join(root,'server/campaign-encounters.json'),'utf8'));
 const campaign=(sn,node,seed)=>{ const r=NOW.campaign(JSON.parse(JSON.stringify(sn)),ENC.find(e=>e.node===node).waves,seed,[[0,'auto',-1,1,null,null]]); return JSON.stringify([r.won,r.digest]); };

@@ -6,6 +6,7 @@
    (b) the balance test: each wired hero's most defensive legal 91-point builds (91 in one tree, or 61 + a 30-point dip, preferring every talent
        that reduces damage) fight a set of seeded fights; none may spend more than half of a battle at the ceiling or immune (tests/dr-ceiling.js).
    Run: node --test tests/balance-dr-ceiling.test.js */
+require('node:os').setPriority(process.pid,require('node:os').constants.priority.PRIORITY_LOW);   /* this PC is shared: long fights at low priority */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const L=require('./talents-lab.js'), {NOW,FX,FXN,T,V,spec,snaps,near,lab,lost,root}=L;
 const DRC=require('./dr-ceiling.js'), W=DRC.watch(NOW);
@@ -27,6 +28,8 @@ test('the ceiling: reductions stacked past 95% still take 5% of the hit; under 9
   /* a DoT tick and a plain damage() call */
   v.glyphDR=0.99; const d=lost(v,()=>{ V.dot(v,1000,1,1,f); for(let i=0;i<40;i++) V.step(1); }); near(d,50,'a DoT tick: 5% of the tick');
   near(lost(v,()=>V.dmg(v,1000)),50,'a plain damage() call (talent damage, a percent-of-HP strike): 5% of its own amount');
+  { const sa=v.armorRating; v.armorRating=1e9; v.glyphDR=0.5; const pd=R('pushDot'); const g=lost(v,()=>{ pd(v,1000,1,1,'#8f8fa8',f,'phys'); for(let i=0;i<40;i++) V.step(1); }); v.armorRating=sa;
+    near(g,50,'a physical DoT tick on near-total armor: 5% of the tick before the armor'); }
   v.glyphDR=0;
 });
 
@@ -97,12 +100,12 @@ const STRONG={hp:40000,atk:600,apow:600,armor:300,mr:300,dmgRed:600,block:600,cr
 const strong=(key,talents)=>Object.assign(spec(key,100,talents,16),{stars:5,pips:5,tt:Object.assign({},STRONG),fAtk:2000,fHp:30000,fApow:2000,techArmor:800,techMr:800,techHeal:300,ex:{techCrit:300,techCritRes:300,techHeal:300,equip:{}}});
 const ENC=JSON.parse(fs.readFileSync(path.join(root,'server/campaign-encounters.json'),'utf8')), WAVES=n=>ENC.find(e=>e.node===n).waves;
 const RESULTS=[];
-function share(hero,list,mk){ const team=[hero].concat(TEAM.filter(k=>k!==hero).slice(0,4)), sn=snaps(team.map(k=>mk(k,k===hero?list:null)));
+function share(hero,list,mk,only){ const team=[hero].concat(TEAM.filter(k=>k!==hero).slice(0,4)), sn=snaps(team.map(k=>mk(k,k===hero?list:null)));
   const foe=snaps(['tharl','hobb','rhukk','aureth','calypsa'].map(k=>mk(k,null))); let worst=0, at='';
   const runs=[['camp 140',()=>NOW.campaign(JSON.parse(JSON.stringify(sn)),WAVES(140),11,[[0,'auto',-1,1,null,null]])],
               ['camp 160',()=>NOW.campaign(JSON.parse(JSON.stringify(sn)),WAVES(160),4242,[[0,'auto',-1,1,null,null]])],
               ['vs line-up',()=>NOW.auto(JSON.parse(JSON.stringify(sn)),JSON.parse(JSON.stringify(foe)),77)]];
-  for(const [name,run] of runs){ W.start(u=>u.team==='ally'&&u.key===hero&&!!u._tal); run(); const r=W.stop();
+  for(const [name,run] of runs.filter(r=>process.env.DR_FULL||only.includes(r[0]))){ W.start(u=>u.team==='ally'&&u.key===hero&&!!u._tal); run(); const r=W.stop();
     for(const e of r) if(e.share>worst){ worst=e.share; at=name+' ('+e.ceil.toFixed(1)+' s at the ceiling, '+e.imm.toFixed(1)+' s immune of '+e.t.toFixed(1)+' s)'; } }
   return {worst,at}; }
 for(const hero of HEROES) test('balance: '+hero+'\'s most defensive 91-point builds spend at most half of a battle at the 95% ceiling or immune',()=>{
@@ -111,7 +114,7 @@ for(const hero of HEROES) test('balance: '+hero+'\'s most defensive 91-point bui
   const trees=T.trees(hero).map(t=>t.name);
   for(const plan of plans(hero)){ const b=defBuild(hero,plan,R), list=T.learned(hero,b), name=plan.map(([t,p])=>trees[t]+' '+p).join(' + ');
     const got=[...R].filter(id=>b.r[id]).length;
-    for(const [tier,mk] of [['lab spec',(k,l)=>spec(k,100,l)],['strong gear',strong]]){ const r=share(hero,list,mk);
+    for(const [tier,mk,only] of [['lab spec',(k,l)=>spec(k,100,l),['camp 160']],['strong gear',strong,['vs line-up']]]){ const r=share(hero,list,mk,only);   /* kept light (it runs in the suite): one fight per build and gear tier; DR_FULL=1 runs all three */
       RESULTS.push([hero,name,tier,got,r.worst,r.at]);
       assert.ok(r.worst<=0.5,hero+' '+name+' ('+tier+'): '+(r.worst*100).toFixed(1)+'% of a battle at the ceiling or immune - '+r.at); } }
   assert.equal(FX.errors().n,0,FX.errors().last);
