@@ -84,7 +84,8 @@ test('Vireo / Harmony: Wide Dome, Choir Dome, Resounding Dome, Harmonic Swell, D
   const a0=A[0].hp, a2=A[2].hp; secs(1.02); near(A[0].hp-a0,1e6*0.02,'it mends 1% + 0.2% x 5 of their max HP each second'); assert.equal(A[2].hp,a2,'not outside');
   A[0].hp=4e5; A[2].hp=7e5; const la0=A[0].hp, la2=A[2].hp; V.cast(v,'green');
   near(A[0].hp-la0,pg0*1.15,'Harmonic Swell: Crescendo heals 3% x 5 more inside Harmony'); near(A[2].hp-la2,pg2,'not outside');
-  secs(11.5); const z=L.T.s.zn.harm.filter(q=>q.until>V.now()); assert.equal(z.length,0,'the dome is gone after 12 s'); const b0=A[0].hp; secs(1.05); near(A[0].hp,b0,'and so is its mending',1e-9);
+  A[2].hp=1e5; V.cast(v,'blue'); assert.ok(markUntil(L,A[2],'listen')-V.now()>11.9,'a new Harmony on the new most wounded ally (A2)'); assert.ok(markUntil(L,A[0],'listen')-V.now()<11,'replaces the old dome: A0 (11 m from A2) is no longer inside');
+  secs(12.1); const z=L.T.s.zn.harm.filter(q=>q.until>V.now()); assert.equal(z.length,0,'the dome is gone after 12 s'); const b0=A[0].hp; secs(1.05); near(A[0].hp,b0,'and so is its mending',1e-9);
   /* Dome Song: when Harmony ends (its 12 s, or the next Harmony replacing it) every ally that was inside heals 50% of the shield they still hold */
   const D=lab(H,S(['lh_11_2']),{foes:1,allies:3}); room(D,hp); V.cast(D.v,'blue'); D.A[0].shield*=0.6; secs(11.9); const sh=D.A[0].shield, h0=D.A[0].hp, h2=D.A[2].hp; secs(0.2);
   near(D.A[0].hp-h0,sh*0.5,'Dome Song: 50% of the shield left unbroken'); near(D.A[2].hp,h2,'not an ally that was outside');
@@ -151,8 +152,9 @@ test('Vireo / Dissonance: Off Key, Sharp Voice, Quick Bow, Grating, Ringing Ears
   V.hit(v,F[2],10,{auto:true}); assert.equal(dis(L,F[2]),2,'Quick Bow: her basic attack adds 1'); V.hit(v,F[2],10,{auto:true}); assert.equal(dis(L,F[2]),2,'at most once every 5 - 1 x 3 s'); secs(2.05); V.hit(v,F[2],10,{auto:true}); assert.equal(dis(L,F[2]),3);
   V.step(1); near(F[2].atkInterval,ai/0.95,'Ringing Ears: at 3 Dissonance 1% x 5 slower attacks'); const n=F.reduce((s,f)=>s+dis(L,f),0); near(v.apow,ap0*(1+0.01*n),'Cacophony: 0.2% x 5 ability power per stack on the field');
   secs(6.9); assert.equal(dis(L,F[2]),3,'Grating: it lasts 4 + 1 x 3 s'); secs(0.2); assert.equal(dis(L,F[2]),0,'then it is gone at once'); V.step(1); near(F[2].atkInterval,ai,'and so is Ringing Ears');
-  const W=lab(H,S(['ds_1_1','ds_11_1']),{foes:1,allies:1}); for(let i=0;i<3;i++) V.cast(W.v,'ult'); assert.equal(dis(W,W.F[0]),4,'3 hits and 1 from its heal on the ally (once a second)');
-  secs(4.05); assert.equal(dis(W,W.F[0]),3,'Afterring: one stack at a time'); secs(2.9); assert.equal(dis(W,W.F[0]),3,'0.6 s x 5 apart'); secs(0.2); assert.equal(dis(W,W.F[0]),2); secs(6.05); assert.equal(dis(W,W.F[0]),0);
+  /* Afterring, read through the engine itself: Cacophony's ability power counts the stacks as the runtime sees them */
+  const W=lab(H,S(['ds_1_1','ds_11_1','ds_9_2']),{foes:1,allies:1}), wap=W.v.apow, seen=()=>{ V.step(1); return Math.round((W.v.apow/wap-1)/0.01); }; for(let i=0;i<3;i++) V.cast(W.v,'ult'); assert.equal(seen(),4,'3 hits and 1 from its heal on the ally (once a second)');
+  secs(4.05); assert.equal(seen(),3,'Afterring: one stack at a time'); secs(2.85); assert.equal(seen(),3,'0.6 s x 5 apart'); secs(0.2); assert.equal(seen(),2); secs(6.05); assert.equal(seen(),0);
   const pj=on=>{ const Q=lab(H,S(on?['ds_1_1','ds_8_3']:['ds_1_1']),{foes:3,allies:1,seed:5}); room(Q); V.cast(Q.v,'green'); let got=0; for(let i=0;i<4;i++){ secs(1.02); got=Math.max(got,dis(Q,Q.F[1])); } return got; };
   assert.equal(pj(false),0,'without Projection the next-nearest enemy gets nothing'); const a=pj(true); assert.ok(a>0&&a<5,'Projection: 10% x 5 a heal, the next-nearest enemy to that ally gains 1 too: '+a); assert.equal(pj(true),a,'the same seed, the same rolls');
 });
@@ -197,7 +199,7 @@ test('Vireo / Grand Symphony: Loud Finale, Cold Stage, Ruinous Swell, Clarity, B
   const L=lab(H,S(['ds_2_2','ds_9_3','ds_12_2','ds_2_3','li_10_3','ds_6_4']),{foes:2,allies:1}); prep(L); const lh=L.F.map(f=>f.hp), la=L.A[0].hp; V.cast(L.v,'ult');
   const k=1.20*(1+0.03*5*2)*1.10*1.08; near(lh[0]-L.F[0].hp,pd0*k,'Loud Finale 4% x 5, Ruinous Swell 3% x 5 per ring (2), Bowing Arm 2% x 5, Harsh Voice 4% x 2; Clarity ignores 3% x 3 magic resist',1e-6);
   near(lh[1]-L.F[1].hp,pd1*k*1.15,'Cold Stage: 3% x 5 more below 50% HP',1e-6); near(L.A[0].hp-la,pha*1.10*0.92,'its heal: Bowing Arm 2% x 5 more, Harsh Voice 4% x 2 less',1e-6);
-  const F2=lab(H,S(['ds_1_1','ds_11_2']),{foes:2}); V.cast(F2.v,'ult'); assert.equal(dis(F2,F2.F[0]),2,'Fortissimo: 2 Dissonance to every enemy it hits');
+  const F2=lab(H,S(['ds_1_1','ds_11_2']),{foes:2}); V.cast(F2.v,'ult'); assert.equal(dis(F2,F2.F[0]),2,'Fortissimo: 2 Dissonance to every enemy it hits'); V.cast(F2.v,'ult'); V.cast(F2.v,'ult'); assert.equal(dis(F2,F2.F[0]),5,'never more than 5');
   const G=lab(H,S(['ds_12_3']),{foes:1,cold:true}), hp0=G.v.maxHp, ap0=G.v.apow; V.step(1); near(G.v.maxHp,hp0*0.95,'Thin Voice: 1% x 5 less max HP'); near(G.v.apow,ap0*1.10,'and 2% x 5 more ability power');
 });
 
