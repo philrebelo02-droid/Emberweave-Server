@@ -279,7 +279,10 @@ async function handle(p, method, ctx) {
       try { if (host && a.snaps && a.snaps.length) rep = host.campaign(a.snaps, a.waves, a.seed >>> 0, inputLog, 'well'); } catch (e) { console.error('sim-host replay failed (well2):', e.message); }
       const srv = rep ? String(rep.digest || '') : '', match = !!srv && ctx.sha256hex(clientEnd) === ctx.sha256hex(srv), led = ctx.led;
        /* A replay difference is an incident for review; the witnessed result remains the payout truth. */
-      if (!match) { led.battleIncidents = (led.battleIncidents || []).concat([{ t: Date.now(), stage: 'well-' + R.map + '-' + a.col, mode: 'well:' + (R.path || 'standard'),
+      /* v1391: a fight played on another build (server.js fightOtherBuild) files nothing */
+      const otherBuild = !match && !!rep && !!srv && typeof ctx.fightOtherBuild === 'function' && ctx.fightOtherBuild(a.engine, (typeof b.build === 'string') ? b.build : null);
+      if (otherBuild && ctx.OTHER_BUILD_STATS) ctx.OTHER_BUILD_STATS.unfiled++;
+      if (!match && !otherBuild) { led.battleIncidents = (led.battleIncidents || []).concat([{ t: Date.now(), stage: 'well-' + R.map + '-' + a.col, mode: 'well:' + (R.path || 'standard'),
            why: rep ? 'digest-mismatch' : 'replay-unavailable', source: 'submitted-log', playerTruth: true, engine: a.engine, seed: a.seed >>> 0, inputs: inputLog.length,
           server: srv ? ctx.sha256hex(srv) : null, client: ctx.sha256hex(clientEnd), serverWon: rep ? !!rep.won : null, witnessedWon: witnessed.won,
            witnessedStars: witnessed.stars, transcript: inputLog }]).slice(-20); console.warn('well replay incident - map ' + R.map + ' col ' + a.col);
@@ -295,7 +298,7 @@ async function handle(p, method, ctx) {
         'battle timing');
       led.battleReceipts = (led.battleReceipts || []).concat([{ t: Date.now(), stage: 'well-' + R.map + '-' + a.col, mode: 'well:' + (R.path || 'standard'), node: a.col,
         seed: a.seed >>> 0, engine: a.engine, source: 'submitted-log', heroes: a.heroIds.slice(), inputs: inputLog.length, won: witnessed.won, stars: witnessed.stars,
-        digest: srv ? ctx.sha256hex(srv) : null, transcript: inputLog, clientDigest: ctx.sha256hex(clientEnd), match }]).slice(-40);
+        digest: srv ? ctx.sha256hex(srv) : null, transcript: inputLog, clientDigest: ctx.sha256hex(clientEnd), match, otherBuild: otherBuild || undefined }]).slice(-40);
       /* HP and energy carry: from the server's replay when it saw the same result the player did, else from what the player watched */
       let endU = []; try { endU = JSON.parse(rep && !!rep.won === witnessed.won ? srv : clientEnd).u || []; } catch (e) {}
       const maxOf = Object.fromEntries((a.snaps || []).map(s => [s.key, s.maxHp || 1]));

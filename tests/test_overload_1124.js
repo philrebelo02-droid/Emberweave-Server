@@ -18,6 +18,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 let pass = 0; const ok = (c, m) => { assert.ok(c, m); pass++; console.log('  ok  ' + m); };
 const SQUAD = ['vael', 'sylthaine', 'vireo'];
 const WON = JSON.stringify({ t: 60, won: true, stars: 3, wave: 2, u: SQUAD.map(k => [k, 'ally', 1, 500, 0, 100, 100]) });
+const BUILD = (/const\s+BUILD_ID\s*=\s*'(\d+)'/.exec(fs.readFileSync(path.join(root, 'emberweave-heroes.html'), 'utf8')) || [])[1];   // v1391: the page sends its BUILD_ID (a mismatch from it is flagged)
 const N = 400, LOAD_MS = 15000;
 const pct = (a, q) => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : 0; };
 
@@ -53,7 +54,7 @@ async function overload(S, W, tag) {
   const loop = async (p, i) => { let n = 0; while (!stop) {
     const s = await S.req('POST', '/api/campaign/start', { mode: 'normal', node: 1, heroIds: SQUAD, requestId: tag + i + '-' + n + 's' }, p.token);
     if (s.status !== 200) { await sleep(300); continue; }
-    const r = await S.req('POST', '/api/campaign/resolve', { attemptId: s.body.attemptId, requestId: tag + i + '-' + n + 'r', inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3 }, p.token);
+    const r = await S.req('POST', '/api/campaign/resolve', { attemptId: s.body.attemptId, requestId: tag + i + '-' + n + 'r', inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3, build: BUILD }, p.token);
     res.push({ ms: r.ms, ok: r.status === 200, pending: r.body && r.body.verify === 'pending' }); n++; } };
   const pr = W.players[N];
   const probing = (async () => { while (!stop) { probe.push((await S.req('GET', '/api/ledger', null, pr.token)).ms); await sleep(1000); } })();

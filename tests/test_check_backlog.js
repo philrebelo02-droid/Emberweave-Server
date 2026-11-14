@@ -14,6 +14,7 @@ const { spawn } = require('node:child_process');
 const R = require('./helpers/split-rig.cjs');
 const WS = require('../server/world-store.js');
 const KEY = 'backlog-test-key-' + 'b'.repeat(16), SQUAD = ['vael', 'sylthaine', 'vireo'];
+const BUILD = (/const\s+BUILD_ID\s*=\s*'(\d+)'/.exec(fs.readFileSync(path.join(R.root, 'emberweave-heroes.html'), 'utf8')) || [])[1];   // v1391: the page sends its BUILD_ID (a mismatch from it is flagged)
 const WON = JSON.stringify({ t: 60, won: true, stars: 3, wave: 2, u: SQUAD.map(k => [k, 'ally', 1, 500, 0, 100, 100]) });
 
 function downHelper() { const srv = http.createServer((q, s) => { s.writeHead(503); s.end('{}'); });
@@ -34,7 +35,7 @@ async function fights(S, B, n) {
   for (const p of B.players) for (let i = 0; i < n; i++) {
     const st = await S.req('POST', '/api/campaign/start', { mode: 'normal', node: 1, heroIds: SQUAD, requestId: 'bl-s-' + p.id + i }, p.token, p.ip);
     assert.equal(st.status, 200, JSON.stringify(st.body).slice(0, 160));
-    const rs = await S.req('POST', '/api/campaign/resolve', { attemptId: st.body.attemptId, requestId: 'bl-r-' + p.id + i, inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3 }, p.token, p.ip);
+    const rs = await S.req('POST', '/api/campaign/resolve', { attemptId: st.body.attemptId, requestId: 'bl-r-' + p.id + i, inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3, build: BUILD }, p.token, p.ip);
     assert.equal(rs.status, 200, JSON.stringify(rs.body).slice(0, 160)); out.push(rs.body);
   }
   return out;

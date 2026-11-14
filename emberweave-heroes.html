@@ -18181,7 +18181,7 @@ function endBattle(won){
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
-      if(att&&ACC.token){ const _wa=ACC.id, _wt=ACC.token, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else { wellPendingSettle(_wa,r,_wb.requestId); if(ACC.token!==_wt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } }
+      if(att&&ACC.token){ const _wa=ACC.id, _wt=ACC.token, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st, build:BUILD_ID}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else { wellPendingSettle(_wa,r,_wb.requestId); if(ACC.token!==_wt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.ok) WELL.state=r;
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), rw=(r&&r.reward)||null;
@@ -18199,7 +18199,7 @@ function endBattle(won){
       /* v1017 (re-audit Arena N3): ONE requestId per fight, re-sent on a lost reply or a refused save - a paid win whose reply was lost
          showed NOT COUNTED (the campaign does this since v975) */
       /* v1151: the campaign's 7-try policy (~30 s; offline / empty / refused save / 500 / 429) - 3 tries over 4.5 s lost a booked win to a restart */
-      if(att&&ACC.token){ r=await apiResultRetry('/api/province/resolve',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}); }
+      if(att&&ACC.token){ r=await apiResultRetry('/api/province/resolve',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st, build:BUILD_ID}); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), nm=(PROV_META[P.t]||PROV_META.gold).nm;
@@ -18227,11 +18227,11 @@ function endBattle(won){
       const _rid=uid8(); let r=null;
       for(let _try=0;_try<7;_try++){   /* v1150 (proof sweep: a booked win showed NOT COUNTED when Server 1 restarted - the retry gave up after ~4.5 s): up to 7 tries over ~30 s for a lost reply */
         r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid,
-          inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
+          inputLog:_log, digest:_dg, won:_wn, stars:_st, build:BUILD_ID});   // v412: the fight the player watched IS the result (v1391: build = the engine that fought it)
         /* v1145 (15 Oct proof sweep): an empty reply, a 500 and a 429 are transient too - the SAME requestId is re-sent and a booked fight answers with its receipt */
         if(!(!r||r.error==='offline'||r.storageFailed||r.error==='server error'||/slow down/i.test(r.error||''))||_try===6) break;
         await new Promise(z=>setTimeout(z,1500*(_try+1))); }
-      if(resultReplyLost(r)) r=await resultWaitServer(()=>api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid, inputLog:_log, digest:_dg, won:_wn, stars:_st}),r);   /* v1249 */
+      if(resultReplyLost(r)) r=await resultWaitServer(()=>api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid, inputLog:_log, digest:_dg, won:_wn, stars:_st, build:BUILD_ID}),r);   /* v1249 */
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
       setResultVerdict(sWon, (r&&r.stars)||null);
@@ -29646,9 +29646,9 @@ function resolveMarch(m){
     if(m.resolving && (m.resolvingAt||0)>=MARCH_PAGE_T0 && Date.now()-(m.resolvingAt||0)<30000) return false;
     m.resolving=true; m.resolvingAt=Date.now();
     if(!m.siegeFight){ let won=false, digest=''; try{ won=!!simFightResult(JSON.parse(JSON.stringify(m.siege.snaps)),JSON.parse(JSON.stringify(m.siege.foe)),m.siege.seed>>>0); digest=window._p2digest||''; }catch(e){ digest=''; }
-      m.siegeFight={won,digest}; }
+      m.siegeFight={won,digest,build:BUILD_ID}; }   /* v1391: the build that fought it (the fight is kept across a reload) */
     m.siegeRid=m.siegeRid||uid8();
-    api('/api/world/siege/resolve','POST',{marchId:m.serverCityId,requestId:m.siegeRid,won:m.siegeFight.won,digest:m.siegeFight.digest}).then(r=>{
+    api('/api/world/siege/resolve','POST',{marchId:m.serverCityId,requestId:m.siegeRid,won:m.siegeFight.won,digest:m.siegeFight.digest,build:m.siegeFight.build}).then(r=>{
       m.resolving=false; m.resolvingAt=0;
       if(!r||!r.ok){
         if(r&&r.arriveAt){ m.arrive=Math.max(Date.now()+1000,r.arriveAt); m.siegeRid=null; saveG(); return; }

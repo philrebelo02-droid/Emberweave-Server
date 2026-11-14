@@ -23,6 +23,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 let pass = 0; const ok = (c, m) => { assert.ok(c, m); pass++; console.log('  ok  ' + m); };
 const SQUAD = ['vael', 'sylthaine', 'vireo'];
 const WON = JSON.stringify({ t: 60, won: true, stars: 3, wave: 2, u: SQUAD.map(k => [k, 'ally', 1, 500, 0, 100, 100]) });
+const BUILD = (/const\s+BUILD_ID\s*=\s*'(\d+)'/.exec(fs.readFileSync(path.join(root, 'emberweave-heroes.html'), 'utf8')) || [])[1];   // v1391: the page sends its BUILD_ID (a mismatch from it is flagged)
 
 async function server(script, temp) {
   const db = path.join(temp, 'db.json'), port = await freePort(), base = 'http://127.0.0.1:' + port;
@@ -62,7 +63,7 @@ async function settle(S, B) {   // warm each player's ledger (first touch migrat
 async function campaignPair(S, p, node, rid) {
   const st = await S.req('POST', '/api/campaign/start', { mode: 'normal', node, heroIds: SQUAD, requestId: rid + '-s' }, p.token, p.ip);
   assert.equal(st.status, 200, JSON.stringify(st.body).slice(0, 200));
-  const rs = await S.req('POST', '/api/campaign/resolve', { attemptId: st.body.attemptId, requestId: rid + '-r', inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3 }, p.token, p.ip);
+  const rs = await S.req('POST', '/api/campaign/resolve', { attemptId: st.body.attemptId, requestId: rid + '-r', inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3, build: BUILD }, p.token, p.ip);
   assert.equal(rs.status, 200, JSON.stringify(rs.body).slice(0, 200));
   return { start: st.body, resolve: rs.body };
 }
@@ -143,14 +144,14 @@ async function campaignPair(S, p, node, rid) {
     const t1 = (await S.req('POST', '/api/login', { name: 'spOne', pass: 'password1' }, null, B.p1.ip)).body.token;
     const led1 = (await S.req('GET', '/api/ledger', null, t1, B.p1.ip)).body;
     ok(led1.camp && led1.camp.cleared === 1, '(d) after a restart player 1 still has stage 1-1 cleared');
-    const d1 = await S.req('POST', '/api/campaign/resolve', { attemptId: c1.body.attemptId, requestId: 'd-resolve', inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3 }, t1, B.p1.ip);
+    const d1 = await S.req('POST', '/api/campaign/resolve', { attemptId: c1.body.attemptId, requestId: 'd-resolve', inputLog: [[1, 'auto', -1, 1]], digest: WON, won: true, stars: 3, build: BUILD }, t1, B.p1.ip);
     ok(d1.body.ok === false && d1.body.interrupted === true && d1.body.ledger.stamina.v >= led1.stamina.v + att1.stamPaid,
       '(d) the fight cut off by the restart resolves as interrupted and returns its ' + att1.stamPaid + ' stamina (' + led1.stamina.v + ' -> ' + (d1.body.ledger && d1.body.ledger.stamina.v) + ')');
     const host = require(path.join(root, 'server/sim-host.js')).load(path.join(root, 'emberweave-heroes.html'));
     const enc = JSON.parse(fs.readFileSync(path.join(root, 'server/campaign-encounters.json'), 'utf8'));
     const d2 = await S.req('POST', '/api/campaign/start', { mode: 'normal', node: 2, heroIds: SQUAD, requestId: 'd-start' }, t1, B.p1.ip);
     const fight = host.campaign(d2.body.snaps, enc[1].waves, d2.body.seed >>> 0, []);
-    const d3 = await S.req('POST', '/api/campaign/resolve', { attemptId: d2.body.attemptId, requestId: 'd-resolve-2', inputLog: [], digest: fight.digest, won: !!fight.won, stars: fight.won ? (fight.stars | 0) : 0 }, t1, B.p1.ip);
+    const d3 = await S.req('POST', '/api/campaign/resolve', { attemptId: d2.body.attemptId, requestId: 'd-resolve-2', inputLog: [], digest: fight.digest, won: !!fight.won, stars: fight.won ? (fight.stars | 0) : 0, build: BUILD }, t1, B.p1.ip);
     ok(d3.status === 200 && d3.body.ok && d3.body.digestMatch === true, '(d) an honest fight replays to the same result and is accepted (won ' + !!fight.won + ')');
     await sleep(400);
 

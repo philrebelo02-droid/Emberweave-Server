@@ -123,11 +123,12 @@ async function serverChecks() {
     // report a WIN (if the honest fight lost, the claim is a flag - never a verdict - and the win still stands)
     const dig = JSON.parse(fight.digest); dig.won = true;
     const claimDigest = fight.won ? fight.digest : JSON.stringify(dig);
-    const win = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r1', won: true, digest: claimDigest }, p1.token, p1.ip);
+    const build = host.buildVersion;   // v1391: the page sends its BUILD_ID; this is the current build's fight
+    const win = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r1', won: true, digest: claimDigest, build }, p1.token, p1.ip);
     ok(win.body.ok === true && win.body.won === true && win.body.seized === true && win.body.holder && win.body.holder.name === 'Ember Hold' && win.body.holder.type === 'guild' && win.body.garrisoned === true, 'the reported win seizes ' + site.name + ' for the guild and the line stays (v1237)');
     ok(win.body.digestMatch === fight.won && win.body.replayIncident === !fight.won, 'replay: honest win matches (' + fight.won + '); a mismatch is a flag only');
-    const w2 = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r1', won: true, digest: claimDigest }, p1.token, p1.ip);
-    const w3 = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r2', won: false, digest: JSON.stringify({ ...dig, won: false }) }, p1.token, p1.ip);
+    const w2 = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r1', won: true, digest: claimDigest, build }, p1.token, p1.ip);
+    const w3 = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r2', won: false, digest: JSON.stringify({ ...dig, won: false }), build }, p1.token, p1.ip);
     ok(JSON.stringify(w2.body) === JSON.stringify(win.body) && w3.body.won === true && w3.body.seized === true, 'idempotent: the same or a new request id gets the same receipt (cannot flip or pay twice)');
     // a LOSS changes nothing: p2 on an unheld oasis-free city - use the same rule on another site p2 can reach
     const pick2 = pickSite(p2.loc.region, site.id); assert.ok(pick2, 'a site for player two');
@@ -137,7 +138,7 @@ async function serverChecks() {
     {
       const s2 = await S.req('POST', '/api/world/siege/start', { siteId: target2.id, heroIds: p2.keys, requestId: 'p2s' }, p2.token, p2.ip); assert.ok(s2.body.ok, JSON.stringify(s2.body).slice(0, 200)); await sleep(1700);
       const f2 = host.auto(JSON.parse(JSON.stringify(s2.body.snaps)), JSON.parse(JSON.stringify(s2.body.foe)), s2.body.seed >>> 0), d2 = JSON.parse(f2.digest); d2.won = false;
-      const loss = await S.req('POST', '/api/world/siege/resolve', { marchId: s2.body.marchId, requestId: 'p2r', won: false, digest: JSON.stringify(d2) }, p2.token, p2.ip);
+      const loss = await S.req('POST', '/api/world/siege/resolve', { marchId: s2.body.marchId, requestId: 'p2r', won: false, digest: JSON.stringify(d2), build }, p2.token, p2.ip);
       const after = (await S.req('GET', '/api/world/sieges', null, p2.token, p2.ip)).body;
       ok(loss.body.ok === true && loss.body.won === false && loss.body.seized === false && !after.sites[target2.id] && after.rev === before.rev, 'a reported loss changes nothing (' + target2.name + ' stays unheld, rev ' + after.rev + ')');
     }

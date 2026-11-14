@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
 const BASE = 'http://127.0.0.1:' + (process.env.PORT || '18791');
+// v1391: the page sends its BUILD_ID with the result; a mismatch from the CURRENT build is the replay incident checked here
+const BUILD = (/const\s+BUILD_ID\s*=\s*'(\d+)'/.exec(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'emberweave-heroes.html'), 'utf8')) || [])[1];
 let token = '';
 async function api(path, method = 'GET', body) {
   const response = await fetch(BASE + path, {
@@ -23,7 +25,7 @@ async function main() {
     u: squad.map(k => [k, 'ally', 1, 500, 0, 100, 100])});
   const resolve = await api('/api/campaign/resolve', 'POST', {
     attemptId: start.json.attemptId, requestId: 'pt-resolve-1',
-    inputLog: [[1, 'auto', -1, 1]], digest: witnessed, won: true, stars: 3,
+    inputLog: [[1, 'auto', -1, 1]], digest: witnessed, won: true, stars: 3, build: BUILD,
   });
   assert.equal(resolve.status, 200, JSON.stringify(resolve.json));
   assert.equal(resolve.json.ok, true);

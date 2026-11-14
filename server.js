@@ -4147,6 +4147,19 @@ async function simPrefetch(list,maxWaitMs,runOpts){
    'skipped' with its recording kept for review. With battle workers on, a campaign replay never runs on the main thread. */
 const SIM_RESOLVE_WAIT_MS=Math.max(0,+(process.env.SIM_RESOLVE_WAIT_MS||1200));
 function simAsyncVerify(){ const pool=simPool(); return !!(pool&&pool.stats.ready); }
+/* v1391 OTHER-BUILD FIGHTS (release safety: v1391 changed where skills land, so a fight played on the old engine does not
+   reproduce on the new one - that is an update, not cheating). A replay mismatch files nothing (no battle incident, no cheat
+   flag) when the fight's session was opened by an earlier server engine (sessionEngine, recorded at start), or when the page
+   that fought it is another build (clientBuild = the page's BUILD_ID, sent with every replayed result since v1391; a page
+   older than v1391 sends none, so a missing build is another build too). Either way round: an old page on a new server, or a
+   new page on a server not yet deployed. The player keeps the result they witnessed, paid as today; the page's version poll
+   reloads it. A mismatch from the current build is filed exactly as before. The claim comes from the page (like the digest). */
+const OTHER_BUILD_STATS={unfiled:0};
+function fightOtherBuild(sessionEngine,clientBuild){
+  let cur=null; try{ const h=simHost(); cur=(h&&h.buildVersion)?String(h.buildVersion):null; }catch(e){}
+  if(!cur) return false;
+  if(sessionEngine && String(sessionEngine)!==cur) return true;
+  return ((typeof clientBuild==='string')?clientBuild.slice(0,40):'')!==cur; }
 function campIncident(u,led,x){   // the flagged-fight record (shared by the resolve and the late check)
   led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:x.st.id,mode:x.mode,why:x.why,
     source:x.source,playerTruth:true,engine:x.engine||null,seed:x.seed>>>0,
@@ -4206,6 +4219,7 @@ function campCheckDone(j,rep){ _checkKeys.delete(j.k); _reqCtx.run({saveIds:[j.u
   if(!match&&!Array.isArray(rc.transcript)&&Array.isArray(pl.transcript)) rc.transcript=pl.transcript;   // v1127: a flagged fight keeps its recording on its receipt
   const now=Date.now(); _checkDone.push(now); while(_checkDone.length&&now-_checkDone[0]>60000) _checkDone.shift(); CAMP_VERIFY_STATS.drainedLastMin=_checkDone.length;
   if(match){ delete rc.transcript; CAMP_VERIFY_STATS.accepted++; }   // accepted: the recording is discarded
+  else if(sd&&fightOtherBuild(rc.engine,rc.clientBuild)){ delete rc.transcript; rc.otherBuild=true; OTHER_BUILD_STATS.unfiled++; }   // v1391: fought on another build - nothing is filed
   else { CAMP_VERIFY_STATS.flagged++; const st=portalStageOf(rc.mode,rc.node)||{id:rc.stage};
     campIncident(u,led,{st,mode:rc.mode,engine:rc.engine,seed:rc.seed,source:rc.source,inputLog:rc.transcript||[],clientHash:rc.clientDigest,
       witnessed:{won:!!rc.won,stars:rc.stars|0},rep,serverEndDigest,why:'digest-mismatch'}); }
@@ -6511,7 +6525,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{checkBacklog:CHECK_BACKLOG.stats},{shed:Object.assign({on:SHED.on,lo:SHED.lo,full:SHED.full},SHED_STATS)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS,live:Object.assign({},LIVE_STATS,{memo:_LIVE_MEMO.size,inFlight:_LIVE_FLIGHT.size})})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1184
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{checkBacklog:CHECK_BACKLOG.stats},{shed:Object.assign({on:SHED.on,lo:SHED.lo,full:SHED.full},SHED_STATS)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS,otherBuild:OTHER_BUILD_STATS,live:Object.assign({},LIVE_STATS,{memo:_LIVE_MEMO.size,inFlight:_LIVE_FLIGHT.size})})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1184
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -9210,7 +9224,7 @@ async function api(req,res,url){
     const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
-      feedbackCheatSignal, D_TROOP_INC, SIM, isDev,
+      feedbackCheatSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev,
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
     if(out&&out.storageFailed) return send(res, 503, out);   /* 3 Oct audit: durable idem refused a failed save */
     if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
@@ -9381,7 +9395,10 @@ async function api(req,res,url){
       const serverEndDigest=rep?String(rep.digest||''):'';
       const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);
       const _vx={uid:me.id,st,mode,engine:a.engine,seed:rec.seed>>>0,source:transcriptSource,inputLog,clientEnd,witnessed};
-      if(!digestMatch && !verifyLater) campIncident(me,led,Object.assign({},_vx,{rep,serverEndDigest,why:replayFailure||'digest-mismatch'}));
+      const clientBuild=(typeof b.build==='string')?b.build.slice(0,40):null;   // v1391: the page's BUILD_ID
+      const otherBuild=!digestMatch && !verifyLater && !replayFailure && fightOtherBuild(a.engine,clientBuild);   // v1391: fought on another build - nothing is filed
+      if(otherBuild) OTHER_BUILD_STATS.unfiled++;
+      else if(!digestMatch && !verifyLater) campIncident(me,led,Object.assign({},_vx,{rep,serverEndDigest,why:replayFailure||'digest-mismatch'}));
       const won=witnessed.won;
       let stars=0, reward=null;
       if(won){
@@ -9442,7 +9459,8 @@ async function api(req,res,url){
       const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:rec.seed>>>0, engine:a.engine||null,
         source:transcriptSource, chain:(rec.stream&&rec.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
-        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:(digestMatch||verifyLater)?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
+        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:(digestMatch||verifyLater||otherBuild)?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
+        clientBuild:clientBuild||undefined, otherBuild:otherBuild||undefined,   /* v1391: the late check reads clientBuild */
         verify:verifyLater?'pending':undefined,   /* v1124: its check finishes after the answer (v1127: its recording waits in the check backlog file, not here) */
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       if(verifyLater) CHECK_BACKLOG.add(checkKey(me.id,receipt.t,rec.seed),{snaps:rec.snaps,transcript:inputLog});   // on disk before the save that acknowledges the fight
@@ -9451,7 +9469,7 @@ async function api(req,res,url){
       if(verifyLater){ const _t=receipt.t,_s=rec.seed>>>0,_u=me.id; setImmediate(()=>campCheckEnqueue(_u,_t,_s)); }
       receipt.match=digestMatch;
       return { ok:true, mode, won, stars, reward, verified:true, playerTruth:true, engine:a.engine||null,
-        serverDigest:receipt.digest, digestMatch:verifyLater?null:digestMatch, replayIncident:verifyLater?false:!digestMatch, verify:verifyLater?'pending':'done', transcript:transcriptSource,
+        serverDigest:receipt.digest, digestMatch:verifyLater?null:digestMatch, replayIncident:verifyLater?false:(!digestMatch&&!otherBuild), otherBuild, verify:verifyLater?'pending':'done', transcript:transcriptSource,
         actions:inputLog.length, chain:(rec.stream&&rec.stream.chain)?rec.stream.chain.slice(0,16):null,
         replaySeed:rec.seed>>>0, ledger:ledgerView(me) };
     });
@@ -9737,7 +9755,9 @@ async function api(req,res,url){
           catch(e){ replayFailure='replay-error'; console.error('sim-host replay failed (province):',e.message); }
         const serverEndDigest=rep?String(rep.digest||''):'';
         const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);
-        if(!digestMatch){ const why=replayFailure||'digest-mismatch';
+        const otherBuild=!digestMatch && !replayFailure && fightOtherBuild(a.engine,(typeof b.build==='string')?b.build:null);   // v1391: fought on another build - nothing is filed
+        if(otherBuild) OTHER_BUILD_STATS.unfiled++;
+        else if(!digestMatch){ const why=replayFailure||'digest-mismatch';
           led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:'province-'+t+'-'+a.stage, mode:'province:'+t, why,
             source:'submitted-log', playerTruth:true, engine:a.engine||null, seed:a.seed>>>0, inputs:inputLog.length,
             server:serverEndDigest?sha256hex(serverEndDigest):null, client:sha256hex(clientEnd), serverWon:rep?!!rep.won:null,
@@ -9762,10 +9782,10 @@ async function api(req,res,url){
         } else ledTx(me,'province:'+t+':loss:'+a.stage,{});
         led.battleReceipts=(led.battleReceipts||[]).concat([{ t:Date.now(), stage:'province-'+t+'-'+a.stage, mode:'province:'+t, node:a.stage,
           seed:a.seed>>>0, engine:a.engine||null, source:'submitted-log', heroes:a.heroIds.slice(), inputs:inputLog.length, won,
-          stars:witnessed.stars, digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:inputLog, clientDigest:sha256hex(clientEnd), match:digestMatch }]).slice(-40);
+          stars:witnessed.stars, digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:inputLog, clientDigest:sha256hex(clientEnd), match:digestMatch, otherBuild:otherBuild||undefined }]).slice(-40);
         writeDB();
         return { ok:true, type:t, won, stage:a.stage, stars:witnessed.stars, cleared:pr.stage|0, reward, dailyCapped,
-          playsLeft:provPlaysLeft(me,pr), verified:true, playerTruth:true, digestMatch, replayIncident:!digestMatch,
+          playsLeft:provPlaysLeft(me,pr), verified:true, playerTruth:true, digestMatch, replayIncident:!digestMatch&&!otherBuild, otherBuild,
           serverWon:rep?!!rep.won:null, transcript:'submitted-log', actions:inputLog.length, engine:a.engine||null,
           prov:view(), ledger:ledgerView(me) };
       }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
@@ -10470,7 +10490,9 @@ async function api(req,res,url){
       const host=simHost(); let rep=null, why=null;
       if(!host) why='replay-unavailable'; else try{ rep=host.auto(march.snaps,march.foe,march.seed>>>0); }catch(e){ if(typeof SIM_NEEDED!=='undefined'&&e===SIM_NEEDED) throw e; why='replay-error'; }
       const serverEnd=rep?String(rep.digest||''):'', match=!!serverEnd&&sha256hex(serverEnd)===sha256hex(clientEnd);
-      if(!match){ why=why||'digest-mismatch';
+      const otherBuild=!match&&!why&&fightOtherBuild(march.engine,(typeof b.build==='string')?b.build:null);   // v1391: fought on another build - nothing is filed
+      if(otherBuild) OTHER_BUILD_STATS.unfiled++;
+      else if(!match){ why=why||'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{t:now,stage:'siege-'+site.id,mode:'siege',why,source:'auto',playerTruth:true,
           engine:march.engine||null,seed:march.seed>>>0,server:serverEnd?sha256hex(serverEnd):null,client:sha256hex(clientEnd),
           serverWon:rep?!!rep.won:null,witnessedWon:won}]).slice(-20);
@@ -10506,7 +10528,7 @@ async function api(req,res,url){
       const hr=sieges.sites[site.id];
       march.receipt={ok:true,won,seized,garrisoned,sentHome,note,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),
         lines:WORLD_SIEGE.garrisonCount(hr),cap:WORLD_SIEGE.garrisonCap(site),homeAt:march.homeAt,defenders:march.defenders||'guards',injuries,
-        digestMatch:match,replayIncident:!match,playerTruth:true,replay:{seed:march.seed>>>0,snaps:march.snaps,foe:march.foe,engine:march.engine||null},witch:witchView(me,now)};
+        digestMatch:match,replayIncident:!match&&!otherBuild,otherBuild,playerTruth:true,replay:{seed:march.seed>>>0,snaps:march.snaps,foe:march.foe,engine:march.engine||null},witch:witchView(me,now)};
       delete march.snaps;
       return march.receipt;
     }),'live');
