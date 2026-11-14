@@ -25,6 +25,7 @@ try { fs.mkdirSync(path.join(BD, 'server'));
     fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = baseOk ? load(path.join(BD, 'emberweave-heroes.html')) : null;
+const runNoReach = load(require('./helpers/global-1254-1260').reach1391Page(HTML));   // v1391: the skill reach fixes backed out, for the checks they would otherwise move
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok   ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
 const J = (r, s) => JSON.parse(r(s));
@@ -68,7 +69,8 @@ try {
     doEffect(c,'${ty}',Object.assign(${oExpr},{_arrived:true,_tgtU:v}));
     return JSON.stringify({imm:!!v.immovable, moved:+(Math.hypot(v.x-x0,v.y-y0)/METER).toFixed(3), stun:+(+(v.stunned||0)).toFixed(2)}); })()`);
   for (const [c, ty, o, name] of [['brannus', 'knockstun', '{},KITS.brannus.green', 'Rim Breaker'], ['tharl', 'knockstun', '{},KITS.tharl.green', 'Scale Ram'], ['absalie', 'gravknot', '{},KITS.absalie.blue', 'Gravity Knot']]) {
-    const p1 = PUSH(run, c, ty, o, 'pellucid'), p0 = PUSH(R0, c, ty, o, 'pellucid'), v1 = PUSH(run, c, ty, o, 'vael');
+    const rr = ty === 'gravknot' ? runNoReach : run;   // v1391 C centres Gravity Knot on its target (this stage's victim, which a knot on itself does not move): the pull is checked as v1389 wrote it
+    const p1 = PUSH(rr, c, ty, o, 'pellucid'), p0 = PUSH(R0, c, ty, o, 'pellucid'), v1 = PUSH(rr, c, ty, o, 'vael');
     ck(name + ' no longer moves Pellucid (immovable ' + p1.imm + ', moved ' + p1.moved + ' m) - he still takes the hit and its control (stun ' + p1.stun + ')', p1.imm && p1.moved === 0 && (ty !== 'knockstun' || p1.stun > 0), JSON.stringify(p1));
     ck('CONTROL: ' + name + ' moved Pellucid on the pre-fix page (' + p0.moved + ' m); a movable hero is still moved (' + v1.moved + ' m)', p0.moved > 0.2 && v1.moved > 0.2, JSON.stringify([p0, v1])); }
   // Noonday Stampede (Zahri's ult): Pellucid in her lane is struck but not shoved by the stampede. The general body-collision pass (bodies never
@@ -118,7 +120,6 @@ try {
     ck('CONTROL: on the pre-fix page almost every Ember Cleave in the same fights hit no one (' + n0.join(',') + ')', n0.length >= 4 && n0.filter(x => x === 0).length >= n0.length - 1, JSON.stringify(n0)); }
 
   // ---------- nothing else moved ----------
-  const runNoReach = load(require('./helpers/global-1254-1260').reach1391Page(HTML));
   for (const [s, a, f] of [[7, ['vael', 'sylthaine', 'vex'], ['grosk', 'nox', 'lumi']], [21, ['astra', 'hobb', 'vireo'], ['kharos', 'quorrel', 'veyr']]]) {
     const x = FIGHT(runNoReach, s, a, f, false), y = FIGHT(R0, s, a, f, false);   // v1391: the later skill reach fixes (A: no stale aim on Green/Blue casts) backed out, they are not v1389's
     ck('a fight with none of the touched kits (' + a.join('/') + ' v ' + f.join('/') + ', seed ' + s + ') is tick-identical to the pre-fix page', x.h === y.h, x.h + ' vs ' + y.h); }

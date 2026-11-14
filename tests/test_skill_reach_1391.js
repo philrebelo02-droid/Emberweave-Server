@@ -8,6 +8,10 @@
 //   B. REACH TO THE BODY EDGE: Standard Crash, Vein Burst, Coinflail, Fan of Knives, Flywheel, Feed Them (enemy burst), Emberskin, Comet Dash (at
 //      the landing), Sunburst (enemy damage) and Rallying Ground (allies) tested centre to centre, and bodies are 1.5-2 m in radius, so a melee
 //      enemy stood outside them. They now measure dist - bodyR, as v1389's cleave.
+//   C. BACK-ROW SKILLS ON THE TARGET (Phil 14 Nov: "center the back row skills on the target"): Blazing Orbit, Gravity Knot, Ledger Slam,
+//      Tsunami and Scattergun were centred on a caster who stands 10-16 m from the enemies. Now (kit at:'target') the area is centred on the
+//      skill's target (the caster's target, else the nearest enemy), same radius, to the body edge; Scattergun becomes a 3.2 m burst at the
+//      target (a cone cannot be centred on it); the plates are drawn there.
 // CONTROLS: every check that proves a fix also runs on the pre-fix page (git BASE below, or EW_BASE) and must FAIL there.
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), os = require('os');
@@ -45,15 +49,16 @@ const STAGE = (r, s) => J(r, `(()=>{ ${RESET} const S=${JSON.stringify(s)};
   as.forEach(a=>{ a.hp=a.maxHp*0.5; });
   if(S.aim){ h._aimWX=h.x+S.aim.dx*METER; h._aimWY=h.y+S.aim.dy*METER; } else { h._aimWX=null; h._aimWY=null; }
   const aim0=h._aimWX;
-  const hit=new Set(), ally=new Set(); const own=s=>s&&(s===h||ddOwner(s)===h);
+  var _st=null; const hit=new Set(), ally=new Set(); const own=s=>s&&(s===h||ddOwner(s)===h);
   const _dd=dealDamage, _cc=ccApply, _pd=pushDot, _pl=plagueDot, _hf=healFrom;
   dealDamage=function(s,t){ if(own(s)&&t&&t.team!==h.team) hit.add(es.indexOf(t)); return _dd.apply(this,arguments); };
-  ccApply=function(s,t){ if(own(s)&&t&&t.team!==h.team) hit.add(es.indexOf(t)); return _cc.apply(this,arguments); };
+  const silOn=new Set(); ccApply=function(s,t,fld){ if(own(s)&&t&&t.team!==h.team){ hit.add(es.indexOf(t)); if(fld==='silencedT') silOn.add(t); } return _cc.apply(this,arguments); };
   pushDot=function(t,dps,dur,iv,col,s){ if(own(s)&&t&&t.team!==h.team) hit.add(es.indexOf(t)); return _pd.apply(this,arguments); };
   plagueDot=function(t,dps,dur,iv,col,s){ if(own(s)&&t&&t.team!==h.team) hit.add(es.indexOf(t)); return _pl.apply(this,arguments); };
   healFrom=function(s,t){ if(own(s)&&t&&t!==h) ally.add(as.indexOf(t)); return _hf.apply(this,arguments); };
   const pre=as.map(a=>[a.drMul||1,a.hasteMul||1,a.drT||0]);
-  try{ updateBattle(SIM_STEP); ${KEEP} placeAll(); if(S.pre) eval(S.pre);   /* placed again after the first tick: an assassin opens the fight with a dive */
+  try{ updateBattle(SIM_STEP); ${KEEP} placeAll(); if(S.pre) eval(S.pre);
+    const T0=(S.t!=null)?{x:es[S.t].x,y:es[S.t].y}:{x:es[0].x,y:es[0].y}; var _st={T0, d0:es.map(e=>dist(T0,e)), te0:es.map(e=>+((dist(T0,e)-bodyR(e))/METER).toFixed(2))};   /* placed again after the first tick: an assassin opens the fight with a dive */
     if(S.slot==='ult'){ h.energy=100; if(S.ultAim){ h._aimWX=h.x+S.ultAim.dx*METER; h._aimWY=h.y+S.ultAim.dy*METER; } castAbility(h); }
     else if(S.slot==='none'){ }
     else if(S.direct){ h._castSM=1; h._castLv=1; h._castSlot=S.slot; doEffect(h,S.direct,Object.assign({},KITS[S.hero][S.slot],{_arrived:true,_tgtU:(S.t!=null?es[S.t]:null)})); h._castSlot=null; }
@@ -63,6 +68,7 @@ const STAGE = (r, s) => J(r, `(()=>{ ${RESET} const S=${JSON.stringify(s)};
   as.forEach((a,i)=>{ const p=pre[i]; if((a.drMul||1)!==p[0]||(a.hasteMul||1)!==p[1]||(a.drT||0)>p[2]) ally.add(i); });
   es.forEach((e,i)=>{ if(e.hp<e.maxHp) hit.add(i); }); const tgt=(S.t!=null)?es[S.t]:null;
   return JSON.stringify({hit:[...hit].filter(i=>i>=0).sort(), ally:[...ally].filter(i=>i>=0).sort(), aimAfter:(h._aimWX===aim0)?'same':(h._aimWX==null?'none':'moved'),
+    tedge0:_st.te0, mv:es.map((e,i)=>+((dist(_st.T0,e)-_st.d0[i])/METER).toFixed(2)), ctl:es.map(e=>({sil:silOn.has(e), forced:e.forcedTarget===h})),
     edge:es.map(e=>+((dist(h,e)-bodyR(e))/METER).toFixed(2)), cc:es.map(e=>+(dist(h,e)/METER).toFixed(2)), body:es.map(e=>+(bodyR(e)/METER).toFixed(2)),
     aedge:as.map(a=>+((dist(h,a)-bodyR(a))/METER).toFixed(2)), tedge:tgt?es.map(e=>+((dist(tgt,e)-bodyR(e))/METER).toFixed(2)):null}); })()`);
 const fmt = x => 'hit [' + x.hit.join(',') + ']' + (x.ally.length ? ' allies [' + x.ally.join(',') + ']' : '');
@@ -134,6 +140,54 @@ try {
     ck('B Aureth\'s Sunburst heal keeps its radius as written: an ally ' + lab + ' is healed the same as before (' + (a.ally.length ? 'healed' : 'not healed') + ')', JSON.stringify(a.ally) === JSON.stringify(b.ally), JSON.stringify([a, b])); }
   { const K = r => J(r, `JSON.stringify(['askel','carn','gruel','hollow','korvux','aureth','konwu'].map(k=>[KITS[k].green,KITS[k].blue]))`);
     ck('B no written radius, damage number or description changed in these kits', JSON.stringify(K(run)) === JSON.stringify(K(R0))); }
+
+  // ================= C. back-row skills centred on the target (Phil 14 Nov: "center the back row skills on the target") =================
+  // the caster stands 11 m behind his target (as in a fight: 10-16 m); a second enemy's BODY EDGE is 0.15 m inside / outside the written radius
+  // of the TARGET (beside it, so it is not the nearest or the farthest); the cast is pressed as in a fight
+  const CS = [
+    ['Pyroclast\'s Blazing Orbit (blue, 2.8 m)', 'pyroclast', 'blue', 2.8],
+    ['Absalie\'s Gravity Knot (blue, 4 m)', 'absalie', 'blue', 4],
+    ['Grimsby\'s Ledger Slam (blue, 4 m)', 'grimsby', 'blue', 4],
+    ['Maren\'s Tsunami (blue, 3.4 m)', 'maren', 'blue', 3.4],
+    ['Rivet\'s Scattergun (green, now a 3.2 m burst at the target)', 'rivet', 'green', 3.2],
+  ];
+  const CST = (hero, slot, edge, extra) => Object.assign({ hero, slot, en: [{ k: 'grosk', dx: 11, dy: 0 }, { k: 'vael', from: 0, ang: 90, edge }], t: 0, secs: 2.5, ghost: 1 }, extra || {});
+  for (const [name, hero, slot, R] of CS) {
+    const a = STAGE(run, CST(hero, slot, R - IN)), o = STAGE(run, CST(hero, slot, R + IN)), b = STAGE(R0, CST(hero, slot, R - IN));
+    ck('C ' + name + ' lands on its target 11 m away and on the enemy ' + IN + ' m inside its radius of the target by body edge (' + fmt(a) + ', that enemy\'s edge ' + a.tedge0[1] + ' m from the target)', a.hit.includes(0) && a.hit.includes(1), JSON.stringify(a));
+    ck('C ' + name + ': the enemy ' + IN + ' m outside is not reached (' + fmt(o) + ', edge ' + o.tedge0[1] + ' m)', o.hit.includes(0) && !o.hit.includes(1), JSON.stringify(o));
+    ck('C CONTROL ' + name + ': on the pre-fix page, centred on the caster 11 m back, it reached nobody (' + fmt(b) + ')', b.hit.length === 0, JSON.stringify(b));
+    const n = STAGE(run, CST(hero, slot, R - IN, { t: null }));
+    ck('C ' + name + ' with no target of his own: centred on the nearest enemy (' + fmt(n) + ')', n.hit.includes(0), JSON.stringify(n)); }
+  // the movement each one keeps, now from the target's spot
+  { const a = STAGE(run, CST('absalie', 'blue', 4 - IN)), b = STAGE(R0, CST('absalie', 'blue', 4 - IN));
+    ck('C Gravity Knot pulls the enemy beside the target toward the target\'s spot (' + a.mv[1] + ' m closer); the target itself stays (' + a.mv[0] + ' m)', a.mv[1] < -0.5 && Math.abs(a.mv[0]) < 0.05, JSON.stringify(a));
+    ck('C CONTROL Gravity Knot moved nobody there on the pre-fix page (' + b.mv.join(' / ') + ' m)', Math.abs(b.mv[1]) < 0.05, JSON.stringify(b)); }
+  { const a = STAGE(run, CST('maren', 'blue', 3.4 - IN));
+    ck('C Tsunami shoves the enemy beside the target away from the target\'s spot (' + a.mv[1] + ' m)', a.mv[1] > 0.5, JSON.stringify(a)); }
+  { const a = STAGE(run, CST('pyroclast', 'blue', 2.8 - IN));
+    ck('C Blazing Orbit repels the enemy beside the target from it (' + a.mv[1] + ' m)', a.mv[1] > 0.5, JSON.stringify(a)); }
+  { const a = STAGE(run, CST('grimsby', 'blue', 4 - IN, { secs: 1.3 }));   // read inside the 2 s silence
+    ck('C Ledger Slam: the enemies around the target are silenced and must attack Grimsby, as before (' + JSON.stringify(a.ctl) + ')', a.ctl.every(c => c.sil && c.forced), JSON.stringify(a)); }
+  { const S = (r, e) => J(r, `(()=>{ ${RESET} const h=makeUnit('rivet','ally',500,700,30,{owned:false,rank:3}); const t=makeUnit('grosk','enemy',500+11*METER,700,30,{owned:false,rank:3}); const n=makeUnit('vael','enemy',t.x,t.y+${e}*METER+0,30,{owned:false,rank:3});
+      units=[h,t,n]; ${HOLD} n.y=t.y+${e}*METER+bodyR(n); h.target=t; const D=new Map(); const _dd=dealDamage; dealDamage=function(s,x,a){ if(s===h) D.set(x.key,(D.get(x.key)||0)+a); return _dd.apply(this,arguments); };
+      try{ h._castSM=1; h._castLv=1; h._castSlot='green'; doEffect(h,'spread',Object.assign({},KITS.rivet.green)); } finally{ dealDamage=_dd; h._castSlot=null; }
+      return JSON.stringify({t:Math.round(D.get('grosk')||0), n:Math.round(D.get('vael')||0)}); })()`);
+    const a = S(run, 0.5), b = S(run, 2.9);
+    ck('C Scattergun keeps its falloff, now by the distance to the target: the target takes the full charge (' + a.t + '), a neighbour 0.5 m off its body edge ' + a.n + ', one 2.9 m off ' + b.n, a.t > 0 && a.n < a.t && b.n < a.n && b.n > 0, JSON.stringify([a, b])); }
+  // the art: every plate is drawn where the skill now lands (spawnGroundFx recorded; the kit's own gfx)
+  { const ART = (r, hero, slot) => J(r, `(()=>{ ${RESET} const h=makeUnit('${hero}','ally',500,700,30,{owned:false,rank:3}); const t=makeUnit('grosk','enemy',500+11*METER,700,30,{owned:false,rank:3}); units=[h,t]; ${HOLD} h.target=t;
+      const at=[]; const _s=spawnGroundFx; spawnGroundFx=function(k,x,y){ at.push({k,x,y}); return null; }; const _fa=_fxAllow; _fxAllow=true;
+      try{ const o=Object.assign({},KITS['${hero}']['${slot}']); abilArt(h,o,t,(o.at==='target')?{x:t.x,y:t.y}:null,o.type); } finally{ spawnGroundFx=_s; _fxAllow=_fa; }
+      const p=at.find(q=>q.k===KITS['${hero}']['${slot}'].gfx); return JSON.stringify(p?{d:+(Math.hypot(p.x-t.x,p.y-t.y)/METER).toFixed(2), dc:+(Math.hypot(p.x-h.x,p.y-h.y)/METER).toFixed(2)}:null); })()`);
+    for (const [name, hero, slot, R] of CS) {
+      const a = ART(run, hero, slot), b = ART(R0, hero, slot), near = hero === 'maren' ? R + 0.01 : 0.6;
+      ck('C ' + name + ': its plate is drawn on the target (' + (a ? a.d + ' m from the target' : 'none') + '; the pre-fix plate was ' + (b ? b.dc + ' m from the caster, ' + b.d + ' m from the target' : 'none') + ')', a && a.d <= near, JSON.stringify([a, b])); } }
+  // shared codes keep their centre: Grosk's Gravemaw Pull (pullsilence) and Astra's Starfire / Ceraline's Mourning Bell (nova at:'cluster')
+  { const s = { hero: 'grosk', slot: 'green', en: [{ k: 'vael', edge: 0.4 }, { k: 'lumi', ang: 60, edge: 3 }], t: 0, secs: 2 }, a = STAGE(run, s), b = STAGE(R0, s);
+    ck('C Grosk\'s Gravemaw Pull (the same pullsilence code) is unchanged (' + fmt(a) + ' / ' + fmt(b) + ')', JSON.stringify(a.hit) === JSON.stringify(b.hit), JSON.stringify([a, b])); }
+  { const K = r => J(r, `JSON.stringify(['pyroclast','absalie','grimsby','maren','rivet'].map(k=>{ const o=Object.assign({},KITS[k].green.type==='spread'?KITS[k].green:KITS[k].blue); return [o.mul,o.radius/METER,o.cd,o.dur,o.slow,o.push,o.pull,o.burn,o.burnDur,o.falloff,o.minMul]; }))`);
+    ck('C the five keep their damage, radius, cooldown, duration, slow, push and pull numbers', JSON.stringify(K(run)) === JSON.stringify(K(R0)), K(run)); }
 
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log((fail ? 'FAIL' : 'PASS') + ': ' + pass + ' passed, ' + fail + ' failed');

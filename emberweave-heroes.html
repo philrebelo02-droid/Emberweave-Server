@@ -7108,10 +7108,10 @@ const KITS={
   astra:{green:{deliver:'form',name:'Starfire',type:'nova',at:'cluster',mul:1.1,radius:2.8*METER,cd:7,gfx:'astra_green',gdur:3.5},blue:{deliver:'form',name:'Nebula',type:'aoedot',at:'cluster',mul:0.5,dps:0.5,dur:4,radius:3*METER,cd:9,gfx:'astra_blue',gdur:5.88},purple:{name:'Stardust',pass:'stardust'}},
   quorrel:{green:{deliver:'form',name:'Gag Order',type:'aoeStun',mul:1.0,stun:1.2,silence:2.5,radius:2.6*METER,cd:10,desc:"The court is called to order: every enemy in the area is struck, held, and forbidden to cast.",gfx:'quorrel_green',gdur:5.88},blue:{name:'Contempt',type:'stun',mul:1.5,stun:1.3,cd:8,gfx:'quorrel_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Tireless',pass:'fury'}},
   korvux:{green:{name:'Comet Dash',type:'charge',mul:1.5,radius:2.4*METER,stun:0.6,cd:9,gfx:'korvux_green',gdur:5.88},blue:{deliver:'form',name:'Ember Cleave',type:'cleave',mul:1.6,radius:3.2*METER,cd:7,ownFx:'chop',gfx:'korvux_blue',gdur:5.88},purple:{name:'Emberskin',pass:'immolate'}},
-  maren:{green:{deliver:'land',name:'Tide Pool',type:'ashfall',dps:0.5,dur:4,radius:3*METER,slow:2,color:'#9fe0ff',cd:8,gfx:'maren_green',gdur:5.88},blue:{deliver:'form',name:'Tsunami',type:'tidalsurge',mul:1.1,radius:3.4*METER,push:1.6*METER,slow:2.5,cd:10,gfx:'maren_blue',gdur:3.21},purple:{name:'Deep Reserves',pass:'tidereserve'}},
+  maren:{green:{deliver:'land',name:'Tide Pool',type:'ashfall',dps:0.5,dur:4,radius:3*METER,slow:2,color:'#9fe0ff',cd:8,gfx:'maren_green',gdur:5.88},blue:{deliver:'form',name:'Tsunami',type:'tidalsurge',at:'target',mul:1.1,radius:3.4*METER,push:1.6*METER,slow:2.5,cd:10,gfx:'maren_blue',gfxAt:'target',artR:6.8*METER,gdur:3.21,desc:"A wave crashes down on his target, shoving the enemies around it away and leaving them slowed."},purple:{name:'Deep Reserves',pass:'tidereserve'}},
   lumi:{green:{name:'Dawnward',type:'dawnward',dur:3,perLv:0.01,cd:11,gfx:'lumi_green',gfxR:3*METER,gdur:2.54},blue:{name:'Quickening',type:'haste',mul:1.3,perLv:0.001,dur:5,cd:9,gfx:'lumi_blue',gfxR:3*METER,gdur:3.58},purple:{name:'Hush',pass:'hush'}},
   hollow:{green:{name:'Fan of Knives',type:'bladefan',mul:0.9,radius:3*METER,angle:75,bleed:0.16,cd:7,gfx:'hollow_green',gdur:2.75,ownFx:'hfan'},blue:{name:'Lacerate',type:'bleedstack',mul:0.8,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,gfx:'hollow_blue',gfxR:3*METER,gdur:3.79,ownFx:'hlacer'},purple:{name:"The Space He Isn't In",pass:'notthere'}},
-  rivet:{green:{name:'Scattergun',type:'spread',mul:1.6,radius:3.2*METER,angle:60,falloff:0.85,minMul:0.25,cd:7,gfx:'rivet_green',gfxAt:'muzzle',desc:"Rivet fires a scrap-metal blast in a wide cone in front of him; enemies closest to the muzzle take the full charge."},blue:{deliver:'shot',name:'Smoke Bomb',type:'slow',mul:0.8,cd:9,gfx:'rivet_blue',gfxR:3*METER,desc:"Rivet lobs a sputtering smoke charge at his target, damaging it and slowing it for 2 seconds."},purple:{name:"Whatever's Loaded",pass:'arsenal'}},
+  rivet:{green:{name:'Scattergun',type:'spread',at:'target',mul:1.6,radius:3.2*METER,angle:60,falloff:0.85,minMul:0.25,cd:7,gfx:'rivet_green',gfxAt:'target',desc:"Rivet fires a scrap-metal blast that bursts around his target; the enemies closest to the target take the full charge."},blue:{deliver:'shot',name:'Smoke Bomb',type:'slow',mul:0.8,cd:9,gfx:'rivet_blue',gfxR:3*METER,desc:"Rivet lobs a sputtering smoke charge at his target, damaging it and slowing it for 2 seconds."},purple:{name:"Whatever's Loaded",pass:'arsenal'}},
   carn:{green:{name:'Reckless Blow',type:'reckless',mul:2.4,selfPct:0.06,cd:7,gfx:'carn_green',gfxR:3*METER},blue:{deliver:'form',name:'Vein Burst',type:'bloodnova',mul:0.7,missingBonus:2.2,radius:2.8*METER,cd:9,gfx:'carn_blue'},purple:{name:'Unrelenting',pass:'fury'}},
   vesper:{green:{deliver:'form',name:'Errata',type:'erratafield',dps:0.2,dur:5,radius:3*METER,silence:0.6,cd:9,gfx:'vesper_green'},blue:{name:'Loose Leaf',type:'pagestorm',mul:1.1,backMul:0.7,width:34*UNIT_SIZE,back:0.45,cd:8,gfx:'vesper_blue',gfxR:3*METER},purple:{name:'Scriptorium',pass:'scriptorium'}},
   tessit:{green:{name:'Accelerate',type:'dmgbuff',mul:1.3,perLv:0.001,dur:6,cd:8,gfx:'tessit_green',gfxR:3*METER},blue:{deliver:'shot',name:'Sleight of Hours',type:'spdsteal',dur:5,pct:0.35,perLv:0.001,cd:10,gfx:'tessit_blue',gfxR:3*METER},purple:{name:'Unwind',pass:'unwind'}},
@@ -7136,7 +7136,7 @@ const KITS={
   mirelle:{green:{name:'Scent of Courage',type:'healbuff',mul:0.95,atk:1.28,dur:6,cd:7,desc:"Sprays the weakest ally with restorative perfume, healing them and increasing their Attack.",ownFx:'mcourage',gfx:'mirelle_green',gdur:5.88},blue:{deliver:'shot',name:'Soporific Bouquet',type:'sleepbouquet',sleep:2.2,slow:3,cd:10,desc:"Releases a drifting fragrance that puts the highest-energy enemy to sleep.",ownFx:'msleep',gfx:'mirelle_blue',gfxR:3*METER,gdur:4.42},purple:{name:'Trail of Splendor',pass:'splendor',desc:"Whenever an ally receives a buff, they also gain a small stacking shield."}},
   veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33,ownFx:'crescent'},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,perLv:0.001,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88,ownFx:'mantle'},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
   vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,range:28*METER,evade:0.5,ownFx:'hook',gfx:'vex_green',gfxR:3*METER,gdur:4.58,desc:"Vex fires her hook at the most fragile enemy in reach, back-row casters first, and swings in behind them for a crushing strike."},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,ownFx:'wound',gfx:'vex_blue',gfxR:3*METER,gdur:5.25,desc:"Vex opens a deep wound that bleeds the target every second for 6 seconds."},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
-  grimsby:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6,gfx:'grimsby_green',gfxR:3*METER,gdur:5.88},blue:{deliver:'form',name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10,gfx:'grimsby_blue',gdur:5.88},purple:{name:'Compound Interest',pass:'debtaura'}},
+  grimsby:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6,gfx:'grimsby_green',gfxR:3*METER,gdur:5.88},blue:{deliver:'form',name:'Ledger Slam',type:'pullsilence',at:'target',radius:4*METER,dur:2,cd:10,gfx:'grimsby_blue',gfxAt:'target',gdur:5.88,desc:"Slams the ledger down around his target: the enemies there are yanked toward him and silenced."},purple:{name:'Compound Interest',pass:'debtaura'}},
   dandra:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,pctLo:0.10,pctHi:0.30,apR:0.30,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,slowLo:0.20,slowHi:0.35,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive less healing (30% + 0.2% a skill level) for the 5 seconds the sting lasts'}},
 };
 // ---- MONSTER kits (Batch 1) — each monster auto-casts its two chosen abilities on cooldown (no ults). ----
@@ -13733,7 +13733,8 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
      - ally-targeted heals/wards draw on the ally they land on;
      - wedge plates (cleaves, cones, breath, fans) start at the caster and point at the target (see d.cone in spawnGroundFx). */
   if(!aimCtr&&o.gfxAt!=='muzzle'&&o.gfxAt!=='target'&&o.gfxAt!=='self'){ if(_SELF_CENTRED[type]) c=u; else if(_ALLY_CENTRED[type]){ try{ const l=lowestAlly(u); if(l)c=l; }catch(e){} } }
-  window._fxCone=null; if(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ window._fxCone={dx:t.x-u.x,dy:t.y-u.y}; c=u; } }
+  window._fxCone=null; if(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ window._fxCone={dx:t.x-u.x,dy:t.y-u.y}; c=u;
+      if(o.at==='target'){ const _L=Math.hypot(t.x-u.x,t.y-u.y)||1, _r=o.radius||3*METER; c={x:t.x-(t.x-u.x)/_L*_r, y:t.y-(t.y-u.y)/_L*_r}; } } }   /* v1391: a target-centred wave (Maren's Tsunami) rolls in over its target - the wedge starts one radius short of the target, toward the caster, and is drawn artR (2 radii) long */
   let _mz=null; if(o.gfxAt==='muzzle'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }
   if(o.gfxAt==='front'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.h=0.05; _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }   /* v475: 'front' = the cast-origin point but on the ground (upright swings that start at the caster's feet) */
   /* v462 (Phil: "the center of the hand is off"): Grasping Vow yanks the FARTHEST foe but the plate was drawn on the nearest. */
@@ -14055,6 +14056,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   /* v483 (Phil: Astra's Starfire/Nebula 'should cast on an area with the most congested enemy group and do damage in that range'):
      at:'cluster' picks the densest enemy group (most foes inside the radius) and casts THERE, any distance — not around the caster. */
   if(!aimCtr&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aimCtr=c; }
+  if(o.at==='target'){ const _tu=(o._arrived&&o._tgtU&&o._tgtU.alive)?o._tgtU:((u.target&&u.target.alive&&u.target.team!==u.team)?u.target:nearestEnemy(u)); if(_tu) aimCtr={x:_tu.x,y:_tu.y}; }   /* v1391 (Phil 14 Nov: "center the back row skills on the target"): o.at==='target' - the area is centred on the skill's target (the caster's target at the cast, else the nearest enemy; a delivered cast: that target where it stands on arrival), same written radius, reached to the enemy's body edge */
   let _aimU=null; if(o.target==='weakestBack'){ _aimU=weakestBackEnemy(u); if(_aimU) aimCtr={x:_aimU.x,y:_aimU.y}; }   /* v1313 Magmourn's Fireball: picked at release, so the burst, the plate and the fire rain land on that hero */
   HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
   const tgt=_aimU||((o._arrived&&o._tgtU)?o._tgtU:((u.target&&u.target.alive)?u.target:nearestEnemy(u)));
@@ -14099,7 +14101,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         const _bx=m.x,_by=m.y; enemiesOf(u).forEach(e=>{ if(e.alive&&Math.hypot(e.x-_bx,e.y-_by)<(o.detR||2.6*METER)) dealDamage(u,e,apB*o.detonate*rm,'#e8d8b0','magic'); });
         try{ waxShatterFx(m); }catch(_e){}   /* v1115 22b: the wax splash where the coat was (display only) */
         m._waxCoatT=0; m._waxCoatBy=null; ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
-      const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
+      const C=aimCtr||u; enemiesOf(u).forEach(e=>{if((o.at==='target')?(dist(C,e)-bodyR(e)<=(o.radius||85)):(dist(C,e)<(o.radius||85))){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0');   /* v1391: Blazing Orbit (at:'target') - around her target, to the body edge */ if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
       if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
@@ -14289,13 +14291,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     // ---- Old Maren: a wave that physically SHOVES the enemy line backwards. ----
     case 'tidalsurge':{ const R=o.radius||3.4*METER, push=o.push||1.6*METER;
-      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
+      const _tsC=(o.at==='target'&&aimCtr)?aimCtr:u, _tsE=(o.at==='target')?(e=>bodyR(e)):(e=>0);   /* v1391 (Phil 14 Nov: "center the back row skills on the target"): Maren's Tsunami crashes on his target (to the body edge) and shoves the enemies away from that spot */
+      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(_tsC,e)-_tsE(e)>R)return;
         dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',o.slow||2.5);
-        if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
+        if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-_tsC.x, dy=e.y-_tsC.y, L=Math.hypot(dx,dy)||1;
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
           e._ax=e.x; e._ay=e.y; } });
-      ringBurst(u.x,u.y,0x9fe0ff,22); burstAt(u.x,u.y,0x6fb6d0,14);
-      floatTexts.push({x:u.x,y:u.y-12,txt:'TSUNAMI',t:1.0,color:'#9fe0ff',vy:1,sz:13}); break; }
+      ringBurst(_tsC.x,_tsC.y,0x9fe0ff,22); burstAt(_tsC.x,_tsC.y,0x6fb6d0,14);
+      floatTexts.push({x:_tsC.x,y:_tsC.y-12,txt:'TSUNAMI',t:1.0,color:'#9fe0ff',vy:1,sz:13}); break; }
 
     // ---- Lumi: the ally nearest death simply cannot fall for a few seconds. ----
     case 'dawnward':{ const l=lowestAlly(u); if(!l)break; l._wardT=skLvNum('dawnward',o,_kLv);
@@ -14316,6 +14319,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     // ---- Rivet: a real shotgun — brutal point-blank, feeble at range. ----
     case 'spread':{ const R=o.radius||3.2*METER, half=((o.angle||60)*Math.PI/180)/2;
       const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI);
+      if(o.at==='target'){ const C=aimCtr; if(!C)break;   /* v1391 (Phil 14 Nov: "center the back row skills on the target"): Rivet's Scattergun - a cone from a hero who stands 12 m back reached nobody, and a cone cannot be centred on the target, so it is a 3.2 m burst AT the target: every enemy whose body is within 3.2 m of it, the same falloff by that distance (the target takes the full charge) */
+        enemiesOf(u).forEach(e=>{ if(!e.alive)return; const d=Math.max(0,dist(C,e)-bodyR(e)); if(d>R)return; const falloff=Math.max(o.minMul||0.25, 1-(d/R)*(o.falloff||0.85)); dealDamage(u,e,dB*(o.mul||1.6)*falloff*rm,'#ffd9a8'); });
+        burstAt(C.x,C.y,0xffd9a8,14); break; }
       enemiesOf(u).forEach(e=>{ if(!e.alive)return; const d=dist(u,e); if(d>R)return;
         let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI;
         if(Math.abs(a)>half)return;
@@ -14804,13 +14810,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'gravknot':{                                               // "nearby enemies are pulled together and slowed"
       const R=o.radius||4*METER; let n=0;
-      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return; n++;
+      const _kc=(o.at==='target'&&aimCtr)?{x:aimCtr.x,y:aimCtr.y}:u, _kE=(o.at==='target')?(e=>bodyR(e)):(e=>0);   /* v1391 (Phil 14 Nov: "center the back row skills on the target"): Absalie's knot forms on her target - the enemies within 4 m of it (to the body edge) are pulled toward the target's spot and slowed */
+      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(_kc,e)-_kE(e)>R)return; n++;
         if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
-          const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
+          const dx=_kc.x-e.x, dy=_kc.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         ccApply(u,e,'slow',o.slow||3);
         if(o.mul) dealDamage(u,e,apB*(o.mul||0.6)*rm,o.color||'#9b5cff','magic'); });
-      ringBurst(u.x,u.y,0x6a3fb0,18); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
+      ringBurst(_kc.x,_kc.y,0x6a3fb0,18); if(n)floatTexts.push({x:_kc.x,y:_kc.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
 
     case 'thornguard':{                                             // "a defensive brace shields him and retaliates against direct attacks"
       u.shield=Math.max(u.shield||0,u.maxHp*(o.pct||0.16)*sm); u.shieldT=Math.max(u.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): Thunder Guard shield had no timer and stacked */
@@ -14897,14 +14904,15 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,(dur)+edgeTauntPlus(u,e)); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
+      const _psC=(o.at==='target'&&aimCtr)?aimCtr:u, _psE=(o.at==='target');   /* v1391 (Phil 14 Nov: "center the back row skills on the target"): Grimsby's Ledger Slam lands around his target (to the body edge); the drag, silence and taunt are unchanged (toward him, as Grosk's) */
+      enemiesOf(u).forEach(e=>{ if(_psE?(dist(_psC,e)-bodyR(e)<=R):(dist(u,e)<=R)){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,(dur)+edgeTauntPlus(u,e)); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
       /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX ... i asked you to use
          her own"). This burst was hardcoded gold-brown, which is Grosk's palette — he is the other
          hero on `pullsilence` — so Void Weaver's Gravity Knot painted his colours over her own
          absalie_blue_fx plate and read in a fight as somebody else's spell. The colours now come
          from the ability when it declares them; Grosk's stay exactly as they were. */
       { const c1=(o.ring!=null?o.ring:0x9a7b40), c2=(o.spark!=null?o.spark:0xcaa050);
-        ringBurst(u.x,u.y,c1,16); burstAt(u.x,u.y,c2,14); } break; }
+        ringBurst(_psC.x,_psC.y,c1,16); burstAt(_psC.x,_psC.y,c2,14); } break; }
     case 'punchflurry':{ const tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
       /* v1112 (Phil 10 Oct: "the damage dealt should land when the punch is fully extended each time"): a kit with hitTimes lands each
          punch at its moment in the clip (seconds of clip from the cast start = the clip start; clips play in real time and the fight
@@ -15329,6 +15337,7 @@ function deliverLaunch(u,type,o){ try{
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
   const _far=(o.farthest>0)?enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest):null;   /* v1030: Swampcall - the N farthest enemies */
   let tU=(_far&&_far.length)?_far[0]:(deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u)));   /* v935: the shot flies to the enemy the spell will affect */
+  if(o.at==='target'&&tU) aim={x:tU.x,y:tU.y};   /* v1391: a target-centred area forms (and draws) on that target */
   if(mode==='shot'&&!tU) return false;
   /* v1180 Rim Breaker (Phil 16 Oct: "it should be thrown at the furthest person within 10 meters, and strikes anyone along the way, stunning them"):
      o.pierce - the shot flies at the FURTHEST living enemy within o.pierce.range of him at the release (none in range: the target it had, as before),
@@ -19422,7 +19431,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
       const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4); (es.length?es:[T]).forEach(e=>rainDown(e.x,e.y,26,5,0x8fffb0)); break; }
     case 'aoeStun': case 'stun': boltAt(u.x,u.y,0x8fd0ff); ringBurst(u.x,u.y,0x6ea8ff,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.28); break;
     case 'monkSlam': boltAt(u.x,u.y,0xffe08a); ringBurst(u.x,u.y,0xffcf40,20); burstAt(u.x,u.y,0xffe08a,14); if(u.team==='ally')screenFlash=Math.max(screenFlash,.32); break;
-    case 'nova': ringBurst(u.x,u.y,o.slow?0x7fb0ff:0xff8844,20); break;
+    case 'nova': { const _c=(o.at==='target'&&tgt&&tgt.alive)?tgt:u; ringBurst(_c.x,_c.y,o.slow?0x7fb0ff:0xff8844,20); break; }   /* v1391: a target-centred nova (Blazing Orbit) rings on the target */
     case 'cleave': ringBurst(u.x,u.y,0xffa657,14); burstAt(u.x,u.y,0xffa657,12); break;
     case 'burst': if(tgt){ burstAt(tgt.x,tgt.y,0xff8fb0,18); ringBurst(tgt.x,tgt.y,0xff8fb0,10); } break;
     case 'execute': if(tgt){ ringBurst(tgt.x,tgt.y,0xff5b6b,14); } break;
@@ -26631,10 +26640,10 @@ BATTLE_ANIM.ambrel.death11={u:'/assets/anim/ambrel/ambrel_death11_18oct26.webp?v
 BATTLE_ANIM.ambrel.death12={u:'/assets/anim/ambrel/ambrel_death12_18oct26.webp?v=18oct26',n:4,first:44,fw:227,fh:45,cols:1,rows:4,figH:221,feet:31,top:-190,cx:97.9,fps:8,flip:false,lazy:true};
 /* DEATH TABLE END */
 Object.assign(KITS, {
-  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',deliver:'shot',speed:16*METER,gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',deliver:'form',form:0.35,gdur:6.04,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
+  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',deliver:'shot',speed:16*METER,gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',at:'target',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A ring of flame erupts around her target, damaging every enemy caught in it and repelling those around the target.",gfxAt:'target',deliver:'form',form:0.35,gdur:6.04,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
   iver:{green:{name:'Volt Pike',type:'piercethrow',mul:1.5,width:34*UNIT_SIZE,cd:7,desc:"A piercing spear thrust damages enemies in a narrow line.",pfx:'iver_green_fx',pscale:2.6,gfx:'iver_green',gfxR:3*METER,gdur:2.62},blue:{name:'Thunder Guard',type:'thornguard',pct:0.18,thorn:0.6,dur:5,cd:9,desc:"A defensive brace shields him and retaliates against direct attacks.",gfxAt:'self',gdur:5.29,gfx:'iver_blue',gfxR:3*METER},purple:{name:'Static Charge',pass:'staticcharge',desc:"Attacks build Charge; at maximum, his next ability chains."}},
   sloe:{green:{deliver:'shot',name:'Thornshot',type:'shred',mul:1.55,shred:0.32,dur:5,cd:6,desc:"A piercing arrow lowers the target's armor.",pfx:'sloe_green_fx',pscale:2.4,gfx:'sloe_green',gfxR:3*METER},blue:{deliver:'form',name:'Vine Snare',type:'swamproot',mul:0.85,root:2.2,radius:2.4*METER,cd:10,desc:"A delayed forest mark roots an advancing enemy.",gdur:1.8,gfx:'sloe_blue'},purple:{name:"Hunter's Patience",pass:'patience',desc:"Continuous attacks against one target gain critical chance."}},
-  absalie:{green:{deliver:'shot',name:'Abyssal Needle',type:'mrshred',mul:1.5,shred:0.32,dur:5,cd:6,desc:"Compressed void energy lowers enemy magic resistance.",pfx:'absalie_green_fx',pscale:2.2,gfx:'absalie_green',gfxR:3*METER},blue:{deliver:'form',name:'Gravity Knot',type:'gravknot',mul:0.6,radius:4*METER,pull:2.2*METER,slow:3,cd:10,desc:"Nearby enemies are pulled together and slowed.",gdur:1.8,ring:0x6a3fb0,spark:0x9b5cff,gfx:'absalie_blue'},purple:{name:'Dark Convergence',pass:'convergence',desc:"Multi-target spells restore additional energy."}},
+  absalie:{green:{deliver:'shot',name:'Abyssal Needle',type:'mrshred',mul:1.5,shred:0.32,dur:5,cd:6,desc:"Compressed void energy lowers enemy magic resistance.",pfx:'absalie_green_fx',pscale:2.2,gfx:'absalie_green',gfxR:3*METER},blue:{deliver:'form',name:'Gravity Knot',type:'gravknot',at:'target',mul:0.6,radius:4*METER,pull:2.2*METER,slow:3,cd:10,desc:"The enemies around her target are pulled together toward it and slowed.",gfxAt:'target',gdur:1.8,ring:0x6a3fb0,spark:0x9b5cff,gfx:'absalie_blue'},purple:{name:'Dark Convergence',pass:'convergence',desc:"Multi-target spells restore additional energy."}},
   joss:{green:{name:'Radiant Hammer',type:'atkcrush',mul:1.45,pct:0.35,stun:0.5,dur:5,cd:8,desc:"A crushing strike reduces the target's attack power.",gfxAt:'target',gdur:1.2,gfx:'joss_green',gfxR:3*METER},blue:{name:'Sanctuary Guard',type:'lastbreath',mul:1.9,dur:5,cd:10,desc:"His shield protects the weakest ally and intercepts damage.",gfxAt:'self',gdur:1.6,gfx:'joss_blue'},purple:{name:'Unbroken Dawn',pass:'unbroken',desc:"At low health he gains a shield and control resistance once per battle."}},
   ambrel:{green:{deliver:'form',name:'Cathedral Gates',type:'aoeStun',mul:1.1,stun:1.3,radius:2.8*METER,cd:10,desc:"Slam the cathedral-door shield forward, stunning enemies in a wide arc.",gfxAt:'self',gdur:1.6,gfx:'ambrel_green'},blue:{deliver:'form',name:'Incense of Penance',type:'incense',mul:0.4,pct:0.25,radius:5*METER,dur:6,cd:9,desc:"Release holy incense that reduces enemy damage and cleanses nearby allies.",gfxAt:'self',gdur:2.0,gfx:'ambrel_blue',gfxR:3*METER},purple:{name:'Sacred Bells',pass:'sacredbells',desc:"Every few seconds, the cathedral bells ring and grant nearby allies Armor."}},
   tolley:{green:{deliver:'land',name:'Forge Strike',type:'cleave',mul:1.8,radius:3*METER,cd:7,desc:"Command the molten hammer to crash down and deal heavy damage.",gfxAt:'target',gdur:1.4,gfx:'tolley_green',ownFx:'tforge'},blue:{name:'Chain Quench',type:'chainquench',mul:0.85,dps:0.35,dur:4,radius:4.5*METER,pull:2.4*METER,cd:10,desc:"Lash out with molten chains, pulling enemies together and burning them.",gfxAt:'self',gdur:1.8,gfx:'tolley_blue',deliver:'form',form:0.3,ownFx:'tquench'},purple:{name:'Tempered Steel',pass:'warden',desc:"Each successful hit hardens his armor and increases Defense."}},
