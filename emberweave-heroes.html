@@ -7377,7 +7377,7 @@ function resetPerWave(){ try{ for(const u of units){ if(u&&u._wlCrit){ u.glyphCr
 if(typeof TalentFx!=='undefined'&&TalentFx.bind) TalentFx.bind({ units:()=>units, now:()=>battleTime, rage:()=>rageMul, rnd:()=>brnd(), METER:()=>METER,
   dist:(a,b)=>dist(a,b), damage:(u,a,c,ne)=>damage(u,a,c,ne), healUnit:(u,a)=>healUnit(u,a), healCap:u=>worldHealCap(u), pushDot:(t,dps,dur,iv,col,src,kind)=>pushDot(t,dps,dur,iv,col,src,kind),
   defMul:(s,t,k)=>defMul(s,t,k), ccDur:d=>ccDur(d), bodyR:u=>bodyR(u), ccCap:f=>CC_DUR_MAX[f], pushHot:(t,hps,dur,iv)=>pushHot(t,hps,dur,iv),
-  slowMul:u=>slowMulFor((u&&u._castLv)||(u&&u.level)||1), healFrom:(s,t,a)=>healFrom(s,t,a), lowestAlly:u=>lowestAlly(u), pitch:(u,sym)=>SKLV[sym?'pitchSymphony':'pitch'](passLv(u)), fx:{ chill:(t,u)=>{ if(!(u&&u.pass&&u.pass.coldsnap)) return false; applyChill(t); } } });   /* Chill exists only with Cold Snap unlocked, as for her skills */
+  slowMul:u=>slowMulFor((u&&u._castLv)||(u&&u.level)||1), healFrom:(s,t,a)=>healFrom(s,t,a), lowestAlly:u=>lowestAlly(u), densest:(u,R)=>densestEnemyCluster(u,R), pitch:(u,sym)=>SKLV[sym?'pitchSymphony':'pitch'](passLv(u)), fx:{ chill:(t,u)=>{ if(!(u&&u.pass&&u.pass.coldsnap)) return false; applyChill(t); } } });   /* Chill exists only with Cold Snap unlocked, as for her skills */
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -12670,7 +12670,9 @@ function damage(u,a,c,noEnergy,crit){
      Sylphice heals herself back to full inside 90 seconds, so an HP-at-the-end meter scored a whole
      squad's run as zero (found in the rig). Every point that lands is counted here, once, on the
      one line that actually removes a boss's health. */
+  if(u._talW&&!noEnergy) TalentFx.nrgPre(u);   /* TALENT HOOK nrgPre: the energy a watched unit has before this hit's gain */
   if(u._raidBoss) u._raidDmgTaken=(u._raidDmgTaken||0)+Math.max(0,Math.min(a,(u.hp+a))); if(!noEnergy)u.energy=Math.min(100,u.energy+7*(((u._nrgSlowT||0)>0)?(1-(u._nrgSlowPct||0.4)):1));   // v527: Spiral Current / Venom Rhythm slow the charge
+  if(u._talW&&!noEnergy) u.energy=TalentFx.nrgIn(u);   /* TALENT HOOK nrgIn: a talented unit watching it may cut the energy it gained from this hit */
   // v253 (visual audit #5): restrained, TYPED damage colours — physical warm, magical cool,
   // healing green, shields pale gold. Crits stay bigger and brighter within their own family.
   if(Math.round(a)>0){ const _k=u._lastHitKind||'phys';
@@ -14138,6 +14140,7 @@ function ccApply(u, t, field, dur){
   }
   t[field] = Math.max(t[field] || 0, dur);
   if(u&&u._tal&&u._tal.on.ccHit) TalentFx.ccHit(u,t,field,dur);   /* TALENT HOOK ccHit: a control effect landed (after the resist roll) */
+  if(t._talW) TalentFx.teamCc(t,u,field,dur);   /* TALENT HOOK teamCc: a control landed on a unit a talented hero watches */
   return true;
 }
 /* v797 (Phil: "the cast time should start at the exact same time as the animation starts") -
@@ -14954,13 +14957,15 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'gravknot':{                                               // "nearby enemies are pulled together and slowed"
       const R=o.radius||4*METER; let n=0;
-      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return; n++;
+      const _kc=(u._tal&&u._tal.on.skillTgt)?(TalentFx.skillTgt(u,type,u,o)||u):u;   /* TALENT HOOK skillTgt: the knot's centre (Absalie herself; a talent may move it) */
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,type,_kc,o,apB*(o.mul||0.6)*rm);   /* TALENT HOOK at: where the knot forms */
+      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(_kc,e)>R)return; n++;
         if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
-          const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
+          const dx=_kc.x-e.x, dy=_kc.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         ccApply(u,e,'slow',o.slow||3);
         if(o.mul) dealDamage(u,e,apB*(o.mul||0.6)*rm,o.color||'#9b5cff','magic'); });
-      ringBurst(u.x,u.y,0x6a3fb0,18); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
+      ringBurst(_kc.x,_kc.y,0x6a3fb0,18); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
 
     case 'thornguard':{                                             // "a defensive brace shields him and retaliates against direct attacks"
       u.shield=Math.max(u.shield||0,u.maxHp*(o.pct||0.16)*sm); u.shieldT=Math.max(u.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): Thunder Guard shield had no timer and stacked */
@@ -15080,6 +15085,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          aimed point drags every enemy in for `pull` seconds, then collapses: AP damage + silence (no stun — that is Vulmar's). */
       const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||7*METER, pullT=o.pull||1.2;
       const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y)); const caught=[];
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,type,{x:cx,y:cy},o,apB*(o.mul||1.9)*rm);   /* TALENT HOOK at: where the singularity forms */
       enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
       const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
       const und=(type==='abyssalundertow');   /* v1391: decided by the effect code, not the hero key. v1136 Abyssal Undertow (Phil 14 Oct "rename and change veyrs"): Veyr's own version - the same drag and damage, but the
@@ -17239,7 +17245,10 @@ function think(u,dt){
   // Umbral Cataclysm: at release the orb leaves his hand (fly); on land it spawns the void zone + slam.
   if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; if(typeof SFX!=='undefined'&&SFX.loop) sfxMoment(u,'ult',sfxTickT(u._voidLandT,true),'deliver'); } } }   /* v1138 sound: the orb lands (counted down below this tick) */
   if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */ if(typeof SFX!=='undefined'&&SFX.log) sfxArrive(u,H);
-      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,H.slow?'#5fa8ff':'#9b5cff'); if(H.slow) e.slow=Math.max(e.slow||0,ccDur(H.slow)); else e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
+      if(u._tal) TalentFx.landPre(u,null,H.slow?'abyssalundertow':'eventhorizon');   /* TALENT HOOK landPre: while the collapse resolves, its hits are that skill's */
+      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,H.slow?'#5fa8ff':'#9b5cff'); if(H.slow) e.slow=Math.max(e.slow||0,ccDur(H.slow)); else e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null;
+        if(!H.slow&&e.alive&&u._tal&&(u._tal.on.ccHit||u._tal.on.ccOut)) TalentFx.ccHit(u,e,'silencedT',ccDur(H.sil),true); });   /* TALENT HOOK ccHit (direct): the collapse writes its silence without ccApply */
+      if(u._tal) TalentFx.land(u,null,H.slow?'abyssalundertow':'eventhorizon');   /* TALENT HOOK land: the collapse has resolved */
       ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       u._horizon=null; } }
   if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null; if(typeof SFX!=='undefined'&&SFX.log) sfxNote('arrive',{hero:u.key,due:+battleTime.toFixed(4)});

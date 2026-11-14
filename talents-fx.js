@@ -50,8 +50,215 @@
     if(T.shield) u.shieldStr=(u.shieldStr||1)*Math.max(0.05,1+T.shield);
     return u; }
   const has=(hero,id)=>!!(DATA.stats[hero]&&DATA.stats[hero][id]);
-  const TREES={"astra":{"ids":["slow_burn","held_star","second_sky"],"of":{"hs_10_1":1,"hs_10_2":1,"hs_10_3":1,"hs_11_1":1,"hs_11_2":1,"hs_11_4":1,"hs_12_2":1,"hs_12_3":1,"hs_12_4":1,"hs_13_3":1,"hs_1_1":1,"hs_1_3":1,"hs_1_4":1,"hs_2_1":1,"hs_2_2":1,"hs_2_4":1,"hs_3_1":1,"hs_3_3":1,"hs_3_4":1,"hs_4_1":1,"hs_4_2":1,"hs_4_3":1,"hs_5_2":1,"hs_5_3":1,"hs_5_4":1,"hs_6_1":1,"hs_6_2":1,"hs_6_4":1,"hs_7_1":1,"hs_7_2":1,"hs_7_4":1,"hs_8_1":1,"hs_8_3":1,"hs_8_4":1,"hs_9_2":1,"hs_9_3":1,"hs_9_4":1,"hs_n1":1,"hs_n2":1,"hs_n3":1,"sb_10_1":0,"sb_10_2":0,"sb_10_4":0,"sb_11_2":0,"sb_11_3":0,"sb_11_4":0,"sb_12_1":0,"sb_12_3":0,"sb_12_4":0,"sb_13_3":0,"sb_1_1":0,"sb_1_2":0,"sb_1_4":0,"sb_2_2":0,"sb_2_3":0,"sb_2_4":0,"sb_3_1":0,"sb_3_4":0,"sb_4_2":0,"sb_4_3":0,"sb_4_4":0,"sb_5_1":0,"sb_5_2":0,"sb_5_3":0,"sb_5_4":0,"sb_6_1":0,"sb_6_3":0,"sb_6_4":0,"sb_7_2":0,"sb_7_3":0,"sb_7_4":0,"sb_8_1":0,"sb_8_2":0,"sb_8_4":0,"sb_9_1":0,"sb_9_2":0,"sb_9_3":0,"sb_n1":0,"sb_n2":0,"sb_n3":0,"ss_10_1":2,"ss_10_3":2,"ss_10_4":2,"ss_11_1":2,"ss_11_2":2,"ss_11_3":2,"ss_12_1":2,"ss_12_2":2,"ss_12_4":2,"ss_13_2":2,"ss_1_1":2,"ss_1_3":2,"ss_1_4":2,"ss_2_1":2,"ss_2_3":2,"ss_2_4":2,"ss_3_1":2,"ss_3_2":2,"ss_3_3":2,"ss_4_1":2,"ss_4_2":2,"ss_4_4":2,"ss_5_1":2,"ss_5_2":2,"ss_5_3":2,"ss_5_4":2,"ss_6_1":2,"ss_6_3":2,"ss_6_4":2,"ss_7_2":2,"ss_7_3":2,"ss_7_4":2,"ss_8_1":2,"ss_8_2":2,"ss_8_3":2,"ss_9_1":2,"ss_9_2":2,"ss_9_4":2}},"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vex":{"ids":["ropewalker","slow_cut","short_list"],"of":{"rw_10_1":0,"rw_10_2":0,"rw_10_4":0,"rw_11_1":0,"rw_11_2":0,"rw_11_3":0,"rw_12_1":0,"rw_12_2":0,"rw_12_3":0,"rw_12_4":0,"rw_13_2":0,"rw_1_1":0,"rw_1_3":0,"rw_1_4":0,"rw_2_1":0,"rw_2_2":0,"rw_2_3":0,"rw_3_1":0,"rw_3_3":0,"rw_3_4":0,"rw_4_1":0,"rw_4_2":0,"rw_4_3":0,"rw_5_1":0,"rw_5_2":0,"rw_5_3":0,"rw_5_4":0,"rw_6_1":0,"rw_6_2":0,"rw_6_3":0,"rw_6_4":0,"rw_7_1":0,"rw_7_3":0,"rw_7_4":0,"rw_8_1":0,"rw_8_2":0,"rw_8_3":0,"rw_9_1":0,"rw_9_3":0,"rw_9_4":0,"rw_n1":0,"rw_n2":0,"sc_10_1":1,"sc_10_2":1,"sc_10_4":1,"sc_11_1":1,"sc_11_2":1,"sc_11_3":1,"sc_12_1":1,"sc_12_2":1,"sc_12_3":1,"sc_12_4":1,"sc_13_2":1,"sc_1_1":1,"sc_1_3":1,"sc_1_4":1,"sc_2_1":1,"sc_2_2":1,"sc_2_3":1,"sc_3_1":1,"sc_3_3":1,"sc_3_4":1,"sc_4_1":1,"sc_4_2":1,"sc_4_3":1,"sc_5_1":1,"sc_5_2":1,"sc_5_3":1,"sc_5_4":1,"sc_6_1":1,"sc_6_2":1,"sc_6_3":1,"sc_6_4":1,"sc_7_1":1,"sc_7_2":1,"sc_7_3":1,"sc_7_4":1,"sc_8_1":1,"sc_8_3":1,"sc_9_2":1,"sc_9_4":1,"sc_n1":1,"sc_n2":1,"sl_10_1":2,"sl_10_2":2,"sl_10_3":2,"sl_11_1":2,"sl_11_2":2,"sl_11_4":2,"sl_12_1":2,"sl_12_2":2,"sl_12_3":2,"sl_12_4":2,"sl_13_2":2,"sl_1_1":2,"sl_1_2":2,"sl_1_4":2,"sl_2_1":2,"sl_2_2":2,"sl_2_3":2,"sl_3_1":2,"sl_3_3":2,"sl_3_4":2,"sl_4_1":2,"sl_4_2":2,"sl_4_3":2,"sl_5_2":2,"sl_5_3":2,"sl_5_4":2,"sl_6_1":2,"sl_6_2":2,"sl_6_3":2,"sl_6_4":2,"sl_7_1":2,"sl_7_3":2,"sl_7_4":2,"sl_8_1":2,"sl_8_2":2,"sl_8_3":2,"sl_9_2":2,"sl_9_3":2,"sl_9_4":2,"sl_n1":2,"sl_n2":2,"sl_n3":2}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
+  const TREES={"absalie":{"ids":["empty_chair","great_knot","the_unsaid"],"of":{"ec_10_1":0,"ec_10_2":0,"ec_10_3":0,"ec_11_2":0,"ec_11_3":0,"ec_11_4":0,"ec_12_1":0,"ec_12_2":0,"ec_12_3":0,"ec_13_3":0,"ec_1_1":0,"ec_1_3":0,"ec_1_4":0,"ec_2_1":0,"ec_2_2":0,"ec_2_4":0,"ec_3_1":0,"ec_3_4":0,"ec_4_1":0,"ec_4_2":0,"ec_4_3":0,"ec_5_1":0,"ec_5_2":0,"ec_5_3":0,"ec_5_4":0,"ec_6_1":0,"ec_6_2":0,"ec_6_4":0,"ec_7_1":0,"ec_7_2":0,"ec_7_3":0,"ec_7_4":0,"ec_8_2":0,"ec_8_3":0,"ec_8_4":0,"ec_9_1":0,"ec_9_3":0,"ec_9_4":0,"ec_n1":0,"ec_n2":0,"gk_10_1":1,"gk_10_3":1,"gk_10_4":1,"gk_11_1":1,"gk_11_2":1,"gk_11_4":1,"gk_12_1":1,"gk_12_2":1,"gk_12_4":1,"gk_13_2":1,"gk_1_1":1,"gk_1_2":1,"gk_1_4":1,"gk_2_1":1,"gk_2_3":1,"gk_2_4":1,"gk_3_1":1,"gk_3_2":1,"gk_3_3":1,"gk_3_4":1,"gk_4_2":1,"gk_4_3":1,"gk_4_4":1,"gk_5_1":1,"gk_5_2":1,"gk_5_3":1,"gk_5_4":1,"gk_6_1":1,"gk_6_2":1,"gk_6_4":1,"gk_7_1":1,"gk_7_2":1,"gk_7_3":1,"gk_7_4":1,"gk_8_2":1,"gk_8_3":1,"gk_8_4":1,"gk_9_1":1,"gk_9_2":1,"gk_9_3":1,"us_10_1":2,"us_10_3":2,"us_10_4":2,"us_11_1":2,"us_11_3":2,"us_11_4":2,"us_12_1":2,"us_12_3":2,"us_12_4":2,"us_13_3":2,"us_1_1":2,"us_1_3":2,"us_1_4":2,"us_2_1":2,"us_2_2":2,"us_2_4":2,"us_3_1":2,"us_3_2":2,"us_4_1":2,"us_4_2":2,"us_4_4":2,"us_5_1":2,"us_5_2":2,"us_5_3":2,"us_5_4":2,"us_6_1":2,"us_6_3":2,"us_6_4":2,"us_7_1":2,"us_7_2":2,"us_7_3":2,"us_8_2":2,"us_8_3":2,"us_8_4":2,"us_9_1":2,"us_9_2":2,"us_9_4":2,"us_n1":2}},"astra":{"ids":["slow_burn","held_star","second_sky"],"of":{"hs_10_1":1,"hs_10_2":1,"hs_10_3":1,"hs_11_1":1,"hs_11_2":1,"hs_11_4":1,"hs_12_2":1,"hs_12_3":1,"hs_12_4":1,"hs_13_3":1,"hs_1_1":1,"hs_1_3":1,"hs_1_4":1,"hs_2_1":1,"hs_2_2":1,"hs_2_4":1,"hs_3_1":1,"hs_3_3":1,"hs_3_4":1,"hs_4_1":1,"hs_4_2":1,"hs_4_3":1,"hs_5_2":1,"hs_5_3":1,"hs_5_4":1,"hs_6_1":1,"hs_6_2":1,"hs_6_4":1,"hs_7_1":1,"hs_7_2":1,"hs_7_4":1,"hs_8_1":1,"hs_8_3":1,"hs_8_4":1,"hs_9_2":1,"hs_9_3":1,"hs_9_4":1,"hs_n1":1,"hs_n2":1,"hs_n3":1,"sb_10_1":0,"sb_10_2":0,"sb_10_4":0,"sb_11_2":0,"sb_11_3":0,"sb_11_4":0,"sb_12_1":0,"sb_12_3":0,"sb_12_4":0,"sb_13_3":0,"sb_1_1":0,"sb_1_2":0,"sb_1_4":0,"sb_2_2":0,"sb_2_3":0,"sb_2_4":0,"sb_3_1":0,"sb_3_4":0,"sb_4_2":0,"sb_4_3":0,"sb_4_4":0,"sb_5_1":0,"sb_5_2":0,"sb_5_3":0,"sb_5_4":0,"sb_6_1":0,"sb_6_3":0,"sb_6_4":0,"sb_7_2":0,"sb_7_3":0,"sb_7_4":0,"sb_8_1":0,"sb_8_2":0,"sb_8_4":0,"sb_9_1":0,"sb_9_2":0,"sb_9_3":0,"sb_n1":0,"sb_n2":0,"sb_n3":0,"ss_10_1":2,"ss_10_3":2,"ss_10_4":2,"ss_11_1":2,"ss_11_2":2,"ss_11_3":2,"ss_12_1":2,"ss_12_2":2,"ss_12_4":2,"ss_13_2":2,"ss_1_1":2,"ss_1_3":2,"ss_1_4":2,"ss_2_1":2,"ss_2_3":2,"ss_2_4":2,"ss_3_1":2,"ss_3_2":2,"ss_3_3":2,"ss_4_1":2,"ss_4_2":2,"ss_4_4":2,"ss_5_1":2,"ss_5_2":2,"ss_5_3":2,"ss_5_4":2,"ss_6_1":2,"ss_6_3":2,"ss_6_4":2,"ss_7_2":2,"ss_7_3":2,"ss_7_4":2,"ss_8_1":2,"ss_8_2":2,"ss_8_3":2,"ss_9_1":2,"ss_9_2":2,"ss_9_4":2}},"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vex":{"ids":["ropewalker","slow_cut","short_list"],"of":{"rw_10_1":0,"rw_10_2":0,"rw_10_4":0,"rw_11_1":0,"rw_11_2":0,"rw_11_3":0,"rw_12_1":0,"rw_12_2":0,"rw_12_3":0,"rw_12_4":0,"rw_13_2":0,"rw_1_1":0,"rw_1_3":0,"rw_1_4":0,"rw_2_1":0,"rw_2_2":0,"rw_2_3":0,"rw_3_1":0,"rw_3_3":0,"rw_3_4":0,"rw_4_1":0,"rw_4_2":0,"rw_4_3":0,"rw_5_1":0,"rw_5_2":0,"rw_5_3":0,"rw_5_4":0,"rw_6_1":0,"rw_6_2":0,"rw_6_3":0,"rw_6_4":0,"rw_7_1":0,"rw_7_3":0,"rw_7_4":0,"rw_8_1":0,"rw_8_2":0,"rw_8_3":0,"rw_9_1":0,"rw_9_3":0,"rw_9_4":0,"rw_n1":0,"rw_n2":0,"sc_10_1":1,"sc_10_2":1,"sc_10_4":1,"sc_11_1":1,"sc_11_2":1,"sc_11_3":1,"sc_12_1":1,"sc_12_2":1,"sc_12_3":1,"sc_12_4":1,"sc_13_2":1,"sc_1_1":1,"sc_1_3":1,"sc_1_4":1,"sc_2_1":1,"sc_2_2":1,"sc_2_3":1,"sc_3_1":1,"sc_3_3":1,"sc_3_4":1,"sc_4_1":1,"sc_4_2":1,"sc_4_3":1,"sc_5_1":1,"sc_5_2":1,"sc_5_3":1,"sc_5_4":1,"sc_6_1":1,"sc_6_2":1,"sc_6_3":1,"sc_6_4":1,"sc_7_1":1,"sc_7_2":1,"sc_7_3":1,"sc_7_4":1,"sc_8_1":1,"sc_8_3":1,"sc_9_2":1,"sc_9_4":1,"sc_n1":1,"sc_n2":1,"sl_10_1":2,"sl_10_2":2,"sl_10_3":2,"sl_11_1":2,"sl_11_2":2,"sl_11_4":2,"sl_12_1":2,"sl_12_2":2,"sl_12_3":2,"sl_12_4":2,"sl_13_2":2,"sl_1_1":2,"sl_1_2":2,"sl_1_4":2,"sl_2_1":2,"sl_2_2":2,"sl_2_3":2,"sl_3_1":2,"sl_3_3":2,"sl_3_4":2,"sl_4_1":2,"sl_4_2":2,"sl_4_3":2,"sl_5_2":2,"sl_5_3":2,"sl_5_4":2,"sl_6_1":2,"sl_6_2":2,"sl_6_3":2,"sl_6_4":2,"sl_7_1":2,"sl_7_3":2,"sl_7_4":2,"sl_8_1":2,"sl_8_2":2,"sl_8_3":2,"sl_9_2":2,"sl_9_3":2,"sl_9_4":2,"sl_n1":2,"sl_n2":2,"sl_n3":2}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
   const MECH={};
+  MECH["absalie"]=(function(){const module={exports:{}};
+/* ABSALIE - what her learned talents do in a fight (the mechanics; her 9 plain stat talents are read from their tooltips by the generator).
+   Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
+   A correction to a number or a condition is an edit HERE, then:  python tools/build_talent_fx.py
+   How rows are written: WIRING/03 - MECHANICS LAYER (hooks, primitives, how to add a hero).md (section 15: what Absalie added)
+   Her real kit (the code, not the tooltip wording):
+   - Abyssal Needle ('mrshred', green, cd 6, delivered as a shot): 150% of ability power x skill level, magic, to her target; then that enemy's magic resist is cut
+     by o.shred (32%, a third of the skill curve on top, at most 45%) for o.dur (5 s): _mrShredPct / _mrShredT. Single target.
+   - Gravity Knot ('gravknot', blue, cd 10, formed where she stands): every enemy whose CENTRE is within 4 m (o.radius) of HER is moved at once 60% of the way
+     toward her, at most o.pull (2.2 m) (not an immovable one), slowed through ccApply (the control table's area slow: 3 s x the 30% cut = 2.1 s) and struck
+     for 60% of ability power x level (magic). She stands in the back row, so the plain Knot catches only enemies that came to her.
+   - Event Horizon ('eventhorizon', ultimate, player-aimed or the densest group): every enemy whose centre is within 7 m of its centre is caught and dragged
+     toward it with the engine's own drag, which HAS a stopping distance (pullStop 6): it really moves them (unlike Astra's Collapsing Star). After the drag
+     (1.2 s x BATTLE_PACE) it collapses: 190% x level to each caught enemy still alive, and their silence is WRITTEN STRAIGHT ON (1.05 s, no ccApply).
+     Veyr's Abyssal Undertow runs the same code with a slow instead; every hook passes its own skill name.
+   - Dark Convergence (passive): at the PRESS of an area ability (castKit: only Gravity Knot) she gets 4 x 3 energy x her passive's level, however many it
+     will hit. Never for the Needle (one target), never for Event Horizon (the ultimate does not go through castKit).
+   - A silence cancels a cast under way (castTick): that is how her talents "interrupt" and make a cast "fail"; the cooldown spent at the press stays spent.
+   Page hooks used for her (doc 03 section 15): 'at' in the Knot and Event Horizon cases (where they form; marks 'gkC' / 'ehC' = what they catch, as the skill
+   measures, centre to centre); 'skillTgt' in the Knot (its centre: Wide Knot); 'landPre' / 'land' around the collapse (its hits are 'eventhorizon' to the
+   rows) and a direct 'ccHit' for each silence it writes; new: 'teamCc' (a control on a watched unit through ccApply) and 'nrgPre' / 'nrgIn' (energy a
+   watched unit gains from a hit).
+   Readings and capped or reworded tooltips: WIRING/11 - ABSALIE - talent decisions.md. */
+const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
+const P=(name,b)=>({$:name,b:b||0});      // a base + everything her learned talents add to the named number
+const NE='mrshred', GK='gravknot', EH='eventhorizon';
+const IN_PT={team:'enemy',of:'pt',withinOpt:'radius'};                            // every enemy the skill catches where it forms, centre to centre as the skill measures
+const GKC={team:'enemy',has:'gkC'}, EHC={team:'enemy',has:'ehC'};                 // what this Knot / this Event Horizon caught
+const TNG={team:'enemy',has:'tng'}, TNG_O={team:'enemy',has:'tng',skip:'target'}; // Tangled enemies (the others)
+const NEAR_O={team:'enemy',of:'target',n:1,skip:'target'};                        // the nearest other enemy to the target
+const SIL={silencedT:1e-9};                                                       // silenced now
+const VS_ALLY={srcTeam:'enemy',targetTeam:'ally'};                                // an enemy's hit on one of her allies (teamIn)
+const MUFFLE=(on,k)=>({emit:'muffle',on,k});                                      // Muffled for k seconds (the always row writes it)
+module.exports={
+  hero:'absalie',
+  casting:true,                         // rows ask which of her skills a hit comes from
+  points:true,                          // rows read where the Knot and Event Horizon form (the 'at' hook)
+  states:{
+    thr:{unit:true,max:4,dur:P('thr.dur',8),gain:'thrGain'},                     // Threads on each enemy: all of them lapse 8 s after the last one
+    tension:{max:{b:12,$:'tension.max'},dur:P('tension.dur',10)},                 // Tension: all of it lapses 10 s after the last gain
+    word:{max:6,fade:{after:{b:8,$:'word.dur'},every:0.01,lose:99,unless:{selfHpAbove:{b:9,$:'word.hold'}}},gain:'wordGain'},   // Words: all fade 8 s after the last one (Hoarded Words: not above half HP)
+    ehN:{}                                                                         // enemies this Event Horizon caught (Collapse, at most 5)
+  },
+  /* run for her whenever she has any mechanic talent: what her area skills catch, her silences as one event, Muffled as one state, the Knot's slow strength */
+  always:[
+    {on:'at',skill:GK,do:[{mark:'gkC',on:{team:'enemy'},clear:true},{mark:'gkC',on:IN_PT,dur:1}]},
+    {on:'at',skill:EH,do:[{mark:'ehC',on:{team:'enemy'},clear:true},{mark:'ehC',on:IN_PT,dur:4}]},
+    {on:'ccHit',if:{cc:['silencedT'],targetAlive:true},do:[{emit:'quiet'}]},                                   // every silence of hers that lands (ctx.amt = its seconds)
+    {on:'muffle',do:[{mark:'muf',on:'target',dur:{flat:1,k:1},longest:true,ends:'mufEnd'},{window:'mufW',dur:{flat:1,k:1},longest:true}]},
+    {on:'ccHit',if:{casting:GK,cc:['slow'],talent:false,p:'gk.slow'},do:[{slowMore:P('gk.slow',0),on:'target'}]},   // Leaning In / Close Knot: the Knot's own slow, stronger
+    {on:'cast',skill:NE,do:[{window:'unw',end:true},{window:'eye',end:true},{window:'cn',end:true}]}           // the Needle's one-cast windows close with the cast
+  ],
+  talents:{
+    /* ============================== THE EMPTY CHAIR ============================== */
+    ec_1_1:[ {on:'hit',if:{casting:NE,targetAlive:true},do:[{ustack:'thr',on:'target',add:1}]},                // Fray: each Needle pulls a Thread (max 4, 8 s)
+             {on:'out',ignoreMr:R(0.01),per:{ust:'thr'}} ],                                                     //   her hits ignore 1% of its magic resist per Thread
+    ec_1_3:[ {on:'hit',if:{auto:true,targetHas:'hol',targetAlive:true},chance:R(0.06),do:[{ustack:'thr',on:'target',add:1}]} ],   // Fine Work
+    ec_1_4:[ {on:'kit',skill:NE,opt:{mul:{more:R(0.04)}}} ],                                                    // Point of Nothing
+    ec_2_1:[ {param:'thr.dur',add:R(1)} ],                                                                      // Loose Ends
+    ec_2_2:[ {on:'hit',if:{casting:NE,targetAlive:true},do:[{mark:'hol',on:'target',dur:P('hol.dur',5),longest:true}]},   // Hollow: 5 s
+             {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetHas:'hol',targetMin:{shield:1e-9}},more:R(0.04)},   //   its shield wears through 4% faster (hits on it deal 4% more while it has one)
+             {on:'teamHeal',if:{unitHas:'hol'},less:R(0.02)} ],                                                 //   healing on it 2% weaker
+    ec_n1:[  {on:'out',if:{casting:NE,targetMin:SIL},more:0.08},                                                // Pulled Word (LINK)
+             {on:'quiet',req:'us_1_1',do:[{ustack:'thr',on:'target',add:1}]} ],                                 //   with Swallowed Word: each Word taken also pulls a Thread
+    ec_3_1:[ {on:'kit',skill:NE,if:{targetUst:{thr:4}},opt:{mul:{more:0.6}},do:[{window:'unw',dur:99}]},       // Unwoven: at 4 Threads the next Needle 60% more
+             {on:'hit',if:{casting:NE,window:'unw'},do:[{window:'unw',end:true},{ustack:'thr',on:'target',set:0},{emit:'unwoven'}]} ],   //   and the Threads clear
+    ec_n2:[  {on:'in',if:{srcUst:{thr:1}},less:R(0.015)} ],                                                     // Coming Apart
+    ec_3_4:[ {on:'kit',skill:NE,opt:{dur:{add:R(0.3)}}} ],                                                      // Long Shred
+    ec_4_1:[ {stat:{move:R(-0.01)},per:{ust:'thr'},to:{team:'enemy',ust:{thr:1}},if:{window:'thrW'}},          // Pulled Thread: 1% slower per Thread
+             {on:'thrGain',do:[{window:'thrW',dur:P('thr.dur',8),longest:true}]} ],                             //   (looked at only while a Thread can be down)
+    ec_4_2:[ {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetHas:'hol',targetMin:{shield:1e-9},hitMin:{pct:1,of:'tgtShield'}},   // Gutted Ward: a hit that breaks it
+               do:[{after:0,do:[{dmg:{pct:R(0.10),of:'apow'},on:'target',tag:'gw'}]}]} ],
+    ec_5_2:[ {on:'hit',if:{casting:NE},do:[{dmg:{pct:0.4,of:'hit'},on:NEAR_O,tag:'n2'}]} ],                      // Second Needle (PICK ONE)
+    ec_5_3:[ {on:'kit',skill:NE,if:{none:{team:'enemy',of:'target',within:3,skip:'target'}},opt:{shred:{add:0.08}}} ],   // Long Needle (PICK ONE)
+    ec_5_1:[ {on:'death',if:{who:'enemy',unitHas:'hol'},do:[{zone:'ep',at:'unit',radius:P('ep.r',2),dur:P('ep.dur',6),catch:'epCatch',uses:P('ep.n',1)}]},   // Empty Place
+             {on:'epCatch',do:[{pull:'target',to:'pt',secs:0.3},{dmg:{pct:R(0.08),of:'apow'},on:'target',tag:'ep'}]} ],   //   the next enemy within 2 m: into the middle, 8% of her ability power
+    ec_2_4:[ {on:'cd',skill:'green',add:R(-0.2)} ],                                                             // Quick Needle
+    ec_5_4:[ {on:'cd',less:R(0.01)} ],                                                                          // Patient Hands
+    ec_6_1:[ {param:'ep.r',add:R(0.3)} ],                                                                       // Wider Gap
+    ec_6_2:[ {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetHas:'hol'},more:R(0.015)} ],              // Nothing Left
+    ec_7_1:[ {param:'ep.n',add:1} ],                                                                            // Hungry Gap
+    ec_7_2:[ {on:'kit',skill:NE,if:{targetHas:'hol'},do:[{window:'eye',dur:99}]},                              // Needle's Eye: against an enemy already Hollow
+             {on:'hit',if:{casting:NE,window:'eye'},do:[{window:'eye',end:true},{mark:'hol',on:NEAR_O,dur:P('hol.dur',5),longest:true},{dmg:{pct:0.5,of:'hit'},on:NEAR_O,tag:'eye'}]} ],
+    ec_9_3:[ {on:'out',if:{auto:false,targetHpBelow:0.4},more:R(0.02)} ],                                       // No One Home
+    ec_7_4:[ {on:'kit',skill:NE,opt:{shred:{add:R(0.01)}}} ],                                                   // Empty Hands
+    ec_8_2:[ {param:'hol.dur',add:R(0.5)} ],                                                                    // Set Place
+    ec_8_3:[ {on:'out',if:{casting:NE},ignoreMr:R(0.01)} ],                                                     // Fine Point
+    ec_8_4:[ {on:'in',if:{srcHas:'hol'},less:R(0.03)} ],                                                        // Cold Plate
+    ec_9_1:[ {on:'out',if:{auto:true},more:R(0.02),per:{ust:'thr'}} ],                                          // Frayed Edge
+    ec_9_4:[ {on:'in',once:'wave',if:{hitMin:{pct:0.30,of:'maxHp'}},mul:0.5} ],                                 // Kept Chair
+    ec_10_1:[ {on:'epCatch',do:[{mark:'hol',on:'target',dur:R(1.5),longest:true}]} ],                           // Unmade Bed
+    ec_10_2:[ {on:'out',if:{casting:GK,targetHas:'hol'},more:R(0.04)} ],                                        // Narrow Gap
+    ec_10_3:[ {stat:{nrg:R(0.02)}} ],                                                                           // Distant Stare
+    ec_11_2:[ {on:'out',if:{casting:NE,targetUst:{thr:4}},more:R(0.08)} ],                                      // Last Stitch
+    ec_11_3:[ {on:'out',if:{casting:EH,targetHas:'hol'},more:R(0.03)} ],                                        // Pale Loom
+    ec_11_4:[ {on:'in',if:{auto:true},less:R(0.03)} ],                                                          // Void Cloak
+    ec_12_1:[ {on:'unwoven',do:[{energy:R(4)}]} ],                                                              // Unravelling: 4 Threads cut, 1 energy each per rank
+    ec_12_2:[ {param:'ep.dur',add:R(1)} ],                                                                      // Long Absence
+    ec_12_3:[ {on:'out',if:{casting:NE,targetIs:{team:'enemy',order:'high:maxHp',n:1}},more:R(0.03)} ],         // Hollow Crown
+    ec_13_3:[ {on:'land',skill:EH,do:[{emit:'chair',on:{team:'enemy',has:'ehC',order:'most:thr',n:1}}]},        // The Empty Chair (SIGNATURE): the caught enemy with the most Threads
+              {on:'chair',do:[{stun:2,on:'target',if:{targetIs:{team:'enemy',boss:false}}},{stun:1,on:'target',if:{targetIs:{team:'enemy',boss:true}}},
+                {mark:'chair',on:'target',dur:2.1,while:'stunned',ends:'chairEnd'}]},                           //   set aside: stunned 2 s (1 s on a boss)
+              {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetHas:'chair'},more:0.15},                 //   her team deals 15% more to it
+              {on:'teamHeal',if:{unitHas:'chair'},mul:0},                                                       //   it cannot be healed
+              {on:'chairEnd',do:[{mark:'hol',on:'target',dur:P('hol.dur',5),longest:true},{ustack:'thr',on:'target',set:4},{emit:'thrGain'},{mark:'chairN',on:'target',dur:30}]},   //   back Hollow with 4 Threads
+              {on:'kit',skill:NE,unless:'ec_3_1',if:{targetHas:'chairN'},opt:{mul:{more:0.6}},do:[{window:'cn',dur:99}]},   //   her next Needle on it (Unwoven does this itself)
+              {on:'hit',unless:'ec_3_1',if:{casting:NE,window:'cn'},do:[{window:'cn',end:true},{mark:'chairN',on:'target',clear:true},{later:[{ustack:'thr',on:'target',set:0}]}]} ],   //   (after this Needle's own Thread: all cut)
+
+    /* ============================== THE GREAT KNOT ============================== */
+    gk_1_1:[ {on:'at',skill:GK,do:[{mark:'tng',on:IN_PT,dur:P('tng.dur',3),longest:true},{window:'tngW',dur:P('tng.dur',3),longest:true}]},   // Tangle: 3 s
+             {on:'hit',if:{targetHas:'tng'},do:[{dmg:{pct:R(0.04),of:'hit'},on:TNG_O,tag:'tng'}]} ],            //   4% of her hit on one to each of the others
+    gk_2_4:[ {on:'kit',skill:GK,opt:{pull:{addM:R(0.2)}}}, {param:'gk.half',add:R(0.1)} ],                      // Deeper Pull (Slipknot pulls half of it)
+    gk_1_4:[ {on:'kit',skill:GK,opt:{mul:{more:R(0.05)}}} ],                                                    // Tight Knot
+    gk_2_1:[ {param:'tng.dur',add:R(0.5)} ],                                                                    // Snarl
+    gk_2_3:[ {on:'at',do:[{stack:'tension',add:{units:IN_PT}}]},                                               // Tension: each enemy the Knot or Event Horizon catches
+             {stat:{apow:R(0.003)},per:'tension'} ],
+    gk_3_1:[ {on:'at',skill:EH,if:{some:{team:'enemy',has:'tng',of:'pt',withinOpt:'radius'}},do:[{pull:{team:'enemy',has:'tng',lacks:'ehC'},to:'pt',secs:{opt:'pull',d:1.2}}]},   // Knotwork
+             {on:'epCatch',if:{targetHas:'tng'},do:[{pull:TNG_O,to:'pt',secs:0.3}]} ],
+    gk_3_2:[ {param:'gk.slow',add:R(0.03)} ],                                                                   // Leaning In (the always row)
+    gk_3_3:[ {param:'tension.dur',add:R(1)} ],                                                                  // Taut
+    gk_3_4:[ {on:'ccIn',less:R(0.04)} ],                                                                        // Steady Mind
+    gk_4_2:[ {on:'cd',skill:'blue',add:R(-0.2)} ],                                                              // Hard Pull
+    gk_4_3:[ {on:'kit',skill:GK,if:{stackMin:{tension:12}},do:[{stack:'tension',spend:'all'},{window:'snap',dur:99}]},   // Snap: at 12 Tension
+             {on:'at',skill:GK,if:{window:'snap'},do:[{window:'snap',end:true},{stun:0.8,on:IN_PT}]} ],
+    gk_4_4:[ {on:'kit',skill:GK,opt:{radius:{addM:R(0.2)}}} ],                                                  // Long Reach
+    gk_5_1:[ {stat:{aspd:R(-0.015)},to:TNG,if:{window:'tngW'}} ],                                               // Choke Point
+    gk_11_4:[ {on:'tick',if:{selfMin:{pullT:1e-9}},do:[{damp:'pullSpeed',by:R(0.15),on:'self'}]} ],             // Weighted Robe: a drag on her moves her 15% less far
+    gk_8_4:[ {on:'kit',skill:EH,opt:{silence:{add:R(0.1),ccRaw:true}}} ],                                       // Event Line
+    gk_6_1:[ {on:'hit',if:{targetHas:'tng',atLeast:{n:4,of:TNG}},do:[{dmg:{pct:R(0.02),of:'hit'},on:TNG_O,tag:'tng2'}]} ],   // Shared Weight
+    gk_6_2:[ {on:'at',skill:GK,if:{selfPass:'convergence'},do:[{emit:'clE',on:Object.assign({skipN:2},IN_PT)}]}, {on:'clE',do:[{energy:R(1)}]} ],   // Converging Lines
+    gk_6_4:[ {on:'at',skill:EH,do:[{stack:'ehN',set:{units:IN_PT,max:5}}]}, {on:'out',if:{casting:EH},more:R(0.03),per:'ehN'} ],   // Collapse (up to 5)
+    gk_7_1:[ {on:'out',if:{auto:false},more:R(0.01),per:{units:{team:'enemy',of:'target',within:3,skip:'target'},max:5}} ],   // Crowded Room (up to 5)
+    gk_7_2:[ {on:'ccHit',if:{casting:GK,cc:['slow'],talent:false},do:[{mark:'gks',on:'target',dur:{flat:0.1,pct:1,of:'hit'},while:'slow',ends:'gkSlowEnd'}]},   // Slipknot
+             {on:'gkSlowEnd',do:[{pull:'target',to:'pt:gravknot',m:{b:1.1,$:'gk.half'},secs:0.3}]} ],
+    gk_7_4:[ {on:'kit',skill:EH,opt:{pull:{add:0.4},radius:{addM:1}}} ],                                        // Deep Gravity
+    gk_5_2:[ {on:'skillTgt',skill:GK,do:[{retarget:'densest'}]} ],                                              // Wide Knot (PICK ONE): on the densest group
+    gk_8_2:[ {stat:{aspd:R(0.002)},per:'tension'} ],                                                            // Coiled
+    gk_8_3:[ {on:'out',if:{auto:false,targetMin:{slow:1e-9}},more:R(0.02)} ],                                   // Dense Weave
+    gk_5_3:[ {param:'gk.slow',add:0.20}, {on:'cast',skill:GK,do:[{pull:GKC,to:'self',secs:0.3}]} ],             // Close Knot (PICK ONE): all the way in, slowed 20% harder
+    gk_9_1:[ {on:'teamIn',if:{targetHas:'tng',srcIs:'ally'},more:R(0.01)} ],                                    // Pulled Tight
+    gk_9_2:[ {param:'tension.max',add:6}, {on:'kit',skill:EH,opt:{mul:{more:0.005,per:{stack:'tension',over:12}}}} ],   // Overwound
+    gk_9_3:[ {on:'cd',less:R(0.01)} ],                                                                          // Dark Pull
+    gk_10_1:[ {on:'death',if:{who:'enemy',unitHas:'tng'},do:[{pull:TNG,to:'unit',m:1.5,secs:0.3}]} ],           // Knot Breaker
+    gk_10_3:[ {on:'kit',skill:EH,opt:{mul:{more:R(0.02)}}} ],                                                   // Centre of Mass
+    gk_10_4:[ {on:'in',if:{srcMin:{slow:1e-9}},less:R(0.015)} ],                                                // Gravity Well
+    gk_11_1:[ {on:'in',if:{srcHas:'tng'},less:R(0.01)}, {on:'teamIn',if:Object.assign({srcHas:'tng'},VS_ALLY),less:R(0.01)} ],   // Bound Together
+    gk_11_2:[ {stat:{nrg:R(0.02)}} ],                                                                           // Massing Dark
+    gk_12_1:[ {on:'teamCc',if:{cc:['stunned'],unitHas:'tng',srcTeam:'ally'},chance:R(0.10),do:[{emit:'sfall'}]},   // Shared Fall: a stun from her team (through the engine)
+              {on:'ccHit',if:{cc:['stunned'],targetHas:'tng',targetLacks:'sfX'},chance:R(0.10),do:[{emit:'sfall'}]},   //   or a stun of her own talents
+              {on:'sfall',do:[{mark:'sfX',on:TNG,dur:0.1},{stun:{pct:1,of:'hit'},on:TNG_O,asIs:true}]} ],
+    gk_12_2:[ {on:'kit',skill:GK,opt:{mul:{more:R(0.03)}}} ],                                                   // Pull of Home
+    gk_12_4:[ {on:'in',less:R(0.01),per:{units:TNG,max:5}} ],                                                   // Thread Cloak (up to 5)
+    gk_13_2:[ {on:'land',skill:EH,do:[{mark:'tng',on:EHC,dur:6,longest:true},{window:'tngW',dur:6,longest:true},   // The Great Knot (SIGNATURE): as it collapses
+                {mark:'gkm',on:EHC,dur:6,spot:'pt:eventhorizon'},{window:'gk',dur:6},{stack:'tension',set:'max'}]},
+              {on:'tick',if:{window:'gk'},do:[{pull:{team:'enemy',has:'gkm',away:{mark:'gkm',m:3}},to:{spot:'gkm'},m:1,secs:0.2}]},   //   one that strays more than 3 m is dragged back
+              {on:'teamIn',if:{targetTeam:'enemy',srcTeam:'ally',targetHas:'gkm'},do:[{emit:'gkShare',amt:{pct:0.25,of:'hit',split:{units:{team:'enemy',has:'gkm',skip:'target'}}}}]},
+              {on:'gkShare',do:[{dmg:{pct:1,of:'hit'},on:{team:'enemy',has:'gkm',skip:'target'},tag:'gk'}]} ],   //   25% of a hit on one, split between the others
+
+    /* ============================== THE UNSAID ============================== */
+    us_1_1:[ {on:'quiet',do:[{stack:'word',add:1}]}, {stat:{apow:R(0.005)},per:'word'} ],                      // Swallowed Word
+    us_11_4:[ {on:'in',if:{auto:false},less:R(0.02)} ],                                                         // Mute Cloak
+    us_1_4:[ {on:'kit',skill:EH,opt:{silence:{add:R(0.1),ccRaw:true}}} ],                                       // Thread of Quiet
+    us_2_1:[ {param:'word.dur',add:R(1)} ],                                                                     // Long Silence
+    us_2_2:[ {on:'quiet',do:[{mark:'sil',on:'target',dur:{flat:0.1,pct:1,of:'hit'},while:'silencedT',ends:'silEnd'}]},   // Afterquiet: when her silence ends
+             {on:'silEnd',do:[MUFFLE('target',P('muf.dur',3))]},                                               //   Muffled 3 s
+             {on:'in',if:{auto:false,srcHas:'muf'},less:R(0.03)}, {on:'teamIn',if:Object.assign({auto:false,srcHas:'muf'},VS_ALLY),less:R(0.03)} ],
+    us_3_1:[ {on:'kit',if:{casting:[NE,GK],stackMin:{word:6}},do:[{stack:'word',spend:'all'},{energy:15}]} ],   // Full Mouth
+    us_3_2:[ {on:'in',if:{auto:true,srcHas:'muf'},less:R(0.02)}, {on:'teamIn',if:Object.assign({auto:true,srcHas:'muf'},VS_ALLY),less:R(0.02)} ],   // Dull Edge
+    us_n1:[  {on:'wave',do:[MUFFLE({team:'enemy',order:'high:apow',n:1},R(1))]} ],                              // First to Speak
+    us_4_1:[ {on:'in',less:R(0.003),per:'word'} ],                                                              // Stolen Breath
+    us_4_2:[ {on:'hit',if:{casting:NE,targetCast:true,targetAlive:true},do:[{silence:0.8,on:'target'}]} ],      // Cut Short
+    us_4_4:[ {on:'out',if:{casting:NE,targetHas:'muf'},more:R(0.03)} ],                                         // Needle Hush
+    us_5_1:[ {on:'hit',if:{auto:false,targetMin:SIL,selfPass:'convergence'},icd:0.5,do:[{energy:R(2)}]} ],      // Echo Gap (once per spell)
+    us_5_2:[ {on:'at',skill:GK,do:[{silence:0.5,on:IN_PT}]} ],                                                  // Mute Knot (PICK ONE)
+    us_5_3:[ {on:'at',skill:GK,do:[MUFFLE(IN_PT,3)]} ],                                                         // Deaf Knot (PICK ONE)
+    us_5_4:[ {on:'cd',less:R(0.01)} ],                                                                          // Still Loom
+    us_6_1:[ {on:'quiet',req:'us_1_1',if:{targetMore:'apow'},do:[{stack:'word',add:1}]}, {param:'word.dur',add:R(1)} ],   // Swallowed Shout
+    us_6_3:[ {stat:{move:R(-0.04)},to:{team:'enemy',has:'muf'},if:{window:'mufW'}} ],                          // Muffled Steps
+    us_6_4:[ {stat:{nrg:R(0.015)}} ],                                                                           // Unspent
+    us_7_1:[ {on:'wordGain',do:[{heal:{pct:R(0.01),of:'maxHp',k:1},on:'self'}]} ],                              // Gap Feeding
+    us_7_2:[ {param:'muf.dur',add:R(0.4)} ],                                                                    // Lingering Hush
+    us_7_3:[ {on:'teamNrg',if:{unitHas:'muf'},mul:0} ],                                                         // Closed Door
+    us_8_2:[ {stat:{cdRate:R(-0.03)},to:{team:'enemy',has:'muf'},if:{window:'mufW'}} ],                        // Tongue-Tied
+    us_8_3:[ {on:'in',if:{srcHas:'muf'},less:R(0.02)} ],                                                        // Quiet Ward
+    us_9_1:[ {on:'out',if:{targetMin:SIL},more:R(0.02)} ],                                                      // Wordless
+    us_9_2:[ {on:'mufEnd',if:{targetLacks:'ss12'},do:[{mark:'ss12',on:'target',dur:12},{silence:0.5,on:'target'}]} ],   // Second Silence
+    us_9_4:[ {on:'kit',skill:EH,opt:{mul:{more:R(0.02)}}} ],                                                    // Mouth of the Void
+    us_10_1:[ {param:'word.hold',add:-8.5} ],                                                                   // Hoarded Words: they do not fade above 50% HP
+    us_10_3:[ {on:'ccHit',if:{casting:EH,cc:['silencedT'],talent:false},do:[{energy:R(1)}]} ],                  // Breath Held
+    us_10_4:[ {on:'cd',skill:'green',add:R(-0.1)} ],                                                            // Starved Gap
+    us_11_1:[ {on:'in',if:{srcWithin:4},less:R(0.003),per:'word'}, {on:'teamIn',if:Object.assign({srcWithin:4},VS_ALLY),less:R(0.003),per:'word'} ],   // Speechless
+    us_11_3:[ {on:'ccOut',if:{casting:EH,cc:['silencedT'],targetCast:true},add:R(0.3)} ],                       // The Long Pause
+    us_12_1:[ {on:'tick',edge:true,if:{selfHpBelow:0.30},do:[{stack:'word',spend:'all',then:[{heal:{pct:R(0.02),of:'maxHp',x:'spent'},on:'self'}]}]} ],   // Spent Words
+    us_12_3:[ {on:'in',if:{srcMin:SIL},less:R(0.015)}, {on:'teamIn',if:Object.assign({srcMin:SIL},VS_ALLY),less:R(0.015)} ],   // Nothing to Say
+    us_12_4:[ {on:'cd',skill:'blue',add:R(-0.3)} ],                                                             // Quiet Hands
+    us_13_3:[ {on:'land',skill:EH,do:[{mark:'nw',on:{team:'enemy'},dur:6},{window:'nw',dur:6}]},                // The Next Word (SIGNATURE): 6 s after it collapses
+              {on:'tick',if:{window:'nw'},do:[{emit:'nwFail',on:{team:'enemy',has:'nw',cast:'spell'}}]},        //   the first ability each enemy starts
+              {on:'nwFail',do:[{mark:'nw',on:'target',clear:true},{timer:'silencedT',min:0.1,on:'target'},     //   fails (a silence cancels it; its cooldown stays spent)
+                {stack:'word',add:1},{energy:5},MUFFLE('target',P('muf.dur',3))]} ]
+  },
+  /* one sentence runs, another waits */
+  partial:{},
+  /* nothing implemented: needs engine work. None: every talent has rows (readings and reworded tooltips in WIRING/11 - ABSALIE - talent decisions.md) */
+  ruling:{}
+};
+
+return module.exports;})();
   MECH["astra"]=(function(){const module={exports:{}};
 /* ASTRA - what her learned talents do in a fight (the mechanics; her 9 plain stat talents are read from their tooltips by the generator).
    Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
@@ -1152,7 +1359,7 @@ return module.exports;})();
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
-    T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.teamLethal||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
+    T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     u._tal=T; return T; }
 
   /* ---- named stacks / pools (T.st[name] = {max, dur, fade:{after,every,lose,unless}, wave:'reset'}) ---- */
@@ -1198,7 +1405,9 @@ return module.exports;})();
   /* a mark with a clock that tells its owner when it is over: {mark, dur, while:'field of the holder that must stay above 0', ends:'event'}.
      The owner's tick ends it when the time is up or the field ran out first; {mark, clear:true, fire:true} ends it now. ctx.broke: it ended before
      its time (the field ran out, or a talent cut it). A holder that died is dropped silently. */
-  function timedMark(T,u,t,name,a,ctx){ const d=amtOf(T,u,a.dur,ctx); if(!(d>0)) return; setMark(T,u,t,name,{dur:d,unique:a.unique}); const tm=T.s.tm;
+  function timedMark(T,u,t,name,a,ctx){ let d=amtOf(T,u,a.dur,ctx); if(!(d>0)) return;
+    if(a.longest){ const m=markOf(u,t,name); if(m&&m.until!=null) d=Math.max(d,m.until-E.now()); }   // longest: a shorter one never cuts one that has longer to run (Absalie's Muffled)
+    setMark(T,u,t,name,{dur:d,unique:a.unique}); const tm=T.s.tm;
     for(let i=0;i<tm.length;i++) if(tm[i].t===t&&tm[i].name===name){ tm[i].until=E.now()+d; tm[i].w=a.while||null; tm[i].ends=a.ends; return; }
     tm.push({t,name,until:E.now()+d,w:a.while||null,ends:a.ends}); }
   function endMark(T,u,t,name,fire,ctx){ const tm=T.s.tm; let e=null; for(let i=0;i<tm.length;i++) if(tm[i].t===t&&tm[i].name===name){ e=tm[i]; tm.splice(i,1); break; }
@@ -1213,6 +1422,14 @@ return module.exports;})();
   /* zones with an end event ({zone, ends:'event'}): the owner's tick fires it once when the zone's time is up. ctx.pt = where it stood, ctx.o.radius = its radius */
   function zoneEnds(T,u){ const now=E.now(); for(const k in T.s.zn){ const L=T.s.zn[k]; for(let i=0;i<L.length;i++){ const z=L[i]; if(!z.ends||now<z.until) continue; L.splice(i--,1); zoneAt(z);
         if(T.on[z.ends]) run(T,u,z.ends,{u,tgt:u.target,pt:{x:z.x,y:z.y,pt:true},o:{radius:z.r},zone:k}); } } }
+  /* trap zones ({zone, catch:'event', uses:n, who:<selector>}): each tick, the first `uses` units of `who` (default every enemy) found on the zone each set off its
+     event once (ctx.tgt = that unit, ctx.pt = the zone's centre, ctx.o.radius = its radius); then it closes. Absalie's Empty Place (Hungry Gap: two) */
+  function zoneCatch(T,u){ const now=E.now(); let live=false;
+    for(const k in T.s.zn){ const L=T.s.zn[k]; for(let i=0;i<L.length;i++){ const z=L[i]; if(!z.catch||now>=z.until) continue; zoneAt(z); const us=pick(T,u,z.who,{u});
+        for(let j=0;j<us.length&&z.left>0;j++){ const x=us[j]; if(z.got.indexOf(x.uid)>=0) continue; const d=Math.hypot(x.x-z.x,x.y-z.y); if(!(z.centre?(d<z.r):(d-E.bodyR(x)<z.r))) continue;
+          z.got.push(x.uid); z.left--; if(T.on[z.catch]) run(T,u,z.catch,{u,tgt:x,unit:x,pt:{x:z.x,y:z.y,pt:true},o:{radius:z.r},zone:k}); }
+        if(z.left<=0) z.until=now; else live=true; } }
+    T.s.zc=live; }
   /* recorded places: a mark may carry a spot ({mark, spot:'here' | 'pt' | 'pt:<skill>', awayFor}). away: the unit carries one of those marks and its centre is more than
      m metres from that mark's spot (or the mark says it counts as away until awayFor runs out). Astra's Recorded / Out of Place */
   function away(T,u,x,v){ if(!x||!v) return false; const L=Array.isArray(v.mark)?v.mark:[v.mark], now=E.now(), lim=(v.m||0)*E.METER();
@@ -1267,7 +1484,9 @@ return module.exports;})();
     if(a.left){ const x=a.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt), m=markOf(u,x,a.left); return (m&&m.until!=null)?Math.max(0,m.until-E.now()):0; }   // left: the seconds that mark of hers has left on that unit
     if(a.opt) return ((ctx&&ctx.o&&typeof ctx.o[a.opt]==='number'&&ctx.o[a.opt])||a.d||0)*(a.mul==null?1:a.mul);
     if(a.field||a.units||a.stack||a.ust) return cnt(T,u,a,ctx);
-    let x=(a.flat||0)+(a.pct?a.pct*baseOf(T,u,a.of,ctx):0); if(a.x!=null) x*=cnt(T,u,a.x,ctx); if(a.k&&ctx&&ctx.k!=null) x*=ctx.k; return x; }
+    let x=(a.flat||0)+(a.pct?a.pct*baseOf(T,u,a.of,ctx):0); if(a.x!=null) x*=cnt(T,u,a.x,ctx); if(a.k&&ctx&&ctx.k!=null) x*=ctx.k;
+    if(a.split!=null){ const n=cnt(T,u,a.split,ctx); x=n>0?x/n:0; }                      // split: shared evenly between that many (none: nothing)
+    return x; }
 
   /* ---- who: 'self' | 'target' | 'source' | 'unit' | 'holder:<mark>' | {team:'enemy'|'ally', of:'self'|'target'|'unit'|'source', within: metres,
           withinOpt:'radius', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
@@ -1279,6 +1498,7 @@ return module.exports;})();
     if(sel==='source') return (ctx&&ctx.src)?[ctx.src]:[]; if(sel==='unit') return (ctx&&ctx.unit)?[ctx.unit]:[];
     if(sel==='lastHit'){ const b=ctx&&ctx.tgt&&ctx.tgt._talBy; return (b&&b.alive&&b.team!==u.team)?[b]:[]; }       // the enemy that last hit the unit the event is about
     if(sel==='lowestAlly'){ const x=E.lowestAlly(u); return x?[x]:[]; }                 // the ally the engine itself picks as the most wounded (Harmony's centre)
+    if(sel==='densest'){ const p=E.densest(u,(ctx&&ctx.o&&ctx.o.radius)||4*E.METER()); return p?[{x:p.x,y:p.y,pt:true}]:[]; }   // the point the engine's own densest-group pick chooses for the skill's radius (Absalie's Wide Knot)
     if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } const p=ptRef(T,ctx,sel); return p?[p]:[]; }
     const ref=o=>{ const p=ptRef(T,ctx,o); if(p!==undefined) return p; return o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null; };
     const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
@@ -1300,6 +1520,7 @@ return module.exports;})();
       if(sel.hpBelow!=null&&!(x.hp<sel.hpBelow*x.maxHp)) continue;
       if(sel.dot!=null&&!hasDot(u,x,sel.dot)) continue;                              // carries a DoT of hers (true: any)
       if(sel.away&&!away(T,u,x,sel.away)) continue;                                  // away from a place she recorded for it
+      if(sel.cast!=null&&!casts(x,sel.cast)) continue;                               // has a cast under way ('spell': a Green or Blue ability, 'ult', true: either)
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
@@ -1377,9 +1598,14 @@ return module.exports;})();
     srcDot:(T,u,v,c)=>hasDot(u,c.src,v),                    // the attacker carries a DoT of hers ("burning enemies")
     targetAway:(T,u,v,c)=>away(T,u,c.tgt,v), unitAway:(T,u,v,c)=>away(T,u,c.unit,v), srcAway:(T,u,v,c)=>away(T,u,c.src,v),   // {mark, m}: away from the place she recorded for it
     targetUstBelow:(T,u,v,c)=>{ for(const k in v) if(!(ustGet(T,u,c.tgt,k)<v[k])) return false; return true; },   // the target carries fewer than that many of her unit stacks
+    srcUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.src,k)<v[k]) return false; return true; },     // the attacker carries at least that many of her unit stacks
+    targetCast:(T,u,v,c)=>casts(c.tgt,v),                   // the target has a cast under way ('spell' | 'ult' | true)
+    targetMore:(T,u,v,c)=>!!c.tgt&&(+c.tgt[v]||0)>(+u[v]||0),   // the target's engine number is higher than hers ('apow': more ability power than Absalie)
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
   const fmin=(x,v)=>{ if(!x) return false; for(const f in v) if(!((+x[f]||0)>=v[f])) return false; return true; };
+  /* a cast under way: the engine's pending cast (u._pend, from the press until it releases; a silence, stun or fear cancels it). spell: a Green or Blue ability (castKit), ult: an ultimate */
+  const casts=(x,v)=>{ const p=x&&x._pend; if(!p) return false; return v==='spell'?!!p.spell:v==='ult'?!p.spell:true; };
   const gap=(a,b)=>E.dist(a,b)-E.bodyR(a)-E.bodyR(b);
   function ok(T,u,cond,ctx){ for(const k in cond){ const f=COND[k]; if(!f||!f(T,u,cond[k],ctx)) return false; } return true; }
 
@@ -1470,6 +1696,7 @@ return module.exports;})();
       if(a.keep!=null){ const n=have*Math.max(0,Math.min(1,a.keep)); stSet(T,u,a.stack,a.whole?Math.floor(n+1e-9):n); return; }   // keep that share (whole: rounded down)
       if(a.atLeast!=null){ const x=amtOf(T,u,a.atLeast,ctx); if(have<x) stSet(T,u,a.stack,x); return; }
       const got=stSet(T,u,a.stack,have+amtOf(T,u,a.add==null?1:a.add,ctx));
+      if(got>0){ const g=(T.st[a.stack]||{}).gain; if(g&&T.on[g]) run(T,u,g,Object.assign({},ctx,{k:got})); }   // the state's gain event (k = how many came: Absalie's Gap Feeding heals per Word)
       if(a.full&&got>0&&stGet(T,a.stack)>=stMax(T,u,a.stack)-1e-9) acts(T,u,a.full,ctx);
       return; }
     if(a.mark){ const ts=pick(T,u,a.on,ctx); for(const t of ts){ if(a.clear){ if(a.fire!=null) endMark(T,u,t,a.mark,a.fire,ctx); else clearMark(u,t,a.mark); }
@@ -1482,7 +1709,9 @@ return module.exports;})();
       const at=a.at||'target', c=typeof at==='object'?{x:u[at.x],y:u[at.y]}:pick(T,u,at,ctx)[0]; if(!c||c.x==null) return;
       const now=E.now(); for(let i=L.length-1;i>=0;i--) if((a.only||now>=L[i].until)&&!L[i].ends) L.splice(i,1); if(L.length>=24) L.shift();   // only: this one replaces the ones still down (a zone with an end event stays until its tick fires it)
       const z={x:c.x,y:c.y,r:a.radiusPx!=null?amtOf(T,u,a.radiusPx,ctx):amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre};   // radiusPx: a radius already in the engine's length unit (a skill's own `radius` option)
-      if(a.follow){ const f=pick(T,u,a.follow,ctx)[0]; if(f&&f.uid!=null) z.f=f; } if(a.ends) z.ends=a.ends; L.push(z); return; }   // follow: the zone moves with that unit; ends: its end event
+      if(a.follow){ const f=pick(T,u,a.follow,ctx)[0]; if(f&&f.uid!=null) z.f=f; } if(a.ends) z.ends=a.ends;   // follow: the zone moves with that unit; ends: its end event
+      if(a.catch){ z.catch=a.catch; z.left=Math.max(1,Math.floor(amtOf(T,u,a.uses==null?1:a.uses,ctx)+1e-9)); z.got=[]; z.who=a.who||{team:'enemy'}; s.zc=true; }   // catch: a trap (see zoneCatch)
+      L.push(z); return; }
     if(a.ustack){ const d=T.st[a.ustack]||{}, mx=d.max==null?Infinity:d.max, burst=[];
       if(a.touch){ const dd=a.dur!=null?amtOf(T,u,a.dur,ctx):undefined; for(const t of pick(T,u,a.on,ctx)){ const v=ustGet(T,u,t,a.ustack); if(v>0) ustPut(T,u,t,a.ustack,v,dd); } return; }   // touch: what it carries lapses again from now ("refreshed with the wound"); dur: that long from now (with `longest`: never sooner than it would have)
       for(const t of pick(T,u,a.on,ctx)){ if(!t.alive) continue;
@@ -1513,6 +1742,8 @@ return module.exports;})();
     if(a.dodge){ ctx.dodged=true; return; }                                                       // on 'dodge': she dodges this hit
     if(a.weaken){ const f=a.weaken, cur=u[f], m=s.wk||(s.wk={}); if(cur==null||!(cur<1)){ m[f]=null; return; } if(m[f]===cur) return;   // a control on her that much weaker (a slow's strength), once per new value
       u[f]=1-(1-cur)*Math.max(0,1-amtOf(T,u,a.by,ctx)); m[f]=u[f]; return; }
+    if(a.damp){ const f=a.damp, by=Math.max(0,Math.min(1,amtOf(T,u,a.by,ctx))), m=s.dp||(s.dp={});   // an engine number on a unit made that share smaller, once per new value (a drag's speed: Absalie's Weighted Robe)
+      for(const t of pick(T,u,a.on||'self',ctx)){ const cur=t[f], key=t.uid+':'+f; if(cur==null||!(cur>0)||m[key]===cur) continue; t[f]=cur*(1-by); m[key]=t[f]; } return; }
     if(a.restore){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) t[a.restore]=ctx.was||0; return; }   // an engine timer back to what it was before her passive wrote it (ctx.was)
     if(a.later){ if(s.cur!=null) s.later.push([a.later,ctx]); else acts(T,u,a.later,ctx); return; }   // later: once the skill being cast has finished (its own shields written), else now
     if(a.tagHots){ const al=[]; for(const x of E.units()) if(x.alive&&x.team===u.team&&x.hots) al.push(x);   // the heals over time her skill is about to push / just pushed become hers (their ticks run her rows)
@@ -1549,7 +1780,7 @@ return module.exports;})();
       if(a.cd&&E.now()<w.cdT) return false;
       const n=a.count!=null?cnt(T,u,a.count,ctx):(a.n==null?1:a.n); if(a.min!=null&&n<a.min) return false;
       const d=a.dur==='wave'?Infinity:amtOf(T,u,a.dur,ctx);
-      w.n=(a.most&&w.t>0)?Math.max(w.n,n):n; w.t=d; w.wave=a.dur==='wave'; w.at=E.now(); if(a.cd) w.cdT=E.now()+a.cd; return; }
+      w.n=(a.most&&w.t>0)?Math.max(w.n,n):n; w.t=(a.longest&&w.t>d)?w.t:d; w.wave=a.dur==='wave'; w.at=E.now(); if(a.cd) w.cdT=E.now()+a.cd; return; }   // longest: never shortens a window that has longer to run
     if(a.dot){ const ts=pick(T,u,a.on,ctx), every=a.every||1, dur=amtOf(T,u,a.dur,ctx), ticks=Math.max(1,Math.ceil(dur/every-1e-9)), frac=dur/every-(ticks-1);
       let per=amtOf(T,u,a.amt,ctx); if(a.total) per=per/(dur/every); if(!(per>0)) return;
       for(const t of ts){ if(a.refresh){ let f=null; for(const d of t.dots) if(myDot(u,d,a.dot)){ f=d; break; } if(f){ f.dps=per; f.remaining=ticks; f._talF=(frac<1-1e-9)?frac:null; continue; } }
@@ -1679,6 +1910,16 @@ return module.exports;})();
   function chill(u,t){ if(!(u.pass&&u.pass.coldsnap)||!t) return; run(u._tal,u,'chill',{u,src:u,tgt:t}); }
   /* u is about to die from a blow (its own talents and Dawnward did not hold it): 'teamLethal' rows of the talented units watching it may keep it at 1 HP */
   function teamLethal(u){ const W=u._talW; if(!W) return; for(let i=0;i<W.length&&u.hp<=0;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamLethal) continue; run(To,o,'teamLethal',{u:o,unit:u,tgt:u}); } }
+  /* a control effect landed on a watched unit through the engine's ccApply (after the resist roll; anyone's: an ally's stun on an enemy): 'teamCc' rows of the
+     talented units watching it (ctx.unit = the unit, src = who applied it, field, amt = seconds as written). Absalie's Shared Fall */
+  function teamCc(t,by,field,dur){ const W=t._talW; if(!W) return; for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===t||!o.alive||!To||!To.on.teamCc) continue;
+      run(To,o,'teamCc',{u:o,src:by,tgt:t,unit:t,field,amt:dur}); } }
+  /* energy a watched unit gains from being hit (damage(): nrgPre right before the engine adds it, nrgIn right after): 'teamNrg' rows of the talented units
+     watching it may cut that gain (ctx.amt = what it gained; less / mul). Returns the unit's energy. Absalie's Closed Door */
+  function nrgPre(u){ u._talE0=u.energy||0; }
+  function nrgIn(u){ const e0=u._talE0, e1=u.energy||0; u._talE0=null; if(e0==null||!(e1>e0)) return e1; const W=u._talW; let g=e1-e0;
+    if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamNrg) continue; const c={u:o,tgt:u,unit:u,amt:g}; run(To,o,'teamNrg',c); g=Math.max(0,Math.min(g,c.amt)); }
+    return e0+g; }
   /* an enemy's hit is coming at her (before any miss): 'aimed' rows ("an enemy that attacks Vex, hit or miss"); then, unless the hit cannot miss (true damage, a
      can't-miss gear effect), her 'dodge' rows may dodge it (action {dodge:true}, normally behind a seeded chance): true = dodged, the page leaves the hit, and 'dodged' rows run */
   function dodge(t,s,auto,kind,sure){ const T=t._tal, ctx={u:t,src:s,tgt:t,unit:t,auto:!!auto,kind};
@@ -1727,7 +1968,7 @@ return module.exports;})();
     if(s.fresh){ s.fresh=false; startWave(T,u); }
     s.moved=(u.x!==u.px||u.y!==u.py);
     if(s.tm.length) tickMarks(T,u);
-    zoneEnds(T,u);
+    zoneEnds(T,u); if(s.zc) zoneCatch(T,u);
     if(s.dq.length){ const now=E.now(); for(let i=0;i<s.dq.length;i++){ const q=s.dq[i]; if(now<q.t-1e-9) continue; s.dq.splice(i--,1); acts(T,u,q.list,q.ctx); } }   // what 'after' put off is due
     for(const k in s.w){ const w=s.w[k]; if(w.t>0&&w.t!==Infinity){ w.t-=dt; if(w.t<=1e-9){ w.t=0; if(T.on['end:'+k]) run(T,u,'end:'+k,{u,tgt:u.target}); } } }
     for(const k in s.k){ const st=s.k[k], d=T.st[k]; if(st.rf&&st.rf.length){ const now=E.now(); for(let i=0;i<st.rf.length;i++){ if(now<st.rf[i]-1e-9) continue; st.rf.splice(i--,1);   // a spent unit of a refilling pool is back
@@ -1747,7 +1988,7 @@ return module.exports;})();
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
   const RUNTIME={bind,define,attach:guard(attach,()=>null),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
 
