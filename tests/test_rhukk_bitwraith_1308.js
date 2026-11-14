@@ -66,11 +66,11 @@ try {
     const once=(o,arm)=>{ ${prep} const W=mk('bitwraith','enemy',700,700), D=mk('vael','ally',600,700); D.armorRating=arm; D.mrRating=arm; W.target=D; units=[W,D];
       let tot=0, ticks=0; const _dm=damage; damage=function(u,a){ if(u===D&&arguments[2]==='#b06bff'){ const h=u.hp; const r=_dm.apply(this,arguments); tot+=h-u.hp; if(arguments[3]) ticks+=h-u.hp; return r; } return _dm.apply(this,arguments); };
       try{ W._castLv=1; doEffect(W,o.type,o); for(let i=0;i<Math.round(8/SIM_STEP);i++){ W.energy=0; D.energy=0; updateBattle(SIM_STEP); } } finally{ damage=_dm; } return [tot,ticks]; };
-    const cur=once(ab,0), live=once(Object.assign({},ab,LIVE),0); out.cur=cur[0]; out.live=live[0];
+    const cur=once(ab,0), live=once(Object.assign({},ab,LIVE),0); out.cur=cur[0]; out.live=live[0]; out.liveTick=live[1];
     out.tick0=cur[1]; out.tickArm=once(ab,3000)[1]; out.hit0=cur[0]-cur[1]; out.hitArm=once(ab,3000); out.hitArm=out.hitArm[0]-out.hitArm[1];
     return JSON.stringify(out); })()`));
-  ck('Corruption numbers x0.85: hit 0.4 -> 0.34, DoT 0.5 -> 0.425', near(b.mul, 0.34) && near(b.dps, 0.425), JSON.stringify({ mul: b.mul, dps: b.dps }));
-  ck('Corruption total damage in a headless cast = 0.85 x the live numbers', b.live > 0 && near(b.cur / b.live, 0.85, 1e-6), JSON.stringify({ cur: b.cur, live: b.live, ratio: b.cur / b.live }));
+  ck('Corruption numbers: hit 0.4 -> 0.34 (v1308), DoT 0.5 -> 0.425 (v1308) -> 0.25 (v1390)', near(b.mul, 0.34) && near(b.dps, 0.25), JSON.stringify({ mul: b.mul, dps: b.dps }));
+  ck('Corruption in a headless cast: opening hit = 0.85 x the pre-v1308 numbers, DoT ticks = 0.5 x (v1390)', b.live > 0 && near(b.hit0 / (b.live - b.liveTick), 0.85, 1e-6) && near(b.tick0 / b.liveTick, 0.5, 1e-6), JSON.stringify({ cur: b.cur, live: b.live, hit: b.hit0 / (b.live - b.liveTick), ticks: b.tick0 / b.liveTick }));
   console.log('  info Corruption vs 3000 armour/MR: DoT ticks ' + b.tick0.toFixed(1) + ' -> ' + b.tickArm.toFixed(1) + ' (unchanged = ticks skip armour/MR), opening hit ' + b.hit0.toFixed(1) + ' -> ' + b.hitArm.toFixed(1));
   // ---- 4. Vael Last Stand ----
   const v = JSON.parse(run(`(()=>{ ${prep} const V=mk('vael','ally',400,700); units=[V]; const out={pts:[]};

@@ -7171,7 +7171,7 @@ const MONSTER_KITS={
   'rustclank':    {green:{name:'Magnetize',type:'tendrilpull',nearest:true,dur:1.2,cd:8},                     blue:{name:'Overclock',type:'haste',self:true,mul:1.5,dur:5,cd:10}},                  // Rustclank — a pull and a self-buff
   'trapjaw':  {green:{name:'Chomp',type:'stun',mul:1.5,stun:1.2,cd:8,gfx:'bleed',gfxR:1.0*METER,gdur:1.6},   blue:{name:'Greed',type:'lifestealbuff',pct:0.3,dur:6,cd:10}},   // Trapjaw
   // ---- Batch 3 monsters (Phil's picks 2026-08-07) ----
-  'bitwraith':{green:{name:'Corruption',type:'dot',mul:0.34,dps:0.425,dur:4,color:'#b06bff',cd:6,gfx:'voidzone',gfxR:1.1*METER,gdur:1.8},   blue:{name:'Blink Shift',type:'blink',mul:1.8,range:20*METER,cd:10}},   // Bitwraith
+  'bitwraith':{green:{name:'Corruption',type:'dot',mul:0.34,dps:0.25,dur:4,color:'#b06bff',cd:6,gfx:'voidzone',gfxR:1.1*METER,gdur:1.8},   blue:{name:'Blink Shift',type:'blink',mul:1.8,range:20*METER,cd:10}},   // Bitwraith   // v1390 (Phil 14 Nov 2026: "even 10% damage hes too strong" / "maybe reduce scaling of his corruption"): Corruption dps 0.425 -> 0.25
   'vexmite':         {green:{name:'Swarm Sting',type:'punchflurry',hits:4,mul:0.4,tauntChance:0,cd:7,gfx:'needlespray',gfxR:1.6*METER,gdur:1.6},  blue:{name:'Poison Prick',type:'dot',mul:0.3,dps:0.6,dur:5,color:'#7fd06b',cd:8,gfx:'poison',gfxR:1.0*METER,gdur:1.8}},   // Vexmite
   'lost soul':  {green:{name:'Soul Bolt',type:'strike',mul:1.4,color:'#c9b6ff',cd:6,pfx:'shadowball',pscale:2.6,pdur:0.28},   blue:{name:'Possession',type:'stun',mul:0.8,stun:1.4,cd:10,gfx:'voidzone',gfxR:1.2*METER,gdur:1.8}},   // Lost Soul
   'blackquill':        {green:{name:'Feather Storm',type:'cleavecone',mul:0.9,radius:3*METER,angle:70,cd:7,gfx:'featherstorm',gfxR:2.6*METER,gdur:1.8},   blue:{name:'Murder',type:'multiShot',mul:1.0,n:4,cd:9,pfx:'featherbolt',pscale:2.4,pdur:0.26}},   // Blackquill
@@ -36391,7 +36391,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088824';
+const BUILD_ID = '1794347088825';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
