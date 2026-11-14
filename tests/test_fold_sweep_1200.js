@@ -136,7 +136,9 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
       ok(s.stale===0,'fight '+b+': no sprite still holds a freed death sheet ('+s.stale+', '+s.dead+' ended deaths)');
       ok(s.fail===0,'fight '+b+': no failed texture upload so far ('+s.fail+')');
       await page.evaluate(()=>{ if(state==='battle'&&!ended) endBattle(false); }); for(let i=0;i<40;i++){ if(await page.evaluate(()=>state==='result')) break; await page.waitForTimeout(250); }
-      await page.evaluate(()=>{ const r=document.getElementById('resultBtn'); if(r) r.click(); }); await page.waitForTimeout(900);
+      /* v1388 Damage Done: the panel opens over the result / reward screen. Tap Continue, then Collect or the result Continue, like a player. */
+      await page.evaluate(()=>{ const go=document.querySelector('#ddPop .ddGo'); if(go) go.click(); }); await page.waitForTimeout(400);
+      await page.evaluate(()=>{ const collect=document.querySelector('#stageRewPop .srGo'); if(collect) collect.click(); else { const r=document.getElementById('resultBtn'); if(r) r.click(); } }); await page.waitForTimeout(900);
     }
     ok(died>=2,'deaths really played to their end in these fights ('+died+')');
     await ctx.close(); }
