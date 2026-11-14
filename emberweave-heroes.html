@@ -15232,6 +15232,7 @@ function hero61Schedule(u,dt){
 function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
   // Green/Blue are automatic: ground-targeted offensive areas choose the densest pack.
   // Self-centred and allied circles deliberately retain their authored anchors.
+  const _kAx=u._aimWX, _kAy=u._aimWY; u._aimWX=null; u._aimWY=null;   /* v1391 (skill reach audit 14 Nov): a Green/Blue cast carries only the aim it picks itself just below. u._aimWX still held the spot of the hero's LAST aimed ult (never cleared), so Starfire, Nebula, Toxic Breath and Blazing Orbit fired at that old spot; the old aim is put back after the press (end of castKit) so an ultimate reads exactly what it read before */
   if(ab.target==='weakestBack'){ const w=weakestBackEnemy(u); if(w){u._aimWX=w.x;u._aimWY=w.y;} }   /* v1313: Magmourn's Fireball faces its target from the cast start */
   else if(AUTO_GROUND_AOE[ab.type]&&!_SELF_CENTRED[ab.type]){
     const R=(ab.radius||(ab.type==='blizzard'?8*METER:3*METER))*gsplitAreaMul(u), c=densestEnemyCluster(u,R);   // v592: bonus-run area
@@ -15280,7 +15281,8 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
   // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
   // and re-tagging it 4 here would relabel the PASSIVE as a skill. Leave the tag where it is.
-  if(!((u._abilPri|0)===2 && (u._abilHold||0)>0)){ u._lockPri=4; u._abilPri=4; u._animLockT=Math.max(u._abilHold||0, ct); } }
+  if(!((u._abilPri|0)===2 && (u._abilHold||0)>0)){ u._lockPri=4; u._abilPri=4; u._animLockT=Math.max(u._abilHold||0, ct); }
+  if(u._aimWX==null&&_kAx!=null){ u._aimWX=_kAx; u._aimWY=_kAy; } }   /* v1391: no aim of its own - the pending cast holds none (u._pend.ax), and the ult's old aim goes back as it was */
 /* v796 (Phil: "all abilities should be interruptable by heroes CC no matter if a ability or ult")
    - THE CAST WIND-UP. A pending cast sits on the unit for its cast time and resolves at the end of
    it; anything that controls or kills the caster in that window cancels it outright. The cost is
@@ -15341,11 +15343,11 @@ function deliverLaunch(u,type,o){ try{
   const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
   const delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
   if(u._clipStarted){ u._clipStarted=false; } else { try{ startAbilityClip(u,type); }catch(_e){} }
-  const sm0=u._castSM, lv0=u._castLv, slot0=u._castSlot;
+  const sm0=u._castSM, lv0=u._castLv, slot0=u._castSlot, ax0=u._aimWX, ay0=u._aimWY;   /* v1391: and the aim the cast was released with - a Green/Blue arrival reads that, not whatever u._aimWX holds when it lands (the last aimed ult's spot, put back after the release) */
   try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].mode==='glide'&&TH&&scene) rimGlideFx(u,tU,delay); }catch(_e){}   /* v1180 Rim Breaker: the wheel glides from his hand to the target's chest on the shot's own flight time (display only) */
   if(_pierce) _pierce.forEach(({e,pr})=>{ const dl=Math.max(SIM_STEP,Math.min(delay-SIM_STEP,pr/(o.speed||16*METER)));   /* v1180: each enemy on the path, when the wheel reaches it, before the far one */
-    groundHazards.push({arrival:true,delay:dl,run:function(){ if(!e.alive||!u.alive) return; const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true;
-      try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:e,pfx:null,noArt:true,_pierced:true})); } finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; } }}); });
+    groundHazards.push({arrival:true,delay:dl,run:function(){ if(!e.alive||!u.alive) return; const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true; const a1=u._aimWX, b1=u._aimWY; if(slot0!=='ult'){ u._aimWX=ax0; u._aimWY=ay0; }
+      try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:e,pfx:null,noArt:true,_pierced:true})); } finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; if(slot0!=='ult'){ u._aimWX=a1; u._aimWY=b1; } } }}); });
   try{ if(TH&&scene){ window._fxCaster=u;
     if(mode==='shot'){ const k=(o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].noFly)?null:(o.pfx||o.gfx); if(k&&FX2_DEF[k]){   /* v1174: Soporific Bouquet's art is the drift over the slept enemy - nothing flies */ const co=castOrigin(u,tU.x,tU.y); window._projTgtU=tU; spawnProjFx(k,co.x,co.y,tU.x,tU.y,o.pscale||2.6,delay,function(){},co.h); } }
     else if(mode==='land'){ if(o.ownFx==='tforge'){ tolleyForgeLaunchFx(u,P,delay,(o.radius||3*METER)*_fx22Area()); } else { const k=o.gfx; if(k&&FX2_DEF[k]) spawnProjFx(k,P.x,P.y,P.x,P.y,o.pscale||3.0,delay,function(){},9); } }   /* v1197 Forge Strike: the hammer the press started lands HERE, after `delay` (display only) */
@@ -15353,9 +15355,9 @@ function deliverLaunch(u,type,o){ try{
   groundHazards.push({arrival:true,delay,run:function(){
     let T=tU;
     if(mode==='shot'&&T&&!T.alive){ let b=null,bd=1.5*METER; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-T.x,e.y-T.y); if(d<bd){bd=d;b=e;} }); T=b; if(!T) return; }
-    const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true;
+    const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true; const a1=u._aimWX, b1=u._aimWY; if(slot0!=='ult'){ u._aimWX=ax0; u._aimWY=ay0; }
     try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:T,_farTgts:_far,_aim:aim?aim:(mode==='land'?P:null),pfx:(mode==='shot'?null:o.pfx),noArt:(mode==='form')||!!o.noArt})); }
-    finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; } }});
+    finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; if(slot0!=='ult'){ u._aimWX=a1; u._aimWY=b1; } } }});
   if(typeof SFX!=='undefined'&&SFX.loop) SFX.dl=groundHazards[groundHazards.length-1];   /* v1138 sound: this is the delivery's arrival (render only) */
   return true; }catch(_e){ return false; } }
 function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)continue; const dd=Math.hypot(a.x-h.x,a.y-h.y); if(dd<nd){nd=dd;nx=a;} }

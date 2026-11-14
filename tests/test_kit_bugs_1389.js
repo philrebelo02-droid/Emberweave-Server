@@ -118,8 +118,9 @@ try {
     ck('CONTROL: on the pre-fix page almost every Ember Cleave in the same fights hit no one (' + n0.join(',') + ')', n0.length >= 4 && n0.filter(x => x === 0).length >= n0.length - 1, JSON.stringify(n0)); }
 
   // ---------- nothing else moved ----------
+  const runNoReach = load(require('./helpers/global-1254-1260').reach1391Page(HTML));
   for (const [s, a, f] of [[7, ['vael', 'sylthaine', 'vex'], ['grosk', 'nox', 'lumi']], [21, ['astra', 'hobb', 'vireo'], ['kharos', 'quorrel', 'veyr']]]) {
-    const x = FIGHT(run, s, a, f, false), y = FIGHT(R0, s, a, f, false);
+    const x = FIGHT(runNoReach, s, a, f, false), y = FIGHT(R0, s, a, f, false);   // v1391: the later skill reach fixes (A: no stale aim on Green/Blue casts) backed out, they are not v1389's
     ck('a fight with none of the touched kits (' + a.join('/') + ' v ' + f.join('/') + ', seed ' + s + ') is tick-identical to the pre-fix page', x.h === y.h, x.h + ' vs ' + y.h); }
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log((fail ? 'FAIL' : 'PASS') + ': ' + pass + ' passed, ' + fail + ' failed');
