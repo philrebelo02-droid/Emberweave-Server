@@ -87,8 +87,32 @@ js = r'''/* Talents in a fight: shared by the page and the server's battle host 
     if(T.heal) u.healPowMul=(u.healPowMul||1)*Math.max(0.05,1+T.heal);
     if(T.shield) u.shieldStrMul=(u.shieldStrMul||1)*Math.max(0.05,1+T.shield);
     return T; }
+  /* The same stat talents on a LINE-MODEL unit (server/combat-core.js buildUnit, built by server.js snapshotHeroFromServer: Arena, Skyfall,
+     the Trial, NPC castles, and the unit the server prices the power number from). Same fractions, the line model's field names:
+       hp      -> maxHp   (whole points, as the core rounds them; the line starts every fight at maxHp and shieldPool at 0, so nothing else is derived)
+       atk     -> atkP    (whole points)
+       apow    -> atkM    (whole points) and `heal`, the healer's heal number, which the core derives from ability power
+       armor   -> armor,  mr -> mr   (finished ratings, as the client's armorRating / mrRating)
+       crit    -> crit    (a FRACTION here, added; the core's 60% cap stays)
+       critDmg -> critDmg (the bonus fraction, 0.6 = +60%): the whole critical hit x(1+n), as applyStats
+       aspd    -> speed   (attacks per swing timer, the inverse of the client's atkInterval; `haste` is energy gain, not attack speed)
+       heal    -> healPow (a fraction the core applies as x(1+healPow)): x(1+n) on the whole multiplier, as the client's healPowMul
+       shield  -> shieldStr (a multiplier)
+     Not called with an empty list. The caller refreshes the unit's legacy aliases (atk, dr) afterwards. */
+  function applyCore(u,hero,list){ if(!u) return u; const T=totals(hero,list);
+    if(T.hp) u.maxHp=Math.round(u.maxHp*Math.max(0.05,1+T.hp));
+    if(T.atk) u.atkP=Math.round((u.atkP||0)*Math.max(0.05,1+T.atk));
+    if(T.apow){ const k=Math.max(0.05,1+T.apow); u.atkM=Math.round((u.atkM||0)*k); if(u.heal) u.heal=Math.round(u.heal*k); }
+    if(T.armor) u.armor=(u.armor||0)*Math.max(0,1+T.armor);
+    if(T.mr) u.mr=(u.mr||0)*Math.max(0,1+T.mr);
+    if(T.crit) u.crit=Math.max(0,Math.min(0.6,(u.crit||0)+T.crit));
+    if(T.critDmg) u.critDmg=(1+(u.critDmg||0.6))*Math.max(0.05,1+T.critDmg)-1;
+    if(T.aspd) u.speed=(u.speed||1)*Math.max(0.05,1+T.aspd);
+    if(T.heal) u.healPow=(1+(u.healPow||0))*Math.max(0.05,1+T.heal)-1;
+    if(T.shield) u.shieldStr=(u.shieldStr||1)*Math.max(0.05,1+T.shield);
+    return u; }
   const has=(hero,id)=>!!(DATA.stats[hero]&&DATA.stats[hero][id]);
-  return Object.freeze({v:DATA.v,totals,applyStats,has});
+  return Object.freeze({v:DATA.v,totals,applyStats,applyCore,has});
 });
 '''.replace("__DATA__", body)
 io.open(os.path.join(ROOT, "talents-fx.js"), "w", encoding="utf-8", newline="\n").write(js)
