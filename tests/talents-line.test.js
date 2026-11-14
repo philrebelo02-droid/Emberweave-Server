@@ -148,7 +148,7 @@ test('(b) each stat talent lands on its line-model field by exactly its percent,
       for(const k in F) if(tot[k]>0&&k!=='crit') for(const f of F[k]) if(whole.includes(f)?p[f]*tot[k]>=1:(p[f]>0||f==='healPow')) assert.ok(q[f]>p[f],m+': '+f+' did not rise with '+k);
     }
     checked++; }
-  assert.ok(checked>=600,'only '+checked+' stat talents checked');
+  assert.ok(checked>=560,'only '+checked+' stat talents checked')   /* 588 on 14 Nov after the reader stopped taking skill and summon sentences for hero stats */;
   for(const k of ['hp','atk','apow','armor','mr','crit','critDmg','aspd','heal','shield']) assert.ok(alone[k]>0,'no build isolates the '+k+' stat (seen alone: '+J(alone)+')');
 });
 
