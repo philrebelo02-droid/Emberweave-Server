@@ -14,12 +14,13 @@ function pin(seed){ const r=mulberry(seed>>>0);
   crypto.randomBytes=function(n,cb){ const b=Buffer.alloc(n); for(let i=0;i<n;i++) b[i]=Math.floor(r()*256); if(typeof cb==='function'){ process.nextTick(cb,null,b); return; } return b; };
   Math.random=r; }
 function unpin(){ crypto.randomBytes=realRB; Math.random=realRandom; }
-const EXPORTS=['api','_reqCtx','getDB:()=>DB','campaignHeroSpec','ensureLedger','D_HERO_CUM','D_TROOP_CUM','simHost','arenaRealFight','tokHash','SIM_STATS','simPool'];
+const EXPORTS=['api','_reqCtx','getDB:()=>DB','campaignHeroSpec','ensureLedger','D_HERO_CUM','D_TROOP_CUM','simHost','arenaRealFight','tokHash','SIM_STATS','simPool',
+  'getTournament','warAdvance','warNewMatch','warQualifyGuild','warLockMatch','warMatchOfGuild','LIVE_STATS','snapshotHeroFromServer'];
 function load(src,env){
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ew-inproc-')); dirs.push(tmp);
   const saved={}; const set=(k,v)=>{ if(!(k in saved)) saved[k]=process.env[k]; if(v==null) delete process.env[k]; else process.env[k]=String(v); };
   set('DB_FILE',path.join(tmp,'db.json')); set('PORT','0'); set('DATABASE_URL',''); set('NODE_ENV','test'); process.env.SIM_WORKERS=(env&&env.SIM_WORKERS!=null)?String(env.SIM_WORKERS):'0';
-  for(const k of ['TALENTS_ENABLED','REAL_ENGINE_ARENA']) set(k,null);
+  for(const k of ['TALENTS_ENABLED','REAL_ENGINE_ARENA','REAL_ENGINE_SKYFALL','REAL_ENGINE_NPC_CASTLE','REAL_ENGINE_HIT_TIMING','REAL_ENGINE_SIEGE','REAL_ENGINE_TRIAL','REAL_ENGINE_VAULT','REAL_ENGINE_BONUS']) set(k,null);
   for(const k in (env||{})) set(k,env[k]);
   const http=require('http'), fakeHttp=Object.assign({},http,{createServer:()=>({listen(){},on(){},prependListener(){},close(){},address(){ return {port:0}; },setTimeout(){},keepAliveTimeout:0,headersTimeout:0})});
   const req=Module.createRequire(path.join(root,'server.js')), myReq=n=>n==='http'?fakeHttp:req(n);
@@ -36,8 +37,8 @@ function load(src,env){
   S.dir=tmp;
   /* a token for an account: written into the DB's token table exactly as a sign-in stores it */
   S.token=(id)=>{ const DB=S.getDB(); const t='tok-'+id; DB.tokens=DB.tokens||{}; DB.tokens[crypto.createHash('sha256').update(t).digest('hex')]={id,iat:Date.now(),exp:Date.now()+86400000}; return t; };
-  S.call=(route,packet,token,seed)=>new Promise((resolve,reject)=>{
-    const rq=new EventEmitter(); rq.method=packet?'POST':'GET'; rq.url=route; rq.headers={'content-type':'application/json','x-token':token||''}; rq.socket={remoteAddress:'127.0.0.1'};
+  S.call=(route,packet,token,seed,ip)=>new Promise((resolve,reject)=>{
+    const rq=new EventEmitter(); rq.method=packet?'POST':'GET'; rq.url=route; rq.headers={'content-type':'application/json','x-token':token||''}; rq.socket={remoteAddress:ip||'127.0.0.1'};
     rq.pause=()=>{}; rq.destroy=()=>{};
     const rs={statusCode:200,headersSent:false,_h:{},setHeader(k,v){ this._h[k]=v; },getHeader(k){ return this._h[k]; },removeHeader(){},
       writeHead(c,h){ this.statusCode=c; if(h) Object.assign(this._h,h); this.headersSent=true; },write(){},

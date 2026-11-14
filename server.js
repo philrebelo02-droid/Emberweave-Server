@@ -3237,6 +3237,7 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
   // level changes made during planning count. The registration-time entrant is only the fallback if the
   // guild object has vanished. After this, m.state='live' and every placement change is rejected.
   m.lockedAt=warNow();
+  const skyHost=skyRealLock();   // REAL_ENGINE_SKYFALL: null with the switch off - then nothing below differs from before
   for(const gid of Object.keys(m.sides)){ const side=m.sides[gid];
     const gobj=(DB.guilds||{})[gid];
     const ent=gobj?warQualifyGuild(gobj):warEntrant(t,gid); if(!ent) continue;
@@ -3290,9 +3291,14 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
       }
       const hut=huts.get(L.memberId);
       const hpState=L.heroes.map(h=>({hp:hut?WITCH.combatHp(hut.state,h.key,h.maxHp):h.maxHp,energy:0}));
-      return { memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
+      const D={ memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
         lineSnapshot:JSON.parse(JSON.stringify(L.heroes)), hpState,
         alive:hpState.some(h=>h.hp>0) };
+      if(skyHost){ try{ const owner=DB.users[L.memberId], specs=owner?L.heroes.map(h=>campaignHeroSpec(owner,h&&h.key)):[];   // REAL_ENGINE_SKYFALL (see skyRealLock)
+          if(specs.length&&specs.every(Boolean)){ const sn=skyHost.snapFromSpecs(specs);
+            if(Array.isArray(sn)&&sn.length===L.heroes.length&&sn.every((x,i)=>x&&x.key===L.heroes[i].key&&x.maxHp>0)){ D.lineSnaps=sn;
+              D.hpReal=sn.map(x=>({hp:hut?WITCH.combatHp(hut.state,x.key,x.maxHp):x.maxHp,energy:0})); } } }catch(e){} }
+      return D;
     };
     for(const c of side.citadels){
       const out=[];
@@ -3323,10 +3329,30 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
         if(ci==null) continue;
         side.citadels[ci].defenders.push(hydrate(L)); held.add(tag);
         m.eventLog.push({t:warNow(),e:'LATE_LINE',member:L.memberId,line:L.line|0,lane:ci}); } } }
+  if(skyHost){ const all=[]; for(const gid of Object.keys(m.sides)) for(const c of m.sides[gid].citadels) all.push(...c.defenders);
+    if(all.length&&all.every(d=>d.lineSnaps&&d.hpReal)) m.realEngine=SKY_REAL_FORMAT;
+    else for(const d of all){ delete d.lineSnaps; delete d.hpReal; } }   // all lines or none: a match never mixes the two engines
   m.state='live'; m.version++; m.eventLog.push({t:warNow(),e:'WAR_LOCKED'});
 }
+/* 14 Nov 2026 REAL_ENGINE_SKYFALL - SKYFALL ON THE REAL ENGINE. With the switch on, the 18:00 lock freezes, beside every line's line-model
+   snapshot (kept as it was: the board, the power order and the views read it), the line's full heroes: campaignHeroSpec (level, stars,
+   glyph board, gear and Temper, Academy, Temple prayers, skill levels, learned talents - the builder city PvP and the campaign use),
+   resolved by the page's own unit builder into snaps (`lineSnaps`), and the HP each hero enters the war with in real-engine numbers
+   (`hpReal`: the Witch's Hut health at the lock, as `hpState`). The match is stamped `realEngine:1` (its stored format) only when every
+   line resolved. Each assault of a stamped match is fought by the real engine (sim-host skyReal, on the live battle helpers); HP and
+   energy carry between assaults in `hpReal`, and `hpState` follows it in the line's own numbers (the same fraction of each hero's health),
+   so the board and the views read what they read before.
+   The FORMAT decides, never the switch: a match locked without the stamp fights on the line model to its bell even after the switch goes
+   on, and a stamped one keeps the real engine if the switch goes off. A running match is never converted. */
+const SKY_REAL_FORMAT=1;
+function skyRealLock(){ let on=false; try{ on=!!REAL_ENGINE.skyfall; }catch(e){ on=false; } if(!on) return null; try{ return simHost(); }catch(e){ return null; } }
+function skyRealMatch(m,a,d){ return !!(m&&m.realEngine===SKY_REAL_FORMAT&&a&&d&&Array.isArray(a.lineSnaps)&&Array.isArray(d.lineSnaps)&&Array.isArray(a.hpReal)&&Array.isArray(d.hpReal)); }
+function skyMirror(lineSnapshot, lineSnaps, st){ return lineSnapshot.map((h,i)=>{ const r=st[i]||{hp:0,energy:0}, mx=(lineSnaps[i]&&lineSnaps[i].maxHp)||1;
+  return { hp:r.hp>0?Math.max(1,Math.round(r.hp/mx*h.maxHp)):0, energy:r.energy|0 }; }); }
 function warSurvivorHpPct(side){ let hp=0,max=0;
-  for(const c of side.citadels) for(const d of c.defenders){ for(let i=0;i<d.lineSnapshot.length;i++){ max+=d.lineSnapshot[i].maxHp; if(d.alive) hp+=Math.max(0,d.hpState[i].hp); } }
+  for(const c of side.citadels) for(const d of c.defenders){
+    if(Array.isArray(d.lineSnaps)&&Array.isArray(d.hpReal)){ for(let i=0;i<d.lineSnaps.length;i++){ max+=d.lineSnaps[i].maxHp; if(d.alive) hp+=Math.max(0,(d.hpReal[i]||{}).hp||0); } continue; }   // REAL_ENGINE_SKYFALL: the real HP
+    for(let i=0;i<d.lineSnapshot.length;i++){ max+=d.lineSnapshot[i].maxHp; if(d.alive) hp+=Math.max(0,d.hpState[i].hp); } }
   return max?hp/max:0; }
 function warDestroyedCount(m,gid){ const opp=Object.keys(m.sides).find(x=>x!==gid); return opp?m.sides[opp].citadels.filter(c=>c.destroyed).length:0; }
 function warFinishMatch(t,m,winnerGid,why){ m.state='finished'; m.winnerGuildId=winnerGid; m.version++; m.eventLog.push({t:warNow(),e:'FINISHED',winner:winnerGid,why}); }
@@ -3466,7 +3492,8 @@ function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
       kills:d.kills|0, fights:d.fights|0,
       retired:((d.kills|0)>=WAR_KILL_CAP && d.alive!==false),
       killsLeft:Math.max(0,WAR_KILL_CAP-(d.kills|0)),
-      hpPct:(d.hpState&&Array.isArray(d.lineSnapshot))?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
+      hpPct:(Array.isArray(d.hpReal)&&Array.isArray(d.lineSnaps))?Math.round(100*d.hpReal.reduce((x,h)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnaps.reduce((x,h)=>x+h.maxHp,0)))   /* REAL_ENGINE_SKYFALL: the real HP */
+        :(d.hpState&&Array.isArray(d.lineSnapshot))?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
       assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) }; }), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
 }
 function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
@@ -5935,7 +5962,7 @@ function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.are
 /* 14 Nov 2026 EVERY MODE ON THE REAL ENGINE (Phil: "Basically every hero in the game saves every single thing and when that hero ID is put
    into a fight it is that hero"). One switch per mode, all off by default: off, the mode runs exactly as before.
    Plan and status: TALENT TREES 13NOV2026/WIRING/09 - EVERY MODE ON THE REAL ENGINE (plan and status).md */
-const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true' });
+const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true', skyfall:process.env.REAL_ENGINE_SKYFALL==='true' });
 /* REAL_ENGINE_ARENA: the Arena fight is the game's own battle code (sim-host, on the battle workers) between both squads' full specs -
    level, stars, glyph board, gear and Temper, Academy, Temple prayers, skill levels, learned talents (campaignHeroSpec, the builder city
    PvP and the campaign use). Attacker: the squad sent (owned heroes only, as before); defender: the saved defence line-up read live, as
@@ -7538,7 +7565,9 @@ async function api(req,res,url){
       /* v1129: the fight first - before this march changes anything (simRunLive may stop here and run the route again) */
       const seed=defender?SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version):0;
       // World-map wounds carried between assaults cap in-battle healing at entry HP (makeLine capToEntry, on the helper).
-      const r=defender?liveBattle('line',[attacker.lineSnapshot,attacker.hpState,defender.lineSnapshot,defender.hpState,seed,true]):null;
+      const _sr=!!defender&&skyRealMatch(m,attacker,defender);   // REAL_ENGINE_SKYFALL: a match locked in the real format fights on the real engine
+      const r=defender?(_sr?liveBattle('skyReal',[attacker.lineSnaps,attacker.hpReal,defender.lineSnaps,defender.hpReal,seed])
+                          :liveBattle('line',[attacker.lineSnapshot,attacker.hpState,defender.lineSnapshot,defender.hpState,seed,true])):null;
       m.assaults[me.id]=(m.assaults[me.id]||0)+1;   // every attack spends an order, win or lose
       attacker.fights=(attacker.fights|0)+1;
       if(!defender){ // undefended citadel: the march captures it without a fight (still costs an order)
@@ -7549,8 +7578,15 @@ async function api(req,res,url){
         return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
       // persist survivor HP/energy on BOTH lines (keyed back to snapshot order)
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+      let _sky=null;
+      if(_sr){ const SH=require('./server/sim-host.js');   // the watchable fight: the frozen snaps with the HP each hero brought into it
+        _sky={ mineSnap:SH.skyCarry(attacker.lineSnaps,attacker.hpReal), foe:SH.skyCarry(defender.lineSnaps,defender.hpReal) };
+        attacker.hpReal=r.aState.map(x=>({hp:x.hp,energy:x.energy})); defender.hpReal=r.bState.map(x=>({hp:x.hp,energy:x.energy}));
+        attacker.hpState=skyMirror(attacker.lineSnapshot, attacker.lineSnaps, attacker.hpReal);
+        defender.hpState=skyMirror(defender.lineSnapshot, defender.lineSnaps, defender.hpReal); }
+      else {
       attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
-      defender.hpState=mapBack(defender.lineSnapshot, r.bState);
+      defender.hpState=mapBack(defender.lineSnapshot, r.bState); }
       // A guild-war assault is a world fight for both real owners. Match HP alone
       // disappears with the tournament; carry the measured losses into the Hut.
       const warInjuries={attacker:[],defender:[]};
@@ -7574,8 +7610,10 @@ async function api(req,res,url){
       const finished=false;                      /* v676: only the bell finishes a war */
       if(keepMarch({ ok:true, won:r.won, citadelFell, finished },[me.id,attacker.memberId,defender.memberId].filter(Boolean))) return;   // v1124: both line owners' Witch's Hut wounds
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
-        replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
-        result:{ aState:r.aState, bState:r.bState, rounds:r.rounds }, injuries:warInjuries,
+        replay:_sky?{ v:2, seed, lane, won:r.won, mineSnap:_sky.mineSnap, foe:_sky.foe, digest:r.digest, durationSec:r.durationSec, engine:(simHost()||{}).buildVersion||null,
+                      attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:[] }   // REAL_ENGINE_SKYFALL: the fight the client plays back
+                   :{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
+        result:{ aState:r.aState, bState:r.bState, rounds:_sky?null:r.rounds }, injuries:warInjuries,
         match:warMatchView(t,m,myGid,me.id) });
      },'skyfall'));
       if(_out&&_out.busy){ res.setHeader('Retry-After',String(Math.ceil(_out.retryAfterMs/1000))); return send(res,503,_out); }

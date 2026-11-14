@@ -8823,7 +8823,7 @@ function actGiveUp(){
 const ACT_INPUT_DELAY_CLIENT=9;   // must match the server's ACT_INPUT_DELAY
 function queueInput(inp){
   if(REPLAY_IN) return;
-  if(CUR&&CUR.arenaReal) return;   /* REAL_ENGINE_ARENA: the watched fight is the server's - no tap may change it */
+  if(CUR&&(CUR.arenaReal||CUR.serverFight)) return;   /* REAL_ENGINE_ARENA / _SKYFALL...: the watched fight is the server's - no tap may change it */
   try{ if(inp&&inp.k==='ult'&&ULTCOACH.u&&ULTCOACH.u.uid===inp.uid){ ULTCOACH.done[inp.uid]=1; ultCoachClear(); } }catch(e){}   /* v1141: the coached ult was cast - the fight resumes */                       // a replay is driven by its log, not by live taps
   /* v275: with a live session the SERVER decides the tick — send the intent and wait for the receipt.
      The action is applied by pumpInputs() on exactly the tick that comes back. */
@@ -21452,7 +21452,16 @@ async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
   else bannerMsg(r.won?(uiIcon('trophy')+' '+t('skyfall.bridge_victory')+(r.citadelFell?'\n'+statusIcon('crit-burst')+' '+t('skyfall.citadel_falls'):'')) : statusIcon('death')+' '+t('skyfall.driven_back'));
   if(r&&r.finished) bannerMsg(uiIcon('crown')+' '+t('skyfall.guild_wins'));
   await skyStatus(); renderGuild();
+  skyWatchReal(r);
 }
+/* 14 Nov 2026 REAL_ENGINE_SKYFALL (a server switch; a match locked in the real format answers replay.v 2): the assault was fought by the
+   server on this game's own battle code with both lines' full heroes, and the player watches THAT fight - its snaps (with the HP each
+   hero carried into it), its seed, the fixed-step code, no input taken (CUR.serverFight). Then back to the board. */
+function skyWatchReal(r){ const rp=r&&r.ok&&r.replay;
+  if(!(rp&&rp.v===2&&Array.isArray(rp.mineSnap)&&rp.mineSnap.length&&Array.isArray(rp.foe)&&rp.foe.length)) return false;
+  _replayReturn=()=>{ show('guild'); renderGuild(); };
+  CUR={mode:'replay', seed:(rp.seed>>>0), replayWon:!!r.won, oppName:t('skyfall.a_defender'), replayAlly:rp.mineSnap, replayFoe:rp.foe.slice(), serverFight:1};
+  startVersus(trimTeam(rp.foe), true, rp.mineSnap.map(s=>s.key)); return true; }
 async function skyClaim(){ const r=await apiOnce('skyclaim','/api/guild-war/claim-reward',{}); if(r&&r.busy) return;   /* v1009: one claim at a time, one requestId */
   bannerMsg(r&&r.ok?(uiIcon('gift')+' '+t('skyfall.claim_coins',{n:r.amount,tier:r.tier})):(r&&r.error==='offline')?t('net.connection_lost'):((r&&r.error)||t('skyfall.claim_failed'))); await skyStatus(); renderGuild(); }
 /* v267 (80/20 §8): "an understandable post-war summary" — the server keeps a full event log per

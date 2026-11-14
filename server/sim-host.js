@@ -187,9 +187,35 @@ function load(htmlPath){
     auto(allySnaps, foeTeam, seed){
       const won=sandbox.simFightResult(allySnaps, foeTeam, seed>>>0);
       return { won:!!won, digest:sandbox._p2digest||null };
+    },
+    /* 14 Nov 2026 REAL_ENGINE_SKYFALL: one Skyfall assault on the real engine. aSnaps / bSnaps are the lines' snaps frozen at the 18:00
+       lock; aHp / bHp the HP and energy each hero carries from earlier assaults ([{hp, energy}], snapshot order). skyCarry puts the carried
+       HP on the snaps (a fallen hero stays out); the fight is autoWatched (the browser's clip timing - the fight the player watches); the
+       end state is read back from the digest. Returns {won, digest, durationSec, aState, bState} with each state row {key, hp, energy,
+       maxHp} in snapshot order - the shape the route's carry and the Witch's Hut read. */
+    skyReal(aSnaps, aHp, bSnaps, bHp, seed){
+      const A=skyCarry(aSnaps,aHp), B=skyCarry(bSnaps,bHp);
+      sandbox._p2anim=true; let won;
+      try{ won=!!sandbox.simFightResult(A, B, seed>>>0); } finally{ sandbox._p2anim=false; }
+      const digest=sandbox._p2digest||null, dg=JSON.parse(digest);
+      return { won, digest, durationSec:dg.t, aState:skyRead(aSnaps,aHp,dg,'ally'), bState:skyRead(bSnaps,bHp,dg,'enemy') };
     }
   };
 }
+/* REAL_ENGINE_SKYFALL - the carried HP on a line's frozen snaps (copies; the stored snaps are never touched). A hero at 0 HP fell in an
+   earlier assault and stays out; a living one enters with its carried HP, and in-battle healing is capped there (worldEntryHpCap, the
+   world map's rule - the line model's capToEntry). The route builds the reply's watchable snaps with this same function. */
+function skyCarry(snaps, hp){
+  const out=[]; (snaps||[]).forEach((s,i)=>{ const h=(hp||[])[i]||{hp:0,energy:0}; if(!(h.hp>0)) return;
+    const c=JSON.parse(JSON.stringify(s)); c.hp=h.hp; c.worldEntryHpCap=h.hp; c.energy=Math.max(0,+h.energy||0); out.push(c); });
+  return out; }
+function skyRead(snaps, hp, dg, team){
+  const used=new Set();
+  return (snaps||[]).map((s,i)=>{ const h=(hp||[])[i]||{hp:0,energy:0}, row0={key:s.key,hp:0,energy:0,maxHp:s.maxHp};
+    if(!(h.hp>0)) return row0;
+    const j=dg.u.findIndex((r,k)=>!used.has(k)&&r[0]===s.key&&r[1]===team); if(j<0) return row0; used.add(j);
+    const r=dg.u[j]; if(!r[2]) return row0;
+    return {key:s.key, hp:Math.max(1,Math.min(h.hp,r[3])), energy:Math.max(0,r[4]), maxHp:s.maxHp}; }); }
 /* v1039 BATTLE HELPERS (Phil 6 Oct 2026: "When the server is stressing - high war time - my computer comes to support it if its not busy").
    One hash of everything load() runs - the game script, the local script files it loads, and this loader - so a battle helper on
    another machine proves it fights with the identical engine before it is trusted with a battle. Line endings are normalised: a
@@ -210,4 +236,4 @@ function fingerprint(htmlPath){
     const p=path.join(__dirname,f); h.update('\0'+f+'\0'+(fs.existsSync(p)?norm(fs.readFileSync(p,'utf8')):'-')); }
   return h.digest('hex');
 }
-module.exports={ load, extractGameScript, makeStub, fingerprint };
+module.exports={ load, extractGameScript, makeStub, fingerprint, skyCarry };
