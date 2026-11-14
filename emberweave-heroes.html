@@ -14104,8 +14104,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
       if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a',u);}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
-    case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a',u); if(o.stun)ccApply(u,e,'stunned',o.stun); } } });
+    case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;   /* v1391 (skill reach audit 14 Nov): the cone reaches to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody; shared by Gruel's Coinflail, KonWu's Cleaving Arc and the monster cones */
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)-bodyR(e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a',u); if(o.stun)ccApply(u,e,'stunned',o.stun); } } });
       ringBurst(u.x,u.y,0xffa657,10); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,10); break; }
     case 'fireball':{const ctr=aimCtr||tgt;if(!ctr)break;enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||95)){dealDamage(u,e,dB*(o.mul||2.2)*rm,'#b98bff');}});burstAt(ctr.x,ctr.y,0xb98bff,24);break;}
     case 'fireorb':{ if(!tgt)break; const dmgAmt=dB*(o.mul||2.6)*rm, R=o.radius||58*UNIT_SIZE, atk=u, tx=tgt.x, ty=tgt.y;
@@ -14305,7 +14305,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     // ---- Hollow: a cone of thrown daggers, every one of them adding a bleed stack. ----
     case 'bladefan':{ const R=o.radius||3*METER, half=((o.angle||75)*Math.PI/180)/2;
       const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI);
-      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
+      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)-bodyR(e)>R)return;   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */
         let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI;
         if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||0.9)*rm,'#8f8fa8'); addBleedStack(u,e,o); } });
       ringBurst(u.x+Math.cos(dir)*R*.4,u.y+Math.sin(dir)*R*.4,0x8f8fa8,12); break; }
@@ -14332,7 +14332,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     // ---- Carn: the wound speaks. Damage scales with the health he has ALREADY LOST. ----
     case 'bloodnova':{ const R=o.radius||2.8*METER, missing=1-(u.hp/u.maxHp);
       const mul=(o.mul||0.7)*(1+(o.missingBonus||2.2)*missing);
-      enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)<=R){ dealDamage(u,e,dB*mul*rm,'#c0392b'); pushDot(e,_sD*0.15*sm,3,1,'#c0392b',u); } });
+      enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)-bodyR(e)<=R){ dealDamage(u,e,dB*mul*rm,'#c0392b'); pushDot(e,_sD*0.15*sm,3,1,'#c0392b',u); } });   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */
       ringBurst(u.x,u.y,0xc0392b,20); burstAt(u.x,u.y,0x8a1f1f,16);
       floatTexts.push({x:u.x,y:u.y-12,txt:missing>0.5?'VEINS BURST':'Vein Burst',t:1.0,color:'#c0392b',vy:1,sz:13}); break; }
 
@@ -14452,7 +14452,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       healFrom(u,u, hp*(o.healPct||1.0));
       u.shield=Math.max(u.shield||0, hp*(o.shieldPct||0.6)); u.shieldT=Math.max(u.shieldT||0,o.dur||8);
       u._devourT=o.dur||8; u._devourBonus=pw*(o.dmgPct||0.9);
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<(o.radius||3*METER)) dealDamage(u,e,dB*(o.mul||1.2)*rm,'#b03a3a'); });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)-bodyR(e)<=(o.radius||3*METER)) dealDamage(u,e,dB*(o.mul||1.2)*rm,'#b03a3a'); });   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xb03a3a,20); burstAt(u.x,u.y,0x6b1a1a,24);
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-16,txt:'FEED THEM',t:1.4,color:'#ff6a6a',vy:1,sz:15});
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
@@ -14492,12 +14492,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const lx=Math.max(60,Math.min(FW-60,tg2.x)), ly=Math.max(110,Math.min(FD-60,tg2.y));   /* v493: charge radius 2.6->5 m, so the landing clamp moves in to keep the wider blast fully in frame */
       ringBurst(u.x,u.y,0xff8844,12);
       /* v892 - a real dash: he travels there, and the slam lands when he ARRIVES (it used to teleport and slam at once) */
-      const _dd=Math.hypot(lx-u.x,ly-u.y), _dur=Math.max(0.15,Math.min(0.8,_dd/(o.dashSpeed||22*METER))), _cD=dB*((heroUltMul(u.key,u._castLv)!=null)?heroUltMul(u.key,u._castLv)/(sm||1):(o.mul||1.6))*rm, _cR=o.radius||2.4*METER;   /* v1311: ULT_HERO_MUL */
+      const _dd=Math.hypot(lx-u.x,ly-u.y), _dur=Math.max(0.15,Math.min(0.8,_dd/(o.dashSpeed||22*METER))), _cD=dB*((heroUltMul(u.key,u._castLv)!=null)?heroUltMul(u.key,u._castLv)/(sm||1):(o.mul||1.6))*rm, _cR=o.radius||2.4*METER;   /* v1311: ULT_HERO_MUL */ const _cE=(u._castSlot!=='ult'), _cIn=(e,L)=>_cE?(dist(L,e)-bodyR(e)<=_cR):(dist(L,e)<_cR);   /* v1391 (skill reach audit 14 Nov): a Green/Blue charge (Korvux's Comet Dash, the monster charges) slams every enemy whose BODY is within its radius of the landing spot - he lands on the enemy he charged, whose neighbours' centres stood just past 2.4 m. The charge ults (Rhukk, Tharl, Greatbrow, Brannus: 5 m) keep the centre test. Read at the cast: the slam runs later, after the slot is cleared */
       /* v935 - the ult text says what happens ON THE WAY: Ironcoil and Chainwheel roll THROUGH (each enemy on the path is struck as he
          reaches it, o.pathHit x the slam), Greatbrow shields every ally (o.allyShield x max HP) and knocks the enemies on his path aside. */
       if(o.pathHit||o.knockAside){ const _px=lx-u.x, _py=ly-u.y, _pl=Math.hypot(_px,_py)||1, _ux=_px/_pl, _uy=_py/_pl, _W=o.pathW||1.4*METER;
         foes.forEach(e=>{ if(!e.alive)return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*_ux+ry*_uy, side=rx*_uy-ry*_ux;
-          if(pr<0||pr>_pl||Math.abs(side)>_W||(o.slamOne?e===tg2:dist({x:lx,y:ly},e)<_cR)) return;   // v1303: slamOne - every other enemy on the path is hit + knocked aside
+          if(pr<0||pr>_pl||Math.abs(side)>_W||(o.slamOne?e===tg2:_cIn(e,{x:lx,y:ly}))) return;   // v1303: slamOne - every other enemy on the path is hit + knocked aside
           groundHazards.push({arrival:true,delay:Math.max(0.03,_dur*pr/_pl),run:function(){ if(!e.alive)return;
             if(o.pathHit){ dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); burstAt(e.x,e.y,0xffcf40,8); }
             if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
@@ -14505,7 +14505,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(o.allyShield) alliesOf(u).forEach(a=>{ if(!a.alive)return; a.shield=Math.max(a.shield||0,a.maxHp*o.allyShield); a.shieldT=Math.max(a.shieldT||0,o.shieldDur||5); burstAt(a.x,a.y,0x9fe0ff,8); });   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): March's shield had no timer and stacked */
       u._dash={x0:u.x,y0:u.y,x1:lx,y1:ly,t:0,dur:_dur,run:function(){ u.attackAnim=.2; u._rushLandAt=battleTime;   /* v1021: render-only stamp - the ult clip's impact frames start here */
         if(o.slamOne){ if(tg2.alive){ dealDamage(u,tg2,_cD,'#ffcf40'); if(o.stun&&ccApply(u,tg2,'stunned',o.stun)&&o.stunFull) tg2.stunned=Math.max(tg2.stunned||0,o.stunFull); } }   // v1303: the slam is ONE enemy - the one he charged; stunFull = Phil's 3 s past the 2.8 s stacking ceiling (this skill only)
-        else enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
+        else enemiesOf(u).forEach(e=>{ if(_cIn(e,{x:lx,y:ly})){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
         burstAt(lx,ly,0xffcf40,20); }};
       u._castT=Math.max(u._castT||0,_dur); break; }
     /* v534 NOONDAY STAMPEDE (Zahri) - Phil, 9 Sep: "a line aimed up that can go up to 20 meter, when you use it she charges to the
@@ -14589,14 +14589,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'interruptslam':{                                          // "damaging enemies and interrupting their casts"
       const R=o.radius||3*METER; let n=0;
-      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return; n++;
+      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)-bodyR(e)>R)return; n++;   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */
         dealDamage(u,e,dB*(o.mul||1.2)*rm,o.color||'#c8a45a');
         e._castT=0; e.castAnim=0; ccApply(u,e,'silencedT',o.silence||1.2); });
       burstAt(u.x,u.y,0xc8a45a,16); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'INTERRUPT',t:.9,color:'#c8a45a',vy:1,sz:12}); break; }
 
     case 'banner':{                                                 // "grant nearby allies armor, attack speed, and control resistance"
       const R=o.radius||6*METER, D=o.dur||6;
-      alliesOf(u).forEach(a=>{ if(!a.alive||dist(u,a)>R)return;
+      alliesOf(u).forEach(a=>{ if(!a.alive||dist(u,a)-bodyR(a)>R)return;   /* v1391 (skill reach audit 14 Nov): an ally whose BODY is within the 6 m (dist - bodyR) is rallied - the ally next to him stood 6.35 m centre to centre */
         a.drMul=Math.min(a.drMul||1,skLvNum('banner',o,_kLv));   /* v1112 BUG FIX: 18% + 0.1 pt a level (it fell to 15% from level 4) */ a.drT=Math.max(a.drT||0,D);
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,D);
         ctrlBonusSet(a,(o.ctrl||0.25),D,0.85);
@@ -14975,7 +14975,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(o.ownFx==='crescent'){ try{ veyrCrescentFx(u,tg2); }catch(_e){} }   /* v1160 Gravity Crescent: the crescent leaves his blade and rides the enemy it drags (display only) */
       ringBurst(u.x,u.y,0x8B5CF6,14); break; }
     // ---- Tick (clockwork bruiser) ----
-    case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); }); ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
+    case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)-bodyR(e)<=R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); });   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */ ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Sylthaine (frost mage — AP scaling) ----
     case 'frozenorb':{ const foes=enemiesOf(u), reach=o.range||28*METER; if(!foes.length)break;
       // Phil 14 Sep 2026: fire toward the farthest enemy within 28 m and hit every foe the orb passes.
@@ -14994,7 +14994,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
-    case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a','magic'); if(o.stun&&e.alive) ccApply(u,e,'stunned',o.stun); } });   /* v895: a row may ask for a stun (Dawnbringer) */ alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healFrom(u,a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'sunburst':{ const R=o.radius||2.8*METER, _sbE=(u._castSlot!=='ult');   /* v1391 (skill reach audit 14 Nov): a Green/Blue Sunburst (Aureth) burns every enemy whose BODY is within its radius (dist - bodyR); the heal below and the ults on this case (Lumi's Radiant Nova, Joss, Ambrel) keep the centre test */ enemiesOf(u).forEach(e=>{ if(_sbE?(dist(u,e)-bodyR(e)<=R):(dist(u,e)<R)){ dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a','magic'); if(o.stun&&e.alive) ccApply(u,e,'stunned',o.stun); } });   /* v895: a row may ask for a stun (Dawnbringer) */ alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healFrom(u,a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*skLvNum('duality',o,_kLv)+(u.apow||0)*2;   /* v1112: 12% + 0.06 pt a level */ alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
     case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff','magic'); ccApply(u,e,'stunned',0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     // ---- King Bloatus (poison tank) — poison scales off ability power ----
@@ -18515,7 +18515,7 @@ function _updateBattleCore(dt){
     if(u.pass.twinfonts){ if(!((u.greenAb&&u.greenAb.type==='duality')||(u.blueAb&&u.blueAb.type==='duality'))){ u._tfT=(u._tfT||0)+dt;   /* v895: without Duality he turns his own fonts every 5 s */
         if(u._tfT>=5){ u._tfT-=5; u._darkStance=!u._darkStance; try{ firePassiveFx(u); floatTexts.push({x:u.x,y:u.y-10,txt:u._darkStance?'DARK FONT':'LIGHT FONT',t:.9,color:u._darkStance?'#b06bff':'#ffe89a',vy:1,sz:11}); }catch(_e){} } }
       if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt*SKLV.twinfonts(passLv(u)); dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt*SKLV.twinfonts(passLv(u))));   /* v1112: Twin Fonts x(1 + 0.0066 a level) */ } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
-    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,dotTickAmt(u,e,u.dmg*SKLV.immolate(passLv(u)),dotDmgKind(u,'#ff6a3a')),'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
+    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)-bodyR(e)<=R){   /* v1391 (skill reach audit): Emberskin reaches to the enemy's body edge - centre to centre a melee enemy stood 3.4 m away and the 2.4 m aura burned nobody */ damage(e,dotTickAmt(u,e,u.dmg*SKLV.immolate(passLv(u)),dotDmgKind(u,'#ff6a3a')),'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     // Deep Reserves (Old Maren): the sea keeps him topped up — health AND energy
     if(u.pass.tidereserve){ const pm=(u.passMul||1); const _hurt=u.hp<u.maxHp; u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+u.maxHp*0.01*pm*dt)); u.energy=Math.min(100,u.energy+1*pm*dt);
       u._drFxT=(u._drFxT||0)+dt; if(u._drFxT>=6){ u._drFxT=0; if(_hurt) firePassiveFx(u,u,{aboveBar:true}); } }   /* v1044 (Phil: "finish them all"): Deep Reserves' plate pulses over his bar every 6 s while it is healing him - art only (a heal marker, v498) */
