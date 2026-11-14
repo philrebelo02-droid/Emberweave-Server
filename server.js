@@ -4154,12 +4154,28 @@ function simAsyncVerify(){ const pool=simPool(); return !!(pool&&pool.stats.read
    older than v1391 sends none, so a missing build is another build too). Either way round: an old page on a new server, or a
    new page on a server not yet deployed. The player keeps the result they witnessed, paid as today; the page's version poll
    reloads it. A mismatch from the current build is filed exactly as before. The claim comes from the page (like the digest). */
+/* v1391 GRACE (security follow-up): the page's build is the client's claim, so a missing or different build excuses a mismatch
+   only for OTHER_BUILD_GRACE_HOURS (default 48) after this server first ran its current engine - DB.meta.engineSeen[id], set once
+   at the first boot on that engine and never moved (a restart keeps the clock). After it, a result with no build or a build that
+   is not the server's is filed exactly as before v1391 (a real stale page is long gone: its 10 s version check reloads it). A
+   session the SERVER recorded as opened by an earlier engine (sessionEngine) stays excused with no time limit - the server's own
+   record, never the client's. `at` = when the result was sent (the late check passes its receipt's time). */
+const OTHER_BUILD_GRACE_MS=(function(){ const h=+(process.env.OTHER_BUILD_GRACE_HOURS||48); return (Number.isFinite(h)&&h>=0?h:48)*3600000; })();
+function engineFirstSeen(id,durable){ if(!id) return null; id=String(id);
+  DB.meta=DB.meta||{}; const m=(DB.meta.engineSeen&&typeof DB.meta.engineSeen==='object')?DB.meta.engineSeen:(DB.meta.engineSeen={});
+  if(Number.isFinite(m[id])) return m[id];
+  m[id]=Date.now(); const ks=Object.keys(m).sort((x,y)=>m[x]-m[y]); for(const k of ks.slice(0,Math.max(0,ks.length-20))) delete m[k];   // the last 20 engines
+  console.log('engine '+id+': first seen now - other-build grace '+(OTHER_BUILD_GRACE_MS/3600000)+' h');
+  if(durable) writeDBNow(); else writeDB(); return m[id]; }
+function engineSeenBoot(){ try{ const m=/const\s+BUILD_ID\s*=\s*'(\d+)'/.exec(fs.readFileSync(GAME_FILE,'utf8')); if(m) engineFirstSeen(m[1],true); }   // the regex sim-host reads buildVersion with
+  catch(e){ console.error('engine first-seen record:',e.message); } }
 const OTHER_BUILD_STATS={unfiled:0};
-function fightOtherBuild(sessionEngine,clientBuild){
+function fightOtherBuild(sessionEngine,clientBuild,at){
   let cur=null; try{ const h=simHost(); cur=(h&&h.buildVersion)?String(h.buildVersion):null; }catch(e){}
   if(!cur) return false;
-  if(sessionEngine && String(sessionEngine)!==cur) return true;
-  return ((typeof clientBuild==='string')?clientBuild.slice(0,40):'')!==cur; }
+  if(sessionEngine && String(sessionEngine)!==cur) return true;   // the server's record: no time limit
+  if(((typeof clientBuild==='string')?clientBuild.slice(0,40):'')===cur) return false;
+  const t0=engineFirstSeen(cur); return t0!=null && ((Number.isFinite(at)?at:Date.now())-t0)<OTHER_BUILD_GRACE_MS; }   // the client's claim: only in the grace period
 function campIncident(u,led,x){   // the flagged-fight record (shared by the resolve and the late check)
   led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:x.st.id,mode:x.mode,why:x.why,
     source:x.source,playerTruth:true,engine:x.engine||null,seed:x.seed>>>0,
@@ -4219,7 +4235,7 @@ function campCheckDone(j,rep){ _checkKeys.delete(j.k); _reqCtx.run({saveIds:[j.u
   if(!match&&!Array.isArray(rc.transcript)&&Array.isArray(pl.transcript)) rc.transcript=pl.transcript;   // v1127: a flagged fight keeps its recording on its receipt
   const now=Date.now(); _checkDone.push(now); while(_checkDone.length&&now-_checkDone[0]>60000) _checkDone.shift(); CAMP_VERIFY_STATS.drainedLastMin=_checkDone.length;
   if(match){ delete rc.transcript; CAMP_VERIFY_STATS.accepted++; }   // accepted: the recording is discarded
-  else if(sd&&fightOtherBuild(rc.engine,rc.clientBuild)){ delete rc.transcript; rc.otherBuild=true; OTHER_BUILD_STATS.unfiled++; }   // v1391: fought on another build - nothing is filed
+  else if(sd&&fightOtherBuild(rc.engine,rc.clientBuild,rc.t)){ delete rc.transcript; rc.otherBuild=true; OTHER_BUILD_STATS.unfiled++; }   // v1391: fought on another build - nothing is filed
   else { CAMP_VERIFY_STATS.flagged++; const st=portalStageOf(rc.mode,rc.node)||{id:rc.stage};
     campIncident(u,led,{st,mode:rc.mode,engine:rc.engine,seed:rc.seed,source:rc.source,inputLog:rc.transcript||[],clientHash:rc.clientDigest,
       witnessed:{won:!!rc.won,stars:rc.stars|0},rep,serverEndDigest,why:'digest-mismatch'}); }
@@ -11869,6 +11885,7 @@ function bootFinish(){ if(_booted) return;
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
   migrateGearToHeroLists();   /* v1336 */
   nameIdxRebuild();   /* v1184: the look-alike name index, built from the loaded world */
+  engineSeenBoot();   /* v1391: when this server first ran its engine (the other-build grace clock; set once, never moved) */
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   if(_store.layoutMismatch){ console.log('world store: '+_store.layout+' on disk, '+(_store.pieces?'pieces':'split-v1')+' configured - one full save converts it'); writeDB(); }   /* v1127: an old-format world (one file, split-v1) is converted by its first save; DB_STORE_PIECES=0 converts back (rollback) */
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
