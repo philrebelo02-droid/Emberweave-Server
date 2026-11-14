@@ -31,20 +31,37 @@ const finish=(name)=>{ console.log(name+': '+(checks-fails)+'/'+checks+' checks 
 const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(child) child.kill(); try{fs.rmSync(temp,{recursive:true,force:true});}catch(e){} };
 (async()=>{ try{
   const {page,errs}=await boot({grant:false});
+  /* v1391: two stale halves fixed (the game was right both times):
+     - REACH: since v1389 (2035745ad) a cleave reaches the enemy's BODY EDGE (dist - bodyR <= radius), so the old dummy "8 m dead ahead"
+       (body ~2 m) was legitimately inside 6.5 m. The far dummy now stands past radius + its body; a second one just inside by its body edge must be hit.
+     - 3.4x vs 2.6x: the old "235 vs 287" was a CRIT on the control (179.5 x 1.6 crit = 287.2; Carn has 3% crit and brnd() is Math.random outside
+       a seeded battle). Each cast now uses a fresh Carn and a fresh target, and the roll is pinned (no crit) while the hits are compared. */
   const r=await page.evaluate(()=>{ const out={};
-    const C=makeUnit('carn','ally',300,300,30,{owned:false,rank:3}); C.skillLv=[1,1,1,1];
+    const mkC=()=>{ const C=makeUnit('carn','ally',300,300,30,{owned:false,rank:3}); C.skillLv=[1,1,1,1]; C._castSlot='ult'; C._castSM=1; C._castLv=1; return C; };
     const mk=(dx,dy)=>{ const e=makeUnit('vael','enemy',300+dx*METER,300+dy*METER,30,{owned:false,rank:1}); e.maxHp=e.hp=1e6; e.armor=0; e.mr=0; return e; };
-    const E=[mk(2,0),mk(6.4,0),mk(4,2.5),mk(4,-2.5),mk(8,0),mk(1,3)];
-    units.length=0; units.push(C,...E); battleTime=5; C.target=E[0];
     const o=Object.assign({},ULT_DEF.cleave||{},HERO_ULT_ART.carn||{},{_arrived:true});
-    C._castSlot='ult'; C._castSM=1; C._castLv=1; doEffect(C,'cleave',o);
-    out.dmg=E.map(e=>Math.round(1e6-e.hp)); { const F=mk(2,0); units.push(F); doEffect(C,'cleave',Object.assign({},o,{mul:2.6,arc:45})); out.old=Math.round(1e6-F.hp); } out.bleed=E.map(e=>(e.dots||[]).length); out.atk=C.dmg; out.speed=HERO_TYPES.carn.speed; out.arc=o.arc; out.mul=o.mul; return out; });
+    const Rm=(o.radius||0)/METER, bRm=bodyR(mk(0,0))/METER; out.Rm=+Rm.toFixed(2); out.bodyRm=+bRm.toFixed(2);
+    const _b0=_brng; _brng=()=>0.99;   /* no crit / block / miss roll lands while hits are compared */
+    const cast=(targets,opt)=>{ const C=mkC(); units.length=0; units.push(C,...targets); battleTime=5; C.target=targets[0]; doEffect(C,'cleave',Object.assign({},o,opt||{})); return targets.map(e=>Math.round(1e6-e.hp)); };
+    try{
+      const E=[mk(2,0),mk(6.4,0),mk(4,2.5),mk(4,-2.5),mk(Rm+bRm+0.4,0),mk(1,3),mk(Rm+bRm-0.4,0)];
+      out.dmg=cast(E); out.bleed=E.map(e=>(e.dots||[]).length);
+      out.reap=cast([mk(2,0)])[0]; out.old=cast([mk(2,0)],{mul:2.6,arc:45})[0];
+      /* CONTROLS (must come out wrong, proving the checks can fail): a 1 m shorter reach misses the body-edge dummy; a crit on the control breaks the ratio */
+      out.ctlShort=cast([mk(Rm+bRm-0.4,0)],{radius:(Rm-1)*METER})[0];
+      _brng=()=>0; out.ctlCrit=cast([mk(2,0)],{mul:2.6,arc:45})[0];
+    } finally { _brng=_b0; }
+    out.speed=HERO_TYPES.carn.speed; out.arc=o.arc; out.mul=o.mul; return out; });
   console.log('   ',JSON.stringify(r));
+  const ratioOk=(a,b)=>Math.abs(a/b-3.4/2.6)<0.02;
   ok(r.speed===88, 'Carn moves at 88 (72 -> 80 for the tester, then every Bruiser x1.1) ('+r.speed+')');
   ok(r.arc===90&&r.mul===3.4, 'Crimson Reap: 90 deg wedge, 3.4x Attack ('+r.arc+', '+r.mul+')');
   ok(r.dmg[0]>0&&r.dmg[1]>0&&r.dmg[2]>0&&r.dmg[3]>0, 'hits every enemy in the wide wedge out to 6.4 m, including 2.5 m to each side at 4 m ('+r.dmg.slice(0,4)+')');
-  ok(r.dmg[4]===0&&r.dmg[5]===0, 'misses enemies past 6.5 m or far off to the side ('+r.dmg[4]+','+r.dmg[5]+')');
-  ok(Math.abs(r.dmg[0]/r.old-3.4/2.6)<0.02, 'the hit is 3.4/2.6 = 1.31x the old ult on the same target ('+r.dmg[0]+' vs '+r.old+')');
+  ok(r.dmg[4]===0&&r.dmg[5]===0, 'misses an enemy whose body edge is past '+r.Rm+' m (centre '+(r.Rm+r.bodyRm+0.4).toFixed(2)+' m, body '+r.bodyRm+' m) or far off to the side ('+r.dmg[4]+','+r.dmg[5]+')');
+  ok(r.dmg[6]>0, 'v1389 body-edge reach: an enemy whose centre is past '+r.Rm+' m but whose body edge is just inside IS hit ('+r.dmg[6]+')');
+  ok(r.ctlShort===0, 'control: with a 1 m shorter reach that same body-edge enemy is missed ('+r.ctlShort+')');
+  ok(ratioOk(r.reap,r.old), 'the hit is 3.4/2.6 = 1.31x the old ult (fresh Carn, fresh target, same spot, no crit) ('+r.reap+' vs '+r.old+')');
+  ok(!ratioOk(r.reap,r.ctlCrit), 'control: a crit on the 2.6x control (the old 235 vs 287) does fail the ratio ('+r.reap+' vs '+r.ctlCrit+')');
   ok(r.bleed[0]>=1&&r.bleed[2]>=1, 'and leaves them bleeding');
   ok(errs.length===0,'no page errors ('+errs.slice(0,3).join(' | ')+')');
 }catch(e){ console.error(e); fails++; } finally { finish('carn 1376'); await cleanup(); } })();
