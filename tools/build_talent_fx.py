@@ -9,6 +9,13 @@ Anything that is not exactly one of these sentences is left out here and gets it
 talents it covered. Record per hero: { talentId: { stat: fraction per rank, ... } }.
 Stats: hp, atk, apow, armor, mr (multiply the finished number), crit (added to crit chance), critDmg (critical hits deal x more),
 aspd (attack speed), heal (healing power), shield (shield strength).
+
+Step 2 (14 Nov 2026) adds the MECHANICS: everything a talent does that is not a plain stat. They are hand-authored, never parsed from prose:
+    talents-mech/_engine.js   the runtime (hooks + generic primitives), copied in as it stands
+    talents-mech/<hero>.js    one file per wired hero: rows of data on those primitives (module.exports = {...}), copied in as it stands
+This script also writes, for each wired hero, which tree every talent id belongs to (from talents-data.js), so a fight can count the points
+spent per tree (the "AT 91 POINTS in <tree>" lines) from the learned list alone. talents-fx.js is GENERATED: edit the sources, run this.
+Design: WIRING/03 - MECHANICS LAYER (hooks, primitives, how to add a hero).md
 """
 import io, json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -60,6 +67,22 @@ for hero, h in data["heroes"].items():
             if r:
                 fx.setdefault(hero, {})[t[0]] = r; n += 1
 body = json.dumps({"v": data.get("v", 0), "stats": fx}, separators=(",", ":"), sort_keys=True)
+MDIR = os.path.join(ROOT, "talents-mech")
+CRLF, LF = chr(13) + chr(10), chr(10)
+engine = io.open(os.path.join(MDIR, "_engine.js"), encoding="utf-8").read().replace(CRLF, LF)
+mech_heroes = sorted(f[:-3] for f in os.listdir(MDIR) if f.endswith(".js") and not f.startswith("_"))
+trees, mech_src = {}, []
+for hero in mech_heroes:
+    if hero not in data["heroes"]:
+        sys.exit("talents-mech/%s.js: no such hero in talents-data.js" % hero)
+    h = data["heroes"][hero]
+    trees[hero] = {"ids": [tr["id"] for tr in h["trees"]], "of": {t[0]: i for i, tr in enumerate(h["trees"]) for t in tr["talents"]}}
+    text = io.open(os.path.join(MDIR, hero + ".js"), encoding="utf-8").read().replace(CRLF, LF)
+    for tid in sorted(set(re.findall(r"^ {4}([a-z]+_[a-z0-9]+(?:_[0-9]+)?): *\[", text, re.M))):   # the row lists of `talents:`
+        if tid not in trees[hero]["of"]:
+            sys.exit("talents-mech/%s.js: talent id %s is not in talents-data.js" % (hero, tid))
+    mech_src.append("  MECH[%s]=(function(){const module={exports:{}};%s%s%sreturn module.exports;})();%s" % (json.dumps(hero), LF, text, LF, LF))
+mech_block = "  const TREES=" + json.dumps(trees, separators=(",", ":"), sort_keys=True) + ";" + LF + "  const MECH={};" + LF + "".join(mech_src) + engine
 js = r'''/* Talents in a fight: shared by the page and the server's battle host (it runs this same file). No rendering, no RNG.
    DATA is built by tools/build_talent_fx.py from talents-data.js - do not edit it by hand.
    Phil 14 Nov 2026: "they are only activated when someone clicks learn talent" - nothing here runs for a hero with no learned talents:
@@ -112,11 +135,13 @@ js = r'''/* Talents in a fight: shared by the page and the server's battle host 
     if(T.shield) u.shieldStr=(u.shieldStr||1)*Math.max(0.05,1+T.shield);
     return u; }
   const has=(hero,id)=>!!(DATA.stats[hero]&&DATA.stats[hero][id]);
-  return Object.freeze({v:DATA.v,totals,applyStats,applyCore,has});
+__MECH__
+  return Object.freeze(Object.assign({v:DATA.v,totals,applyStats,applyCore,has},RUNTIME));
 });
-'''.replace("__DATA__", body)
+'''.replace("__DATA__", body).replace("__MECH__", mech_block)
 io.open(os.path.join(ROOT, "talents-fx.js"), "w", encoding="utf-8", newline="\n").write(js)
 print("talents-fx.js: %d of %d talents are plain stat talents (%d heroes), %d KB" % (n, total, len(fx), len(js) // 1024))
+print("talents-fx.js: mechanics for %s" % (", ".join(mech_heroes) or "no hero yet"))
 if "--list-near" in sys.argv:
     for hero, h in data["heroes"].items():
         for tr in h["trees"]:
