@@ -2454,6 +2454,11 @@ function vaultCompile(){
 }
 function vaultFloorRecord(floor){ if(!VAULT_ENC) throw new Error('vault-encounters not compiled'); return VAULT_ENC[Math.max(1,Math.min(DUNGEON_MAX_FLOOR,floor))-1]; }
 function buildDungeonWaves(floor){ return vaultFloorRecord(floor).waves; }
+/* 14 Nov 2026 REAL_ENGINE_TRIAL (D5, doc 09 section 11). The Trial "dungeon" floor on the real engine: the Vault floor's authored waves (the
+   same specs the Vault fights) with the Trial's monster scale (TRIAL_KINDS.dungeon.mul, the line model's x0.9 on monster HP and attack)
+   put on each spec's hpMul / dmgMul - the multipliers vaultEnemyUnit already applies. No 1.6x player band: the band stood in for how a
+   person plays, and on the real engine the player's own play (the recorded transcript) is replayed. */
+function trialRealWaves(floor,mul){ return vaultFloorRecord(floor).waves.map(w=>w.map(m=>Object.assign({},m,{hpMul:(+m.hpMul||1)*mul,dmgMul:(+m.dmgMul||1)*mul}))); }
 /* ==================== v663 TRAINING PROVINCE — real battles, server-owned ====================
    Phil (19 Sep): "Both gold province and drill province should be a real battle like campaign. But it should have a
    boss at the end of each fight. Once cleared you can sweep. Higher level gold and drill province can open at a higher
@@ -5398,7 +5403,8 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
     table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd } }; }
 /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) - their own GET, fetched when a level is browsed, so the tables stay out of every ledger and saved fight */
 function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP }; }
-function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
+function ledgerView(u){ const v=ledgerView0(u); if(REAL_ENGINE.trial&&v) v.trialReal=1; return v; }   // REAL_ENGINE_TRIAL: the client starts a Trial with /api/trial/start
+function ledgerView0(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, talents:(TALENTS_ON?(led.talents||{}):undefined), temple:templeClientState(led), wall:wallView(u),
@@ -5986,7 +5992,7 @@ function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.are
    Plan and status: TALENT TREES 13NOV2026/WIRING/09 - EVERY MODE ON THE REAL ENGINE (plan and status).md */
 const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true', skyfall:process.env.REAL_ENGINE_SKYFALL==='true',
   npcCastle:process.env.REAL_ENGINE_NPC_CASTLE==='true', hitTiming:process.env.REAL_ENGINE_HIT_TIMING==='true',
-  siege:process.env.REAL_ENGINE_SIEGE==='true' });
+  siege:process.env.REAL_ENGINE_SIEGE==='true', trial:process.env.REAL_ENGINE_TRIAL==='true' });
 /* 14 Nov 2026 D1 - REAL_ENGINE_HIT_TIMING. The single-wave world fights the server decides (city PvP against a player castle, the world-map
    bot, the mines, the siege check) ran host.auto: a headless fight with no clip timing, every blow landing at the swing. The war mail /
    report replay the player watches runs the same snaps and seed in the browser, where each blow lands on its clip's contact cell - so the
@@ -9962,6 +9968,35 @@ async function api(req,res,url){
     const b=await body(req);if(!b||typeof b!=='object'||Array.isArray(b)||typeof b.requestId!=='string'||!b.requestId.trim()||b.requestId.length>48)return send(res,400,{ok:false,error:'Strict requestId required'});
     const out=questChainDurable(me,b.requestId);return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
+  /* REAL_ENGINE_TRIAL (D5): the start of a Trial "dungeon" floor on the real engine. Freezes the squad (campaignHeroSpec -> the page's
+     snapFromSpecs: every system of every hero as it stands now), a server seed and the floor (best + 1) on led.trialAtt, and hands the
+     client exactly that fight (snaps, seed, the floor's waves). /api/trial/resolve with this attemptId replays the player's transcript
+     on it and pays the replay. With the switch off this route does not exist (the request falls through as before). */
+  if(p==='/api/trial/start'&&REAL_ENGINE.trial){
+    if(!me) return send(res,401,{error:'auth'});
+    if(req.method!=='POST') return send(res,404,{error:'loop'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':trialstart:'+reqId,()=>{
+      const led=ensureLedger(me), kind=String(b.kind||'');
+      if(kind!=='dungeon') return {ok:false,error:'Unknown trial.'};
+      if(ledPlayerLevel(led)<10) return {ok:false,error:'The Vault opens at level 10.'};
+      const T=(led.trial&&led.trial[kind])||{best:0};
+      if((T.best|0)>=DUNGEON_MAX_FLOOR) return {ok:false,error:'The last floor is '+DUNGEON_MAX_FLOOR+'.'};
+      const floor=(T.best|0)+1;
+      const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
+      for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'not unlocked: '+k}; }
+      if(!ids.length) return {ok:false,error:'Pick your squad.'};
+      const host=simHost(); if(!host) return {ok:false,error:'The trial battle engine is unavailable.'};
+      const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(sp=>!sp)) return {ok:false,error:'Pick your squad.'};
+      let snaps; try{ snaps=host.snapFromSpecs(specs); }catch(e){ return {ok:false,error:'Your squad could not be resolved.'}; }
+      if(!Array.isArray(snaps)||snaps.length!==ids.length) return {ok:false,error:'Your squad could not be resolved.'};
+      const seed=crypto.randomBytes(4).readUInt32BE(0)>>>0;
+      const att={id:uid(),kind,floor,heroIds:ids,snaps,seed,engine:host.buildVersion||null,t:Date.now()};
+      led.trialAtt=att;   // one open attempt; a new start replaces it
+      return {ok:true,real:1,attemptId:att.id,kind,floor,seed,snaps,waves:trialRealWaves(floor,TRIAL_KINDS.dungeon.mul),engine:att.engine};
+    });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out);
+  }
   if(p==='/api/elite/resolve'||p==='/api/trial/resolve'||p==='/api/quest/state'||p==='/api/quest/claim'||p==='/api/quest/chain-claim'||p==='/api/market/frag'||p==='/api/arena/daily-claim'){
     if(!me) return send(res,401,{error:'auth'});
     let led=ensureLedger(me);
@@ -9996,7 +10031,7 @@ async function api(req,res,url){
         ledTx(me,'elite:'+node,{frag:frags,hero:hk});
         writeDB(); return {ok:true, won:true, heroKey:hk, frags, heroXp:70, ledger:ledgerView(me)};
       }); return send(res, out.ok===false?400:200, out); }
-    if(p==='/api/trial/resolve'){ const out=idem(me.id+':trial:'+reqId,()=>{
+    if(p==='/api/trial/resolve'){ const _trialFn=()=>idem(me.id+':trial:'+reqId,()=>{
         const kind=String(b.kind||''); const K=Object.prototype.hasOwnProperty.call(TRIAL_KINDS,kind)?TRIAL_KINDS[kind]:null; if(!K) return {ok:false,error:'Unknown trial.'};
         /* v1087 (scan 8 #2): this route had no unlock gate - the Tower (level 40) and Vault (10) ladders paid from level 1; the Gauntlet is retired */
         { const _lv=ledPlayerLevel(led); if(kind==='gauntlet') return {ok:false,error:'The Gauntlet is retired.'};
@@ -10007,10 +10042,22 @@ async function api(req,res,url){
         /* v1097 (sweep 9 Oct P0 #3): floors stop at the last built encounter (DUNGEON_MAX_FLOOR) - beyond it every floor was floor 100 again,
            each paying its first clear; floors still go in order (best+1) and pay once */
         if((+b.floor|0)>DUNGEON_MAX_FLOOR) return {ok:false,error:'The last floor is '+DUNGEON_MAX_FLOOR+'.'};
-        const floor=Math.max(1,Math.min(DUNGEON_MAX_FLOOR,b.floor|0));
+        /* REAL_ENGINE_TRIAL: a resolve that names an attempt is the real engine - the attempt's frozen squad, seed and floor (the engine is
+           the attempt's: one started with the switch on resolves here even if the switch went off; a resolve without one is the line model) */
+        const ra=(b.attemptId!=null)?led.trialAtt:null;
+        if(b.attemptId!=null&&!(ra&&ra.id===String(b.attemptId)&&ra.kind===kind)) return {ok:false,error:'No matching trial battle.'};
+        const floor=ra?ra.floor:Math.max(1,Math.min(DUNGEON_MAX_FLOOR,b.floor|0));
         led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
         if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
-        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
+        let real=null;
+        if(ra){ const host=simHost(); if(!host) return {ok:false,storageFailed:true,error:'The trial battle engine is unavailable.'};
+          const rep=host.campaign(ra.snaps,trialRealWaves(ra.floor,K.mul),ra.seed>>>0,sanitizeInputLog(b.inputLog),'vault');   // the player's transcript on the frozen fight
+          const cd=typeof b.digest==='string'?b.digest.slice(0,200000):'';
+          real={won:!!rep.won,digest:rep.digest,seed:ra.seed>>>0,engine:ra.engine||null,digestMatch:cd?(!!rep.digest&&sha256hex(cd)===sha256hex(String(rep.digest))):null};
+          delete led.trialAtt;   // one resolve per attempt (a retry answers its receipt)
+          if(!real.won) return {ok:true, won:false, best:T.best, real}; }
+        const ids=ra?ra.heroIds.slice():Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
+        if(!ra){
         for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'not unlocked: '+k}; }
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
@@ -10019,6 +10066,7 @@ async function api(req,res,url){
         const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*1.6),atk:Math.round(x.atk*1.6),heal:Math.round((x.heal||0)*1.6),atkP:Math.round((x.atkP||0)*1.6),atkM:Math.round((x.atkM||0)*1.6)});
         const r=SIM.qualificationEstimate(snaps.map(band), waves, srvSeed('trial', kind, me.id, floor, reqId));
         if(!r.result.won) return {ok:true, won:false, best:T.best};
+        }
         const first=floor>T.best; if(first) T.best=floor;
         let reward=null;
         if(first){ reward={...K.reward(floor)};
@@ -10050,8 +10098,12 @@ async function api(req,res,url){
             led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+1); mats[k]=(mats[k]||0)+1; }
           ledTx(me,'dungeon:mats:'+floor,mats);
         } }
-        writeDB(); return {ok:true, won:true, first, best:T.best, reward, mats, matsCapped, matsLeft, matsCap:DUNGEON_MATS_PER_DAY, eqMats:(led.eqMats||null), ledger:ledgerView(me)};
-      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
+        writeDB(); const _tr={ok:true, won:true, first, best:T.best, reward, mats, matsCapped, matsLeft, matsCap:DUNGEON_MATS_PER_DAY, eqMats:(led.eqMats||null), ledger:ledgerView(me)};
+        if(real) _tr.real=real; return _tr;
+      });
+      /* REAL_ENGINE_TRIAL: a real attempt's replay runs on a battle worker (simRun: nothing is committed before the fight); otherwise as before */
+      const out=(b.attemptId!=null)?await simRun(()=>{ led=ensureLedger(me); return _trialFn(); }):_trialFn();
+      return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     if(p==='/api/quest/claim'){ const out=idem(me.id+':quest:'+reqId,()=>{
         led.quests=led.quests||{claimed:{},chainStep:0};
         const id=String(b.id||''); const q=QUEST_DEFS_SRV[id]; if(!q) return {ok:false,error:'Unknown quest.'};

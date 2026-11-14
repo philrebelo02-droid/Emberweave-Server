@@ -17723,7 +17723,7 @@ function _startBattleNow(){
     if(CUR.mode==='graid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'||CUR.trialReal))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   try{ preloadAimArt(); }catch(e){}   // v537: painted aim indicators
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
@@ -17737,7 +17737,7 @@ function _startBattleNow(){
     buildEnemyWave();
     actBegin();   /* resets the action stream; province fights resolve from the submitted transcript (no live stream) */
     bannerMsg(CUR.mode==='well'?(ewT('battle.place_map',{place:'THE STARLESS WELL',n:((CUR.well&&CUR.well.map)|0)})+'\n'+ewT('battle.wave_n',{n:1})):(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm).toUpperCase()+' — '+ewT('battle.stage_caps',{n:((CUR.prov&&CUR.prov.stage)|0)})+'\n'+ewT('battle.wave_n',{n:1}))); beginWaveEnter(); }
-  else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
+  else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; if(CUR.trialReal&&Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length){ spawnTeamFromSnaps(CUR.serverSnaps); actBegin(); } else spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');   /* REAL_ENGINE_TRIAL: the frozen squad */
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
     if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
     buildEnemyWave();
@@ -18198,6 +18198,7 @@ function endBattle(won){
         : `${ewT('result.beat',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})} · ${hudIcon('gold')} +${reward}`)+_mv+_rc;
       document.getElementById('resultReward').innerHTML=won?winMsg:(`${ewT('result.lost_to',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})}`+_mv+_rc);
       document.getElementById('resultHint').textContent=''; gameSpeed=1; show('result'); },800); return; }
+  if(CUR.mode==='vault'&&CUR.trialReal) CUR.mode='dungeon';   /* REAL_ENGINE_TRIAL: a Trial floor fought with the Vault's rules - its result is the Trial's */
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
     resultLater(async(ep)=>{ let r=null;
       /* v410 — PLAYER TRUTH (Phil: "what i see on my screen should be the result, not whatever crap
@@ -18247,7 +18248,8 @@ function endBattle(won){
   if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0,_dgReq=null; if(won){
     const _try=(G.dungeonBest||0)+1;
     if(!ACC.token) G.dungeonBest=_try;                       // offline: nothing server-side to disagree with
-    if(ACC.token) _dgReq={kind:'dungeon',floor:_try,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()};   // v250: server-verified; v1151: ONE requestId, sent from the result step
+    if(ACC.token) _dgReq={kind:'dungeon',floor:_try,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()};
+    if(ACC.token&&CUR.trialReal) _dgReq={kind:'dungeon',floor:CUR.trialReal.floor|0,attemptId:CUR.trialReal.attemptId,inputLog:(INPUT_LOG||[]).slice(0,400),digest:window._p2lastDigest||'',requestId:uid8()};   /* REAL_ENGINE_TRIAL: the transcript; the server replays it on the frozen fight */   // v250: server-verified; v1151: ONE requestId, sent from the result step
       /* v273 (audit response P0): the equipment-material roll happens on the SERVER (/api/trial/resolve)
          and arrives with the ledger. Offline play still grants nothing permanent. */
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0};
@@ -21224,6 +21226,7 @@ function renderForge(){
    never the ledger. */
 let LED={st:null};
 function adoptLedger(st){ if(!st||typeof st!=='object') return; summonTableSync();
+  try{ if('rev' in st) window._trialReal=!!st.trialReal; }catch(e){}   /* REAL_ENGINE_TRIAL: the server fights the Trial's floors on the real engine */
   try{ if('tester' in st && ACC && ACC.token && !!ACC.tester!==!!st.tester){ ACC.tester=!!st.tester; saveAcc(); } }catch(e){}   /* v1376: test account on / off */
   try{ if('notice' in st) devNoticeShow(st.notice); }catch(e){}   /* v1379: the dev panel's maintenance notice */
   try{ if(st.amail) adminMailAdopt(st.amail); }catch(e){}   /* v1379: a message from the dev panel lands in the Mail inbox */
@@ -24042,11 +24045,24 @@ function tp2AutoWire(b,act,key){ if(!templeAuto) return; const a=templeAuto, q=s
     }finally{ _go.disabled=false; } };
 }
 function startDungeon(){
+  if(ACC.token&&window._trialReal){ trialRealStart(); return; }   /* REAL_ENGINE_TRIAL */
   syncActiveSquad();   // per-mode squad
   const lv=playerLevel(), eLvl=lv+2+Math.floor(lv/6), rank=Math.min(3,Math.floor(lv/5));   // ungated, but difficulty rises with player level: enemy level tracks + pulls ahead as you climb
   const pool=HERO_KEYS.slice(), team=[]; for(let i=0;i<5;i++) team.push({key:pool[(i*2+lv)%pool.length],level:eLvl,rank});
   CUR={mode:'dungeon',opp:team}; startVersus(team,false);
 }
+/* REAL_ENGINE_TRIAL (D5): the server freezes the squad (every system of every hero), a seed and the floor (/api/trial/start); this browser
+   fights exactly that fight - the floor's waves, the frozen squad, the server's seed, the Vault's battle rules - and the result step sends
+   the transcript (/api/trial/resolve with the attemptId), which the server replays on the same fight and pays. */
+async function trialRealStart(){ if(trialRealStart.busy) return; trialRealStart.busy=true;
+  try{ syncActiveSquad();
+    const ids=(G.team||[]).map(h=>(h&&typeof h==='object')?h.key:h).filter(k=>typeof k==='string'&&k).slice(0,TEAM_SIZE);
+    const r=await api('/api/trial/start','POST',{kind:'dungeon',heroIds:ids,requestId:uid8()});
+    if(!r||!r.ok){ bannerMsg(langMsg(r&&r.error)||ewT('net.connection_lost')); return; }
+    CUR={mode:'vault',trialReal:r,floor:r.floor|0,vwaves:r.waves||[],serverSnaps:r.snaps,seed:(r.seed>>>0),engine:r.engine||null};
+    try{ preloadVaultArt(CUR.vwaves); }catch(e){}
+    startBattle();
+  } finally { trialRealStart.busy=false; } }
 function renderElite(){
   const b=document.getElementById('eliteBody'); eliteCheckReset();
   document.getElementById('eliteBack').onclick=()=>show(menuReturn==='heroesPanel'?'heroesPanel':'home');
