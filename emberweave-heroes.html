@@ -8154,29 +8154,39 @@ let _powerBoon=null;   /* Starless Well (Phil 12 Nov: "The power in starless car
 const WELL_CLASS_OF={Tank:'Tank',Bruiser:'Bruiser',Brute:'Bruiser',Warrior:'Bruiser',Assassin:'Assassin',Marksman:'Marksman',Mage:'Mage',Support:'Support'};
 function wellBoonOf(key,S){ const cls=WELL_CLASS_OF[(HERO_TYPES[key]||{}).role]||'Bruiser', o={hp:0,atk:0,def:0}; (S&&S.buffs||[]).forEach(bf=>{ if(bf&&(bf.cls==='All'||bf.cls===cls)){ o.hp+=bf.hp||0; o.atk+=bf.atk||0; o.def+=bf.def||0; } }); return o; }
 function wellHeroPower(key,S){ _powerBoon=wellBoonOf(key,S); try{ return heroPower(key); } finally{ _powerBoon=null; } }
+/* 14 Nov 2026 TALENTS IN THE POWER NUMBER. MUST stay identical in server.js (snapshotHeroFromServer -> TalentFx.applyCore -> unitCardPower,
+   talentHealDpsMul, talentPowerFlat). An owned hero's learned STAT talents change the numbers the card is priced from by their percent, in
+   the line model's own order: max HP / attack / ability power to whole points, armor / magic resist x(1+n), crit chance added under the
+   60% cap, the whole critical hit x(1+n), attack speed x(1+n), healing power x(1+n) on the whole healing multiplier. Shield strength is not
+   in the card from any source. talentPowerTotals is null for a hero with nothing learned, and then no line of heroPower changes a number.
+   MECHANIC (non-stat) talents: no power yet - talentPowerFlat is the one place a per-rank flat term goes once the owner gives a rule. */
+function talentPowerTotals(key){ try{ if(typeof TalentFx==='undefined') return null; const l=talentListLocal(key); return (l&&l.length)?TalentFx.totals(key,l):null; }catch(e){ return null; } }
+/* TALENT POWER, FLAT TERM (mechanic talents): returns 0 until the owner sets a rule. list = [[id,rank],...]. = server talentPowerFlat. */
+function talentPowerFlat(key,list){ return 0; }
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ const _tb=templeBonusesClient(key), _gp=(typeof gearSockMul==='function'?gearSockMul(key):{})||{};   /* v1316 (Phil 8 Nov: gear penetration counts): gear pen joins the Temple pen term */
     const _tp=((_gp.armorPen||0)>0||(_gp.magicPen||0)>0) ? Object.assign({},_tb,{armorPenFlat:(Number(_tb&&_tb.armorPenFlat)||0)+(_gp.armorPen||0), magicPenFlat:(Number(_tb&&_tb.magicPenFlat)||0)+(_gp.magicPen||0)}) : _tb;   /* v1316: = server heroCardPower; no gear pen -> the Temple bonuses as before */
     return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(_tp)); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
   const TBF=TempleEffects.clientFlats(templeBonusesClient(key));   /* v1094 (Temple v2): the bars are flat stats - same whole numbers the server folds into its ratings */
+  const _TF=talentPowerTotals(key), _tkR=(v,f)=>(_TF&&_TF[f])?Math.round(v*Math.max(0.05,1+_TF[f])):v, _tkM=(v,f)=>(_TF&&_TF[f])?v*Math.max(0,1+_TF[f]):v;   /* 14 Nov 2026 talents: with nothing learned both return v itself */
   /* v807 - ROUND WHERE THE FIGHT ROUNDS. `buildUnit` rounds HP and attack to whole points before
      anything reads them, so those are the numbers the hero actually fights with; pricing the raw
      fractions put the card half a percent off the same hero priced anywhere else. Same order too -
      the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
-  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;   const _bo=_powerBoon||{hp:0,atk:0,def:0};
-  const atkP = (Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat)*(1+_bo.atk);
-  const atkM = (1+_bo.atk)*((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0);   /* v1099: Academy AP is a flat */
+  const hp   = _tkR(Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat,'hp');   const _bo=_powerBoon||{hp:0,atk:0,def:0};
+  const atkP = _tkR(Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat,'atk')*(1+_bo.atk);
+  const atkM = (1+_bo.atk)*_tkR((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0,'apow');   /* v1099: Academy AP is a flat */
   const _sf=starFlat(key);   // v1369: star Armor / MR are flat rating points (x1), = the server core's armorRating / mrRating
-  const armor= (1+_bo.def)*(heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat);
-  const mr   = (1+_bo.def)*(heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat);
+  const armor= (1+_bo.def)*_tkM(heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat,'armor');
+  const mr   = (1+_bo.def)*_tkM(heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat,'mr');
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   let ehp    = hp*(1+_bo.hp)/Math.max(0.15,1-mitig);
   const _crR = (typeof techFlat==='function'?techFlat('critres'):0)+(tt.critRes||0); if(_crR>0){ const cr=Math.min(0.75,_crR*0.0005); ehp*=(1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }   /* v1311: Academy crit resist (= mulsFromTotals critRes); v1316 (Phil 8 Nov): + gear crit resist (tt is gear only here - glyphs count as their tier) */
-  const crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
+  let crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
   const _fu  = furyPowerMul(key);   /* v1311: purple FURY */
-  const sw   = 1/Math.max(0.05, swingInterval(t)/(_fu!==1 ? (1+((tt.atkSpd||0)*0.0005))*_fu : (1+((tt.atkSpd||0)*0.0005))));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
+  let sw   = 1/Math.max(0.05, swingInterval(t)/(_fu!==1 ? (1+((tt.atkSpd||0)*0.0005))*_fu : (1+((tt.atkSpd||0)*0.0005))));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
   /* AP is weighted 1.5x a point of Attack and energy regen adds a little on top: a spell carries a
      kit coefficient and usually lands on more than one target, so counting Ability Power as if it
      were a single-target auto-attack read every Mage and Support ~40% below the rest of the roster.
@@ -8185,9 +8195,13 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Cathedral / King Bloatus read ~55% above the other tanks and Aureth ~50% above the other fighters for a few spell coefficients.
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
+  if(_TF){ if(_TF.crit) crit=Math.max(0,Math.min(0.6,crit+_TF.crit)); if(_TF.critDmg) critDmg=(1+critDmg)*Math.max(0.05,1+_TF.critDmg)-1;   /* 14 Nov 2026 talents (= TalentFx.applyCore) */
+    if(_TF.aspd) sw=1/Math.max(0.05, swingInterval(t)/((1+((tt.atkSpd||0)*0.0005))*_fu*Math.max(0.05,1+_TF.aspd))); }
   let dps    = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
-  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0)+(tt.healPow||0); if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow); v1316 (Phil 8 Nov): + gear healing power */
-  const _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
+  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0)+(tt.healPow||0); if(_TF&&_TF.heal) dps*=1+((1+(_hlR>0?_hlR*0.0005:0))*Math.max(0.05,1+_TF.heal)-1)*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* 14 Nov 2026: a healing-power talent (= server talentHealDpsMul) */
+  else if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow); v1316 (Phil 8 Nov): + gear healing power */
+  let _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
+  if(_TF) _pw+=talentPowerFlat(key,talentListLocal(key));
   return _powerNoGlyph ? _pw : Math.round(_pw); }   // v1024: the inner (pre-Temple) call stays unrounded - the card rounds ONCE, after the Temple multiplier, as the server does (rounding twice put Yenna's card 446 against the server's 445)
 
 /* ------------------------------ progression -------------------------------- */
@@ -12351,7 +12365,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   if(owned){ const _tl=S?S.talents:talentListLocal(key); if(_tl&&_tl.length&&typeof TalentFx!=='undefined'){ TalentFx.applyStats(u,key,_tl); u._talList=_tl.map(e=>[e[0],e[1]]); } }
   return u;
 }
-function talentListLocal(key){ try{ const b=(typeof G!=='undefined'&&G&&G.talents)?G.talents[key]:null; if(!b||typeof TALENTS==='undefined') return null; const l=TALENTS.learned(key,b); return l.length?l:null; }catch(e){ return null; } }
+function talentListLocal(key){ try{ const b=(typeof G!=='undefined'&&G&&G.talents)?G.talents[key]:null; if(!b||typeof TALENTS==='undefined') return null; if(TALENTS.invalid(key,b,heroLevel(key))) return null;   /* = server talentListFor: a build the rules no longer accept fights, and is priced, with NO talents */ const l=TALENTS.learned(key,b); return l.length?l:null; }catch(e){ return null; } }
 /* ---------------------------------------------------------------------------------------------
    SUMMONS (Hurne the Chained). The first units in the game spawned mid-battle.
    A summon is a real unit built by makeUnit() — it fights, takes damage and dies like anything
