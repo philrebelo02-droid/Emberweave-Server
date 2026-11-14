@@ -50,7 +50,7 @@
     if(T.shield) u.shieldStr=(u.shieldStr||1)*Math.max(0.05,1+T.shield);
     return u; }
   const has=(hero,id)=>!!(DATA.stats[hero]&&DATA.stats[hero][id]);
-  const TREES={"absalie":{"ids":["empty_chair","great_knot","the_unsaid"],"of":{"ec_10_1":0,"ec_10_2":0,"ec_10_3":0,"ec_11_2":0,"ec_11_3":0,"ec_11_4":0,"ec_12_1":0,"ec_12_2":0,"ec_12_3":0,"ec_13_3":0,"ec_1_1":0,"ec_1_3":0,"ec_1_4":0,"ec_2_1":0,"ec_2_2":0,"ec_2_4":0,"ec_3_1":0,"ec_3_4":0,"ec_4_1":0,"ec_4_2":0,"ec_4_3":0,"ec_5_1":0,"ec_5_2":0,"ec_5_3":0,"ec_5_4":0,"ec_6_1":0,"ec_6_2":0,"ec_6_4":0,"ec_7_1":0,"ec_7_2":0,"ec_7_3":0,"ec_7_4":0,"ec_8_2":0,"ec_8_3":0,"ec_8_4":0,"ec_9_1":0,"ec_9_3":0,"ec_9_4":0,"ec_n1":0,"ec_n2":0,"gk_10_1":1,"gk_10_3":1,"gk_10_4":1,"gk_11_1":1,"gk_11_2":1,"gk_11_4":1,"gk_12_1":1,"gk_12_2":1,"gk_12_4":1,"gk_13_2":1,"gk_1_1":1,"gk_1_2":1,"gk_1_4":1,"gk_2_1":1,"gk_2_3":1,"gk_2_4":1,"gk_3_1":1,"gk_3_2":1,"gk_3_3":1,"gk_3_4":1,"gk_4_2":1,"gk_4_3":1,"gk_4_4":1,"gk_5_1":1,"gk_5_2":1,"gk_5_3":1,"gk_5_4":1,"gk_6_1":1,"gk_6_2":1,"gk_6_4":1,"gk_7_1":1,"gk_7_2":1,"gk_7_3":1,"gk_7_4":1,"gk_8_2":1,"gk_8_3":1,"gk_8_4":1,"gk_9_1":1,"gk_9_2":1,"gk_9_3":1,"us_10_1":2,"us_10_3":2,"us_10_4":2,"us_11_1":2,"us_11_3":2,"us_11_4":2,"us_12_1":2,"us_12_3":2,"us_12_4":2,"us_13_3":2,"us_1_1":2,"us_1_3":2,"us_1_4":2,"us_2_1":2,"us_2_2":2,"us_2_4":2,"us_3_1":2,"us_3_2":2,"us_4_1":2,"us_4_2":2,"us_4_4":2,"us_5_1":2,"us_5_2":2,"us_5_3":2,"us_5_4":2,"us_6_1":2,"us_6_3":2,"us_6_4":2,"us_7_1":2,"us_7_2":2,"us_7_3":2,"us_8_2":2,"us_8_3":2,"us_8_4":2,"us_9_1":2,"us_9_2":2,"us_9_4":2,"us_n1":2}},"astra":{"ids":["slow_burn","held_star","second_sky"],"of":{"hs_10_1":1,"hs_10_2":1,"hs_10_3":1,"hs_11_1":1,"hs_11_2":1,"hs_11_4":1,"hs_12_2":1,"hs_12_3":1,"hs_12_4":1,"hs_13_3":1,"hs_1_1":1,"hs_1_3":1,"hs_1_4":1,"hs_2_1":1,"hs_2_2":1,"hs_2_4":1,"hs_3_1":1,"hs_3_3":1,"hs_3_4":1,"hs_4_1":1,"hs_4_2":1,"hs_4_3":1,"hs_5_2":1,"hs_5_3":1,"hs_5_4":1,"hs_6_1":1,"hs_6_2":1,"hs_6_4":1,"hs_7_1":1,"hs_7_2":1,"hs_7_4":1,"hs_8_1":1,"hs_8_3":1,"hs_8_4":1,"hs_9_2":1,"hs_9_3":1,"hs_9_4":1,"hs_n1":1,"hs_n2":1,"hs_n3":1,"sb_10_1":0,"sb_10_2":0,"sb_10_4":0,"sb_11_2":0,"sb_11_3":0,"sb_11_4":0,"sb_12_1":0,"sb_12_3":0,"sb_12_4":0,"sb_13_3":0,"sb_1_1":0,"sb_1_2":0,"sb_1_4":0,"sb_2_2":0,"sb_2_3":0,"sb_2_4":0,"sb_3_1":0,"sb_3_4":0,"sb_4_2":0,"sb_4_3":0,"sb_4_4":0,"sb_5_1":0,"sb_5_2":0,"sb_5_3":0,"sb_5_4":0,"sb_6_1":0,"sb_6_3":0,"sb_6_4":0,"sb_7_2":0,"sb_7_3":0,"sb_7_4":0,"sb_8_1":0,"sb_8_2":0,"sb_8_4":0,"sb_9_1":0,"sb_9_2":0,"sb_9_3":0,"sb_n1":0,"sb_n2":0,"sb_n3":0,"ss_10_1":2,"ss_10_3":2,"ss_10_4":2,"ss_11_1":2,"ss_11_2":2,"ss_11_3":2,"ss_12_1":2,"ss_12_2":2,"ss_12_4":2,"ss_13_2":2,"ss_1_1":2,"ss_1_3":2,"ss_1_4":2,"ss_2_1":2,"ss_2_3":2,"ss_2_4":2,"ss_3_1":2,"ss_3_2":2,"ss_3_3":2,"ss_4_1":2,"ss_4_2":2,"ss_4_4":2,"ss_5_1":2,"ss_5_2":2,"ss_5_3":2,"ss_5_4":2,"ss_6_1":2,"ss_6_3":2,"ss_6_4":2,"ss_7_2":2,"ss_7_3":2,"ss_7_4":2,"ss_8_1":2,"ss_8_2":2,"ss_8_3":2,"ss_9_1":2,"ss_9_2":2,"ss_9_4":2}},"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vex":{"ids":["ropewalker","slow_cut","short_list"],"of":{"rw_10_1":0,"rw_10_2":0,"rw_10_4":0,"rw_11_1":0,"rw_11_2":0,"rw_11_3":0,"rw_12_1":0,"rw_12_2":0,"rw_12_3":0,"rw_12_4":0,"rw_13_2":0,"rw_1_1":0,"rw_1_3":0,"rw_1_4":0,"rw_2_1":0,"rw_2_2":0,"rw_2_3":0,"rw_3_1":0,"rw_3_3":0,"rw_3_4":0,"rw_4_1":0,"rw_4_2":0,"rw_4_3":0,"rw_5_1":0,"rw_5_2":0,"rw_5_3":0,"rw_5_4":0,"rw_6_1":0,"rw_6_2":0,"rw_6_3":0,"rw_6_4":0,"rw_7_1":0,"rw_7_3":0,"rw_7_4":0,"rw_8_1":0,"rw_8_2":0,"rw_8_3":0,"rw_9_1":0,"rw_9_3":0,"rw_9_4":0,"rw_n1":0,"rw_n2":0,"sc_10_1":1,"sc_10_2":1,"sc_10_4":1,"sc_11_1":1,"sc_11_2":1,"sc_11_3":1,"sc_12_1":1,"sc_12_2":1,"sc_12_3":1,"sc_12_4":1,"sc_13_2":1,"sc_1_1":1,"sc_1_3":1,"sc_1_4":1,"sc_2_1":1,"sc_2_2":1,"sc_2_3":1,"sc_3_1":1,"sc_3_3":1,"sc_3_4":1,"sc_4_1":1,"sc_4_2":1,"sc_4_3":1,"sc_5_1":1,"sc_5_2":1,"sc_5_3":1,"sc_5_4":1,"sc_6_1":1,"sc_6_2":1,"sc_6_3":1,"sc_6_4":1,"sc_7_1":1,"sc_7_2":1,"sc_7_3":1,"sc_7_4":1,"sc_8_1":1,"sc_8_3":1,"sc_9_2":1,"sc_9_4":1,"sc_n1":1,"sc_n2":1,"sl_10_1":2,"sl_10_2":2,"sl_10_3":2,"sl_11_1":2,"sl_11_2":2,"sl_11_4":2,"sl_12_1":2,"sl_12_2":2,"sl_12_3":2,"sl_12_4":2,"sl_13_2":2,"sl_1_1":2,"sl_1_2":2,"sl_1_4":2,"sl_2_1":2,"sl_2_2":2,"sl_2_3":2,"sl_3_1":2,"sl_3_3":2,"sl_3_4":2,"sl_4_1":2,"sl_4_2":2,"sl_4_3":2,"sl_5_2":2,"sl_5_3":2,"sl_5_4":2,"sl_6_1":2,"sl_6_2":2,"sl_6_3":2,"sl_6_4":2,"sl_7_1":2,"sl_7_3":2,"sl_7_4":2,"sl_8_1":2,"sl_8_2":2,"sl_8_3":2,"sl_9_2":2,"sl_9_3":2,"sl_9_4":2,"sl_n1":2,"sl_n2":2,"sl_n3":2}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
+  const TREES={"absalie":{"ids":["empty_chair","great_knot","the_unsaid"],"of":{"ec_10_1":0,"ec_10_2":0,"ec_10_3":0,"ec_11_2":0,"ec_11_3":0,"ec_11_4":0,"ec_12_1":0,"ec_12_2":0,"ec_12_3":0,"ec_13_3":0,"ec_1_1":0,"ec_1_3":0,"ec_1_4":0,"ec_2_1":0,"ec_2_2":0,"ec_2_4":0,"ec_3_1":0,"ec_3_4":0,"ec_4_1":0,"ec_4_2":0,"ec_4_3":0,"ec_5_1":0,"ec_5_2":0,"ec_5_3":0,"ec_5_4":0,"ec_6_1":0,"ec_6_2":0,"ec_6_4":0,"ec_7_1":0,"ec_7_2":0,"ec_7_3":0,"ec_7_4":0,"ec_8_2":0,"ec_8_3":0,"ec_8_4":0,"ec_9_1":0,"ec_9_3":0,"ec_9_4":0,"ec_n1":0,"ec_n2":0,"gk_10_1":1,"gk_10_3":1,"gk_10_4":1,"gk_11_1":1,"gk_11_2":1,"gk_11_4":1,"gk_12_1":1,"gk_12_2":1,"gk_12_4":1,"gk_13_2":1,"gk_1_1":1,"gk_1_2":1,"gk_1_4":1,"gk_2_1":1,"gk_2_3":1,"gk_2_4":1,"gk_3_1":1,"gk_3_2":1,"gk_3_3":1,"gk_3_4":1,"gk_4_2":1,"gk_4_3":1,"gk_4_4":1,"gk_5_1":1,"gk_5_2":1,"gk_5_3":1,"gk_5_4":1,"gk_6_1":1,"gk_6_2":1,"gk_6_4":1,"gk_7_1":1,"gk_7_2":1,"gk_7_3":1,"gk_7_4":1,"gk_8_2":1,"gk_8_3":1,"gk_8_4":1,"gk_9_1":1,"gk_9_2":1,"gk_9_3":1,"us_10_1":2,"us_10_3":2,"us_10_4":2,"us_11_1":2,"us_11_3":2,"us_11_4":2,"us_12_1":2,"us_12_3":2,"us_12_4":2,"us_13_3":2,"us_1_1":2,"us_1_3":2,"us_1_4":2,"us_2_1":2,"us_2_2":2,"us_2_4":2,"us_3_1":2,"us_3_2":2,"us_4_1":2,"us_4_2":2,"us_4_4":2,"us_5_1":2,"us_5_2":2,"us_5_3":2,"us_5_4":2,"us_6_1":2,"us_6_3":2,"us_6_4":2,"us_7_1":2,"us_7_2":2,"us_7_3":2,"us_8_2":2,"us_8_3":2,"us_8_4":2,"us_9_1":2,"us_9_2":2,"us_9_4":2,"us_n1":2}},"aldren":{"ids":["bestiary","rewrite","living_book"],"of":{"be_10_1":0,"be_10_2":0,"be_10_4":0,"be_11_1":0,"be_11_2":0,"be_11_3":0,"be_12_1":0,"be_12_2":0,"be_12_4":0,"be_13_2":0,"be_1_1":0,"be_1_2":0,"be_1_4":0,"be_2_1":0,"be_2_3":0,"be_2_4":0,"be_3_1":0,"be_3_3":0,"be_4_1":0,"be_4_2":0,"be_4_3":0,"be_5_1":0,"be_5_2":0,"be_5_3":0,"be_5_4":0,"be_6_1":0,"be_6_2":0,"be_6_4":0,"be_7_1":0,"be_7_2":0,"be_7_3":0,"be_8_1":0,"be_8_3":0,"be_8_4":0,"be_9_2":0,"be_9_3":0,"be_9_4":0,"be_n1":0,"lb_10_1":2,"lb_10_3":2,"lb_10_4":2,"lb_11_1":2,"lb_11_2":2,"lb_11_4":2,"lb_12_1":2,"lb_12_2":2,"lb_12_3":2,"lb_13_2":2,"lb_1_1":2,"lb_1_2":2,"lb_1_4":2,"lb_2_1":2,"lb_2_3":2,"lb_2_4":2,"lb_3_1":2,"lb_3_2":2,"lb_3_3":2,"lb_3_4":2,"lb_4_1":2,"lb_4_2":2,"lb_4_3":2,"lb_5_1":2,"lb_5_2":2,"lb_5_3":2,"lb_5_4":2,"lb_6_1":2,"lb_6_3":2,"lb_6_4":2,"lb_7_1":2,"lb_7_2":2,"lb_7_4":2,"lb_8_2":2,"lb_8_3":2,"lb_8_4":2,"lb_9_1":2,"lb_9_2":2,"lb_9_3":2,"rw_10_1":1,"rw_10_2":1,"rw_10_3":1,"rw_11_2":1,"rw_11_3":1,"rw_11_4":1,"rw_12_1":1,"rw_12_2":1,"rw_12_4":1,"rw_13_2":1,"rw_1_1":1,"rw_1_3":1,"rw_1_4":1,"rw_2_1":1,"rw_2_2":1,"rw_2_4":1,"rw_3_1":1,"rw_3_2":1,"rw_4_1":1,"rw_4_3":1,"rw_4_4":1,"rw_5_1":1,"rw_5_2":1,"rw_5_3":1,"rw_5_4":1,"rw_6_2":1,"rw_6_3":1,"rw_6_4":1,"rw_7_1":1,"rw_7_2":1,"rw_7_3":1,"rw_8_1":1,"rw_8_2":1,"rw_8_4":1,"rw_9_1":1,"rw_9_3":1,"rw_9_4":1,"rw_n1":1,"rw_n2":1}},"astra":{"ids":["slow_burn","held_star","second_sky"],"of":{"hs_10_1":1,"hs_10_2":1,"hs_10_3":1,"hs_11_1":1,"hs_11_2":1,"hs_11_4":1,"hs_12_2":1,"hs_12_3":1,"hs_12_4":1,"hs_13_3":1,"hs_1_1":1,"hs_1_3":1,"hs_1_4":1,"hs_2_1":1,"hs_2_2":1,"hs_2_4":1,"hs_3_1":1,"hs_3_3":1,"hs_3_4":1,"hs_4_1":1,"hs_4_2":1,"hs_4_3":1,"hs_5_2":1,"hs_5_3":1,"hs_5_4":1,"hs_6_1":1,"hs_6_2":1,"hs_6_4":1,"hs_7_1":1,"hs_7_2":1,"hs_7_4":1,"hs_8_1":1,"hs_8_3":1,"hs_8_4":1,"hs_9_2":1,"hs_9_3":1,"hs_9_4":1,"hs_n1":1,"hs_n2":1,"hs_n3":1,"sb_10_1":0,"sb_10_2":0,"sb_10_4":0,"sb_11_2":0,"sb_11_3":0,"sb_11_4":0,"sb_12_1":0,"sb_12_3":0,"sb_12_4":0,"sb_13_3":0,"sb_1_1":0,"sb_1_2":0,"sb_1_4":0,"sb_2_2":0,"sb_2_3":0,"sb_2_4":0,"sb_3_1":0,"sb_3_4":0,"sb_4_2":0,"sb_4_3":0,"sb_4_4":0,"sb_5_1":0,"sb_5_2":0,"sb_5_3":0,"sb_5_4":0,"sb_6_1":0,"sb_6_3":0,"sb_6_4":0,"sb_7_2":0,"sb_7_3":0,"sb_7_4":0,"sb_8_1":0,"sb_8_2":0,"sb_8_4":0,"sb_9_1":0,"sb_9_2":0,"sb_9_3":0,"sb_n1":0,"sb_n2":0,"sb_n3":0,"ss_10_1":2,"ss_10_3":2,"ss_10_4":2,"ss_11_1":2,"ss_11_2":2,"ss_11_3":2,"ss_12_1":2,"ss_12_2":2,"ss_12_4":2,"ss_13_2":2,"ss_1_1":2,"ss_1_3":2,"ss_1_4":2,"ss_2_1":2,"ss_2_3":2,"ss_2_4":2,"ss_3_1":2,"ss_3_2":2,"ss_3_3":2,"ss_4_1":2,"ss_4_2":2,"ss_4_4":2,"ss_5_1":2,"ss_5_2":2,"ss_5_3":2,"ss_5_4":2,"ss_6_1":2,"ss_6_3":2,"ss_6_4":2,"ss_7_2":2,"ss_7_3":2,"ss_7_4":2,"ss_8_1":2,"ss_8_2":2,"ss_8_3":2,"ss_9_1":2,"ss_9_2":2,"ss_9_4":2}},"sylthaine":{"ids":["winter_seal","shatterpoint","snowwarden"],"of":{"sp_10_1":1,"sp_10_3":1,"sp_10_4":1,"sp_11_2":1,"sp_11_3":1,"sp_11_4":1,"sp_12_1":1,"sp_12_2":1,"sp_12_4":1,"sp_13_2":1,"sp_1_1":1,"sp_1_3":1,"sp_1_4":1,"sp_2_1":1,"sp_2_2":1,"sp_2_3":1,"sp_3_1":1,"sp_3_3":1,"sp_3_4":1,"sp_4_1":1,"sp_4_2":1,"sp_4_3":1,"sp_5_1":1,"sp_5_2":1,"sp_5_3":1,"sp_5_4":1,"sp_6_2":1,"sp_6_3":1,"sp_6_4":1,"sp_7_1":1,"sp_7_2":1,"sp_7_4":1,"sp_8_1":1,"sp_8_3":1,"sp_8_4":1,"sp_9_2":1,"sp_9_3":1,"sp_9_4":1,"sp_n1":1,"sp_n2":1,"sw_10_1":2,"sw_10_3":2,"sw_10_4":2,"sw_11_1":2,"sw_11_2":2,"sw_11_4":2,"sw_12_2":2,"sw_12_3":2,"sw_12_4":2,"sw_13_2":2,"sw_1_1":2,"sw_1_2":2,"sw_1_4":2,"sw_2_1":2,"sw_2_3":2,"sw_2_4":2,"sw_3_1":2,"sw_3_2":2,"sw_4_1":2,"sw_4_2":2,"sw_4_3":2,"sw_5_1":2,"sw_5_2":2,"sw_5_3":2,"sw_5_4":2,"sw_6_1":2,"sw_6_2":2,"sw_6_3":2,"sw_7_2":2,"sw_7_3":2,"sw_7_4":2,"sw_8_1":2,"sw_8_3":2,"sw_8_4":2,"sw_9_2":2,"sw_9_3":2,"sw_9_4":2,"sw_n1":2,"ws_10_1":0,"ws_10_3":0,"ws_10_4":0,"ws_11_1":0,"ws_11_2":0,"ws_11_3":0,"ws_12_1":0,"ws_12_2":0,"ws_12_4":0,"ws_13_2":0,"ws_1_1":0,"ws_1_3":0,"ws_1_4":0,"ws_2_1":0,"ws_2_2":0,"ws_2_3":0,"ws_3_1":0,"ws_3_3":0,"ws_3_4":0,"ws_4_1":0,"ws_4_2":0,"ws_4_3":0,"ws_5_1":0,"ws_5_2":0,"ws_5_3":0,"ws_5_4":0,"ws_6_1":0,"ws_6_2":0,"ws_6_4":0,"ws_7_1":0,"ws_7_2":0,"ws_7_3":0,"ws_8_1":0,"ws_8_3":0,"ws_8_4":0,"ws_9_2":0,"ws_9_3":0,"ws_9_4":0,"ws_n1":0}},"vael":{"ids":["red_harvest","ironblood","ashford_wall"],"of":{"aw_10_1":2,"aw_10_3":2,"aw_10_4":2,"aw_11_1":2,"aw_11_2":2,"aw_11_4":2,"aw_12_1":2,"aw_12_2":2,"aw_12_3":2,"aw_12_4":2,"aw_13_2":2,"aw_1_1":2,"aw_1_3":2,"aw_1_4":2,"aw_2_1":2,"aw_2_2":2,"aw_2_3":2,"aw_3_1":2,"aw_3_3":2,"aw_3_4":2,"aw_4_1":2,"aw_4_2":2,"aw_4_3":2,"aw_4_4":2,"aw_5_1":2,"aw_5_2":2,"aw_5_3":2,"aw_5_4":2,"aw_6_1":2,"aw_6_2":2,"aw_6_3":2,"aw_6_4":2,"aw_7_1":2,"aw_7_2":2,"aw_7_4":2,"aw_8_1":2,"aw_8_3":2,"aw_8_4":2,"aw_9_1":2,"aw_9_2":2,"aw_9_4":2,"aw_n1":2,"aw_n2":2,"aw_n3":2,"ib_10_1":1,"ib_10_3":1,"ib_10_4":1,"ib_11_1":1,"ib_11_2":1,"ib_11_4":1,"ib_12_1":1,"ib_12_2":1,"ib_12_3":1,"ib_12_4":1,"ib_13_2":1,"ib_1_1":1,"ib_1_3":1,"ib_1_4":1,"ib_2_1":1,"ib_2_2":1,"ib_3_1":1,"ib_3_3":1,"ib_3_4":1,"ib_4_1":1,"ib_4_2":1,"ib_4_3":1,"ib_5_1":1,"ib_5_2":1,"ib_5_3":1,"ib_5_4":1,"ib_6_1":1,"ib_6_2":1,"ib_6_4":1,"ib_7_2":1,"ib_7_3":1,"ib_7_4":1,"ib_8_1":1,"ib_8_3":1,"ib_9_2":1,"ib_9_3":1,"ib_9_4":1,"ib_n1":1,"ib_n2":1,"rh_10_1":0,"rh_10_3":0,"rh_10_4":0,"rh_11_1":0,"rh_11_2":0,"rh_11_4":0,"rh_12_1":0,"rh_12_2":0,"rh_12_3":0,"rh_12_4":0,"rh_13_2":0,"rh_1_1":0,"rh_1_3":0,"rh_1_4":0,"rh_2_1":0,"rh_2_2":0,"rh_2_3":0,"rh_3_1":0,"rh_3_3":0,"rh_3_4":0,"rh_4_1":0,"rh_4_2":0,"rh_4_3":0,"rh_5_1":0,"rh_5_2":0,"rh_5_3":0,"rh_5_4":0,"rh_6_1":0,"rh_6_2":0,"rh_6_3":0,"rh_6_4":0,"rh_7_1":0,"rh_7_2":0,"rh_7_4":0,"rh_8_1":0,"rh_8_3":0,"rh_9_2":0,"rh_9_3":0,"rh_9_4":0,"rh_n1":0,"rh_n2":0}},"vex":{"ids":["ropewalker","slow_cut","short_list"],"of":{"rw_10_1":0,"rw_10_2":0,"rw_10_4":0,"rw_11_1":0,"rw_11_2":0,"rw_11_3":0,"rw_12_1":0,"rw_12_2":0,"rw_12_3":0,"rw_12_4":0,"rw_13_2":0,"rw_1_1":0,"rw_1_3":0,"rw_1_4":0,"rw_2_1":0,"rw_2_2":0,"rw_2_3":0,"rw_3_1":0,"rw_3_3":0,"rw_3_4":0,"rw_4_1":0,"rw_4_2":0,"rw_4_3":0,"rw_5_1":0,"rw_5_2":0,"rw_5_3":0,"rw_5_4":0,"rw_6_1":0,"rw_6_2":0,"rw_6_3":0,"rw_6_4":0,"rw_7_1":0,"rw_7_3":0,"rw_7_4":0,"rw_8_1":0,"rw_8_2":0,"rw_8_3":0,"rw_9_1":0,"rw_9_3":0,"rw_9_4":0,"rw_n1":0,"rw_n2":0,"sc_10_1":1,"sc_10_2":1,"sc_10_4":1,"sc_11_1":1,"sc_11_2":1,"sc_11_3":1,"sc_12_1":1,"sc_12_2":1,"sc_12_3":1,"sc_12_4":1,"sc_13_2":1,"sc_1_1":1,"sc_1_3":1,"sc_1_4":1,"sc_2_1":1,"sc_2_2":1,"sc_2_3":1,"sc_3_1":1,"sc_3_3":1,"sc_3_4":1,"sc_4_1":1,"sc_4_2":1,"sc_4_3":1,"sc_5_1":1,"sc_5_2":1,"sc_5_3":1,"sc_5_4":1,"sc_6_1":1,"sc_6_2":1,"sc_6_3":1,"sc_6_4":1,"sc_7_1":1,"sc_7_2":1,"sc_7_3":1,"sc_7_4":1,"sc_8_1":1,"sc_8_3":1,"sc_9_2":1,"sc_9_4":1,"sc_n1":1,"sc_n2":1,"sl_10_1":2,"sl_10_2":2,"sl_10_3":2,"sl_11_1":2,"sl_11_2":2,"sl_11_4":2,"sl_12_1":2,"sl_12_2":2,"sl_12_3":2,"sl_12_4":2,"sl_13_2":2,"sl_1_1":2,"sl_1_2":2,"sl_1_4":2,"sl_2_1":2,"sl_2_2":2,"sl_2_3":2,"sl_3_1":2,"sl_3_3":2,"sl_3_4":2,"sl_4_1":2,"sl_4_2":2,"sl_4_3":2,"sl_5_2":2,"sl_5_3":2,"sl_5_4":2,"sl_6_1":2,"sl_6_2":2,"sl_6_3":2,"sl_6_4":2,"sl_7_1":2,"sl_7_3":2,"sl_7_4":2,"sl_8_1":2,"sl_8_2":2,"sl_8_3":2,"sl_9_2":2,"sl_9_3":2,"sl_9_4":2,"sl_n1":2,"sl_n2":2,"sl_n3":2}},"vireo":{"ids":["listening_hall","dissonance","living_instrument"],"of":{"ds_10_1":1,"ds_10_3":1,"ds_10_4":1,"ds_11_1":1,"ds_11_2":1,"ds_11_4":1,"ds_12_1":1,"ds_12_2":1,"ds_12_3":1,"ds_12_4":1,"ds_13_2":1,"ds_1_1":1,"ds_1_3":1,"ds_1_4":1,"ds_2_1":1,"ds_2_2":1,"ds_2_3":1,"ds_3_1":1,"ds_3_4":1,"ds_4_1":1,"ds_4_2":1,"ds_4_4":1,"ds_5_1":1,"ds_5_2":1,"ds_5_3":1,"ds_5_4":1,"ds_6_1":1,"ds_6_2":1,"ds_6_3":1,"ds_6_4":1,"ds_7_1":1,"ds_7_2":1,"ds_7_4":1,"ds_8_1":1,"ds_8_3":1,"ds_8_4":1,"ds_9_1":1,"ds_9_2":1,"ds_9_3":1,"ds_n1":1,"ds_n2":1,"lh_10_1":0,"lh_10_3":0,"lh_10_4":0,"lh_11_1":0,"lh_11_2":0,"lh_11_4":0,"lh_12_1":0,"lh_12_2":0,"lh_12_3":0,"lh_12_4":0,"lh_13_2":0,"lh_1_1":0,"lh_1_3":0,"lh_2_1":0,"lh_2_2":0,"lh_2_3":0,"lh_3_1":0,"lh_3_3":0,"lh_3_4":0,"lh_4_1":0,"lh_4_2":0,"lh_4_4":0,"lh_5_1":0,"lh_5_2":0,"lh_5_3":0,"lh_5_4":0,"lh_6_1":0,"lh_6_2":0,"lh_6_3":0,"lh_7_1":0,"lh_7_2":0,"lh_7_4":0,"lh_8_1":0,"lh_8_3":0,"lh_8_4":0,"lh_9_1":0,"lh_9_2":0,"lh_9_3":0,"lh_n1":0,"lh_n2":0,"li_10_1":2,"li_10_3":2,"li_10_4":2,"li_11_1":2,"li_11_2":2,"li_11_4":2,"li_12_1":2,"li_12_2":2,"li_12_3":2,"li_12_4":2,"li_13_2":2,"li_1_1":2,"li_1_3":2,"li_1_4":2,"li_2_1":2,"li_2_2":2,"li_2_3":2,"li_3_1":2,"li_3_3":2,"li_3_4":2,"li_4_1":2,"li_4_2":2,"li_4_4":2,"li_5_1":2,"li_5_2":2,"li_5_3":2,"li_5_4":2,"li_6_1":2,"li_6_2":2,"li_6_3":2,"li_6_4":2,"li_7_1":2,"li_7_2":2,"li_7_4":2,"li_8_1":2,"li_8_3":2,"li_8_4":2,"li_9_1":2,"li_9_2":2,"li_9_3":2}}};
   const MECH={};
   MECH["absalie"]=(function(){const module={exports:{}};
 /* ABSALIE - what her learned talents do in a fight (the mechanics; her 9 plain stat talents are read from their tooltips by the generator).
@@ -255,6 +255,240 @@ module.exports={
   /* one sentence runs, another waits */
   partial:{},
   /* nothing implemented: needs engine work. None: every talent has rows (readings and reworded tooltips in WIRING/11 - ABSALIE - talent decisions.md) */
+  ruling:{}
+};
+
+return module.exports;})();
+  MECH["aldren"]=(function(){const module={exports:{}};
+/* ALDREN - what his learned talents do in a fight (the mechanics; his 9 plain stat talents are read from their tooltips by the generator).
+   Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
+   A correction to a number or a condition is an edit HERE, then:  python tools/build_talent_fx.py
+   How rows are written: WIRING/03 - MECHANICS LAYER (hooks, primitives, how to add a hero).md (section 16: what Aldren added)
+   His real kit (the code, not the tooltip wording):
+   - Ink Spirit ('summonwarriors', green, cd 11): calls o.n (1) Lesser Ink Spirit ('ink spirit') for o.dur (16 s) beside him (summonUnit: 55% of his max HP and
+     attack x the skill level's share, +80 armor / MR). It only basic-attacks. At most 3 Lesser Ink Spirits stand at once (SUMMON_CAPS); a call over the cap fails.
+   - Chapter Rewrite ('chapterrewrite', blue, cd 9): 110% of ability power (magic) to his target, then for o.dur (6 s) its attack is cut by o.pct (30%) and its armor
+     and magic resist by o.shred (25%); the "reversal" ENDS every buff on it at once (damage, haste, the damage-reduction slot, a crit buff, its heals over time) and
+     burns its shield: a hit of shield x o.shieldBurn (1) true damage, which the shield it burns soaks up, then the shield is gone.
+   - Living Pages (passive): every Green or Blue PRESS (castKit) writes a page (he holds at most 3); the next swing spends one for a magic hit of 60% of that
+     swing's damage x his passive level, dealt at the swing (not a basic attack: auto is false). Final Volume writes none (the ultimate does not go through castKit).
+   - Final Volume (ultimate, 'summonshaman'): calls one Elder Ink Horror ('ink horror', at most 1) for 22 s. The Horror basic-attacks and casts Ink Spin
+     (a 'nova' around itself, every 6 s). Its hits are its own (src = the Horror), so his rows see them through the summon hooks.
+   Page hooks used for him (doc 03 section 16): new 'summon' (summonUnit), 'sOut' / 'sHit' (_dealDamageCore), 'sGone' (a summon's time running out), 'sCc' (ccApply),
+   'pagePre' / 'page' (the swing's page block), 'pageW0' / 'pageW' (the page written at castKit); hits on his summons and their deaths reach him through his watch.
+   Readings and capped or reworded tooltips: WIRING/12 - ALDREN - talent decisions.md. */
+const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
+const P=(name,b)=>({$:name,b:b||0});      // a base + everything his learned talents add to the named number
+const IS='summonwarriors', CR='chapterrewrite', FV='summonshaman', SP='ink spirit', HO='ink horror';
+const MINE={team:'ally',mine:true}, HORROR={team:'ally',mine:HO};                // his summons (all of them / the Horror)
+const NOTES={stack:['fn','fk']};                                                 // Field Notes: the written ones and his Field Kit ones
+const RW={team:'enemy',has:'rw'};                                                // rewritten enemies (under the rewrite's stat cut)
+const STRONG3={team:'enemy',order:'strong',n:3};                                 // the three strongest enemies (the higher of attack and ability power)
+const CE_AREA={team:'enemy',of:'target',within:P('ce.r',2),skip:'target'};       // a Chapter's End: every other enemy within 2 m of the page's target
+const BLOT=(on)=>[{mark:'blot',on,dur:P('blot.dur',3),longest:true},{window:'blotW',dur:P('blot.dur',3),longest:true}];
+const PAGE_ADD={field:'_pages',add:1,max:P('pg.cap',3)};                         // one more Living Page, never more than he can hold
+const role=x=>(x&&x.t&&x.t.role)||'?';
+module.exports={
+  hero:'aldren',
+  casting:true,                         // rows ask which of his skills a hit comes from (and 'page': a Living Page hit)
+  summons:true,                         // his summons carry his rows (the summon hook)
+  pages:true,                           // rows ask "is this hit a Living Page" (the two page hooks)
+  states:{
+    fn:{max:10},                                                                   // Field Notes written (max 10, kept for the fight)
+    fk:{wave:'reset'},                                                             // Field Kit's notes (each wave; not counted toward the 10)
+    bm:{max:1},                                                                    // a Bookmarked page waiting for his next Ink Spirit
+    pc:{max:3},                                                                    // pages spent toward the next Chapter
+    rev:{unit:true,max:3,dur:P('rev.dur',10),gain:'revGain'},                      // Revisions on each enemy: all lapse 10 s after the last one
+    im:{unit:true,max:10,dur:3}                                                    // Ink Mastery's attack cut on each enemy (each Horror attack; all lapse 3 s after the last)
+  },
+  /* run for him whenever he has any mechanic talent: what a rewrite reverses (read before the skill ends it), who is rewritten, the page windows */
+  always:[
+    {on:'kit',skill:CR,do:[{fn:'rwSnap'}]},
+    {on:'kit',skill:CR,if:{p:'burn'},opt:{shieldBurn:{set:P('burn',1)}}},                                         // Burnt Pages / Burnt Shield: the shield burn, larger
+    {on:'kit',skill:CR,req:'rw_n1',if:{targetUst:{rev:1}},do:[{window:'fub',dur:99}]},                            // Filed Under Beasts: it ALREADY carries a Revision
+    {on:'cast',skill:CR,do:[{mark:'rw',on:'target',dur:{opt:'dur',d:6},longest:true},{window:'rwW',dur:{opt:'dur',d:6},longest:true},{mark:'rw10',on:'target',dur:10}]},
+    {on:'pagePre',do:[{window:'lb2',end:true},{window:'ce',end:true},{window:'ibt',end:true}]},
+    {on:'pagePre',req:'lb_5_2',if:{selfMin:{_pages:2},noWindow:'open'},do:[{field:'_pages',add:-1},{window:'lb2',dur:1}]},   // Loose Binding: two pages at once
+    {on:'pagePre',req:'lb_1_1',if:{any:[{stackMin:{pc:2}},{stackMin:{pc:1},window:'lb2'}]},do:[{window:'ce',dur:1}]},          // this page hit ends a Chapter
+    {on:'pageW',if:{any:[{p:'pg.cap'},{p:'pg.n'}]},do:[{field:'_pages',set:{flat:P('pg.n',1),pct:1,of:'was'},max:P('pg.cap',3)}]}   // Written Twice / Thick Volume / Tight Binding
+  ],
+  talents:{
+    /* ============================== THE BESTIARY ============================== */
+    be_1_1:[ {on:'sHit',if:{targetTeam:'enemy'},do:[{mark:'sh',on:'target'}]},                                   // Field Notes: an enemy his summons have hit
+             {on:'death',if:{who:'enemy',unitHas:'sh',targetLacks:'noted'},do:[{fn:'note'}]},   //   dies: a Field Note on it (max 10)
+             {stat:{atk:R(0.004)},per:NOTES,to:MINE,if:{mine:true}} ],                                           //   each: his summons 0.4% more attack
+    be_2_3:[ {on:'sGone',if:{unitKey:SP,unitExtra:false},do:[{mark:'bmT',on:'holder:bmT',clear:true},{stack:'bm',set:1},{mark:'bmT',on:'target',unique:true}]},   // Bookmark
+             {on:'summon',if:{unitKey:SP,unitExtra:false,stackMin:{bm:1}},do:[{stack:'bm',set:0},{mark:'bmk',on:'unit',dur:4},{shield:{pct:R(0.05),of:'tgtMaxHp'},on:'unit',dur:99}]} ],
+    be_2_1:[ {stat:{aspd:R(0.003)},per:NOTES,to:MINE,if:{mine:true}} ],                                         // Close Study
+    be_3_3:[ {on:'summon',if:{unitHas:'bmk'},do:[{buff:'haste',x:R(0.03),dur:4,on:'unit'}]} ],                  // Dog-Eared
+    be_3_1:[ {on:'noteW',every:5,do:[{field:'_summonT',add:2,on:MINE}]} ],                                      // Second Edition
+    be_4_2:[ {on:'kit',skill:IS,opt:{dur:{add:R(0.6)}}} ],                                                      // Long Chapter
+    be_4_3:[ {on:'summon',if:{unitHas:'bmk'},do:[{place:'unit',near:'holder:bmT'}]} ],                         // Marked Page
+    be_n1:[  {on:'sCcIn',if:{cc:['stunned','slow']},less:R(0.06)} ],                                            // Sturdy Stitching (the game has no root)
+    be_4_1:[ {on:'sOut',if:{targetTeam:'enemy',fn:'noted'},more:R(0.02)} ],                                     // Taxonomy
+    be_5_2:[ {on:'kit',skill:IS,opt:{n:{set:2}}},                                                               // Pack Entry (PICK ONE): two Lesser Ink Spirits
+             {on:'summon',if:{unitKey:SP,unitExtra:false},do:[{unitStat:{hp:-0.4,atk:-0.4,apow:-0.4},on:'unit'}]} ],   //   each with 60% of the stats
+    be_1_2:[ {on:'cast',do:[{window:'pen',dur:3}]}, {on:'sOut',if:{window:'pen'},more:R(0.03)} ],               // Steady Pen
+    be_5_3:[ {on:'summon',if:{unitKey:SP,unitExtra:false},do:[{unitStat:{hp:0.3,atk:0.3},on:'unit'}]} ],       // Single Entry (PICK ONE)
+    be_5_1:[ {on:'teamIn',if:{targetMine:true,srcTeam:'enemy'},less:R(0.015)} ],                                // Ink Hide
+    be_2_4:[ {on:'summon',if:{unitKey:SP},do:[{unitStat:{move:R(0.05)},on:'unit'}]} ],                         // Hunting Ink
+    be_1_4:[ {on:'summon',if:{unitKey:SP},do:[{unitStat:{hp:R(0.04)},on:'unit'}]} ],                           // True Likeness
+    be_6_1:[ {on:'sOut',if:{srcKey:SP},ignoreArmor:R(0.04)} ],                                                  // Sketched Fangs
+    be_6_2:[ {on:'cd',skill:'green',add:R(-0.2)} ],                                                             // Read Aloud
+    be_7_1:[ {stat:{apow:R(0.002)},per:NOTES} ],                                                                // Index of Beasts
+    be_7_2:[ {on:'death',if:{unitMine:SP},do:[{dmg:{pct:0.4,of:'apow'},on:{team:'enemy',of:'unit',within:2},tag:'foot'}]} ],   // Footnoted: a spirit KILLED bursts
+    be_7_3:[ {on:'summon',if:{unitKey:HO},do:[{unitStat:{hp:R(0.02)},on:'unit'}]} ],                           // Heavy Tome
+    be_8_1:[ {on:'sOut',if:{targetTeam:'enemy',targetHpAbove:0.7},more:R(0.05)} ],                              // Nothing Gentler
+    be_8_3:[ {on:'sOut',if:{srcKey:HO,auto:false},more:R(0.03)} ],                                              // Ink Spin Weight (the Horror's only non-basic hit is Ink Spin)
+    be_8_4:[ {on:'cd',less:R(0.015)} ],                                                                         // Margin Sketch
+    be_9_2:[ {on:'summon',do:[{unitStat:{hp:R(0.015)},on:'unit'}]} ],                                           // Wide Margins
+    be_9_3:[ {on:'summon',if:{unitKey:HO},do:[{place:'unit',near:{team:'ally',mine:SP,n:1}}]},                 // Abridged: the Horror at a spirit's side
+             {stat:{atk:{rk:'be_1_1',r:0.004}},per:NOTES,to:HORROR,if:{mine:HO}},                               //   and its Field Notes bonus twice
+             {stat:{aspd:{rk:'be_2_1',r:0.003}},per:NOTES,to:HORROR,if:{mine:HO}},
+             {stat:{atk:{rk:'be_12_1',r:0.001}},per:NOTES,to:HORROR,if:{mine:HO}} ],
+    be_10_1:[ {on:'teamLethal',if:{unitMine:true,unitHas:'ccl'},do:[{atOne:'unit'}]},                           // Close Call: held at 1 HP for 1.5 s
+              {on:'teamLethal',if:{unitMine:true},once:'wave',do:[{atOne:'unit'},{mark:'ccl',on:'unit',dur:1.5}]} ],
+    be_10_2:[ {on:'kit',skill:FV,opt:{dur:{add:R(0.4)}}} ],                                                     // Longest Entry
+    be_10_4:[ {on:'in',if:{mine:true},less:R(0.015)} ],                                                         // Back Shelf
+    be_11_1:[ {on:'wave',do:[{stack:'fk',set:R(1)}]} ],                                                         // Field Kit
+    be_11_2:[ {on:'sKill',do:[{energy:R(2)}]} ],                                                                // Callback
+    be_11_3:[ {on:'death',if:{unitMine:true},do:[{shield:{pct:R(0.03),of:'maxHp'},on:'self',dur:4,mode:'max'}]} ],   // Old Bindings (the larger shield stays)
+    be_12_1:[ {stat:{atk:R(0.001)},per:NOTES,to:MINE,if:{mine:true}} ],                                         // Addendum
+    be_12_2:[ {on:'sOut',more:R(0.02)} ],                                                                       // Full Bestiary
+    be_12_4:[ {stat:{nrg:R(0.02)}} ],                                                                           // Reading Light
+    be_13_2:[ {on:'summon',if:{unitKey:HO},do:[{fn:'wholeBook'}]},                                              // The Whole Book (SIGNATURE)
+              {on:'death',if:{unitMine:HO},do:[{fn:'wbEnd'}]}, {on:'sGone',if:{unitKey:HO},do:[{fn:'wbEnd'}]},
+              {on:'teamIn',if:{targetMine:true,srcTeam:'enemy',mine:HO},less:0.2} ],
+
+    /* ============================== THE REWRITE ============================== */
+    rw_1_1:[ {on:'kit',skill:CR,if:{targetHas:'rw10'},do:[{ustack:'rev',on:'target',add:1}]},                  // Revision: rewritten again within 10 s
+             {on:'kit',skill:CR,opt:{pct:{more:R(0.02),per:{ust:'rev'}},shred:{more:R(0.02),per:{ust:'rev'}}}} ],   //   each Revision: the cuts 2% deeper per rank
+    rw_2_4:[ {on:'cd',skill:'blue',add:R(-0.3)} ],                                                              // Editor's Eye
+    rw_1_4:[ {on:'cast',skill:CR,if:{fn:'reversed'},do:[{shield:{pct:R(0.02),of:'maxHp'},on:'self',dur:4}]} ],  // Hard Cover (once a rewrite)
+    rw_2_1:[ {param:'rev.dur',add:R(1)} ],                                                                      // Redraft
+    rw_2_2:[ {param:'pt.k',add:R(0.1)}, {on:'cast',skill:CR,do:[{fn:'rwGive'}]} ],                              // Plot Twist
+    rw_3_1:[ {on:'cast',skill:CR,if:{targetUst:{rev:3},targetAlive:true},do:[{silence:1,on:'target'}]} ],       // Final Cut
+    rw_3_2:[ {on:'twist',do:[{heal:{pct:R(0.015),of:'tgtMaxHp'},on:'target'}]} ],                               // Twist Ending
+    rw_n2:[  {stat:{mr:R(-0.02)},to:RW,if:{window:'rwW'}} ],                                                    // Thin Paper
+    rw_4_1:[ {on:'teamIn',if:{srcHas:'rw',targetTeam:'ally'},less:R(0.01)} ],                                   // Red Lines
+    rw_n1:[  {on:'kit',skill:CR,if:{window:'fub'},opt:{mul:{more:0.10}}}, {on:'cast',skill:CR,do:[{window:'fub',end:true}]},   // Filed Under Beasts (LINK)
+             {on:'revGain',req:'be_1_1',if:{targetUst:{rev:3},targetLacks:'fub3'},do:[{mark:'fub3',on:'target'},{fn:'note'}]} ],
+    rw_4_3:[ {on:'kit',skill:CR,opt:{dur:{add:R(0.5)}}} ],                                                      // Long Rewrite
+    rw_4_4:[ {param:'burn',add:R(0.10)} ],                                                                      // Burnt Pages (the always row)
+    rw_5_1:[ {on:'cd',less:R(0.015)} ],                                                                         // Strict Editor
+    rw_5_2:[ {on:'kit',skill:CR,do:[{strip:1,on:'target'}]}, {on:'cast',skill:CR,do:[{fn:'rwSteal'}]} ],        // Stolen Shield (PICK ONE)
+    rw_5_3:[ {param:'burn',add:0.5}, {on:'cast',skill:CR,do:[{fn:'rwSpread'}]} ],                               // Burnt Shield (PICK ONE)
+    rw_5_4:[ {on:'kit',skill:CR,opt:{mul:{more:R(0.03)}}} ],                                                    // Pressed Ink
+    rw_6_2:[ {on:'twist',do:[{mark:'ss',on:'target',dur:4}]}, {on:'teamIn',if:{srcHas:'ss',targetTeam:'enemy'},more:R(0.015)} ],   // Shared Story
+    rw_6_3:[ {on:'teamHeal',if:{unitHas:'rw'},less:R(0.05)} ],                                                  // Unhappy Ending
+    rw_7_1:[ {on:'cast',skill:CR,if:{targetHpBelow:0.3,targetAlive:true},do:[{mark:'rwe',on:'target',dur:{opt:'dur',d:6}},{window:'rweW',dur:{opt:'dur',d:6},longest:true}]},   // Rewrite the Ending
+             {stat:{hp:-0.10},to:{team:'enemy',has:'rwe'},if:{window:'rweW'}} ],
+    rw_7_2:[ {on:'teamIn',if:{targetHas:'rw',srcTeam:'ally'},more:R(0.015)} ],                                  // Footnote
+    rw_7_3:[ {stat:{move:R(-0.02)},to:RW,if:{window:'rwW'}} ],                                                  // Cold Ink
+    rw_8_1:[ {on:'revGain',do:[{energy:R(1)}]} ],                                                               // Rough Draft
+    rw_8_2:[ {param:'pt.n',add:1} ],                                                                            // Two Versions
+    rw_8_4:[ {on:'in',if:{srcHas:'rw'},less:R(0.015)} ],                                                        // Slipcase
+    rw_9_1:[ {stat:{aspd:R(-0.015)},to:RW,if:{window:'rwW'}} ],                                                 // Red Margin
+    rw_9_4:[ {on:'death',if:{who:'enemy',unitHas:'rw',unitUst:{rev:1}},do:[{ustack:'rev',on:{team:'enemy',of:'unit',n:1,skip:'unit'},add:{ust:'rev',of:'unit'}}]} ],   // Unbound
+    rw_10_1:[ {on:'teamNrg',if:{unitHas:'rw'},less:R(0.05)} ],                                                  // Censor (energy from being hit)
+    rw_10_2:[ {on:'out',if:{casting:'page',targetHas:'rw'},more:R(0.03)} ],                                     // Living Draft
+    rw_10_3:[ {on:'out',if:{casting:CR},ignoreMr:R(0.04)} ],                                                    // Torn Out
+    rw_11_2:[ {on:'teamIn',if:{targetHas:'ptw',srcTeam:'enemy'},less:R(0.015)} ],                               // Plot Armor
+    rw_11_3:[ {stat:{nrg:R(0.02)}} ],                                                                           // Margin Call
+    rw_11_4:[ {on:'out',if:{auto:true},more:R(0.04)} ],                                                         // Crisp Pages
+    rw_12_1:[ {on:'kit',skill:CR,if:{targetIs:{team:'enemy',boss:true}},opt:{pct:{more:R(0.05)},shred:{more:R(0.05)}}} ],   // Retcon (bosses: the cut deeper)
+    rw_12_2:[ {on:'sHit',if:{srcKey:HO,auto:true,targetTeam:'enemy',targetAlive:true},do:[{ustack:'im',on:'target',add:1}]},   // Ink Mastery: up to 10%
+              {on:'teamIn',if:{srcTeam:'enemy',srcUst:{im:1}},less:R(0.01),per:{ust:'im',of:'source'},upTo:0.10},
+              {on:'in',if:{srcUst:{im:1}},less:R(0.01),per:{ust:'im',of:'source'},upTo:0.10} ],
+    rw_12_4:[ {on:'death',if:{who:'enemy',unitHas:'rw'},do:[{cd:'blue',mul:R(-0.2,1)}]} ],                       // Spare Copy
+    rw_13_2:[ {on:'cast',skill:FV,do:[{window:'lc',dur:99},{ustack:'rev',on:STRONG3,set:3},{castSkill:'blue',on:STRONG3},{window:'lc',end:true}]},   // The Last Chapter (SIGNATURE)
+              {on:'cast',skill:CR,unless:'rw_2_2',if:{window:'lc'},do:[{fn:'rwGive'}]} ],               //   its reversed buffs written into an ally at full strength
+
+    /* ============================== THE LIVING BOOK ============================== */
+    lb_1_1:[ {on:'page',do:[{stack:'pc',add:1,full:[{stack:'pc',set:0},{emit:'chapter'}]}]},                    // Chapter's End: every 3rd page spent
+             {on:'page',if:{window:'lb2'},do:[{stack:'pc',add:1,full:[{stack:'pc',set:0},{emit:'chapter'}]}]},   //   (a Loose Binding hit spends two)
+             {on:'chapter',do:[{emit:'ceHit'}]},
+             {on:'ceHit',do:[{dmg:{pct:R(0.08),of:'apow'},on:CE_AREA,tag:'ce'}]} ],
+    lb_1_2:[ {on:'out',if:{auto:true},more:R(0.02)} ],                                                          // Ink-Stained Hands
+    lb_1_4:[ {on:'page',do:BLOT('target')}, {stat:{aspd:R(-0.02)},to:{team:'enemy',has:'blot'},if:{window:'blotW'}} ],   // Wet Ink: Blot
+    lb_2_1:[ {stat:{aspd:R(0.02)},if:{selfMin:{_pages:1}}} ],                                                   // Turning Pages
+    lb_2_4:[ {param:'blot.dur',add:R(0.5)} ],                                                                   // Spreading Blot
+    lb_3_1:[ {on:'chapter',do:[PAGE_ADD]} ],                                                                    // Epilogue
+    lb_3_2:[ {on:'pageW',skill:CR,if:{wasBelow:1},do:[{window:'sch',dur:3}]},                                   // Scholar's Mind: no page held at the press
+             {on:'out',if:{casting:CR,window:'sch'},more:R(0.03)}, {on:'cast',skill:CR,do:[{window:'sch',end:true}]},
+             {on:'sOut',if:{srcKey:SP,selfBelow:{_pages:1}},more:R(0.03)} ],
+    lb_2_3:[ {on:'out',if:{casting:'page'},more:R(0.04)}, {param:'pg.cap',add:[0,0,0,0,1],unless:'lb_5_3'} ],   // Thick Volume (4 pages at 5/5)
+    lb_3_4:[ {on:'pagePre',if:{targetHas:'blot'},do:[{window:'ibt',dur:1}]},                                    // Ink Bleeds Through
+             {on:'page',if:{window:'ibt'},do:BLOT(CE_AREA)} ],
+    lb_4_1:[ {on:'chapter',do:[{energy:R(1)}]} ],                                                               // Running Head
+    lb_4_2:[ {on:'cd',less:R(0.015)} ],                                                                         // Quick Hand
+    lb_4_3:[ {on:'ccIn',less:R(0.04)} ],                                                                        // Clean Margins
+    lb_5_1:[ {on:'out',if:{casting:'page'},more:R(0.05)} ],                                                     // Heavy Pages
+    lb_9_3:[ {on:'in',if:{selfMin:{_pages:2}},less:R(0.02)} ],                                                  // Desk Work
+    lb_8_4:[ {on:'page',do:[{window:'ol',dur:3}]}, {stat:{armor:R(0.02),mr:R(0.02)},if:{window:'ol'}} ],        // Old Leather
+    lb_6_1:[ {param:'ce.r',add:R(0.3)} ],                                                                       // Next Chapter
+    lb_6_4:[ {on:'out',if:{targetHas:'blot'},more:R(0.03)} ],                                                   // Dark Ink
+    lb_7_1:[ {on:'out',if:{casting:'page'},ignoreMr:R(0.02)} ],                                                 // Page Cut
+    lb_7_2:[ {param:'pg.n',add:1} ],                                                                            // Written Twice (the always row)
+    lb_7_4:[ {on:'in',if:{srcHas:'blot'},less:R(0.015)} ],                                                      // Ink Ward
+    lb_5_2:[ {on:'out',if:{casting:'page',window:'lb2'},mul:2} ],                                               // Loose Binding (PICK ONE; the always row spends the second)
+    lb_8_2:[ {on:'out',if:{casting:CR},more:R(0.04),per:{field:'_pages',of:'self'}} ],                          // Spine Crack
+    lb_5_3:[ {param:'pg.cap',add:-1}, {on:'out',if:{casting:'page'},more:0.25}, {on:'wave',do:[{field:'_pages',max:2}]} ],   // Tight Binding (PICK ONE)
+    lb_5_4:[ {on:'in',if:{srcHas:'blot'},less:R(0.01)}, {on:'teamIn',if:{srcHas:'blot',srcTeam:'enemy'},less:R(0.01)} ],   // Blotted Out
+    lb_9_1:[ {on:'out',if:{casting:'page',window:'ce'},more:R(0.03)} ],                                         // Cliffhanger
+    lb_9_2:[ {on:'page',if:{selfBelow:{_pages:1},noWindow:'open'},do:[{window:'sr',dur:99}]},                   // Speed Reader
+             {on:'cd',if:{window:'sr'},mul:1/1.3,do:[{window:'sr',end:true}]} ],
+    lb_10_1:[ {on:'chapter',every:2,do:[{emit:'ceHit'}]} ],                                                     // Long Story: every 2nd Chapter hits twice
+    lb_10_3:[ {stat:{nrg:R(0.015)}} ],                                                                          // Ink Well
+    lb_10_4:[ {on:'death',if:{who:'enemy',unitHas:'blot'},chance:R(0.2),do:[PAGE_ADD]} ],                        // Final Blot
+    lb_11_1:[ {on:'out',if:{auto:true},more:R(0.015),per:{field:'_pages',of:'self'}} ],                         // Rapid Notes
+    lb_11_2:[ {on:'sHit',if:{srcKey:HO,auto:true},icd:R(-0.5,2.5),do:[PAGE_ADD]} ],                             // Open Book
+    lb_11_4:[ {on:'wave',do:[{field:'_pages',min:R(1),max:P('pg.cap',3)}]} ],                                  // Shelf Life
+    lb_12_1:[ {on:'dmg:ce',if:{targetHpBelow:0.5},more:R(0.05)}, {on:'out',if:{casting:'page',window:'ce',targetHpBelow:0.5},more:R(0.05)} ],   // Closing Lines
+    lb_12_2:[ {on:'out',if:{casting:'page',mine:HO},more:R(0.03)} ],                                            // Page Storm
+    lb_12_3:[ {on:'hit',if:{casting:'page'},do:[{heal:{pct:R(0.05),of:'hit'},on:'self'}]} ],                    // Annotated
+    lb_13_2:[ {on:'cast',skill:FV,do:[{window:'open',dur:8}]},                                                  // Every Page at Once (SIGNATURE): 8 s
+              {on:'pagePre',if:{window:'open'},do:[{field:'_pages',add:1}]},                                    //   every swing lands a page hit, spending none
+              {on:'page',if:{window:'open'},do:BLOT('target')}, {on:'ceHit',if:{window:'open'},do:BLOT(CE_AREA)} ]   //   and every enemy those hits touch is Blotted
+  },
+  fn:{
+    /* a Field Note on the enemy ctx.tgt (once per enemy, max 10); its class is noted (Taxonomy, The Whole Book) */
+    note(A,T,u,c){ const t=c.tgt; if(!t||A.markOf(u,t,'noted')||A.stGet(T,'fn')>=10) return; A.setMark(T,u,t,'noted',{}); A.stSet(T,u,'fn',A.stGet(T,'fn')+1);
+      (T.s.cls||(T.s.cls={}))[role(t)]=1; A.run(T,u,'noteW',Object.assign({},c,{tgt:t})); },
+    noted(A,T,u,c){ return !!(T.s.cls&&c.tgt&&T.s.cls[role(c.tgt)]); },
+    /* The Whole Book: for each class he has a Note on (in the order he noted them, up to 3) with an enemy of it on the field, one Lesser Ink Spirit that hunts the
+       nearest such enemy, for as long as the Horror has left. They are summons like any other (the field cap of 3 spirits holds) */
+    wholeBook(A,T,u,c){ const E=A.eng(), h=c.unit; if(!E.summon||!h) return; const cls=Object.keys(T.s.cls||{}); let n=0;
+      for(const k of cls){ if(n>=3) break; const prey=A.pick(T,u,{team:'enemy'},c).filter(x=>role(x)===k).sort((a,b)=>E.dist(h,a)-E.dist(h,b))[0]; if(!prey) continue;
+        const lv=(u.skillLv&&u.skillLv[1])||1; let s=null; T.s.ex=1;
+        try{ s=E.summon(u,SP,Math.max(0.5,h._summonT||22),{a:(u.team==='ally'?0:Math.PI)+(n-1)*0.7,r:1.6*E.METER(),share:1+0.005*Math.max(0,lv-1)}); } finally{ T.s.ex=0; }
+        if(!s) break; A.setMark(T,u,s,'wb',{}); s.target=prey; s.forcedTarget=prey; s.forcedTargetT=s._summonT; n++; } },   // it hunts that enemy (the engine's own forced target)
+    wbEnd(A,T,u){ const E=A.eng(); if(!E.unsummon) return; for(const x of A.mineOf(T,u).slice()) if(A.markOf(u,x,'wb')) E.unsummon(x); },
+    /* what Chapter Rewrite is about to reverse on its target (read at the kit, before the skill ends it) */
+    rwSnap(A,T,u,c){ const t=c.tgt; if(!t){ T.s.rb=null; return; } const b=[];
+      if((t.dmgBuffT||0)>0&&(t.dmgBuffMul||1)>1) b.push({k:'dmg',s:t.dmgBuffMul-1,t:t.dmgBuffT});
+      if((t.hasteT||0)>0&&(t.hasteMul||1)>1) b.push({k:'haste',s:t.hasteMul-1,t:t.hasteT});
+      if((t.drT||0)>0&&(t.drMul==null?1:t.drMul)<1) b.push({k:'dr',s:1-t.drMul,t:t.drT});
+      if((t._critBuffT||0)>0&&(t._critBuffPct||0)>0) b.push({k:'crit',s:t._critBuffPct,t:t._critBuffT});
+      if(t.hots) for(const h of t.hots) if(h.hps>0&&h.remaining>0) b.push({k:'hot',s:h.hps,t:h.remaining*(h.interval||1),iv:h.interval||1});
+      if((t._digHealT||0)>0) b.push({k:'other',s:0,t:t._digHealT});
+      T.s.rb={t,b,sh:t.shield||0,shT:t.shieldT||0}; },
+    reversed(A,T,u,c){ const rb=T.s.rb; return !!(rb&&rb.t===c.tgt&&rb.b.length); },
+    /* Plot Twist: each reversed buff into his lowest-HP ally (two with Two Versions) at 10% per rank of its strength (The Last Chapter: in full) for the time it had left */
+    rwGive(A,T,u,c){ const rb=T.s.rb; if(!rb||rb.t!==c.tgt||!rb.b.length) return; const E=A.eng(), k=A.winOn(T,'lc')?1:(T.P['pt.k']||0); if(!(k>0)) return;
+      const al=A.pick(T,u,{team:'ally',others:true,order:'lowHp',n:1+(T.P['pt.n']||0)},c);
+      for(const a of al){ let d=0; for(const x of rb.b){ if(x.k==='other') continue; if(x.k==='hot') E.pushHot(a,x.s*k,x.t,x.iv); else A.buffOn(a,x.k,x.s*k,x.t); d=Math.max(d,x.t); }
+        if(d>0){ A.setMark(T,u,a,'ptw',{dur:d,longest:true}); A.run(T,u,'twist',Object.assign({},c,{tgt:a,unit:a})); } } },
+    /* Stolen Shield: the shield the kit row took off it, 40% of it to his lowest-HP ally (its time left, 1 to 6 s) */
+    rwSteal(A,T,u,c){ const rb=T.s.rb; if(!rb||rb.t!==c.tgt||!(rb.sh>0)) return; const a=A.pick(T,u,{team:'ally',others:true,order:'lowHp',n:1},c)[0]; if(!a) return;
+      a.shield=(a.shield||0)+0.4*rb.sh; a.shieldT=Math.max(a.shieldT||0,Math.min(6,Math.max(1,rb.shT||4))); },
+    /* Burnt Shield: the fire spreads to every other enemy within 2 m for 30% of the burn */
+    rwSpread(A,T,u,c){ const rb=T.s.rb; if(!rb||rb.t!==c.tgt||!(rb.sh>0)) return; const x=0.3*rb.sh*(1+(T.P.burn||0));
+      for(const t of A.pick(T,u,{team:'enemy',of:'target',within:2,skip:'target'},c)) A.hurt(T,u,t,x,'#c8b9e8','bs'); }
+  },
+  /* one sentence runs, another waits */
+  partial:{},
+  /* nothing implemented: needs engine work. None: every talent has rows (readings and reworded tooltips in WIRING/12 - ALDREN - talent decisions.md) */
   ruling:{}
 };
 
@@ -1322,6 +1556,7 @@ return module.exports;})();
   const OVER={};                                // TalentFx.define(hero, def): a definition supplied at run time (the tests' scripted talents)
   const defOf=hero=>Object.prototype.hasOwnProperty.call(OVER,hero)?OVER[hero]:MECH[hero];
   function bind(api){ E=api; }
+  function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot)
   function define(hero,def){ if(def==null) delete OVER[hero]; else OVER[hero]=def; }
 
   /* ---- a value at a rank. number | [by rank] | {r: per rank, b: base, rk: 'other talent id' (use ITS rank), $: 'named number'
@@ -1347,7 +1582,7 @@ return module.exports;})();
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
     const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
-      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
+      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],sm:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
       if(c.stat){ (c.to?T.auras:T.stats).push(c); if(c.stat.nrg) T.nrg=true; return; }
@@ -1356,6 +1591,8 @@ return module.exports;})();
     for(const id of ids){ const rows=M.talents[id]; if(rows&&has(id)) rows.forEach((row,i)=>add(id,row,i,r[id])); }
     if(M.casting){ T.on.kit=T.on.kit||[]; T.on.cast=T.on.cast||[]; }        // the hero's rows ask "which skill is this hit from": keep the two skill hooks on
     if(M.points) T.on.at=T.on.at||[];                                         // the hero's rows read where her area skills land ('pt:<skill>'): the at hook must run for each of them
+    if(M.summons) T.on.summon=T.on.summon||[];                                // his summons carry his rows (u._talS): the summon hook must run for each one he calls
+    if(M.pages){ T.on.pagePre=T.on.pagePre||[]; T.on.page=T.on.page||[]; }   // rows ask "is this hit a Living Page" ('casting:page'): the two page hooks must run for each page spent
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
@@ -1446,10 +1683,10 @@ return module.exports;})();
   function cnt(T,u,per,ctx){ if(per==null) return 1;
     if(typeof per==='string'){ if(per==='spent') return ctx?(ctx.spent||0):0; if(T.st[per]) return stGet(T,per); const w=T.s.w[per]; return (w&&w.t>0)?w.n:0; }
     let n=0;
-    if(per.stack){ n=stGet(T,per.stack); if(per.missing) n=Math.max(0,stMax(T,u,per.stack)-n); if(per.over!=null) n=Math.max(0,n-per.over);   // missing: how many short of full; over: how many above that count
+    if(per.stack){ n=Array.isArray(per.stack)?per.stack.reduce((a,k)=>a+stGet(T,k),0):stGet(T,per.stack); if(per.missing) n=Math.max(0,stMax(T,u,per.stack)-n); if(per.over!=null) n=Math.max(0,n-per.over);   // a list: those stacks together (Aldren's written Field Notes and his Field Kit ones); missing: how many short of full; over: how many above that count
       if(per.frac){ const m=stMax(T,u,per.stack); n=(m>0&&m<Infinity)?Math.floor(n/m*per.frac+1e-9):0; }   // frac: whole tenths (frac:10) of the pool that are filled
       if(per.div) n=Math.floor(n/per.div+1e-9); }                                  // div: whole multiples of that (every 3 m)
-    else if(per.ust) n=per.of==='field'?ustField(T,u,per.ust):ustGet(T,u,per.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt),per.ust);   // a unit stack: on the target, or on every enemy of the field
+    else if(per.ust) n=per.of==='field'?ustField(T,u,per.ust):ustGet(T,u,per.of==='unit'?(ctx&&ctx.unit):per.of==='source'?(ctx&&ctx.src):(ctx&&ctx.tgt),per.ust);   // a unit stack: on the target, or on every enemy of the field
     else if(per.window){ const w=T.s.w[per.window]; n=(w&&w.t>0)?w.n:0; }
     else if(per.markAge){ const m=markOf(u,ctx&&ctx.tgt,per.markAge); n=m?Math.floor((E.now()-m.t0)/(per.every||1)+1e-9):0; }
     else if(per.dots) n=countDots(u,per.dots);
@@ -1479,6 +1716,7 @@ return module.exports;})();
     case 'a0': return ctx?(ctx.a0||0):0;                                                 // a heal on a watched unit as it reached the talent rows
     case 'cut': return ctx?Math.max(0,(ctx.a0||0)-(ctx.amt||0)):0;                       // what the rows before have cut from that heal
     case 'raw': return ctx?(ctx.raw||0):0;                                               // an area skill's damage to each enemy as the skill computes it, before the target's resist (the at hook)
+    case 'was': return ctx?(ctx.was||0):0;                                               // the engine number before the engine changed it (the pages Aldren held before a spell wrote one)
     default: return 0; } }
   function amtOf(T,u,a,ctx){ if(typeof a==='number') return a; if(!a) return 0;
     if(a.left){ const x=a.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt), m=markOf(u,x,a.left); return (m&&m.until!=null)?Math.max(0,m.until-E.now()):0; }   // left: the seconds that mark of hers has left on that unit
@@ -1487,6 +1725,9 @@ return module.exports;})();
     let x=(a.flat||0)+(a.pct?a.pct*baseOf(T,u,a.of,ctx):0); if(a.x!=null) x*=cnt(T,u,a.x,ctx); if(a.k&&ctx&&ctx.k!=null) x*=ctx.k;
     if(a.split!=null){ const n=cnt(T,u,a.split,ctx); x=n>0?x/n:0; }                      // split: shared evenly between that many (none: nothing)
     return x; }
+  /* his summons (Aldren): the units his summon hook gave his rows (x._talS = him), living, in the order he called them */
+  function mineOf(T,u){ const L=T.s.sm; for(let i=L.length-1;i>=0;i--) if(!L[i].alive||L[i]._talS!==u) L.splice(i,1); return L; }
+  const isMine=(u,x,v)=>!!x&&x._talS===u&&(v===true||x.key===v);                      // (alive or not: a death row asks about the one that just fell)
 
   /* ---- who: 'self' | 'target' | 'source' | 'unit' | 'holder:<mark>' | {team:'enemy'|'ally', of:'self'|'target'|'unit'|'source', within: metres,
           withinOpt:'radius', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
@@ -1502,13 +1743,14 @@ return module.exports;})();
     if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } const p=ptRef(T,ctx,sel); return p?[p]:[]; }
     const ref=o=>{ const p=ptRef(T,ctx,o); if(p!==undefined) return p; return o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null; };
     const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
-    const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally';
+    const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally'&&sel.mine==null;
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
-    const out=[], U=E.units();
+    const out=[], U=sel.mine!=null?mineOf(T,u).slice():E.units();                    // mine: only his own summons (true: any; or that summon's key)
     for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||x===skip||x._dropHidden||x._noTarget) continue;
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
-      if(!foe&&(x._summon||(sel.others&&x===u))) continue;
+      if(sel.mine!=null){ if(!isMine(u,x,sel.mine)) continue; }
+      else if(!foe&&(x._summon||(sel.others&&x===u))) continue;
       if(sel.has&&!markOf(u,x,sel.has)) continue;
       if(sel.lacks&&markOf(u,x,sel.lacks)) continue;
       if(sel.ust){ let okU=true; for(const k in sel.ust) if(ustGet(T,u,x,k)<sel.ust[k]) okU=false; if(!okU) continue; }   // carries at least that many of her unit stacks
@@ -1528,6 +1770,7 @@ return module.exports;})();
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
     else if(od==='lowMax') out.sort((a,b)=>(a[0].maxHp||0)-(b[0].maxHp||0));        // the most fragile first (the lowest max HP, as Hookline itself ranks them)
     else if(od.slice(0,5)==='high:'){ const f=od.slice(5); out.sort((a,b)=>(+b[0][f]||0)-(+a[0][f]||0)); }              // the highest engine number first ('high:dmg': the highest attack)
+    else if(od==='strong') out.sort((a,b)=>Math.max(+b[0].dmg||0,+b[0].apow||0)-Math.max(+a[0].dmg||0,+a[0].apow||0));   // the strongest first: the higher of attack and ability power
     else if(od.slice(0,5)==='most:'){ const nm=od.slice(5); out.sort((a,b)=>ustGet(T,u,b[0],nm)-ustGet(T,u,a[0],nm)); }   // the most of her unit stacks first
     else if(od==='near'||sel.n) out.sort((a,b)=>a[1]-b[1]);   // stable: ties keep the units' own order
     const from=sel.skipN||0; return (sel.n?out.slice(from,from+sel.n):out.slice(from)).map(e=>e[0]); }
@@ -1601,6 +1844,13 @@ return module.exports;})();
     srcUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.src,k)<v[k]) return false; return true; },     // the attacker carries at least that many of her unit stacks
     targetCast:(T,u,v,c)=>casts(c.tgt,v),                   // the target has a cast under way ('spell' | 'ult' | true)
     targetMore:(T,u,v,c)=>!!c.tgt&&(+c.tgt[v]||0)>(+u[v]||0),   // the target's engine number is higher than hers ('apow': more ability power than Absalie)
+    /* his summons (Aldren): true = any of his, or a summon's key ('ink spirit', 'ink horror') */
+    unitMine:(T,u,v,c)=>isMine(u,c.unit,v), targetMine:(T,u,v,c)=>isMine(u,c.tgt,v), srcMine:(T,u,v,c)=>isMine(u,c.src,v),
+    mine:(T,u,v)=>{ const L=mineOf(T,u); for(let i=0;i<L.length;i++) if(v===true||L[i].key===v) return true; return false; },   // a summon of his (of that key) stands
+    unitExtra:(T,u,v,c)=>!!(c.unit&&c.unit._talEx)===v,     // a summon his talents called (not his Ink Spirit skill)
+    unitKey:(T,u,v,c)=>!!c.unit&&c.unit.key===v, srcKey:(T,u,v,c)=>!!c.src&&c.src.key===v,   // which kind of unit ('ink spirit', 'ink horror')
+    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner below that ({_pages:1}: he holds no Living Page)
+    wasBelow:(T,u,v,c)=>(c.was||0)<v,                      // the engine number before the engine changed it (pageW: the pages he held before the spell)
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
   const fmin=(x,v)=>{ if(!x) return false; for(const f in v) if(!((+x[f]||0)>=v[f])) return false; return true; };
@@ -1650,8 +1900,9 @@ return module.exports;})();
   /* modifiers: change the number the event carries (damage, heal, cooldown, control seconds) or the options of the skill being cast */
   function modify(T,u,row,ctx){
     const n=(row.per!=null?cnt(T,u,row.per,ctx):1)*(row.scale==null?1:row.scale);
-    if(row.more!=null) ctx.amt*=1+row.more*n;
-    if(row.less!=null) ctx.amt*=Math.max(0,1-row.less*n);
+    const up=x=>row.upTo!=null?Math.min(row.upTo,x):x;                            // upTo: the share never above that, whatever the count ("up to 10%")
+    if(row.more!=null) ctx.amt*=1+up(row.more*n);
+    if(row.less!=null) ctx.amt*=Math.max(0,1-up(row.less*n));
     if(row.mul!=null) ctx.amt*=row.mul;
     if(row.add!=null) ctx.amt+=row.add*n;
     if(row.critMore!=null&&ctx.crit) ctx.amt*=1+row.critMore*n;
@@ -1685,6 +1936,12 @@ return module.exports;})();
     t[field]=Math.max(t[field]||0,d); if(T.on.ccHit) run(T,u,'ccHit',{u,src:u,tgt:t,field,amt:d,talent:true}); }
   function acts(T,u,list,ctx){ for(let i=0;i<list.length;i++){ const a=list[i]; if(a.if&&!ok(T,u,a.if,ctx)) continue; if(act(T,u,a,ctx)===false) break; } }
   const CLEANSE=['stunned','fearT','silencedT','_sleepT','slow'];
+  /* one of the engine's own timed buffs written on a unit: 'dmg' (dmgBuffMul / dmgBuffT: x = 0.05 is 5% more damage), 'haste' (hasteMul / hasteT: attack speed),
+     'dr' (drMul / drT, the skill damage-reduction slot where the strongest one counts: x = the share taken off), 'crit' (_critBuffPct / _critBuffT: chance added).
+     A weaker buff never replaces a stronger one that is still running (and never lengthens it); a stronger one replaces it with its own time. */
+  const BUFF={dmg:['dmgBuffMul','dmgBuffT'],haste:['hasteMul','hasteT'],dr:['drMul','drT'],crit:['_critBuffPct','_critBuffT']};
+  function buffOn(t,k,x,d){ const F=BUFF[k]; if(!F||!(x>0)||!(d>0)) return false; const v=k==='dr'?Math.max(0.05,1-x):k==='crit'?x:1+x, on=(t[F[1]]||0)>0, cur=t[F[0]];
+    if(on&&cur!=null&&(k==='dr'?!(v<cur):!(v>cur))) return false; t[F[0]]=v; t[F[1]]=d; return true; }
   function act(T,u,a,ctx){ const s=T.s;
     if(a.after!=null){ s.dq.push({t:E.now()+amtOf(T,u,a.after,ctx),list:a.do||[],ctx:Object.assign({},ctx)}); return; }   // after: these actions that many seconds from now (the owner's tick runs them, with this event's context)
     if(a.stack){ const have=stGet(T,a.stack);
@@ -1764,7 +2021,15 @@ return module.exports;})();
       for(const t of pick(T,u,a.on,ctx)){ const D=t.dots; if(D) for(let i=0;i<D.length;i++) if(myDot(u,D[i],true)) D[i].acc+=k; } return; }
     if(a.extendDot!=null){ const d=ctx.dot; if(!d||!(d.remaining>0)) return; const add=amtOf(T,u,a.extendDot,ctx)/(d.interval||1); if(!(add>0)) return;   // the DoT the event is about lasts that many seconds longer (a part tick at the end)
       const n=d.remaining-1+(d._talF!=null?d._talF:1)+add; d.remaining=Math.ceil(n-1e-9); const f=n-(d.remaining-1); d._talF=(f<1-1e-9)?f:null; return; }
-    if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=+t[a.field]||0; if(a.add!=null) v+=a.add; if(a.max!=null) v=Math.min(a.max,v); t[a.field]=v; } return; }   // an engine counter on a unit (Crescendo's ring count)
+    if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=a.set!=null?amtOf(T,u,a.set,ctx):(+t[a.field]||0); if(a.add!=null) v+=amtOf(T,u,a.add,ctx);   // an engine counter on a unit (Crescendo's ring count, Aldren's Living Pages)
+        if(a.min!=null) v=Math.max(amtOf(T,u,a.min,ctx),v); if(a.max!=null) v=Math.min(amtOf(T,u,a.max,ctx),v); t[a.field]=v; } return; }   // set: from that amount; min / max: at least / at most
+    if(a.unitStat){ const S=a.unitStat; for(const t of pick(T,u,a.on||'unit',ctx)){ if(!t.alive) continue;   // a unit's own numbers made that much larger, once (a summon as it is called)
+        if(S.hp){ const k=Math.max(0.05,1+S.hp); t.maxHp*=k; t.hp*=k; } if(S.atk) t.dmg=(t.dmg||0)*Math.max(0,1+S.atk); if(S.apow) t.apow=(t.apow||0)*Math.max(0,1+S.apow); if(S.move) t.speed=(t.speed||0)*Math.max(0,1+S.move); } return; }
+    if(a.place){ const n=pick(T,u,a.near,ctx)[0]; if(!n||n.x==null) return; for(const t of pick(T,u,a.place,ctx)){ if(!t.alive||t===n) continue;   // a unit set down beside another (next to the enemy it hunts)
+        const dx=t.x-n.x, dy=t.y-n.y, L=Math.hypot(dx,dy), g=(n.pt?0:E.bodyR(n))+E.bodyR(t)+0.2*E.METER(), ux=L>1?dx/L:(t.team===u.team?-1:1), uy=L>1?dy/L:0;
+        t.x=n.x+ux*g; t.y=n.y+uy*g; t._ax=t.x; t._ay=t.y; if(!n.pt&&n.team!==t.team&&n.alive) t.target=n; } return; }
+    if(a.buff){ const k=a.buff, x=amtOf(T,u,a.x,ctx), d=amtOf(T,u,a.dur,ctx); if(!(d>0)) return; for(const t of pick(T,u,a.on||'self',ctx)) if(t.alive) buffOn(t,k,x,d); return; }   // one of the engine's own timed buffs (see buffOn)
+    if(a.castSkill){ if(!E.castSlot) return; for(const t of pick(T,u,a.on,ctx)) if(t.alive&&u.alive) E.castSlot(u,a.castSkill,t); return; }   // the hero casts one of his own skills at that unit (no cooldown spent, no press: The Last Chapter)
     if(a.kill){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) hurt(T,u,t,((t.hp||0)+(t.shield||0))*20+1,a.color,a.tag); return; }   // a talent kill: through the engine's own damage (a unit kept alive by a save stays alive)
     if(a.strip!=null){ for(const t of pick(T,u,a.on,ctx)) if((t.shield||0)>0) t.shield*=Math.max(0,1-a.strip); return; }   // that share of a unit's shield is gone
     if(a.call){ const f=E.fx&&E.fx[a.call]; if(!f) return; const n=a.n==null?1:Math.floor(amtOf(T,u,a.n,ctx)+1e-9);                 // one of the engine's own effects, by name (bind: fx)
@@ -1847,10 +2112,11 @@ return module.exports;})();
       for(let j=0;j<us.length;j++){ const x=us[j]; let e=null; for(let q=0;q<au.length;q++) if(au[q].x===x){ e=au[q]; break; }
         if(!e){ e={x,ap:{},z:{},tot:null,g0:null,b0:null}; au.push(e); } const c2={u,tgt:x}, n=row.per!=null?cnt(T,u,row.per,c2):1; if(!n) continue;
         const tot=e.tot||(e.tot={}); for(const k in row.stat) tot[k]=(tot[k]||0)+row.stat[k]*n; } }
-    for(let i=0;i<au.length;i++){ const e=au[i], x=e.x; if(!x.alive){ au.splice(i--,1); continue; } setStats(x,e.tot||{},e.ap,e.z);
+    for(let i=0;i<au.length;i++){ const e=au[i], x=e.x; if(!x.alive){ au.splice(i--,1); continue; } if(!sameTot(e.tot,e.lt)||(e.tot&&'crit' in e.tot)) setStats(x,e.tot||{},e.ap,e.z); e.lt=e.tot;   // the same totals as last tick: nothing to change (crit: its cap reads the unit's own crit, so always)
       if(e.ap.cdRate){ for(const f of CDF){ const k=f==='greenCd'?'g0':'b0', was=e[k], cur=x[f]; if(was!=null&&cur>0&&was>cur&&was-cur<=dt*4) x[f]=cur-(was-cur)*e.ap.cdRate; e[k]=x[f]; } }   // what the cooldown recovered this tick, that share given back / taken
       else{ e.g0=null; e.b0=null; if(!e.tot){ au.splice(i--,1); } } } }
   const CDF=['greenCd','blueCd'];
+  function sameTot(a,b){ if(a===b) return true; if(!a||!b) return false; for(const k in a) if(a[k]!==b[k]) return false; for(const k in b) if(!(k in a)) return false; return true; }
   function unaura(T){ const au=T.s.au; for(let i=0;i<au.length;i++) if(au[i].x.alive) setStats(au[i].x,{},au[i].ap,au[i].z); au.length=0; }
 
   /* =========================== THE HOOKS (called by the page; every call site is guarded on u._tal) =========================== */
@@ -1943,6 +2209,29 @@ return module.exports;})();
   /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
      target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
   function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
+  /* ---- HIS SUMMONS (Aldren). summon: summonUnit has just made a summon of his (its stats set, before it joins the field): it carries him as x._talS (never on a
+     snap: summons are not snapped), and 'summon' rows run (ctx.unit = ctx.tgt = the summon, key, extra = called by his talents, not by his skill).
+     Its hits run his 'sOut' rows (change the hit) and 'sHit' / 'sKill' rows (after it landed; ctx.src = ctx.unit = the summon); its lifetime running out while
+     it stands runs 'sGone' (ctx.unit = it, ctx.tgt = the enemy it was hunting); a control on it runs 'sCcIn' (seconds in, seconds out). Hits ON it and its
+     death are seen through his watch, as for any unit ('teamIn', 'death', 'teamLethal' with unitMine / targetMine). ---- */
+  function summon(o,x,key){ const T=o._tal; x._talS=o; if(T.s.ex) x._talEx=1; mineOf(T,o).push(x);
+    if(T.on.summon) run(T,o,'summon',{u:o,src:o,tgt:x,unit:x,key,extra:!!T.s.ex}); }
+  function sOut(x,t,amt,kind,auto,crit){ const o=x._talS, T=o&&o._tal; if(!T||!o.alive||!T.on.sOut) return amt;
+    const ctx={u:o,src:x,tgt:t,unit:x,amt,kind,auto:!!auto,crit:!!crit}; run(T,o,'sOut',ctx); return ctx.amt; }
+  function sHit(x,t,hpLost,amt,kind,auto,crit,hpBefore){ const o=x._talS, T=o&&o._tal; if(!T||!o.alive) return; const ctx={u:o,src:x,tgt:t,unit:x,amt,hpLost,kind,auto:!!auto,crit:!!crit};
+    if(t&&t.team!==x.team) x._talHunt=t;                                                                       // the enemy it last struck (what it was hunting, if its target is gone)
+    if(T.on.sHit) run(T,o,'sHit',ctx); if(T.on.sKill&&hpBefore>0&&!t.alive){ ctx.overkill=Math.max(0,-t.hp); run(T,o,'sKill',ctx); } }
+  function sGone(x){ const o=x._talS, T=o&&o._tal; if(!T||!o.alive||!T.on.sGone) return; const ok=h=>!!(h&&h.alive&&h.team!==x.team), h=ok(x._talHunt)?x._talHunt:ok(x.target)?x.target:null;   // the enemy it last struck, else the one it was going for
+    run(T,o,'sGone',{u:o,src:o,unit:x,tgt:h}); }
+  function sCc(by,t,field,dur){ const o=t._talS, T=o&&o._tal; if(!T||!o.alive||!T.on.sCcIn) return dur; const c={u:o,src:by,tgt:t,unit:t,field,amt:dur}; run(T,o,'sCcIn',c); return Math.max(0,c.amt); }
+  /* ---- HIS LIVING PAGES (Aldren's passive: a spell writes a page at its press, castKit; the next swing spends one for a magic hit). pagePre: right before the swing's
+     page block ('pagePre' rows may give or take pages first; ctx.was = pages held); while the page hit resolves, 'casting' is 'page'; page: right after it ('page' rows).
+     pageW0 / pageW: around the write at the press ('pageW' rows, ctx.was = the pages before the write, skill = the spell pressed) ---- */
+  function pagePre(u,t){ const T=u._tal, s=T.s; s.pgC=s.cur; s.pgOn=false; if(T.on.pagePre.length) run(T,u,'pagePre',{u,src:u,tgt:t,was:u._pages||0});
+    if((u._pages||0)>0){ s.cur='page'; s.pgOn=true; } }
+  function page(u,t){ const T=u._tal, s=T.s; if(!s.pgOn) return; s.pgOn=false; s.cur=s.pgC==null?null:s.pgC; s.pgC=null; if(T.on.page.length) run(T,u,'page',{u,src:u,tgt:t}); }
+  function pageW0(u){ u._tal.s.pw0=u._pages||0; }
+  function pageW(u,ab){ const T=u._tal; run(T,u,'pageW',{u,src:u,tgt:u.target,was:T.s.pw0||0,skill:ab&&ab.type}); }
   /* a cooldown was just set after a cast: slot 'green' | 'blue' */
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
@@ -1980,13 +2269,14 @@ return module.exports;})();
     if(T.on.tick) run(T,u,'tick',{u,tgt:u.target,dt});
     restat(T,u); auras(T,u,dt); }
 
-  const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,eng:()=>E};
+  const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
   /* A hook never lets an error out into the fight: it is counted (TalentFx.errors() - the tests require zero) and the hook answers as if the hero
      had no talent row there. An error is as deterministic as anything else here, so device and server still agree. Diagnostics only: nothing in a
      fight reads ERR. */
   const ERR={n:0,last:''};
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
-  const RUNTIME={bind,define,attach:guard(attach,()=>null),
+  const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
+    summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
     kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },

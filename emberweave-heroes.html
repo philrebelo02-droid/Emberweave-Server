@@ -7378,6 +7378,11 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bind) TalentFx.bind({ units:()=>units
   dist:(a,b)=>dist(a,b), damage:(u,a,c,ne)=>damage(u,a,c,ne), healUnit:(u,a)=>healUnit(u,a), healCap:u=>worldHealCap(u), pushDot:(t,dps,dur,iv,col,src,kind)=>pushDot(t,dps,dur,iv,col,src,kind),
   defMul:(s,t,k)=>defMul(s,t,k), ccDur:d=>ccDur(d), bodyR:u=>bodyR(u), ccCap:f=>CC_DUR_MAX[f], pushHot:(t,hps,dur,iv)=>pushHot(t,hps,dur,iv),
   slowMul:u=>slowMulFor((u&&u._castLv)||(u&&u.level)||1), healFrom:(s,t,a)=>healFrom(s,t,a), lowestAlly:u=>lowestAlly(u), densest:(u,R)=>densestEnemyCluster(u,R), pitch:(u,sym)=>SKLV[sym?'pitchSymphony':'pitch'](passLv(u)), fx:{ chill:(t,u)=>{ if(!(u&&u.pass&&u.pass.coldsnap)) return false; applyChill(t); } } });   /* Chill exists only with Cold Snap unlocked, as for her skills */
+/* 14 Nov 2026 (Aldren's talents): more of the fight's own functions for the mechanics runtime - a summon called by a talent, a summon sent away, and one of the
+   hero's own skills cast at a unit by a talent (no press, no cooldown). Only learned talent rows ever call them. */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ summon:(o,key,dur,off)=>summonUnit(o,key,dur,off), unsummon:p=>killSummon(p),
+  castSlot:(u,slot,t)=>{ const ab=slot==='blue'?u.blueAb:u.greenAb; if(!ab||!t||!t.alive) return; const k=[u.target,u._castSM,u._castLv], lv=(u.skillLv&&u.skillLv[slot==='blue'?2:1])||1;
+    u.target=t; u._castLv=lv; u._castSM=skillMul(lv); try{ _doEffectCore(u,ab.type,Object.assign({},ab,ab.deliver?{_arrived:true,_tgtU:t}:{})); } finally{ u.target=k[0]; u._castSM=k[1]; u._castLv=k[2]; } } });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -12432,6 +12437,7 @@ function summonUnit(owner,key,dur,off){
      seed of light over 48 @ 24 = 2.0 s), so the last frame of the climb IS the first frame of idle and there is no pop. */
   const _rc=(BATTLE_ANIM[key]&&BATTLE_ANIM[key].rise), _rt=_rc?(_rc.n/(_rc.fps||14)):(12/14);
   u._summon=true; u._wasSummon=true; u._summonOwner=owner; u._summonT=(dur===0)?Infinity:(dur||15);   // v546: dur 0 = lives until killed (Zahri's mirage)
+  if(owner._tal&&owner._tal.on.summon) TalentFx.summon(owner,u,key);   /* TALENT HOOK summon: a summon of a talented hero (Aldren) - it carries his rows (u._talS), his talents may change it as it is called */
   u._riseT=_rt; u._riseMax=_rt;   /* v559: these two were swallowed by the v546 line comment above, so _riseT never received the rise-clip duration and every summon skipped its emergence -- targeting and think both read it. */
   if(t_is_mirage(key)){ u._mirage=true;   // v532: a MIRAGE summon (Zahri) - tagged so mechanics can tell it from the herd
     /* v534 (Phil, 9 Sep): "the mirage can crit, it inherits 30% of her crit chance. however the crit wont have a different
@@ -13628,6 +13634,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<Math.max(0,cc-((tgt&&tgt.defenseStat)||0))))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+Math.max(0,bonus-tgt.critRes);   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), floor = a normal hit; = combat-core */ amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   if(_talPc) _preCrit=_talPc[0];
   if(src&&src._tal&&src._tal.on.out) amt=TalentFx.out(src,tgt,amt,kind,_isAuto,_crit);   /* TALENT HOOK out: the attacker's learned talents */
+  if(src&&src._talS) amt=TalentFx.sOut(src,tgt,amt,kind,_isAuto,_crit);   /* TALENT HOOK sOut: a talented hero's summon strikes (his rows about his summons' hits; only his summon hook sets _talS) */
   if((tgt._tal&&tgt._tal.on.in)||tgt._talW) amt=TalentFx.inc(tgt,src,amt,kind,_isAuto,_crit);   /* TALENT HOOK in: the target's learned talents, and team-wide ones watching it */
   if(tgt._talMiss&&TalentFx.miss(tgt)) return;   /* TALENT HOOK miss: one of the target's 'in' rows made this hit miss (only a talent sets _talMiss) */
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
@@ -13657,6 +13664,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
   if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4',src);   /* v1112: 10% + 0.1 pt a level */
   if((src&&src._tal)||tgt._tal) TalentFx.hit(src,tgt,_hpLost,amt,kind,_isAuto,_crit,_hpBefore);   /* TALENT HOOK hit / kill / hurt */
+  if(src&&src._talS) TalentFx.sHit(src,tgt,_hpLost,amt,kind,_isAuto,_crit,_hpBefore);   /* TALENT HOOK sHit: a talented hero's summon landed a hit (and its killing blow) */
   /* v1137 (Phil 14 Oct): Rivet's old six-step Whatever's Loaded cycle (stun, splash, bleed, slow, chain, heavy shot) lived here, on every hit he dealt. It is REPLACED by his ten weapons - each basic attack's effect is its weapon's (rivetFire), the chain hook is automatic (rivetHookTick). */
 }
 // Hollow's bleed stacks: the third one ruptures for a burst and clears the set.
@@ -14129,6 +14137,7 @@ function ccApply(u, t, field, dur){
   if(field==='stunned' && u && u._holdFx && t!==u){ try{ holdUnder(u._holdFx,t); }catch(e){} }   /* v829: bind/freeze - the held unit draws behind its spell */
   dur=ccDur(dur);   /* v818: every control 30% shorter - the one place they all land */
   if((t._tal&&t._tal.on.ccIn)||(u&&u._tal&&u._tal.on.ccOut)) dur=TalentFx.cc(u,t,field,dur);   /* TALENT HOOK cc: seconds of a control effect */
+  if(t._talS) dur=TalentFx.sCc(u,t,field,dur);   /* TALENT HOOK sCc: a control on a talented hero's summon (his rows may shorten it) */
   { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
   /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
      deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
@@ -15397,7 +15406,9 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
   try{ waxOnCaster(u); }catch(e){}
   /* v527 - the passives that are paid out BY CASTING, not by swinging. */
   if(u.pass){ const pm=(u.passMul||1);
+    if(u.pass.livingpages&&u._tal&&u._tal.on.pageW) TalentFx.pageW0(u);   /* TALENT HOOK pageW0: the pages held before this spell writes one */
     if(u.pass.livingpages){ u._pages=Math.min(3,(u._pages||0)+1); }                       // Living Pages
+    if(u.pass.livingpages&&u._tal&&u._tal.on.pageW) TalentFx.pageW(u,ab);   /* TALENT HOOK pageW: a spell has written its page (his talents may write more, or hold more) */
     if(u.pass.abyssres){ u._prS=(u._prS||0)+1; }                                          // Abyssal Reserve
     if(u.pass.skeletonkey){ u._keys=Math.min(5,(u._keys||0)+1); }                          // Skeleton-Key Savant
     if(u.pass.convergence){ const n=Math.max(1,(ab&&(ab.n||(ab.radius?3:1)))|0);           // Dark Convergence
@@ -17526,10 +17537,12 @@ function think(u,dt){
             dealDamage(u,t,bonus,'#7fb8ff','magic'); ringBurst(t.x,t.y,0x7fb8ff,14);
             floatTexts.push({x:t.x,y:t.y-8,txt:'BROADSIDE',t:.8,color:'#7fb8ff',vy:1.2,sz:11}); } }
         // Living Pages (Librarian): a page written by a spell is spent on the next swing.
+        if(u.pass.livingpages&&t&&u._tal&&u._tal.on.pagePre) TalentFx.pagePre(u,t);   /* TALENT HOOK pagePre: right before the page block (his talents may give or take a page; the hit below is a Living Page to his rows) */
         if(u.pass.livingpages&&(u._pages||0)>0&&t){ u._pages--;
           dealDamage(u,t,dmg*0.6*_pm,'#c8b9e8','magic');
           firePassiveFx(u,t);
           floatTexts.push({x:t.x,y:t.y-8,txt:'PAGE',t:.8,color:'#c8b9e8',vy:1.2,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'livingpages'); }
+        if(u.pass.livingpages&&t&&u._tal&&u._tal.on.page) TalentFx.page(u,t);   /* TALENT HOOK page: a Living Page was spent */
         // Rising Heat (Pyroclast): every scorched enemy she strikes stokes her own power.
         if(u.pass.risingheat){ let sc=0; enemiesOf(u).forEach(e=>{ if(e.alive&&e.dots&&e.dots.length)sc++; });
           if(sc>(u._rhSc||0)) firePassiveFx(u); u._rhSc=sc;   /* v884: art only - the aura flares as the scorched count rises */
@@ -18548,6 +18561,7 @@ function _updateBattleCore(dt){
             e.x=Math.max(40,Math.min(FW-40,e.x)); e.y=Math.max(90,Math.min(FD-40,e.y)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.35); }
           burstAt(e.x,e.y,0xffcf40,10); } });
       if(u._stampT<=0){ u._stampT=0; ringBurst(u.x,u.y,0xffcf40,16); burstAt(u.x,u.y,0xff8844,14); u._stampFoes=null; } }
+    if(u._summon&&u._talS&&u._summonOwner&&u._summonOwner.alive&&u._summonT-dt<=0) TalentFx.sGone(u);   /* TALENT HOOK sGone: a talented hero's summon is at the end of its time, still standing */
     if(u._summon){
       if(!u._summonOwner||!u._summonOwner.alive){ killSummon(u); }   // the pack dies with its master
       else { u._summonT-=dt; if(u._summonT<=0){ ringBurst(u.x,u.y,0x4a3a22,10); killSummon(u); } }

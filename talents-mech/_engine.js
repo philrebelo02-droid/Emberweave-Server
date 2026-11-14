@@ -11,6 +11,7 @@
   const OVER={};                                // TalentFx.define(hero, def): a definition supplied at run time (the tests' scripted talents)
   const defOf=hero=>Object.prototype.hasOwnProperty.call(OVER,hero)?OVER[hero]:MECH[hero];
   function bind(api){ E=api; }
+  function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot)
   function define(hero,def){ if(def==null) delete OVER[hero]; else OVER[hero]=def; }
 
   /* ---- a value at a rank. number | [by rank] | {r: per rank, b: base, rk: 'other talent id' (use ITS rank), $: 'named number'
@@ -36,7 +37,7 @@
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
     const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
-      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
+      s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],sm:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
       if(c.stat){ (c.to?T.auras:T.stats).push(c); if(c.stat.nrg) T.nrg=true; return; }
@@ -45,6 +46,8 @@
     for(const id of ids){ const rows=M.talents[id]; if(rows&&has(id)) rows.forEach((row,i)=>add(id,row,i,r[id])); }
     if(M.casting){ T.on.kit=T.on.kit||[]; T.on.cast=T.on.cast||[]; }        // the hero's rows ask "which skill is this hit from": keep the two skill hooks on
     if(M.points) T.on.at=T.on.at||[];                                         // the hero's rows read where her area skills land ('pt:<skill>'): the at hook must run for each of them
+    if(M.summons) T.on.summon=T.on.summon||[];                                // his summons carry his rows (u._talS): the summon hook must run for each one he calls
+    if(M.pages){ T.on.pagePre=T.on.pagePre||[]; T.on.page=T.on.page||[]; }   // rows ask "is this hit a Living Page" ('casting:page'): the two page hooks must run for each page spent
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
@@ -135,10 +138,10 @@
   function cnt(T,u,per,ctx){ if(per==null) return 1;
     if(typeof per==='string'){ if(per==='spent') return ctx?(ctx.spent||0):0; if(T.st[per]) return stGet(T,per); const w=T.s.w[per]; return (w&&w.t>0)?w.n:0; }
     let n=0;
-    if(per.stack){ n=stGet(T,per.stack); if(per.missing) n=Math.max(0,stMax(T,u,per.stack)-n); if(per.over!=null) n=Math.max(0,n-per.over);   // missing: how many short of full; over: how many above that count
+    if(per.stack){ n=Array.isArray(per.stack)?per.stack.reduce((a,k)=>a+stGet(T,k),0):stGet(T,per.stack); if(per.missing) n=Math.max(0,stMax(T,u,per.stack)-n); if(per.over!=null) n=Math.max(0,n-per.over);   // a list: those stacks together (Aldren's written Field Notes and his Field Kit ones); missing: how many short of full; over: how many above that count
       if(per.frac){ const m=stMax(T,u,per.stack); n=(m>0&&m<Infinity)?Math.floor(n/m*per.frac+1e-9):0; }   // frac: whole tenths (frac:10) of the pool that are filled
       if(per.div) n=Math.floor(n/per.div+1e-9); }                                  // div: whole multiples of that (every 3 m)
-    else if(per.ust) n=per.of==='field'?ustField(T,u,per.ust):ustGet(T,u,per.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt),per.ust);   // a unit stack: on the target, or on every enemy of the field
+    else if(per.ust) n=per.of==='field'?ustField(T,u,per.ust):ustGet(T,u,per.of==='unit'?(ctx&&ctx.unit):per.of==='source'?(ctx&&ctx.src):(ctx&&ctx.tgt),per.ust);   // a unit stack: on the target, or on every enemy of the field
     else if(per.window){ const w=T.s.w[per.window]; n=(w&&w.t>0)?w.n:0; }
     else if(per.markAge){ const m=markOf(u,ctx&&ctx.tgt,per.markAge); n=m?Math.floor((E.now()-m.t0)/(per.every||1)+1e-9):0; }
     else if(per.dots) n=countDots(u,per.dots);
@@ -168,6 +171,7 @@
     case 'a0': return ctx?(ctx.a0||0):0;                                                 // a heal on a watched unit as it reached the talent rows
     case 'cut': return ctx?Math.max(0,(ctx.a0||0)-(ctx.amt||0)):0;                       // what the rows before have cut from that heal
     case 'raw': return ctx?(ctx.raw||0):0;                                               // an area skill's damage to each enemy as the skill computes it, before the target's resist (the at hook)
+    case 'was': return ctx?(ctx.was||0):0;                                               // the engine number before the engine changed it (the pages Aldren held before a spell wrote one)
     default: return 0; } }
   function amtOf(T,u,a,ctx){ if(typeof a==='number') return a; if(!a) return 0;
     if(a.left){ const x=a.of==='unit'?(ctx&&ctx.unit):(ctx&&ctx.tgt), m=markOf(u,x,a.left); return (m&&m.until!=null)?Math.max(0,m.until-E.now()):0; }   // left: the seconds that mark of hers has left on that unit
@@ -176,6 +180,9 @@
     let x=(a.flat||0)+(a.pct?a.pct*baseOf(T,u,a.of,ctx):0); if(a.x!=null) x*=cnt(T,u,a.x,ctx); if(a.k&&ctx&&ctx.k!=null) x*=ctx.k;
     if(a.split!=null){ const n=cnt(T,u,a.split,ctx); x=n>0?x/n:0; }                      // split: shared evenly between that many (none: nothing)
     return x; }
+  /* his summons (Aldren): the units his summon hook gave his rows (x._talS = him), living, in the order he called them */
+  function mineOf(T,u){ const L=T.s.sm; for(let i=L.length-1;i>=0;i--) if(!L[i].alive||L[i]._talS!==u) L.splice(i,1); return L; }
+  const isMine=(u,x,v)=>!!x&&x._talS===u&&(v===true||x.key===v);                      // (alive or not: a death row asks about the one that just fell)
 
   /* ---- who: 'self' | 'target' | 'source' | 'unit' | 'holder:<mark>' | {team:'enemy'|'ally', of:'self'|'target'|'unit'|'source', within: metres,
           withinOpt:'radius', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
@@ -191,13 +198,14 @@
     if(typeof sel==='string'){ if(sel.slice(0,7)==='holder:'){ const nm=sel.slice(7), h=T.s.m[nm]; return (h&&h.alive&&markOf(u,h,nm))?[h]:[]; } const p=ptRef(T,ctx,sel); return p?[p]:[]; }
     const ref=o=>{ const p=ptRef(T,ctx,o); if(p!==undefined) return p; return o==='target'?(ctx&&ctx.tgt):o==='unit'?(ctx&&ctx.unit):o==='source'?(ctx&&ctx.src):o==='self'?u:null; };
     const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
-    const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally';
+    const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally'&&sel.mine==null;
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
-    const out=[], U=E.units();
+    const out=[], U=sel.mine!=null?mineOf(T,u).slice():E.units();                    // mine: only his own summons (true: any; or that summon's key)
     for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||x===skip||x._dropHidden||x._noTarget) continue;
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
-      if(!foe&&(x._summon||(sel.others&&x===u))) continue;
+      if(sel.mine!=null){ if(!isMine(u,x,sel.mine)) continue; }
+      else if(!foe&&(x._summon||(sel.others&&x===u))) continue;
       if(sel.has&&!markOf(u,x,sel.has)) continue;
       if(sel.lacks&&markOf(u,x,sel.lacks)) continue;
       if(sel.ust){ let okU=true; for(const k in sel.ust) if(ustGet(T,u,x,k)<sel.ust[k]) okU=false; if(!okU) continue; }   // carries at least that many of her unit stacks
@@ -217,6 +225,7 @@
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
     else if(od==='lowMax') out.sort((a,b)=>(a[0].maxHp||0)-(b[0].maxHp||0));        // the most fragile first (the lowest max HP, as Hookline itself ranks them)
     else if(od.slice(0,5)==='high:'){ const f=od.slice(5); out.sort((a,b)=>(+b[0][f]||0)-(+a[0][f]||0)); }              // the highest engine number first ('high:dmg': the highest attack)
+    else if(od==='strong') out.sort((a,b)=>Math.max(+b[0].dmg||0,+b[0].apow||0)-Math.max(+a[0].dmg||0,+a[0].apow||0));   // the strongest first: the higher of attack and ability power
     else if(od.slice(0,5)==='most:'){ const nm=od.slice(5); out.sort((a,b)=>ustGet(T,u,b[0],nm)-ustGet(T,u,a[0],nm)); }   // the most of her unit stacks first
     else if(od==='near'||sel.n) out.sort((a,b)=>a[1]-b[1]);   // stable: ties keep the units' own order
     const from=sel.skipN||0; return (sel.n?out.slice(from,from+sel.n):out.slice(from)).map(e=>e[0]); }
@@ -290,6 +299,13 @@
     srcUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.src,k)<v[k]) return false; return true; },     // the attacker carries at least that many of her unit stacks
     targetCast:(T,u,v,c)=>casts(c.tgt,v),                   // the target has a cast under way ('spell' | 'ult' | true)
     targetMore:(T,u,v,c)=>!!c.tgt&&(+c.tgt[v]||0)>(+u[v]||0),   // the target's engine number is higher than hers ('apow': more ability power than Absalie)
+    /* his summons (Aldren): true = any of his, or a summon's key ('ink spirit', 'ink horror') */
+    unitMine:(T,u,v,c)=>isMine(u,c.unit,v), targetMine:(T,u,v,c)=>isMine(u,c.tgt,v), srcMine:(T,u,v,c)=>isMine(u,c.src,v),
+    mine:(T,u,v)=>{ const L=mineOf(T,u); for(let i=0;i<L.length;i++) if(v===true||L[i].key===v) return true; return false; },   // a summon of his (of that key) stands
+    unitExtra:(T,u,v,c)=>!!(c.unit&&c.unit._talEx)===v,     // a summon his talents called (not his Ink Spirit skill)
+    unitKey:(T,u,v,c)=>!!c.unit&&c.unit.key===v, srcKey:(T,u,v,c)=>!!c.src&&c.src.key===v,   // which kind of unit ('ink spirit', 'ink horror')
+    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner below that ({_pages:1}: he holds no Living Page)
+    wasBelow:(T,u,v,c)=>(c.was||0)<v,                      // the engine number before the engine changed it (pageW: the pages he held before the spell)
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
   const fmin=(x,v)=>{ if(!x) return false; for(const f in v) if(!((+x[f]||0)>=v[f])) return false; return true; };
@@ -339,8 +355,9 @@
   /* modifiers: change the number the event carries (damage, heal, cooldown, control seconds) or the options of the skill being cast */
   function modify(T,u,row,ctx){
     const n=(row.per!=null?cnt(T,u,row.per,ctx):1)*(row.scale==null?1:row.scale);
-    if(row.more!=null) ctx.amt*=1+row.more*n;
-    if(row.less!=null) ctx.amt*=Math.max(0,1-row.less*n);
+    const up=x=>row.upTo!=null?Math.min(row.upTo,x):x;                            // upTo: the share never above that, whatever the count ("up to 10%")
+    if(row.more!=null) ctx.amt*=1+up(row.more*n);
+    if(row.less!=null) ctx.amt*=Math.max(0,1-up(row.less*n));
     if(row.mul!=null) ctx.amt*=row.mul;
     if(row.add!=null) ctx.amt+=row.add*n;
     if(row.critMore!=null&&ctx.crit) ctx.amt*=1+row.critMore*n;
@@ -374,6 +391,12 @@
     t[field]=Math.max(t[field]||0,d); if(T.on.ccHit) run(T,u,'ccHit',{u,src:u,tgt:t,field,amt:d,talent:true}); }
   function acts(T,u,list,ctx){ for(let i=0;i<list.length;i++){ const a=list[i]; if(a.if&&!ok(T,u,a.if,ctx)) continue; if(act(T,u,a,ctx)===false) break; } }
   const CLEANSE=['stunned','fearT','silencedT','_sleepT','slow'];
+  /* one of the engine's own timed buffs written on a unit: 'dmg' (dmgBuffMul / dmgBuffT: x = 0.05 is 5% more damage), 'haste' (hasteMul / hasteT: attack speed),
+     'dr' (drMul / drT, the skill damage-reduction slot where the strongest one counts: x = the share taken off), 'crit' (_critBuffPct / _critBuffT: chance added).
+     A weaker buff never replaces a stronger one that is still running (and never lengthens it); a stronger one replaces it with its own time. */
+  const BUFF={dmg:['dmgBuffMul','dmgBuffT'],haste:['hasteMul','hasteT'],dr:['drMul','drT'],crit:['_critBuffPct','_critBuffT']};
+  function buffOn(t,k,x,d){ const F=BUFF[k]; if(!F||!(x>0)||!(d>0)) return false; const v=k==='dr'?Math.max(0.05,1-x):k==='crit'?x:1+x, on=(t[F[1]]||0)>0, cur=t[F[0]];
+    if(on&&cur!=null&&(k==='dr'?!(v<cur):!(v>cur))) return false; t[F[0]]=v; t[F[1]]=d; return true; }
   function act(T,u,a,ctx){ const s=T.s;
     if(a.after!=null){ s.dq.push({t:E.now()+amtOf(T,u,a.after,ctx),list:a.do||[],ctx:Object.assign({},ctx)}); return; }   // after: these actions that many seconds from now (the owner's tick runs them, with this event's context)
     if(a.stack){ const have=stGet(T,a.stack);
@@ -453,7 +476,15 @@
       for(const t of pick(T,u,a.on,ctx)){ const D=t.dots; if(D) for(let i=0;i<D.length;i++) if(myDot(u,D[i],true)) D[i].acc+=k; } return; }
     if(a.extendDot!=null){ const d=ctx.dot; if(!d||!(d.remaining>0)) return; const add=amtOf(T,u,a.extendDot,ctx)/(d.interval||1); if(!(add>0)) return;   // the DoT the event is about lasts that many seconds longer (a part tick at the end)
       const n=d.remaining-1+(d._talF!=null?d._talF:1)+add; d.remaining=Math.ceil(n-1e-9); const f=n-(d.remaining-1); d._talF=(f<1-1e-9)?f:null; return; }
-    if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=+t[a.field]||0; if(a.add!=null) v+=a.add; if(a.max!=null) v=Math.min(a.max,v); t[a.field]=v; } return; }   // an engine counter on a unit (Crescendo's ring count)
+    if(a.field){ for(const t of pick(T,u,a.on||'self',ctx)){ let v=a.set!=null?amtOf(T,u,a.set,ctx):(+t[a.field]||0); if(a.add!=null) v+=amtOf(T,u,a.add,ctx);   // an engine counter on a unit (Crescendo's ring count, Aldren's Living Pages)
+        if(a.min!=null) v=Math.max(amtOf(T,u,a.min,ctx),v); if(a.max!=null) v=Math.min(amtOf(T,u,a.max,ctx),v); t[a.field]=v; } return; }   // set: from that amount; min / max: at least / at most
+    if(a.unitStat){ const S=a.unitStat; for(const t of pick(T,u,a.on||'unit',ctx)){ if(!t.alive) continue;   // a unit's own numbers made that much larger, once (a summon as it is called)
+        if(S.hp){ const k=Math.max(0.05,1+S.hp); t.maxHp*=k; t.hp*=k; } if(S.atk) t.dmg=(t.dmg||0)*Math.max(0,1+S.atk); if(S.apow) t.apow=(t.apow||0)*Math.max(0,1+S.apow); if(S.move) t.speed=(t.speed||0)*Math.max(0,1+S.move); } return; }
+    if(a.place){ const n=pick(T,u,a.near,ctx)[0]; if(!n||n.x==null) return; for(const t of pick(T,u,a.place,ctx)){ if(!t.alive||t===n) continue;   // a unit set down beside another (next to the enemy it hunts)
+        const dx=t.x-n.x, dy=t.y-n.y, L=Math.hypot(dx,dy), g=(n.pt?0:E.bodyR(n))+E.bodyR(t)+0.2*E.METER(), ux=L>1?dx/L:(t.team===u.team?-1:1), uy=L>1?dy/L:0;
+        t.x=n.x+ux*g; t.y=n.y+uy*g; t._ax=t.x; t._ay=t.y; if(!n.pt&&n.team!==t.team&&n.alive) t.target=n; } return; }
+    if(a.buff){ const k=a.buff, x=amtOf(T,u,a.x,ctx), d=amtOf(T,u,a.dur,ctx); if(!(d>0)) return; for(const t of pick(T,u,a.on||'self',ctx)) if(t.alive) buffOn(t,k,x,d); return; }   // one of the engine's own timed buffs (see buffOn)
+    if(a.castSkill){ if(!E.castSlot) return; for(const t of pick(T,u,a.on,ctx)) if(t.alive&&u.alive) E.castSlot(u,a.castSkill,t); return; }   // the hero casts one of his own skills at that unit (no cooldown spent, no press: The Last Chapter)
     if(a.kill){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) hurt(T,u,t,((t.hp||0)+(t.shield||0))*20+1,a.color,a.tag); return; }   // a talent kill: through the engine's own damage (a unit kept alive by a save stays alive)
     if(a.strip!=null){ for(const t of pick(T,u,a.on,ctx)) if((t.shield||0)>0) t.shield*=Math.max(0,1-a.strip); return; }   // that share of a unit's shield is gone
     if(a.call){ const f=E.fx&&E.fx[a.call]; if(!f) return; const n=a.n==null?1:Math.floor(amtOf(T,u,a.n,ctx)+1e-9);                 // one of the engine's own effects, by name (bind: fx)
@@ -536,10 +567,11 @@
       for(let j=0;j<us.length;j++){ const x=us[j]; let e=null; for(let q=0;q<au.length;q++) if(au[q].x===x){ e=au[q]; break; }
         if(!e){ e={x,ap:{},z:{},tot:null,g0:null,b0:null}; au.push(e); } const c2={u,tgt:x}, n=row.per!=null?cnt(T,u,row.per,c2):1; if(!n) continue;
         const tot=e.tot||(e.tot={}); for(const k in row.stat) tot[k]=(tot[k]||0)+row.stat[k]*n; } }
-    for(let i=0;i<au.length;i++){ const e=au[i], x=e.x; if(!x.alive){ au.splice(i--,1); continue; } setStats(x,e.tot||{},e.ap,e.z);
+    for(let i=0;i<au.length;i++){ const e=au[i], x=e.x; if(!x.alive){ au.splice(i--,1); continue; } if(!sameTot(e.tot,e.lt)||(e.tot&&'crit' in e.tot)) setStats(x,e.tot||{},e.ap,e.z); e.lt=e.tot;   // the same totals as last tick: nothing to change (crit: its cap reads the unit's own crit, so always)
       if(e.ap.cdRate){ for(const f of CDF){ const k=f==='greenCd'?'g0':'b0', was=e[k], cur=x[f]; if(was!=null&&cur>0&&was>cur&&was-cur<=dt*4) x[f]=cur-(was-cur)*e.ap.cdRate; e[k]=x[f]; } }   // what the cooldown recovered this tick, that share given back / taken
       else{ e.g0=null; e.b0=null; if(!e.tot){ au.splice(i--,1); } } } }
   const CDF=['greenCd','blueCd'];
+  function sameTot(a,b){ if(a===b) return true; if(!a||!b) return false; for(const k in a) if(a[k]!==b[k]) return false; for(const k in b) if(!(k in a)) return false; return true; }
   function unaura(T){ const au=T.s.au; for(let i=0;i<au.length;i++) if(au[i].x.alive) setStats(au[i].x,{},au[i].ap,au[i].z); au.length=0; }
 
   /* =========================== THE HOOKS (called by the page; every call site is guarded on u._tal) =========================== */
@@ -632,6 +664,29 @@
   /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
      target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
   function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
+  /* ---- HIS SUMMONS (Aldren). summon: summonUnit has just made a summon of his (its stats set, before it joins the field): it carries him as x._talS (never on a
+     snap: summons are not snapped), and 'summon' rows run (ctx.unit = ctx.tgt = the summon, key, extra = called by his talents, not by his skill).
+     Its hits run his 'sOut' rows (change the hit) and 'sHit' / 'sKill' rows (after it landed; ctx.src = ctx.unit = the summon); its lifetime running out while
+     it stands runs 'sGone' (ctx.unit = it, ctx.tgt = the enemy it was hunting); a control on it runs 'sCcIn' (seconds in, seconds out). Hits ON it and its
+     death are seen through his watch, as for any unit ('teamIn', 'death', 'teamLethal' with unitMine / targetMine). ---- */
+  function summon(o,x,key){ const T=o._tal; x._talS=o; if(T.s.ex) x._talEx=1; mineOf(T,o).push(x);
+    if(T.on.summon) run(T,o,'summon',{u:o,src:o,tgt:x,unit:x,key,extra:!!T.s.ex}); }
+  function sOut(x,t,amt,kind,auto,crit){ const o=x._talS, T=o&&o._tal; if(!T||!o.alive||!T.on.sOut) return amt;
+    const ctx={u:o,src:x,tgt:t,unit:x,amt,kind,auto:!!auto,crit:!!crit}; run(T,o,'sOut',ctx); return ctx.amt; }
+  function sHit(x,t,hpLost,amt,kind,auto,crit,hpBefore){ const o=x._talS, T=o&&o._tal; if(!T||!o.alive) return; const ctx={u:o,src:x,tgt:t,unit:x,amt,hpLost,kind,auto:!!auto,crit:!!crit};
+    if(t&&t.team!==x.team) x._talHunt=t;                                                                       // the enemy it last struck (what it was hunting, if its target is gone)
+    if(T.on.sHit) run(T,o,'sHit',ctx); if(T.on.sKill&&hpBefore>0&&!t.alive){ ctx.overkill=Math.max(0,-t.hp); run(T,o,'sKill',ctx); } }
+  function sGone(x){ const o=x._talS, T=o&&o._tal; if(!T||!o.alive||!T.on.sGone) return; const ok=h=>!!(h&&h.alive&&h.team!==x.team), h=ok(x._talHunt)?x._talHunt:ok(x.target)?x.target:null;   // the enemy it last struck, else the one it was going for
+    run(T,o,'sGone',{u:o,src:o,unit:x,tgt:h}); }
+  function sCc(by,t,field,dur){ const o=t._talS, T=o&&o._tal; if(!T||!o.alive||!T.on.sCcIn) return dur; const c={u:o,src:by,tgt:t,unit:t,field,amt:dur}; run(T,o,'sCcIn',c); return Math.max(0,c.amt); }
+  /* ---- HIS LIVING PAGES (Aldren's passive: a spell writes a page at its press, castKit; the next swing spends one for a magic hit). pagePre: right before the swing's
+     page block ('pagePre' rows may give or take pages first; ctx.was = pages held); while the page hit resolves, 'casting' is 'page'; page: right after it ('page' rows).
+     pageW0 / pageW: around the write at the press ('pageW' rows, ctx.was = the pages before the write, skill = the spell pressed) ---- */
+  function pagePre(u,t){ const T=u._tal, s=T.s; s.pgC=s.cur; s.pgOn=false; if(T.on.pagePre.length) run(T,u,'pagePre',{u,src:u,tgt:t,was:u._pages||0});
+    if((u._pages||0)>0){ s.cur='page'; s.pgOn=true; } }
+  function page(u,t){ const T=u._tal, s=T.s; if(!s.pgOn) return; s.pgOn=false; s.cur=s.pgC==null?null:s.pgC; s.pgC=null; if(T.on.page.length) run(T,u,'page',{u,src:u,tgt:t}); }
+  function pageW0(u){ u._tal.s.pw0=u._pages||0; }
+  function pageW(u,ab){ const T=u._tal; run(T,u,'pageW',{u,src:u,tgt:u.target,was:T.s.pw0||0,skill:ab&&ab.type}); }
   /* a cooldown was just set after a cast: slot 'green' | 'blue' */
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
@@ -669,13 +724,14 @@
     if(T.on.tick) run(T,u,'tick',{u,tgt:u.target,dt});
     restat(T,u); auras(T,u,dt); }
 
-  const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,eng:()=>E};
+  const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
   /* A hook never lets an error out into the fight: it is counted (TalentFx.errors() - the tests require zero) and the hook answers as if the hero
      had no talent row there. An error is as deterministic as anything else here, so device and server still agree. Diagnostics only: nothing in a
      fight reads ERR. */
   const ERR={n:0,last:''};
   const guard=(f,dflt)=>function(){ try{ return f.apply(null,arguments); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); return dflt?dflt.apply(null,arguments):undefined; } };
-  const RUNTIME={bind,define,attach:guard(attach,()=>null),
+  const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
+    summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
     kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
