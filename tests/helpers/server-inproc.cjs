@@ -14,7 +14,7 @@ function pin(seed){ const r=mulberry(seed>>>0);
   crypto.randomBytes=function(n,cb){ const b=Buffer.alloc(n); for(let i=0;i<n;i++) b[i]=Math.floor(r()*256); if(typeof cb==='function'){ process.nextTick(cb,null,b); return; } return b; };
   Math.random=r; }
 function unpin(){ crypto.randomBytes=realRB; Math.random=realRandom; }
-const EXPORTS=['api','_reqCtx','getDB:()=>DB','campaignHeroSpec','ensureLedger','D_HERO_CUM','D_TROOP_CUM','simHost','arenaRealFight','tokHash'];
+const EXPORTS=['api','_reqCtx','getDB:()=>DB','campaignHeroSpec','ensureLedger','D_HERO_CUM','D_TROOP_CUM','simHost','arenaRealFight','tokHash','SIM_STATS','simPool'];
 function load(src,env){
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ew-inproc-')); dirs.push(tmp);
   const saved={}; const set=(k,v)=>{ if(!(k in saved)) saved[k]=process.env[k]; if(v==null) delete process.env[k]; else process.env[k]=String(v); };
