@@ -19830,8 +19830,9 @@ function ftutPlace(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); 
 function ftutFootPorOK(host,bar){ if(bar.classList.contains('ftut-top')||ftutFootHit(host,bar)) return false; const v=ewGameView(), f=bar.querySelector('.ftut-foot').ewGameRect(), hb=FTUT.row?FTUT.row.y:0;
   if(f.left<-0.5||f.right>v.width+0.5||f.top<hb-0.5||f.bottom>v.height+0.5) return false; const hl=ftutHL(); if(!hl) return true; const q=hl.ewGameRect();
   return ![bar.querySelector('.ftut-box').ewGameRect(),bar.querySelector('.ftut-por').ewGameRect()].some(a=>Math.min(a.right,q.right+6)>Math.max(a.left,q.left-6)&&Math.min(a.bottom,q.bottom+6)>Math.max(a.top,q.top-6)); }
+/* 14 Nov 2026 (Grok): Academy track nodes are div.tw-node[role=button] with a JS onclick, so they were missing from this list. On compact 844x390 / 882x344 the guide bar's Next sat on Crit Resist (21/24 taps). [role=button] is included so ftutPlace lifts the bar above them. */
 function ftutFootHit(host,bar){ const f=bar.querySelector('.ftut-foot').ewGameRect(); let hit=false;
-  host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(hit||el.closest('#ftutBar')) return;
+  host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab,[role=button]').forEach(el=>{ if(hit||el.closest('#ftutBar')) return;
     const q=el.ewGameRect(); if(q.width<4||q.height<4) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return;
     if(Math.min(f.right,q.right)>Math.max(f.left,q.left)&&Math.min(f.bottom,q.bottom)>Math.max(f.top,q.top)) hit=true; });
   return hit; }
@@ -19845,7 +19846,7 @@ function ftutPlace0(g,bar,host){
   const key=[g.k,Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)].join(','), now=Date.now();
   if(!FTUT.row||FTUT.row.host!==host||FTUT.row.key!==key||now-FTUT.row.at>1500) FTUT.row={host,key,at:now,y:ftutTopRow(host,r,Math.max(0,r.left),Math.min(v.width,r.right)-Math.max(0,r.left))};
   const hb=Math.max(0,FTUT.row.y+4);
-  const btn=[]; host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab').forEach(el=>{ if(el.closest('#ftutBar')) return;
+  const btn=[]; host.querySelectorAll('button,.btn,a[href],input,select,[onclick],.islespot,.hd-tab,[data-portal],.tab,[role=button]').forEach(el=>{ if(el.closest('#ftutBar')) return;
     const q=el.ewGameRect(); if(q.width<4||q.height<4) return; const cs=getComputedStyle(el); if(cs.visibility==='hidden'||+cs.opacity===0) return; btn.push(q); });
   const hl=ftutHL(), hq=hl?hl.ewGameRect():null;
   const ov=(a,q,m)=>Math.min(a.right,q.right+m)>Math.max(a.left,q.left-m)&&Math.min(a.bottom,q.bottom+m)>Math.max(a.top,q.top-m);
