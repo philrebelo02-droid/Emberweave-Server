@@ -145,8 +145,8 @@ try {
     HEROES.every(h => ACT.every(s => Math.abs(dur(G[h][s]) - 2) < 1e-12 && rel(G[h][s]) === 0.5 && !G[h][s].hold) && ['attack', 'green', 'blue', 'ult'].every(s => Math.abs(dur(G0[h][s]) - 2) < 1e-12 && rel(G0[h][s]) === 0.5 && G0[h][s].hold == null)),
     HEROES.map(h => ACT.map(s => h + '.' + s + ' ' + dur(G[h][s])).join(' ')).join(' | '));
   ck('the hit keeps its 0.6 s hold (min(0.6, clip) - 15 @25 = 0.6 s, BASE 48 @24 = 2.0 s)', HEROES.every(h => Math.min(0.6, G[h].hit.n / G[h].hit.fps) === 0.6 && Math.min(0.6, G0[h].hit.n / G0[h].hit.fps) === 0.6));
-  const strip = o => JSON.parse(JSON.stringify(o, (k, v) => k === 'ownFx' ? undefined : v));
-  const kit = r => JSON.stringify(strip(JSON.parse(r('JSON.stringify([KITS.veyr,KITS.deepcleft,HERO_ULT_ART.veyr||null,HERO_ULT_ART.deepcleft||null,HERO_TYPES.veyr,HERO_TYPES.deepcleft,ABILITY_CAST.veyr||null,ABILITY_CAST.deepcleft||null,ULT_DEF.eventhorizon,ULT_DEF.aoeStun||null])'))));
+  const strip = o => JSON.parse(JSON.stringify(o, (k, v) => k === 'ownFx' ? undefined : v === 'abyssalundertow' ? 'eventhorizon' : v));   // v1391: Veyr's ult has its own effect code now (same numbers); BASE calls it eventhorizon
+  const kit = r => JSON.stringify(strip(JSON.parse(r('JSON.stringify([KITS.veyr,KITS.deepcleft,HERO_ULT_ART.veyr||null,HERO_ULT_ART.deepcleft||null,HERO_TYPES.veyr,HERO_TYPES.deepcleft,ABILITY_CAST.veyr||null,ABILITY_CAST.deepcleft||null,(function(d){ d=d||ULT_DEF.eventhorizon; return [d.mul,d.radius,d.pull,d.gravity]; })(ULT_DEF.abyssalundertow)||null,ULT_DEF.aoeStun||null])'))));
   ck('kits, ult art, hero stats, cast times and ult numbers identical to BASE apart from the three ownFx display tags (crescent / mantle / undertow)', kit(run) === kit(R0) &&
     run("KITS.veyr.green.ownFx+'/'+KITS.veyr.blue.ownFx+'/'+HERO_ULT_ART.veyr.ownFx") === 'crescent/mantle/undertow' && run('KITS.deepcleft.green.ownFx||KITS.deepcleft.blue.ownFx||null') === null);
   const fxOld = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>!/^veyr(crescent|mantle|undertow)$/.test(k)).map(k=>[k,FX2_DEF[k]]))");
@@ -165,7 +165,7 @@ try {
   for (const h of HEROES) for (const kind of ['green', 'blue', 'ult']) {
     const x = JSON.parse(run(CAST(h, kind))), y = JSON.parse(R0(CAST(h, kind))); casts[h + '.' + kind] = x;
     ck(`${h} ${kind}: the cast fires on the same tick, the effect lands on the same ticks (${x.fx.join(' ')}; damage ${x.dm.slice(0, 2).join(' ')}), the clip is held as long (${x.hold} s) and every unit (hp, x, y, stun, slow, evade) matches BASE for 6 s`,
-      x.fired != null && x.anim === kind && JSON.stringify(x) === JSON.stringify(y), JSON.stringify({ now: x, base: y }));
+      x.fired != null && x.anim === kind && JSON.stringify(x).replace(/abyssalundertow/g, 'eventhorizon') === JSON.stringify(y), JSON.stringify({ now: x, base: y }));   // v1391: the effect code's name is the one intended difference
   }
   const fights = [[['veyr', 'askel', 'vex'], ['deepcleft', 'vesper', 'grosk'], 11], [['deepcleft', 'pellucid'], ['rhukk', 'veyr', 'vael'], 222],
                   [['veyr', 'deepcleft', 'umbris'], ['askel', 'hurne', 'carn'], 5], [['gruel', 'aureth', 'tharl'], ['veyr', 'deepcleft', 'calypsa'], 77],
@@ -231,7 +231,7 @@ try {
       if (!(ch.includes('VP8 ') && ch.includes('ALPH'))) b2.push(k + ' not q95 lossy + alpha');
       if (!d.rt) b2.push(k + ' not real time'); }
     ck('Veyr FX sheets: veyrcrescent / veyrmantle / veyrundertow are new ?v=1160 files, file = grid, within 2048 px / 4 MB, q95 + alpha, real time', b2.length === 0, b2.join('; ')); }
-  const kv = JSON.parse(run('JSON.stringify(KITS.veyr)')), UD = JSON.parse(run('JSON.stringify(ULT_DEF.eventhorizon)'));
+  const kv = JSON.parse(run('JSON.stringify(KITS.veyr)')), UD = JSON.parse(run('JSON.stringify(ULT_DEF.abyssalundertow)'));   // v1391: Veyr's own row
   ck(`Gravity Crescent: its life (dur x FX_RT = ${(FXD.c.dur * FXD.FX_RT).toFixed(3)} fight s) is the status (kit dur ${kv.green.dur} s), its flight a beat (${FXD.c.fly} fight s)`, Math.abs(FXD.c.dur * FXD.FX_RT - kv.green.dur) < 0.01 && FXD.c.fly < 0.2);
   ck(`Abyssal Mantle: the swirl plays over the evade (${(FXD.m.dur * FXD.FX_RT).toFixed(3)} fight s = kit dur ${kv.blue.dur}), started at the release with the evade itself`, Math.abs(FXD.m.dur * FXD.FX_RT - kv.blue.dur) < 0.005);
   { const tc = (UD.pull || 1.2) * +run('BATTLE_PACE'), hz = casts['veyr.ult'].hz, land = +casts['veyr.ult'].dm[0].split('@')[1], fired = casts['veyr.ult'].fired;

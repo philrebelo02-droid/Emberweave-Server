@@ -47,8 +47,8 @@ const trace = (r, seed, a, f) => crypto.createHash('sha256').update(r(`(()=>{ wi
 try {
   ck('control file (BASE emberweave-heroes.html from git) loaded', !!R0, 'git show failed');
   const names = run("JSON.stringify([HERO_TYPES.veyr.abilityName,HERO_TYPES.astra.abilityName,HERO_TYPES.absalie.abilityName,HERO_TYPES.veyr.ability,HERO_TYPES.astra.ability,HERO_TYPES.absalie.ability])");
-  ck('names: Veyr "Abyssal Undertow", Astra "Collapsing Star", Absalie keeps "Event Horizon"; abilities unchanged (eventhorizon / gravcrush / eventhorizon)',
-    names === JSON.stringify(['Abyssal Undertow', 'Collapsing Star', 'Event Horizon', 'eventhorizon', 'gravcrush', 'eventhorizon']), names);
+  ck('names: Veyr "Abyssal Undertow", Astra "Collapsing Star", Absalie keeps "Event Horizon"; effect codes abyssalundertow (v1391: his own) / gravcrush / eventhorizon',
+    names === JSON.stringify(['Abyssal Undertow', 'Collapsing Star', 'Event Horizon', 'abyssalundertow', 'gravcrush', 'eventhorizon']), names);
   ck('Veyr\'s ult text names Abyssal Undertow and the slow, not a silence', /Abyssal Undertow/.test(run('HERO_ULT_DESC.veyr')) && /slowed/.test(run('HERO_ULT_DESC.veyr')) && !/silenc/i.test(run('HERO_ULT_DESC.veyr')));
   const mv = run("abilityMeta('veyr',0)"), ma = run("abilityMeta('absalie',0)");
   ck('skill card control line: Veyr "Slow 2s (area)" and no Silence; Absalie keeps "Silence 1.05s (area)"', /Slow 2(\.0+)?s \(area\)/.test(mv) && !/Silence/.test(mv) && /Silence 1\.05s \(area\)/.test(ma) && !/Slow/.test(ma), mv + ' | ' + ma);
