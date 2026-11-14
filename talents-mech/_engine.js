@@ -50,6 +50,7 @@
     if(M.pages){ T.on.pagePre=T.on.pagePre||[]; T.on.page=T.on.page||[]; }   // rows ask "is this hit a Living Page" ('casting:page'): the two page hooks must run for each page spent
     if(M.poison){ for(const k of ['poisQ','pois','spreadR','spread']) T.on[k]=T.on[k]||[]; }
     if(M.lines) T.on.line=T.on.line||[];                                      // the hero's rows read the enemies on a line skill's line, in order (Calypsa's Tidal Ribbon): the line hook must run for each cast   // his poisons are his (Bloatus): the poison and Contagion hooks must run for each one
+    if(M.wax){ for(const k of ['wax','encase','encased']) T.on[k]=T.on[k]||[]; }            // her Living Tallow (Ceraline): the wax and encase hooks must run for each wax and each encase
     if(T.on.healed||T.on.hotEnd) T.on.healOut=T.on.healOut||[];              // rows about her heals landing: the healOut hook must run for every heal of hers
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     if(T.on.shieldBreak) T.on.absorb=T.on.absorb||[];                         // rows about his shield breaking: the absorb hook must run for every hit on his shield (Brannus)
@@ -223,6 +224,7 @@
       if(sel.dot!=null&&!hasDot(u,x,sel.dot)) continue;                              // carries a DoT of hers (true: any)
       if(sel.away&&!away(T,u,x,sel.away)) continue;                                  // away from a place she recorded for it
       if(sel.cast!=null&&!casts(x,sel.cast)) continue;                               // has a cast under way ('spell': a Green or Blue ability, 'ult', true: either)
+      if(sel.fn&&!T.fn[sel.fn](API,T,u,{u,tgt:x,unit:x})) continue;                   // fn: a named function of the hero file says yes for that unit (Ceraline's waxed enemies)
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
@@ -714,6 +716,20 @@
   function spreadR(o,dead,r){ const T=o._tal; T.s.spr={dead,v:[],body:false}; const ctx={u:o,src:o,tgt:dead,unit:dead,amt:r,skill:'contagion',body:false}; if(T.on.spreadR) run(T,o,'spreadR',ctx); T.s.spr.body=!!ctx.body; return Math.max(0,ctx.amt); }
   /* spreadIn: is enemy e within that reach of the dead enemy? Centre to centre, as the game's own Contagion measures; body to body when a spreadR row said so (ctx.body) */
   function spreadIn(o,dead,e,r){ const sp=o._tal.s.spr, d=Math.hypot(e.x-dead.x,e.y-dead.y); return (sp&&sp.body)?(d-E.bodyR(dead)-E.bodyR(e)<r):(d<r); }
+  /* ---- HER WAX (Ceraline's passive Living Tallow: the page's waxOnCaster puts one wax on an enemy of hers each time it casts, anywhere; at 3 it is encased: stunned
+     and silenced, written straight on). wax: c has just gained a wax (c._wax counts it, c._waxT = 4 s): 'wax' rows (ctx tgt = unit = c, amt = how many wax encase it: 3)
+     may give more wax or longer wax (field actions on c) or encase it sooner (amt). Returns that count. encase: c was just encased for d s (as the passive wrote it):
+     'encase' rows may lengthen it (add to amt: written straight on, cut at the stun ceiling without the 30% cut, 4.0 s), then 'encased' rows (amt = seconds as landed).
+     Turned on by wax:true in the hero file. ---- */
+  function wax(o,c){ const T=o._tal, ctx={u:o,src:o,tgt:c,unit:c,amt:3}; if(T.on.wax.length) run(T,o,'wax',ctx); return ctx.amt; }
+  function encase(o,c,d){ const T=o._tal, ctx={u:o,src:o,tgt:c,unit:c,amt:d}; if(T.on.encase.length) run(T,o,'encase',ctx); let x=Math.max(d,ctx.amt||0);
+    const top=(E.ccCap('stunned')||2.8)/(E.ccDur(1)||1); if(x>top) x=Math.max(d,top);
+    if(x>d&&c.alive){ c.stunned=Math.max(c.stunned||0,x); c.silencedT=Math.max(c.silencedT||0,x); } if(T.on.encased.length) run(T,o,'encased',Object.assign({},ctx,{amt:x})); }
+  /* ---- A PART OF A SKILL that resolves inside the skill or later, on its own clock (Ceraline: each coat Mourning Bell bursts, the seal of Sealing Wax setting, her
+     ultimate's wax reaching an enemy, its statue, its effigy bursting). partPre: while it resolves, 'casting' is that part's name (the skill resolving before is
+     put back after, so a part inside a skill does not end the skill); 'partPre' rows (ctx tgt = the unit it is about, skill = the part). part: right after it, 'part' rows ---- */
+  function partPre(u,t,name){ const T=u._tal, s=T.s; (s.ps||(s.ps=[])).push(s.cur); s.cur=name; if(T.on.partPre) run(T,u,'partPre',{u,src:u,tgt:t,unit:t,skill:name}); }
+  function part(u,t,name){ const T=u._tal, s=T.s; s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; if(T.on.part) run(T,u,'part',{u,src:u,tgt:t,unit:t,skill:name}); }
   function spread(o,dead){ const T=o._tal, sp=T.s.spr; T.s.spr=null; if(!sp||!o.alive||!T.on.spread) return; run(T,o,'spread',{u:o,src:o,unit:dead,tgt:dead,k:sp.v.length,vic:sp.v}); }
   /* ---- HIS SUMMONS (Aldren). summon: summonUnit has just made a summon of his (its stats set, before it joins the field): it carries him as x._talS (never on a
      snap: summons are not snapped), and 'summon' rows run (ctx.unit = ctx.tgt = the summon, key, extra = called by his talents, not by his skill).
@@ -805,6 +821,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

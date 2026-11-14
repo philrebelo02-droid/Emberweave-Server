@@ -7389,6 +7389,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ skillMu
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ twinMul:u=>SKLV.twinfonts(passLv(u)), lightShield:(u,o)=>u.maxHp*skLvNum('duality',o||{},(u._castLv|0)||1)+(u.apow||0)*2 });
 /* 14 Nov 2026 (Askel's talents): a skill's own number at its level (Rallying Ground's damage reduction) and the game's timed control-resist bonus, so a talent can rally an ally as the banner does */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ skLvNum:(type,o,lv)=>skLvNum(type,o,lv), ctrlBonus:(a,amt,dur,cap)=>ctrlBonusSet(a,amt,dur,cap) });
+/* 14 Nov 2026 (Ceraline's talents): Living Tallow's own wax, so a talent can wax an enemy the way her passive does (a third wax encases it) */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ wax:c=>waxOnCaster(c) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -14269,9 +14271,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         floatTexts.push({x:m.x,y:m.y-8,txt:'MARKED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }}); }
       break;}
     case 'nova':{ if(o.detonate){ enemiesOf(u).forEach(m=>{ if(!m.alive||!((m._waxCoatT||0)>0)||m._waxCoatBy!==u)return;   /* v920 Mourning Bell shatters her Sealing Wax */
-        const _bx=m.x,_by=m.y; enemiesOf(u).forEach(e=>{ if(e.alive&&Math.hypot(e.x-_bx,e.y-_by)<(o.detR||2.6*METER)) dealDamage(u,e,apB*o.detonate*rm,'#e8d8b0','magic'); });
+        const _bx=m.x,_by=m.y; if(u._tal) TalentFx.partPre(u,m,'bellBurst');   /* TALENT HOOK partPre: this coat's burst (its hits are the burst's) */ enemiesOf(u).forEach(e=>{ if(e.alive&&Math.hypot(e.x-_bx,e.y-_by)<(o.detR||2.6*METER)) dealDamage(u,e,apB*o.detonate*rm,'#e8d8b0','magic'); });
         try{ waxShatterFx(m); }catch(_e){}   /* v1115 22b: the wax splash where the coat was (display only) */
-        m._waxCoatT=0; m._waxCoatBy=null; ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
+        m._waxCoatT=0; m._waxCoatBy=null; if(u._tal) TalentFx.part(u,m,'bellBurst');   /* TALENT HOOK part: the coat has burst */ ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
       const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||1)*rm);   /* TALENT HOOK at: where this area skill strikes */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
       if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
@@ -14917,6 +14919,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'sealwax':{                                                // v920 'Sealing Wax' (replaced Waxen Effigy, which could not be drawn)
       let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const v=e.dmg||0; if(v>bv){bv=v;best=e;} });
+      if(best&&u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,type,best,o)||best;   /* TALENT HOOK skillTgt: whom Sealing Wax pours on */
       if(!best)break;
       dealDamage(u,best,apB*(o.mul||1.0)*rm,o.color||'#e8d8b0','magic');
       ccApply(u,best,'slow',o.harden||2.0);
@@ -15197,6 +15200,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'finalcandle':{   /* v896 Waxen Duchess: flood (slow) -> statues (stun) -> shatter (damage), each stage when it happens */
       const _c=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u, _R=o.radius||7*METER, _sh=apB*(o.mul||2.0)*rm;
       const _caught=enemiesOf(u).filter(e=>e.alive&&dist(_c,e)<_R);
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,type,_c,o,_sh);   /* TALENT HOOK at: where the wax is poured (its circle: o.radius) */
       /* v1101 (Phil 9 Oct: 'waxen ult should apply wax during them being hit with wax and after the effigy explodes' / 'it lasts 6 seconds'):
          her wax coat (the Sealing Wax coat Mourning Bell shatters) goes on when the wax touches an enemy and again when its effigy shatters */
       const _coat=e=>{ if(!e.alive)return; e._waxCoatT=Math.max(e._waxCoatT||0,o.coat||6); e._waxCoatBy=u; };
@@ -15204,7 +15208,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          the coat, the slow and the WAX text were put on everyone in the radius at the CAST. Each now lands when the spreading edge reaches
          that enemy's spot (candleEdgeT - the same moment its encase is timed to). */
       _caught.forEach(e=>{ groundHazards.push({arrival:true,delay:Math.max(0.01,candleEdgeT(dist(_c,e)/_R)),run:function(){ if(!e.alive)return;
-        _coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); }}); });
+        if(u._tal) TalentFx.partPre(u,e,'fcWax');   /* TALENT HOOK partPre: the wax reaches it */ _coat(e); ccApply(u,e,'slow',o.slow||3); if(u._tal) TalentFx.part(u,e,'fcWax');   /* TALENT HOOK part */ floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); }}); });
       ringBurst(_c.x,_c.y,0xe8d8b0,22);
       /* v1077 (Phil, spell 21): the wax is poured at the aim point and SPREADS to the full radius; a hero is encased (stun) the
          moment the spreading edge reaches the spot it stood on at the cast, and its effigy shatters (the damage) o.shatter s later. Before:
@@ -15214,13 +15218,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       /* v1101 (Phil 9 Oct: 'everyone touched by waxens ult should be stunned and the effigy should appear on them'): every enemy the wax
          touches is encased - one caught at the cast is encased when the edge reaches its spot even if it stepped out since, and one that walks
          into the wax while it spreads is encased when the pour reaches full size. Each gets the effigy, the stun and the shatter. */
-      const _encase=(e,at)=>{ groundHazards.push({arrival:true,delay:at,run:function(){ if(!e.alive||_enc.indexOf(e)>=0)return; _enc.push(e); ccApply(u,e,'stunned',o.stun||1.5); e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12});
+      const _encase=(e,at)=>{ groundHazards.push({arrival:true,delay:at,run:function(){ if(!e.alive||_enc.indexOf(e)>=0)return; _enc.push(e); if(u._tal) TalentFx.partPre(u,e,'fcEnc');   /* TALENT HOOK partPre: its statue */ ccApply(u,e,'stunned',o.stun||1.5); if(u._tal) TalentFx.part(u,e,'fcEnc');   /* TALENT HOOK part */ e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12});
           try{ if(typeof candleEffigyFx==='function') candleEffigyFx(e,o.shatter||1.5); }catch(_e){} }});
-        groundHazards.push({arrival:true,delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; dealDamage(u,e,_sh,'#fff0c0','magic'); _coat(e); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }}); };
+        groundHazards.push({arrival:true,delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; if(u._tal) TalentFx.partPre(u,e,'fcBurst');   /* TALENT HOOK partPre: its effigy bursts */ dealDamage(u,e,_sh,'#fff0c0','magic'); if(u._tal) TalentFx.part(u,e,'fcBurst');   /* TALENT HOOK part */ _coat(e); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }}); };
       _caught.forEach(e=>_encase(e,candleEdgeT(dist(_c,e)/_R)));
       /* while it pours (Phil: 'even if they are pulled into it while its pouring'): every 0.1 s, anyone inside the wax's edge right now is encased */
       { const _full=candleEdgeT(1); for(let _t=0.1;_t<=_full+0.001;_t+=0.1){ const _tt=Math.min(_t,_full); groundHazards.push({arrival:true,delay:_tt,run:function(){ const _edge=_R*Math.min(1,candleEdgeF(_tt));
-        enemiesOf(u).forEach(e=>{ if(e.alive&&_caught.indexOf(e)<0&&_enc.indexOf(e)<0&&dist(_c,e)<_edge){ _caught.push(e); _coat(e); ccApply(u,e,'slow',o.slow||3); _encase(e,0); } }); }}); } }
+        enemiesOf(u).forEach(e=>{ if(e.alive&&_caught.indexOf(e)<0&&_enc.indexOf(e)<0&&dist(_c,e)<_edge){ _caught.push(e); if(u._tal) TalentFx.partPre(u,e,'fcWax');   /* TALENT HOOK partPre */ _coat(e); ccApply(u,e,'slow',o.slow||3); if(u._tal) TalentFx.part(u,e,'fcWax');   /* TALENT HOOK part */ _encase(e,0); } }); }}); } }
       break; }
     case 'swamproot':{ const R=o.radius||2.4*METER;
       /* v1030 (Phil 4 Oct: Swampcall "hits two of the furthest targets and the root also silences for 2 seconds"): with `farthest` the swamp opens
@@ -15588,9 +15592,11 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
   if(!foes.length) return;
   const _tlv=((foes[0].skillLv||[])[3]|0)||1;   /* v1102 (Phil 9 Oct): "living tallow needs to start 1 second encase and it upgrades .015 per upgrade" */
   c._waxT=4; c._wax=(c._wax||0)+1;
-  if(c._wax>=3){ c._wax=0; c._waxT=0;
+  const _wxO=foes[0], _wxN=(_wxO._tal&&_wxO._tal.on.wax)?TalentFx.wax(_wxO,c):3;   /* TALENT HOOK wax: a Living Tallow wax landed (her rows: more wax, longer wax, encased sooner); 3 untalented */
+  if(c._wax>=_wxN){ c._wax=0; c._waxT=0;
     const dur=tallowEncase(_tlv)*(1-(c.ctrlRes||0));
     c.stunned=Math.max(c.stunned||0,ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
+    if(_wxO._tal&&_wxO._tal.on.wax) TalentFx.encase(_wxO,c,ccDur(dur));   /* TALENT HOOK encase: the encase as it landed (her rows may lengthen it, then act on it) */
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
     floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(foes[0],'tallow'); }
   else floatTexts.push({x:c.x,y:c.y-8,txt:'wax x'+c._wax,t:.7,color:'#e8d8b0',vy:1,sz:10}); }
@@ -17265,7 +17271,7 @@ function think(u,dt){
         try{ ringBurst(u.x,u.y,0x8B5CF6,16); burstAt(u.x,u.y,0xb06bff,10); }catch(_e){} } }
     else return; }
   if((u._sealT||0)>0){ u._sealT-=dt;   /* v920 Sealing Wax: the wax sets */
-    if(u._sealT<=0){ u._sealT=0; if(u.alive&&u._sealBy){ ccApply(u._sealBy,u,'stunned',u._sealStun||1.1);
+    if(u._sealT<=0){ u._sealT=0; if(u.alive&&u._sealBy){ const _sb=u._sealBy; if(_sb._tal) TalentFx.partPre(_sb,u,'sealset');   /* TALENT HOOK partPre: the seal's stun is Sealing Wax's */ ccApply(_sb,u,'stunned',u._sealStun||1.1); if(_sb._tal) TalentFx.part(_sb,u,'sealset');   /* TALENT HOOK part */
       try{ ringBurst(u.x,u.y,0xe8d8b0,14); floatTexts.push({x:u.x,y:u.y-10,txt:'SEALED',t:1.0,color:'#e8d8b0',vy:1,sz:12}); }catch(_e){} } } }
   if((u._stampT||0)>0){ u.attackAnim=0; return; }   // v534: mid-stampede - the tick moves her, nothing else does
 
