@@ -6419,7 +6419,7 @@ async function api(req,res,url){
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
-    if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
+    if(rateLimited(req,'login',Math.round(15*RL_MUL),60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});  /* 14 Nov: RL_MUL applies to /api/login like the other limiters, so a long admin session (the dev-panel hunt) can sign in more than 15 times a minute from one IP. Production RL_MUL is 1, so the cap stays 15. */
     // v946: on Servers 2-5 the password is checked by the account server (Server 1); this server keeps its own player.
     if(ACCOUNT_AUTHORITY){
       /* v1184 SIGN-UP GATE: a player with a local copy tagged by Server 1 (made on a sign-in or sign-up here since v1184) is checked HERE
