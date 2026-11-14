@@ -1098,7 +1098,7 @@ const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
 /* Everything on this list is decided by the server ledger. None of it is stored from a client save. */
 const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
   'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
-  'techLearn','skillLevel','dust','starShards','eqMats','mats',
+  'techLearn','skillLevel','talents','dust','starShards','eqMats','mats',   /* 14 Nov 2026: learned talents live in led.talents; the page only mirrors them (G.talents) */
   /* Retired Prayer of Power is stripped from old saves. The Temple is ledger-owned too;
      arenaCoins still has no ledger owner and remains in the client save. */
   'prayer','temple','guildCoins',
@@ -2328,7 +2328,7 @@ function writeDBNow(ids,pieces){   /* v1000 (Account audit #9): returns false wh
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
-const DURABLE_IDEM_KINDS=new Set(['bonusres','dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
+const DURABLE_IDEM_KINDS=new Set(['bonusres','dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest','talentlearn','talentreset']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
 /* v1042 RECEIPTS LAST ONE HOUR (Phil 6 Oct 2026: "Make it one hour, with a copy of the report living in the players war inbox up to 50
    mails total"): every request receipt (idem, durable planners, world routes) is kept 3600000 ms (was 24 h). A city attack's full
    report now lives in both players' war mail instead; the settled march (kept 2 days) blocks a late retry from paying twice. */
@@ -8930,7 +8930,7 @@ async function api(req,res,url){
       led.talents[key]=r.build; led.rev++; ledTx(me,'talent:'+key+':'+id,{rank:TALENTS.rankOf(r.build,id)}); writeDB();
       return {ok:true, key, id, rank:TALENTS.rankOf(r.build,id), build:r.build, spent:TALENTS.spent(key,r.build).total, points:TALENTS.pointsTotal(lv), ledger:ledgerView(me)};
     });
-    return send(res,200,out); }
+    return send(res,out&&out.storageFailed?503:200,out); }   /* a save that failed answers 503 like the skill route, so the page re-sends the same requestId */
   /* 28 Aug — skill upgrades are server-owned. They used to be a local write that the next ledger
      sync overwrote, so the gold was spent and the level came back. The server now holds led.skill,
      charges the same curve the client shows, and returns the ledger. */
