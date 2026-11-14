@@ -3713,6 +3713,9 @@ const RESOURCE_ALARMS = Object.freeze({
   gems: {window:2000, day:20000}, gold: {window:5000000, day:50000000},
   frags: {window:300, day:1500}, stamina: {window:300, day:1500},
 });
+/* v1391 (CHT-0017): gains that never count toward the 60 s spike window. A Market meal (+SHOP_FOOD_STAMINA, paid in diamonds,
+   capped per day) is tagged 'shop:food'; three legal meals in a minute (360) always tripped the 300 stamina window. The day alarm still counts them. */
+const RESOURCE_WINDOW_EXEMPT = Object.freeze({ stamina: new Set(['shop:food']) });
 const BAN_DAYS_ALLOWED = [1, 7, 14, 28];   /* v1097 (Phil 9 Oct): 1, 7, 14, 28 days or permanent */
 const BAN_PERMA_UNTIL = 253402300799000;   // 31 Dec 9999: a permanent ban is a ban that never runs out
 
@@ -3779,9 +3782,10 @@ function resourceGain(u, res, amount, reason, opts){
     if(u.gemLog.length>GEM_LOG_KEEP) u.gemLog=u.gemLog.slice(-GEM_LOG_KEEP);
   }
   let win=0;
-  const day=u.gainDay[res];
+  const day=u.gainDay[res], winExempt=RESOURCE_WINDOW_EXEMPT[res];
   for(let i=u.gainLog.length-1;i>=0;i--){
     const g=u.gainLog[i]; if(g.res!==res) continue;
+    if(winExempt&&winExempt.has(g.r)) continue;   // v1391 CHT-0017: a paid Market meal is not a spike
     if(now-g.t<=SPIKE_MS) win+=g.n;
   }
   const alarms=[['window',win,rule.window],['day',day,rule.day]];
