@@ -177,6 +177,13 @@ function load(htmlPath){
       const dmg=sandbox.simRaidReplay(allySnaps, bossSpec, seed>>>0, inputLog||[], true);
       return { dmg:Math.max(0, Math.round(Number(dmg)||0)), digest:sandbox._p2digest||null };
     },
+    /* 14 Nov 2026 REAL_ENGINE_ARENA: the same single-wave auto fight with each blow timed on its clip's contact cell (BATTLE_ANIM, the
+       timing data the browser's watched fight runs on) - so the fight the server decides is, tick for tick, the fight the player watches. */
+    autoWatched(allySnaps, foeTeam, seed){
+      sandbox._p2anim=true;
+      try{ const won=sandbox.simFightResult(allySnaps, foeTeam, seed>>>0); return { won:!!won, digest:sandbox._p2digest||null }; }
+      finally{ sandbox._p2anim=false; }
+    },
     auto(allySnaps, foeTeam, seed){
       const won=sandbox.simFightResult(allySnaps, foeTeam, seed>>>0);
       return { won:!!won, digest:sandbox._p2digest||null };

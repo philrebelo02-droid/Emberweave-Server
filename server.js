@@ -2072,8 +2072,10 @@ const ARENA_EXTRA_MAX_DAY   = 5;    // refills purchasable per day             �
 function arenaAtt(led){ const dk=nyDayKey(); if(!led.arenaAtt||led.arenaAtt.k!==dk) led.arenaAtt={k:dk,used:0,bought:0,buys:0}; return led.arenaAtt; }
 function arenaAttView(led){ const a=arenaAtt(led);
   const left=Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used);
-  return { attemptsLeft:left, used:a.used, bought:a.bought, buys:(a.buys|0), refillN:Math.max(0,ARENA_FREE_ATTEMPTS-left),
-           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY }; }   /* v1093: fixed again - the chart's Arena row is reset purchases */
+  const v={ attemptsLeft:left, used:a.used, bought:a.bought, buys:(a.buys|0), refillN:Math.max(0,ARENA_FREE_ATTEMPTS-left),
+           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY };
+  if(REAL_ENGINE.arena) v.real=1;   // REAL_ENGINE_ARENA: the client asks for the fight first, then plays it back
+  return v; }   /* v1093: fixed again - the chart's Arena row is reset purchases */
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
   q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
@@ -4141,7 +4143,7 @@ function simPool(){
   return _SIM_POOL; }
 function _simKey(m,args){ return m+'|'+JSON.stringify(args); }
 function _simWrap(host){
-  for(const m of ['auto','campaign','raid','replay']){ const orig=host[m]; if(typeof orig!=='function') continue;
+  for(const m of ['auto','autoWatched','campaign','raid','replay']){ const orig=host[m]; if(typeof orig!=='function') continue;
     host[m]=function(...args){ const k=_simKey(m,args), hit=_SIM_MEMO.get(k);
       if(hit){ _SIM_MEMO.delete(k); SIM_STATS.memoHits++; return hit.r; }
       if(_SIM_COLLECT){ _SIM_COLLECT.push({m,args,k}); SIM_STATS.collected++; throw SIM_NEEDED; }
@@ -5930,6 +5932,38 @@ function mutationLimited(req){
 /* v1078 (exploit scan 9 Oct): arena opponents are the ones the server offered. */
 /* v1213: a player's Arena defenders are the defense team they picked; with none set (or an empty one) their main team, as before. */
 function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.arenaDef.length) ? u.arenaDef : (u.team||[]); }
+/* 14 Nov 2026 EVERY MODE ON THE REAL ENGINE (Phil: "Basically every hero in the game saves every single thing and when that hero ID is put
+   into a fight it is that hero"). One switch per mode, all off by default: off, the mode runs exactly as before.
+   Plan and status: TALENT TREES 13NOV2026/WIRING/09 - EVERY MODE ON THE REAL ENGINE (plan and status).md */
+const REAL_ENGINE=Object.freeze({ arena:process.env.REAL_ENGINE_ARENA==='true' });
+/* REAL_ENGINE_ARENA: the Arena fight is the game's own battle code (sim-host, on the battle workers) between both squads' full specs -
+   level, stars, glyph board, gear and Temper, Academy, Temple prayers, skill levels, learned talents (campaignHeroSpec, the builder city
+   PvP and the campaign use). Attacker: the squad sent (owned heroes only, as before); defender: the saved defence line-up read live, as
+   before; a bot fights as its {key, level, rank}, as a world-map bot does. The result, the rating change and the defence report are this
+   fight; the player watches this fight (snaps + seed in the reply). Returns {won, seed, snaps, foe, digest, durationSec, engine},
+   {won:false, empty:true} when a side has no hero (the line path's rule), or {error}. */
+function arenaRealFight(me,opp,b,seed){
+  const host=simHost(); if(!host) return {error:'The arena battle engine is unavailable.'};
+  const myLed=ensureLedger(me);
+  let myKeys=(Array.isArray(b.team)&&b.team.length&&b.team.length<=8)?rosterKeys(b.team.map(x=>String(x||'').slice(0,40))).filter(k=>ownsHeroK(myLed,k)).slice(0,5):[];
+  if(!myKeys.length) myKeys=rosterKeys(me.team).filter(k=>ownsHeroK(myLed,k)).slice(0,5);
+  if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>ownsHeroK(myLed,k)&&SIM.HERO_BASE[k]).slice(0,5);
+  const aSpecs=myKeys.map(k=>campaignHeroSpec(me,k)).filter(Boolean);
+  let bSpecs=null, botFoe=null;
+  if(opp.isNpc) botFoe=(Array.isArray(opp.team)?opp.team:[]).filter(Boolean).slice(0,5).map(e=>{ const key=(e&&typeof e==='object')?String(e.key||''):String(e||'');
+      return SIM.HERO_BASE[key]?{key,level:Math.max(1,Math.min(200,((e&&e.level)|0)||1)),rank:Math.max(0,Math.min(3,((e&&e.rank)|0)||0))}:null; }).filter(Boolean);
+  else { const opLed=ensureLedger(opp);
+    let k=rosterKeys(arenaDefTeam(opp)).filter(k=>ownsHeroK(opLed,k)).slice(0,5);
+    if(!k.length) k=Object.keys(opLed.unlocked||{}).filter(k=>ownsHeroK(opLed,k)&&SIM.HERO_BASE[k]).slice(0,5);
+    bSpecs=k.map(k=>campaignHeroSpec(opp,k)).filter(Boolean); }
+  if(!aSpecs.length||!(bSpecs||botFoe).length) return {won:false,empty:true,seed};
+  let aSnaps,bSnaps; try{ aSnaps=host.snapFromSpecs(aSpecs); bSnaps=bSpecs?host.snapFromSpecs(bSpecs):botFoe; }
+  catch(e){ return {error:'The arena squads could not be resolved.'}; }
+  const fight=host.autoWatched(aSnaps,bSnaps,seed>>>0);   // the browser's clip timing: the fight the player watches, tick for tick
+  let dg=null; try{ dg=JSON.parse(fight.digest); }catch(e){}
+  if(!dg||!Array.isArray(dg.u)||dg.won!==fight.won) return {error:'The arena battle result was incomplete.'};
+  return {won:!!fight.won,seed:seed>>>0,snaps:aSnaps,foe:bSnaps,digest:fight.digest,durationSec:dg.t,engine:host.buildVersion};
+}
 function arenaOffered(me,ids){ const now=Date.now(); me._arenaOffer=(Array.isArray(me._arenaOffer)?me._arenaOffer:[]).filter(x=>x&&now-x.t<2*3600000);
   for(const id of ids){ if(id) me._arenaOffer.push({id:String(id),t:now}); } if(me._arenaOffer.length>30) me._arenaOffer=me._arenaOffer.slice(-30); }
 function arenaWasOffered(me,id){ const now=Date.now(); return !!id&&Array.isArray(me._arenaOffer)&&me._arenaOffer.some(x=>x&&x.id===id&&now-x.t<2*3600000); }
@@ -10777,6 +10811,16 @@ async function api(req,res,url){
     const areqId=String(b.requestId||'').slice(0,48); if(!areqId) return send(res,400,{error:'requestId required'});
     const akey=me.id+':arena:'+areqId;
     DB.idem=DB.idem||{}; if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
+    /* REAL_ENGINE_ARENA (see arenaRealFight): the fight is fought first, on a battle worker (simRun: nothing is committed before it), with a
+       server seed; a request the checks below would refuse costs no battle. Off: _real stays null and the route is exactly as before. */
+    let _real=null;
+    if(REAL_ENGINE.arena){ const _o=DB.users[b.oppId], _l=ensureLedger(me), _aa=arenaAtt(_l);
+      if(_o&&_o.id!==me.id&&arenaWasOffered(me,String(b.oppId||''))&&_aa.used<ARENA_FREE_ATTEMPTS+_aa.bought&&ledPlayerLevel(_l)>=10){
+        const _seed=SIM.seedFrom('arena:'+me.id+':'+String(b.oppId||'')+':'+uid());
+        _real=await simRun(()=>arenaRealFight(me,_o,b,_seed),'arena');
+        if(_real&&_real.busy) return send(res,503,_real);
+        if(_real&&_real.error) return send(res,503,{ok:false,storageFailed:true,error:_real.error});
+        if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp); } }   // the same requestId finished while this one fought
     const _aSnapMe=JSON.parse(JSON.stringify(me)), _aRp=Array.isArray(DB.reports)?DB.reports.slice():null, _aFb=Array.isArray(DB.feedback)?DB.feedback.slice():null;   /* v981: taken before anything below can touch the account */
     /* v1017 (release review #8): no write reaches the disk mid-route - ledTx used to flush the gold/milestone reward before the
        receipt existed, so a crash between them paid a retry twice. The final save below is the only write; the section is synchronous. */
@@ -10801,9 +10845,11 @@ async function api(req,res,url){
     // AUDIT C3: the arena is resolved by the SHARED deterministic simulator over server-built
     // snapshots of both teams — never by a raw power comparison, never by a client-declared result.
     // The seed is returned so the fight is replayable.
-    const seed=SIM.seedFrom('arena:'+me.id+':'+String(b.oppId||'')+':'+uid());
+    if(REAL_ENGINE.arena&&!_real) return send(res,503,{ok:false,storageFailed:true,error:'The arena battle could not be fought - retry.'});
+    const seed=_real?_real.seed:SIM.seedFrom('arena:'+me.id+':'+String(b.oppId||'')+':'+uid());
     let won=false, simRes=null;
-    if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
+    if(opp&&_real){ won=!!_real.won; }   // REAL_ENGINE_ARENA: the fight above is the result
+    else if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
       const myLed=ensureLedger(me);
       /* v1360 (night smoke): the squad the player just picked comes with the result (the saved team could be up to ~10 s stale). Same rule as before: only OWNED heroes, at most 5; no usable team in the body = the saved team. */
       let myKeys=(Array.isArray(b.team)&&b.team.length&&b.team.length<=8)?rosterKeys(b.team.map(x=>String(x||'').slice(0,40))).filter(k=>ownsHeroK(myLed,k)).slice(0,5):[];
@@ -10829,11 +10875,12 @@ async function api(req,res,url){
       const aused=(led.earnDay['gold:arena']|0), ACAP=8000;
       goldReward=Math.min(Math.max(0,200+Math.floor((5000-me.rank)/20)), Math.max(0,ACAP-aused));
       if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; goldReward=creditGold(me,led,goldReward,'arena:win'); ledTx(me,'arena:win',{gold:goldReward}); } }
-    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length && arenaDefOk(me,opp,b.def)){   /* v1078 (scan #6): only a report of the two real squads, size-capped */   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
+    const _rdef=(_real&&_real.snaps)?{seed:_real.seed,mineSnap:_real.snaps,foe:_real.foe}:null;   // REAL_ENGINE_ARENA: the report is the server's own fight, never the request's
+    if(opp && (_rdef || (b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length && arenaDefOk(me,opp,b.def)))){ const _df=_rdef||b.def;   /* v1078 (scan #6): only a report of the two real squads, size-capped */   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
-      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now() });
+      opp.arenaDefenses.unshift({ v:2, seed:(_df.seed>>>0), mineSnap:_df.mineSnap.slice(0,6), foe:_df.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10;
-      arenaTopAdd({ seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24), defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank }); }
+      arenaTopAdd({ seed:(_df.seed>>>0), mineSnap:_df.mineSnap.slice(0,6), foe:_df.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24), defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank }); }
     me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
     /* v267 (80/20 §9): rank-milestone diamonds are paid HERE, from the server's own rank record —
        the client used to award them itself through the generic earn endpoint. */
@@ -10844,6 +10891,7 @@ async function api(req,res,url){
         if(milestoneGems>0){ milestoneGems=creditGems(me,led,milestoneGems,'arena:rank-milestone'); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
+    if(_rdef) aresp.real={ seed:_real.seed, mineSnap:_real.snaps, foe:_real.foe, digest:_real.digest, durationSec:_real.durationSec, engine:_real.engine };   // REAL_ENGINE_ARENA: the fight the client plays back
     DB.idem[akey]={t:Date.now(),resp:aresp}; _rkn(akey);
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; a failed save rolls both accounts back
       _holdReply(_joinBatch(()=>{ console.error('Arena result save failed - both accounts rolled back');

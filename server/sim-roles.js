@@ -10,7 +10,7 @@
              and every mode not in this table. The nodes are dedicated to it; the fast machines give it a reserved share of their
              slots (helper `reserve`, default 25%) whenever async work is waiting, and anything more when they have no live work. */
 const MODE_ROLE = Object.freeze({
-  city: 'live', castle: 'live', mine: 'live', map: 'live', worldmap: 'live', worldtree: 'live', skyfall: 'live', guildwar: 'live',
+  city: 'live', castle: 'live', mine: 'live', map: 'live', worldmap: 'live', worldtree: 'live', skyfall: 'live', guildwar: 'live', arena: 'live',
   campaign: 'async', elite: 'async', veteran: 'async', vault: 'async', dungeon: 'async', raid: 'async', guildraid: 'async',
   province: 'async', well: 'async', bonus: 'async', check: 'async', backlog: 'async',
 });

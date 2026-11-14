@@ -7,7 +7,7 @@ const { parentPort, workerData } = require('worker_threads');
 let host = null, loadError = null;
 try { host = require('./sim-host.js').load(workerData.gameFile); }
 catch (e) { loadError = e.message; }
-const METHODS = new Set(['auto', 'campaign', 'raid', 'replay', 'worldtree', 'line']);
+const METHODS = new Set(['auto', 'autoWatched', 'campaign', 'raid', 'replay', 'worldtree', 'line']);   // 14 Nov 2026: autoWatched = the Arena (REAL_ENGINE_ARENA)
 /* v1129 LIVE BATTLES OFF THE MAIN THREAD (Phil: World Tree is "the server's largest pvp event"; World Tree and Skyfall are
    "fast machines" work). Two more battles a worker (and so a helper) fights:
      worldtree - one World Tree site fight: server/world-tree-battle.js's resolver built on THIS engine - the function server.js
