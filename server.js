@@ -20,6 +20,7 @@ const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const HERO61=require('./hero61.js');
+const TALENTS=require('./talents.js'), TALENTS_ON=process.env.TALENTS_ENABLED==='true';   /* 14 Nov 2026: talent trees - rules shared with the page; off unless the flag is set */
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
@@ -5318,7 +5319,7 @@ function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS,
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
-    skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
+    skill:led.skill||{}, talents:(TALENTS_ON?(led.talents||{}):undefined), temple:templeClientState(led), wall:wallView(u),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
@@ -8905,6 +8906,31 @@ async function api(req,res,url){
       devState:{arenaCoins:tgt.coins|0,arenaRank:tgt.rank|0,bestArenaRank:tgt.bestRank!=null?(tgt.bestRank|0):5000,
         shieldItems:parseSaveOf(tgt).shieldItems|0}}); }
 
+  /* TALENTS (14 Nov 2026, Phil: "they are only activated when someone clicks learn talent"). led.talents[heroKey] = { r: { talentId: rank } }.
+     The rules (points, tier gates, prerequisites, pick-one forks) live in talents.js, the same file the page uses. Learn = one point into
+     one talent; reset = every point of that hero back (free while the system is being built - the price is Phil's to set).
+     A build that a data correction made illegal is cleared on its next learn or reset, never silently kept. Off unless TALENTS_ENABLED=true. */
+  if((p==='/api/talents/learn'||p==='/api/talents/reset') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(!TALENTS_ON) return send(res,404,{error:'not found'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const isReset=(p==='/api/talents/reset');
+    const out=idem(me.id+':talent'+(isReset?'reset':'learn')+':'+reqId,()=>{
+      const led=ensureLedger(me); const key=String(b.key||'');
+      if(!validHero(key)||!TALENTS.has(key)) return {ok:false,error:'Unknown hero.'};
+      if(!ownsHeroK(led,key)) return {ok:false,error:'You have not unlocked that hero.'};
+      led.talents=led.talents||{}; const lv=ledHeroLevel(led,key);
+      let build=led.talents[key]||{r:{}}, cleared=false;
+      if(TALENTS.invalid(key,build,lv)){ build={r:{}}; cleared=true; }
+      if(isReset){ const had=TALENTS.spent(key,build).total; if(!had&&!cleared) return {ok:false,error:'This hero has no talents learned.'};
+        delete led.talents[key]; led.rev++; ledTx(me,'talentreset:'+key,{points:had}); writeDB();
+        return {ok:true, key, build:{r:{}}, spent:0, points:TALENTS.pointsTotal(lv), refunded:had, ledger:ledgerView(me)}; }
+      const id=String(b.id||'').slice(0,40);
+      const r=TALENTS.learn(key,build,id,lv);
+      if(!r.ok){ if(cleared){ delete led.talents[key]; led.rev++; writeDB(); } return {ok:false,error:r.error,cleared:cleared||undefined}; }
+      led.talents[key]=r.build; led.rev++; ledTx(me,'talent:'+key+':'+id,{rank:TALENTS.rankOf(r.build,id)}); writeDB();
+      return {ok:true, key, id, rank:TALENTS.rankOf(r.build,id), build:r.build, spent:TALENTS.spent(key,r.build).total, points:TALENTS.pointsTotal(lv), ledger:ledgerView(me)};
+    });
+    return send(res,200,out); }
   /* 28 Aug — skill upgrades are server-owned. They used to be a local write that the next ledger
      sync overwrote, so the gold was spent and the level came back. The server now holds led.skill,
      charges the same curve the client shows, and returns the ledger. */
@@ -11591,6 +11617,8 @@ const server=http.createServer((req,res)=>{
     return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{shed:{on:SHED.on}},FULL_TRACE?{fullCallers:FULL_CALLERS}:{})); }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
   if(p==='/hero61.js') return serveFile(res,'hero61.js','application/javascript',null,req);
+  if(p==='/talents.js') return serveFile(res,'talents.js','application/javascript',null,req);
+  if(p==='/talents-data.js') return serveFile(res,'talents-data.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   /* v1265 LANGUAGES step 1: one small file per language (lang/<code>.json, e.g. es, pt-BR, zh-Hant); the client fetches only the chosen one,
