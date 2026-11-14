@@ -62,6 +62,13 @@ test('Astra / Heat and Flares: Heat, Ignition Point, Hot Core, Chain Flare, Star
   for(let i=0;i<40&&f.dots.indexOf(d)>=0;i++) V.step(1); assert.ok(f.dots.indexOf(d)<0); secs(5.8); assert.ok(heat(L,f)>0); secs(0.3); assert.equal(heat(L,f),0,'Heat fades');
   const N=lab(H,S(['sb_1_4']),{foes:2}); V.hit(N.v,N.F[0],1,{auto:true}); const e=mine(N,N.F[0],'sd')[0]; tickOf(N.F[0],e); near(heatUntil(N,N.F[0])-V.now(),4,'without Warmth Kept: 4 s');
   setHeat(N,N.F[0],9); setHeat(N,N.F[1],0); tickOf(N.F[0],e); assert.equal(heat(N,N.F[1]),0,'without Chain Flare (and Hot Core) a Flare catches nobody');
+  /* Hot Core reads the Flare's damage as dealt, even when a shield takes all of it */
+  const Q=lab(H,S(['sb_1_4','sb_2_4']),{foes:2}); V.hit(Q.v,Q.F[0],1,{auto:true}); const q=mine(Q,Q.F[0],'sd')[0]; Q.F[0].shield=1e7; Q.F[0].shieldT=99; setHeat(Q,Q.F[0],9); const q1=Q.F[1].hp; tickOf(Q.F[0],q);
+  near(q1-Q.F[1].hp,Q.v.apow*0.5*0.9,'a shielded enemy Flares: Hot Core still 30% x 3 of the Flare');
+  /* one chain, each enemy once: F0 (below half: Cinders 5) Flares, F1 and F3 (both beside it, at 6) are set off and each catch F0 back (5 + 4 + 4): it stays at 10, no second Flare */
+  const C=lab(H,S(['sb_1_4','sb_2_4','sb_3_4','sb_n2']),{foes:4}); at(C,C.F[3],4.5,-5.5); V.hit(C.v,C.F[0],1,{auto:true}); const g=mine(C,C.F[0],'sd')[0]; C.F[0].hp=C.F[0].maxHp*0.4;
+  setHeat(C,C.F[0],9); setHeat(C,C.F[1],6); setHeat(C,C.F[3],6); setHeat(C,C.F[2],0); tickOf(C.F[0],g); assert.equal(heat(C,C.F[1]),0); assert.equal(heat(C,C.F[3]),0,'F1 and F3 Flared');
+  assert.equal(heat(C,C.F[0]),10,'F0 is full again but does not Flare a second time in the same chain'); tickOf(C.F[0],g); assert.equal(heat(C,C.F[0]),5,'its next tick sets it off');
 });
 
 test('Astra / Supernova: a Flare that kills Flares again on the spot, twice as wide',()=>{
@@ -210,11 +217,11 @@ test('Astra / Twin Starfire and Three Lights',()=>{
 
 test('Astra / Imploding Star, Wide Collapse, Letting Go (SIGNATURE)',()=>{
   const O={foes:4}, pU=plain(O,P=>{ sure(P); return losses(P,()=>cast(P,'ult',10,0)); });
-  const L=lab(H,S(['hs_1_4','hs_5_3','hs_n3','hs_1_1','hs_13_3']),O), {v,F}=L, ap=v.apow; sure(L);
+  const L=lab(H,S(['hs_1_4','hs_5_3','hs_n3','hs_1_1','hs_13_3']),O), {v,F}=L, ap=v.apow; sure(L); at(L,F[3],10,-7);   // F3: inside the ultimate, its body 4.99 m from the centre
   setStack(L,'light',60); const u=losses(L,()=>cast(L,'ult',10,0)); near(u[1],pU[1]*1.18,'Imploding Star: it spends all 60 Light: 0.3% more for each'); near(stack(L,'light'),60*0.3+10,'Kept Change keeps 10% x 3; then 10 as an ability');
   secs(1); F.forEach(x=>{ x.stunned=0; x.speed=0; }); setStack(L,'light',100); const h=F.map(x=>x.hp); cast(L,'ult',10,0); const st=F.map(x=>x.stunned); const h2=F.map(x=>x.hp), t0=V.now();
   near(h[1]-h2[1],pU[1]*1.30,'cast with 100 Light: Letting Go (Imploding Star still counts the 100)'); secs(0.25); assert.ok(F[1].hp===h2[1],'the star has not fallen yet');
-  secs(0.1); near(h2[1]-F[1].hp,2.5*ap,'after the drag it falls on the centre: 2.5 x her ability power to every enemy within 4 m'); near(h2[0]-F[0].hp,2.5*ap,'F0 (its body 3.49 m from the centre)'); near(h2[2]-F[2].hp,2.5*ap,'F2 too'); assert.equal(F[3].hp,h2[3],'F3 (outside the ultimate)');
+  secs(0.1); near(h2[1]-F[1].hp,2.5*ap,'after the drag it falls on the centre: 2.5 x her ability power to every enemy within 4 m'); near(h2[0]-F[0].hp,2.5*ap,'F0 (its body 3.49 m from the centre)'); near(h2[2]-F[2].hp,2.5*ap,'F2 too'); assert.equal(F[3].hp,h2[3],'F3 (struck by the ultimate, but 4.99 m from the centre): not under the falling star'); assert.ok(h[3]>h2[3]);
   near(F[1].stunned,st[1]-(V.now()-t0)+1,'stunning them 1 s longer',1e-6); assert.ok(mark(L,F[1],'pt')&&mark(L,F[0],'pt'),'every enemy it hits becomes a Point');
   near(stack(L,'light'),30+10,'the Light is spent (Kept Change: 10% x 3 stays)');
 });
@@ -284,7 +291,8 @@ test('Astra / Rewritten Sky, Hushed Sky, Watcher\'s Calm',()=>{
   near(lost(F[0],()=>V.hit(v,F[0],1000)),b0*1.15,'F0 is 5.5 m from that centre: Out of Place (3% x 5)'); near(lost(F[1],()=>V.hit(v,F[1],1000)),b,'F1 stands on it');
   near(F[0].silencedT,0.9,'Hushed Sky: the drag silences 0.3 x 3 s'); assert.ok(!(F[2].silencedT>0),'not an enemy it cannot drag');
   assert.ok(mark(L,F[2],'recX'),'Watcher\'s Calm: the immovable enemy is Recorded instead'); near(markUntil(L,F[2],'recX')-V.now(),6); const b2=plainHit(L,()=>lost(F[2],()=>V.hit(v,F[2],1000))); near(lost(F[2],()=>V.hit(v,F[2],1000)),b2*1.15,'and counts as Out of Place, standing where it stands');
-  secs(6.1); near(lost(F[2],()=>V.hit(v,F[2],1000)),b2,'for 2 x 3 s'); F[2]._talM=null; cast(L,'ult',10,0); assert.ok(!mark(L,F[2],'recX'),'once per enemy every 12 s'); secs(6); cast(L,'ult',10,0); assert.ok(mark(L,F[2],'recX'),'12 s later again');
+  secs(6.1); near(lost(F[2],()=>V.hit(v,F[2],1000)),b2,'for 2 x 3 s'); F[2]._talM=null; cast(L,'ult',10,0); assert.ok(!mark(L,F[2],'recX'),'once per enemy every 12 s');
+  secs(5.3); cast(L,'ult',10,0); assert.ok(!mark(L,F[2],'recX'),'not at 11.4 s'); secs(0.7); cast(L,'ult',10,0); assert.ok(mark(L,F[2],'recX'),'12 s later again');
 });
 
 test('Astra / The Second Sky (SIGNATURE)',()=>{
