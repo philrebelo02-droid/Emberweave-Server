@@ -21,7 +21,7 @@ process.on('exit', () => { for (const f of temps) try { fs.unlinkSync(f); } catc
 function loadServer(src) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-pw1311-')); dirs.push(tmp);
   process.env.DB_FILE = path.join(tmp, 'db.json'); process.env.PORT = '0';
-  const http = require('http'), fakeHttp = Object.assign({}, http, { createServer: () => ({ listen() {}, on() {}, close() {}, address() { return { port: 0 }; } }) });
+  const http = require('http'), fakeHttp = Object.assign({}, http, { createServer: () => ({ listen() {}, on() {}, prependListener() {}, close() {}, address() { return { port: 0 }; } }) });
   const req = Module.createRequire(path.join(ROOT, 'server.js')), myReq = n => n === 'http' ? fakeHttp : req(n);
   const noop = () => ({ unref() {}, ref() {} });
   const log = console.log; console.log = () => {};
