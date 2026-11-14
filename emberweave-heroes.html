@@ -13566,7 +13566,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // Croc Drop's plant: while Grosk lives, the whole team eats 20% -> 35% less (by skill level) for 3s (v1308).
   if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team) amt*=1-(tgt._mwDrPct||0.20);
   // Drowsy (Dandra): sleep breaks the moment they're hit.
-  if(tgt&&(tgt._sleepT||0)>0){ tgt._sleepT=0; tgt.stunned=0; }
+  if(tgt&&(tgt._sleepT||0)>0&&!(src&&src._tal&&tgt._talZz===src&&battleTime<tgt._talZzT)){ tgt._sleepT=0; tgt.stunned=0; }   /* TALENT HOOK (guard): Dandra's Sting of Mercy - her own hits do not wake an enemy her sting put to sleep (only her talent sets _talZz) */
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
@@ -15521,6 +15521,7 @@ function deliverLaunch(u,type,o){ try{
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
   const _far=(o.farthest>0)?enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest):null;   /* v1030: Swampcall - the N farthest enemies */
   let tU=(_far&&_far.length)?_far[0]:(deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u)));   /* v935: the shot flies to the enemy the spell will affect */
+  if(u._tal&&u._tal.on.skillTgt&&tU) tU=TalentFx.skillTgt(u,type,tU,o)||tU;   /* TALENT HOOK skillTgt: a learned talent may choose a delivered skill's target before it is launched (Warden's Prison, Dandra's Drowsy Lantern) */
   if(mode==='shot'&&!tU) return false;
   /* v1180 Rim Breaker (Phil 16 Oct: "it should be thrown at the furthest person within 10 meters, and strikes anyone along the way, stunning them"):
      o.pierce - the shot flies at the FURTHEST living enemy within o.pierce.range of him at the release (none in range: the target it had, as before),
@@ -18754,7 +18755,7 @@ function _updateBattleCore(dt){
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt),u); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // MMO-style status effects: DoT / HoT ticks + buff/debuff timers
   units.forEach(u=>{ if(!u.alive)return;
-    for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; const _talD=((u._tal&&u._tal.on.dotIn)||d._talK)?TalentFx.dotPre(u,d):null;   /* TALENT HOOK dot tick (before) */ if(DD.on){ const _g=DD.tag.get(d), _p=DD.hit; DD.hit={src:d.src,l:_g?_g.l:'passive'}; try{ damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); } finally{ DD.hit=_p; } } else damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); if(_talD) TalentFx.dotPost(u,d,_talD);   /* TALENT HOOK dot tick (after) */ d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
+    for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; const _talD=((u._tal&&u._tal.on.dotIn)||d._talK||u._talDw)?TalentFx.dotPre(u,d):null;   /* TALENT HOOK dot tick (before); _talDw: a talented unit watching u has rows about DoTs on it (Dandra's Lamplight) */ if(DD.on){ const _g=DD.tag.get(d), _p=DD.hit; DD.hit={src:d.src,l:_g?_g.l:'passive'}; try{ damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); } finally{ DD.hit=_p; } } else damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); if(_talD) TalentFx.dotPost(u,d,_talD);   /* TALENT HOOK dot tick (after) */ d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; const _talH=h._talU?TalentFx.hotPre(u,h):null;   /* TALENT HOOK hot tick (before): only a heal over time a talented healer's rows made hers */ if(DD.on){ const _g=DD.tag.get(h), _p=DD.healBy; DD.healBy=_g?_g.src:null; try{ healUnit(u,h.hps); } finally{ DD.healBy=_p; } } else healUnit(u,h.hps); if(_talH) TalentFx.hotPost(u,h,_talH);   /* TALENT HOOK hot tick (after) */ h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}

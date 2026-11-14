@@ -55,7 +55,7 @@
     if(T.on.skillAt) T.on.skillTgt=T.on.skillTgt||[];                         // rows about a skill's chosen target: the skillTgt hook must run
     if(T.on.shieldBreak) T.on.absorb=T.on.absorb||[];                         // rows about his shield breaking: the absorb hook must run for every hit on his shield (Brannus)
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
-    T.watch=!!(T.on.death||T.on.teamIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
+    T.watch=!!(T.on.death||T.on.teamIn||T.on.teamDotIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     T.mv=!!T.on.moved;                                                        // rows about an ally being pushed, pulled or knocked up (Askel's Breakwater): the owner's tick looks for it
     u._tal=T; return T; }
 
@@ -631,7 +631,8 @@
     if(ctx) try{ ctx.heal=a*(s.healPowMul||1); landed(T,s,t,ctx,hp0,room); }catch(e){ ERR.n++; ERR.last=String((e&&e.stack)||e).slice(0,600); } }
   function landed(T,o,t,c,hp0,room){ const got=Math.max(0,t.hp-hp0); c.amt=got; c.over=(got>=room-1e-9)?Math.max(0,c.heal-room):0; if(T.on.healed) run(T,o,'healed',c); }
   function hotPre(t,h){ const o=h._talU, T=o&&o._tal; if(!T||!o.alive) return null;
-    const ctx={u:o,src:o,tgt:t,unit:t,amt:h.hps,raw:h.hps,skill:h._talK,hot:true}; run(T,o,'healOut',ctx);
+    const ctx={u:o,src:o,tgt:t,unit:t,amt:h.hps,raw:h.hps,skill:h._talK,hot:true,h}; run(T,o,'healOut',ctx);   // h: the heal over time itself (Dandra's Pollen rides on it)
+    if(h._talF!=null&&h.remaining<=1) ctx.amt*=h._talF;                                                             // a heal over time a talent made longer by a part second ends on a part tick (Dandra's Gold Light)
     const keep=h.hps; h.hps=Math.max(0,ctx.amt); return {keep,ctx,hp0:t.hp,room:Math.max(0,E.healCap(t)-t.hp)}; }
   function hotPost(t,h,k){ const o=h._talU, T=o._tal, c=k.ctx; c.heal=h.hps; h.hps=k.keep; landed(T,o,t,c,k.hp0,k.room);
     if(h.remaining<=1&&T.on.hotEnd) run(T,o,'hotEnd',{u:o,tgt:t,unit:t,amt:k.keep,tag:h._talK}); }
@@ -769,6 +770,8 @@
   /* a DoT tick: before it (the target's 'dotIn' rows, and a talent DoT's shorter last tick), and after it (the owner's 'dotTick', a kill by the DoT) */
   function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps; const T=u._tal;
     if(T&&T.on.dotIn){ const ctx={u,src:d.src,tgt:u,amt:x,dot:d}; run(T,u,'dotIn',ctx); x=ctx.amt; }
+    if(u._talDw){ const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const w=W[i], Tw=w._tal; if(w===u||!w.alive||!Tw||!Tw.on.teamDotIn) continue;   // teamDotIn: the rows of talented units watching u (Dandra's Lamplight)
+        const c={u:w,src:d.src,tgt:u,unit:u,amt:x,dot:d}; run(Tw,w,'teamDotIn',c); x=Math.max(0,c.amt); } }
     const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; }   // the owner's rows change her own DoT's tick
     if(d._talF!=null&&d.remaining<=1) x*=d._talF; d.dps=x; d._talNow=true; return keep; }
   function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
@@ -782,7 +785,7 @@
     if(T.on.wave) run(T,u,'wave',{u,tgt:u.target}); }
   /* once a tick per talented living unit, after every unit has thought and moved */
   function tick(u,dt){ const T=u._tal, s=T.s;
-    if(T.watch){ const U=E.units(); for(let i=0;i<U.length;i++){ const x=U[i], w=x._talW; if(!w) x._talW=[u]; else if(w.indexOf(u)<0) w.push(u); } }
+    if(T.watch){ const U=E.units(), dw=!!T.on.teamDotIn; for(let i=0;i<U.length;i++){ const x=U[i], w=x._talW; if(!w) x._talW=[u]; else if(w.indexOf(u)<0) w.push(u); if(dw) x._talDw=1; } }   // _talDw: a watcher has teamDotIn rows (the page then runs dotPre for x's DoT ticks)
     if(s.fresh){ s.fresh=false; startWave(T,u); }
     if(T.mv) moves(T,u);
     s.moved=(u.x!==u.px||u.y!==u.py);
