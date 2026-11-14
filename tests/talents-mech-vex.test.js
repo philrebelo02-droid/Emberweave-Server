@@ -96,6 +96,7 @@ test('Vex / Snag: Snag, Tight Line, Noose, Strangle Knot, Gallows Knot, Ruthless
   near(v.dmg,atk*1.05,'Hangman\'s Count: 1% x 5 attack for the Snag she landed');
   secs(3); assert.ok(!mark(L,F[0],'snag')); near(F[0].speed,sp,'the Snag ends: it moves again'); near(lost(F[0],()=>V.hit(v,F[0],1000)),bV,'');
   F[0].hp=F[0].maxHp*0.4; V.cast(v,'green'); land(L); home(L); near(markUntil(L,F[0],'snag')-V.now(),2.9+1.0,'Noose: 0.2 s x 5 longer below 50% HP');
+  V.step(1); near(v.dmg,atk*1.10,'(2 Snags)'); F[0].hp=10; V.cast(v,'green'); land(L); home(L); assert.ok(!F[0].alive); V.step(1); near(v.dmg,atk*1.10,'a strike that kills its mark lands no Snag');
   for(let i=0;i<6;i++){ V.cast(v,'green'); land(L); home(L); } V.step(1); near(v.dmg,atk*1.25,'at most 5 Snags');
 });
 
@@ -139,7 +140,8 @@ test('Vex / Hooked Wound, Tempest of Wounds, Clean Cut, Bare Bone',()=>{
   V.cast(v,'green'); land(L); home(L); assert.ok(mark(L,F[0],'ki'),'Hooked Wound: the strike applies Killer Instinct'); near(F[0].mortalT,3*pm,'(the wound itself)',0.01); assert.equal(dw(L,F[0]),3,'and 1 x 3 Deep Wounds');
   v.target=F[1]; L.put(F[1],0,5); V.cast(v,'ult'); assert.equal(dw(L,F[1]),3,'Tempest of Wounds: each of its three cuts adds a Deep Wound'); assert.ok(mark(L,F[1],'ki')&&F[1].mortalT>0,'and applies Killer Instinct');
   const C=lab(H,S(['sc_5_3','sc_6_3']),{foes:1}); const b=plainHit(C,()=>lost(C.F[0],()=>V.hit(C.v,C.F[0],1000)));
-  swing(C,1); assert.ok(mark(C,C.F[0],'ki')); near(C.F[0].mortalT||0,0,'Clean Cut: Killer Instinct no longer cuts healing'); C.F[0].hp=C.F[0].maxHp*0.5; near(heal(C.F[0],1000),1000,'a full heal');
+  C.F[0].mortalT=30; swing(C,1); assert.ok(mark(C,C.F[0],'ki')); assert.ok(C.F[0].mortalT>20&&C.F[0].mortalT<30,'Clean Cut: Killer Instinct leaves the wound timer as it was (30 s from another hero here)');
+  C.F[0].mortalT=0; swing(C,1); near(C.F[0].mortalT||0,0,'Clean Cut: Killer Instinct no longer cuts healing'); C.F[0].hp=C.F[0].maxHp*0.5; near(heal(C.F[0],1000),1000,'a full heal');
   near(lost(C.F[0],()=>V.hit(C.v,C.F[0],1000)),b*(1.12+0.09),'it takes 12% + Bare Bone 3% x 3 more from her');
 });
 
@@ -247,12 +249,12 @@ test('Vex / dodges: Slip Aside, Sidestep, Last Reflex, Read Them Coming, Quick S
 });
 
 test('Vex / Short List: Short List, Four Names, Struck Through (LINK), Keep Up, Steel Nerve, Long Way Round, Struck Off, Crossed Off',()=>{
-  const ids=['sl_1_4','sl_6_4','sl_n3','sl_5_4','sl_9_3','sl_9_4','sl_11_4','sl_12_4','sc_1_1'];
+  const ids=['sl_1_4','sl_6_4','sl_n3','sl_5_4','sl_9_3','sl_9_4','sl_11_4','sl_12_4','sc_1_1','sc_12_1'];
   const L=lab(H,S(ids),{foes:6,big:true}), {v,F}=L; const sp=v.speed, atk=v.dmg;
   const bS=plainHit(L,()=>lost(F[0],()=>V.hit(v,F[0],1000))), bC=plainHit(L,()=>lost(F[0],()=>V.hit(v,F[0],1000,{crit:true})));
   V.hit(F[0],v,10); assert.ok(mark(L,F[0],'sl'),'an enemy that attacks her goes on her Short List'); near(markUntil(L,F[0],'sl')-V.now(),6,'for 6 s');
   v._talDodge=0; near(lost(F[0],()=>V.hit(v,F[0],1000)),bS*1.10*1.10,'Struck Through: her first hit on a new name 10% more; 2% x 5 more on the list'); near(lost(F[0],()=>V.hit(v,F[0],1000)),bS*1.10*(1+0.004*5*1),'then the list (and the Deep Wound that hit added)');
-  assert.equal(dw(L,F[0]),2,'Struck Through with Worrying the Cut: every hit on a listed enemy adds a Deep Wound'); for(let i=0;i<6;i++) V.hit(v,F[0],10); assert.equal(dw(L,F[0]),5,'up to 5');
+  assert.equal(dw(L,F[0]),2,'Struck Through with Worrying the Cut: every hit on a listed enemy adds a Deep Wound'); for(let i=0;i<6;i++) V.hit(v,F[0],10); assert.equal(dw(L,F[0]),5,'up to 5 (even with Bone Deep)');
   for(const i of [1,2,3]) V.hit(F[i],v,10); assert.ok([0,1,2,3].every(i=>mark(L,F[i],'sl')),'Four Names: the list holds 2 + 1 x 2');
   V.hit(F[0],v,10); V.hit(F[4],v,10); assert.ok(!mark(L,F[1],'sl'),'a new name replaces the oldest (F0 renewed, so F1)'); assert.ok(mark(L,F[0],'sl')&&mark(L,F[4],'sl'));
   near(lost(F[0],()=>V.hit(v,F[0],1000,{crit:true})),bC*1.10*1.15*(1+0.02*5),'Steel Nerve: her crits on a listed enemy 3% x 5 more',1e-6);
@@ -278,7 +280,7 @@ test('Vex / Already Gone (SIGNATURE)',()=>{
   const L=lab(H,S(['sl_13_2']),O), {v,F}=L; prep(L); v.maxHp=1e6; v.hp=6e5;
   const nc=plainHit(L,()=>lost(F[1],()=>V.hit(v,F[1],1000))), cr=plainHit(L,()=>lost(F[1],()=>V.hit(v,F[1],1000,{crit:true}))), small=plainHit(L,()=>lost(v,()=>V.hit(F[1],v,1000))), big=4e5*1000/small;
   v.hp=6e5; near(lost(v,()=>V.hit(F[1],v,1000)),small,'a hit that leaves her above 30% lands'); v.hp=6e5; v.greenCd=6;
-  near(lost(v,()=>V.hit(F[1],v,big)),0,'a hit that would drop her below 30%: the attack misses'); assert.ok(v._noTarget); near(v._noTargetT,1.5,'she gets Hookline\'s evade for 1.5 s'); near(v.greenCd,0,'and Hookline at once');
+  const e0=v.energy; near(lost(v,()=>V.hit(F[1],v,big)),0,'a hit that would drop her below 30%: the attack misses'); assert.equal(v.energy,e0,'(nothing of the hit lands: not even the energy a hit gives)'); assert.ok(v._noTarget); near(v._noTargetT,1.5,'she gets Hookline\'s evade for 1.5 s'); near(v.greenCd,0,'and Hookline at once');
   const f1=F[1].hp, f0=F[0].hp; V.cast(v,'green'); land(L); home(L); assert.ok(F[1].hp<f1,'Hookline goes to the attacker (F1) ...'); assert.equal(F[0].hp,f0,'... not to the most fragile (F0)');
   for(let i=0;i<2;i++) near(lost(F[1],()=>V.hit(v,F[1],1000)),cr,'her next 3 hits are criticals (Hookline\'s strike was the first; '+(i+2)+')'); near(lost(F[1],()=>V.hit(v,F[1],1000)),nc,'then not');
   v.hp=6e5; near(lost(v,()=>V.hit(F[1],v,big)),4e5,'once every 20 s',1e-3); v.hp=6e5; secs(20); assert.equal(lost(v,()=>V.hit(F[1],v,big)),0,'20 s later again');

@@ -530,7 +530,7 @@ module.exports={
     rw_2_1:[ {on:'kit',skill:'hookline',opt:{range:{addM:R(1)}}} ],                                  // Long Throw
     rw_2_2:[ {on:'land',skill:'hookline',if:{targetAlive:true},do:[{emit:'snagLand',amt:P('snag.dur',2)}]},   // Snag: Hookline's mark, 2 s
              {on:'snagLand',do:[{mark:'snag',on:'target',dur:{pct:1,of:'hit'},longest:true},{emit:'snagOn'}]},
-             {stat:{move:-1},to:{team:'enemy',has:'snag'}},                                           //   it cannot move
+             {stat:{move:-1},to:{team:'enemy',has:'snag'}},                      //   it cannot move
              {on:'out',if:{targetHas:'snag'},more:R(0.02)} ],                                         //   and takes more from her
     rw_3_1:[ {on:'kit',skill:'hookline',do:[{stack:'hkSp',set:0}]}, {on:'cd',skill:'green',if:{stackMin:{hkSp:6}},add:-2} ],   // Hand over Hand
     rw_3_3:[ {on:'out',if:{any:[{casting:'hookline'},{targetHas:'blind'}]},ignoreArmor:R(0.03)} ],    // Through the Gap
@@ -588,11 +588,11 @@ module.exports={
     sc_3_4:[ {param:'drip.wait',add:R(0.4)} ],                                                        // Slow Pour
     sc_4_1:[ {stat:{crit:R(0.002)},per:{ust:'dw',of:'target'}} ],                                     // Open Again (her attacks on the enemy she is attacking)
     sc_4_2:[ {param:'den.more',add:R(0.2)} ],                                                         // Spite
-    sc_4_3:[ {stat:{move:R(-0.03)},to:{team:'enemy',dot:true}} ],                                     // Thin Blood
+    sc_4_3:[ {stat:{move:R(-0.03)},if:{anyDot:true},to:{team:'enemy',dot:true}} ],                                     // Thin Blood
     sc_5_1:[ {on:'kit',skill:'dot',opt:{dur:{add:R(0.4)}}} ],                                         // Long Bleed
     sc_5_3:[ {param:'cc',add:1}, {param:'cc.more',add:0.12}, {on:'out',if:{targetHas:'ki'},more:P('cc.more',0)} ],   // Clean Cut
     sc_5_4:[ {on:'dotOut',if:{stackMin:{drip:10}},more:R(0.03)} ],                                    // Pooling
-    sc_6_1:[ {stat:{atk:R(-0.003)},per:{ust:'dw',of:'target'},to:{team:'enemy',ust:{dw:1}}} ],        // Weeping
+    sc_6_1:[ {stat:{atk:R(-0.003)},per:{ust:'dw',of:'target'},to:{team:'enemy',ust:{dw:1}}} ],        // Weeping        // Weeping
     sc_6_2:[ {on:'denSpent',do:[{heal:{pct:R(0.04),of:'spent'},on:ME}]} ],                            // Bitter Draught
     sc_6_3:[ {param:'cc.more',add:R(0.03)} ],                                                         // Bare Bone
     sc_6_4:[ {stat:{atk:R(0.0015)},per:'drip'} ],                                                     // Red Hands
@@ -1462,7 +1462,7 @@ return module.exports;})();
     if(T.on.dotTick&&o.alive) run(T,o,'dotTick',{u:o,src:o,tgt:u,dot:d,tag:d._talK,amt:Math.max(0,((keep[1]||0)-Math.max(0,u.hp))+((keep[2]||0)-(u.shield||0)))});   // amt: what the tick took off (HP and shield)
     if(!u.alive&&T.on.kill&&o.alive) run(T,o,'kill',{u:o,src:o,tgt:u,dot:d,overkill:0,viaDot:true}); }
   /* between waves (the page's per-wave reset): 'waveEnd' now; the new wave's start is run on the unit's next tick, when the field is set */
-  function wave(u){ const T=u._tal, s=T.s; s.cur=null; if(s.fresh) return; if(u.alive&&T.on.waveEnd) run(T,u,'waveEnd',{u}); s.fresh=true; }   // (cur: a skill the wave's end cut off is no longer resolving)
+  function wave(u){ const T=u._tal, s=T.s; if(s.fresh) return; if(u.alive&&T.on.waveEnd) run(T,u,'waveEnd',{u}); s.fresh=true; }
   function startWave(T,u){ const s=T.s; s.wave++;
     for(const k in s.k){ const d=T.st[k]; if(d&&d.wave==='reset') s.k[k].n=0; }
     for(const k in s.w) if(s.w[k].wave) s.w[k].t=0;
