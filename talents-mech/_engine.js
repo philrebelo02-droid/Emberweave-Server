@@ -64,14 +64,15 @@
     o[name]={t0:live?prev.t0:now,until:a.dur!=null?now+a.dur:null,v:prev?prev.v:0}; }
   function clearMark(u,t,name){ if(t&&t._talM&&t._talM[u.uid]) delete t._talM[u.uid][name]; }
   /* a mark with a clock that tells its owner when it is over: {mark, dur, while:'field of the holder that must stay above 0', ends:'event'}.
-     The owner's tick ends it when the time is up or the field ran out first (ctx.broke: before its time). A holder that died is dropped silently. */
+     The owner's tick ends it when the time is up or the field ran out first; {mark, clear:true, fire:true} ends it now. ctx.broke: it ended before
+     its time (the field ran out, or a talent cut it). A holder that died is dropped silently. */
   function timedMark(T,u,t,name,a,ctx){ const d=amtOf(T,u,a.dur,ctx); if(!(d>0)) return; setMark(T,u,t,name,{dur:d,unique:a.unique}); const tm=T.s.tm;
     for(let i=0;i<tm.length;i++) if(tm[i].t===t&&tm[i].name===name){ tm[i].until=E.now()+d; tm[i].w=a.while||null; tm[i].ends=a.ends; return; }
     tm.push({t,name,until:E.now()+d,w:a.while||null,ends:a.ends}); }
   function endMark(T,u,t,name,fire,ctx){ const tm=T.s.tm; let e=null; for(let i=0;i<tm.length;i++) if(tm[i].t===t&&tm[i].name===name){ e=tm[i]; tm.splice(i,1); break; }
-    const had=!!markOf(u,t,name); clearMark(u,t,name); if(fire&&e&&had&&e.ends&&T.on[e.ends]) run(T,u,e.ends,Object.assign({},ctx,{u,tgt:t,unit:t,early:true,broke:false})); }
+    const had=!!markOf(u,t,name); clearMark(u,t,name); if(fire&&e&&had&&e.ends&&T.on[e.ends]) run(T,u,e.ends,Object.assign({},ctx,{u,tgt:t,unit:t,broke:true})); }
   function tickMarks(T,u){ const tm=T.s.tm, now=E.now(); for(let i=0;i<tm.length;i++){ const e=tm[i], t=e.t; if(t.alive&&now<e.until-1e-9&&!(e.w&&!(t[e.w]>0))) continue;
-      tm.splice(i--,1); const broke=now<e.until-1e-9; clearMark(u,t,e.name); if(t.alive&&e.ends&&T.on[e.ends]) run(T,u,e.ends,{u,tgt:t,unit:t,early:false,broke}); } }
+      tm.splice(i--,1); const broke=now<e.until-1e-9; clearMark(u,t,e.name); if(t.alive&&e.ends&&T.on[e.ends]) run(T,u,e.ends,{u,tgt:t,unit:t,broke}); } }
   /* ---- ground zones: circles on the field that the owner's rows can ask about. T.s.zn[name] = [{x,y,r (pixels),until,centre}]. A unit is ON a zone
           when any part of its body is over it (centre:true: when its centre is inside, as the engine's own skill circles measure). No picture. ---- */
   function inZone(T,x,name){ const L=T.s.zn[name]; if(!L||!x) return false; const now=E.now();
@@ -101,8 +102,7 @@
   function baseOf(T,u,of,ctx){ switch(of){
     case 'maxHp': return u.maxHp||0; case 'hp': return Math.max(0,u.hp||0); case 'armor': return u.armorRating||0; case 'shield': return u.shield||0;
     case 'apow': return (u.apow||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1);                 // ability power now (with a running damage buff, as the hero's own skills read it)
-    case 'tgtMaxHp': return (ctx&&ctx.tgt)?(ctx.tgt.maxHp||0):0; case 'tgtHp': return (ctx&&ctx.tgt)?Math.max(0,ctx.tgt.hp||0):0;
-    case 'tgtMissing': return (ctx&&ctx.tgt)?Math.max(0,(ctx.tgt.maxHp||0)-Math.max(0,ctx.tgt.hp||0)):0;
+    case 'tgtMaxHp': return (ctx&&ctx.tgt)?(ctx.tgt.maxHp||0):0;                          // the target's max HP (an ally's shield sized on the ally)
     case 'atk': return (u.dmg||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1)*E.rage();
     case 'hit': return ctx?(ctx.amt||0):0; case 'hpLost': return ctx?(ctx.hpLost||0):0; case 'overkill': return ctx?(ctx.overkill||0):0;
     case 'over': return ctx?(ctx.over||0):0; case 'spent': return ctx?(ctx.spent||0):0;
@@ -132,11 +132,8 @@
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
       if(!foe&&(x._summon||(sel.others&&x===u))) continue;
       if(sel.has&&!markOf(u,x,sel.has)) continue;
-      if(sel.lacks&&markOf(u,x,sel.lacks)) continue;
       if(sel.min&&!fmin(x,sel.min)) continue;
       if(sel.inZone&&!inZone(T,x,sel.inZone)) continue;
-      if(sel.hpAbove!=null&&!(x.hp>sel.hpAbove*x.maxHp)) continue;
-      if(sel.targeting&&x.target!==ref(sel.targeting)) continue;
       if(sel.hpBelow!=null&&!(x.hp<sel.hpBelow*x.maxHp)) continue;
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-E.bodyR(c)-E.bodyR(x)<R))) continue; out.push([x,d]); }
@@ -176,17 +173,15 @@
     casting:(T,u,v)=>Array.isArray(v)?v.indexOf(T.s.cur)>=0:T.s.cur===v,   // the skill of his that is resolving right now (null: none - a basic attack, a channel's tick)
     srcFlag:(T,u,v,c)=>!!(c.src&&c.src[v]),                 // an engine flag on the attacker for this hit ('_frostHit': a frost ability)
     selfPass:(T,u,v)=>!!(u.pass&&u.pass[v]),                // the hero's passive is unlocked
-    targetMin:(T,u,v,c)=>fmin(c.tgt,v), unitMin:(T,u,v,c)=>fmin(c.unit,v), srcMin:(T,u,v,c)=>fmin(c.src,v), selfMin:(T,u,v)=>fmin(u,v),   // an engine counter on that unit: {field: at least}
-    targetIn:(T,u,v,c)=>inZone(T,c.tgt,v), unitIn:(T,u,v,c)=>inZone(T,c.unit,v), srcIn:(T,u,v,c)=>inZone(T,c.src,v), selfIn:(T,u,v)=>inZone(T,u,v),
-    zone:(T,u,v)=>zoneOn(T,v), noZone:(T,u,v)=>!zoneOn(T,v),
+    targetMin:(T,u,v,c)=>fmin(c.tgt,v), unitMin:(T,u,v,c)=>fmin(c.unit,v), srcMin:(T,u,v,c)=>fmin(c.src,v),   // an engine counter on that unit: {field: at least}
+    targetIn:(T,u,v,c)=>inZone(T,c.tgt,v),                  // the target stands on one of his ground zones of that name
+    zone:(T,u,v)=>zoneOn(T,v),                              // a ground zone of that name is down
     targetLacks:(T,u,v,c)=>!markOf(u,c.tgt,v),
     noHolder:(T,u,v)=>{ const h=T.s.m[v]; return !(h&&h.alive&&markOf(u,h,v)); },
     targetHpAbove:(T,u,v,c)=>!!c.tgt&&c.tgt.hp>v*c.tgt.maxHp,
-    targetAlive:(T,u,v,c)=>!!(c.tgt&&c.tgt.alive)===v,
     srcIs:(T,u,v,c)=>{ const x=c.src; if(!x) return false; return v==='self'?x===u:(v==='ally'?(x.team===u.team&&x!==u):x.team!==u.team); },
     srcWithin:(T,u,v,c)=>!!c.src&&gap(u,c.src)<v*E.METER(), srcBeyond:(T,u,v,c)=>!!c.src&&gap(u,c.src)>v*E.METER(),   // body to body, from the owner
-    early:(T,u,v,c)=>!!c.early===v, broke:(T,u,v,c)=>!!c.broke===v,     // how a timed mark ended: cut short by a talent / its field ran out before its time
-    k:(T,u,v,c)=>c.k===v,
+    broke:(T,u,v,c)=>!!c.broke===v,                         // how a timed mark ended: its field ran out (or a talent cut it) before its time
     talent:(T,u,v,c)=>!!c.talent===v,                       // the control comes from a talent action (not from a skill of the hero)
     some:(T,u,v,c)=>pick(T,u,v,c).length>0,                 // at least one unit matches the selector
     targetWithin:(T,u,v,c)=>!!c.tgt&&gap(u,c.tgt)<v*E.METER(), unitWithin:(T,u,v,c)=>!!c.unit&&gap(u,c.unit)<v*E.METER(),
@@ -278,7 +273,7 @@
       return; }
     if(a.mark){ const ts=pick(T,u,a.on,ctx); for(const t of ts){ if(a.clear){ if(a.fire!=null) endMark(T,u,t,a.mark,a.fire,ctx); else clearMark(u,t,a.mark); }
         else if(a.ends||a.while) timedMark(T,u,t,a.mark,a,ctx); else setMark(T,u,t,a.mark,typeof a.dur==='object'?Object.assign({},a,{dur:amtOf(T,u,a.dur,ctx)}):a); } return; }
-    if(a.zone){ const L=s.zn[a.zone]||(s.zn[a.zone]=[]); if(a.end){ L.length=0; return; }
+    if(a.zone){ const L=s.zn[a.zone]||(s.zn[a.zone]=[]);
       const at=a.at||'target', c=typeof at==='object'?{x:u[at.x],y:u[at.y]}:pick(T,u,at,ctx)[0]; if(!c||c.x==null) return;
       const now=E.now(); for(let i=L.length-1;i>=0;i--) if(now>=L[i].until) L.splice(i,1); if(L.length>=24) L.shift();
       L.push({x:c.x,y:c.y,r:amtOf(T,u,a.radius,ctx)*E.METER(),until:now+amtOf(T,u,a.dur,ctx),centre:!!a.centre}); return; }
@@ -391,15 +386,13 @@
   function cast(u,type,o){ const T=u._tal; T.s.cur=null; run(T,u,'cast',{u,tgt:skTgt(u,o),skill:type,o:o||{}}); }
   /* a number the engine keeps inside a skill's own code (a channel's radius, a proc chance): rows {on:'num',skill:'<name>', add / addM / more / mul} */
   function num(u,name,v){ const ctx={u,skill:name,amt:v,tgt:u.target}; run(u._tal,u,'num',ctx); return ctx.amt; }
-  /* a control effect LANDED (after the resist roll): 'ccHit' for the one who applied it, 'ccGot' for the one struck. direct: the engine wrote this
+  /* a control effect LANDED (after the resist roll): 'ccHit' for the one who applied it. direct: the engine wrote this
      control without ccApply (a channel's proc) - the owner's ccOut rows get their say now, and the longer time is written on. */
   function ccHit(by,t,field,dur,direct){ const T=by&&by._tal;
     if(direct&&T&&T.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur}; run(T,by,'ccOut',c); let d=c.amt; const cap=E.ccCap(field); if(cap&&d>cap) d=cap; if(d>dur){ t[field]=Math.max(t[field]||0,d); dur=d; } }
-    if(T&&T.on.ccHit) run(T,by,'ccHit',{u:by,src:by,tgt:t,field,amt:dur});
-    if(t._tal&&t._tal.on.ccGot) run(t._tal,t,'ccGot',{u:t,src:by,tgt:t,field,amt:dur}); }
-  /* healing about to land on u: its own 'healIn' rows, then 'teamHeal' for the talented units watching it (an enemy's healing cut, an ally's raised) */
-  function healIn(u,a){ const T=u._tal; if(T&&T.on.healIn){ const c={u,tgt:u,amt:a}; run(T,u,'healIn',c); a=c.amt; }
-    const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamHeal) continue; const c={u:o,tgt:u,unit:u,amt:a}; run(To,o,'teamHeal',c); a=c.amt; }
+    if(T&&T.on.ccHit) run(T,by,'ccHit',{u:by,src:by,tgt:t,field,amt:dur}); }
+  /* healing about to land on u: 'teamHeal' for the talented units watching it (an enemy's healing cut, an ally's raised) */
+  function healIn(u,a){ const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamHeal) continue; const c={u:o,tgt:u,unit:u,amt:a}; run(To,o,'teamHeal',c); a=c.amt; }
     return Math.max(0,a); }
   /* a Chill the hero's own skill just put on t (Sylthaine's Cold Snap): 'chill' rows. Only when her passive is unlocked - without it the skill applies no Chill */
   function chill(u,t){ if(!(u.pass&&u.pass.coldsnap)||!t) return; run(u._tal,u,'chill',{u,src:u,tgt:t}); }

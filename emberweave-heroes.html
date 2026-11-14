@@ -14135,7 +14135,7 @@ function ccApply(u, t, field, dur){
     return false;
   }
   t[field] = Math.max(t[field] || 0, dur);
-  if((u&&u._tal&&u._tal.on.ccHit)||(t._tal&&t._tal.on.ccGot)) TalentFx.ccHit(u,t,field,dur);   /* TALENT HOOK ccHit: a control effect landed (after the resist roll) */
+  if(u&&u._tal&&u._tal.on.ccHit) TalentFx.ccHit(u,t,field,dur);   /* TALENT HOOK ccHit: a control effect landed (after the resist roll) */
   return true;
 }
 /* v797 (Phil: "the cast time should start at the exact same time as the animation starts") -
@@ -15519,7 +15519,7 @@ const WAX_HEAL_CUT=0.30;
 const BEE_HEAL_CUT=0.30;   /* Phil 12 Nov: "Make it 30% + .2 per skill level" - 30% + 0.2% a level of her purple: 30.2% at level 1, 50% at 100 */
 function beeHealCut(lv){ return Math.min(0.9, BEE_HEAL_CUT+0.002*Math.max(1,lv|0)); }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
-  if((u._tal&&u._tal.on.healIn)||u._talW) a=TalentFx.healIn(u,a);   /* TALENT HOOK healIn: healing about to land (the unit's own rows, then team-wide rows watching it) */
+  if(u._talW) a=TalentFx.healIn(u,a);   /* TALENT HOOK healIn: healing about to land (team-wide rows of the talented units watching it) */
   if((u._healCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._healCutUntil>battleTime) a*=1-EDGE.healCut;   /* v1367 Silence the healer */
   if((u._beeCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._beeCutUntil>battleTime) a*=1-(u._beeCut||BEE_HEAL_CUT);   /* v1376 The Swarm Moves On */
   if(typeof AFFINITIES_LIVE!=='undefined'&&AFFINITIES_LIVE&&u.target&&u.target.alive&&unitClass(u.target)==='Tank'&&u.target.team!==u.team&&units.some(o=>o.alive&&o.team===u.team&&unitClass(o)==='Support')) a*=1+EDGE.healBonus;   /* v1367 Sundering grace: allies attacking a Tank heal more while a Support fights beside them */ if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; if(u._tal&&u._tal.on.heal) TalentFx.heal(u,a);   /* TALENT HOOK heal: sees the heal before it is cut to the room left */
