@@ -1498,14 +1498,18 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
   box-shadow:0 0 12px rgba(233,198,108,.28),inset 0 1px rgba(255,240,200,.35);}
 /* TALENTS TAB (14 Nov 2026). Phil: "Like this but 3 tabs at the top to move between them." / "With our own abilities and passives." / "And our own art."
    A 4-column, 13-tier grid of square icons with a rank counter on each, arrows from a prerequisite down to its talent, tier numbers down the side.
-   --tl-ic = icon size, --tl-row = one tier's height. Arrows and fork links are grid items (no measuring), so the board is right at any width. */
+   --tl-ic = icon size, --tl-row = one tier's height. Arrows and fork links are grid items (no measuring), so the board is right at any width.
+   Round 2 (14 Nov, art-direction review): brighter counters and arrows, a disc behind the fork lock, a framed no-art tile, the tree tabs and the
+   points line stay in view while the board scrolls, and a short layout for a phone held in landscape (#heroDetail.tl-short, below). */
+.tl-top{position:sticky;top:26px;z-index:4;background:#0d1322;padding:2px 0 6px;margin-bottom:4px}   /* 26 px = the window's pinned Heroes / close row (44 px, pinned at -18) */
 .tl-head{display:flex;gap:6px;margin:0 0 8px}
 .tl-head .glTab{flex:1 1 0;min-width:0;padding:7px 4px;font-size:12px;line-height:1.2;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .tl-head .glTab .tl-subn{font:800 11px system-ui,sans-serif;color:#9fb0c9}
 .tl-head .glTab.on .tl-subn{color:#ffe9a8}
-.tl-role{font:800 10px system-ui,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#e9c66c;margin-bottom:3px}
+.tl-role{display:flex;align-items:center;gap:5px;font:800 10px system-ui,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#e9c66c;margin-bottom:5px}
+.tl-role .tl-info{display:none}
 .tl-plays{font-size:12px;line-height:1.5;color:#c3ccd8;margin-bottom:9px}
-.tl-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;min-height:34px}
+.tl-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:34px}
 .tl-pts{flex:1 1 auto;min-width:0}
 .tl-pts b{display:block;font:800 14px Georgia,'Times New Roman',serif;color:#ffe6a8}
 .tl-pts b i{font-style:normal;color:#fff}
@@ -1513,8 +1517,9 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tl-bar .btn{flex:none;white-space:nowrap}
 .tl-ask{flex:1 1 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid #8a3b3b;border-radius:10px;background:#1d1216;font-size:12px;color:#f1d6d6}
 .tl-ask span{flex:1 1 140px;min-width:0}
+/* the board keeps 10 px on the right and bottom so the rank counters that hang off an icon's corner are never cut */
 .tl-board{--tl-ic:54px;--tl-row:74px;--tl-pad:calc((var(--tl-row) - var(--tl-ic)) / 2);position:relative;display:grid;grid-template-columns:38px repeat(4,minmax(0,1fr));grid-template-rows:repeat(13,var(--tl-row));
-  border:1px solid #3a3320;border-radius:10px;overflow:hidden;
+  border:1px solid #3a3320;border-radius:10px;overflow:hidden;padding:0 10px 8px 0;
   background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--tl-row) - 1px),rgba(120,140,180,.10) calc(var(--tl-row) - 1px),rgba(120,140,180,.10) var(--tl-row)),linear-gradient(180deg,#101829,#090d18)}
 .tl-tier{grid-column:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-right:1px solid rgba(120,140,180,.14);background:rgba(0,0,0,.22);color:#5f6b80}
 .tl-tier b{font:800 15px Georgia,'Times New Roman',serif;line-height:1}
@@ -1523,21 +1528,21 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tl-tier.open i{color:#b9a676}
 .tl-cell{position:relative;z-index:2;justify-self:center;align-self:center;width:var(--tl-ic);height:var(--tl-ic);padding:0;margin:0;border:2px solid #343b4d;border-radius:9px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   background:radial-gradient(circle at 50% 38%,#27324c,#121a2c 62%,#0b111e);box-shadow:0 2px 6px rgba(0,0,0,.55),inset 0 0 0 1px rgba(0,0,0,.6);font:inherit;color:inherit}
-/* a talent whose art is not painted yet: a plain framed tile. Phil: "The Initials in the middle of them go" - so no letters, only the frame */
+/* a talent whose art is not painted yet: a plain framed tile. Phil: "The Initials in the middle of them go" - so no letters, only the frame.
+   The frame is never faded (only painted art is dimmed), so an empty tile reads as a placeholder, not as a broken picture. */
 .tl-cell .tl-blank{position:absolute;inset:0;border-radius:6px;overflow:hidden}
-.tl-cell .tl-blank::before{content:"";position:absolute;left:50%;top:50%;width:38%;height:38%;transform:translate(-50%,-50%) rotate(45deg);border:2px solid rgba(190,205,235,.30);border-radius:3px;box-shadow:inset 0 0 8px rgba(160,180,220,.18)}
+.tl-cell .tl-blank::before{content:"";position:absolute;left:50%;top:50%;width:38%;height:38%;transform:translate(-50%,-50%) rotate(45deg);border:2px solid #6b5628;border-radius:3px;background:rgba(15,20,32,.9)}
 .tl-cell img.tl-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;pointer-events:none}
-.tl-cell .tl-rk{position:absolute;right:-9px;bottom:-8px;z-index:3;min-width:25px;padding:1px 4px;border-radius:5px;border:1px solid #2c3446;background:#0a0e17;font:800 11px system-ui,sans-serif;line-height:1.25;text-align:center;color:#7d8798;pointer-events:none}
-.tl-cell .tl-lk{position:absolute;left:50%;top:50%;width:24px;height:24px;transform:translate(-50%,-50%);z-index:3;pointer-events:none;display:none}
+.tl-cell .tl-rk{position:absolute;right:-9px;bottom:-8px;z-index:3;min-width:28px;padding:2px 5px;border-radius:5px;border:1px solid #33405e;background:#0a0e17;font:800 12px system-ui,sans-serif;line-height:1.2;text-align:center;color:#d6deea;pointer-events:none}
+.tl-cell .tl-lk{position:absolute;left:50%;top:50%;width:28px;height:28px;box-sizing:border-box;padding:4px;transform:translate(-50%,-50%);z-index:3;pointer-events:none;display:none;background:rgba(10,14,23,.82);border-radius:50%}
 .tl-cell .tl-lk img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px #000)}
-/* the five states, readable at a glance: not yet available (grey, dim) / can learn now (green) / has ranks (bright, white counter) / maxed (gold) / locked by a pick-one fork (red, lock) */
+/* the five states, readable at a glance: not yet available (grey, dim) / can learn now (green) / has ranks (bright, pale-gold counter) / maxed (gold) / locked by a pick-one fork (red, lock) */
 .tl-cell.no img.tl-art,.tl-cell.lock img.tl-art{filter:grayscale(1) brightness(.5)}
-.tl-cell.no .tl-blank,.tl-cell.lock .tl-blank{opacity:.45}
 .tl-cell.some{border-color:#aab6cc}
 .tl-cell.some .tl-rk{color:#fff;border-color:#aab6cc}
 .tl-cell.can{border-color:#58d97e;box-shadow:0 0 0 1px #0c2a17,0 0 10px rgba(88,217,126,.55),0 2px 6px rgba(0,0,0,.55)}
 .tl-cell.can .tl-rk{color:#6cf093;border-color:#2f8f4d}
-.tl-cell.can.some .tl-rk{color:#fff}
+.tl-cell.can.some .tl-rk{color:#ffe6a8}
 .tl-cell.max{border-color:#f0cf78;box-shadow:0 0 0 1px #3d2a0b,0 0 10px rgba(240,207,120,.5),0 2px 6px rgba(0,0,0,.55)}
 .tl-cell.max .tl-rk{background:linear-gradient(180deg,#ffe9a8,#d9a53c);border-color:#fff0bf;color:#2a1804}
 .tl-cell.lock{border-color:#8a3b3b;cursor:help}
@@ -1545,15 +1550,16 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tl-cell.lock .tl-rk{color:#a36a6a;border-color:#5a2a2a}
 .tl-cell.sel{outline:2px solid #fff;outline-offset:2px}
 /* arrow: from the bottom of the prerequisite's icon straight down the column to the top of its talent */
-.tl-arrow{position:relative;z-index:1;justify-self:center;width:12px;margin-top:calc(var(--tl-pad) + var(--tl-ic) + 2px);margin-bottom:calc(var(--tl-row) - var(--tl-pad) + 3px);pointer-events:none;--tl-ac:#55617c}
-.tl-arrow::before{content:"";position:absolute;left:4px;top:0;bottom:7px;width:4px;border-radius:2px;background:var(--tl-ac)}
-.tl-arrow::after{content:"";position:absolute;left:0;bottom:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid var(--tl-ac)}
+.tl-arrow{position:relative;z-index:1;justify-self:center;width:14px;margin-top:calc(var(--tl-pad) + var(--tl-ic) + 2px);margin-bottom:calc(var(--tl-row) - var(--tl-pad) + 3px);pointer-events:none;--tl-ac:#9fb0c9}
+.tl-arrow::before{content:"";position:absolute;left:4px;top:0;bottom:9px;width:6px;border-radius:2px;background:var(--tl-ac)}
+.tl-arrow::after{content:"";position:absolute;left:0;bottom:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:11px solid var(--tl-ac)}
 .tl-arrow.on{--tl-ac:#e9c66c}
 /* pick-one fork: a dashed link between the two halves when they sit side by side */
-.tl-fork{position:relative;z-index:1;align-self:center;height:0;border-top:2px dashed #7a6a45;margin:0 calc(25% + var(--tl-ic) / 2 + 3px);pointer-events:none}
+.tl-fork{position:relative;z-index:1;align-self:center;height:0;border-top:3px dashed #7a6a45;margin:0 calc(25% + var(--tl-ic) / 2 + 3px);pointer-events:none}
 .tl-fork.taken{border-top-color:#8a3b3b}
 /* the talent card: hover (desktop) or tap (touch). Phil: "ingame hover or double tap tells you what the talent does." */
 #tlCard{position:fixed;z-index:100000;width:min(310px,calc(var(--ew-game-width,100vw) * 0.9));box-sizing:border-box;background:linear-gradient(180deg,#141c30,#0b101d);border:1px solid #b8913f;border-radius:11px;padding:11px 13px 12px;box-shadow:0 10px 32px rgba(0,0,0,.75);font-size:12.5px;line-height:1.5;color:#d6deea;text-align:left}
+#tlCard.short{width:min(280px,calc(var(--ew-game-width,100vw) * 0.42));padding:8px 11px 9px;font-size:12px;line-height:1.4}
 #tlCard.hov{pointer-events:none}
 #tlCard .tl-cn{font:800 15px Georgia,'Times New Roman',serif;color:#ffe6a8;margin-bottom:1px}
 #tlCard .tl-cr{font:700 11px system-ui,sans-serif;color:#9fb0c9;margin-bottom:6px}
@@ -1563,7 +1569,42 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 #tlCard .tl-ch{margin-top:7px;font-size:10.5px;color:#8b98a9}
 #tlCard .tl-cb{display:flex;gap:8px;margin-top:10px}
 #tlCard .tl-cb .btn{flex:1}
-@media (min-width:901px){ .tl-board{--tl-ic:58px;--tl-row:78px} }
+@media (min-width:901px) and (min-height:501px){ .tl-board{--tl-ic:58px;--tl-row:78px} }
+/* SHORT LAYOUT, Talents tab only (a phone held in landscape; the game is about 390 px tall there). The class is set from the game's measured
+   height (talentsShort), not a media query, because a phone held upright shows the same landscape game turned on its side.
+   The hero header becomes a slim strip in the window's top row (small portrait, name, level), the tab row follows, the tree tabs, points and
+   Reset stand in a column on the left, and the board takes all the rest with its own scroll. The tree's description opens with a tap on the
+   tree's name. No other tab is touched: the class is on #heroDetail only while the Talents tab is showing. */
+#heroDetail.tl-short{overflow:hidden!important;padding-top:6px!important;padding-bottom:6px!important;display:flex;flex-direction:column;align-items:stretch}
+#heroDetail.tl-short > .ew-pinned-exits{position:relative;top:auto;min-height:40px;background:transparent}
+#heroDetail.tl-short #heroDetailBody{margin-top:0!important;max-width:none!important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+#heroDetail.tl-short .hd-wrap{flex:1 1 auto;min-height:0;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:4px}
+#heroDetail.tl-short .hd-left{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:41;display:flex;align-items:center;gap:8px;flex:none;min-width:0;max-width:calc(100% - 250px);height:36px;padding:0;border:0;background:none;white-space:nowrap;pointer-events:none}
+#heroDetail.tl-short .hd-left > *{display:none!important}
+#heroDetail.tl-short .hd-left > .hd-port{display:flex!important;order:-1;zoom:.36;flex:none}
+#heroDetail.tl-short .hd-left > .hd-name{display:block!important;font:800 14px Georgia,'Times New Roman',serif;color:#ffe6a8;margin:0;overflow:hidden;text-overflow:ellipsis}
+#heroDetail.tl-short .hd-left > .hd-name .hd-starbadge{display:none}
+#heroDetail.tl-short .hd-left > .hd-lvl{display:block!important;margin:0!important;font-size:11px;flex:none}
+#heroDetail.tl-short .hd-right{flex:1 1 auto;min-height:0;min-width:0;gap:4px}
+#heroDetail.tl-short .hd-tabbar.hd-six .hd-tab,#heroDetail.tl-short .hd-tab{padding:5px 3px}
+#heroDetail.tl-short .hd-tabcontent{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+#heroDetail.tl-short .hd-power{display:none}
+#heroDetail.tl-short .tl-panel{position:relative;flex:1 1 auto;min-height:0;max-width:none;margin:0;padding:4px 5px;display:grid;grid-template-columns:150px minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:6px}
+#heroDetail.tl-short .tl-top{position:static;background:none;padding:0 0 5px;margin:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+#heroDetail.tl-short .tl-head{flex-direction:column;gap:4px;margin:0}
+#heroDetail.tl-short .tl-head .glTab{flex:none;flex-direction:row;justify-content:space-between;gap:6px;padding:5px 8px;font-size:11.5px;text-align:left}
+#heroDetail.tl-short .tl-role{margin:2px 0 0;cursor:pointer}
+#heroDetail.tl-short .tl-role .tl-info{display:inline-flex}
+#heroDetail.tl-short .tl-role .tl-info img{width:13px;height:13px}
+#heroDetail.tl-short .tl-bar{min-height:26px;gap:4px;flex-direction:column;align-items:stretch;flex-wrap:nowrap;margin-top:auto}
+#heroDetail.tl-short .tl-bar .btn{padding:5px 8px;font-size:11px}
+#heroDetail.tl-short .tl-ask{flex:none;padding:6px 7px;gap:5px;font-size:11px}
+#heroDetail.tl-short .tl-ask span{flex:1 1 100%}
+#heroDetail.tl-short .tl-ask .btn{flex:1}
+#heroDetail.tl-short .tl-plays{display:none;position:absolute;left:161px;right:5px;top:4px;z-index:6;margin:0;padding:8px 10px;border:1px solid #6b5628;border-radius:9px;background:#101829;box-shadow:0 8px 22px rgba(0,0,0,.6);cursor:pointer}
+#heroDetail.tl-short .tl-panel.desc .tl-plays{display:block}
+#heroDetail.tl-short .tl-scroll{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-radius:10px}
+#heroDetail.tl-short .tl-board{--tl-ic:44px;--tl-row:58px}
 /* six tabs in the row (Talents is there): every label stays on one line beside its icon */
 .hd-tabbar.hd-six{gap:3px}
 .hd-tabbar.hd-six .hd-tab{flex:1 1 auto;min-width:0;padding:8px 3px;font-size:11px;white-space:nowrap;letter-spacing:-.1px}
@@ -31772,7 +31813,10 @@ setTimeout(()=>{ glyphV2Sync(); }, 2500);                // early glyph sync so 
    The trees (talents-data.js) and the rules (talents.js, the same file the server uses) are loaded by script tags; the learned talents are the
    server's (led.talents), mirrored into G.talents by adoptLedger. The tab exists only while the ledger carries `talents` (server switch on)
    and the hero has trees. This is the screen only: nothing here touches a fight. */
-const TAL={tree:{}, sel:null, pin:false, ask:null, busy:false, icons:null, iconsV:'', iconsAsked:false, tapId:null, tapAt:0, wired:false};
+const TAL={tree:{}, sel:null, pin:false, ask:null, busy:false, icons:null, iconsV:'', iconsAsked:false, tapId:null, tapAt:0, wired:false, short:false, desc:false, keepScroll:0, rsz:false};
+/* a short game window (a phone held in landscape is about 390 px tall): the Talents tab uses its short layout (#heroDetail.tl-short). Measured from
+   the game's own view, because a phone held upright shows the same landscape game turned on its side and a media query would not see it. */
+function talentsShort(){ try{ return ewGameView().height<=500; }catch(e){ return false; } }
 function talentsOn(key){ try{ return !!(G.talents&&typeof G.talents==='object'&&typeof TALENTS!=='undefined'&&TALENTS.has(key)); }catch(e){ return false; } }
 function talentBuild(key){ return (G.talents&&G.talents[key])||{r:{}}; }
 /* unspent points = something to do on the Talents tab (the red dot) */
@@ -31789,6 +31833,7 @@ function talentsTabHTML(key){ talentIconsLoad();
   const trees=TALENTS.trees(key), build=talentBuild(key), lvl=heroLevel(key), sp=TALENTS.spent(key,build), total=TALENTS.pointsTotal(lvl);
   let ti=TAL.tree[key]|0; if(!trees[ti]) ti=0; const tr=trees[ti];
   const have=(TAL.icons&&TAL.icons[key]&&TAL.icons[key][tr.id])||null;
+  { const sc=document.getElementById('tlScroll'); TAL.keepScroll=(sc&&sc.dataset.k===key+'/'+tr.id)?sc.scrollTop:0; }   // the board's own scroll (short layout) survives a redraw
   const subTabs=trees.map((x,i)=>`<button class="glTab${i===ti?' on':''}" data-tl-tree="${i}"><span>${escapeHTML(x.name)}</span><span class="tl-subn">${sp.tree[x.id]|0}</span></button>`).join('');
   /* points already spent in the tiers above each tier of this tree: a tier opens for every 5 */
   const above=[0,0]; for(let k=2;k<=TALENTS.TIERS;k++) above[k]=above[k-1]+(sp.tier[tr.id][k-1]|0);
@@ -31806,16 +31851,20 @@ function talentsTabHTML(key){ talentIconsLoad();
       forks+=`<i class="tl-fork${(rk>0||locked)?' taken':''}" style="grid-row:${tier};grid-column:${col+1} / span 2"></i>`; }
   const ask=(TAL.ask===key&&sp.total>0);
   const hero=escapeHTML(HERO_TYPES[key].name);
-  return `<div class="panel tl-panel">
-    <div class="tl-head">${subTabs}</div>
-    <div class="tl-role">${escapeHTML(tr.role||'')}</div>
-    <div class="tl-plays">${escapeHTML(tr.plays||'')}</div>
-    <div class="tl-bar">
-      <div class="tl-pts"><b id="tlPts">${ewT('talent.points',{spent:'<i>'+sp.total+'</i>',total})}</b><span>${ewT('talent.open_at',{n:TALENTS.FIRST_LEVEL})}</span></div>
-      ${ask?'':`<button class="btn secondary sm" id="tlReset" ${sp.total>0?'':'disabled'}>${ewT('talent.reset')}</button>`}
-      ${ask?`<div class="tl-ask" id="tlAsk"><span>${ewT('talent.reset_ask',{n:sp.total,hero})}</span><button class="btn sm" id="tlResetYes">${ewT('talent.reset_yes')}</button><button class="btn secondary sm" id="tlResetNo">${ewT('common.cancel')}</button></div>`:''}
+  /* the tree tabs, role and points stay in view (sticky; a side column in the short layout); the description follows them and, in the short layout,
+     opens with a tap on the tree's name. "Talents open at hero level 10" shows only while the hero is under that level. */
+  return `<div class="panel tl-panel${TAL.desc?' desc':''}">
+    <div class="tl-top">
+      <div class="tl-head">${subTabs}</div>
+      <div class="tl-role" id="tlRole"><span>${escapeHTML(tr.role||'')}</span><span class="tl-info">${uiIcon('info')}</span></div>
+      <div class="tl-bar">
+        <div class="tl-pts"><b id="tlPts">${ewT('talent.points',{spent:'<i>'+sp.total+'</i>',total})}</b>${lvl<TALENTS.FIRST_LEVEL?`<span>${ewT('talent.open_at',{n:TALENTS.FIRST_LEVEL})}</span>`:''}</div>
+        ${ask?'':`<button class="btn secondary sm" id="tlReset" ${sp.total>0?'':'disabled'}>${ewT('talent.reset')}</button>`}
+        ${ask?`<div class="tl-ask" id="tlAsk"><span>${ewT('talent.reset_ask',{n:sp.total,hero})}</span><button class="btn sm" id="tlResetYes">${ewT('talent.reset_yes')}</button><button class="btn secondary sm" id="tlResetNo">${ewT('common.cancel')}</button></div>`:''}
+      </div>
     </div>
-    <div class="tl-board" id="tlBoard" data-tree="${tr.id}">${tiers}${arrows}${forks}${cells}</div>
+    <div class="tl-plays" id="tlPlays">${escapeHTML(tr.plays||'')}</div>
+    <div class="tl-scroll" id="tlScroll" data-k="${key}/${tr.id}"><div class="tl-board" id="tlBoard" data-tree="${tr.id}">${tiers}${arrows}${forks}${cells}</div></div>
   </div>`; }
 function talentCardHide(){ const p=document.getElementById('tlCard'); if(p) p.remove();
   if(TAL.sel){ const el=document.getElementById('tl_'+TAL.sel); if(el) el.classList.remove('sel'); } TAL.sel=null; TAL.pin=false; }
@@ -31829,7 +31878,7 @@ function talentCardPlace(){ const pop=document.getElementById('tlCard'), a=TAL.s
 function talentCardShow(key,id,pin){ const tl=TALENTS.talent(key,id), a=document.getElementById('tl_'+id); if(!tl||!a) return;
   if(TAL.sel&&TAL.sel!==id){ const old=document.getElementById('tl_'+TAL.sel); if(old) old.classList.remove('sel'); }
   let pop=document.getElementById('tlCard'); if(!pop){ pop=document.createElement('div'); pop.id='tlCard'; document.body.appendChild(pop); }
-  TAL.sel=id; TAL.pin=!!pin; a.classList.toggle('sel',!!pin); pop.className=pin?'':'hov';
+  TAL.sel=id; TAL.pin=!!pin; a.classList.toggle('sel',!!pin); pop.className=(pin?'':'hov')+(TAL.short?' short':'');
   const build=talentBuild(key), rk=TALENTS.rankOf(build,id), why=TALENTS.whyNot(key,build,id,heroLevel(key));
   const other=tl.lock?TALENTS.talent(key,tl.lock):null;
   pop.innerHTML=`<div class="tl-cn">${escapeHTML(tl.name)}</div>
@@ -31866,9 +31915,16 @@ async function talentReset(key){ if(TAL.busy) return false;
   adoptLedger(r.ledger); saveG(); try{ updateHubChrome(); }catch(e){}
   talentCardHide(); if(heroTab==='talents'&&detailHero===key) renderHeroDetail(); return true; }
 /* after every redraw of the hero panel: wire the Talents tab, or put its card away when another tab (or hero) is showing */
-function talentsWire(body,key){ const board=body.querySelector('#tlBoard');
-  if(!board){ talentCardHide(); TAL.ask=null; return; }
-  body.querySelectorAll('[data-tl-tree]').forEach(b=>b.onclick=()=>{ TAL.tree[key]=+b.dataset.tlTree; talentCardHide(); renderHeroDetail(); });
+function talentsWire(body,key){ const board=body.querySelector('#tlBoard'), host=document.getElementById('heroDetail');
+  TAL.short=!!(board&&talentsShort());
+  if(host){ const was=host.classList.contains('tl-short'); host.classList.toggle('tl-short',TAL.short); if(TAL.short&&!was) host.scrollTop=0; }   // only while the Talents tab shows: every other tab keeps its layout
+  if(!TAL.rsz){ TAL.rsz=true; window.addEventListener('resize',()=>{ try{ if(heroTab==='talents'&&detailHero&&document.getElementById('tlBoard')&&talentsShort()!==TAL.short) renderHeroDetail(); }catch(e){} }); }
+  if(!board){ talentCardHide(); TAL.ask=null; TAL.desc=false; return; }
+  { const sc=body.querySelector('#tlScroll'); if(sc&&TAL.short&&TAL.keepScroll) sc.scrollTop=TAL.keepScroll; }
+  /* short layout: the tree's description is behind a tap on the open tree's name (or its role line); a tap on the description closes it */
+  const descToggle=()=>{ if(!TAL.short) return; TAL.desc=!TAL.desc; const p=body.querySelector('.tl-panel'); if(p) p.classList.toggle('desc',TAL.desc); };
+  body.querySelectorAll('[data-tl-tree]').forEach(b=>b.onclick=()=>{ if(b.classList.contains('on')){ descToggle(); return; } TAL.tree[key]=+b.dataset.tlTree; TAL.desc=false; talentCardHide(); renderHeroDetail(); });
+  { const rl=body.querySelector('#tlRole'), pl=body.querySelector('#tlPlays'); if(rl) rl.onclick=descToggle; if(pl) pl.onclick=()=>{ if(TAL.short&&TAL.desc) descToggle(); }; }
   const rs=body.querySelector('#tlReset'); if(rs) rs.onclick=()=>{ TAL.ask=key; talentCardHide(); renderHeroDetail(); };
   const no=body.querySelector('#tlResetNo'); if(no) no.onclick=()=>{ TAL.ask=null; renderHeroDetail(); };
   const yes=body.querySelector('#tlResetYes'); if(yes) yes.onclick=async()=>{ yes.disabled=true; await talentReset(key); };
@@ -31914,12 +31970,12 @@ function renderHeroDetail(){ try{ setTimeout(()=>ftutCheck('heroDetail'),350); }
   const left=`<div class="hd-left">
     <div class="hd-name">${t.name}${myth?'':`<span class="hd-starbadge">${stars}${uiIcon('star-filled')}</span>`}</div>
     ${HERO_SUBNAME[key]?`<div class="hd-subname">${escapeHTML(HERO_SUBNAME[key])}</div>`:''}
-    <div style="display:flex;justify-content:center"><div id="hdPortrait" style="position:relative;width:92px;height:92px;border-radius:12px;border:2px solid ${myth?'#ffcf40':gi.col};box-shadow:0 2px 10px #0009${myth?',0 0 14px #ffcf4055':''}">${heroIcon(key,92)}${affBadgesHTML(key)}</div></div>
+    <div class="hd-port" style="display:flex;justify-content:center"><div id="hdPortrait" style="position:relative;width:92px;height:92px;border-radius:12px;border:2px solid ${myth?'#ffcf40':gi.col};box-shadow:0 2px 10px #0009${myth?',0 0 14px #ffcf4055':''}">${heroIcon(key,92)}${affBadgesHTML(key)}</div></div>
     ${rarBanner}
     <div class="hd-starrow" id="hdStars" title="${owned?ewT('hero.tap_stars'):''}" style="display:flex;gap:2px;justify-content:center;align-items:center;cursor:${owned?'pointer':'default'};padding:6px 16px;border-radius:10px">${starFillRow(key,22)}</div>
     ${starSubLine?`<div style="font-size:11px;color:#8b98a9;margin:3px 0 4px">${starSubLine}</div>`:''}
     <div style="font-size:11px;color:${myth?'#ffcf40':gi.col};font-weight:700">${myth?'✦ '+ewT('herolist.rarity_mythical'):gi.name} · <span style="color:#8b98a9">${ewT(('herolist.role_'+String(t.role).toLowerCase()))||t.role} · ${heroProfWord(t.combatRow)} · ${heroProfWord(t.damageProfile)}</span></div>
-    <div style="font-size:11px;color:#8b98a9;margin-top:4px">${ewT('guild.level_n',{n:lvl})}${capped?' <span style="color:#ffd45e">'+ewT('hero.cap',{n:playerLevel()})+'</span>':''}</div>
+    <div class="hd-lvl" style="font-size:11px;color:#8b98a9;margin-top:4px">${ewT('guild.level_n',{n:lvl})}${capped?' <span style="color:#ffd45e">'+ewT('hero.cap',{n:playerLevel()})+'</span>':''}</div>
     <div style="height:7px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${capped?100:pct}%;background:${capped?'#ffd45e':'linear-gradient(90deg,#5ee89b,#4aa3ff)'}"></div></div>
   </div>`;
   const armorPanel='';
