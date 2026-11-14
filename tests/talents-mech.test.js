@@ -221,6 +221,13 @@ test('shield, heal with overheal, energy, damage dealt by a talent (exact, no ca
   assert.equal(stack(L,'k'),1); near(h2-F[3].hp,over,'the overkill carried in full to the enemy nearest the one that died (no distance limit on that row)');
 });
 
+test('a row is never re-entered by its own consequences: damage dealt by a kill row that kills again does not chain',()=>{
+  const def={states:{k:{}},talents:{t:[{on:'kill',do:[{stack:'k',add:1},{dmg:{flat:1e12},on:{team:'enemy',of:'target',n:1}}]}]}};
+  const L=lab([['t',1]],{def,foes:3}), {v,F}=L; V.hit(v,F[0],2e9,{kind:'true'});
+  assert.deepEqual(F.map(f=>f.alive),[false,false,true],'the hit killed the first, the row's damage the second, and it stopped there'); assert.equal(stack(L,'k'),1);
+  V.hit(v,F[2],2e9,{kind:'true'}); assert.equal(stack(L,'k'),2,'the row is free again for the next kill');
+});
+
 test('cooldowns: the value set after a cast, and changes to a running cooldown',()=>{
   const def={talents:{t:[{on:'cd',skill:'green',less:R(0.1)},{on:'cd',skill:'blue',add:-1},{on:'hit',if:{crit:true},do:[{cd:'green',add:R(-0.5)}]},{on:'kill',do:[{cd:'blue',set:0}]}]}};
   const L=lab([['t',2]],{def}), {v,F}=L;
