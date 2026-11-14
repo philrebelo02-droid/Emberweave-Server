@@ -4603,7 +4603,7 @@ function campaignHeroSpec(u,key){
     if(d&&d.active&&Object.values((u.gear.equipped||{})[key]||{}).includes(aid)) gearSkill={
       name:d.active, slot:d.slot, defId:d.id, type:d.activeType||null,
       params:d.activeParams||null, desc:d.effect||'' }; }
-  return {
+  const _spec={
     key, level:ledHeroLevel(led,key),
     stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:SIM.refineClamp(h.ref),
     glyphRank:Math.max(0,Math.min(16,(board&&board.ascensionIndex)|0)),
@@ -4618,7 +4618,13 @@ function campaignHeroSpec(u,key){
     apMul:1,
     skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses:templeBonusesFor(u,key)
   };
+  { const _tl=talentListFor(led,key); if(_tl) _spec.talents=_tl; }   /* 14 Nov 2026 talents: on the spec only when the hero has learned something */
+  return _spec;
 }
+/* 14 Nov 2026 talents: the learned list a fight is built with ([[id,rank],...] sorted), or null. A build that the rules no longer accept
+   (a data correction, a level that dropped) fights with NO talents - never with half of one. Off unless TALENTS_ENABLED=true. */
+function talentListFor(led,key){ if(!TALENTS_ON||!led||!led.talents) return null; const b=led.talents[key]; if(!b||!TALENTS.has(key)) return null;
+  if(TALENTS.invalid(key,b,ledHeroLevel(led,key))) return null; const l=TALENTS.learned(key,b); return l.length?l:null; }
 /* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
    ledTx is the one choke point every grant and every spend passes through, so it is where the write
    becomes real. Before this, a crash inside the 200 ms debounce could drop a reward, a spend, or the
@@ -11619,6 +11625,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero61.js') return serveFile(res,'hero61.js','application/javascript',null,req);
   if(p==='/talents.js') return serveFile(res,'talents.js','application/javascript',null,req);
   if(p==='/talents-data.js') return serveFile(res,'talents-data.js','application/javascript',null,req);
+  if(p==='/talents-fx.js') return serveFile(res,'talents-fx.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   /* v1265 LANGUAGES step 1: one small file per language (lang/<code>.json, e.g. es, pt-BR, zh-Hant); the client fetches only the chosen one,

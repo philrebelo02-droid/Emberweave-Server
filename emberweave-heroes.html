@@ -4373,6 +4373,7 @@ body:has(#vtInfoPop) #mcLayer{z-index:20060}   /* the enemy card opens above the
 <script src="/hero-paths.js?v=r1263"></script>
 <script src="/talents-data.js?v=t1"></script>
 <script src="/talents.js?v=t1"></script>
+<script src="/talents-fx.js?v=t1"></script>
 <script src="/server/temple-of-ash.js?v=r1353"></script>
 <script src="/server/patron-benefits.js?v=r1256"></script>
 <script src="/server/temple-effects.js?v=r1123"></script>
@@ -11994,7 +11995,9 @@ function laneSlot(team,key,i,n,keys){
    static structure (type, kit abilities by rank) comes from the key+rank (present in code on every device), the
    resolved numbers are overwritten from the snapshot. Enemy teams stay portable as {key,level,rank} (makeUnit owned:false
    is deterministic), so only the OWNED side needs a snapshot. */
-function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, boss:!!u.boss,
+function snapUnitResolved(u){ const s=_snapUnitResolved0(u); if(u._talList&&u._talList.length) s.tal=u._talList.map(e=>[e[0],e[1]]);   /* 14 Nov 2026 talents: the learned list rides on the snap ONLY when the hero has learned something - a hero with no talents gives the same object as before */
+  return s; }
+function _snapUnitResolved0(u){ return { key:u.key, level:u.level, rank:u.rank, boss:!!u.boss,
   maxHp:u.maxHp, dmg:u.dmg, range:u.range, speed:u.speed, atkInterval:u.atkInterval, combatDist:u.combatDist, r:u.r, melee:!!u.melee, reach:u.reach||0, sz:UNIT_SIZE,
   apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, defRating:u.defRating||0, penRating:u.penRating||0,
   armorRating:u.armorRating||0, mrRating:u.mrRating||0, armorPen:u.armorPen||0, magicPen:u.magicPen||0,
@@ -12046,6 +12049,7 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.pass=s.pass?JSON.parse(JSON.stringify(s.pass)):null;
   u.gearSkill=s.gearSkill?Object.assign({used:false},JSON.parse(JSON.stringify(s.gearSkill))):null;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18*UNIT_SIZE;   // re-apply the ranged reach gate after overriding stats
+  if(s.tal&&s.tal.length) u._talList=s.tal.map(e=>[e[0],e[1]]);   /* 14 Nov 2026 talents: the stat part is already in the numbers above - never applied twice */
   return u;
 }
 /* Headless deterministic fight resolver (Rule 3: attack/raid/mine decided by the two teams fighting on full auto).
@@ -12301,8 +12305,12 @@ function makeUnit(key,team,x,y,levelOverride,extra){
                      // summoned mid-match (Hurne's pack) never went through that one-shot index sweep and
                      // shipped id:undefined — every summon collapsed into one slot on the guest.
   if(owned) TempleEffects.applyClient(u,S?S.templeBonuses:templeBonusesClient(key));
+  /* 14 Nov 2026 TALENTS (Phil: "they are only activated when someone clicks learn talent"): the hero's learned talents - the server's frozen list
+     on a spec, this account's mirror (G.talents) for a hero built from the local save. No list, or an empty one: nothing below runs. */
+  if(owned){ const _tl=S?S.talents:talentListLocal(key); if(_tl&&_tl.length&&typeof TalentFx!=='undefined'){ TalentFx.applyStats(u,key,_tl); u._talList=_tl.map(e=>[e[0],e[1]]); } }
   return u;
 }
+function talentListLocal(key){ try{ const b=(typeof G!=='undefined'&&G&&G.talents)?G.talents[key]:null; if(!b||typeof TALENTS==='undefined') return null; const l=TALENTS.learned(key,b); return l.length?l:null; }catch(e){ return null; } }
 /* ---------------------------------------------------------------------------------------------
    SUMMONS (Hurne the Chained). The first units in the game spawned mid-battle.
    A summon is a real unit built by makeUnit() — it fights, takes damage and dies like anything
