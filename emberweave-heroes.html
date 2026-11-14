@@ -7376,7 +7376,8 @@ function resetPerWave(){ try{ for(const u of units){ if(u&&u._wlCrit){ u.glyphCr
    of its fight) - a fight in which nobody has learned a mechanic talent runs exactly the code it ran before. Search "TALENT HOOK" for all of them. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bind) TalentFx.bind({ units:()=>units, now:()=>battleTime, rage:()=>rageMul, rnd:()=>brnd(), METER:()=>METER,
   dist:(a,b)=>dist(a,b), damage:(u,a,c,ne)=>damage(u,a,c,ne), healUnit:(u,a)=>healUnit(u,a), healCap:u=>worldHealCap(u), pushDot:(t,dps,dur,iv,col,src,kind)=>pushDot(t,dps,dur,iv,col,src,kind),
-  defMul:(s,t,k)=>defMul(s,t,k), ccDur:d=>ccDur(d), bodyR:u=>bodyR(u) });
+  defMul:(s,t,k)=>defMul(s,t,k), ccDur:d=>ccDur(d), bodyR:u=>bodyR(u), ccCap:f=>CC_DUR_MAX[f], pushHot:(t,hps,dur,iv)=>pushHot(t,hps,dur,iv),
+  slowMul:u=>slowMulFor((u&&u._castLv)||(u&&u.level)||1), fx:{ chill:(t,u)=>{ if(!(u&&u.pass&&u.pass.coldsnap)) return false; applyChill(t); } } });   /* Chill exists only with Cold Snap unlocked, as for her skills */
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -12679,6 +12680,7 @@ function damage(u,a,c,noEnergy,crit){
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
+  if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP */
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
     if(u._tal||u._talW) TalentFx.death(u);   /* TALENT HOOK death */
     if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
@@ -14133,6 +14135,7 @@ function ccApply(u, t, field, dur){
     return false;
   }
   t[field] = Math.max(t[field] || 0, dur);
+  if((u&&u._tal&&u._tal.on.ccHit)||(t._tal&&t._tal.on.ccGot)) TalentFx.ccHit(u,t,field,dur);   /* TALENT HOOK ccHit: a control effect landed (after the resist roll) */
   return true;
 }
 /* v797 (Phil: "the cast time should start at the exact same time as the animation starts") -
@@ -15126,12 +15129,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const dx=tg2.x-u.x, dy=tg2.y-u.y, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len, W=o.width||34*UNIT_SIZE;
       inRange.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, along=rx*ux+ry*uy;
         if(along<-12||along>len+24||Math.abs(rx*uy-ry*ux)>W)return;
-        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',2.5); if(u.pass&&u.pass.coldsnap)applyChill(e);
+        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',2.5); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */
         burstAt(e.x,e.y,0xcfeeff,8);
       });
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
-      dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
+      dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,tgt);   /* TALENT HOOK chill */ } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm;   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
@@ -15516,6 +15519,7 @@ const WAX_HEAL_CUT=0.30;
 const BEE_HEAL_CUT=0.30;   /* Phil 12 Nov: "Make it 30% + .2 per skill level" - 30% + 0.2% a level of her purple: 30.2% at level 1, 50% at 100 */
 function beeHealCut(lv){ return Math.min(0.9, BEE_HEAL_CUT+0.002*Math.max(1,lv|0)); }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
+  if((u._tal&&u._tal.on.healIn)||u._talW) a=TalentFx.healIn(u,a);   /* TALENT HOOK healIn: healing about to land (the unit's own rows, then team-wide rows watching it) */
   if((u._healCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._healCutUntil>battleTime) a*=1-EDGE.healCut;   /* v1367 Silence the healer */
   if((u._beeCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._beeCutUntil>battleTime) a*=1-(u._beeCut||BEE_HEAL_CUT);   /* v1376 The Swarm Moves On */
   if(typeof AFFINITIES_LIVE!=='undefined'&&AFFINITIES_LIVE&&u.target&&u.target.alive&&unitClass(u.target)==='Tank'&&u.target.team!==u.team&&units.some(o=>o.alive&&o.team===u.team&&unitClass(o)==='Support')) a*=1+EDGE.healBonus;   /* v1367 Sundering grace: allies attacking a Tank heal more while a Support fights beside them */ if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; if(u._tal&&u._tal.on.heal) TalentFx.heal(u,a);   /* TALENT HOOK heal: sees the heal before it is cut to the room left */
@@ -17368,8 +17372,8 @@ function think(u,dt){
     if(u._danceT<=0) u._danceT=0;
     return; }
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
-    if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._blizzSM||1);
-      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,ccDur(1.2)); if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
+    if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=(u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzR',8*METER):8*METER   /* TALENT HOOK num: Blizzard's radius (and its tick) */, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._blizzSM||1);
+      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */ if(brnd()<((u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzFreeze',0.10):0.10)   /* TALENT HOOK num: the freeze chance (the draw itself is unchanged) */){ e.stunned=Math.max(e.stunned||0,ccDur(1.2)); if(u._tal&&(u._tal.on.ccHit||u._tal.on.ccOut)) TalentFx.ccHit(u,e,'stunned',ccDur(1.2),true);   /* TALENT HOOK ccHit: a freeze written without ccApply */ if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
   if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
