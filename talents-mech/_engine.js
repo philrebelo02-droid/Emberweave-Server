@@ -723,7 +723,7 @@
   function land(u,t,skill){ const T=u._tal, L=T.s.lc; T.s.cur=(L&&L.length)?L.pop():null; if(T.on.land) run(T,u,'land',{u,src:u,tgt:t,skill}); }
   /* an area skill of hers is about to strike: where (c, the centre the skill itself uses), its options (o) and its damage to each enemy before the
      target's resist (raw). Kept as T.s.pt[skill] (a point: rows read 'pt:<skill>'), then 'at' rows (ctx.pt, ctx.o, ctx.raw). Astra's Starfire, Nebula, Collapsing Star */
-  function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0}); }
+  function at(u,skill,c,o,raw){ const T=u._tal; if(!c) return; const p={x:c.x,y:c.y,pt:true}; T.s.pt[skill]=p; if(T.on.at) run(T,u,'at',{u,src:u,tgt:u.target,skill,o:o||{},pt:p,raw:raw||0,c}); }   // c: what the page passed as the centre (Korvux: Falling Star's crater, the game's own ground hazard)
   /* ---- HER DODGES AND HER LINE (Calypsa). evade: the engine's evade window (evadecounter: Fighting Current) was spent on an enemy's hit (s); 'evade' rows
      (ctx src = tgt = unit = the enemy she evaded). The counter and the Prismatic Scales blade that follow are landPre / land pairs ('counter', 'blade').
      line: a line skill (piercethrow with deliver 'line': Tidal Ribbon) is about to send its sabers. Its enemies are measured exactly as the skill measures them
