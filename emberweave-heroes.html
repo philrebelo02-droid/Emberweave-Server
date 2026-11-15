@@ -14352,12 +14352,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||1)*rm);   /* TALENT HOOK at: where this area skill strikes */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
       if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
-        e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
+        e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25);
+        if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'novaPush'); }   /* TALENT HOOK pass: the ring has just pushed this enemy (Pyroclast's Heat Shimmer, Back Draft) */
       if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a',u);}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a',u); if(o.stun)ccApply(u,e,'stunned',o.stun); } } });
       ringBurst(u.x,u.y,0xffa657,10); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,10); break; }
-    case 'fireball':{const ctr=aimCtr||tgt;if(!ctr)break;enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||95)){dealDamage(u,e,dB*(o.mul||2.2)*rm,'#b98bff');}});burstAt(ctr.x,ctr.y,0xb98bff,24);break;}
+    case 'fireball':{const ctr=aimCtr||tgt;if(!ctr)break;if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||2.2)*rm);   /* TALENT HOOK at: where the pillar lands and its damage before resists (Pyroclast's Crownfire: its main target, Ashfall, Rain of Embers, the vent) */
+      enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||95)){dealDamage(u,e,dB*(o.mul||2.2)*rm,'#b98bff');}});burstAt(ctr.x,ctr.y,0xb98bff,24);break;}
     case 'fireorb':{ if(!tgt)break; const dmgAmt=dB*(o.mul||2.6)*rm, R=o.radius||58*UNIT_SIZE, atk=u, tx=tgt.x, ty=tgt.y;
       spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(brnd()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a',atk); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
       break; }
@@ -15631,7 +15633,8 @@ function deliverLaunch(u,type,o){ try{
     _pierce.sort((a,b)=>a.pr-b.pr); }
   try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].atLaunch&&FX16_ART[o.ownFx].mode!=='glide'&&TH&&scene) fx16Release(u,o.ownFx,o.dur||6,null,0); }catch(_e){}   /* v1178 Rim Breaker: the art is confirmed as the wheel leaves him (display only) */
   const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
-  const delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
+  let delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
+  if(u._tal&&u._tal.on.num) delay=TalentFx.num(u,'dlv:'+type,delay,tU);   /* TALENT HOOK num 'dlv:<type>': a delivered skill's flight time (Pyroclast's Turn and Burn: her next Ember Lash flies faster) */
   if(u._clipStarted){ u._clipStarted=false; } else { try{ startAbilityClip(u,type); }catch(_e){} }
   const sm0=u._castSM, lv0=u._castLv, slot0=u._castSlot;
   try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].mode==='glide'&&TH&&scene) rimGlideFx(u,tU,delay); }catch(_e){}   /* v1180 Rim Breaker: the wheel glides from his hand to the target's chest on the shot's own flight time (display only) */
@@ -17685,7 +17688,7 @@ function think(u,dt){
         // Rising Heat (Pyroclast): every scorched enemy she strikes stokes her own power.
         if(u.pass.risingheat){ let sc=0; enemiesOf(u).forEach(e=>{ if(e.alive&&e.dots&&e.dots.length)sc++; });
           if(sc>(u._rhSc||0)) firePassiveFx(u); u._rhSc=sc;   /* v884: art only - the aura flares as the scorched count rises */
-          u.apMul=1+Math.min(SKLV.risingheatCap(passLv(u)),0.09*_pm*sc); }   /* v1112: the cap grows 45% -> 59.9% */
+          const _rhG=!!(u._tal&&u._tal.on.num); u.apMul=1+(_rhG?Math.min(TalentFx.num(u,'rhCap',SKLV.risingheatCap(passLv(u))),TalentFx.num(u,'rhPer',0.09*_pm)*sc):Math.min(SKLV.risingheatCap(passLv(u)),0.09*_pm*sc)); }   /* TALENT HOOK num 'rhCap' / 'rhPer': Rising Heat's cap and its share per enemy, as Pyroclast's talents change them (Fanned, Kindled, Stubborn Heat) */   /* v1112: the cap grows 45% -> 59.9% */
       }
       if(u.key==='umbris'){
         // Seamless throw: hold the damage + flying orb until the attack clip's release frame (the ball leaves his
