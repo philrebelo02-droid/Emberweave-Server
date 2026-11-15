@@ -4415,6 +4415,7 @@ body:has(#vtInfoPop) #mcLayer{z-index:20060}   /* the enemy card opens above the
 <script src="/talents-data.js?v=t1"></script>
 <script src="/talents.js?v=t1"></script>
 <script src="/talents-fx.js?v=t1"></script>
+<script src="/talents-power.js?v=t1"></script>
 <script src="/server/temple-of-ash.js?v=r1353"></script>
 <script src="/server/patron-benefits.js?v=r1256"></script>
 <script src="/server/temple-effects.js?v=r1123"></script>
@@ -7416,6 +7417,11 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ bloomJu
 function talentStaticChain(u,foes){ const pm=(u.passMul||1); let n=0; foes.forEach(e=>{ if(!e||!e.alive) return; n++; try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
   if(n){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } return n; }
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ scChain:(u,foes)=>talentStaticChain(u,foes), elemMul:(s,t)=>elemMul(s,t) });
+/* 14 Nov 2026 (Hurne's talents): his ultimate cast at once by a talent (He Does It Anyway: Feed Them at no energy cost), at his ultimate's level, with the ultimate's own options. Only a learned talent row calls it. */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ castUltFree:u=>{ const ab=u.abilityOverride||u.t.ability; if(!ab) return; const k=[u._castSM,u._castLv,u._castSlot], lv=(u.skillLv&&u.skillLv[0])||1;
+    u._castLv=lv; u._castSM=skillMul(lv); u._castSlot='ult'; try{ _doEffectCore(u,ab,Object.assign({},ULT_DEF[ab]||{},(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } finally{ u._castSM=k[0]; u._castLv=k[1]; u._castSlot=k[2]; } } });
+/* 14 Nov 2026 (Meridian's talents): Well-Read's full ramp at his passive's level (Warm Up, Ever Faster, Charted Rest and every "at its full ramp" talent) */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ momCap:u=>SKLV.momentumCap(passLv(u)) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -8202,39 +8208,37 @@ let _powerBoon=null;   /* Starless Well (Phil 12 Nov: "The power in starless car
 const WELL_CLASS_OF={Tank:'Tank',Bruiser:'Bruiser',Brute:'Bruiser',Warrior:'Bruiser',Assassin:'Assassin',Marksman:'Marksman',Mage:'Mage',Support:'Support'};
 function wellBoonOf(key,S){ const cls=WELL_CLASS_OF[(HERO_TYPES[key]||{}).role]||'Bruiser', o={hp:0,atk:0,def:0}; (S&&S.buffs||[]).forEach(bf=>{ if(bf&&(bf.cls==='All'||bf.cls===cls)){ o.hp+=bf.hp||0; o.atk+=bf.atk||0; o.def+=bf.def||0; } }); return o; }
 function wellHeroPower(key,S){ _powerBoon=wellBoonOf(key,S); try{ return heroPower(key); } finally{ _powerBoon=null; } }
-/* 14 Nov 2026 TALENTS IN THE POWER NUMBER. MUST stay identical in server.js (snapshotHeroFromServer -> TalentFx.applyCore -> unitCardPower,
-   talentHealDpsMul, talentPowerFlat). An owned hero's learned STAT talents change the numbers the card is priced from by their percent, in
-   the line model's own order: max HP / attack / ability power to whole points, armor / magic resist x(1+n), crit chance added under the
-   60% cap, the whole critical hit x(1+n), attack speed x(1+n), healing power x(1+n) on the whole healing multiplier. Shield strength is not
-   in the card from any source. talentPowerTotals is null for a hero with nothing learned, and then no line of heroPower changes a number.
-   MECHANIC (non-stat) talents: no power yet - talentPowerFlat is the one place a per-rank flat term goes once the owner gives a rule. */
-function talentPowerTotals(key){ try{ if(typeof TalentFx==='undefined') return null; const l=talentListLocal(key); return (l&&l.length)?TalentFx.totals(key,l):null; }catch(e){ return null; } }
-/* TALENT POWER, FLAT TERM (mechanic talents): returns 0 until the owner sets a rule. list = [[id,rank],...]. = server talentPowerFlat. */
-function talentPowerFlat(key,list){ return 0; }
+/* 14 Nov 2026 TALENTS IN THE POWER NUMBER (WIRING/41b - TALENT POWER FORMULA). MUST stay identical in server.js heroCardPower / talentPowerFlat:
+   both add TalentPower.power (talents-power.js, one file loaded by both) at the same place - into the inner (pre-Temple) number, beside the
+   glyph tier. Max glyphs add a flat 25,000 to every hero; a typical full 91-point build adds about the same, priced per learned rank by its
+   depth and kind of effect (damage dealt, damage taken, shields, healing, control time, energy and cooldown, summons, on-death and
+   conditional, skill upgrades, other). Talent stats reach the fight (makeUnit) but NOT this card's stat lines, so nothing counts twice.
+   talentListLocal is null for a hero with nothing learned (or a build the rules refuse), and power() is 0 for a hero with no mechanics file:
+   then no line of heroPower changes a number. */
+function talentPowerFlat(key,list){ try{ return (typeof TalentPower!=='undefined'&&list&&list.length)?TalentPower.power(key,list):0; }catch(e){ return 0; } }
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ const _tb=templeBonusesClient(key), _gp=(typeof gearSockMul==='function'?gearSockMul(key):{})||{};   /* v1316 (Phil 8 Nov: gear penetration counts): gear pen joins the Temple pen term */
     const _tp=((_gp.armorPen||0)>0||(_gp.magicPen||0)>0) ? Object.assign({},_tb,{armorPenFlat:(Number(_tb&&_tb.armorPenFlat)||0)+(_gp.armorPen||0), magicPenFlat:(Number(_tb&&_tb.magicPenFlat)||0)+(_gp.magicPen||0)}) : _tb;   /* v1316: = server heroCardPower; no gear pen -> the Temple bonuses as before */
     return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(_tp)); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
   const TBF=TempleEffects.clientFlats(templeBonusesClient(key));   /* v1094 (Temple v2): the bars are flat stats - same whole numbers the server folds into its ratings */
-  const _TF=talentPowerTotals(key), _tkR=(v,f)=>(_TF&&_TF[f])?Math.round(v*Math.max(0.05,1+_TF[f])):v, _tkM=(v,f)=>(_TF&&_TF[f])?v*Math.max(0,1+_TF[f]):v;   /* 14 Nov 2026 talents: with nothing learned both return v itself */
   /* v807 - ROUND WHERE THE FIGHT ROUNDS. `buildUnit` rounds HP and attack to whole points before
      anything reads them, so those are the numbers the hero actually fights with; pricing the raw
      fractions put the card half a percent off the same hero priced anywhere else. Same order too -
      the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
-  const hp   = _tkR(Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat,'hp');   const _bo=_powerBoon||{hp:0,atk:0,def:0};
-  const atkP = _tkR(Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat,'atk')*(1+_bo.atk);
-  const atkM = (1+_bo.atk)*_tkR((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0,'apow');   /* v1099: Academy AP is a flat */
+  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;   const _bo=_powerBoon||{hp:0,atk:0,def:0};
+  const atkP = (Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat)*(1+_bo.atk);
+  const atkM = (1+_bo.atk)*((t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0);   /* v1099: Academy AP is a flat */
   const _sf=starFlat(key);   // v1369: star Armor / MR are flat rating points (x1), = the server core's armorRating / mrRating
-  const armor= (1+_bo.def)*_tkM(heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat,'armor');
-  const mr   = (1+_bo.def)*_tkM(heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat,'mr');
+  const armor= (1+_bo.def)*(heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + _sf.armor + (tt.armor||0)*3 + TBF.armorFlat);
+  const mr   = (1+_bo.def)*(heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + _sf.mr + (tt.mr||0)*3 + TBF.mrFlat);
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   let ehp    = hp*(1+_bo.hp)/Math.max(0.15,1-mitig);
   const _crR = (typeof techFlat==='function'?techFlat('critres'):0)+(tt.critRes||0); if(_crR>0){ const cr=Math.min(0.75,_crR*0.0005); ehp*=(1+REF_ENEMY_CRIT*REF_CRIT_BONUS)/(1+REF_ENEMY_CRIT*Math.max(0,REF_CRIT_BONUS-cr)); }   /* v1311: Academy crit resist (= mulsFromTotals critRes); v1316 (Phil 8 Nov): + gear crit resist (tt is gear only here - glyphs count as their tier) */
-  let crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
+  const crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
   const _fu  = furyPowerMul(key);   /* v1311: purple FURY */
-  let sw   = 1/Math.max(0.05, swingInterval(t)/(_fu!==1 ? (1+((tt.atkSpd||0)*0.0005))*_fu : (1+((tt.atkSpd||0)*0.0005))));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
+  const sw   = 1/Math.max(0.05, swingInterval(t)/(_fu!==1 ? (1+((tt.atkSpd||0)*0.0005))*_fu : (1+((tt.atkSpd||0)*0.0005))));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
   /* AP is weighted 1.5x a point of Attack and energy regen adds a little on top: a spell carries a
      kit coefficient and usually lands on more than one target, so counting Ability Power as if it
      were a single-target auto-attack read every Mage and Support ~40% below the rest of the roster.
@@ -8243,15 +8247,11 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Cathedral / King Bloatus read ~55% above the other tanks and Aureth ~50% above the other fighters for a few spell coefficients.
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
-  if(_TF){ if(_TF.crit) crit=Math.max(0,Math.min(0.6,crit+_TF.crit)); if(_TF.critDmg) critDmg=(1+critDmg)*Math.max(0.05,1+_TF.critDmg)-1;   /* 14 Nov 2026 talents (= TalentFx.applyCore) */
-    if(_TF.aspd) sw=1/Math.max(0.05, swingInterval(t)/((1+((tt.atkSpd||0)*0.0005))*_fu*Math.max(0.05,1+_TF.aspd))); }
   let dps    = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
-  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0)+(tt.healPow||0); if(_TF&&_TF.heal) dps*=1+((1+(_hlR>0?_hlR*0.0005:0))*Math.max(0.05,1+_TF.heal)-1)*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* 14 Nov 2026: a healing-power talent (= server talentHealDpsMul) */
-  else if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow); v1316 (Phil 8 Nov): + gear healing power */
+  const _hlR = (typeof techFlat==='function'?techFlat('heal'):0)+(tt.healPow||0); if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow); v1316 (Phil 8 Nov): + gear healing power */
   let _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
-  if(_TF) _pw+=talentPowerFlat(key,talentListLocal(key));
+  { const _tl=talentListLocal(key); if(_tl) _pw+=talentPowerFlat(key,_tl); }   /* 14 Nov 2026 talents (= server heroCardPower): the talents-power.js number; null list -> nothing changes */
   return _powerNoGlyph ? _pw : Math.round(_pw); }   // v1024: the inner (pre-Temple) call stays unrounded - the card rounds ONCE, after the Temple multiplier, as the server does (rounding twice put Yenna's card 446 against the server's 445)
-
 /* ------------------------------ progression -------------------------------- */
 const DEFAULT_G = {
   idv:2,                                                   // v926 hero-id rename stamp: fresh saves start migrated
@@ -12737,8 +12737,10 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
     const _base = _k==='magic' ? '#b79bff' : (_k==='true' ? '#e8e8f0' : '#ffb37a');
     const _crit = _k==='magic' ? '#e0c4ff' : '#ff8a4a';
     floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?_crit:((c&&c!=='#fff'&&c!=='#ffd9a8')?c:_base),vy:crit?1.5:1,crit:!!crit,sz:crit?16:11}); }   // don't render 0-damage popups (fully-mitigated hits)
+  const _talHd=!!(u._talW&&u.hp<=0&&u.alive&&(u._wardT||0)>0);   /* TALENT HOOK held (1 of 2): the Dawnward hold is about to keep a watched unit at 1 HP */
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
+  if(_talHd&&u.alive&&u.hp>0) TalentFx.held(u);   /* TALENT HOOK held (2 of 2): it held (Joss's Kept Word: his Sanctuary Guard kept an ally from falling) */
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
@@ -13589,7 +13591,7 @@ function edgeTauntPlus(taunter,victim){ return AFFINITIES_LIVE&&(unitClass(taunt
 function dealDamage(src,tgt,amt,color,kind,silent){ if(!DD.on) return _dealDamageCore(src,tgt,amt,color,kind,silent);   /* v1388 Damage Done: who hit, with what (bookkeeping only) */
   const _p=DD.hit; DD.hit={src,l:ddLbl(src)}; DD.depth++; try{ return _dealDamageCore(src,tgt,amt,color,kind,silent); } finally{ DD.depth--; DD.hit=_p; } }
 function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
-  if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); return; }   /* Shield wall: the Tank is the one being shot */
+  if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'wall');   /* TALENT HOOK foiled: a hit of a talented unit was stopped by the shield wall (Meridian's Windage) */ return; }   /* Shield wall: the Tank is the one being shot */
  if(typeof SFX!=='undefined'&&SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
@@ -13676,7 +13678,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   const _talSure=!!(src&&src._tal&&src._tal.on.sure&&src.team!==tgt.team)&&TalentFx.sure(src,tgt,kind,_isAuto);   /* TALENT HOOK sure: the attacker's talent may say this hit cannot be dodged (Kharos's Known Habits); false for every other unit */
   if(tgt._tal&&(tgt._tal.on.aimed||tgt._tal.on.dodge)&&src&&src.team!==tgt.team&&TalentFx.dodge(tgt,src,_isAuto,kind,_gSure||_talSure)){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#c9a6ff',vy:1.3,sz:13}); return; }   /* TALENT HOOK dodge: an enemy's hit coming at a talented unit (its 'aimed' rows), and its talent dodge (the seeded roll is inside a learned row only) */
   if(kind!=='true'&&!_gSure&&!_talSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.0005))){
-    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); return; }   // Evasion vs Accuracy
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'miss');   /* TALENT HOOK foiled: a hit of a talented unit was missed to Evasion (Meridian's Windage) */ return; }   // Evasion vs Accuracy
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
@@ -13689,7 +13691,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); }
     if(amt>0) _drF*=(_ph+_mg)/amt; amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }
   else if(kind!=='true'){ const _dm=defMul(src,tgt,'phys'); amt*=_dm; _drF*=_dm; // Armor vs Armor Pen
-    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; _drF*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
+    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; _drF*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'block');   /* TALENT HOOK foiled: a hit of a talented unit was halved by Block (Meridian's Windage) */ } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
@@ -14489,7 +14491,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           pushDot(e,_sD*0.12*sm,3,1,'#c0392b',u); } });
       for(let h=0;h<hits;h++) setTimeout(()=>ringBurst(u.x+Math.cos(dir)*R*.4,u.y+Math.sin(dir)*R*.4,0x7a3fa0,10), h*160);
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'RAZOR TEMPEST',t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
-    case 'mendburst':{ const l=lowestAlly(u); if(!l)break;
+    case 'mendburst':{ let l=lowestAlly(u);
+      if(l&&u._tal&&u._tal.on.skillTgt) l=TalentFx.skillTgt(u,'mendburst',l,o)||l;   /* TALENT HOOK skillTgt: Mending Stitch's ally (Linnet's The Thread She Can See) */
+      if(!l)break;
       if(o.pctLo!=null){ /* v1376 (Phil 12 Nov: "Seedlight shouldnt be a percent of their HP that high. Lets say 10% of their max hp at level 1 and 30% at 100.
            Have it scale off 30% ap") */ const _sl=(u.skillLv&&u.skillLv[1])||_kLv;
         /* "the heal over time should be essentially half the amount of the direct heal" */
@@ -14852,6 +14856,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'atkcrush':{                                               // "grabs the strongest enemy and crushes its Attack"
       let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const v=e.dmg||0; if(v>bv){bv=v;best=e;} });
       if(!best)break;
+      if(u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,'atkcrush',best,o)||best;   /* TALENT HOOK skillTgt: Radiant Hammer's victim (Joss's Hammer Between Them may choose another; his rows see it) */
       dealDamage(u,best,dB*(o.mul||1.5)*rm,o.color||'#ff9a6a');
       best._atkDnPct=Math.max(best._atkDnPct||0,o.pct||0.35); best._atkDnT=Math.max(best._atkDnT||0,o.dur||5);
       ccApply(u,best,'stunned',(o.stun||0.5)*(1-(best.ctrlRes||0)));
@@ -14945,6 +14950,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'lastbreath':{                                             // "shields the weakest ally and prevents their health falling below 1"
       let best=null,bv=2; alliesOf(u).forEach(a=>{ if(!a.alive)return; const f=a.hp/a.maxHp; if(f<bv){bv=f;best=a;} });
       if(!best)break;
+      if(u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,'lastbreath',best,o)||best;   /* TALENT HOOK skillTgt: Sanctuary Guard's ally (Joss's Only You may choose the Promised ally; his rows see it) */
       best.shield=Math.max(best.shield||0,(u.apow||0)*(o.mul||1.8)*sm); best.shieldT=Math.max(best.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): lastbreath shield had no timer and stacked per cast */
       best._wardT=Math.max(best._wardT||0,o.dur||5);   // the Dawnward hold: they will not fall while it lasts
       best._buffedT=0.5;
@@ -15649,7 +15655,7 @@ function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
      _healing guards the one hop so a link can never feed itself in a loop. */
   if(!u._healing){ u._healing=1;
     try{
-      if(u.pass&&u.pass.goldthread&&u._gtTo&&u._gtTo.alive&&u._gtTo!==u) healUnit(u._gtTo,a*0.4*(u.passMul||1));
+      if(u.pass&&u.pass.goldthread&&u._gtTo&&u._gtTo.alive&&u._gtTo!==u) healUnit(u._gtTo,(u._tal&&u._tal.on.num)?TalentFx.num(u,'gtPass',a*0.4*(u.passMul||1),u._gtTo):a*0.4*(u.passMul||1));   /* TALENT HOOK num 'gtPass': Golden Thread's share (Linnet's thread talents) */
       if(u._linkTo&&u._linkTo.alive&&(u._linkT||0)>0&&u._linkTo!==u) healUnit(u._linkTo,a*0.35);
     }catch(e){}
     u._healing=0; } floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
@@ -18860,7 +18866,9 @@ function _updateBattleCore(dt){
     if(h.vx||h.vy){ h.x+=h.vx*dt; h.y+=h.vy*dt; h.travelLeft-=dt; if(h.travelLeft<=0){ h.vx=0; h.vy=0; } }   /* v888 a travelling hazard */
     h.life-=dt; h.acc+=dt;
     if(h.acc>=h.interval){ h.acc-=h.interval; const _ddP=DD.hit, _ddC=DD.ctx; if(DD.on){ const _g=DD.tag.get(h), _o=h.src||h.owner||(_g&&_g.src)||null, _l=_g?_g.l:'passive'; DD.hit=_o?{src:_o,l:_l}:null; DD.ctx=DD.hit; }   /* v1388 */
+      const _chO=(h.heal&&h.src&&h.src._talS&&h.src._talS._tal)?h.src._talS:null; if(_chO) TalentFx.partPre(_chO,h,'chant');   /* TALENT HOOK partPre: this circle's heals are the Bone-Chanter's (Hurne's talents: her heals stronger, reaching his whole herd) */
       if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
+      if(_chO) TalentFx.part(_chO,h,'chant');   /* TALENT HOOK part: the circle has mended its side this second */
       units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,h.dmg,h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;

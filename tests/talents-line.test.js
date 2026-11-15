@@ -4,7 +4,8 @@
    power number from a line-model unit. This file proves:
      (a) switch off, or switch on with nothing learned: snapshotHeroFromServer and heroCardPower are identical to the pre-talent server;
      (b) with talents learned, each stat lands on the right line-model field by its percent, and nothing else moves;
-     (c) client heroPower == server heroCardPower with talents, exactly as the existing parity tests require without them;
+     (c) client heroPower == server heroCardPower with talents, exactly as the existing parity tests require without them (since 41b the card
+         prices talents by talents-power.js, not through the unit's stats: tests/talents-power.test.js);
      (d) a line fight: no talents = the pre-talent fight for the same seeds; stat talents win more often than the mirrored control;
      (e) a hero loaned in the Starless Well never carries the lender's talents.
    BASE = server.js at TALENT_BASE (default: the last commit on main before the talents branch). server/ has not changed since, so the
@@ -163,21 +164,23 @@ test('(c) ONE POWER with talents: the page\'s heroPower == the server\'s heroCar
     for(const [name,b] of B){ assert.equal(T.invalid(key,b,st.level),'',key+' '+name+' is legal');
       const c=cPow(key,st,b), s=sPow(ON,key,st,b); cards++; if(c!==s) bad.push([key,st.level,name,c,s]);
       const tot=FX.totals(key,T.learned(key,b)), vals=Object.keys(tot).filter(k=>k!=='shield').map(k=>tot[k]);
-      if(vals.length&&vals.every(v=>v>=0)&&vals.some(v=>v>0)&&(tot.hp||tot.atk||tot.armor||tot.mr)){   /* crit damage on a hero with no crit chance (a Tank) rightly moves nothing */ assert.ok(s>s0,key+' L'+st.level+' '+name+': stat talents raise the card ('+s0+' -> '+s+')'); moved++; }
+      if(require(path.join(root,'talents-power.js')).wired(key)&&vals.length&&vals.every(v=>v>=0)&&vals.some(v=>v>0)&&(tot.hp||tot.atk||tot.armor||tot.mr)){   /* 41b: an unwired hero has no talent power on the card */   /* crit damage on a hero with no crit chance (a Tank) rightly moves nothing */ assert.ok(s>s0,key+' L'+st.level+' '+name+': stat talents raise the card ('+s0+' -> '+s+')'); moved++; }
     } }
   assert.deepEqual(bad.slice(0,8),[],bad.length+' of '+cards+' cards differ between page and server');
-  assert.ok(cards>=100&&moved>=30,cards+' cards, '+moved+' raised');
+  assert.ok(cards>=100&&moved>=20,cards+' cards, '+moved+' raised');
 });
 
-test('(c) the size of the move is the formula\'s: +10% max HP is x sqrt(1.1) on the base term; mechanic talents add nothing yet',()=>{
+test('(c) the line unit carries the stats (+10% max HP is x sqrt(1.1) on the base term); the CARD adds the talents-power.js number instead',()=>{
   for(const key of ['vael','sylthaine','gruel']){ const st=L100(key);
     const u0=sUnit(ON,key,st,null,CARD), p0=ON.unitCardPower(u0,key,null);
     const b=build(key,[[0,91]],100), tot=FX.totals(key,T.learned(key,b)), u1=sUnit(ON,key,st,b,CARD), p1=ON.unitCardPower(u1,key,null);
     assert.ok(p1!==p0,key+': the card unit carries the talents');
     const hpOnly=Object.assign({},u0,{maxHp:Math.round(u0.maxHp*1.1)}); assert.ok(Math.abs(ON.unitCardPower(hpOnly,key,null)/p0-Math.sqrt(hpOnly.maxHp/u0.maxHp))<1e-12);
     const mo=mechOnly(key,100); assert.ok(T.spent(key,mo).total>0,'a build of talents with no stat part'); assert.deepEqual(FX.totals(key,T.learned(key,mo)),{});
-    assert.equal(sPow(ON,key,st,mo),sPow(ON,key,st,null),key+': mechanic talents give the server card nothing yet'); assert.equal(cPow(key,st,mo),cPow(key,st,null),key+': nor the page card');
-    assert.equal(ON.talentPowerFlat(key,T.learned(key,mo)),0); assert.equal(R('talentPowerFlat('+J(key)+','+J(T.learned(key,mo))+')'),0); }
+    /* 14 Nov 2026 (WIRING/41b): mechanic talents are priced by talents-power.js on both cards, the same number (tests/talents-power.test.js has the rest) */
+    const TPW=require(path.join(root,'talents-power.js')), want=TPW.power(key,T.learned(key,mo)); assert.ok(want>0,key+': mechanic talents have talent power');
+    assert.equal(sPow(ON,key,st,mo)-sPow(ON,key,st,null),want,key+': the server card adds the formula'); assert.equal(cPow(key,st,mo)-cPow(key,st,null),want,key+': and the page card the same');
+    assert.equal(ON.talentPowerFlat(key,T.learned(key,mo)),want); assert.equal(R('talentPowerFlat('+J(key)+','+J(T.learned(key,mo))+')'),want); }
 });
 
 test('(c) the page number follows a learn and a reset at once (no cache between the mirror and the card)',()=>{
