@@ -14403,6 +14403,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         interval:o.tick||1.0,acc:(o.tick||1.0),life:o.dur||5,
         owner:u, channel:true,
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,groundHazards[groundHazards.length-1],0);   /* TALENT HOOK at: where the Choir rises (Nerisse's Current, Ring the Bell); o = the choir itself */
       floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
       ringBurst(C.x,C.y,0x4aa8d8,22); break; }
     case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||1.2)*rm);   /* TALENT HOOK at: where the slam lands (Ambrel's Doors Slam Twice) */ enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
@@ -15640,7 +15641,9 @@ function deliverLaunch(u,type,o){ try{
   if(typeof SFX!=='undefined'&&SFX.loop) SFX.dl=groundHazards[groundHazards.length-1];   /* v1138 sound: this is the delivery's arrival (render only) */
   return true; }catch(_e){ return false; } }
 function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)continue; const dd=Math.hypot(a.x-h.x,a.y-h.y); if(dd<nd){nd=dd;nx=a;} }
+  if(h.owner&&h.owner._tal&&h.owner._tal.on.skillTgt){ nx=TalentFx.skillTgt(h.owner,'orbHop',nx,h); if(nx){ if(h.left.indexOf(nx)<0) h.left.push(nx); nd=Math.hypot(nx.x-h.x,nx.y-h.y); } }   /* TALENT HOOK skillTgt: where the orb goes next (Nerisse's Warning Light, Returning Star, Wandering Star; h = the orb) */
   if(!nx){ h.done=true; return; } h.left.splice(h.left.indexOf(nx),1); h.tgt=nx; h.hopT=0; h.hopDur=Math.max(0.18,Math.min(0.6,nd/(14*METER)));
+  if(h.owner&&h.owner._tal&&h.owner._tal.on.num) h.hopDur=TalentFx.num(h.owner,'orbDur',h.hopDur,nx);   /* TALENT HOOK num: how long this hop flies (Nerisse's Quick Orb) */
   try{ if(h.gfx&&typeof FX2_DEF!=='undefined'&&FX2_DEF[h.gfx]&&typeof spawnProjFx==='function'&&TH&&scene){ window._projTgtU=nx; window._fxCaster=h.owner;
     spawnProjFx(h.gfx,h.x,h.y,nx.x,nx.y,h.pscale,h.hopDur,function(){},1.6*(typeof gsplitFxMul==='function'?gsplitFxMul():1)); } }catch(_){} }
 
@@ -18872,8 +18875,8 @@ function _updateBattleCore(dt){
        last given and recover from it normally. It is the RE-APPLICATION that stops. */
     if(h.arrival){ h.delay-=dt; if(h.delay<=0){ groundHazards.splice(i,1); try{ if(typeof sfxRun==='function') sfxRun(h); else h.run(); }catch(_e){} } continue; }   /* v1138: sfxRun = h.run() inside its sound context */   /* v886 DELIVERY */
     if(h.orb){ if(h.done){ groundHazards.splice(i,1); continue; } h.hopT+=dt;   /* v885 Drifting Constellation: heal on arrival, then bounce on */
-      if(h.hopT>=h.hopDur){ const t=h.tgt; if(typeof SFX!=='undefined'&&SFX.log&&SFX.hz.has(h)&&SFX.hz.get(h).top===h&&!SFX.ar.has(h)){ SFX.ar.add(h); sfxArrive(h.owner,h); } if(t&&t.alive){ healFrom(h.owner,t,h.hs); if(h.hot)pushHot(t,t.maxHp*h.hot,h.hotDur,1); burstAt(t.x,t.y,0x8fd8ff,8); h.x=t.x; h.y=t.y; }
-        orbNextHop(h); if(h.done) groundHazards.splice(i,1); }
+      if(h.hopT>=h.hopDur){ const t=h.tgt, _oT=(h.owner&&h.owner._tal)?h.owner:null; if(typeof SFX!=='undefined'&&SFX.log&&SFX.hz.has(h)&&SFX.hz.get(h).top===h&&!SFX.ar.has(h)){ SFX.ar.add(h); sfxArrive(h.owner,h); } if(_oT) TalentFx.partPre(_oT,t,'orbHop');   /* TALENT HOOK partPre: this hop's heal is Drifting Constellation's ('casting' is 'orbHop') */ if(t&&t.alive){ healFrom(h.owner,t,h.hs); if(h.hot)pushHot(t,t.maxHp*h.hot,h.hotDur,1); burstAt(t.x,t.y,0x8fd8ff,8); h.x=t.x; h.y=t.y; }
+        orbNextHop(h); if(_oT) TalentFx.part(_oT,t,'orbHop');   /* TALENT HOOK part: the orb has reached t and picked its next hop (Nerisse's Phosphor, Wake, Quick Orb) */ if(h.done) groundHazards.splice(i,1); }
       continue; }
     if(h.channel){ const o=h.owner;
       if(!o || !o.alive || (o.stunned||0)>0 || (o.fearT||0)>0 || (o.silencedT||0)>0){
@@ -18884,11 +18887,11 @@ function _updateBattleCore(dt){
       const _chO=(h.heal&&h.src&&h.src._talS&&h.src._talS._tal)?h.src._talS:null; if(_chO) TalentFx.partPre(_chO,h,'chant');   /* TALENT HOOK partPre: this circle's heals are the Bone-Chanter's (Hurne's talents: her heals stronger, reaching his whole herd) */
       if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
       if(_chO) TalentFx.part(_chO,h,'chant');   /* TALENT HOOK part: the circle has mended its side this second */
-      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,(h._talH&&h._talH._tal)?TalentFx.num(h._talH,'hzTick',h.dmg,e):h.dmg,h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true);   /* TALENT HOOK num: a tick of a hazard a talented hero's rows made his (h._talH: Korvux's Falling Star crater; unit = the enemy) */ if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,(h._talH&&h._talH._tal)?TalentFx.num(h._talH,'hzTick',h.dmg,e):h.dmg,h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true);   /* TALENT HOOK num: a tick of a hazard a talented hero's rows made his (h._talH: Korvux's Falling Star crater; unit = the enemy) */ if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,(h.choir&&h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirSil',ccDur(h.silence),e):ccDur(h.silence));   /* TALENT HOOK num: the Choir's silence on e (Nerisse's Choir of Warnings, Long Silence, Echo) */
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;
             const _d=Math.hypot(a.x-e.x,a.y-e.y); if(_d<_bd){_bd=_d;_b=a;} }
-          if(_b) healUnit(_b,h.choir*(e.apow||0)); }
+          if(_b) healUnit(_b,(h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirHeal',h.choir*(e.apow||0),_b,e):h.choir*(e.apow||0)); }   /* TALENT HOOK num: the Choir's heal on _b for e (Nerisse's Choir heals, Sky Full of Stars) */
       } }); if(DD.on){ DD.hit=_ddP; DD.ctx=_ddC; } if(Math.random()<0.6)burstAt(h.x+(Math.random()*2-1)*h.r*0.6,h.y+(Math.random()*2-1)*h.r*0.6,0xff5b2a,4); }
     if(h.life<=0)groundHazards.splice(i,1); }
   if(!GSPLIT.active) battleFrameTail(dt);
