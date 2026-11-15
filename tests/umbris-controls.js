@@ -69,7 +69,7 @@ const C=[
   ['Last Reading at 30%',FXJ,"t.hp>=0.2*t.maxHp) return;","t.hp>=0.3*t.maxHp) return;",'Patient Eyepiece'],
   ['Last Reading every time',FXJ,"if(A.markOf(u,t,'umLR')) return; A.setMark","A.setMark",'Patient Eyepiece'],
   ['Short Candle 0.3 -> 0.4',FXJ,"sd_2_3:[ {on:'cd',skill:'blue',add:R(-0.3)} ]","sd_2_3:[ {on:'cd',skill:'blue',add:R(-0.4)} ]",'Patient Eyepiece'],
-  ['Patient Star 1% -> 2%',FXJ,"sd_9_3:[ {on:'cd',less:R(0.01)} ]","sd_9_3:[ {on:'cd',less:R(0.02)} ]",'Patient Eyepiece'],
+  ['Patient Star 1% -> 2%',FXJ,"sd_9_3:[ {on:'cd',less:R(0.01)} ],                                                                        // Patient Star","sd_9_3:[ {on:'cd',less:R(0.02)} ],                                                                        // Patient Star",'Patient Eyepiece'],
   ['Thick Shade 5% -> 6%',FXJ,"sd_4_3:[ {on:'kit',skill:SB,opt:{dps:{more:R(0.05)}}} ]","sd_4_3:[ {on:'kit',skill:SB,opt:{dps:{more:R(0.06)}}} ]",'Grey Air'],
   ['Grey Air 0.2 -> 0.3',FXJ,"wl_5_2:[ {on:'kit',skill:SB,opt:{radius:{addM:R(0.2)}}} ]","wl_5_2:[ {on:'kit',skill:SB,opt:{radius:{addM:R(0.3)}}} ]",'Grey Air'],
   ['Long Field 0.3 -> 0.4',FXJ,"wl_6_2:[ {on:'kit',skill:SB,opt:{dur:{add:R(0.3)}}} ]","wl_6_2:[ {on:'kit',skill:SB,opt:{dur:{add:R(0.4)}}} ]",'Grey Air'],
@@ -93,7 +93,7 @@ const C=[
   ['Faint Glow 1 -> 2 points',FXJ,"wl_12_2:[ {param:'miss',add:R(0.01)} ]","wl_12_2:[ {param:'miss',add:R(0.02)} ]",'Dimmed: misses'],
   ['misses on skills too',FXJ,"{on:'in',reqAny:MISS,if:{auto:true,fn:'srcDim'}","{on:'in',reqAny:MISS,if:{fn:'srcDim'}",'Dimmed: misses'],
   ['no misses on allies',FXJ,"{on:'teamIn',reqAny:MISS,if:{auto:true,fn:'allyDim'},","{on:'teamIn',reqAny:MISS,if:{auto:true,fn:'allyDim',crit:true},",'Dimmed: misses'],
-  ['Lamps Out off',FXJ,"if(m>1) c.amt/=m;","",'Dimmed: misses'],
+  ['Lamps Out off',FXJ,"if(P.lamps&&r.dim&&c.crit){ const b=s.critDmg||0.6; const m=1+(t.critRes?Math.max(0,b-t.critRes):b); if(m>1) c.amt/=m;","if(P.lamps&&r.dim&&c.crit){ const b=s.critDmg||0.6; const m=1+(t.critRes?Math.max(0,b-t.critRes):b);",'Dimmed: misses'],
   ['Shortened Sight 4% -> 5%',FXJ,"wl_8_4:[ {param:'bs',add:R(0.04)} ]","wl_8_4:[ {param:'bs',add:R(0.05)} ]",'Dimmed: misses'],
   ['the reach never given back',FXJ,"else if(r.rg!=null){ if(x.range===r.rs) x.range=r.rg; r.rg=null; } }","}",'Dimmed: misses'],
   ['Turned Down 10% -> 20%',FXJ,"wl_4_2:[ {param:'td',add:R(0.1)} ]","wl_4_2:[ {param:'td',add:R(0.2)} ]",'Dimmed: misses'],
@@ -153,7 +153,7 @@ const C=[
   ['Paired Again never',FXJ,"if(b) um.pr.push({a:t,b,t:6+(T.P['stars.dur']||0),cr:false});","",'Two Stars:'],
   ['the armed cast 3 times',FXJ,"{on:'out',if:{casting:UC,fn:'armedHit'},mul:4}","{on:'out',if:{casting:UC,fn:'armedHit'},mul:3}",'Second Candle'],
   ['the armed cast strikes everyone',FXJ,"vc.cx=b.x; vc.cy=b.y; vc.R=0.5;","vc.cx=b.x; vc.cy=b.y;",'Second Candle'],
-  ['the armed cast never armed',FXJ,"if(P.sc2&&!um.armed&&stN(T)>=mx-1e-9){ um.armed=true;","if(false){ um.armed=true;",'Second Candle'],
+  ['the armed cast never armed',FXJ,"if(P.sc2){ const n=stN(T); if(!um.armed&&um.full<=0&&n>=mx-1e-9&&(um.pSt==null||um.pSt<mx-1e-9)){ um.armed=true;","if(P.sc2){ const n=stN(T); if(false){ um.armed=true;",'Second Candle'],
   ['the armed cast Stare not kept full',FXJ,"um.full=6; A.stSet(T,u,'umStare',A.stMax(T,u,'umStare')); }","}",'Second Candle'],
   // ---- the caps ----
   ['his group 35% -> 40%',FXJ,"const DR_ME=0.35, DR_AL=0.15,","const DR_ME=0.40, DR_AL=0.15,",'the caps|most defensive'],
@@ -161,7 +161,7 @@ const C=[
   ['his group adds its shares',FXJ,"let k=1; const cut=x=>{ if(x>0) k*=1-Math.min(1,x); };\n      if(src){ const r=recOf(T,src);","let k=1; const cut=x=>{ if(x>0) k-=Math.min(1,x); };\n      if(src){ const r=recOf(T,src);",'the caps'],
   ['Unseen Reader within 6 m',FXJ,"if(E&&P['dr.ur']&&gapM(E,u,src)>8) cut(P['dr.ur']);","if(E&&P['dr.ur']&&gapM(E,u,src)>20) cut(P['dr.ur']);",'the caps'],
   ['Pale Hood on the front row',FXJ,"E.depth(src.key)>=3) cut(P['dr.ph']); }","E.depth(src.key)>=9) cut(P['dr.ph']); }",'the caps'],
-  ['slows 40% -> 50%',FXJ,"SLOW_CAP=0.40, REGEN","SLOW_CAP=0.50, REGEN",'the caps'],
+  ['slows 40% -> 50%',FXJ,"DR_ME=0.35, DR_AL=0.15, SLOW_CAP=0.40, REGEN=0.012, TH_MAX=10, LT_CD=15","DR_ME=0.35, DR_AL=0.15, SLOW_CAP=0.50, REGEN=0.012, TH_MAX=10, LT_CD=15",'the caps'],
   ['Unwavering 20% -> 25%',FXJ,"oc_5_1:[ {on:'ccIn',less:R(0.04),upTo:0.2} ]","oc_5_1:[ {on:'ccIn',less:R(0.05),upTo:0.25} ]",'the caps'],
 ];
 
