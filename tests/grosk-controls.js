@@ -1,0 +1,191 @@
+'use strict';
+/* The controls for Grosk's talent tests (run on the cluster through tools/remote_test.sh as a plain node script). Each control copies this checkout to a temp
+   folder, breaks ONE thing there (an exact text swap in emberweave-heroes.html or in the generated talents-fx.js: a page hook removed, a guard made
+   unguarded with a seeded draw, a primitive or a row of his broken), runs the named tests of tests/talents-mech-grosk.test.js in that copy, and expects
+   them to FAIL. The checkout itself is never changed. Prints one line per control and a count; exits 1 if any control was not caught.
+   CHECK=1: only checks that every text to break is found exactly once (no test is run). */
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process');
+const root=path.resolve(__dirname,'..');
+const HTML='emberweave-heroes.html', FXJ='talents-fx.js';
+const SITES='every page site', ID='no talents';
+const C=[
+  // ---- the page sites: hook removed (his tests fail) ----
+  ['Hammer Fists target hook removed',HTML,"if(tg&&u._tal&&u._tal.on.skillTgt) tg=TalentFx.skillTgt(u,type,tg,o)||tg;",'',SITES+'|Called Out:'],
+  ['punch fallen-target hook removed',HTML,"const _pg=(u._tal&&u._tal.on.skillTgt&&u.alive&&!tg.alive)?(TalentFx.skillTgt(u,'punch',tg,o)||tg):tg;","const _pg=tg;",SITES+'|Three Bites'],
+  ['punch partPre removed',HTML,"if(u._tal) TalentFx.partPre(u,_pg,'punch');",'',SITES+'|Mired:|Hammer Fists:'],
+  ['punch part removed',HTML,"          if(u._tal) TalentFx.part(u,_pg,'punch');",'',SITES+'|Mired:'],
+  ['Croc Drop landing hook removed',HTML,"if(!aimCtr&&u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,type,best,o)||best;",'',SITES+'|Down Beside'],
+  ['Croc Drop landPre removed',HTML,"      if(u._tal) TalentFx.landPre(u,null,'hipposlam');",'',SITES+'|Croc Drop:'],
+  ['Croc Drop land removed',HTML,"      if(u._tal) TalentFx.land(u,null,'hipposlam');",'',SITES+'|Croc Drop:'],
+  ['mwCut site removed',HTML,"cut=amt*(_mwN?TalentFx.num(g,'mwCut',SKLV.mirewall(passLv(g)),tgt,src):SKLV.mirewall(passLv(g)));","cut=amt*SKLV.mirewall(passLv(g));",SITES+'|Mirewall changed|Nothing Takes'],
+  ['mwTake site removed',HTML,"const take=cut*(_mwN?TalentFx.num(g,'mwTake',0.35,tgt,src):0.35);","const take=cut*0.35;",SITES+'|Undertow:'],
+  ['mwHeal site removed',HTML,"healUnit(g,take*(_mwN?TalentFx.num(g,'mwHeal',0.5,tgt,src):0.5));","healUnit(g,take*0.5);",SITES+'|Mirewall changed'],
+  ['teamLethal site: the killing hit not passed',HTML,"TalentFx.teamLethal(u,a);","TalentFx.teamLethal(u);",SITES+'|Never Left'],
+  // ---- an unguarded seeded draw at each new site (the no-talent identity test fails) ----
+  ['draw at the Hammer Fists target site',HTML,"if(tg&&u._tal&&u._tal.on.skillTgt) tg=","brnd(); if(tg&&u._tal&&u._tal.on.skillTgt) tg=",ID],
+  ['draw at the punch fallen-target site',HTML,"const _pg=(u._tal&&u._tal.on.skillTgt&&u.alive","const _pg=((brnd(),u._tal)&&u._tal.on.skillTgt&&u.alive",ID],
+  ['draw at the punch partPre site',HTML,"if(u._tal) TalentFx.partPre(u,_pg,'punch');","brnd(); if(u._tal) TalentFx.partPre(u,_pg,'punch');",ID],
+  ['draw at the punch part site',HTML,"          if(u._tal) TalentFx.part(u,_pg,'punch');","          brnd(); if(u._tal) TalentFx.part(u,_pg,'punch');",ID],
+  ['draw at the Croc Drop landing site',HTML,"if(!aimCtr&&u._tal&&u._tal.on.skillTgt) best=","brnd(); if(!aimCtr&&u._tal&&u._tal.on.skillTgt) best=",ID],
+  ['draw at the Croc Drop landPre site',HTML,"      if(u._tal) TalentFx.landPre(u,null,'hipposlam');","      brnd(); if(u._tal) TalentFx.landPre(u,null,'hipposlam');",ID],
+  ['draw at the Croc Drop land site',HTML,"      if(u._tal) TalentFx.land(u,null,'hipposlam');","      brnd(); if(u._tal) TalentFx.land(u,null,'hipposlam');",ID],
+  ['draw at the Mirewall site',HTML,"_mwN=!!(g._tal&&g._tal.on.num),","_mwN=!!((brnd(),g._tal)&&g._tal.on.num),",ID],
+  // ---- the runtime pieces ----
+  ['num drops the unit and the attacker',FXJ,"ctx={u,skill:name,amt:v,tgt:u.target,unit:x||null,src:s||null};","ctx={u,skill:name,amt:v,tgt:u.target};",SITES+'|Mirewall changed'],
+  ['teamLethal drops the amount',FXJ,"run(To,o,'teamLethal',{u:o,unit:u,tgt:u,amt:a||0});","run(To,o,'teamLethal',{u:o,unit:u,tgt:u});",SITES+'|Never Left'],
+  // ---- the Sunkfen Hold ----
+  ['Set Feet 0.3% -> 0.4%',FXJ,"sh_1_1:[ {on:'in',less:R(0.003),per:'depth'} ]","sh_1_1:[ {on:'in',less:R(0.004),per:'depth'} ]",'Depth: Set Feet'],
+  ['Depth max 10 -> 11',FXJ,"depth:{max:10},","depth:{max:11},",'Depth: Set Feet'],
+  ['moving costs no Depth',FXJ,"s.dl=(s.dl||0)+dt*2*","s.dl=(s.dl||0)+dt*0*",'Depth: Set Feet'],
+  ['Bedrock 0.2% -> 0.3%',FXJ,"{stat:{mr:R(0.002)},per:'depth'}","{stat:{mr:R(0.003)},per:'depth'}",'Depth: Set Feet'],
+  ['Grounded Blows 0.2% -> 0.3%',FXJ,"sh_11_1:[ {stat:{atk:R(0.002)},per:'depth'} ]","sh_11_1:[ {stat:{atk:R(0.003)},per:'depth'} ]",'Depth: Set Feet'],
+  ['Settled ignored',FXJ,"Math.max(0,1-(T.P['depth.keep']||0))","Math.max(0,1)",'Depth: Set Feet'],
+  ['Deep Mud ignored',FXJ,"dt*(1+(T.P['depth.rate']||0))","dt*(1+0)",'Deep Mud'],
+  ['Waterline 2 -> 1 per rank',FXJ,"sh_12_1:[ {on:'wave',do:[{stack:'depth',atLeast:R(2)}]} ]","sh_12_1:[ {on:'wave',do:[{stack:'depth',atLeast:R(1)}]} ]",'Deep Mud'],
+  ['Sunk to the Knees at 4',FXJ,"if:{auto:true,stackMin:{depth:5}}","if:{auto:true,stackMin:{depth:4}}",'Deep Mud'],
+  ['Moss Grown 0.24% -> 0.3%',FXJ,"pct:R(0.0024)","pct:R(0.003)",'Deep Mud'],
+  ['Patient Stone 0.1 -> 0.2 s',FXJ,"period:1,do:[{cd:'green',add:R(-0.1)}]} ]","period:1,do:[{cd:'green',add:R(-0.2)}]} ]",'Deep Mud'],
+  ['Bog Body reaches 8 m',FXJ,"targetWithin:4},less:R(0.01)}","targetWithin:8},less:R(0.01)}",'Bog Body'],
+  ['the leap keeps all Depth',FXJ,"leap(A,T,u){ const k=Math.min(0.5,T.P.plant||0);","leap(A,T,u){ const k=1;",'leap empties'],
+  ['Plant Again capped at 40%',FXJ,"const k=Math.min(0.5,T.P.plant||0);","const k=Math.min(0.4,T.P.plant||0);",'leap empties'],
+  ['The Fen Holds gives no Depth',FXJ,"{on:'land',skill:CD,do:[{stack:'depth',set:'max'}]}","{on:'land',skill:CD,do:[]}",'leap empties'],
+  ['Rooted costs no Depth',FXJ,"A.stSet(T,u,'depth',A.stGet(T,'depth')-5); s.rp=null;","s.rp=null;",'Rooted'],
+  ['the 50% control cap gone',FXJ,"T.s.rp=1; }\n      c.amt*=Math.max(0.5,k); },","T.s.rp=1; }\n      c.amt*=k; },",'Rooted'],
+  ['Thick Skull ignored',FXJ,"k*=(1-(T.P['ten.sil']||0))*(1-(T.P['ten.sil2']||0));","k*=(1-(T.P['ten.sil']||0));",'Rooted'],
+  ['Refusal at 10%',FXJ,"P('ref.th',0.08)","P('ref.th',0.10)",'Refusal'],
+  ['Still Here keeps all',FXJ,"Math.min(A.stGet(T,'ref'),T.P['ref.keep']||0)","A.stGet(T,'ref')",'Refusal'],
+  ['Hard to Swallow once a wave',FXJ,"if((s.hts||0)>=(T.r.sh_12_4||0)) return;","if((s.hts||0)>=1) return;",'Refusal'],
+  ['Stubborn Count 0.4% -> 0.5%',FXJ,"sh_3_4:[ {on:'in',less:R(0.004),per:'ref'} ]","sh_3_4:[ {on:'in',less:R(0.005),per:'ref'} ]",'Refusal'],
+  ['Spite of the Small 1% -> 2%',FXJ,"sh_10_4:[ {on:'refGain',do:[{heal:{pct:R(0.01)","sh_10_4:[ {on:'refGain',do:[{heal:{pct:R(0.02)",'Refusal'],
+  ['Last One Standing 1% -> 0.5%',FXJ,"{param:'ref.th',add:R(-0.01)}","{param:'ref.th',add:R(-0.005)}",'Last One'],
+  ['Not This Morning every hit',FXJ,"sh_9_4:[ {on:'in',once:'wave',","sh_9_4:[ {on:'in',",'Not This Morning'],
+  ['Mired not from punches',FXJ,"{on:'part',skill:'punch',reqAny:MIRE,if:{fn:'tauntMe'},do:[{fn:'mireT'}]},",'','Mired:'],
+  ['Sucking Mud ignored',FXJ,"dur:dur!=null?dur:3+(T.P['mire.dur']||0)","dur:dur!=null?dur:3",'Mired:'],
+  ['Mire Them 3% -> 4%',FXJ,"sh_2_2:[ {stat:{move:R(-0.03)}","sh_2_2:[ {stat:{move:R(-0.04)}",'Mired:'],
+  ['Grip of the Fen on anyone',FXJ,"if:{casting:'punch',targetHas:'mired'},more:R(0.03)","if:{casting:'punch'},more:R(0.03)",'Mired:'],
+  ['Clinging Mud 1.5% -> 2%',FXJ,"sh_6_2:[ {on:'teamIn',if:{srcHas:'mired',targetTeam:'ally'},less:R(0.015)} ]","sh_6_2:[ {on:'teamIn',if:{srcHas:'mired',targetTeam:'ally'},less:R(0.02)} ]",'Mired:'],
+  ['Dragged Under 1% -> 2%',FXJ,"sh_10_2:[ {on:'teamIn',if:{targetHas:'mired',srcTeam:'ally'},more:R(0.01)} ]","sh_10_2:[ {on:'teamIn',if:{targetHas:'mired',srcTeam:'ally'},more:R(0.02)} ]",'Mired:'],
+  ['Swallowed Whole on anyone',FXJ,",m:!!A.markOf(u,x,'mired')}",",m:true}",'Swallowed'],
+  ['Spit Out to the farthest',FXJ,"spit(A,T,u,c){ const x=A.pick(T,u,{team:'enemy',n:1,skip:'unit'},c)[0];","spit(A,T,u,c){ const x=A.pick(T,u,{team:'enemy',skip:'unit',order:'near'},c).pop();",'Swallowed'],
+  ['Long Silence 0.2 -> 0.3 s',FXJ,"{fn:'ext',f:'silencedT',by:R(0.2)}","{fn:'ext',f:'silencedT',by:R(0.3)}",'Gravemaw Pull:'],
+  ['Gravemaw Hunger 0.2 -> 0.1 m',FXJ,"oj_5_1:[ {on:'kit',skill:GP,opt:{radius:{addM:R(0.2)}}} ]","oj_5_1:[ {on:'kit',skill:GP,opt:{radius:{addM:R(0.1)}}} ]",'Gravemaw Pull:'],
+  ['the 4 s ceiling of a lengthened control -> 3.6 s',FXJ,"Math.min(4.0,(A.eng().ccCap(f)||2.8)","Math.min(3.6,(A.eng().ccCap(f)||2.8)",'Swallow the Voice'],
+  ['Hard Landing 3% -> 4%',FXJ,"sh_7_3:[ {on:'out',if:{casting:CD},more:R(0.03)} ]","sh_7_3:[ {on:'out',if:{casting:CD},more:R(0.04)} ]",'Croc Drop:'],
+  ['Bad Morning every Croc Drop',FXJ,"firstCd(A,T){ return T.s.cdN===1; }","firstCd(A,T){ return T.s.cdN>=1; }",'Croc Drop:'],
+  ['Rolling Weight 4% -> 5%',FXJ,"{targetUst:{bite:3}}]},more:R(0.04)","{targetUst:{bite:3}}]},more:R(0.05)",'Croc Drop:'],
+  ['The Jaws Close: no Death Roll',FXJ,"{on:'land',skill:CD,do:[{fn:'rollOn',on:{team:'enemy',n:1}}]}","{on:'land',skill:CD,do:[]}",'Croc Drop:'],
+  ['Wall of Teeth 0.2 -> 0.3 s',FXJ,"opt:{allyDrDur:{add:R(0.2)}}","opt:{allyDrDur:{add:R(0.3)}}",'Croc Drop:'],
+  ['Wet Season 1% -> 2%',FXJ,"allyDr:{more:R(0.01)},","allyDr:{more:R(0.02)},",'Croc Drop:'],
+  ['Down Beside Them 10% -> 5%',FXJ,"{on:'teamIn',if:{targetHas:'dbt',srcTeam:'enemy'},less:0.10}","{on:'teamIn',if:{targetHas:'dbt',srcTeam:'enemy'},less:0.05}",'Down Beside'],
+  ['the morning: not once a fight',FXJ,"sh_13_2:[ {on:'lethal',once:'fight',","sh_13_2:[ {on:'lethal',",'Morning He'],
+  ['the morning heals 40%',FXJ,"A.eng().healUnit(u,a*0.5)","A.eng().healUnit(u,a*0.4)",'Morning He'],
+  ['the morning taunts within 8 m',FXJ,"{taunt:3,on:{team:'enemy',within:5}}","{taunt:3,on:{team:'enemy',within:8}}",'Morning He'],
+  ['the morning ends at 20%',FXJ,"if(u.alive&&u.hp<0.3*u.maxHp) A.eng().healUnit(u,0.3*u.maxHp-u.hp);","if(u.alive&&u.hp<0.2*u.maxHp) A.eng().healUnit(u,0.2*u.maxHp-u.hp);",'Morning He'],
+  // ---- the Old Jaws ----
+  ['Gulp 3% -> 4%',FXJ,"oj_1_1:[ {on:'out',if:{casting:'punch'},more:R(0.03),per:{window:'gs'}} ]","oj_1_1:[ {on:'out',if:{casting:'punch'},more:R(0.04),per:{window:'gs'}} ]",'Gulp:'],
+  ['Gulp: one per Gravemaw Pull',FXJ,"if(n>0) A.stSet(T,u,'gulp',A.stGet(T,'gulp')+n); },","if(n>0) A.stSet(T,u,'gulp',A.stGet(T,'gulp')+1); },",'Gulp:'],
+  ['Big Swallow 0.3% -> 0.4%',FXJ,"oj_3_1:[ {on:'gulpSpent',do:[{heal:{pct:R(0.003)","oj_3_1:[ {on:'gulpSpent',do:[{heal:{pct:R(0.004)",'Gulp:'],
+  ['Digestion ignored',FXJ,"if(T.P.digest) A.acts(T,u,[{cd:'blue',add:-T.P.digest*n}],c);",'','Gulp:'],
+  ['Second Helping 1 -> 2 per rank',FXJ,"if:{fn:'spent5'},do:[{stack:'gulp',add:R(1)}]}","if:{fn:'spent5'},do:[{stack:'gulp',add:R(2)}]}",'Gulp:'],
+  ['Full Belly at 2',FXJ,"if:{stackMin:{gulp:3}},less:R(0.01)","if:{stackMin:{gulp:2}},less:R(0.01)",'Gulp:'],
+  ['Open Mouth 1 -> 2 per rank',FXJ,"oj_6_1:[ {on:'wave',do:[{stack:'gulp',atLeast:R(1)}]} ]","oj_6_1:[ {on:'wave',do:[{stack:'gulp',atLeast:R(2)}]} ]",'Gulp:'],
+  ['Swallow the Voice 2 a silence',FXJ,"{on:'ccHit',if:{casting:GP,cc:['silencedT']},do:[{stack:'gulp',add:1}]}","{on:'ccHit',if:{casting:GP,cc:['silencedT']},do:[{stack:'gulp',add:2}]}",'Swallow the Voice'],
+  ['Swallow the Voice at 4 Gulp',FXJ,"s.gs5=n>=5;","s.gs5=n>=4;",'Swallow the Voice'],
+  ['Bite Marks last 9 s',FXJ,"bite:{unit:true,max:6,dur:P('bite.dur',8),","bite:{unit:true,max:6,dur:P('bite.dur',9),",'Bite Marks:'],
+  ['Teeth Sink In 2 -> 1 s',FXJ,"{param:'bite.dur',add:R(2)}","{param:'bite.dur',add:R(1)}",'Bite Marks:'],
+  ['Many Teeth 0.3% -> 0.4%',FXJ,"oj_10_4:[ {stat:{aspd:R(-0.003)}","oj_10_4:[ {stat:{aspd:R(-0.004)}",'Bite Marks:'],
+  ['Old Scars at 4 marks',FXJ,"unitUst:{bite:3}},less","unitUst:{bite:4}},less",'Bite Marks:'],
+  ['Bone Breaker 3 -> 5 s',FXJ,"{mark:'bb',on:'target',dur:3}","{mark:'bb',on:'target',dur:5}",'Bite Marks:'],
+  ['Locked Jaw drops to 4',FXJ,"{ustack:'bite',on:'target',set:3}","{ustack:'bite',on:'target',set:4}",'Locked Jaw'],
+  ['Locked Jaw half a root',FXJ,"{stat:{move:-1},to:{team:'enemy',has:'lj'}}","{stat:{move:-0.5},to:{team:'enemy',has:'lj'}}",'Locked Jaw'],
+  ['Fresh Wounds 6% -> 20%',FXJ,"chance:R(0.06),do:[{ustack:'bite'","chance:R(0.2),do:[{ustack:'bite'",'Locked Jaw'],
+  ['Gnaw: no lock',FXJ,"icd:1,do:[{heal:{pct:R(0.004)","do:[{heal:{pct:R(0.004)",'Locked Jaw'],
+  ['Feeding Frenzy: 3 marks',FXJ,"n=Math.min(T.r.oj_11_4||0,A.ustGet(T,u,d,'bite'))","n=Math.min(3,A.ustGet(T,u,d,'bite'))",'Locked Jaw'],
+  ['Death Roll after two punches',FXJ,"if(s.pf.n===3||","if(s.pf.n===2||",'Death Roll:'],
+  ['Death Roll armor 3% -> 4%',FXJ,"{stat:{armor:R(-0.03)},to:{team:'enemy',has:'roll'}}","{stat:{armor:R(-0.04)},to:{team:'enemy',has:'roll'}}",'Death Roll:'],
+  ['Long Roll 0.5 -> 0.6 s',FXJ,"{param:'roll.dur',add:R(0.5)}","{param:'roll.dur',add:R(0.6)}",'Death Roll:'],
+  ['Twist the Body 2% -> 3%',FXJ,"oj_6_3:[ {on:'out',if:{targetHas:'roll'},more:R(0.02)} ]","oj_6_3:[ {on:'out',if:{targetHas:'roll'},more:R(0.03)} ]",'Death Roll:'],
+  ['Down to the Mud 1.5% -> 2%',FXJ,"{on:'teamIn',if:{targetHas:'roll',srcTeam:'ally'},more:R(0.015)}","{on:'teamIn',if:{targetHas:'roll',srcTeam:'ally'},more:R(0.02)}",'Death Roll:'],
+  ['Fed Well 2% -> 3%',FXJ,"unitHas:'roll'},do:[{heal:{pct:R(0.02)","unitHas:'roll'},do:[{heal:{pct:R(0.03)",'Death Roll:'],
+  ['Death Roll crit 0.4% -> 1%',FXJ,"chance:R(0.004),force:true}","chance:R(0.01),force:true}",'crit chance'],
+  ['Spin Them Loose 0.5 -> 0.4 s',FXJ,"stun:P('spin.stun',0.5)","stun:P('spin.stun',0.4)",'Spin'],
+  ['Thrown Clear 0.15 -> 0.1 s',FXJ,"{param:'spin.stun',add:R(0.15)}","{param:'spin.stun',add:R(0.1)}",'Spin'],
+  ['Drag to the Deep up to 5 s',FXJ,"Math.min(4,c.amt||0)","Math.min(5,c.amt||0)",'Spin'],
+  ['Three Bites: no third-punch Roll',FXJ,"if(s.pf.n===3||(T.P.bites3&&s.pi===3))","if(s.pf.n===3)",'Three Bites'],
+  ['Heavy Hands 4% -> 5%',FXJ,"sh_2_3:[ {on:'out',if:{casting:'punch'},more:R(0.04)} ]","sh_2_3:[ {on:'out',if:{casting:'punch'},more:R(0.05)} ]",'Hammer Fists:'],
+  ['Ground and Pound not on a fresh taunt',FXJ,"x.forcedTargetT=(t>(s.ftb||0)+1e-9)?t+add:","x.forcedTargetT=(t>(s.ftb||0)+1e-9)?t:",'Hammer Fists:'],
+  ['Fen Fury 2 a punch',FXJ,"{on:'hit',if:{casting:'punch',targetTeam:'enemy'},do:[{stack:'fury',add:1}]}","{on:'hit',if:{casting:'punch',targetTeam:'enemy'},do:[{stack:'fury',add:2}]}",'Hammer Fists:'],
+  ['Easy Meat: silences do not count',FXJ,"(x.silencedT||0)>0||",'','Hammer Fists:'],
+  ['Blood in the Water below 30%',FXJ,"if:{targetHpBelow:0.5},more:R(0.03)","if:{targetHpBelow:0.3},more:R(0.03)",'Hammer Fists:'],
+  ['the Old Crocs: crits not armed',FXJ,"crocs(A,T){ T.s.oc=1; }","crocs(A,T){ }",'Old Crocs'],
+  ['the Old Crocs: every 1 s',FXJ,"icd:15,do:[{cd:'blue',set:0}","icd:1,do:[{cd:'blue',set:0}",'Old Crocs'],
+  // ---- the Mirewall ----
+  ['Wardbound: Close Company ignored',FXJ,"rate=1+(T.P['wb.rate']||0)","rate=1",'Wardbound'],
+  ['Ward Bond 1% -> 2%',FXJ,"mw_1_1:[ {on:'teamIn',if:VS_WARD,less:R(0.01),per:{ust:'wb'}} ]","mw_1_1:[ {on:'teamIn',if:VS_WARD,less:R(0.02),per:{ust:'wb'}} ]",'Wardbound'],
+  ['Not on My Watch every time',FXJ,"&&nm[x.uid]!==s.wave){","){",'Wardbound'],
+  ['Mud Poultice not per Wardbound',FXJ,"E.healUnit(x,x.maxHp*T.P.poultice*n)","E.healUnit(x,x.maxHp*T.P.poultice)",'Wardbound'],
+  ['Ancient Patience ignored',FXJ,"d._talAP=k; d.dps*=k;","d._talAP=1;",'Wardbound'],
+  ['Keeper 0.2% -> 0.3%',FXJ,"mw_4_1:[ {on:'tick',period:1,do:[{heal:{pct:R(0.002)","mw_4_1:[ {on:'tick',period:1,do:[{heal:{pct:R(0.003)",'Wardbound'],
+  ['Deep Bond 0.4% -> 0.5%',FXJ,"{stat:{atk:R(0.004)},per:{ust:'wb'},to:","{stat:{atk:R(0.005)},per:{ust:'wb'},to:",'Wardbound'],
+  ['Spare a Hand 3% -> 4%',FXJ,"{on:'teamHeal',if:{fn:'uWard'},more:R(0.03)}","{on:'teamHeal',if:{fn:'uWard'},more:R(0.04)}",'Wardbound'],
+  ['Called Out: Answer for It ignored',FXJ,"const d=4+(T.P['co.dur']||0)","const d=4",'Called Out:'],
+  ['Hammer Fists not to the Called Out',FXJ,"{on:'skillTgt',skill:HF,do:[{retarget:{team:'enemy',has:'co',order:'near',n:1}}]}","{on:'skillTgt',skill:HF,do:[]}",'Called Out:'],
+  ['Who Hit Them 2% -> 3%',FXJ,"mw_1_2:[ {on:'out',if:{targetHas:'co'},more:R(0.02)}","mw_1_2:[ {on:'out',if:{targetHas:'co'},more:R(0.03)}",'Called Out:'],
+  ['Fen Justice 1% -> 2%',FXJ,"{on:'teamIn',if:{targetHas:'co',srcTeam:'ally'},more:R(0.01)}","{on:'teamIn',if:{targetHas:'co',srcTeam:'ally'},more:R(0.02)}",'Called Out:'],
+  ['No One Else 1.5% -> 2%',FXJ,"if:{srcHas:'co'},less:R(0.015)","if:{srcHas:'co'},less:R(0.02)",'Called Out:'],
+  ['Long Memory not per wave',FXJ,"return (o&&o.w===s.wave)?","return (o)?",'Called Out:'],
+  ['Long Memory 0.5% -> 0.6%',FXJ,"mw_11_2:[ {stat:{atk:R(0.005)}","mw_11_2:[ {stat:{atk:R(0.006)}",'Called Out:'],
+  ['Score to Settle 2% -> 3%',FXJ,"targetTeam:'enemy'},do:[{heal:{pct:R(0.02),of:'hpLost'}","targetTeam:'enemy'},do:[{heal:{pct:R(0.03),of:'hpLost'}",'Called Out:'],
+  ['Big Voice 0.2 -> 0.1 s',FXJ,"{param:'taunt.co',add:R(0.2)}","{param:'taunt.co',add:R(0.1)}",'Called Out:'],
+  ['Face Me does not taunt',FXJ,"if(T.P.faceme||taunt){","if(taunt){",'Face Me'],
+  ['Gravemaw Verdict 0.5 -> 0.4 s',FXJ,"do:[{fn:'ext',f:'silencedT',by:0.5}]","do:[{fn:'ext',f:'silencedT',by:0.4}]",'Face Me'],
+  ['Undertow: Rising Water ignored',FXJ,"span:6+(T.P['ut.dur']||0)","span:6",'Undertow:'],
+  ['Undertow cap 10 -> 12',FXJ,"const UTC={roll:'ut',step:1,max:P('ut.max',10)};","const UTC={roll:'ut',step:1,max:P('ut.max',12)};",'Undertow:'],
+  ['Undertow 0.4% -> 0.5%',FXJ,"mw_1_4:[ {stat:{atk:R(0.004)},per:UTC} ]","mw_1_4:[ {stat:{atk:R(0.005)},per:UTC} ]",'Undertow:'],
+  ['Deep Current 0.1% -> 0.2%',FXJ,"mw_7_4:[ {on:'in',less:R(0.001),per:UTC} ]","mw_7_4:[ {on:'in',less:R(0.002),per:UTC} ]",'Undertow:'],
+  ['Swell at 9',FXJ,"ut10(A,T,u){ return utCount(A,T,u)>=10; }","ut10(A,T,u){ return utCount(A,T,u)>=9; }",'Undertow:'],
+  ['Flood Tide at every gain',FXJ,"if(was<10&&utCount(A,T,u)>=10)","if(utCount(A,T,u)>=10)",'Undertow:'],
+  ['Flood Tide 1% -> 0.5%',FXJ,"{on:'ut10',do:[{heal:{pct:R(0.01),of:'maxHp'}}]}","{on:'ut10',do:[{heal:{pct:R(0.005),of:'maxHp'}}]}",'Undertow:'],
+  ['Brimming 2 -> 1 per rank',FXJ,"{param:'ut.max',add:R(2)}","{param:'ut.max',add:R(1)}",'Undertow:'],
+  ['Old Habit 3 -> 2 per rank',FXJ,"{fn:'utOn',by:R(3)}","{fn:'utOn',by:R(2)}",'Undertow:'],
+  ['Two Wards at three quarters',FXJ,"if(T.P.two) v*=2/3;","if(T.P.two) v*=3/4;",'Mirewall changed'],
+  ['Two Wards: no second ward',FXJ,"s.w2=w; if(w) w._mwBy=u; }","s.w2=null; }",'Mirewall changed'],
+  ['Steady Arm ignored',FXJ,"let v=c.amt+(T.P['mw.cut']||0);","let v=c.amt;",'Mirewall changed'],
+  ['Heavier Share ignored',FXJ,"c.amt+=T.P['mw.heal']||0;",'','Mirewall changed'],
+  ['Dug In: no 4%',FXJ,"c.amt*=1-(T.P.dug||0);",'','Mirewall changed'],
+  ['Wide Shelter 2% -> 3%',FXJ,"mw_6_3:[ {on:'teamIn',if:VS_WARD,less:R(0.02)} ]","mw_6_3:[ {on:'teamIn',if:VS_WARD,less:R(0.03)} ]",'Mirewall changed'],
+  ['toward his ward: any walk',FXJ,"if(s.moved&&s.wP===w&&s.wd!=null&&d<s.wd-1e-6) tw=1;","if(s.moved) tw=1;",'walking toward'],
+  ['Dug In: walking toward costs Depth',FXJ,"s.da=0; if(T.P['dug.depth']&&A.stGet(T,'tw')>0) return;","s.da=0;",'walking toward'],
+  ['Stand Guard 3% -> 4%',FXJ,"mw_8_3:[ {stat:{move:R(0.03)},per:'tw'} ]","mw_8_3:[ {stat:{move:R(0.04)},per:'tw'} ]",'walking toward'],
+  ['Never Left Behind: not once a wave',FXJ,"once:'wave',do:[{atOne:'unit'},{fn:'takeHit'}]","do:[{atOne:'unit'},{fn:'takeHit'}]",'Never Left'],
+  ['Never Left Behind: no hit taken',FXJ,"takeHit(A,T,u,c){ const a=c.amt||0;","takeHit(A,T,u,c){ const a=0;",'Never Left'],
+  ['Never Left Behind reaches 20 m',FXJ,"if:{fn:'uWard',unitWithin:6}","if:{fn:'uWard',unitWithin:20}",'Never Left'],
+  ['Seen It Coming every hit',FXJ,"mw_n1:[  {on:'in',by:'source',once:'wave',","mw_n1:[  {on:'in',by:'source',",'Seen It'],
+  ['Grim Stance from anyone',FXJ,"sh_8_3:[ {on:'in',if:{srcRow:'Back'}","sh_8_3:[ {on:'in',if:{}",'Seen It'],
+  ['Knotted Hide 2% -> 3%',FXJ,"sh_11_3:[ {on:'in',if:{crit:true},less:R(0.02)} ]","sh_11_3:[ {on:'in',if:{crit:true},less:R(0.03)} ]",'Seen It'],
+  ['Iron in the Mud 2% -> 3%',FXJ,"sh_9_3:[ {on:'out',ignoreArmor:R(0.02)} ]","sh_9_3:[ {on:'out',ignoreArmor:R(0.03)} ]",'Seen It'],
+  ['Shield Hand 3% -> 4%',FXJ,"mw_9_3:[ {on:'out',if:{auto:true},more:R(0.03)} ]","mw_9_3:[ {on:'out',if:{auto:true},more:R(0.04)} ]",'Seen It'],
+  ['the wall closes every 20 s',FXJ,"s.cwT=E.now()+25;","s.cwT=E.now()+20;",'Nothing Takes'],
+  ['the wall: he heals some back',FXJ,"mwHeal(A,T,u,c){ if(A.winOn(T,'close')&&c.unit&&c.unit===T.s.cw){ c.amt=0; return; }","mwHeal(A,T,u,c){",'Nothing Takes'],
+  ['the wall: moved at full strength',FXJ,"if(A.winOn(T,'close')&&c.unit&&c.unit===s.cw) c.amt=0.5; else","if(false) c.amt=0.5; else",'Nothing Takes'],
+  ['the wall: no Called Out',FXJ,"{on:'teamIn',if:{srcTeam:'enemy',window:'close',fn:'tCw'},do:[{fn:'coTaunt'}]}","{on:'teamIn',if:{srcTeam:'enemy',window:'close',fn:'tCw'},do:[]}",'Nothing Takes'],
+  ['the wall: no Undertow',FXJ,"utAdd(A,T,u,10); callOut(A,T,u,c.src,4); }","callOut(A,T,u,c.src,4); }",'Nothing Takes']
+];
+const SKIP=new Set(['.logs','.base','.bin','.git','.tmp','node_modules','assets','backups','.remote-logs']);
+const TMP=fs.existsSync('/tmp')?'/tmp':os.tmpdir();   // never inside the checkout (the runner may point TMPDIR there)
+function copyTo(dir){ fs.cpSync(root,dir,{recursive:true,filter:s=>{ const r=path.relative(root,s); return !r||!SKIP.has(r.split(path.sep)[0]); }});
+  for(const k of ['node_modules','assets']) if(fs.existsSync(path.join(root,k))) fs.symlinkSync(path.join(root,k),path.join(dir,k)); }
+function count(file,from){ const s=fs.readFileSync(path.join(root,file),'utf8'), a=from.replace(/\n/g,s.indexOf('\r\n')>=0?'\r\n':'\n'); return s.split(a).length-1; }
+function runOne(c){ return new Promise(res=>{ const [name,file,from,to,pat]=c, dir=fs.mkdtempSync(path.join(TMP,'ew-grc-')); copyTo(dir);
+  const p=path.join(dir,file), s=fs.readFileSync(p,'utf8'), a=from.replace(/\n/g,s.indexOf('\r\n')>=0?'\r\n':'\n'), n=s.split(a).length-1;
+  if(n!==1){ fs.rmSync(dir,{recursive:true,force:true}); res({name,ok:false,why:'the text to break was found '+n+' times'}); return; }
+  fs.writeFileSync(p,s.replace(a,()=>to));
+  const ch=cp.spawn(process.execPath,['--test','--test-name-pattern='+pat,'tests/talents-mech-grosk.test.js'],{cwd:dir,env:process.env}); let out='';
+  ch.stdout.on('data',d=>out+=d); ch.stderr.on('data',d=>out+=d);
+  ch.on('close',rc=>{ const m=/# fail (\d+)/.exec(out), pm=/# pass (\d+)/.exec(out); const f=m?+m[1]:-1; fs.rmSync(dir,{recursive:true,force:true});
+    res({name,ok:f>0,why:'fail '+f+', pass '+(pm?pm[1]:'?')}); }); }); }
+if(process.env.CHECK){ let bad=0; for(const c of C){ const n=count(c[1],c[2]); if(n!==1){ bad++; console.log('NOT ONCE ('+n+'): '+c[0]); } } console.log(C.length+' controls, '+bad+' texts not found exactly once'); process.exit(bad?1:0); }
+(async()=>{ const J=+(process.env.J||2), out=[]; let i=0;
+  async function worker(){ while(i<C.length){ const c=C[i++]; const r=await runOne(c); out.push(r); console.log((r.ok?'CAUGHT ':'MISSED ')+r.name+'  ('+r.why+')'); } }
+  await Promise.all(Array.from({length:J},worker)); const miss=out.filter(r=>!r.ok);
+  console.log('controls: '+(out.length-miss.length)+' of '+out.length+' caught'); process.exit(miss.length?1:0); })();

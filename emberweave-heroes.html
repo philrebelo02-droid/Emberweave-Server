@@ -12705,7 +12705,7 @@ function damage(u,a,c,noEnergy,crit){
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
-  if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP */
+  if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
     if(u._tal||u._talW) TalentFx.death(u);   /* TALENT HOOK death */
     if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
@@ -13568,8 +13568,8 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
     floatTexts.push({x:g.x,y:g.y-10,txt:'COLLECTED',t:.7,color:'#b9a06a',vy:1,sz:10}); }
   // The Mirewall (Grosk): his lowest-health ally takes 20% less, and 35% of what they avoid lands on HIM instead - he heals back half of it.
   if(tgt&&tgt._mwBy&&tgt._mwBy.alive&&tgt._mwBy!==tgt&&src&&src.team!==tgt.team){
-    const g=tgt._mwBy, cut=amt*SKLV.mirewall(passLv(g)); amt-=cut;   /* v1112: cap 35% + 0.1 pt a level */
-    const take=cut*0.35; if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,take),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,take))); g.hp=Math.max(1,g.hp-take);} healUnit(g,take*0.5);
+    const g=tgt._mwBy, _mwN=!!(g._tal&&g._tal.on.num), cut=amt*(_mwN?TalentFx.num(g,'mwCut',SKLV.mirewall(passLv(g)),tgt,src):SKLV.mirewall(passLv(g))); amt-=cut;   /* v1112: cap 35% + 0.1 pt a level */   /* TALENT HOOK num: the ward's cut (Grosk's Mirewall talents; ctx unit = the ward, src = the attacker) */
+    const take=cut*(_mwN?TalentFx.num(g,'mwTake',0.35,tgt,src):0.35); if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,take),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,take))); g.hp=Math.max(1,g.hp-take);} healUnit(g,take*(_mwN?TalentFx.num(g,'mwHeal',0.5,tgt,src):0.5));   /* TALENT HOOK num: the share moved onto him (each move), and the share he heals back */
     if((g._mwFxT||0)<=0){ g._mwFxT=0.7; floatTexts.push({x:g.x,y:g.y-10,txt:'MIREWALL',t:.6,color:'#9ad07a',vy:1,sz:10}); } }
   // Croc Drop's plant: while Grosk lives, the whole team eats 20% -> 35% less (by skill level) for 3s (v1308).
   if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team) amt*=1-(tgt._mwDrPct||0.20);
@@ -15072,6 +15072,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          range toward the densest one. */
       const _inR=_AR?foes.filter(c=>dist(u,c)<=_AR):foes, _pool=_inR.length?_inR:foes;
       _pool.forEach(c=>{ const n=foes.reduce((s,e)=>s+(dist(c,e)<R?1:0),0); if(n>bestN){bestN=n;best=c;} });
+      if(!aimCtr&&u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,type,best,o)||best;   /* TALENT HOOK skillTgt: where an unaimed Croc Drop lands (Grosk's Down Beside Them) */
       let _tx=aimCtr?aimCtr.x:best.x, _ty=aimCtr?aimCtr.y:best.y;
       if(_AR){ const _d=Math.hypot(_tx-u.x,_ty-u.y); if(_d>_AR){ _tx=u.x+(_tx-u.x)/_d*_AR; _ty=u.y+(_ty-u.y)/_d*_AR; } }
       const cx=Math.max(60,Math.min(FW-60,_tx)), cy=Math.max(80,Math.min(FD-60,_ty));
@@ -15086,10 +15087,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       /* v1116 (Phil 10 Oct: "grosk is too OP his ult is really strong" / "it scales off his HP, it should be more like 20% of his HP" /
          "at 100" / "should go from like 10% to 20% within those 100 levels"): hpMul 0.40 x the skill curve reached 87.5% of his max HP at
          level 100. Now one straight line: 10% at level 1 -> 20% at level 100 (+0.101 pt a level; the level is read back from sm). */
+      if(u._tal) TalentFx.landPre(u,null,'hipposlam');   /* TALENT HOOK landPre: Croc Drop lands - its slam, its stun and the Wall are the skill's */
       const _hl=Math.max(0,Math.min(99,Math.round((sm-1)/SKILL_STEP))), _hp=(o.hpMul||0.10)+((o.hpMul100||0.20)-(o.hpMul||0.10))*_hl/99;
       const dmg=u.maxHp*_hp*rm;
       foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); ccApply(u,e,'stunned',o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
       if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||3); a._mwDrPct=skLvNum('hipposlam',o,_kLv);   /* v1308: 20% + 0.15/99 a level (35% at 100), 3 s; v1112 had 30% + 0.15 pt a level, 5 s */ a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
+      if(u._tal) TalentFx.land(u,null,'hipposlam');   /* TALENT HOOK land: Croc Drop has landed */
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
@@ -15101,7 +15104,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          from the ability when it declares them; Grosk's stay exactly as they were. */
       { const c1=(o.ring!=null?o.ring:0x9a7b40), c2=(o.spark!=null?o.spark:0xcaa050);
         ringBurst(u.x,u.y,c1,16); burstAt(u.x,u.y,c2,14); } break; }
-    case 'punchflurry':{ const tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
+    case 'punchflurry':{ let tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(tg&&u._tal&&u._tal.on.skillTgt) tg=TalentFx.skillTgt(u,type,tg,o)||tg;   /* TALENT HOOK skillTgt: whom Hammer Fists punches (Grosk's Called Out) */ if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
       /* v1112 (Phil 10 Oct: "the damage dealt should land when the punch is fully extended each time"): a kit with hitTimes lands each
          punch at its moment in the clip (seconds of clip from the cast start = the clip start; clips play in real time and the fight
          clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE (0.6724) of it, so a hit is that many fight seconds per clip second in; the effect fires at the END of the cast, so
@@ -15111,9 +15114,11 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(Array.isArray(o.hitTimes)&&o.hitTimes.length){ const _ct=castTimeFor(u,u._castSlot||'blue'), _D=((o.armorMul!=null)?unitArmorNow(u)*punchArmorPct(o,_kLv)*(u.dmgBuffT>0?u.dmgBuffMul:1):dB*(o.mul||0.30))*rm, _clk=SIM_STEP*SIM_HZ*BATTLE_PACE;
         const _last=Math.max(0.01,o.hitTimes[o.hitTimes.length-1]*_clk-_ct); u._castT=Math.max(u._castT||0,_last+0.15);
         o.hitTimes.slice(0,o.hits||o.hitTimes.length).forEach(_ht=>{ groundHazards.push({arrival:true,delay:Math.max(0.01,_ht*_clk-_ct),run:function(){
-          if(!u.alive||!tg.alive)return; dealDamage(u,tg,_D,'#e0b070'); if(o.magicRider&&tg.alive) dealDamage(u,tg,_D*o.magicRider,'#b79bff','magic');
-          if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,(o.tauntDur||2)+edgeTauntPlus(u,tg)); ccApply(u,tg,'silencedT',o.tauntDur||2); }
-          burstAt(tg.x,tg.y,0xe0b070,10); if(o.ownFx==='gfist'){ try{ groskFistFx(u); }catch(_e){} } }}); });   /* v1217 Hammer Fists: the burst on his fist as this punch lands (display only) */
+          const _pg=(u._tal&&u._tal.on.skillTgt&&u.alive&&!tg.alive)?(TalentFx.skillTgt(u,'punch',tg,o)||tg):tg;   /* TALENT HOOK skillTgt: a punch whose target has fallen (Grosk's Three Bites) */
+          if(!u.alive||!_pg.alive)return; if(u._tal) TalentFx.partPre(u,_pg,'punch');   /* TALENT HOOK partPre: a Hammer Fists punch (its hit, its taunt and silence) */ dealDamage(u,_pg,_D,'#e0b070'); if(o.magicRider&&_pg.alive) dealDamage(u,_pg,_D*o.magicRider,'#b79bff','magic');
+          if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ _pg.forcedTarget=u; _pg.forcedTargetT=Math.max(_pg.forcedTargetT||0,(o.tauntDur||2)+edgeTauntPlus(u,_pg)); ccApply(u,_pg,'silencedT',o.tauntDur||2); }
+          if(u._tal) TalentFx.part(u,_pg,'punch');   /* TALENT HOOK part: the punch is over */
+          burstAt(_pg.x,_pg.y,0xe0b070,10); if(o.ownFx==='gfist'){ try{ groskFistFx(u); }catch(_e){} } }}); });   /* v1217 Hammer Fists: the burst on his fist as this punch lands (display only) */
         u.attackAnim=.2; break; }
       const _pfD=((o.armorMul!=null)?unitArmorNow(u)*punchArmorPct(o,_kLv)*(u.dmgBuffT>0?u.dmgBuffMul:1):dB*(o.mul||0.30))*rm;   /* v1308: an armour flurry (Hammer Fists) */
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,_pfD,'#e0b070');

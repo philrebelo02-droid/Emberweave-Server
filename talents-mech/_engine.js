@@ -647,7 +647,7 @@
   function hotPost(t,h,k){ const o=h._talU, T=o._tal, c=k.ctx; c.heal=h.hps; h.hps=k.keep; landed(T,o,t,c,k.hp0,k.room);
     if(h.remaining<=1&&T.on.hotEnd) run(T,o,'hotEnd',{u:o,tgt:t,unit:t,amt:k.keep,tag:h._talK}); }
   /* a number the engine keeps inside a skill's own code (a channel's radius, a proc chance): rows {on:'num',skill:'<name>', add / addM / more / mul} */
-  function num(u,name,v){ const ctx={u,skill:name,amt:v,tgt:u.target}; run(u._tal,u,'num',ctx); return ctx.amt; }
+  function num(u,name,v,x,s){ const ctx={u,skill:name,amt:v,tgt:u.target,unit:x||null,src:s||null}; run(u._tal,u,'num',ctx); return ctx.amt; }   // x, s: the unit and the attacker a number is about, where the page site passes them (Grosk's Mirewall: the ward, the enemy that hit it)
   /* a control effect LANDED (after the resist roll): 'ccHit' for the one who applied it. direct: the engine wrote this
      control without ccApply (a channel's proc) - the owner's ccOut rows get their say now, and the longer time is written on. */
   function ccHit(by,t,field,dur,direct){ const T=by&&by._tal;
@@ -660,7 +660,7 @@
   /* a Chill the hero's own skill just put on t (Sylthaine's Cold Snap): 'chill' rows. Only when her passive is unlocked - without it the skill applies no Chill */
   function chill(u,t){ if(!(u.pass&&u.pass.coldsnap)||!t) return; run(u._tal,u,'chill',{u,src:u,tgt:t}); }
   /* u is about to die from a blow (its own talents and Dawnward did not hold it): 'teamLethal' rows of the talented units watching it may keep it at 1 HP */
-  function teamLethal(u){ const W=u._talW; if(!W) return; for(let i=0;i<W.length&&u.hp<=0;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamLethal) continue; run(To,o,'teamLethal',{u:o,unit:u,tgt:u}); } }
+  function teamLethal(u,a){ const W=u._talW; if(!W) return; for(let i=0;i<W.length&&u.hp<=0;i++){ const o=W[i], To=o._tal; if(o===u||!o.alive||!To||!To.on.teamLethal) continue; run(To,o,'teamLethal',{u:o,unit:u,tgt:u,amt:a||0}); } }   // amt: the killing blow as it took the unit's HP (Grosk's Never Left Behind)
   /* a control effect landed on a watched unit through the engine's ccApply (after the resist roll; anyone's: an ally's stun on an enemy): 'teamCc' rows of the
      talented units watching it (ctx.unit = the unit, src = who applied it, field, amt = seconds as written). Absalie's Shared Fall */
   function teamCc(t,by,field,dur){ const W=t._talW; if(!W) return; for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===t||!o.alive||!To||!To.on.teamCc) continue;
