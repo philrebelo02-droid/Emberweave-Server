@@ -13564,7 +13564,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // Weigh the Debt (Gruel): a marked enemy's damage is partly redirected into him, and he heals off it.
   if(src&&(src._debtT||0)>0&&src._debtTo&&src._debtTo.alive&&src._debtTo!==tgt&&tgt&&tgt.team===src._debtTo.team){
     const cut=amt*(src._debtPct||0.35); amt-=cut; const g=src._debtTo;
-    if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,cut*.5),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,cut*.5))); g.hp=Math.max(1,g.hp-cut*0.5);} healUnit(g,cut*0.5);
+    if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,cut*.5),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,cut*.5))); g.hp=Math.max(1,g.hp-cut*0.5);} healUnit(g,(g._tal&&g._tal.on.num)?TalentFx.num(g,'collect',cut*0.5):cut*0.5);   /* TALENT HOOK num: each COLLECTED (Gruel's Fee, Profit, Licked Clean); the heal it gives */
     floatTexts.push({x:g.x,y:g.y-10,txt:'COLLECTED',t:.7,color:'#b9a06a',vy:1,sz:10}); }
   // The Mirewall (Grosk): his lowest-health ally takes 20% less, and 35% of what they avoid lands on HIM instead - he heals back half of it.
   if(tgt&&tgt._mwBy&&tgt._mwBy.alive&&tgt._mwBy!==tgt&&src&&src.team!==tgt.team){
@@ -14466,6 +14466,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     // ---- Gruel: takes on the biggest enemy's debt — their damage is partly redirected into him,
     //      and he heals off what he absorbs. A tank that protects by ACCOUNTING, not by taunting. ----
     case 'weighdebt':{ let big=null,bh=-1; enemiesOf(u).forEach(e=>{ if(e.alive&&e.maxHp>bh){bh=e.maxHp;big=e;} });
+      if(big&&u._tal&&u._tal.on.skillTgt) big=TalentFx.skillTgt(u,type,big,o)||big;   /* TALENT HOOK skillTgt: whom Weigh the Debt marks (Gruel's The Heaviest Pays may pick another; Two Ledgers keeps the next one) */
       if(!big)break; dealDamage(u,big,dB*(o.mul||1.0)*rm,'#b9a06a');
       big._debtTo=u; big._debtT=o.dur||6; big._debtPct=o.pct||0.35;
       floatTexts.push({x:big.x,y:big.y-12,txt:'IN DEBT',t:1.2,color:'#b9a06a',vy:1,sz:13});
@@ -18647,7 +18648,7 @@ function _updateBattleCore(dt){
       mates.forEach((m,i)=>{ if(!_bees.some(w=>w.ph===8&&w.u===u&&w.t===m)) _bees.push({ph:8,u,t:m,spr:null,ang:i*1.7,acc:0,pm}); });
     }
     if(u.pass.battery) units.forEach(o=>{if(o.alive&&o.team===u.team)o.energy=Math.min(100,o.energy+6*dt);});
-    if(u.pass.juggernaut) u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+u.maxHp*0.04*(u.passMul||1)*dt));   // Gruel self-heal 4% max HP/s (Grosk now runs mirewall instead)
+    if(u.pass.juggernaut) u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+((u._tal&&u._tal.on.num)?TalentFx.num(u,'glut',u.maxHp*0.04*(u.passMul||1)*dt):u.maxHp*0.04*(u.passMul||1)*dt)));   // Gruel self-heal 4% max HP/s (Grosk now runs mirewall instead)   /* TALENT HOOK num: Gluttony's heal this tick (Gruel's Appetite, Girth, Feast and the Gluttony talents) */
     // The Mirewall (Grosk): re-pick the ally he is standing in front of every frame - always the one closest to dying.
     if(u.pass.mirewall){ if(u._mwWard&&u._mwWard._mwBy===u)u._mwWard._mwBy=null;
       let w=null; units.forEach(o=>{ if(o.alive&&o.team===u.team&&o!==u&&(!w||o.hp<w.hp))w=o; });
