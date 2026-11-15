@@ -53,6 +53,7 @@ const isBoss=x=>!!((x.t&&x.t.isboss)||x._raidBoss);
 const learned=(T,L)=>L.some(id=>T.r[id]);
 module.exports={
   hero:'gruel',
+  times:['stlCd','wioCd','rgAt'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (Coinflail, Weigh the Debt, The Reckoning)
   states:{
     owed:{unit:true,max:P('owed.max',5),dur:P('owed.dur',8)},                 // Owed on each enemy: all of it lapses 8 s after its last gain (Arrears: longer)

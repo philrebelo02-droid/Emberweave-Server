@@ -45,6 +45,7 @@ const charted=(A,u,x)=>!!(x&&A.markOf(u,x,'mdCh'));
 const FLOOR={green:3.5,blue:3};                                      // his talents never bring Golden Quill below 3.5 s or Plumb Line below 3 s
 module.exports={
   hero:'meridian',
+  times:['md.fpT','md.inkT','md.hurtAt','md.greenAt','md.blueAt'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from
   needs:{ ls_6_1:'ls_1_1', ls_8_1:'ls_1_1', ls_12_2:'ls_1_1', ls_13_1:'ls_1_1',                                 // Sightings exist only with Clear Sightline
           ty_4_3:'ty_1_3', ty_8_3:'ty_1_3', ty_9_3:'ty_1_3', ty_5_2:'ty_1_3', ty_5_3:'ty_1_3', ty_11_3:'ty_1_3', ty_12_2:'ty_1_3' },   // Provisions exist only with Packed Provisions

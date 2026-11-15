@@ -18078,6 +18078,7 @@ function purgeTransientFx(){
 }
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
+  for(const _u of units){ if(_u&&_u._tal) TalentFx.clock(_u,battleTime); }   /* TALENT HOOK clock: the clock starts again at 0 below - a talented unit's stored fight times are moved back with it (only a unit with a learned mechanic talent has u._tal) */
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
   allies.forEach((u,i)=>{ /* Phil 26 Aug: HP & Energy carry between waves — only combat states clear */ u.target=null; u.attackAnim=0; u.castAnim=0; u._danceT=0; u._dash=null; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u._digHealT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._chillStacks=0; u._chillT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._noTargetT=0; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;

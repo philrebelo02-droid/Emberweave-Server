@@ -46,6 +46,7 @@ const willing=(A,u,x)=>A.markOf(u,x,'wl')?1:(A.markOf(u,x,'wh')?0.5:0);   // Mor
 const team=(A,T,u)=>A.eng().units().filter(x=>mate(u,x)&&!x._dropHidden);
 module.exports={
   hero:'lumi',
+  times:['lu.kb.*.t'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of her skills a hit / a heal comes from
   states:{
     vo:{max:P('vo.max',5),wave:'reset'},                            // Voices (kept for the wave; Kept Voices carries some into the next)

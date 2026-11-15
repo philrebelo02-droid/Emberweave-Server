@@ -45,6 +45,7 @@ function skillHits(T,f){ const d=T.s.d; T.s.d=0; try{ f(); } finally{ T.s.d=d; }
 function giveEnergy(t,n){ const e=t.energy||0, got=Math.max(0,Math.min(100-e,n)); t.energy=e+got; return n-got; }   // returns what did not fit
 module.exports={
   hero:'fritz',
+  times:['wtCd','lateAt'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (a bolt, a jump, a storm pulse)
   states:{
     charge:{max:20,wave:'reset'},                                                   // Charge (Bottled Storm)

@@ -62,6 +62,7 @@ function tstun(A,T,u,t,secs){ if(!t||!t.alive||t.team===u.team||!(secs>0)) retur
 function addSmo(A,T,u,t,n){ if(!t||!t.alive||t.team===u.team||!(n>0)) return; A.acts(T,u,[{ustack:'hSmo',on:'target',add:n}],{u,src:u,tgt:t}); }
 module.exports={
   hero:'hurne',
+  times:['hAnyT'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (the rupture), and when a heal is the Bone-Chanter's ('chant')
   summons:true,                         // his summons carry his rows (the summon hook)
   states:{

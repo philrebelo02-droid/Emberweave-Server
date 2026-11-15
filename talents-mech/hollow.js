@@ -59,6 +59,7 @@ function tstun(A,T,u,L,secs){ for(const t of L){ if(!t||!t.alive||t.team===u.tea
     A.control(T,u,t,'stunned',secs); if((t.stunned||0)>0) A.setMark(T,u,t,'lk',{dur:t.stunned+0.5,longest:true}); } }
 module.exports={
   hero:'hollow',
+  times:['ho.rdyT','ho.kT','ho.nrT','ho.shT'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from
   hide:'fg',                            // an enemy carrying his mark 'fg' (Forgotten) cannot pick him as its target (the page's nearestEnemy: hideFrom)
   watch:['co_n3','co_12_2','co_3_1'],   // the deaths of watched units (Blood Owed: an ally's killer; Reputation, Sealed: the Contract's death)

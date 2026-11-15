@@ -77,6 +77,7 @@ const litDur=T=>4+(T.P['lit.dur']||0);
 const isLit=(A,u,x)=>!!(x&&x.alive&&A.markOf(u,x,'iv_lit'));
 module.exports={
   hero:'iver',
+  times:['cbAt','caCd','sigCd','rgAt','ivFk'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (Volt Pike, Skybreak, the chain)
   points:true,                          // Skyward Spear reads where Skybreak lands (the at hook)
   states:{

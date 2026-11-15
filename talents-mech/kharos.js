@@ -49,6 +49,7 @@ const hasPs=(u,x)=>{ const D=x&&x.dots; if(!D) return false; for(let i=0;i<D.len
 const gapM=(E,a,b)=>(E.dist(a,b)-E.bodyR(a)-E.bodyR(b))/E.METER();
 module.exports={
   hero:'kharos',
+  times:['scU','la'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (Petal Sever, Bloomstep's strike, Orchid Execution)
   watch:true,                           // team rows (Lured In, Card in the Catalogue, the enemies' cut damage and healing), deaths (Fallen Bloom)
   states:{

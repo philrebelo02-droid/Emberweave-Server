@@ -38,6 +38,7 @@ function onLine(u,foes,t,W,extra){ const dx=t.x-u.x, dy=t.y-u.y, len=Math.hypot(
 const bladeAmt=u=>((u.apow||u.dmg)||0)*0.55*(u.passMul||1);
 module.exports={
   hero:'calypsa',
+  times:['seaCd'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of her skills a hit comes from (Ribbon, counter, blade, storm pulse)
   lines:true,                           // the line hook: the enemies on Tidal Ribbon's line, in order (Through-Cut, first / last, Flow, the echoes)
   states:{

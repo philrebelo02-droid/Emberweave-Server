@@ -50,6 +50,7 @@ function umark(A,T,u,c,t,d){ A.acts(T,u,[{mark:'um',on:'target',dur:d,longest:tr
 const umDur=T=>4+(T.P['um.dur']||0);
 module.exports={
   hero:'deepcleft',
+  times:['ccl.t'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit or a stun comes from
   points:true,                          // Second Shake reads Quarry Collapse's damage where it strikes (the at hook)
   states:{

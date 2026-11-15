@@ -43,6 +43,7 @@ const doseDur=T=>6+(T.P['dose.dur']||0);
 function doseSync(A,T,u){ A.stSet(T,u,'dose',(T.s.ds||[]).length); }
 module.exports={
   hero:'carn',
+  times:['lastAtk'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (Reckless Blow, Vein Burst, Crimson Reap)
   states:{
     steps:{max:10},                                                               // Paid Out, in steps of 10% of his max HP (the HP itself is T.s.paid)

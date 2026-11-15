@@ -56,6 +56,7 @@ const depCap=(T,u)=>(u.maxHp||0)*(0.20+(T.P['dep.cap']||0));
 const snapDots=(A,T,u)=>foes(A,T,u).map(x=>[x,(x.dots||[]).length]);
 module.exports={
   hero:'grimsby',
+  times:['doorsCd','rhsCd'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which of his skills a hit comes from (Overdue, Foreclosure)
   watch:true,                           // deaths (Entries, Rolled Over, Rent Strike, Foreclosed, Debt Transfer), team rows, the enemy that last hit an ally
   states:{

@@ -57,7 +57,8 @@
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
     T.watch=!!(T.on.death||T.on.teamIn||T.on.teamDotIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||T.on.teamHeld||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     T.mv=!!T.on.moved;                                                        // rows about an ally being pushed, pulled or knocked up (Askel's Breakwater): the owner's tick looks for it
-    if(M.hide) u._talHide=M.hide;                                            // an enemy carrying this mark of his cannot pick him as its target (Hollow's Forgotten: the page's nearestEnemy asks hideFrom)
+    if(M.times) T.times=M.times.map(p=>String(p).split('.'));                // times: where the hero file keeps its own absolute fight times (paths in T.s, '*' = every key): clock() moves them back at each wave
+    if(M.hide) u._talHide=M.hide;                                          // an enemy carrying this mark of his cannot pick him as its target (Hollow's Forgotten: the page's nearestEnemy asks hideFrom)
     u._tal=T; return T; }
 
   /* ---- named stacks / pools (T.st[name] = {max, dur, fade:{after,every,lose,unless}, wave:'reset'}) ---- */
@@ -839,6 +840,29 @@
     for(const k in s.k){ const d=T.st[k]; if(d&&d.wave==='reset') s.k[k].n=0; }
     for(const k in s.w) if(s.w[k].wave) s.w[k].t=0;
     if(T.on.wave) run(T,u,'wave',{u,tgt:u.target}); }
+  /* ---- THE WAVE CLOCK. The page's fight clock (battleTime, E.now()) starts again at 0 at every wave (beginWaveEnter: `battleTime=0`). Right before it does,
+          the page calls clock(u, t) for every talented unit, t = the clock as the wave ended. Every ABSOLUTE fight time this unit's talents keep (an internal
+          cooldown's lock, a window's cooldown, a refill, an 'after' action, a mark's end and age, a timed mark, a rolling sum's entries, a shield-break stamp,
+          and the hero file's own stamps listed in its `times`) is moved back by t, so it keeps exactly the time it had left, as if the clock had not jumped:
+          a lock set at 55 s of a wave with 20 s to run has 20 - (end - 55) s left in the next wave, never 20 + 55. Countdowns (windows, stack durations) need
+          nothing. Ground zones end here, as the game ends its own ground hazards on the same line. Nothing is drawn; a unit that has not yet fought a wave
+          (s.wave 0: the first wave's entry) is left alone, so a one-wave fight is untouched. ---- */
+  function shiftAt(o,P,i,d){ if(!o||typeof o!=='object') return; const k=P[i], last=i===P.length-1;
+    const one=key=>{ if(last){ if(typeof o[key]==='number') o[key]-=d; } else shiftAt(o[key],P,i+1,d); };
+    if(k==='*'){ for(const key in o) one(key); } else one(k); }
+  function clock(u,t){ const T=u._tal, s=T&&T.s; if(!s||!s.wave||!(t>0)||t===Infinity) return; const d=t;
+    for(const k in s.lim){ const L=s.lim[k]; L.t-=d; if(L.by) for(const i in L.by) L.by[i].t-=d; }   // icd locks (and the per-unit ones of by / each rows)
+    for(const k in s.w){ const w=s.w[k]; w.cdT-=d; w.at-=d; }                                            // a window's cooldown, and the moment it was started
+    for(const k in s.k){ const rf=s.k[k].rf; if(rf) for(let i=0;i<rf.length;i++) rf[i]-=d; }             // a refilling pool's units on their way back
+    for(let i=0;i<s.dq.length;i++) s.dq[i].t-=d;                                                         // 'after' actions still to come
+    for(let i=0;i<s.lq.length;i++) s.lq[i].t-=d;                                                         // late hits (dropped at the wave's start anyway)
+    for(let i=0;i<s.tm.length;i++) s.tm[i].until-=d;                                                     // timed marks (their end events)
+    for(const k in s.roll){ const e=s.roll[k].e; for(let i=0;i<e.length;i++) e[i][0]-=d; }               // rolling sums
+    if(s.brk!=null) s.brk-=d;                                                                            // when his shield last broke
+    for(const k in s.zn) s.zn[k].length=0; s.zc=false;                                                   // ground zones end with the wave, as the game's own ground hazards
+    const U=E.units(); for(let i=0;i<U.length;i++){ const M=U[i]._talM, o=M&&M[u.uid]; if(!o) continue;   // his marks and unit stacks, on every unit: their end, age, and 'away' time
+      for(const n in o){ const m=o[n]; if(!m) continue; if(m.until!=null) m.until-=d; if(m.t0!=null) m.t0-=d; if(m.aw!=null) m.aw-=d; } }
+    if(T.times) for(let i=0;i<T.times.length;i++) shiftAt(s,T.times[i],0,d); }                           // the hero file's own stamps
   /* once a tick per talented living unit, after every unit has thought and moved */
   function tick(u,dt){ const T=u._tal, s=T.s;
     if(T.watch){ const U=E.units(), dw=!!T.on.teamDotIn; for(let i=0;i<U.length;i++){ const x=U[i], w=x._talW; if(!w) x._talW=[u]; else if(w.indexOf(u)<0) w.push(u); if(dw) x._talDw=1; } }   // _talDw: a watcher has teamDotIn rows (the page then runs dotPre for x's DoT ticks)
@@ -893,6 +917,7 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),incProbe,healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),aggro:guard(aggro,t=>t),sure:guard(sure,()=>false),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),foiled:guard(foiled),chill:guard(chill),teamLethal:guard(teamLethal),held:guard(held),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),incProbe,healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),aggro:guard(aggro,t=>t),sure:guard(sure,()=>false),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),foiled:guard(foiled),chill:guard(chill),teamLethal:guard(teamLethal),held:guard(held),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),clock:guard(clock),tick:guard(tick),fallen:guard(fallen),
+    api:()=>API,                                                               // the rows' API (tests drive a hero file's own functions with it; nothing in a fight reads it)
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

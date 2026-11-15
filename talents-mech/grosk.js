@@ -56,6 +56,7 @@ function callOut(A,T,u,x,taunt){ if(!x||!x.alive||x.team===u.team) return; const
   if(T.P.faceme||taunt){ const t=taunt?Math.max(taunt,0):d; x.forcedTarget=u; x.forcedTargetT=Math.max(x.forcedTargetT||0,t); } }
 module.exports={
   hero:'grosk',
+  times:['dugT','cwT'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   casting:true,                         // rows ask which skill (or which punch) a hit, a stun or a silence comes from
   states:{
     depth:{max:10},                                                                // Depth (the 'depth' always row: standing still / moving)
