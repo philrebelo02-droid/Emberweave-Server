@@ -13728,7 +13728,7 @@ function pushDot(t,dps,dur,interval,color,src,kind){   // v1309: src (the caster
   // Compound Interest (Grimsby): a debt near him is slower to clear — every DoT on an enemy
   // within his aura lasts 20% longer. Applies to the WHOLE team's damage-over-time, not just his.
   try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
-    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+SKLV.debtaura(passLv(g)); break; } } } }catch(e){}
+    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+((g._tal&&g._tal.on.num)?TalentFx.num(g,'debtaura',SKLV.debtaura(passLv(g))):SKLV.debtaura(passLv(g))); break; } } } }catch(e){}   /* TALENT HOOK num 'debtaura': Compound Interest's share, as Grimsby's talents change it (Interest Only) */
   t.dots.push({dps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0,color:color||'#ff8844',src:src||null,kind:src?dotDmgKind(src,color||'#ff8844',kind):null}); if(DD.on) DD.tag.set(t.dots[t.dots.length-1],{src:src||null,l:src?ddLbl(src):'passive'}); }
 function pushHot(t,hps,dur,interval){ t.hots.push({hps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0}); if(DD.on) DD.tag.set(t.hots[t.hots.length-1],{src:DD.healBy||(DD.ctx&&DD.ctx.src)||(DD.hit&&DD.hit.src)||DD.actor||t}); }
 function enemiesOf(u){ return units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)); }
@@ -14409,7 +14409,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          time (it was rel*clip*BATTLE_PACE after the cast: 22% slow, plus the whole cast late). Damage, radius, DoT and zone unchanged. */
       u._voidT=Math.max(0.01,rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE-castTimeFor(u,'ult')); u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
-    case 'aoedot':{const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||0));   /* TALENT HOOK at */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657',u);}});burstAt(C.x,C.y,0xffa657,14);break;}
+    case 'aoedot':{const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||0));   /* TALENT HOOK at */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)&&!(o._only&&o._only.indexOf(e)<0)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657',u);}});burstAt(C.x,C.y,0xffa657,14);break;}   /* TALENT HOOK (an option only a talent's kit row writes): o._only = the enemies Foreclosure serves (Grimsby's Served by Hand); never set untalented */
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');ccApply(u,tgt,'stunned',o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');ccApply(u,tgt,'slow',2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=o.dur||5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
