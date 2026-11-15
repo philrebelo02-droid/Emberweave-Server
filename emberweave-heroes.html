@@ -15335,11 +15335,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     /* v483 (Phil): Hornet Cloud — 30 bees fly to the most congested enemy group, spread over the radius and sting every enemy there
        for 4 s, then return to the Beekeeper and disappear. Damage ticks come from the swarm controller, so the sim is identical headless. */
     case 'hornetswarm':{ const R=o.radius||2.8*METER; const C=aimCtr||densestEnemyCluster(u,R)||(tgt?{x:tgt.x,y:tgt.y}:null); if(!C)break;
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,'hornetswarm',C,o,apB*(o.dps||0.4));   /* TALENT HOOK at: where Hornet Cloud forms (Mellan's He Points: the enemy at its centre) */
       spawnHornetSwarm(u,C.x,C.y,R,{n:o.n||30,dur:o.dur||4,dps:apB*(o.dps||0.4),tick:0.5}); break; }   /* v1114: apB already carries the level - it was applied twice */
     /* v483 (Phil): Royal Nectar — a big glob of honey drops on the most wounded ally's head and vanishes, healing them */
     case 'honeyglob':{ const al=alliesOf(u); if(!al.length)break; const t=al.slice().sort((a,b)=>(a.hp/a.maxHp)-(b.hp/b.maxHp))[0]; const pp=!!(u.pass&&u.pass.perfectpitch);
       const heal=t.maxHp*(o.heal||0.14)+apB*2.0, hot=t.maxHp*(o.hot||0.04)+apB*0.4;
-      spawnHoneyGlob(u,t,()=>{ if(!t.alive)return; healFrom(u,t,heal); pushHot(t,hot,o.dur||5,1); if(pp){ t.shield=Math.max(t.shield||0,heal*SKLV.pitch(passLv(u))); t.shieldT=5; } }); break; }
+      spawnHoneyGlob(u,t,()=>{ if(!t.alive)return; if(u._tal) TalentFx.partPre(u,t,'nectar');   /* TALENT HOOK partPre / part: Royal Nectar lands (Mellan's Comb, Hive store, honey talents) */
+        healFrom(u,t,heal); pushHot(t,hot,o.dur||5,1); if(pp){ t.shield=Math.max(t.shield||0,heal*SKLV.pitch(passLv(u))); t.shieldT=5; }
+        if(u._tal) TalentFx.part(u,t,'nectar'); }); break; }
     case 'hivemind':{ const n=o.n||30; const tg=alliesOf(u).concat(enemiesOf(u)); if(!tg.length)break;
       const per=Math.floor(n/tg.length); let rem=n-per*tg.length; const plan=[]; tg.forEach(t=>{ let c=per+(rem>0?1:0); if(rem>0)rem--; for(let i=0;i<c;i++)plan.push(t); });
       for(let i=plan.length-1;i>0;i--){ const j=Math.floor(brnd()*(i+1)); const q=plan[i]; plan[i]=plan[j]; plan[j]=q; }
@@ -16373,8 +16376,11 @@ function spawnBeeHive(u,plan,cfg){ const draw=!!(TH&&scene);   // the SIM path i
     let spr=null; if(draw){ try{ spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); spr.renderOrder=995; spr.scale.set(sc,sc,1); beeAbove(u,0.35,_bv); spr.position.set(_bv.x+Math.cos(ang)*rad,_bv.y+Math.sin(bob)*0.2,_bv.z+Math.sin(ang)*rad*0.5); scene.add(spr); }catch(_){ spr=null; } }
     _bees.push({spr,u,t,cfg,ph:0,tt:0,hx,hy,ang,rad,spin,bob,dep:hivedur+i*(0.9/n),wob,fx:0,fy:0,fh:0,dur:0}); }
   ringBurst(u.x,u.y,0xf4c531,12); }
-function beeLand(u,t,cfg){ if(!t||!t.alive) return; if(t.team===u.team){ healUnit(t,cfg.heal+t.maxHp*cfg.healPct); if(cfg.shield){ t.shield=Math.max(t.shield||0,cfg.heal*0.4); t.shieldT=6; } }
-  else dealDamage(u,t,cfg.dmg,'#f4c531','magic'); burstAt(t.x,t.y,t.team===u.team?0xffe27a:0xf4c531,3); }
+function beeLand(u,t,cfg){ if(!t||!t.alive) return; if(u._tal) TalentFx.partPre(u,t,'hive');   /* TALENT HOOK partPre / part: a share of Hive Mind lands (Mellan's honey and sting talents) */
+  if(t.team===u.team){ healUnit(t,cfg.heal+t.maxHp*cfg.healPct); if(cfg.shield){ t.shield=Math.max(t.shield||0,cfg.heal*0.4); t.shieldT=6; } }
+  else dealDamage(u,t,cfg.dmg,'#f4c531','magic');
+  if(u._tal) TalentFx.part(u,t,'hive');
+  burstAt(t.x,t.y,t.team===u.team?0xffe27a:0xf4c531,3); }
 let _hiveGlow=null; function hiveGlowTex(){ if(_hiveGlow) return _hiveGlow; const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d'); const r=g.createRadialGradient(64,64,4,64,64,62); r.addColorStop(0,'rgba(255,214,90,0.95)'); r.addColorStop(0.45,'rgba(240,170,40,0.55)'); r.addColorStop(1,'rgba(200,120,20,0)'); g.fillStyle=r; g.fillRect(0,0,128,128); _hiveGlow=new TH.CanvasTexture(c); return _hiveGlow; }
 function spawnHornetSwarm(u,cx,cy,R,cfg){ const draw=!!(TH&&scene); const tex=draw?beeTex():null; const th=(u.sprH||3.2), sh=0.05+th*0.8;
   _bees.push({ph:5,u,cx,cy,R,tt:0,acc:0,life:cfg.dur,dps:cfg.dps,tick:cfg.tick});   // the controller: stings every enemy inside the ring each tick
@@ -16420,7 +16426,8 @@ function updateBees(dt){
       if(!b.done){ b.done=true; if(typeof SFX!=='undefined'&&SFX.log) sfxArrive(b.u,b); try{ b.onLand(); }catch(_){} burstAt(t.x,t.y,0xf0b830,10); }
       const m=(b.tt-b.dur)/b.melt; if(m>=1){ beeDrop(b); _bees.splice(i,1); continue; }
       honeyPlace(b, 1, m); if(b.spr) b.spr.material.opacity=1-m; continue; }
-    if(b.ph===5){ b.acc+=dt; if(b.acc>=b.tick){ b.acc-=b.tick; enemiesOf(b.u).forEach(e=>{ if(dist(e,{x:b.cx,y:b.cy})<=b.R) dealDamage(b.u,e,b.dps*b.tick,'#f4c531','magic'); }); } if(b.tt>=b.life){ _bees.splice(i,1); } continue; }
+    if(b.ph===5){ b.acc+=dt; if(b.acc>=b.tick){ b.acc-=b.tick; const _hcO=(b.u&&b.u._tal)?b.u:null; if(_hcO) TalentFx.partPre(_hcO,b,'hornet');   /* TALENT HOOK partPre / part: a sting tick of Hornet Cloud (Mellan's Leash talents; ctx.tgt = the cloud) */
+        enemiesOf(b.u).forEach(e=>{ if(dist(e,{x:b.cx,y:b.cy})<=b.R) dealDamage(b.u,e,b.dps*b.tick,'#f4c531','magic'); }); if(_hcO) TalentFx.part(_hcO,b,'hornet'); } if(b.tt>=b.life){ _bees.splice(i,1); } continue; }
     if(b.ph===6){ if(b.tt<0) continue;   // staggered take-off
       if(b.tt<=b.dur){ const k=b.tt/b.dur, ease=k*k*(3-2*k); if(b.spr){ const nx=b.fx+(b.gx-b.fx)*ease, ny=b.fy+(b.gy-b.fy)*ease, nh=b.fh+(1.6-b.fh)*ease+Math.sin(k*Math.PI)*0.8; b.spr.material.rotation=((b.gx-b.fx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); } continue; }
       const st=b.tt-b.dur; if(st<b.life){ b.ang+=b.spin*dt; const r=b.rad*(0.7+0.3*Math.sin(st*2+b.wob)); if(b.spr){ b.spr.position.set(wx(b.cx)+Math.cos(b.ang)*r*SC, 1.9+Math.sin(st*11+b.wob)*0.4, wz(b.cy)+Math.sin(b.ang)*r*SC); b.spr.material.rotation=Math.cos(b.ang)>=0?0:Math.PI; } continue; }
@@ -16428,7 +16435,7 @@ function updateBees(dt){
       if(b.spr){ const k=rt/rd, ease=k*k*(3-2*k); const hx=b.u.x, hy=b.u.y, hh=0.05+(b.u.sprH||3.2)*0.8; const sx=b.cx+Math.cos(b.ang)*b.rad, sy=b.cy+Math.sin(b.ang)*b.rad; const nx=sx+(hx-sx)*ease, ny=sy+(hy-sy)*ease, nh=1.1+(hh-1.1)*ease+Math.sin(k*Math.PI)*0.6; b.spr.material.rotation=((hx-sx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); b.spr.material.opacity=1-Math.max(0,k-0.8)*5; } continue; }
     if(b.ph===8){ const o=b.u, t=b.t;
       if(!o||!o.alive||!(o.pass&&o.pass.beeward)||!t||!t.alive||units.indexOf(t)<0){ beeDrop(b); _bees.splice(i,1); continue; }
-      b.acc+=dt; if(b.acc>=0.5){ b.acc-=0.5; const h=(t.maxHp*0.004+(o.apow||0)*0.08*(b.pm||1))*0.5; if(t.hp<worldHealCap(t)) t.hp=ddHp(t,Math.min(worldHealCap(t),t.hp+h),o); }
+      b.acc+=dt; if(b.acc>=0.5){ b.acc-=0.5; const h=(o._tal&&o._tal.on.num)?TalentFx.num(o,'bee',(t.maxHp*0.004+(o.apow||0)*0.08*(b.pm||1))*0.5,t):(t.maxHp*0.004+(o.apow||0)*0.08*(b.pm||1))*0.5; if(t.hp<worldHealCap(t)) t.hp=ddHp(t,Math.min(worldHealCap(t),t.hp+h),o); }   /* TALENT HOOK num: a worker bee's pulse (Mellan's Worker Swarm talents: ctx.unit = the ally it guards) */
       if(TH&&scene){ try{ if(!b.spr){ b.spr=new TH.Sprite(new TH.SpriteMaterial({map:beeTex(),transparent:true,depthWrite:false,depthTest:false})); b.spr.scale.set(0.55,0.55,1); scene.add(b.spr); }
         b.ang+=2.6*dt; const c=Math.cos(b.ang), sn=Math.sin(b.ang);
         beeAbove(t,0.25,_bv); b.spr.position.set(_bv.x+c*0.55, _bv.y+Math.sin(b.ang*2.3)*0.12, _bv.z+sn*0.3);
