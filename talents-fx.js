@@ -7846,6 +7846,7 @@ function knotsHp(T,x){ hpTo(S(T),x,'knF',1+0.01*rk(T,'ml_4_4')*knN(T,x)); }
 module.exports={
   hero:'linnet',
   casting:true,                         // rows ask which of her skills a heal comes from
+  times:['ln.gilt.*.until','ln.nosh.*','ln.tss.until','ln.seams.*.until','ln.hl.*','ln.lg.*.*.0','ln.un.*.s','ln.up.*.at','ln.lr.*.*.0','ln.hemL.*','ln.mt.*.t','ln.mt.*.l','ln.sureL.*','ln.snL.*','ln.sbT','ln.sbL','ln.gpT','ln.upd.*','ln.lm.*','ln.bs.*'],   // this file's own absolute fight times (paths in T.s): the engine moves them back with the clock at each wave (WIRING/41c)
   states:{
     lnSt:{unit:true,max:P('st.max',6),dur:P('st.dur',8)},     // Stitches on her side
     lnFr:{unit:true,max:5,dur:P('fr.dur',5)}                   // Frayed on enemies

@@ -105,7 +105,7 @@ test('a one-wave fight is untouched: the first wave\'s entry moves nothing (s.wa
 /* ============================== Part 2: the hero files' own stamps ============================== */
 /* each hero file that keeps an absolute fight time of its own lists it in `times`; the table here must match */
 const HERO={calypsa:['seaCd'],carn:['lastAtk'],deepcleft:['ccl.t'],fritz:['wtCd','lateAt'],grimsby:['doorsCd','rhsCd'],grosk:['dugT','cwT'],gruel:['stlCd','wioCd','rgAt'],
-  hollow:['ho.rdyT','ho.kT','ho.nrT','ho.shT'],hurne:['hAnyT'],iver:['cbAt','caCd','sigCd','rgAt','ivFk'],kharos:['scU','la'],lumi:['lu.kb.*.t'],meridian:['md.fpT','md.inkT','md.hurtAt','md.greenAt','md.blueAt']};
+  hollow:['ho.rdyT','ho.kT','ho.nrT','ho.shT'],hurne:['hAnyT'],iver:['cbAt','caCd','sigCd','rgAt','ivFk'],kharos:['scU','la'],lumi:['lu.kb.*.t'],linnet:['ln.gilt.*.until','ln.nosh.*','ln.tss.until','ln.seams.*.until','ln.hl.*','ln.lg.*.*.0','ln.un.*.s','ln.up.*.at','ln.lr.*.*.0','ln.hemL.*','ln.mt.*.t','ln.mt.*.l','ln.sureL.*','ln.snL.*','ln.sbT','ln.sbL','ln.gpT','ln.upd.*','ln.lm.*','ln.bs.*'],meridian:['md.fpT','md.inkT','md.hurtAt','md.greenAt','md.blueAt']};
 const any=h=>[[Object.keys(FX.mech(h).talents).sort()[0],1]];
 const noTimes=h=>FX.define(h,Object.assign({},FX.mech(h),{times:undefined}));
 const setP=(o,p,v)=>{ const P=p.split('.'); for(let i=0;i<P.length-1;i++){ const k=P[i]==='*'?'k':P[i]; o=o[k]&&typeof o[k]==='object'?o[k]:(o[k]={}); } o[P[P.length-1]==='*'?'k':P[P.length-1]]=v; };
@@ -156,6 +156,15 @@ test('Meridian: a refund never takes Golden Quill below 3.5 s after it was set (
 test('Grimsby: Doors Locked Behind Him and The Rate He Set (25 s locks) are moved back with the clock',()=>{
   const run=()=>{ const L=lab('grimsby',any('grimsby')); to(45); const t1=V.now(); L.T.s.doorsCd=t1+25; L.T.s.rhsCd=t1+25; const t=wave2(L); return [L.T.s.doorsCd,L.T.s.rhsCd].map(x=>Math.round((x-(t1+25-t))*1e6)/1e6); };
   assert.deepEqual(run(),[0,0],'each lock keeps what it had left'); noTimes('grimsby'); try{ assert.notDeepEqual(run(),[0,0],'control: not moved'); } finally{ FX.define('grimsby',null); }
+});
+
+test('Linnet: Long Memory (4 s, ln.lm.<uid>) and Sure Hands (once every 8 s per ally, ln.sureL.<uid>) keep their time left across the wave',()=>{
+  const run=()=>{ const L=lab('linnet',[['sh_5_2',1],['sh_6_2',3],['gl_12_1',3]],{allies:1}), {v,A:Al,F}=L, x=Al[0]; to(54); const o=L.T.s.ln;
+    o.lm={[x.uid]:V.now()+4}; o.sureL={[x.uid]:V.now()+8}; wave2(L); const o2=L.T.s.ln; to(2.5);
+    const dr=()=>L.T.fn.drK(A(),L.T,v,x,F[0],{},false); const a=dr(); to(3.5); const b=dr();
+    return [Math.round(a*1000)/1000,Math.round(b*1000)/1000,Math.round((o2.sureL[x.uid]-V.now())*10)/10]; };   // 3 s of Long Memory and 7 s of the lock were left at the wave's end
+  assert.deepEqual(run(),[0.91,1,3.5],'Long Memory ends 3 s into wave 2; the Sure Hands lock has 3.5 s left at 3.5 s');
+  noTimes('linnet'); try{ const r=run(); assert.deepEqual(r.slice(0,2),[0.91,0.91],'control (without its times): Long Memory runs on for the whole wave'); } finally{ FX.define('linnet',null); }
 });
 
 /* ============================== Part 3: whole fights ============================== */
