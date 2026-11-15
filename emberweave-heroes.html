@@ -7411,6 +7411,11 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ ntCd:u=
 /* Talents (Kharos Bloomknife, 14 Nov 2026): Bloomstep's jump and one real strike of his, for the talents that fire Bloomstep (a strike made inside another unit's hit must not
    read that hit's pre-rolled crit), so a talent sets him down and strikes exactly as the skill does */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ bloomJump:(u,T)=>bloomstepJump(u,T), strike:(u,t,a,c,k)=>{ const _p=_preCrit, _q=_autoAtk; _preCrit=null; _autoAtk=0; try{ return dealDamage(u,t,a,c,k); } finally{ _preCrit=_p; _autoAtk=_q; } } });
+/* 14 Nov 2026 (Iver's talents): Static Charge's own chain run again on the enemies a talent names (Hold It In's discharge into Skybreak, Let It Go's basic attack,
+   Forked Pike's chains): the same lines as the chain in castKit, real hits of his passive. Only a learned talent row calls it. */
+function talentStaticChain(u,foes){ const pm=(u.passMul||1); let n=0; foes.forEach(e=>{ if(!e||!e.alive) return; n++; try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
+  if(n){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } return n; }
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ scChain:(u,foes)=>talentStaticChain(u,foes), elemMul:(s,t)=>elemMul(s,t) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -14265,6 +14270,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   let _aimU=null; if(o.target==='weakestBack'){ _aimU=weakestBackEnemy(u); if(_aimU) aimCtr={x:_aimU.x,y:_aimU.y}; }   /* v1313 Magmourn's Fireball: picked at release, so the burst, the plate and the fire rain land on that hero */
   HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
   const tgt=_aimU||((o._arrived&&o._tgtU)?o._tgtU:((u.target&&u.target.alive)?u.target:nearestEnemy(u)));
+  if(u._talW) u._talAim={t:tgt,at:battleTime,area:!!(o.radius||o.width||o.angle||o.jumps||o.pierce||o.farthest||(o.n|0)>1)};   /* TALENT HOOK (a field only a talented hero's rows read; _talW is set only by such a hero): whom this skill is aimed at, when, and whether it is an area skill (Iver's Rod draws single-target abilities aimed at an ally) */
   _ownFxCast = !!(o && o.gfx); setTimeout(()=>{_ownFxCast=false;},0);   /* v451 FX-OWNERSHIP */
   fxFor(type,u,tgt,o);   // ability visual effect
   /* v552 (Phil: 'buff abilities like vireos heal and shield + any buff abilities should generate above everyone's health bar that's effected'):
@@ -15488,9 +15494,12 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
         if(e){ const kk=KITS[e.key], nm=((e.greenCd||0)<=(e.blueCd||0)?(kk.green&&kk.green.name):(kk.blue&&kk.blue.name))||'';
           if(nm) floatTexts.push({x:e.x,y:e.y-22,txt:'▸ '+nm,t:1.1,color:'#8fd8ff',vy:0.6,sz:11}); }
       }catch(err){} }
-    if(u.pass.staticcharge&&u._scReady){ u._scReady=0; u._scStk=0;                          // Static Charge - the cast chains
-      const foes=enemiesOf(u).filter(e=>e.alive).slice(0,3);
+    if(u.pass.staticcharge&&u._scReady&&!(u._tal&&u._tal.on.num&&!TalentFx.num(u,'scGo',1,ab))){ u._scReady=0; u._scStk=0;                          // Static Charge - the cast chains   /* TALENT HOOK num 'scGo': a learned talent may hold the charge back (Iver's Hold It In); untalented the old test */
+      const _scN=(u._tal&&u._tal.on.num)?TalentFx.num(u,'scN',3,ab):3;   /* TALENT HOOK num 'scN': how many enemies the chain reaches (3 untalented; ctx.unit = the skill pressed) */
+      if(u._tal) TalentFx.landPre(u,null,'staticcharge');   /* TALENT HOOK landPre: the hits that follow are the chain's (Iver's chain talents) */
+      const foes=enemiesOf(u).filter(e=>e.alive).slice(0,_scN);
       foes.forEach(e=>{ try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
+      if(u._tal) TalentFx.land(u,null,'staticcharge');   /* TALENT HOOK land: the chain has run (Iver's Strikes and discharge talents) */
       if(foes.length){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
     if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*(1+SKLV.abyssres(passLv(u)));   /* v1112: +45% + 0.2 pt a level */           // a full pressure gauge empowers this spell
       firePassiveFx(u);
@@ -17593,6 +17602,7 @@ function think(u,dt){
         if(u.pass.staticcharge){ u._scStk=Math.min(5,(u._scStk||0)+1);
           if(u._scStk>=5&&!u._scReady){ u._scReady=1; ringBurst(u.x,u.y,0x5aa8ff,12);
             floatTexts.push({x:u.x,y:u.y-12,txt:'CHARGED',t:1.0,color:'#8fd0ff',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'staticcharge'); } }
+        if(u.pass.staticcharge&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'scSwing');   /* TALENT HOOK pass: Static Charge has just built on this swing (Iver's talents keep their own count past five, the extra Charge, the threshold) */
         // Pirate's Instinct (Corsair): every few shots one goes straight through the armour.
         if(u.pass.instinct){ u._piN=((u._piN||0)+1)%4;
           if(u._piN===0&&t){ dealDamage(u,t,dmg*instinctDmg(u),'#ffe08a','true');   // every 4th basic attack, melee or ranged
