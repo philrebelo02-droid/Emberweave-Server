@@ -109,7 +109,9 @@ const _reEsc = x => new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 { const o = SWAPS.find(x => x[0].startsWith('    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if(u.dmgBuffT>0){'));
   const CT = 'if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ ';
   const f = o[0].replace('if(u.dmgBuffT>0){', CT + 'if(u.dmgBuffT>0){');
-  SWAPS.push([f, o[1].replace('if(u.dmgBuffT>0)', CT + 'if(u.dmgBuffT>0)'), _reEsc(f.slice(0, 200))]); }
+  /* 15 Nov 2026 (talents, Maren's Numb Fingers): the talent disarm countdown sits on this line after the gear-immovable tick; it is inert with no talents, so the swap keeps it */
+  const GI = 'if(u._gearImmovableT>0)u._gearImmovableT-=dt; ', DIS = 'if(u._talDisarmT>0)u._talDisarmT-=dt; ', withDis = s => s.includes(GI) && !s.includes(DIS) ? s.replace(GI, GI + DIS) : s;
+  SWAPS.push([withDis(f), withDis(o[1].replace('if(u.dmgBuffT>0)', CT + 'if(u.dmgBuffT>0)')), _reEsc(f.slice(0, 200))]); }
 /* v1376 (5199a410, tester Soul Eater 12 Nov): Carn's Crimson Reap 2.6x / 45 deg -> 3.4x / 90 deg (o.arc) - BASE's cleave back (tests/test_hunt_carn_1376.js checks v1376; his speed is in SPEED_BACK) */
 SWAPS.push(["cleave:{mul:3.4,bleed:true,radius:6.5*METER,arc:90}   /* v1376 (tester: Carn's Crimson Reap \"does almost no damage\"): 2.6 -> 3.4, and the wide wedge its text promises (45 -> 90 deg) */,", "cleave:{mul:2.6,bleed:true,radius:6.5*METER},", /cleave:\{mul:3\.4,bleed:true,radius:6\.5\*METER,arc:90\}/]);
 /* v1376 (8affc6b0, Phil 12 Nov): the Dandra rework - Seedlight, Drowsy Sting, Queen's Call, the 5 s Swarm spread and their card / kit texts - back to BASE.
