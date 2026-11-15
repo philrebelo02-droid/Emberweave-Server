@@ -8217,6 +8217,10 @@ function wellHeroPower(key,S){ _powerBoon=wellBoonOf(key,S); try{ return heroPow
    talentListLocal is null for a hero with nothing learned (or a build the rules refuse), and power() is 0 for a hero with no mechanics file:
    then no line of heroPower changes a number. */
 function talentPowerFlat(key,list){ try{ return (typeof TalentPower!=='undefined'&&list&&list.length)?TalentPower.power(key,list):0; }catch(e){ return 0; } }
+/* 14 Nov 2026 POWER-ONLY DECISIONS (WIRING/41d) = server.js heroGatePower: the card WITHOUT its talent term, for a gate the server decides
+   from power alone (the world mine march). Not a second formula - heroPower with the one talent line skipped; the card shown stays heroPower. */
+var _powerNoTalent=false;   /* var: hoisted, so a heroPower call from anywhere in the script finds it defined */
+function heroGatePower(key){ const was=_powerNoTalent; _powerNoTalent=true; try{ return heroPower(key); } finally{ _powerNoTalent=was; } }
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ const _tb=templeBonusesClient(key), _gp=(typeof gearSockMul==='function'?gearSockMul(key):{})||{};   /* v1316 (Phil 8 Nov: gear penetration counts): gear pen joins the Temple pen term */
     const _tp=((_gp.armorPen||0)>0||(_gp.magicPen||0)>0) ? Object.assign({},_tb,{armorPenFlat:(Number(_tb&&_tb.armorPenFlat)||0)+(_gp.armorPen||0), magicPenFlat:(Number(_tb&&_tb.magicPenFlat)||0)+(_gp.magicPen||0)}) : _tb;   /* v1316: = server heroCardPower; no gear pen -> the Temple bonuses as before */
@@ -8251,7 +8255,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   let dps    = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
   const _hlR = (typeof techFlat==='function'?techFlat('heal'):0)+(tt.healPow||0); if(_hlR>0) dps*=1+_hlR*0.0005*(t.damageProfile==='Healer'?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER);   /* v1311: Academy healing power (= mulsFromTotals healPow); v1316 (Phil 8 Nov): + gear healing power */
   let _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
-  { const _tl=talentListLocal(key); if(_tl) _pw+=talentPowerFlat(key,_tl); }   /* 14 Nov 2026 talents (= server heroCardPower): the talents-power.js number; null list -> nothing changes */
+  { const _tl=_powerNoTalent?null:talentListLocal(key); if(_tl) _pw+=talentPowerFlat(key,_tl); }   /* 14 Nov 2026 talents (= server heroCardPower): the talents-power.js number; null list -> nothing changes. _powerNoTalent: heroGatePower (WIRING/41d) */
   return _powerNoGlyph ? _pw : Math.round(_pw); }   // v1024: the inner (pre-Temple) call stays unrounded - the card rounds ONCE, after the Temple multiplier, as the server does (rounding twice put Yenna's card 446 against the server's 445)
 /* ------------------------------ progression -------------------------------- */
 const DEFAULT_G = {
@@ -29733,6 +29737,7 @@ function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI()
 function myHeroPower(k){ try{ return heroPower(k)|0; }catch(e){ return 0; } }
 function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHeroPower(k); } return p; }
 function marchPower(heroes){ return myTeamPower(heroes); }
+function marchGatePower(heroes){ let p=0; for(const k of (heroes||[])){ if(k){ try{ p+=heroGatePower(k)|0; }catch(e){} } } return p; }   /* 41d: the mine gate's number (server mineSquadPower) */
 function marchVerb(ct){ return ct==='garrison'?statusIcon('shield')+' '+ewT('march.v_garrison'):ct==='siege'?statusIcon('attack')+' '+ewT('march.v_siege'):ct==='attack'?statusIcon('attack')+' '+ewT('march.v_attack'):ct==='group'?statusIcon('attack')+' '+ewT('march.v_group'):ct==='defend'?statusIcon('shield')+' '+ewT('march.v_defend'):uiIcon('scout-telescope')+' '+ewT('march.v_scout'); }
 let cityMarchStartPending=false;
 /* v1001 (World audit #3): a march start keeps ONE requestId for the same target + squad for 2 minutes and re-sends it on a lost reply
@@ -30437,7 +30442,7 @@ function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(
   const fallen=k=>hp[k]!=null&&hp[k]<=0, blocked=k=>busy.has(k)||fallen(k);
   const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
-  function render(){ const pow=marchPower([...sel])||0, okP=pow>=reqP, okL=[...sel].some(k=>heroLevel(k)>=reqL), ok=sel.size&&okP&&okL;
+  function render(){ const pow=marchGatePower([...sel])||0, okP=pow>=reqP,   /* 14 Nov 2026 (WIRING/41d): the number the server's gate compares - the talent-less card (= server mineSquadPower) */ okL=[...sel].some(k=>heroLevel(k)>=reqL), ok=sel.size&&okP&&okL;
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:calc(var(--ew-game-height,100vh) * 0.86);overflow:auto;max-width:600px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${uiIcon('mode-mine')} ${ewT('mine.mine')} · ${escapeHTML(mineLabel(m))}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${ewT('mine.send_up',{res:'<b style="color:'+mnResColor(m.res)+'">'+resIconHtml(m.res,15)+' '+mineYieldShown(m.res,m.level,m)+' '+escapeHTML(mnResName(m.res))+'</b>',p:'<b>'+reqP+'</b>',lv:'<b>'+ewT('wmap.lv',{n:reqL})+'+</b>'})}</div>
