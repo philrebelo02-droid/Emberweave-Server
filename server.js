@@ -20,7 +20,7 @@ const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const HERO61=require('./hero61.js');
-const TALENTS=require('./talents.js'), TALENT_FX=require('./talents-fx.js'), TALENTS_ON=process.env.TALENTS_ENABLED==='true';   /* 14 Nov 2026: talent trees - rules shared with the page; off unless the flag is set */
+const TALENTS=require('./talents.js'), TALENT_FX=require('./talents-fx.js'), TALENT_POWER=require('./talents-power.js'), TALENTS_ON=process.env.TALENTS_ENABLED==='true';   /* 14 Nov 2026: talent trees - rules shared with the page; off unless the flag is set */
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
@@ -2260,9 +2260,9 @@ function snapshotHeroFromServer(u, key, save, sOpts){
   /* 14 Nov 2026 talents, LINE MODEL: the hero's learned STAT talents change the core unit by their percent (talents-fx.js applyCore), after
      the Temple, as the page's makeUnit does. talentListFor is null unless the flag is on and this hero has a legal, non-empty build, so a
      hero with nothing learned leaves through the line above exactly as before. Mechanic talents cannot act in the line model.
-     There is deliberately NO noTalents option: the only caller that passes options is the card (heroCardPower), and the card must carry the
-     talents (rule 26, one power); every other caller builds a unit that fights. A bot never comes here (snapshotNpcHero). */
-  const _tl=unit?talentListFor(u.led,key):null;
+     noTalentStats is passed by the card ONLY (heroCardPower): the card carries the talents through talentPowerFlat (talents-power.js, rule 26,
+     one power), so it must not also price their stats. Every other caller builds a unit that fights. A bot never comes here (snapshotNpcHero). */
+  const _tl=(unit&&!(sOpts&&sOpts.noTalentStats))?talentListFor(u.led,key):null;
   if(_tl){ TALENT_FX.applyCore(unit,key,_tl);
     unit.atk=Math.max(unit.atkP,unit.atkM); unit.dr=(SIM.CORE.defToDR(unit.armor,unit.level)+SIM.CORE.defToDR(unit.mr,unit.level))/2; }   /* the legacy aliases heroCombatStats set, re-read */
   return unit;
@@ -3023,31 +3023,27 @@ function unitCardPower(s,key,AC){
   const sw=1/Math.max(0.05, swingIntervalOf(base)/Math.max(0.01,rating));
   let dps=Math.max(1,((s.atkP||0)+apW*(hasAbilityLine?(s.atkM||0):0))*sw
     *(1+crit*(s.critDmg||0.6))*(s.dmgBonus||1)*(1+0.25*(s.energyReg||0)));
-  if(AC&&AC.talHeal) dps*=talentHealDpsMul(AC.healRating,AC.talHeal,key);   /* 14 Nov 2026: a learned healing-power talent - see talentHealDpsMul */
-  else if(AC&&AC.healRating>0) dps*=acadHealDpsMul(AC.healRating,key);   /* v1311 */
+  if(AC&&AC.healRating>0) dps*=acadHealDpsMul(AC.healRating,key);   /* v1311 */
   return POWER_K*Math.sqrt(ehp*dps);
 }
-/* 14 Nov 2026 TALENTS IN THE POWER NUMBER. MUST stay identical in emberweave-heroes.html heroPower.
-   STAT talents price themselves: snapshotHeroFromServer puts them on the unit the card is priced from (max HP, attack, ability power,
-   armor, magic resist, crit chance, crit damage, attack speed). Two are not read from the unit by the formula:
-   - healing power: the card prices healing as DPS x 1+healPow*w from the Academy / gear RATING (acadHealDpsMul). A talent multiplies the
-     whole healing multiplier (x(1+n), as in the fight), so with one learned the term is 1+((1+rating*0.0005)*(1+n)-1)*w - the same rule
-     over the combined number; with none learned the Academy line runs as before.
-   - shield strength: the card has never priced shield strength from any source, so a talent's adds nothing either (owner's call).
-   MECHANIC (non-stat) talents: no power yet - talentPowerFlat is the one place a per-rank flat term goes once the owner gives a rule. */
-function talentHealDpsMul(healRating,talHeal,key){
-  const w=((SIM.HERO_BASE[key]||{}).damageProfile==='Healer')?HEAL_POWER_W_HEALER:HEAL_POWER_W_OTHER;
-  return 1+((1+(healRating>0?healRating*0.0005:0))*Math.max(0.05,1+talHeal)-1)*w; }
-/* TALENT POWER, FLAT TERM (mechanic talents): returns 0 until the owner sets a rule. list = [[id,rank],...]. = client talentPowerFlat. */
-function talentPowerFlat(key,list){ return 0; }
+/* 14 Nov 2026 TALENTS IN THE POWER NUMBER (WIRING/41b - TALENT POWER FORMULA). MUST stay identical in emberweave-heroes.html heroPower:
+   both add the same talents-power.js number (TalentPower.power), at the same place (with the glyph tier, before the Temple multiplier).
+   Phil: "91 talents should be around the same power as max glyphs" / "Make it a formula, all of these mechanics need to be created not
+   hijack another one". Max glyphs add a FLAT 25,000 to every hero's card (glyph stats reach the fight, the card prices the tier); talents
+   are priced the same way: every learned rank adds a fixed amount by its depth and its kind of effect (damage dealt, damage taken, shields,
+   healing, control time, energy and cooldown, summons, on-death and conditional, skill upgrades, other), so a typical full 91-point build
+   reads about 25,000 on every hero at every progression. Talent STATS still reach every fight (snapshotHeroFromServer), but the CARD unit
+   is built without them ({noTalentStats}) so no stat is counted twice. An unwired hero (no talents-mech/<key>.js), the switch off, or
+   nothing learned: TL is null or the number is 0, and the card is the pre-talent one to the bit. list = [[id,rank],...]. */
+function talentPowerFlat(key,list){ return TALENT_POWER.power(key,list); }
 /* v806 - ONE HERO, PRICED EXACTLY AS THEIR CARD PRICES THEM. */
 function heroCardPower(u,key){
   if(!u||!SIM.HERO_BASE[key]) return 0;
   let p=0;
   let gf=null; try{ gf=(u.gear&&typeof gearHeroFlats==='function')?gearHeroFlats(u,key):null; }catch(e){ gf=null; }   /* v1316 (Phil 8 Nov): the gear totals the snapshot folds in (= client gearSockMul) */
   const AC=acadCombat(u); let PC=(gf&&(gf.critRes>0||gf.healPow>0)) ? Object.assign({},AC||{},{critResRating:((AC&&AC.critResRating)||0)+gf.critRes, healRating:((AC&&AC.healRating)||0)+gf.healPow}) : AC;   /* v1316: gear crit resist + healing power ride the v1311 Academy terms */
-  let TL=null; try{ TL=talentListFor(u.led,key); if(TL){ const th=TALENT_FX.totals(key,TL).heal; if(th) PC=Object.assign({},PC||{},{talHeal:th}); } }catch(e){ TL=null; }   /* 14 Nov 2026 talents: TL is null for a hero with nothing learned - then PC is untouched and every line below runs as before */
-  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key,PC); }catch(e){ return 0; }
+  let TL=null; try{ TL=talentListFor(u.led,key); }catch(e){ TL=null; }   /* 14 Nov 2026 talents: TL is null for a hero with nothing learned - then PC is untouched and every line below runs as before */
+  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true,noTalentStats:true}),key,PC); }catch(e){ return 0; }   /* 14 Nov 2026: talents are priced by talentPowerFlat below, not through the unit's stats */
   try{ const sk=ledSkillArr(u.led,key)||[]; for(let i=0;i<4;i++) p+=Math.max(0,((sk[i]|0)||1)-1)*20; }catch(e){}
   if(TL) p+=talentPowerFlat(key,TL);
   try{ p+=glyphHeroPower(u,key); }catch(e){}
@@ -11651,6 +11647,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/talents.js') return serveFile(res,'talents.js','application/javascript',null,req);
   if(p==='/talents-data.js') return serveFile(res,'talents-data.js','application/javascript',null,req);
   if(p==='/talents-fx.js') return serveFile(res,'talents-fx.js','application/javascript',null,req);
+  if(p==='/talents-power.js') return serveFile(res,'talents-power.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   /* v1265 LANGUAGES step 1: one small file per language (lang/<code>.json, e.g. es, pt-BR, zh-Hant); the client fetches only the chosen one,
