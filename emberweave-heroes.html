@@ -12726,8 +12726,10 @@ function damage(u,a,c,noEnergy,crit){
     const _base = _k==='magic' ? '#b79bff' : (_k==='true' ? '#e8e8f0' : '#ffb37a');
     const _crit = _k==='magic' ? '#e0c4ff' : '#ff8a4a';
     floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?_crit:((c&&c!=='#fff'&&c!=='#ffd9a8')?c:_base),vy:crit?1.5:1,crit:!!crit,sz:crit?16:11}); }   // don't render 0-damage popups (fully-mitigated hits)
+  const _talHd=!!(u._talW&&u.hp<=0&&u.alive&&(u._wardT||0)>0);   /* TALENT HOOK held (1 of 2): the Dawnward hold is about to keep a watched unit at 1 HP */
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
+  if(_talHd&&u.alive&&u.hp>0) TalentFx.held(u);   /* TALENT HOOK held (2 of 2): it held (Joss's Kept Word: his Sanctuary Guard kept an ally from falling) */
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
@@ -14839,6 +14841,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'atkcrush':{                                               // "grabs the strongest enemy and crushes its Attack"
       let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const v=e.dmg||0; if(v>bv){bv=v;best=e;} });
       if(!best)break;
+      if(u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,'atkcrush',best,o)||best;   /* TALENT HOOK skillTgt: Radiant Hammer's victim (Joss's Hammer Between Them may choose another; his rows see it) */
       dealDamage(u,best,dB*(o.mul||1.5)*rm,o.color||'#ff9a6a');
       best._atkDnPct=Math.max(best._atkDnPct||0,o.pct||0.35); best._atkDnT=Math.max(best._atkDnT||0,o.dur||5);
       ccApply(u,best,'stunned',(o.stun||0.5)*(1-(best.ctrlRes||0)));
@@ -14932,6 +14935,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'lastbreath':{                                             // "shields the weakest ally and prevents their health falling below 1"
       let best=null,bv=2; alliesOf(u).forEach(a=>{ if(!a.alive)return; const f=a.hp/a.maxHp; if(f<bv){bv=f;best=a;} });
       if(!best)break;
+      if(u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,'lastbreath',best,o)||best;   /* TALENT HOOK skillTgt: Sanctuary Guard's ally (Joss's Only You may choose the Promised ally; his rows see it) */
       best.shield=Math.max(best.shield||0,(u.apow||0)*(o.mul||1.8)*sm); best.shieldT=Math.max(best.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): lastbreath shield had no timer and stacked per cast */
       best._wardT=Math.max(best._wardT||0,o.dur||5);   // the Dawnward hold: they will not fall while it lasts
       best._buffedT=0.5;
