@@ -264,7 +264,8 @@ module.exports={
     /* ---- Refusal ---- */
     refWave(A,T,u){ A.stSet(T,u,'ref',Math.min(A.stGet(T,'ref'),T.P['ref.keep']||0)); T.s.hts=0; },
     swallow(A,T,u){ const s=T.s; if((s.hts||0)>=(T.r.sh_12_4||0)) return; s.hts=(s.hts||0)+1; for(const f of ['stunned','fearT','silencedT','_sleepT','slow']) if((u[f]||0)>0) u[f]=0; },
-    mornHit(A,T,u,c){ const a=Math.max(0,c.amt||0); c.amt=0; if(a>0) A.eng().healUnit(u,a*0.5); },
+    /* c.mv=0 (here and in close): the hit is turned into a heal / moved onto Grosk, not reduced - the 95% ceiling (doc 03 section 15) leaves it at 0 */
+    mornHit(A,T,u,c){ const a=Math.max(0,c.amt||0); c.amt=0; c.mv=0; if(a>0) A.eng().healUnit(u,a*0.5); },
     mornEnd(A,T,u){ if(u.alive&&u.hp<0.3*u.maxHp) A.eng().healUnit(u,0.3*u.maxHp-u.hp); },
     /* ---- Mired ---- */
     gpMire(A,T,u,c){ for(const x of caught(A,u,c.o)) mire(A,T,u,x); },
@@ -333,7 +334,7 @@ module.exports={
     /* Nothing Takes Them Down: a hit that would take his ward from 20% or more to below it closes the wall (once every 25 s) */
     closeTrig(A,T,u,c){ const x=c.tgt, s=T.s, E=A.eng(); if(!isWard(u,x)||E.now()<(s.cwT||0)||A.winOn(T,'close')) return false; return x.hp>=0.2*x.maxHp&&(x.hp+(x.shield||0)-(c.amt||0))<0.2*x.maxHp; },
     close(A,T,u,c){ const s=T.s, E=A.eng(), x=c.tgt, a=Math.max(0,c.amt||0); s.cwT=E.now()+25; s.cw=x; x._mwBy=u; A.acts(T,u,[{window:'close',dur:4}],c);
-      c.amt=0; if(a>0) E.damage(u,a*0.5,'#ffb37a',true); utAdd(A,T,u,10); callOut(A,T,u,c.src,4); }
+      c.amt=0; c.mv=0; if(a>0) E.damage(u,a*0.5,'#ffb37a',true); utAdd(A,T,u,10); callOut(A,T,u,c.src,4); }
   },
   /* one sentence runs, another waits: none */
   partial:{},
