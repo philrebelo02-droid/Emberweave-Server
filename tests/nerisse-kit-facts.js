@@ -22,7 +22,7 @@ VMX('var __nk={fights:0,rs:0,rsLand:0,rsLen:[],rsCut:0,rsResist:0,rsHitKind:{},o
   'orbNextHop=function(h){ const first=!h.tgt; const r=__nkOH.apply(this,arguments); if(h.owner&&h.owner.key==="nerisse"&&h.tgt&&!h.done){ __nk.orbHops++; if(first&&h.tgt===h.owner) __nk.orbFirstSelf++; } return r; };'+
   'healUnit=function(u,a){ const h0=u?u.hp:0; const r=__nkHU.apply(this,arguments); if(__nkHU.__in) __nkHU.__in.push([u,a,u.hp-h0]); return r; };'+
   '_dealDamageCore=function(src,tgt,amt,color,kind,silent){'+
-  '  if(src&&src.key==="nerisse"&&tgt&&tgt.team!==src.team){ if(_autoAtk){ __nk.autos++; __nk.autoKind[kind||"phys"]=(__nk.autoKind[kind||"phys"]||0)+1; } else __nk.rsHitKind[kind||"phys"]=(__nk.rsHitKind[kind||"phys"]||0)+1; }'+
+  '  if(src&&src.key==="nerisse"&&tgt&&tgt.team!==src.team){ if(_autoAtk){ __nk.autos++; const _k=kind||((src.t&&["Magic","Healer"].includes(src.t.damageProfile))?"magic":"phys"); __nk.autoKind[_k]=(__nk.autoKind[_k]||0)+1; } else { const _k=kind||((src.t&&["Magic","Healer"].includes(src.t.damageProfile))?"magic":"phys"); __nk.rsHitKind[_k]=(__nk.rsHitKind[_k]||0)+1; } }'+
   '  if(tgt&&tgt.key==="nerisse"&&src&&src.team!==tgt.team){ __nk.hitsOn++; if(_autoAtk) __nk.autoOn++; else __nk.skillOn++; }'+
   '  return __nkDD.apply(this,arguments); };'+
   '_updateBattleCore=function(dt){ const L=units.filter(u=>u&&u.key==="nerisse"&&u.alive);'+

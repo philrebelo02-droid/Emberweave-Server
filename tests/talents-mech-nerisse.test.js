@@ -218,7 +218,7 @@ test('Nerisse / Resonant Star\'s silence: True Pitch (0.1 x 3), Echoing Steel (0
   const p=plain({},P=>{ const h=P.F[0].hp; castRS(P); return h-P.F[0].hp; });
   let L=nl(S(['wh_2_3','sb_8_3','sb_1_1','wh_1_3','sb_3_4','wh_7_1','sb_4_4'])), {v,F}=L; const h=F[0].hp; castRS(L);
   near(F[0].silencedT,2.1+0.3+0.4,'2.1 s + 0.7 s',1e-9); near(h-F[0].hp,p*1.15*1.15*1.10*1.10,'Bright Fork 15%, Clean Note 15%, Deep Voice 10%, Deep Pulse 10%',1e-6);
-  near(ratioOut(L,v,F[1],{auto:true,kind:'phys'}),1,'(her basic attacks are physical: the magic ones do not touch them)',1e-9); near(VMX('TalentFx').cd(v,'green',7),6.4,'Ringing Fork: 0.2 s x 3 sooner',1e-9);
+  near(ratioOut(L,v,F[1],{auto:true,kind:'magic'}),1.10*1.10,'her basic attacks are magic: Deep Voice and Deep Pulse raise them too (not Bright Fork or Clean Note)',1e-9); near(ratioOut(L,v,F[1],{auto:true,kind:'phys'}),1,'(a physical hit: none of them)',1e-9); near(VMX('TalentFx').cd(v,'green',7),6.4,'Ringing Fork: 0.2 s x 3 sooner',1e-9);
   L=nl(S(['sb_5_4','sb_11_4','sb_6_4'])); const h2=L.F[0].hp; castRS(L); near(L.F[0].silencedT,2.1*1.10+1,'One Clear Note 1 s, Long Silence 10% of the real 2.1 s',1e-9); near(h2-L.F[0].hp,p*1.15,'Pure Tone: 5% x 3 more',1e-6);
   L=nl(S(['wh_2_3','sb_8_3','sb_5_4','sb_11_4','wh_3_1'])); setMk(L,L.F[0],'nr_hd'); castRS(L); near(L.F[0].silencedT,4,'all of them on a Heard enemy: 2.31 + 0.3 + 0.4 + 1 + 1, held at 4 s',1e-9);
 });

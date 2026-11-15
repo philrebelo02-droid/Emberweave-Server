@@ -2,7 +2,8 @@
    Hand-authored DATA for the primitives in talents-mech/_engine.js; tools/build_talent_fx.py copies this file into talents-fx.js.
    A correction to a number or a condition is an edit HERE, then:  python tools/build_talent_fx.py
    How rows are written: WIRING/03 - MECHANICS LAYER (hooks, primitives, how to add a hero).md (the section "Added for Nerisse Bellglass")
-   Her real kit (the code, not the tooltip wording; a back-row Support, her skills read ability power, her basic attacks are PHYSICAL):
+   Her real kit (the code, not the tooltip wording; a back-row Support, her skills read ability power, and her hits are MAGIC, basic attacks included: they
+   pass no kind and the page's default follows her Healer damage profile, _dealDamageCore):
    - Resonant Star ('silencestrike', green, cd 7, delivered as a shot): 135% of her ability power (magic) on her target and a silence of 2.1 s (the table's
      single 3.0 s x the 30% cut; the kit's 2.4 is not used), through ccApply (a level-gap roll). MEASURED: 148 casts in 20 seeded fights, 148 silences landed, 27 cut
      a cast short.
