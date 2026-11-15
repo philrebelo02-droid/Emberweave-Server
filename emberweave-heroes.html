@@ -7426,6 +7426,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ momCap:
 /* 14 Nov 2026 (Maren's talents): the fight's ground hazards, so a talent can find the Tide Pool his skill has just put down (its water) and change it in place */
 /* 14 Nov 2026 (Orryn's talents): the field's ground hazards (his whirlpool, his flood), so a talent row can find the hazard his skill has just made and change it (run farther, stop and spin, land more often, stay longer). Only a learned talent row reads it. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ hazards:()=>groundHazards });
+/* 15 Nov 2026 (Sorrel's talents): Loaded Hand's suit art, so a suit his talents play shows as the passive's own (display only: no damage, no seeded draw) */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ suitFx:(u,t,s)=>{ try{ firePassiveFx(u,t); const F=[['♥','fx-heart','#c0392b'],['♠','fx-spade','#d8d8e8'],['♦','fx-diamond','#e0a83a'],['♣','fx-club','#8fe0a0']][s]; if(F&&t) floatTexts.push({x:t.x,y:t.y-8,txt:F[0],img:F[1],t:.8,color:F[2],vy:1.2,sz:14}); }catch(e){} } });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -17653,7 +17655,7 @@ function think(u,dt){
           firePassiveFx(u,t,{aboveBar:true});
           floatTexts.push({x:t.x,y:t.y-8,txt:'-heal',t:.7,color:'#c0392b',vy:1.1,sz:11}); }
         // Loaded Hand (Cardwraith): every fourth basic attack draws a stronger random suit.
-        if(u.pass.loadedhand){ u._lhN=((u._lhN||0)+1)%4;
+        if(u.pass.loadedhand&&!(u._tal&&u._tal.on.num&&TalentFx.num(u,'lhSwing',0,t)>0)){ u._lhN=((u._lhN||0)+1)%4;   /* TALENT HOOK num: a talented Sorrel's rows run this swing of Loaded Hand (the same seeded draw and suits; his talents count, palm, repeat and strengthen them) - 1: they did, this block is skipped */
           if(u._lhN===0&&t){ const suit=Math.floor(brnd()*4)%4;
             firePassiveFx(u,t);
             if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',img:'fx-heart',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
