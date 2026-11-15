@@ -90,7 +90,7 @@ const C=[
   ['Long Chase 0.6 s',FXJ,"tw_6_3:[ {param:'vs.lc',add:R(0.5)} ],","tw_6_3:[ {param:'vs.lc',add:R(0.6)} ],",'Let Them Run'],
   ['Thicket 4 s after',FXJ,"z.t=m+3+P0(T,'th.wide');","z.t=m+4+P0(T,'th.wide');",'the Thicket'],
   ['Thicket slow 4%',FXJ,"tw_1_1:[ {param:'th.slow',add:R(0.03)} ],","tw_1_1:[ {param:'th.slow',add:R(0.04)} ],",'the Thicket'],
-  ['Thicket measured at the centre',FXJ,"Math.hypot(x.x-z.x,x.y-z.y)-E.bodyR(x)<z.r","Math.hypot(x.x-z.x,x.y-z.y)<z.r",'the Thicket'],
+  ['Thicket measured at the centre',FXJ,"for(const z of o.th) if(z.t>0&&Math.hypot(x.x-z.x,x.y-z.y)-E.bodyR(x)<z.r)","for(const z of o.th) if(z.t>0&&Math.hypot(x.x-z.x,x.y-z.y)<z.r)",'the Thicket'],
   ['Wide Thicket 0.5 s',FXJ,"tw_5_1:[ {param:'th.wide',add:R(0.4)} ],","tw_5_1:[ {param:'th.wide',add:R(0.5)} ],",'the Thicket'],
   ['Taken by the Roots 2%',FXJ,"tw_8_1:[ {param:'th.team',add:R(0.015)} ],","tw_8_1:[ {param:'th.team',add:R(0.02)} ],",'the Thicket'],
   ['stun lock 0.3 s',FXJ,"delete o.rt[id]; const e=E1(o,x); e.lk=0.5;","delete o.rt[id]; const e=E1(o,x); e.lk=0.3;",'the Thicket|Brambles:'],
