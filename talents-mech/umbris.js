@@ -423,7 +423,7 @@ module.exports={
         if(P.smoke) for(const x of foes(E,u)) if(gapM(E,u,x)<6) recMk(T,x).cs=2; }
       const mx=A.stMax(T,u,'umStare'); if(um.full>0){ A.stSet(T,u,'umStare',mx); }
       else { um.sa+=dt; while(um.sa>=1-1e-9){ um.sa-=1; A.stSet(T,u,'umStare',stN(T)+1); } }
-      if(P.sc2&&!um.armed&&stN(T)>=mx-1e-9){ um.armed=true; um.armN=(um.armN||0)+1; } }
+      if(P.sc2){ const n=stN(T); if(!um.armed&&um.full<=0&&n>=mx-1e-9&&(um.pSt==null||um.pSt<mx-1e-9)){ um.armed=true; um.armN=(um.armN||0)+1; } um.pSt=n; } }
   },
   /* one sentence runs, another waits: none */
   partial:{},

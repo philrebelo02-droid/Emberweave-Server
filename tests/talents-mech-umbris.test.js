@@ -133,7 +133,7 @@ test('Umbris / Lingering Dark talents: Hungry Dark (0.4 m x 5 farther), Generati
   const L4=lab(H,S(['sd_12_2']),{foes:4,big:true}), G=L4.F; at(L4,G[1],4.5,4.9); at(L4,G[2],30,0); at(L4,G[3],30,10); ult(L4,G[0]); for(const f of G) f.dots.length=0; at(L4,G[1],4.5,4.9);
   castR(L4,G[0]); land(L4); at(L4,G[0],4.5,0); at(L4,G[1],4.5,4.9); kill(L4,G[0]); secs(0.6); assert.equal(dots(L4,G[1]).length,1,'inside the zone: reach 2.6 + 2.5 m');
   const L0=lab(H,S(['sd_5_4']),{foes:5,big:true}), Q=L0.F; at(L0,Q[2],20,0); castR(L0,Q[0]); land(L0); at(L0,Q[0],4.5,0); at(L0,Q[1],4.5,4.4); at(L0,Q[3],20,-12); at(L0,Q[4],20,10); kill(L0,Q[0]); secs(0.6);
-  const s0=dots(L0,Q[1],'spread')[0]; assert.ok(s0,'the plain spread'); near(sLeft-left(s0),0.9,'Fast Breeding: 0.9 s longer',1e-6); near(sDps/s0.dps,1.12*1.12,'Generations and Quiet Spread on the same spread',1e-9);
+  const s0=dots(L0,Q[1],'spread')[0]; assert.ok(s0,'the plain spread'); near(sLeft-left(s0),1.5,'Fast Breeding: 0.3 s x 5 = 1.5 s longer',1e-6); near(sDps/s0.dps,1.12*1.12,'Generations and Quiet Spread on the same spread',1e-9);
 });
 
 test('Umbris / Creeping Rot: Twin Rot (PICK ONE: the nearest gets the rot), Spreading Foot (1 m x 3, half), Patient Rot (PICK ONE: 3 s, 2 Thinning), Mark Lingers, Rot Worked In, Rot Scholar, Hushed, Eyepiece, Measured Rot',()=>{
@@ -237,7 +237,7 @@ test('Umbris / Shroud of Shade: an enemy outside the field that picks his ally i
   const L=lab(H,S(['wl_7_2']),{foes:2,allies:2,big:true}), {v,F,A}=L; at(L,A[0],8,10); at(L,A[1],-6,-8); at(L,F[0],15,10); at(L,F[1],18,-14); field(L,8,10,3,99); V.step(1); assert.equal(A[0]._talShd,v);
   freeFoe(F[0]); still(F[0]); V.step(1); assert.notEqual(F[0].target,A[0],'not the ally in the shade'); assert.ok(F[0].target===v||F[0].target===A[1]);
   F[0].forcedTarget=A[0]; F[0].forcedTargetT=5; V.step(1); assert.equal(F[0].target,A[0],'a taunt wins');
-  F[0].forcedTargetT=0; at(L,F[0],9,13.5); V.step(1); assert.equal(F[0].target,A[0],'an enemy inside the field picks as before');
+  F[0].forcedTargetT=0; at(L,F[0],9,11); V.step(1); assert.equal(F[0].target,A[0],'an enemy inside the field picks as before');
 });
 
 test('Umbris / Candle and Stare: 20 s, then 1 a second (max 15, Night Vigil 20), 0.3% x 5 ability power each; a stun halves it (Lidless: no); Short Wick, Burned Down, Small Hours, Wick Smoke, Reader\'s Calm',()=>{

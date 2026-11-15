@@ -1,0 +1,10 @@
+sent 8773 file(s) to 192.168.1.248 slot umbris-k2 (first run); running 1 test file(s), 1 at a time
+FAIL  tests/talents-mech-umbris.test.js  (rc 1, 77 s)
+      # tests 27
+      # pass 26
+      # fail 1
+      # cancelled 0
+      # skipped 0
+      109:not ok 21 - Umbris / The Second Candle (SIGNATURE): full Stare arms his next ultimate; it strikes only the enemy with the most HP in its circle for 4 times, its zone opens there; Stare full 6 s; no second candle
+      120:  name: 'AssertionError'
+full logs: /e/Emberweave Archive/2 Game/Code repos/ew-tal-umbris/.remote-logs/
