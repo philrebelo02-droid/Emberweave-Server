@@ -69,6 +69,9 @@ try {
   ck('no new damage number or multiplier: his kit (Lockpick Soul, Forbidden Key, Skeleton-Key Savant), Open Every Door and their cast times are BASE\'s', kits(run) === kits(R0));
   // v1232: enemy-only campaign fields (Vael's enemyHpMul / enemyDmgMul, Phil 31 Oct) are not part of the hero's own line
   const otherTypes = "JSON.stringify(Object.keys(HERO_TYPES).filter(k=>k!=='nox').map(k=>[k,Object.fromEntries(Object.entries(HERO_TYPES[k]).filter(([f])=>!/^enemy/.test(f)))]))";
+  // v1391 (ee8edab85, Phil 14 Nov: 'the internal effect code shouldnt be the same either'): Veyr's ult ability field renamed eventhorizon -> abyssalundertow
+  // (his own effect code + row; behavior checked by tests/test_veyr_undertow_1136.js) - a data rename, not part of this Nox check, so it is undone on the NOW side
+  run("HERO_TYPES.veyr.ability='eventhorizon';");
   ck('every other hero\'s HERO_TYPES line is BASE\'s (enemy-only fields aside)', run(otherTypes) === R0(otherTypes));
   // 2. the unit the engine builds
   const U = r => JSON.parse(r(`(()=>{ const u=makeUnit('nox','ally',300,600,30,{owned:false,rank:3}); const b=makeUnit('nox','enemy',300,600,30,{owned:false,rank:3,boss:true});

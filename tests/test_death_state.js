@@ -46,7 +46,7 @@ const FIGHT = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt; a
     let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     return JSON.stringify({h:s.length+':'+h.toString(16),deaths,ticks:tr.length,ended}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
 const fight = (f, s, a, e, pre) => { const r = load(f); if (pre) r(pre); return JSON.parse(r(FIGHT(s, a, e))); };
-const LATE = `(()=>{ const F=(typeof _updateBattleCore==='function')?'_updateBattleCore':'updateBattle', f0=eval(F); const s=String(f0).replace("u.deathT>.9).forEach","u.deathT>1.5).forEach"); if(s===String(f0)) return 0; eval(F+'=('+s+')'); return 1; })()`;   // 4 Nov 2026: since v1255 the tick body is _updateBattleCore (updateBattle wraps it + the 1-1 intro) - the control edits the body, wherever it is   // CONTROL: the removal moved
+const LATE = `(()=>{ const F=(typeof _updateBattleCore==='function')?'_updateBattleCore':'updateBattle', f0=eval(F); const s=String(f0).replace("u.deathT>.9","u.deathT>1.5"); if(s===String(f0)) return 0; eval(F+'=('+s+')'); return 1; })()`;   // 4 Nov 2026: since v1255 the tick body is _updateBattleCore (updateBattle wraps it + the 1-1 intro) - the control edits the body, wherever it is   // CONTROL: the removal moved
 try {
   // ------------------------------------------------------------------ 1. the page and the sources
   if (HEADLESS) {
@@ -137,8 +137,8 @@ try {
   // ------------------------------------------------------------------ 3. display only
   const src = fs.readFileSync(HTML, 'utf8');
   const uses = [...src.matchAll(/^.*\.death\d*\b(?![_T]).*$/gm)].map(m => m[0].trim().slice(0, 70));
-  ck('nothing in the fight reads a death state: every .death access is the table, deathClip, deathRelease, or the render\'s load trigger (' + uses.length + ' lines)',
-    uses.every(l => /^BATTLE_ANIM\.\w+\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death/.test(l)) && uses.length === ALL.reduce((s, k) => s + PT[k].length, 0) + 3, uses.join(' | '));
+  ck('nothing in the fight reads a death state: every .death access is the table, deathClip, deathRelease, the render\'s load trigger, or the guarded talent hook (' + uses.length + ' lines)',
+    uses.every(l => /^BATTLE_ANIM\.\w+\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death|^if\(u\._tal\|\|u\._talW\) TalentFx\.death\(u\);/.test(l)) && uses.length === ALL.reduce((s, k) => s + PT[k].length, 0) + 4, uses.join(' | '));
   // 4 Nov 2026 (Claude): since v1255 the tick body is _updateBattleCore and updateBattle only wraps it (+ the 1-1 intro tick); v1258 wrote the pull-speed
   // default as 22*UNIT_SIZE (UNIT_SIZE is 1 on this page, helpers/global-1254-1260.js) and the names sweep reworded three comments in the body. So the core
   // body (comments stripped on both sides) is compared with BASE updateBattle, and updateBattle must be exactly that wrapper.

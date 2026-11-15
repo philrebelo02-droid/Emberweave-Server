@@ -23,12 +23,15 @@ let mono = true; for (let f = 0.05; f <= 1.0001; f += 0.05) if (!(ctx.T(f) >= ct
 ok(mono, 'a hero further out is always encased later');
 ok(Math.abs(ctx.F(ctx.T(0.5)) - 0.5) < 1e-6, 'the floor art grows on the same table the logic uses');
 const c = H.slice(H.indexOf("case 'finalcandle':{"), H.indexOf("case 'swamproot':{"));
+// v14Nov talents (Ceraline, 35c6a8df1): guarded one-line talent hooks were added between the statements below (if(u._tal) TalentFx.x(...);).
+// They are no-ops without talents (u._tal is unset) - strip them (and comments) so the source-shape checks below match the pre-hook layout.
+const cFlat = c.replace(/\/\*[\s\S]*?\*\//g, '').replace(/if\(u\._tal(?:&&u\._tal\.on\.\w+)?\)\s*TalentFx\.\w+\([^;]*\);\s*/g, '');
 ok(c.includes('_caught.forEach(e=>_encase(e,candleEdgeT(dist(_c,e)/_R)));'), "each hero's stun time comes from its own distance");
-ok(c.includes("_enc.push(e); ccApply(u,e,'stunned',o.stun||1.5);"), 'stun length unchanged');
-ok(c.includes("delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; dealDamage(u,e,_sh,"), 'the shatter hits only an encased hero, o.shatter after its own stun');
+ok(cFlat.includes("_enc.push(e); ccApply(u,e,'stunned',o.stun||1.5);"), 'stun length unchanged');
+ok(cFlat.includes("delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; dealDamage(u,e,_sh,"), 'the shatter hits only an encased hero, o.shatter after its own stun');
 // v1101 (Phil 9 Oct): "everyone touched by waxens ult should be stunned and the effigy should appear on them" / "even if they are pulled into
 // it while its pouring" - run the REAL case body with stubs and move enemies around during the pour.
-{ const body = c.slice(c.indexOf('{') + 1, c.lastIndexOf('break;'));
+{ const body = cFlat.slice(cFlat.indexOf('{') + 1, cFlat.lastIndexOf('break;'));
   const S = { hz: [], stun: new Set(), eff: new Set(), hit: new Set() };
   const mk = (id, x) => ({ id, x, y: 0, alive: true });
   const A = mk('in-then-out', 1 * 32), B = mk('pulled-in', 12 * 32), C = mk('pulled-in-and-out', 12 * 32), D = mk('never-touched', 20 * 32);
@@ -51,9 +54,9 @@ ok(c.includes("delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.index
   ok(S.stun.has('pulled-in-and-out') && S.eff.has('pulled-in-and-out'), 'pulled in and out again mid-pour: still encased');
   ok(!S.stun.has('never-touched') && !S.eff.has('never-touched'), 'CONTROL: an enemy the wax never touches is not encased');
   ok([A, B, C].every(e => e._waxCoatT === 6 && e._waxCoatBy === env.u) && !D._waxCoatT, 'every touched enemy carries her 6 s wax coat (refreshed when it shatters); control: the untouched one has none');
-  ok(c.includes("dealDamage(u,e,_sh,'#fff0c0','magic'); _coat(e);"), 'the coat goes on again when the effigy shatters');
+  ok(cFlat.includes("dealDamage(u,e,_sh,'#fff0c0','magic'); _coat(e);"), 'the coat goes on again when the effigy shatters');
   ok(Math.abs(coatAt['in-then-out'] - ctx.T(1 / 7)) <= 0.101, 'v1112: the enemy 1 m out is waxed when the edge reaches 1 m (' + coatAt['in-then-out'] + ' s vs edge ' + ctx.T(1 / 7).toFixed(2) + ' s), not at the cast'); }
-ok(c.includes("_coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX'") && c.includes('delay:Math.max(0.01,candleEdgeT(dist(_c,e)/_R)),run:function(){ if(!e.alive)return;'), 'the WAX slow + coat land when the edge reaches each caught enemy (v1112)');
+ok(cFlat.includes("_coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX'") && cFlat.includes('delay:Math.max(0.01,candleEdgeT(dist(_c,e)/_R)),run:function(){ if(!e.alive)return;'), 'the WAX slow + coat land when the edge reaches each caught enemy (v1112)');
 // v1112 (Phil 10 Oct: "please make wax reduce healing on the enemy effected by 30%"): run the real first line of healUnit with stubs
 { const hs = H.indexOf('function healUnit(u,a){'), he = H.indexOf('u.hp+=a;', hs);
   const head = H.slice(hs, he) + 'u.hp+=a; }';

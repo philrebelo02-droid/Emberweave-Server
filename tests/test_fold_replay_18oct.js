@@ -6,6 +6,9 @@ const load=f=>{const h=require('../server/sim-host.js').load(f);return s=>vm.run
 require('./helpers/hero61-1263.js').undoHero61_1263(now);
 require('./helpers/grosk-fritz-fx-1217.js').undoGroskFritzFx1217(now);
 now("HERO_TYPES.tick.dmg=28; KITS.tick.blue.mul=0.28; for(const k in HERO_TYPES) delete HERO_TYPES[k].element; for(const k in MONSTER_TYPES) delete MONSTER_TYPES[k].element; KITS.dandra.purple.desc='when a stung foe dies, her bees move to the nearest enemies and sting them too';");   // v1376 (a30bad2a, tester Soul Eater / Phil 12 Nov): The Swarm Moves On text gained its heal cut - a later kit text, not part of this layout check   // v1367: Tick buff (Phil "yes buff tick") and the element attribute are later balance / data changes, not part of this layout check   // v1217 Grosk / Fritz / Hobb FX display tags (a later, display-only release) go back to v1216's; test_grosk_fritz_fx_1217 checks them
+// v1391 (ee8edab85, Phil 14 Nov: 'the internal effect code shouldnt be the same either'): Veyr's ult ability field renamed eventhorizon -> abyssalundertow and gained
+// its own ULT_DEF row / BATTLE_ANIM entry (same drag and damage, a slow instead of the silence - tests/test_veyr_undertow_1136.js checks it). The rename is undone for this layout check.
+now("HERO_TYPES.veyr.ability='eventhorizon'; delete ULT_DEF.abyssalundertow; delete BATTLE_ANIM.abyssalundertow;");
 const BASE='d0e944c0a87cfa335c46b2efa47cb97dd771cc9a'; // v1206 before this layout-only integration; remote main can advance during cluster QA.
 fs.writeFileSync(temp,cp.execFileSync('git',['show',BASE+':emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
 try{const old=load(temp),digest=s=>crypto.createHash('sha256').update(s).digest('hex');
