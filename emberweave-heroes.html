@@ -13626,6 +13626,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // Croc Drop's plant: while Grosk lives, the whole team eats 20% -> 35% less (by skill level) for 3s (v1308).
   if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team){ amt*=1-(tgt._mwDrPct||0.20); _drF*=1-(tgt._mwDrPct||0.20); }
   // Drowsy (Dandra): sleep breaks the moment they're hit.
+  if(tgt&&tgt._talSlW&&(tgt._sleepT||0)>0){ tgt._talSlH=src; tgt._talSlT=battleTime; }   /* TALENT HOOK (stamp): this hit reaches a sleeper before the line below wakes it (Mirelle's Dream Debt, Sleepwalker's Bruise, Courage in a Dream; only her talents set _talSlW) */
   if(tgt&&(tgt._sleepT||0)>0&&!(src&&src._tal&&tgt._talZz===src&&battleTime<tgt._talZzT)&&!(battleTime<(tgt._talZzA||0))){ tgt._sleepT=0; tgt.stunned=0; }   /* TALENT HOOK (guard): Dandra's Sting of Mercy - her own hits do not wake an enemy her sting put to sleep (only her talent sets _talZz); Lysara's Sound Sleep - no hit wakes it before _talZzA (only her talent sets it) */
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
@@ -18798,7 +18799,7 @@ function _updateBattleCore(dt){
           burstAt(a.x,a.y,0x8a6b3f,6); } }); } }
     // Trail of Splendor (Velvetplume): every buff she lands also leaves a small stacking shield.
     if(u.pass.splendor){ alliesOf(u).forEach(a=>{ if(!a.alive)return;
-      if((a._buffedT||0)>0){ a._buffedT=0; a.shield=(a.shield||0)+a.maxHp*0.04*(u.passMul||1); a.shieldT=Math.max(a.shieldT||0,5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): stacks by design, but had no timer */
+      if((a._buffedT||0)>0){ a._buffedT=0; a.shield=(a.shield||0)+((u._tal&&u._tal.on.num)?TalentFx.num(u,'splendor',a.maxHp*0.04*(u.passMul||1),a):a.maxHp*0.04*(u.passMul||1)); a.shieldT=Math.max(a.shieldT||0,5);   /* TALENT HOOK num: Trail of Splendor's shield on this ally (Mirelle's talents: Lined Coat, her buffs' strength, the Patron, Sewn Lining's break) */   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): stacks by design, but had no timer */
         firePassiveFx(u,a,{aboveBar:true}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'splendor',1.5);
         burstAt(a.x,a.y,0x6fe0ff,6); } }); }
     // Golden Thread (Threadseer): she is tied to the ally nearest death and shares what she is given.
