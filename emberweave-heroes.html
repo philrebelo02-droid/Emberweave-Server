@@ -14333,6 +14333,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(o.pfx||u.range>60)abilShot(u,o,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
     case 'volley':{let _vt=enemiesOf(u).sort((a,b)=>o.backline?dist(u,b)-dist(u,a):dist(u,a)-dist(u,b)).slice(0,o.n||3);
+      if(u._tal&&u._tal.on.skillTgt){ const _vf=TalentFx.skillTgt(u,type,null,o); if(_vf) _vt=[_vf]; }   /* TALENT HOOK skillTgt: a learned talent may send the volley at one enemy (Sloe's Learned Him) */
       if(o.weakest){ const _in=enemiesOf(u).filter(e=>e.alive&&dist(u,e)<=(o.range||3*METER)); const _pool=_in.length?_in:enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,1);   // v1303 Prismatic Axe: the weakest (lowest HP share) within reach; nobody in reach = the nearest
         _vt=_pool.sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp).slice(0,1); }   /* v935: o.backline = the farthest first (Verdant Shade's text) */
       /* v527 - Marked Deal throws every card into ONE target and the last one marks it. */
@@ -17663,8 +17664,10 @@ function think(u,dt){
         if(u.pass.slumber&&t){ t.evaStat=Math.max(0,(t.evaStat||0)); t._accDn=Math.min(0.35,(t._accDn||0)+0.05*_pm); t.accStat=Math.max(0,(t.accStat||0)-3*_pm); }
         if(u.pass.slumber&&t&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'slumber');   /* TALENT HOOK pass: Powdered Slumber has just dusted t at this swing (Lysara's talents count its accuracy loss; only a talented Lysara has pass rows) */
         // Hunter's Patience (Verdant Shade): stay on one target and the shots start finding gaps.
+        if(u.pass.patience&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'hpPre');   /* TALENT HOOK pass: right before Hunter's Patience counts this swing (Sloe's talents read the target and the stacks it had) */
         if(u.pass.patience){ if(u._hpTgt===t){ u._hpStk=Math.min(6,(u._hpStk||0)+1); } else { u._hpTgt=t; u._hpStk=0; }
           u.glyphCrit=(u._hpBaseCrit==null?(u._hpBaseCrit=u.glyphCrit||0):u._hpBaseCrit)+0.05*_pm*(u._hpStk||0); }
+        if(u.pass.patience&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'hpSwing');   /* TALENT HOOK pass: Hunter's Patience has counted this swing (Sloe's Nearer Each Time, Never Changes Target, Found Again, Weak Spot) */
         // Static Charge (Stormwarden): the charge builds on his swings and empowers the next cast.
         if(u.pass.staticcharge){ u._scStk=Math.min(5,(u._scStk||0)+1);
           if(u._scStk>=5&&!u._scReady){ u._scReady=1; ringBurst(u.x,u.y,0x5aa8ff,12);
