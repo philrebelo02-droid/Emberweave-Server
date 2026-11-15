@@ -7419,6 +7419,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ scChain
 /* 14 Nov 2026 (Hurne's talents): his ultimate cast at once by a talent (He Does It Anyway: Feed Them at no energy cost), at his ultimate's level, with the ultimate's own options. Only a learned talent row calls it. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ castUltFree:u=>{ const ab=u.abilityOverride||u.t.ability; if(!ab) return; const k=[u._castSM,u._castLv,u._castSlot], lv=(u.skillLv&&u.skillLv[0])||1;
     u._castLv=lv; u._castSM=skillMul(lv); u._castSlot='ult'; try{ _doEffectCore(u,ab,Object.assign({},ULT_DEF[ab]||{},(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } finally{ u._castSM=k[0]; u._castLv=k[1]; u._castSlot=k[2]; } } });
+/* 14 Nov 2026 (Meridian's talents): Well-Read's full ramp at his passive's level (Warm Up, Ever Faster, Charted Rest and every "at its full ramp" talent) */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ momCap:u=>SKLV.momentumCap(passLv(u)) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -13576,7 +13578,7 @@ function edgeTauntPlus(taunter,victim){ return AFFINITIES_LIVE&&(unitClass(taunt
 function dealDamage(src,tgt,amt,color,kind,silent){ if(!DD.on) return _dealDamageCore(src,tgt,amt,color,kind,silent);   /* v1388 Damage Done: who hit, with what (bookkeeping only) */
   const _p=DD.hit; DD.hit={src,l:ddLbl(src)}; DD.depth++; try{ return _dealDamageCore(src,tgt,amt,color,kind,silent); } finally{ DD.depth--; DD.hit=_p; } }
 function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
-  if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); return; }   /* Shield wall: the Tank is the one being shot */
+  if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'wall');   /* TALENT HOOK foiled: a hit of a talented unit was stopped by the shield wall (Meridian's Windage) */ return; }   /* Shield wall: the Tank is the one being shot */
  if(typeof SFX!=='undefined'&&SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
@@ -13662,7 +13664,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   const _talSure=!!(src&&src._tal&&src._tal.on.sure&&src.team!==tgt.team)&&TalentFx.sure(src,tgt,kind,_isAuto);   /* TALENT HOOK sure: the attacker's talent may say this hit cannot be dodged (Kharos's Known Habits); false for every other unit */
   if(tgt._tal&&(tgt._tal.on.aimed||tgt._tal.on.dodge)&&src&&src.team!==tgt.team&&TalentFx.dodge(tgt,src,_isAuto,kind,_gSure||_talSure)){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#c9a6ff',vy:1.3,sz:13}); return; }   /* TALENT HOOK dodge: an enemy's hit coming at a talented unit (its 'aimed' rows), and its talent dodge (the seeded roll is inside a learned row only) */
   if(kind!=='true'&&!_gSure&&!_talSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.0005))){
-    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); return; }   // Evasion vs Accuracy
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'miss');   /* TALENT HOOK foiled: a hit of a talented unit was missed to Evasion (Meridian's Windage) */ return; }   // Evasion vs Accuracy
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
@@ -13675,7 +13677,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); }
     amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }
   else if(kind!=='true'){ amt*=defMul(src,tgt,'phys'); // Armor vs Armor Pen
-    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
+    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'block');   /* TALENT HOOK foiled: a hit of a talented unit was halved by Block (Meridian's Windage) */ } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
