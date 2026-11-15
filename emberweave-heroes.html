@@ -13625,7 +13625,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // Croc Drop's plant: while Grosk lives, the whole team eats 20% -> 35% less (by skill level) for 3s (v1308).
   if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team){ amt*=1-(tgt._mwDrPct||0.20); _drF*=1-(tgt._mwDrPct||0.20); }
   // Drowsy (Dandra): sleep breaks the moment they're hit.
-  if(tgt&&(tgt._sleepT||0)>0&&!(src&&src._tal&&tgt._talZz===src&&battleTime<tgt._talZzT)){ tgt._sleepT=0; tgt.stunned=0; }   /* TALENT HOOK (guard): Dandra's Sting of Mercy - her own hits do not wake an enemy her sting put to sleep (only her talent sets _talZz) */
+  if(tgt&&(tgt._sleepT||0)>0&&!(src&&src._tal&&tgt._talZz===src&&battleTime<tgt._talZzT)&&!(battleTime<(tgt._talZzA||0))){ tgt._sleepT=0; tgt.stunned=0; }   /* TALENT HOOK (guard): Dandra's Sting of Mercy - her own hits do not wake an enemy her sting put to sleep (only her talent sets _talZz); Lysara's Sound Sleep - no hit wakes it before _talZzA (only her talent sets it) */
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
@@ -14288,6 +14288,7 @@ function _doEffectSfx(u,type,o){ if(typeof SFX==='undefined'||!SFX.loop||!u||!u.
 function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
   o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
   o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1); if(u._tal&&u._tal.on.kit) o=TalentFx.kit(u,type,o);   /* TALENT HOOK kit: skill options */   /* v786/v789 */ const _kLv=(u._castLv|0)||1;   /* v1112: the level of the slot that fired, for skLvNum */
+  if(u._talW&&u._castSlot) TalentFx.teamCast(u,type,o);   /* TALENT HOOK teamCast: a Green, Blue or ultimate of a unit a talented hero watches resolves (Lysara's Wing Dust flares on an enemy's cast; only a talented hero's watch sets _talW) */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
@@ -17592,6 +17593,7 @@ function think(u,dt){
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else if((u._chaseT||0)>0 && u._chaseTg && u._chaseTg.alive) u.target=u._chaseTg;   // v1044 KonWu runs down the mark he kicked away
   else{ u.target=nearestEnemy(u); if(u.target&&u.target._talAgg&&u.target._tal) u.target=TalentFx.aggro(u.target,u)||u.target; }   /* TALENT HOOK aggro: he picked a unit whose talent says who may pick it (Kharos's Scentless; only his rows set _talAgg) */   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
+  if(u._tal&&u._tal.on.pickTgt&&!(u.forcedTargetT>0&&u.forcedTarget&&u.forcedTarget.alive)&&!((u._chaseT||0)>0&&u._chaseTg&&u._chaseTg.alive)) u.target=TalentFx.pickTgt(u,u.target);   /* TALENT HOOK pickTgt: a talented unit's own basic-attack target, never over a taunt or a chase (Lysara's The Lantern; only a talented hero with pickTgt rows) */
   const t=u.target;if(!t)return;const d=dist(u,t);
   let cd=u.combatDist||u.range; if(u.melee)cd=(u.reach>0)?Math.max(bodyR(u)+bodyR(t)+2*UNIT_SIZE,u.reach-6*UNIT_SIZE):bodyR(u)+bodyR(t)+2*UNIT_SIZE;   /* v1258 */   // melee holds where the two BODIES just touch (solid obstacles); ranged keeps its row hold (13 m / 25 m); v534: a long melee (Zahri's lance) holds at its reach
   // Both teams run in from their corners and meet in the middle. Ranged units keep their ROW distance from the
@@ -17653,6 +17655,7 @@ function think(u,dt){
             else { healUnit(u,dmg*0.5*_pm); floatTexts.push({x:t.x,y:t.y-8,txt:'♣',img:'fx-club',t:.8,color:'#8fe0a0',vy:1.2,sz:14}); } } }
         // Powdered Slumber (Lysara): her attacks gradually blind what she hits.
         if(u.pass.slumber&&t){ t.evaStat=Math.max(0,(t.evaStat||0)); t._accDn=Math.min(0.35,(t._accDn||0)+0.05*_pm); t.accStat=Math.max(0,(t.accStat||0)-3*_pm); }
+        if(u.pass.slumber&&t&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'slumber');   /* TALENT HOOK pass: Powdered Slumber has just dusted t at this swing (Lysara's talents count its accuracy loss; only a talented Lysara has pass rows) */
         // Hunter's Patience (Verdant Shade): stay on one target and the shots start finding gaps.
         if(u.pass.patience){ if(u._hpTgt===t){ u._hpStk=Math.min(6,(u._hpStk||0)+1); } else { u._hpTgt=t; u._hpStk=0; }
           u.glyphCrit=(u._hpBaseCrit==null?(u._hpBaseCrit=u.glyphCrit||0):u._hpBaseCrit)+0.05*_pm*(u._hpStk||0); }
