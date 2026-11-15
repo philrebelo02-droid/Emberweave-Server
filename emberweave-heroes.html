@@ -13688,7 +13688,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   const _talSure=!!(src&&src._tal&&src._tal.on.sure&&src.team!==tgt.team)&&TalentFx.sure(src,tgt,kind,_isAuto);   /* TALENT HOOK sure: the attacker's talent may say this hit cannot be dodged (Kharos's Known Habits); false for every other unit */
   if(tgt._tal&&(tgt._tal.on.aimed||tgt._tal.on.dodge)&&src&&src.team!==tgt.team&&TalentFx.dodge(tgt,src,_isAuto,kind,_gSure||_talSure)){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#c9a6ff',vy:1.3,sz:13}); return; }   /* TALENT HOOK dodge: an enemy's hit coming at a talented unit (its 'aimed' rows), and its talent dodge (the seeded roll is inside a learned row only) */
   if(kind!=='true'&&!_gSure&&!_talSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.0005))){
-    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'miss');   /* TALENT HOOK foiled: a hit of a talented unit was missed to Evasion (Meridian's Windage) */ return; }   // Evasion vs Accuracy
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'miss');   /* TALENT HOOK foiled: a hit of a talented unit was missed to Evasion (Meridian's Windage) */ if(tgt._tal&&tgt._tal.on.evaded) TalentFx.evaded(tgt,src,_isAuto,kind);   /* TALENT HOOK evaded: the game's own Evasion made this hit miss a talented unit (Nox's Fortune dodges) */ return; }   // Evasion vs Accuracy
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
@@ -14896,6 +14896,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'energygift':{                                             // "transfers stolen Energy to the ally nearest its Ultimate"
       let best=null,bv=-1; alliesOf(u).forEach(a=>{ if(!a.alive||a===u)return; if((a.energy||0)>bv){bv=a.energy||0;best=a;} });
       if(!best)break;
+      if(u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,type,best,o)||best;   /* TALENT HOOK skillTgt: a learned talent may choose who Forbidden Key goes to (Nox's Accomplice) */
       /* v529 - "when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and
          uninterruptible." The keys are counted BEFORE they are spent, so the bonus still scales. */
       const _held=(u._keys||0), _mu=noxSpendKeys(u);
@@ -17559,7 +17560,7 @@ function think(u,dt){
      Engine-side and keyed on autoUlt (a recorded input), so the server replay fires it on the same tick. */
   if(u.team==='ally' && autoUlt && CUR.mode!=='online' && u.gearSkill && !u.gearSkill.used && battleTime>=2.5) castGearSkill(u,true);
   // ultimate (energy): enemies + AUTO auto-fire; player fires (and aims) via portrait
-  if(u.key!==HERO61.KEY && !silenced && !u.t.monster && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
+  if(u.key!==HERO61.KEY && !silenced && !u.t.monster && u.energy>=100 && !((u._talUltT||0)>battleTime)){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
     /* v1103 (Phil 9 Oct, Emberdraft: "they dont auto ult. i still have to click" - "it was vireo"): a healer's ult waits for the first point of
        ally damage, but Vireo's Grand Symphony also hits every enemy - with an untouched team she sat full until clicked. An ult that deals damage fires at once. */
     const _ultDmg=HEALER_ULT_HITS.has(u.abilityOverride||u.t.ability);   // Symphony (Vireo), Sunburst (Lumi), Hive Mind (Mellan); First Spring and Rally only heal - they still wait
