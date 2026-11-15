@@ -26,8 +26,8 @@ const swing=(L,n)=>{ const v=L.v; v.stunned=0; v.greenCd=v.blueCd=1e9; let k=0, 
   assert.equal(k,n,'she swung'); v.stunned=1e6; secs(1); };
 const tick=(L,t)=>{ const d=t.dots.find(x=>x._talO===L.v.uid||x.src===L.v); return d; };
 
-test('Vex: every talent is accounted for - 9 plain stats, 113 with rows, 3 waiting for a ruling',()=>{
-  accounting(H,[125,9,113,3,0]);
+test('Vex: every talent is accounted for - 9 plain stats, 116 with rows, nothing waiting (the rulings of 14 Nov)',()=>{
+  accounting(H,[125,9,116,0,0]);
   const M=FXN.mech(H); for(const id of ['rw_1_1','sc_1_1','sl_1_1','rw_13_2','sc_13_2','sl_13_2']) assert.ok(M.talents[id],id);
   assert.ok(!FXN.has(H,'sl_6_2'),'Make Them Miss is about the counter-cut, not a plain stat: its rows win over the stat sentence');
 });
@@ -307,4 +307,43 @@ test('Vex: the mechanics act in a live fight, and whole fights are deterministic
   assert.ok(coil>=1,'basic attacks coiled her rope'); assert.ok(hk,'she threw Hookline'); assert.ok(snag,'a real Hookline Snagged its mark'); assert.ok(blind,'and she Blindsided it');
   assert.ok(dws>=1,'real swings opened Deep Wounds: '+dws); assert.ok(drip>=1,'her bleeds filled Drip'); assert.ok(sl,'an enemy that attacked her went on her Short List');
   determinism(H,TEAM);
+});
+
+/* ------------------------------ Vex's rulings (WIRING/10 and the Kimi audit, 14 Nov 2026) ------------------------------ */
+test('Vex rulings / Gaping Wound: the wound takes 30% of a shield, once per wound',()=>{
+  const L=lab(H,S(['sc_5_2']),{foes:1}), f=L.F[0]; f.shield=1e6; f.shieldT=600;
+  swing(L,1); assert.ok(f.mortalT>0,'Killer Instinct\'s wound is on'); assert.ok(f.shield<=7e5+1e-6&&f.shield>6.9e5,'the shield lost 30% at once');
+  const s1=f.shield; swing(L,1); assert.ok(f.shield>s1*0.99,'a second swing on the same wound does not take 30% again');
+  f.mortalT=0; f.shield=1e6; swing(L,1); assert.ok(f.shield<=7e5+1e-6,'a new wound: again');
+  const M=lab(H,S(['sc_5_2']),{foes:1}); M.F[0].shield=0; swing(M,1); M.F[0].shield=1e6; M.F[0].shieldT=600; swing(M,1); assert.ok(M.F[0].shield>9.9e5,'a wound that opened on an unshielded enemy takes nothing later');
+});
+
+test('Vex rulings / Wide Berth: less damage from enemy skills of the area kinds only',()=>{
+  const r=T.talent(H,'sl_n1').ranks; let base;
+  plain({foes:1},P=>{ P.v.glyphDR=0; base=lost(P.v,()=>V.hit(P.F[0],P.v,1000,{kind:'true'})); });
+  const L=lab(H,S(['sl_n1']),{foes:1}), {v,F}=L, f=F[0]; v.glyphDR=0; const k0=f.greenAb;
+  near(lost(v,()=>V.hit(f,v,1000,{kind:'true'})),base,'a basic attack: plain');
+  f.greenAb={type:'aoeStun'}; f._castSlot='green'; near(lost(v,()=>V.hit(f,v,1000,{kind:'true'})),base*(1-0.02*r),'a hit of an area skill (ULT_RADIUS): 2% x '+r+' less');
+  f.greenAb={type:'cleave'}; near(lost(v,()=>V.hit(f,v,1000,{kind:'true'})),base*(1-0.02*r),'a cone (ULT_CONE)');
+  f.greenAb={type:'stampede'}; near(lost(v,()=>V.hit(f,v,1000,{kind:'true'})),base*(1-0.02*r),'a line (ULT_LINE)');
+  f.greenAb={type:'strike'}; near(lost(v,()=>V.hit(f,v,1000,{kind:'true'})),base,'a single-target skill: plain'); f._castSlot=null; f.greenAb=k0;
+});
+
+test('Vex rulings / Tempest Dance: every attack dodged while her ultimate holds her, +3% a dodge to the NEXT Razor Tempest (+30% at most), not a dodge for her other dodge talents',()=>{
+  const r=T.talent(H,'sl_10_2').ranks; let pR;
+  plain({foes:2},P=>{ P.v.target=P.F[1]; P.put(P.F[1],0,5); pR=lost(P.F[1],()=>V.cast(P.v,'ult')); });
+  const L=lab(H,S(['sl_1_2','sl_10_2','sl_11_2','sl_8_2','sl_12_2']),{foes:2}), {v,F}=L; v.glyphDR=0; v.target=F[1]; L.put(F[1],0,5); assert.ok(L.T.on.dodged,'her dodge talents are on');
+  v._ultRootT=1.1; for(let i=0;i<2;i++) near(lost(v,()=>V.hit(F[0],v,100)),0,'dodge '+(i+1)+' while held');
+  assert.equal(stack(L,'patter'),0,'Patter does not count them'); assert.ok(!(L.T.s.w.rtc&&L.T.s.w.rtc.t>0),'nor Read Them Coming');
+  near(lost(F[1],()=>V.cast(v,'ult')),pR,'they do not raise a Razor Tempest cast inside the same hold');
+  v._ultRootT=0; V.step(1); assert.equal(stack(L,'tdb'),2,'kept for the next one');
+  near(lost(F[1],()=>V.cast(v,'ult')),pR*(1+0.03*r*2),'the next Razor Tempest: 3% x '+r+' x 2 more'); assert.equal(stack(L,'tdb'),0,'spent');
+  v._ultRootT=1.1; V.step(1); v._ultRootT=1.1; for(let i=0;i<40;i++) V.hit(F[0],v,1); v._ultRootT=0; V.step(1); near(lost(F[1],()=>V.cast(v,'ult')),pR*1.30,'capped at +30%');
+});
+
+test('Vex rulings / Rolling with It: twice her dodge chance as reduction, 40% in all',()=>{
+  let base; plain({foes:1},P=>{ P.v.glyphDR=0; base=lost(P.v,()=>V.hit(P.F[0],P.v,1000,{kind:'true'})); });
+  const L=lab(H,S(['sl_5_3']),{foes:1}), {v,F}=L; v.glyphDR=0; const d0=v._talDodge;
+  v._talDodge=0.10; near(lost(v,()=>V.hit(F[0],v,1000,{kind:'true'})),base*0.80,'10% dodge: 20% less');
+  v._talDodge=0.35; near(lost(v,()=>V.hit(F[0],v,1000,{kind:'true'})),base*0.60,'35% dodge: capped at 40% less'); v._talDodge=d0;
 });

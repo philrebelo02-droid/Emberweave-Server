@@ -15,8 +15,9 @@ module.exports={
   hero:'vael',
   /* tracked things. max / dur may be changed by other talents through named numbers. */
   states:{
-    temper:{max:20},                                             // Forge Heat. The tooltips name no fade rate: none until ruled (see ruling ib_4_1)
-    bank:{max:{pct:P('bank.max',0.15),of:'maxHp'}},              // Blood Bank: a pool of HP
+    temper:{max:20,fade:{after:0,every:2,lose:1,rate:{b:1,$:'temper.fade'},unless:{p:'temper.hold',anyDot:'bleed'}}},   // Forge Heat. Ruling: 1 Temper fades every 2 s he has neither hit nor been hit (Annealed slows the clock; Blood Temper holds it while his bleeds run)
+    bank:{max:{pct:P('bank.max',0.15),of:'maxHp'},fade:{after:4,every:1,pct:0.05,unless:{p:'hoard'}}},   // Blood Bank: a pool of HP. Ruling: after 4 s without new overheal it loses 5% of what it holds each second (not with Hoarder)
+    bm:{max:3},                                                  // Breach Momentum: hits left
     scars:{max:P('scars.max',10)},                               // whole fight
     footing:{max:5},
     momentum:{max:3,dur:P('momentum.dur',4)},                    // Blood Momentum: all stacks drop `dur` s after the last kill
@@ -28,7 +29,9 @@ module.exports={
   always:[
     {on:'cast',skill:'lifestealbuff',do:[{window:'bloodthirst',dur:{opt:'dur',d:6}}]},
     {on:'cast',skill:'laststand',do:[{window:'laststand',dur:{opt:'dur',d:5}},{window:'bloodthirst',end:true}]},   // Last Stand's cast replaces the running lifesteal buff
-    {on:'cast',skill:'warcry',do:[{window:'warcry',dur:{opt:'dur',d:6}}]}
+    {on:'cast',skill:'warcry',do:[{window:'warcry',dur:{opt:'dur',d:6}}]},
+    {on:['hit','hurt'],do:[{stack:'temper',touch:true}]},                                  // Temper's fade waits while he hits or is hit
+    {on:'wave',if:{np:'hoard'},do:[{stack:'bank',set:0}]}                                    // the Blood Bank empties between waves (not with Hoarder)
   ],
   talents:{
     /* ============================== RED HARVEST ============================== */
@@ -38,7 +41,13 @@ module.exports={
     rh_2_1:[ {stat:{move:R(0.04)},if:{targetHas:'quarry'}} ],                               // Close the Distance (reading: while the Quarry is his current target)
     rh_2_2:[ {on:'hit',if:{crit:true},do:[{dot:'bleed',amt:{pct:R(0.04),of:'hit'},dur:P('bleed.dur',3),every:1,color:BLEED}]} ],   // Open Wounds
     rh_n2:[  {on:'in',if:{anyDot:'bleed'},less:0.04},                                        // Blood Temper (LINK)
-             {on:'dotTick',req:'ib_1_1',if:{tag:'bleed'},every:3,do:[{stack:'temper',add:1}]} ],   // ...with Forge Heat: every 3rd bleed tick gives 1 Temper
+             {on:'dotTick',req:'ib_1_1',if:{tag:'bleed'},every:3,do:[{stack:'temper',add:1}]},   // ...with Forge Heat: every 3rd bleed tick gives 1 Temper
+             {param:'temper.hold',add:1,req:'ib_1_1'} ],                                    // ...and his Temper does not fade while an enemy carries his bleed (the state's fade.unless)
+    rh_2_3:[ {stat:{aspd:R(0.003)},per:{fn:'rage',max:[50,25,50/3]}} ],                     // Battle Rhythm: per Blood Rage stack (each 1% of Blood Rage), 15% in all
+    rh_4_3:[ {on:'out',if:{auto:true,window:'bloodthirst'},more:R(0.05)} ],                 // Bloodthirst Edge: his attacks while Bloodthirst runs
+    rh_7_2:[ {on:'kit',skill:'laststand',opt:{mul:{set:1},mulPerLv:{set:0}}},               // Red Stand: Last Stand gives up its reduction (its lifesteal stays)...
+             {stat:{atk:0.20},if:{window:'laststand'}} ],                                   //   ...and gives 20% attack for its duration
+    rh_5_2:[ {on:'cast',skill:'warcry',do:[{dot:'bleed',on:{team:'enemy',of:'self',withinOpt:'radius',fearedBy:true},amt:{pct:0.04,of:'atk'},dur:P('bleed.dur',3),every:1,color:BLEED}]} ],   // Red Tide: 4% of his attack a second for 3 s on every enemy Warcry fears
     rh_3_1:[ {on:'death',if:{unitHas:'quarry'},do:[{mark:'quarry',on:{team:'enemy',of:'self',n:1},unique:true},{mark:'pick',on:'holder:quarry'}]},   // Pick the Next
              {on:'crit',if:{targetHas:'pick'},force:true,do:[{mark:'pick',clear:true}]} ],
     rh_3_3:[ {on:'out',if:{targetDot:'bleed'},ignoreArmor:R(0.03)} ],                       // Sunder
@@ -86,6 +95,18 @@ module.exports={
     ib_2_2:[ {on:'heal',if:{overMin:0},do:[{stack:'bank',add:{pct:R(0.08),of:'over'}}]} ],  // Blood Bank
     ib_4_2:[ {on:'tick',unless:'ib_5_3',edge:true,if:{selfHpBelow:0.40},do:[{stack:'bank',spend:'all',then:[{heal:{pct:{r:0.10,b:1,$:'payout'},of:'spent'}},{emit:'payout'}]}]},   // Withdrawal
              {on:'tick',req:'ib_5_3',edge:true,if:{selfHpBelow:0.40},do:[{stack:'bank',spend:'all',then:[{heal:{pct:{r:0.10,b:1,$:'payout'},of:'spent'},on:{team:'ally',others:true,order:'lowHp',n:1}},{emit:'payout'}]}]} ],   // ...paid to the lowest-HP ally with Share the Wealth
+    ib_3_1:[ {on:'cast',skill:'lifestealbuff',if:{stackMin:{temper:20}},do:[{dmg:{pct:1,of:'atk'},on:AROUND(2)}]} ],   // White Hot: one hit of 100% attack on every enemy within 2 m, once per cast
+    ib_3_3:[ {on:'out',if:{auto:true,window:'bloodthirst'},more:R(0.04)} ],                 // Heavy Blows: his attacks while Bloodthirst runs
+    ib_4_1:[ {param:'temper.fade',add:R(-0.10)} ],                                          // Annealed: Temper's fade clock runs 10% slower per rank
+    ib_5_1:[ {stat:{mr:R(0.003)},per:{fn:'rage',max:[50,25,50/3,12.5,10]}} ],              // Forged Will: per Blood Rage stack, 15% in all
+    ib_8_3:[ {stat:{hp:R(0.002)},per:{fn:'rage',max:[75,37.5,25,18.75,15]}} ],             // Bloodied Resolve: per Blood Rage stack, 15% in all
+    ib_9_3:[ {on:'hit',if:{auto:true,window:'bloodthirst'},do:[{mark:'iclad',on:'target',dur:3}]},   // Ironclad Swing: while Bloodthirst runs, his attacks...
+             {stat:{atk:R(-0.01)},to:{team:'enemy',has:'iclad'}} ],                         //   ...lower the target's attack 1% per rank for 3 s (does not stack)
+    ib_11_2:[ {param:'hoard',add:1} ],                                                      // Hoarder: the Blood Bank neither fades nor empties between waves
+    ib_12_3:[ {on:'tick',edge:true,if:{selfHpBelow:0.20},do:[{window:'lastword',dur:1e6}]},   // Last Word: below 20% HP his NEXT Bloodthirst...
+              {on:'cast',skill:'lifestealbuff',if:{window:'lastword'},do:[{window:'lw',dur:{opt:'dur',d:6}},{window:'lastword',end:true}]},
+              {on:'cast',skill:'laststand',do:[{window:'lw',end:true}]},
+              {on:'out',if:{auto:true,window:'lw'},more:R(0.15)} ],                         //   ...his attacks deal 15% more per rank while it runs
     ib_3_4:[ {on:'hurt',do:[{fn:'grudge'}]},                                                // Grudge
              {on:'out',if:{targetHas:'grudge'},more:R(0.02)} ],
     ib_5_2:[ {on:'hit',if:{window:'bloodthirst',stackEmpty:'bank'},do:[{heal:{pct:1,of:'lifesteal'}}]} ],   // Investment
@@ -112,7 +133,8 @@ module.exports={
     ib_12_1:[ {on:'wave',do:[{stack:'temper',atLeast:R(5)}]} ],                             // Forgeborn
     ib_12_2:[ {param:'payout',add:R(0.04)}, {on:'payout',do:[{cleanse:1}]} ],               // Golden Vein (reading: the control effect is removed from Vael)
     ib_12_4:[ {on:'retal',do:[{heal:{pct:R(0.05),of:'spent'}}]} ],                          // Debt Paid
-    ib_13_2:[ {on:'tick',edge:true,once:'fight',if:{selfHpBelow:0.30},do:[{window:'heart',dur:8},{stack:'bank',spend:'all',then:[{shield:{pct:1,of:'spent'},dur:8}]}]},   // Heart of Iron (SIGNATURE). PARTIAL: what a Temper is worth as shield is not written
+    ib_13_2:[ {on:'tick',edge:true,once:'fight',if:{selfHpBelow:0.30},do:[{window:'heart',dur:8},{stack:'bank',spend:'all',then:[{shield:{pct:1,of:'spent'},dur:8}]},
+                {stack:'temper',spend:'all',then:[{shield:{pct:0.01,of:'maxHp',x:'spent'},dur:8}]}]},   // Heart of Iron (SIGNATURE): the bank and his Temper (1% max HP each, spent) become a shield
               {on:'hit',if:{auto:true,window:'heart'},do:[{dmg:{pct:1,of:'hit'},on:{team:'enemy',of:'self',within:3,skip:'target'}}]},   //   his attacks hit every enemy within 3 m
               {on:'hurt',if:{window:'heart'},do:[{stack:'temper',add:1}]},                  //   every hit he takes gives Temper
               {on:'end:heart',pts:['ironblood',91],do:[{stack:'bank',add:{pct:1,of:'shield'}},{unshield:1}]} ],   //   AT 91 POINTS: what is left of the shield flows back into the bank
@@ -120,6 +142,7 @@ module.exports={
     /* ============================== THE ASHFORD WALL ============================== */
     aw_1_1:[ {on:'hurt',if:{lostMin:{pct:R(-0.01,0.14),of:'maxHp'}},do:[{stack:'scars',add:1}]} ],   // First Scar
     aw_1_3:[ {on:'in',if:{auto:true},chance:R(0.03),less:0.35,do:[{emit:'block'}]} ],       // Shield Arm: Block (the one seeded roll among his talents)
+    aw_1_4:[ {stat:{move:R(0.03)},if:{fn:'lowAlly'}} ],                                     // Old Road: while his lowest-HP ally is below 50% HP
     aw_2_1:[ {stat:{armor:R(0.003),mr:R(0.003)},per:'scars'} ],                             // Hard Lessons
     aw_2_2:[ {on:'tick',if:{moved:true,noWindow:'planted'},do:[{stack:'footing',set:0}]},   // Footing: moving clears it...
              {on:'tick',if:{moved:false},period:1,rate:P('footing.rate',1),do:[{stack:'footing',add:1}]},   // ...each full second standing still adds one
@@ -137,14 +160,26 @@ module.exports={
     aw_5_1:[ {on:'death',if:{who:'ally'},do:[{stack:'scars',add:R(2)}]} ],                  // Grim Memory
     aw_5_2:[ {on:'cast',skill:'warcry',do:[{window:'planted',dur:2},{stack:'footing',set:'max'}]},   // Plant Your Feet: rooted = cannot walk, can still attack
              {stat:{move:-1},if:{window:'planted'}} ],
-    aw_5_4:[ {on:'diverted',do:[{stack:'ledger',add:{pct:1,of:'spent'}}]},                  // Oath Ledger
+    aw_5_3:[ {on:'cast',skill:'warcry',do:[{emit:'breach0',on:{team:'ally',others:true,order:'lowHp',n:1}}]},   // Charge the Breach (ruling: no dash - Warcry also taunts...
+             {on:'breach0',do:[{taunt:2,on:{team:'enemy',of:'target',n:1}},{emit:'breach',if:{some:{team:'enemy',of:'target',n:1}}}]} ],   //   ...the enemy closest to his lowest-HP ally for 2 s)
+    aw_6_3:[ {on:'breach',do:[{stack:'bm',set:3}]},                                          // Breach Momentum: after that taunt, his next 3 hits...
+             {on:'out',if:{stackMin:{bm:1}},more:R(0.04),do:[{stack:'bm',add:-1}]} ],       //   ...deal 4% more per rank
+    aw_7_1:[ {on:'teamIn',if:{srcTeam:'enemy',targetIs:{team:'ally',others:true,within:4,behind:true}},less:R(0.015)} ],   // Living Wall: allies behind him (farther from the enemy side, within 4 m)
+    aw_7_4:[ {on:'tick',edge:true,uses:P('cog.uses',1),if:{some:{team:'ally',has:'oath',hpBelow:0.25}},do:[{window:'guard',dur:2},{shield:{pct:{r:0.02,$:'cog.shield'},of:'maxHp'},dur:3}]},   // Change of Guard: he stands in for the Oath ally...
+             {on:'teamIn',if:{window:'guard',targetHas:'oath',srcTeam:'enemy'},divert:1} ],   //   ...every hit on them for 2 s lands on him
+    aw_10_4:[ {param:'cog.uses',add:1}, {param:'cog.shield',add:R(0.02)} ],                 // Oathkeeper
+    aw_5_4:[ {on:'diverted',if:{any:[{targetHas:'oath'},{targetHas:'oath2'}]},do:[{stack:'ledger',add:{pct:1,of:'spent'}}]},   // Oath Ledger (damage taken through his Oaths)
              {on:'cast',skill:'laststand',do:[{stack:'ledger',spend:'all',then:[{dmg:{pct:R(0.06),of:'spent'},on:AROUND(5)},{emit:'ledgerBurst'}]}]} ],
     aw_6_1:[ {stat:{atk:R(0.002)},per:'scars'} ],                                           // Callused
     aw_6_2:[ {on:'end:planted',do:[{dmg:{pct:R(0.03),of:'maxHp'},on:AROUND(3)}]} ],         // Footfall
     aw_6_4:[ {on:'death',if:{unitHas:'oath'},do:[{window:'unpaid',dur:'wave'}]},            // Unpaid Debt
              {on:'in',if:{window:'unpaid'},less:R(0.06)} ],
-    aw_7_2:[ {on:'cast',skill:'laststand',do:[{stack:'footing',set:'max'}]},                // Hold the Gate. PARTIAL: "enemies that walk into him are stopped" needs a ruling
-             {stat:{immovable:1},if:{window:'laststand'}} ],
+    aw_7_2:[ {on:'cast',skill:'laststand',do:[{stack:'footing',set:'max'},{mark:'gated',on:{team:'enemy',of:'self'},clear:true}]},   // Hold the Gate: full Footing...
+             {stat:{immovable:1},if:{window:'laststand'}},                                  //   ...cannot be moved...
+             {on:'tick',if:{window:'laststand'},do:[{emit:'gate',on:{team:'enemy',of:'self',within:2,lacks:'gated'}}]},   //   ...an enemy within 2 m is stopped (once each Last Stand)
+             {on:'gate',do:[{mark:'gated',on:'target'},{mark:'held',on:'target',dur:P('gate.stop',0.5)},{taunt:2,on:'target'},{dmg:{pct:P('gate.dmg',0),of:'maxHp'},on:'target'}]},   //   and must attack him for 2 s
+             {stat:{move:-1},to:{team:'enemy',has:'held'}} ],                               //   (stopped: cannot move, can still attack)
+    aw_12_2:[ {param:'gate.stop',add:R(0.1)}, {param:'gate.dmg',add:R(0.01)} ],             // Gatekeeper's Wrath: the stop 0.1 s longer and 1% of his max HP per rank
     aw_8_1:[ {on:'kit',skill:'warcry',opt:{fear:{add:R(0.03),per:'scars',ccRaw:true}}} ],   // War Ledger
     aw_8_3:[ {param:'footing.rate',add:R(0.10)} ],                                          // Stubborn Ground
     aw_8_4:[ {on:'hit',if:{window:'bloodthirst'},do:[{heal:{pct:R(0.04),of:'lifesteal'},on:'holder:oath'}]} ],   // Sworn Shield
@@ -158,29 +193,26 @@ module.exports={
     aw_11_1:[ {on:'scarsSpent',do:[{window:'ash',dur:4,count:'spent'}]},                    // Ash and Iron
               {stat:{armor:R(0.01)},per:{window:'ash'}} ],
     aw_11_4:[ {on:'ledgerBurst',do:[{taunt:R(0.2),on:AROUND(5)}]} ],                        // Debt Collector
+    aw_12_3:[ {on:'in',less:R(0.006),per:{fn:'rage',max:[25,12.5]}} ],                       // Iron in the Blood: per Blood Rage stack, 15% in all
+    aw_13_2:[ {on:'tick',each:{team:'ally',others:true},edge:true,if:{targetHpBelow:0.40},do:[{window:'gate',dur:6,cd:30},{mark:'gated',on:{team:'enemy',of:'self'},clear:true}]},   // The Ashford Gate (SIGNATURE): an ally first below 40% (cd 30 s): the Gate for 6 s
+              {on:'tick',if:{window:'gate'},do:[{emit:'gate',on:{team:'enemy',of:'self',within:2,lacks:'gated'}}]},   //   an enemy within 2 m is stopped and must attack him
+              {on:'gate',unless:'aw_7_2',do:[{mark:'gated',on:'target'},{mark:'held',on:'target',dur:P('gate.stop',0.5)},{taunt:2,on:'target'},{dmg:{pct:P('gate.dmg',0),of:'maxHp'},on:'target'}]},
+              {stat:{move:-1},to:{team:'enemy',has:'held'},unless:'aw_7_2'},
+              {on:'teamIn',if:{window:'gate',srcTeam:'enemy',targetIs:{team:'ally',others:true,within:5,behind:true}},divert:1},   //   every hit on an ally behind him within 5 m lands on him...
+              {on:'diverted',if:{window:'gate',targetIs:{team:'ally',others:true,within:5,behind:true}},do:[{stack:'scars',add:1}]} ],   //   ...and gives him a Scar
     aw_12_1:[ {on:'hurt',if:{lostBelow:{pct:{rk:'aw_1_1',r:-0.01,b:0.14},of:'maxHp'}},every:R(-2,30),do:[{stack:'scars',add:1}]} ],   // Ten Thousand Cuts
     aw_12_4:[ {on:'waveEnd',if:{holderAlive:'oath'},do:[{energy:R(1)}]} ]                   // Promise Kept
   },
-  /* one sentence runs, another waits for a ruling */
-  partial:{
-    rh_n2:'"his Temper does not fade while any enemy carries one of his bleeds": no tooltip says how Temper fades, so there is nothing to stop',
-    ib_13_2:'"all his banked blood and Temper become a shield": what one Temper is worth as shield is not written; the bank part, the 3 m attacks, Temper per hit taken and the 91-point line run',
-    aw_7_2:'"enemies that walk into him during Last Stand are stopped for 0.5 s": the engine has no walking-into rule; full Footing and cannot-be-moved run'
-  },
-  /* nothing implemented: the text cannot run against his real kit, or leaves out a number. Each one is written up for the owner. */
-  ruling:{
-    rh_2_3:'Blood Rage has no stacks', ib_5_1:'Blood Rage has no stacks', ib_8_3:'Blood Rage has no stacks', aw_12_3:'Blood Rage has no stacks',
-    rh_4_3:'Bloodthirst deals no damage', ib_3_3:'Bloodthirst deals no damage', ib_12_3:'Bloodthirst deals no damage',
-    ib_3_1:'Bloodthirst is not a strike', ib_9_3:'Bloodthirst has no target',
-    rh_7_2:'Last Stand already gives 100% lifesteal: "25% lifesteal" would be a loss',
-    rh_5_2:'the bleed has no size: Warcry is not a hit',
-    ib_4_1:'no tooltip says how Temper fades', ib_11_2:'no tooltip says how the Blood Bank fades or that it empties between waves',
-    aw_1_4:'Vael never walks toward an ally', aw_5_3:'a leap: new movement', aw_6_3:'depends on Charge the Breach',
-    aw_7_1:'no lanes, no "behind"', aw_7_4:'a position swap', aw_10_4:'depends on Change of Guard',
-    aw_12_2:'depends on the stop of Hold the Gate', aw_13_2:'lanes, "cannot walk past", "behind him"'
-  },
+  /* every talent runs (14 Nov 2026: the 21 rulings and 3 half-rulings decided in WIRING/10 - HERO RULINGS, built on this file) */
+  partial:{},
+  ruling:{},
   /* the few things that are not one of the generic primitives */
   fn:{
+    /* Blood Rage as stacks (ruling): one stack for each whole 1% of damage Blood Rage gives him now. It counts HP lost over the fight, so it never
+       goes down - kept as the highest reached (Bloodied Resolve's max HP would otherwise shrink its own count). As a count: per:{fn:'rage', max} */
+    rage(A,T,u){ const E=A.eng(), p=(E&&E.bloodRage)?E.bloodRage(u):0, n=Math.floor(p*100+1e-9); if(n>(T.s.br||0)) T.s.br=n; return T.s.br||0; },
+    /* Old Road: the ally with the lowest HP (the number, as for the Oath) is below 50% of its max */
+    lowAlly(A,T,u){ const x=A.pick(T,u,{team:'ally',others:true,order:'lowHp',n:1})[0]; return !!x&&x.hp<0.5*x.maxHp; },
     /* Grudge: the enemy that has dealt Vael the most damage this wave holds the 'grudge' mark. With Old Grudges learned, the enemy that
        was the Grudge keeps an 'oldgrudge' mark. Called on every hit he takes. */
     grudge(A,T,u,ctx){ const src=ctx.src; if(!src||!(ctx.hpLost>0)) return; const s=T.s, g=s.g||(s.g={w:-1,by:{},top:null});

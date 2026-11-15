@@ -4648,6 +4648,7 @@ function campaignHeroSpec(u,key){
 }
 /* 14 Nov 2026 talents: the learned list a fight is built with ([[id,rank],...] sorted), or null. A build that the rules no longer accept
    (a data correction, a level that dropped) fights with NO talents - never with half of one. Off unless TALENTS_ENABLED=true. */
+const TALENT_RESET_GEMS=1000;   /* Phil 14 Nov 2026: "1000 diamonds to reset talents" (the page reads it from the ledger view: talentResetGems) */
 function talentListFor(led,key){ if(!TALENTS_ON||!led||!led.talents) return null; const b=led.talents[key]; if(!b||!TALENTS.has(key)) return null;
   if(TALENTS.invalid(key,b,ledHeroLevel(led,key))) return null; const l=TALENTS.learned(key,b); return l.length?l:null; }
 /* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
@@ -5350,7 +5351,7 @@ function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS,
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
-    skill:led.skill||{}, talents:(TALENTS_ON?(led.talents||{}):undefined), temple:templeClientState(led), wall:wallView(u),
+    skill:led.skill||{}, talents:(TALENTS_ON?(led.talents||{}):undefined), talentResetGems:(TALENTS_ON?TALENT_RESET_GEMS:undefined), temple:templeClientState(led), wall:wallView(u),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
@@ -8939,7 +8940,8 @@ async function api(req,res,url){
 
   /* TALENTS (14 Nov 2026, Phil: "they are only activated when someone clicks learn talent"). led.talents[heroKey] = { r: { talentId: rank } }.
      The rules (points, tier gates, prerequisites, pick-one forks) live in talents.js, the same file the page uses. Learn = one point into
-     one talent; reset = every point of that hero back (free while the system is being built - the price is Phil's to set).
+     one talent; reset = every point of that hero back for TALENT_RESET_GEMS diamonds (Phil 14 Nov: "1000 diamonds to reset talents"); a build the rules
+     already found illegal (cleared by a data correction) is reset free.
      A build that a data correction made illegal is cleared on its next learn or reset, never silently kept. Off unless TALENTS_ENABLED=true. */
   if((p==='/api/talents/learn'||p==='/api/talents/reset') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!TALENTS_ON) return send(res,404,{error:'not found'});
@@ -8953,8 +8955,11 @@ async function api(req,res,url){
       let build=led.talents[key]||{r:{}}, cleared=false;
       if(TALENTS.invalid(key,build,lv)){ build={r:{}}; cleared=true; }
       if(isReset){ const had=TALENTS.spent(key,build).total; if(!had&&!cleared) return {ok:false,error:'This hero has no talents learned.'};
-        delete led.talents[key]; led.rev++; ledTx(me,'talentreset:'+key,{points:had}); writeDB();
-        return {ok:true, key, build:{r:{}}, spent:0, points:TALENTS.pointsTotal(lv), refunded:had, ledger:ledgerView(me)}; }
+        const cost=cleared?0:TALENT_RESET_GEMS;   /* a build cleared by a data correction is not the player's doing: free */
+        if(cost>0&&(led.gems|0)<cost) return {ok:false,error:'Not enough diamonds - a talent reset costs '+cost+'.',cost,gems:led.gems|0};
+        if(cost>0) led.gems-=cost;
+        delete led.talents[key]; led.rev++; ledTx(me,'talentreset:'+key,{points:had,gems:-cost}); writeDB();
+        return {ok:true, key, build:{r:{}}, spent:0, points:TALENTS.pointsTotal(lv), refunded:had, cost, ledger:ledgerView(me)}; }
       const id=String(b.id||'').slice(0,40);
       const r=TALENTS.learn(key,build,id,lv);
       if(!r.ok){ if(cleared){ delete led.talents[key]; led.rev++; writeDB(); } return {ok:false,error:r.error,cleared:cleared||undefined}; }

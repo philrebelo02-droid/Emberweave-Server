@@ -18,8 +18,8 @@ const plain=(o,fn)=>fn(lab(H,null,o));   /* a lab with no talents, run BEFORE th
 const same=(a,b,msg)=>assert.equal(JSON.stringify(a),JSON.stringify(b),msg);
 const plainHit=(L,fn)=>{ const T0=L.v._tal; L.v._tal=undefined; try{ return fn(); } finally{ L.v._tal=T0; } };   // the same hit with her talents switched off
 
-test('Vireo: every talent is accounted for - 8 plain stats, 113 with rows (2 in part), none waiting with nothing wired',()=>{
-  accounting(H,[121,8,113,0,2]);
+test('Vireo: every talent is accounted for - 8 plain stats, 113 with rows, nothing in part (the rulings of 14 Nov)',()=>{
+  accounting(H,[121,8,113,0,0]);
   const M=FXN.mech(H); for(const id of ['lh_1_1','ds_1_1','li_1_1','lh_13_2','ds_13_2','li_13_2']) assert.ok(M.talents[id],id);
 });
 
@@ -272,7 +272,7 @@ test('Vireo / The Final Note (SIGNATURE): its Grand Symphony, the 6 s of Downbea
   const [hd,hh]=plain({foes:1,allies:1,big:true},X=>{ room(X); const f=X.F[0].hp, a=X.A[0].hp; V.cast(X.v,'ult'); return [(f-X.F[0].hp)/X.v.apow,(X.A[0].hp-a)/X.v.apow]; });
   const L=lab(H,S(['li_1_1','li_1_4','li_2_2','li_13_2']),{foes:1,allies:1,big:true,cold:true}); room(L); V.step(1); const {v,A,F}=L;
   setStack(L,'bars',6); V.step(1); const ap6=v.apow;
-  const lh=F[0].hp, la=A[0].hp; V.cast(v,'ult'); near((lh-F[0].hp)/ap6,hd*2.5,'at 6 Bars her next Grand Symphony deals 150% more',1e-6); near((A[0].hp-la)/ap6,hh*2.5,'and heals 150% more',1e-6);
+  const lh=F[0].hp, la=A[0].hp; V.cast(v,'ult'); near((lh-F[0].hp)/ap6,hd*2.5+0.20*6,'at 6 Bars her next Grand Symphony deals 150% more, and each of her 6 Strings strikes for 20% of her ability power',1e-6); near((A[0].hp-la)/ap6,hh*2.5,'and heals 150% more',1e-6);
   assert.equal(stack(L,'str'),0,'all her Strings snap at once'); assert.equal(stack(L,'bars'),3,'she forgets 3 Bars');
   let n=0; for(let i=0;i<Math.round(6/V.STEP);i++){ const w=L.T.s.w.db; if(w&&w.t>0){ n++; w.t=0; } V.step(1); } assert.equal(n,3,'every Beat for 6 s is a Downbeat (3 Beats)');
   secs(4.1); assert.equal(stack(L,'str'),6,'the Strings retune as usual');
@@ -287,4 +287,12 @@ test('Vireo: the mechanics act in a live fight, and whole fights are determinist
     beats=beats||!!(T0.w.db); bars=Math.max(bars,T0.k.bars?T0.k.bars.n:0); held=held||U.some(u=>(u.hots||[]).some(h=>h._talK==='held')); }
   assert.ok(listen,'a real Crescendo made her allies Listening'); assert.ok(dsn>=1,'real heals put Dissonance on enemies: '+dsn); assert.ok(beats,'the Downbeat came'); assert.ok(bars>=1,'she learned a Bar'); assert.ok(held,'a real mending ended into a Held Note');
   determinism(H,TEAM);
+});
+
+/* ------------------------------ Vireo's rulings (WIRING/10, 14 Nov 2026) ------------------------------ */
+test('Vireo rulings / Clarity: Broken Chord deals 3% more per rank (Grand Symphony still ignores 3% magic resist per rank)',()=>{
+  const rB=T.talent(H,'ds_3_1').ranks, rC=T.talent(H,'ds_2_3').ranks;
+  const L=lab(H,S(['ds_1_1','ds_3_1','ds_2_3']),{foes:1,allies:1}), {v,F}=L; room(L); const ap=v.apow;
+  setDis(L,F[0],4); const h=F[0].hp; v.energy=0; V.cast(v,'green'); near(h-F[0].hp,ap*0.20*rB*(1+0.03*rC),'Broken Chord: 20% x '+rB+' of her ability power, 3% x '+rC+' more',1e-3);
+  assert.ok(L.T.on.out.some(r=>r.id==='ds_2_3'&&r.ignoreMr>0),'the Grand Symphony half is still there');
 });

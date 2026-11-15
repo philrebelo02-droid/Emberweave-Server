@@ -11,7 +11,7 @@
   const OVER={};                                // TalentFx.define(hero, def): a definition supplied at run time (the tests' scripted talents)
   const defOf=hero=>Object.prototype.hasOwnProperty.call(OVER,hero)?OVER[hero]:MECH[hero];
   function bind(api){ E=api; }
-  function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot)
+  function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot; Vael's Blood Rage; Vex's areaSkill)
   function define(hero,def){ if(def==null) delete OVER[hero]; else OVER[hero]=def; }
 
   /* ---- a value at a rank. number | [by rank] | {r: per rank, b: base, rk: 'other talent id' (use ITS rank), $: 'named number'
@@ -153,7 +153,7 @@
     else if(per.dots) n=countDots(u,per.dots);
     else if(per.field){ const x=per.of==='self'?u:per.of==='unit'?(ctx&&ctx.unit):per.of==='source'?(ctx&&ctx.src):(ctx&&ctx.tgt); n=x?(+x[per.field]||0):0; }
     else if(per.units) n=pick(T,u,per.units,ctx).length;
-    else if(per.fn) n=+T.fn[per.fn](API,T,u,ctx,per)||0;                         // a count the hero file works out (Calypsa's cuts on the line, the Water spent)
+    else if(per.fn) n=+T.fn[per.fn](API,T,u,ctx,per)||0;                         // a count the hero file works out (Vael's Blood Rage stacks, Calypsa's cuts on the line, the Water spent)
     else if(per.roll){ const q=T.s.roll[per.roll]; let sum=0; if(q){ const t0=E.now()-q.span; for(let i=0;i<q.e.length;i++) if(q.e[i][0]>t0) sum+=q.e[i][1]; } const st=amtOf(T,u,per.step,ctx); n=st>0?Math.floor(sum/st+1e-9):0; }
     if(per.max!=null) n=Math.min(per.max,n); return n; }
 
@@ -209,6 +209,8 @@
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
     const out=[], U=sel.mine!=null?mineOf(T,u).slice():E.units();                    // mine: only his own summons (true: any; or that summon's key)
+    const tg=sel.targeting?pick(T,u,sel.targeting,ctx):null; if(tg&&!tg.length) return [];   // targeting: the units whose current target is one the selector picks ("the enemy attacking her lowest-HP ally")
+    let bh=null; if(sel.behind){ let sx=0,sy=0,k=0; const UA=E.units(); for(let i=0;i<UA.length;i++){ const x=UA[i]; if(x.alive&&x.team!==u.team){ sx+=x.x; sy+=x.y; k++; } } if(!k) return []; bh={x:sx/k,y:sy/k}; bh.d=Math.hypot(c.x-bh.x,c.y-bh.y); }   // behind: farther from the enemy side (the middle of the living enemies) than `of`
     for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||x===skip||x._dropHidden||x._noTarget) continue;
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
       if(sel.mine!=null){ if(!isMine(u,x,sel.mine)) continue; }
@@ -228,6 +230,8 @@
       if(sel.fn&&!T.fn[sel.fn](API,T,u,{u,tgt:x,unit:x})) continue;                   // fn: a named function of the hero file says yes for that unit (Ceraline's waxed enemies)
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
+      if(bh&&!(Math.hypot(x.x-bh.x,x.y-bh.y)>bh.d)) continue;
+      if(tg&&tg.indexOf(x.target)<0) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
@@ -295,6 +299,9 @@
     any:(T,u,v,c)=>v.some(x=>ok(T,u,x,c)),                  // at least one of these condition sets holds ("Snagged or Blindsided")
     np:(T,u,v)=>!T.P[v],                                    // no learned talent adds to that named number (a fork that switches a behaviour off)
     selfMin:(T,u,v)=>fmin(u,v),                             // an engine counter on the owner: {field: at least}
+    wasOff:(T,u,v,c)=>!((c.was||0)>0)===v,                  // on 'pass': her passive's timer on the target was off before this swing (a new wound)
+    srcArea:(T,u,v,c)=>{ const s=c.src; let t=null; if(s&&s._castSlot&&!c.auto) t=s._castSlot==='ult'?(s.abilityOverride||(s.t&&s.t.ability)):(s._castSlot==='blue'?(s.blueAb&&s.blueAb.type):(s.greenAb&&s.greenAb.type));   // the hit comes from a skill the engine lists as an area (radius / cone / line) skill
+      return !!(t&&E.areaSkill&&E.areaSkill(t))===v; },
     unitUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.unit,k)<v[k]) return false; return true; },
     unitDot:(T,u,v,c)=>hasDot(u,c.unit,v),                  // the unit the event is about carries a DoT of hers
     targetRow:(T,u,v,c)=>!!(c.tgt&&c.tgt.t&&c.tgt.t.row===v), // the game's own combat row of that hero ('Back'); a monster has none
@@ -313,7 +320,7 @@
     mine:(T,u,v)=>{ const L=mineOf(T,u); for(let i=0;i<L.length;i++) if(v===true||L[i].key===v) return true; return false; },   // a summon of his (of that key) stands
     unitExtra:(T,u,v,c)=>!!(c.unit&&c.unit._talEx)===v,     // a summon his talents called (not his Ink Spirit skill)
     unitKey:(T,u,v,c)=>!!c.unit&&c.unit.key===v, srcKey:(T,u,v,c)=>!!c.src&&c.src.key===v,   // which kind of unit ('ink spirit', 'ink horror')
-    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner below that ({_pages:1}: he holds no Living Page)
+    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner below that ({_pages:1}: Aldren holds no Living Page; {_ultRootT:1e-9}: Vex's ultimate hold is over)
     wasBelow:(T,u,v,c)=>(c.was||0)<v,                      // the engine number before the engine changed it (pageW: the pages he held before the spell)
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
@@ -367,7 +374,7 @@
     const up=x=>row.upTo!=null?Math.min(row.upTo,x):x;                            // upTo: the share never above that, whatever the count ("up to 10%")
     if(row.more!=null) ctx.amt*=1+up(row.more*n);
     if(row.less!=null) ctx.amt*=Math.max(0,1-up(row.less*n));
-    if(row.mul!=null) ctx.amt*=row.mul;
+    if(row.mul!=null){ ctx.amt*=row.mul; if(row.mul===0) ctx.mv=0; }   // a hit made to deal nothing ("cannot be hurt") is immunity, not reduction: the 95% ceiling leaves it at 0
     if(row.add!=null) ctx.amt+=row.add*n;
     if(row.critMore!=null&&ctx.crit) ctx.amt*=1+row.critMore*n;
     if(row.ignoreArmor!=null&&ctx.kind==='phys'&&ctx.tgt&&ctx.src){ const src=ctx.src, a=E.defMul(src,ctx.tgt,'phys');
@@ -376,7 +383,7 @@
       if(a>0){ const sv=t.mrRating; t.mrRating=(sv||0)*Math.max(0,1-row.ignoreMr*n); const b=E.defMul(ctx.src,t,'magic'); t.mrRating=sv; ctx.amt*=b/a; } }
     if(row.addM!=null) ctx.amt+=row.addM*n*E.METER();                              // metres, for a number the engine keeps in its own length unit
     if(row.divert!=null){ const cut=ctx.amt*Math.min(1,row.divert*n);            // the owner takes this share of the hit in the target's place
-      if(cut>0){ ctx.amt-=cut; E.damage(u,cut,'#ffb37a',true); if(T.on.diverted) run(T,u,'diverted',Object.assign({},ctx,{spent:cut})); } }
+      if(cut>0){ ctx.amt-=cut; ctx.mv=(ctx.mv==null?1:ctx.mv)*(1-Math.min(1,row.divert*n)); E.damage(u,cut,'#ffb37a',true); if(T.on.diverted) run(T,u,'diverted',Object.assign({},ctx,{spent:cut})); } }
     if(row.force) ctx.force=true;
     if(row.opt&&ctx.o) for(const k in row.opt){ const op=row.opt[k], m=op.per!=null?cnt(T,u,op.per,ctx):1; let v=ctx.o[k];
       if(op.set!=null) v=op.set;
@@ -411,7 +418,7 @@
     if(a.stack){ const have=stGet(T,a.stack);
       if(a.spend!=null){ const n=a.spend==='all'?have:a.spend; if(a.spend!=='all'&&have<n) return false; if(!(n>0)) return;
         stSet(T,u,a.stack,have-n); if(a.then) acts(T,u,a.then,Object.assign({},ctx,{spent:n})); return; }
-      if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k&&k.n>0&&d&&d.dur) k.t=d.dur; return; }
+      if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k){ k.idle=0; if(k.n>0&&d&&d.dur) k.t=d.dur; } return; }   // touch: its lapse starts again, and its fade waits again (as a gain would)
       if(a.refillIn!=null){ const k=s.k[a.stack]; if(k&&k.rf){ const at=E.now()+a.refillIn; for(let i=0;i<k.rf.length;i++) if(k.rf[i]>at) k.rf[i]=at; } return; }   // every spent unit comes back that soon
       if(a.set!=null){ stSet(T,u,a.stack,a.set==='max'?stMax(T,u,a.stack):amtOf(T,u,a.set,ctx)); return; }
       if(a.keep!=null){ const n=have*Math.max(0,Math.min(1,a.keep)); stSet(T,u,a.stack,a.whole?Math.floor(n+1e-9):n); return; }   // keep that share (whole: rounded down)
@@ -461,7 +468,7 @@
     if(a.retarget){ const x=pick(T,u,a.retarget,ctx)[0]; if(x) ctx.tgt=x; return; }                // on skillTgt: the skill goes to that unit instead (when one is picked)
     if(a.miss){ ctx.amt=0; (ctx.tgt||u)._talMiss=1; return; }
     if(a.late!=null){ const x=amtOf(T,u,a.late,ctx); if(x>0) ctx.late={secs:x,pre:a.pre||null,ends:a.ends||null,emit:a.emit||null}; return; }   // on 'in': this hit arrives late (Fritz's Late Blows): see inc() and the tick                                    // on 'in': this hit misses her; on 'teamIn': it misses the watched unit it was aimed at (the page leaves the hit before any damage)
-    if(a.dodge){ ctx.dodged=true; return; }                                                       // on 'dodge': she dodges this hit
+    if(a.dodge){ ctx.dodged=a.dodge==='quiet'?'quiet':true; if(a.dodge==='quiet') ctx.stop=true; return; }   // quiet: a dodge that does not count as one for her other dodge talents (no 'dodged' rows; no other dodge row is asked)                                                       // on 'dodge': she dodges this hit
     if(a.weaken){ const f=a.weaken, cur=u[f], m=s.wk||(s.wk={}); if(cur==null||!(cur<1)){ m[f]=null; return; } if(m[f]===cur) return;   // a control on her that much weaker (a slow's strength), once per new value
       u[f]=1-(1-cur)*Math.max(0,1-amtOf(T,u,a.by,ctx)); m[f]=u[f]; return; }
     if(a.damp){ const f=a.damp, by=Math.max(0,Math.min(1,amtOf(T,u,a.by,ctx))), m=s.dp||(s.dp={});   // an engine number on a unit made that share smaller, once per new value (a drag's speed: Absalie's Weighted Robe)
@@ -598,10 +605,11 @@
   /* outgoing damage: in _dealDamageCore once the hit has landed and its crit is known, just before the HP is removed */
   function out(src,tgt,amt,kind,auto,crit){ const T=src._tal, ctx={u:src,src,tgt,amt,kind,auto:!!auto,crit:!!crit,proc:T.s.d>0}; run(T,src,'out',ctx); return ctx.amt; }
   /* incoming damage: the same place. The target's own rows ('in'), then the rows of talented units watching it ('teamIn': team-wide effects) */
-  function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
-    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; lc=ctx.late||null; }
+  function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal, a0=amt; let mv=1; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
+    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; lc=ctx.late||null; if(ctx.mv!=null) mv*=ctx.mv; }
     const W=tgt._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===tgt||!o.alive||!To||!To.on.teamIn) continue;
-      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; }
+      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }
+    tgt._talIr=(amt!==a0)?[a0,mv]:null;   // the 95% ceiling (the page's drPreOf): the hit before these rows, and the share of it not moved onto another unit (divert)
     /* a late hit (an 'in' row's {late:secs}, Fritz's Late Blows): what every incoming row and every watcher left of it is taken off now - the page leaves
        the hit as a miss (no damage, no hit / hurt rows) - and it lands `secs` later through damage() (his shield and damage()'s own reductions then).
        Before it lands the 'pre' event's rows may change it (ctx.amt; 0: it misses), after it the 'ends' event's rows run (ctx.amt, hpLost). emit: an event now. */
@@ -620,6 +628,23 @@
       if(T.on.hit) run(T,src,'hit',ctx);
       if(T.on.kill&&hpBefore>0&&!tgt.alive){ ctx.overkill=Math.max(0,-tgt.hp); run(T,src,'kill',ctx); } }
     if(tgt._tal&&tgt._tal.on.hurt&&src&&src.team!==tgt.team&&tgt.alive){ const T=tgt._tal; run(T,tgt,'hurt',{u:tgt,src,tgt,amt,hpLost,kind,auto:!!auto,crit:!!crit}); } }
+  /* the 95% ceiling's balance measurement (tests/balance-dr-ceiling.test.js): what the incoming rows of tgt and of the units watching it WOULD do to a
+     hit of `amt`, with no side effect - no action, no seeded draw, no limiter spent, no divert taken. Rows that hang on a chance, on counting events
+     (every / edge / period) or on per-unit limiters are left out. Returns {amt, mv}: the hit after the rows, and the share not moved onto another unit
+     (0: the rows make it deal nothing - immunity). Never called by a fight. */
+  function incProbe(tgt,src,amt,kind,auto){ let mv=1; const ctx0={src,tgt,kind,auto:!!auto,crit:false};
+    const one=(T,o,ev)=>{ const rows=T.on[ev]; if(!rows) return; const ctx=Object.assign({},ctx0,{u:o,amt});
+      for(const row of rows){ if(row.chance!=null||row.every||row.edge||row.period||row.each||row.by||row.skill) continue;
+        const L=T.s.lim[row.key]; if(L&&((row.once==='wave'&&L.w===T.s.wave)||(row.once==='fight'&&L.n>0)||(row.uses&&L.n>=row.uses)||(row.icd&&E.now()<L.t))) continue;
+        if(row.if&&!ok(T,o,row.if,ctx)) continue; const n=(row.per!=null?cnt(T,o,row.per,ctx):1)*(row.scale==null?1:row.scale);
+        const up=x=>row.upTo!=null?Math.min(row.upTo,x):x;   // upTo, as modify() reads it
+        if(row.more!=null) ctx.amt*=1+up(row.more*n); if(row.less!=null) ctx.amt*=Math.max(0,1-up(row.less*n)); if(row.add!=null) ctx.amt+=row.add*n;
+        if(row.mul!=null){ ctx.amt*=row.mul; if(row.mul===0) mv=0; }
+        if(row.divert!=null){ const sh=Math.min(1,row.divert*n); ctx.amt*=1-sh; mv*=1-sh; } }
+      amt=ctx.amt; };
+    if(tgt._tal&&tgt._tal.on.in&&src&&src.team!==tgt.team) one(tgt._tal,tgt,'in');
+    const W=tgt._talW; if(W) for(const o of W) if(o!==tgt&&o.alive&&o._tal&&o._tal.on.teamIn) one(o._tal,o,'teamIn');
+    return {amt,mv}; }
   /* a hit is about to kill: a row may keep the unit alive (action `undying`); while that holds, it cannot drop below 1 HP */
   function lethal(u){ const T=u._tal; if(T.s.undy>0){ u.hp=1; return; } run(T,u,'lethal',{u,tgt:u}); if(T.s.undy>0&&u.hp<1) u.hp=1; }
   /* a unit died: its own 'die' rows, then 'death' for every talented unit watching it */
@@ -678,7 +703,7 @@
     if(T.on.aimed) run(T,t,'aimed',ctx);
     if(kind==='true'||sure||!T.on.dodge) return false;
     ctx.dodged=false; run(T,t,'dodge',ctx); if(!ctx.dodged) return false;
-    if(T.on.dodged) run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
+    if(T.on.dodged&&ctx.dodged!=='quiet') run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
   /* after the 'in' rows: a row said this hit misses her ({miss:true}) - the page leaves the hit before any damage */
   function miss(t){ const m=!!t._talMiss; t._talMiss=0; return m; }
   /* her passive just acted on t at a swing (Vex's Killer Instinct): passPre right before (what the engine timer was), pass right after: 'pass' rows (ctx.was) */
@@ -789,13 +814,13 @@
   function cc(by,t,field,dur,tal){ if(t._tal&&t._tal.on.ccIn){ const c={u:t,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(t._tal,t,'ccIn',c); dur=c.amt; }
     if(by&&by._tal&&by._tal.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; } return dur; }
   /* a DoT tick: before it (the target's 'dotIn' rows, and a talent DoT's shorter last tick), and after it (the owner's 'dotTick', a kill by the DoT) */
-  function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps; const T=u._tal;
+  function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps, p=x; const T=u._tal;   // p: the tick without the target's own DoT rows (the 95% ceiling's reference)
     if(T&&T.on.dotIn){ const ctx={u,src:d.src,tgt:u,amt:x,dot:d}; run(T,u,'dotIn',ctx); x=ctx.amt; }
     if(u._talDw){ const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const w=W[i], Tw=w._tal; if(w===u||!w.alive||!Tw||!Tw.on.teamDotIn) continue;   // teamDotIn: the rows of talented units watching u (Dandra's Lamplight)
         const c={u:w,src:d.src,tgt:u,unit:u,amt:x,dot:d}; run(Tw,w,'teamDotIn',c); x=Math.max(0,c.amt); } }
-    const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; }   // the owner's rows change her own DoT's tick
-    if(d._talF!=null&&d.remaining<=1) x*=d._talF; d.dps=x; d._talNow=true; return keep; }
-  function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
+    const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const xi=x, c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; p=xi>0?p*x/xi:x; }   // the owner's rows change her own DoT's tick
+    if(d._talF!=null&&d.remaining<=1){ x*=d._talF; p*=d._talF; } d.dps=x; d._talNow=true; if(x<p) u._talDp=p; return keep; }   // _talDp: read by the page's dotTickAmt for this tick
+  function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; if(u._talDp!=null) u._talDp=null; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
     if(T.on.dotTick&&o.alive) run(T,o,'dotTick',{u:o,src:o,tgt:u,dot:d,tag:d._talK,amt:Math.max(0,((keep[1]||0)-Math.max(0,u.hp))+((keep[2]||0)-(u.shield||0)))});   // amt: what the tick took off (HP and shield)
     if(!u.alive&&T.on.kill&&o.alive) run(T,o,'kill',{u:o,src:o,tgt:u,dot:d,overkill:0,viaDot:true}); }
   /* between waves (the page's per-wave reset): 'waveEnd' now; the new wave's start is run on the unit's next tick, when the field is set */
@@ -819,7 +844,8 @@
           if(stSet(T,u,k,st.n+1)>0&&d.refilled&&T.on[d.refilled]) run(T,u,d.refilled,{u,tgt:u}); } }
       if(!d||!(st.n>0)) continue;
       if(d.dur){ st.t-=dt; if(st.t<=1e-9){ st.n=0; continue; } }
-      if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt; if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.lose||1)); } } }
+      if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt*(d.fade.rate==null?1:Math.max(0,d.fade.rate));   // rate: the fade's clock (0.5 = it fades half as fast)
+        if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.pct!=null?st.n*d.fade.pct:(d.fade.lose||1))); } } }   // pct: it loses that share of what it holds
     if(s.undy>0) s.undy=Math.max(0,s.undy-dt);
     if(T.on.tick) run(T,u,'tick',{u,tgt:u.target,dt});
     restat(T,u); auras(T,u,dt); }
@@ -854,6 +880,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),incProbe,healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};

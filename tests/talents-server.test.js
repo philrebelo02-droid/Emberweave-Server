@@ -6,10 +6,10 @@ const root=path.resolve(__dirname,'..'),T=require(path.join(root,'talents.js')),
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const STEP=JSON.parse(/const D_HERO_STEP=(\[[^\]]+\])/.exec(fs.readFileSync(path.join(root,'server.js'),'utf8'))[1]);
 const xpFor=level=>{ let x=0; for(let L=2;L<=level;L++) x+=STEP[L-2]; return x; };
-async function server(flag,heroLevel,playerPx){
+async function server(flag,heroLevel,playerPx,led){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'emberweave-talents-')),file=path.join(dir,'db.json');
   const user={id:'talent-user',name:'Talent Fixture',created:start-1000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},qc:{wish:0},
-    led:{v:1,migratedAt:start-1000,rev:1,gold:100000,gems:1000,px:playerPx,hero:{vael:{xp:xpFor(heroLevel),stars:1,pips:0,ref:0}},unlocked:{vael:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:TEMPLE.newState(),txs:[],quests:{claimed:{},chainStep:0}}};
+    led:{v:1,migratedAt:start-1000,rev:1,gold:100000,gems:1000,px:playerPx,hero:{vael:{xp:xpFor(heroLevel),stars:1,pips:0,ref:0}},unlocked:{vael:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:TEMPLE.newState(),txs:[],quests:{claimed:{},chainStep:0}}}; if(led) Object.assign(user.led,led);
   fs.writeFileSync(file,JSON.stringify({users:{[user.id]:user},byName:{'talent fixture':user.id},tokens:{[crypto.createHash('sha256').update(token).digest('hex')]:{id:user.id,iat:start,exp:start+90*86400000}},seeded:true,seedVersion:3,heroIdV:3,guilds:{},idem:{},feedback:[],reports:[],meta:{rollSecret:'talent-test'}}));
   const s=net.createServer(); await new Promise(r=>s.listen(0,'127.0.0.1',r)); const port=s.address().port; await new Promise(r=>s.close(r));
   let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else delete env.TALENTS_ENABLED;
@@ -48,12 +48,24 @@ test('flag on: learning, the rules, the ledger, idempotent replays and reset',as
   assert.equal((await s.call('/api/talents/learn',{key:'vael',id:tier1[0][0],requestId:''},true)).status,400);
   // it is on disk, and it is legal
   const saved=s.disk().users['talent-user'].led.talents.vael; assert.equal(T.invalid('vael',saved,50),''); assert.equal(T.spent('vael',saved).total,6);
-  // reset gives every point back
-  r=await s.call('/api/talents/reset',{key:'vael'}); assert.equal(r.ok,true); assert.equal(r.refunded,6); assert.equal(r.spent,0);
-  assert.equal(s.disk().users['talent-user'].led.talents.vael,undefined);
+  // reset gives every point back, for 1,000 diamonds (Phil 14 Nov: "1000 diamonds to reset talents"), through the ledger
+  assert.equal((r.ledger||{}).talentResetGems,1000,'the ledger view carries the price');
+  r=await s.call('/api/talents/reset',{key:'vael',requestId:'rs1'}); assert.equal(r.ok,true); assert.equal(r.refunded,6); assert.equal(r.spent,0); assert.equal(r.cost,1000);
+  assert.equal(r.ledger.gems,0,'1,000 diamonds paid'); let D=s.disk().users['talent-user'].led; assert.equal(D.gems,0); assert.equal(D.talents.vael,undefined);
+  const tx=D.txs.filter(t=>t.src==='talentreset:vael'); assert.equal(tx.length,1); assert.deepEqual(tx[0].d,{points:6,gems:-1000},'one ledger transaction with the diamonds');
+  const rep=await s.call('/api/talents/reset',{key:'vael',requestId:'rs1'}); assert.equal(rep.ok,true); assert.equal(s.disk().users['talent-user'].led.gems,0,'a replayed request does not charge twice');
   assert.match((await s.call('/api/talents/reset',{key:'vael'})).error,/no talents learned/);
+  // not enough diamonds: refused, nothing changes
+  r=await s.call('/api/talents/learn',{key:'vael',id:tier1[0][0]}); assert.equal(r.ok,true);
+  r=await s.call('/api/talents/reset',{key:'vael'}); assert.equal(r.ok,false); assert.match(r.error,/Not enough diamonds - a talent reset costs 1000/); assert.equal(r.cost,1000); assert.equal(r.gems,0);
+  D=s.disk().users['talent-user'].led; assert.deepEqual(D.talents.vael,{r:{[tier1[0][0]]:1}},'the build stays'); assert.equal(D.gems,0);
 } finally{ await s.stop(); } });
 
 test('a hero under level 10 cannot learn; points never exceed the hero level',async()=>{ const s=await server(true,9,50000000); try{
   const r=await s.call('/api/talents/learn',{key:'vael',id:tier1[0][0]}); assert.equal(r.ok,false); assert.match(r.error,/level 10/);
+} finally{ await s.stop(); } });
+
+test('a build the rules already found illegal (a data correction) is reset free, even with no diamonds',async()=>{ const s=await server(true,50,50000000,{gems:0,talents:{vael:{r:{no_such_talent:2}}}}); try{
+  const r=await s.call('/api/talents/reset',{key:'vael'}); assert.equal(r.ok,true,r.error); assert.equal(r.cost,0); assert.equal(r.ledger.gems,0);
+  assert.equal(s.disk().users['talent-user'].led.talents.vael,undefined);
 } finally{ await s.stop(); } });

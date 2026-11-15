@@ -6057,6 +6057,8 @@ module.exports={
     /* ============================== SHATTERPOINT ============================== */
     sp_1_1:[ {on:'hit',if:{auto:true},do:[{stack:'hailc',add:1}]},                                  // Hailstones: every 4th basic attack
              {on:'hit',if:{auto:true,stackMin:{hailc:P('hail.n',4)}},do:[{stack:'hailc',set:0},{dmg:{pct:R(0.06),of:'apow'},on:'target',tag:'hail',color:ICE},CHILL('target'),{emit:'hail'}]} ],
+    sp_9_2:[ {on:'blizzTick',do:[{dmg:{pct:{rk:'sp_2_2',r:0.08},of:'apow'},scale:R(0.08),on:{team:'enemy',inZone:'blizz',has:'frz'},tag:'gr',color:ICE}]} ],   // Glass Rain: each Blizzard tick on a frozen enemy, 8% per rank of an Icebreaker (the freeze stays)
+    sp_12_1:[ {on:'dmg:hail',do:[{dmg:{pct:R(0.15),of:'hit'},on:{team:'enemy',of:'target',within:3,n:1,skip:'target'},color:ICE}]} ],   // Storm of Hail: the nearest other enemy within 3 m of the target
     sp_1_3:[ {on:'out',if:{srcFlag:'_frostHit',targetMin:{_chillStacks:1}},ignoreMr:R(0.02)} ],     // Biting Cold
     sp_1_4:[ {on:'tick',if:{stackEmpty:'ht'},period:1,rate:P('focus.rate',1),do:[{stack:'focus',add:1}]},   // Cold Focus: a full second without damage
              {on:'tick',do:[{stack:'ht',set:0}]},
@@ -6127,7 +6129,14 @@ module.exports={
     sw_5_1:[ {on:'teamIn',if:{targetHas:'snowsh',srcTeam:'enemy'},less:R(0.02)} ],                  // Snowbound
     sw_5_4:[ {on:'thawed',do:[{heal:{pct:R(0.10),of:'hit'},on:{team:'ally',others:true,of:'target',skip:'target',n:1},emit:'gave'}]} ],   // Running Water (reading: the ally nearest the one healed)
     sw_6_1:[ {on:'snowGone',if:{broke:true},do:[{dmg:{pct:R(0.20),of:'apow'},on:{team:'enemy',of:'unit',within:2},color:ICE}]} ],   // Avalanche: the shield was used up
-    sw_6_2:[ {on:'ccOut',if:GP_FREEZE,add:R(0.2)} ],                                                // Cold Sleep. PARTIAL: the Ice Tomb half waits with Ice Tomb
+    sw_6_2:[ {on:'ccOut',if:GP_FREEZE,add:R(0.2)},                                                  // Cold Sleep: Glacial Prison freezes 0.2 s longer per rank
+             {param:'tomb.heal',add:R(0.03)} ],                                                    //   and an ally Ice Tomb encases heals 3% more per rank
+    sw_5_2:[ {on:'tick',each:{team:'ally',others:true},edge:true,if:{targetHpBelow:0.25},do:[{mark:'tombq',on:'target',unique:true}]},   // Ice Tomb: an ally below 25%...
+             {on:'cast',skill:'freeze',do:[{emit:'itomb',on:'holder:tombq'}]},              //   ...her next Glacial Prison (it still freezes its enemy) encases that ally too
+             {on:'itomb',do:[{mark:'tombq',on:'target',clear:true},{mark:'itb',on:'target',dur:1.5,ends:'itbEnd'},{timer:'stunned',min:1.5,on:'target'}]},   //   cannot act...
+             {on:'teamIn',if:{targetHas:'itb'},mul:0},                                              //   ...or be hurt for 1.5 s
+             {on:'itbEnd',do:[{heal:{pct:{b:0.10,$:'tomb.heal'},of:'tgtMaxHp'},pow:true,on:'target',emit:'gave'}]} ],   //   then heals 10% of its max HP
+    sw_5_3:[ {on:'skillTgt',skill:'freeze',do:[{retarget:{team:'enemy',targeting:{team:'ally',others:true,order:'lowHp',n:1},order:'near',n:1}}]} ],   // Warden's Prison: the enemy attacking her lowest-HP ally
     sw_6_3:[ {stat:{apow:R(0.015)},if:{stackMin:{snow:10}}} ],                                      // Wintermind
     sw_7_2:[ {on:'teamIn',if:{window:'bliz',targetTeam:'ally',targetIn:'blizz',srcTeam:'enemy'},less:0.20} ],   // Quiet Ward
     sw_7_3:[ {param:'orb.slow',add:R(0.04)} ],                                                      // Frost Veil
@@ -6154,16 +6163,9 @@ module.exports={
               {on:'tombEnd',do:[{stack:'snow',spend:'all',then:[{heal:{pct:0.01,of:'tgtMaxHp',x:'spent'},pow:true,on:'target',emit:'gave'}]}]} ]
   },
   /* one sentence runs, another waits for a ruling */
-  partial:{
-    sw_6_2:'"an ally encased by Ice Tomb heals 3% more": Ice Tomb itself waits for a ruling; the longer Glacial Prison freeze runs'
-  },
+  partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
-  ruling:{
-    sp_9_2:'Blizzard ticks and the Icebreaker: does a tick end the freeze?',
-    sp_12_1:'no "behind the target" on an open field',
-    sw_5_2:'Glacial Prison is an enemy skill: turning it onto an ally is new engine behaviour',
-    sw_5_3:'Glacial Prison takes the target the engine gives it: choosing another is new engine behaviour'
-  },
+  ruling:{},
   fn:{
     /* Crushing Orb / Splitting Orb: which enemies the orb meets first and last. The same line as the skill's own code (the farthest enemy within
        its range, and every enemy within its width of that line); 'orb1' = the nearest along it, 'orbEnd' = the farthest (where it ends). */
@@ -6194,8 +6196,9 @@ module.exports={
   hero:'vael',
   /* tracked things. max / dur may be changed by other talents through named numbers. */
   states:{
-    temper:{max:20},                                             // Forge Heat. The tooltips name no fade rate: none until ruled (see ruling ib_4_1)
-    bank:{max:{pct:P('bank.max',0.15),of:'maxHp'}},              // Blood Bank: a pool of HP
+    temper:{max:20,fade:{after:0,every:2,lose:1,rate:{b:1,$:'temper.fade'},unless:{p:'temper.hold',anyDot:'bleed'}}},   // Forge Heat. Ruling: 1 Temper fades every 2 s he has neither hit nor been hit (Annealed slows the clock; Blood Temper holds it while his bleeds run)
+    bank:{max:{pct:P('bank.max',0.15),of:'maxHp'},fade:{after:4,every:1,pct:0.05,unless:{p:'hoard'}}},   // Blood Bank: a pool of HP. Ruling: after 4 s without new overheal it loses 5% of what it holds each second (not with Hoarder)
+    bm:{max:3},                                                  // Breach Momentum: hits left
     scars:{max:P('scars.max',10)},                               // whole fight
     footing:{max:5},
     momentum:{max:3,dur:P('momentum.dur',4)},                    // Blood Momentum: all stacks drop `dur` s after the last kill
@@ -6207,7 +6210,9 @@ module.exports={
   always:[
     {on:'cast',skill:'lifestealbuff',do:[{window:'bloodthirst',dur:{opt:'dur',d:6}}]},
     {on:'cast',skill:'laststand',do:[{window:'laststand',dur:{opt:'dur',d:5}},{window:'bloodthirst',end:true}]},   // Last Stand's cast replaces the running lifesteal buff
-    {on:'cast',skill:'warcry',do:[{window:'warcry',dur:{opt:'dur',d:6}}]}
+    {on:'cast',skill:'warcry',do:[{window:'warcry',dur:{opt:'dur',d:6}}]},
+    {on:['hit','hurt'],do:[{stack:'temper',touch:true}]},                                  // Temper's fade waits while he hits or is hit
+    {on:'wave',if:{np:'hoard'},do:[{stack:'bank',set:0}]}                                    // the Blood Bank empties between waves (not with Hoarder)
   ],
   talents:{
     /* ============================== RED HARVEST ============================== */
@@ -6217,7 +6222,13 @@ module.exports={
     rh_2_1:[ {stat:{move:R(0.04)},if:{targetHas:'quarry'}} ],                               // Close the Distance (reading: while the Quarry is his current target)
     rh_2_2:[ {on:'hit',if:{crit:true},do:[{dot:'bleed',amt:{pct:R(0.04),of:'hit'},dur:P('bleed.dur',3),every:1,color:BLEED}]} ],   // Open Wounds
     rh_n2:[  {on:'in',if:{anyDot:'bleed'},less:0.04},                                        // Blood Temper (LINK)
-             {on:'dotTick',req:'ib_1_1',if:{tag:'bleed'},every:3,do:[{stack:'temper',add:1}]} ],   // ...with Forge Heat: every 3rd bleed tick gives 1 Temper
+             {on:'dotTick',req:'ib_1_1',if:{tag:'bleed'},every:3,do:[{stack:'temper',add:1}]},   // ...with Forge Heat: every 3rd bleed tick gives 1 Temper
+             {param:'temper.hold',add:1,req:'ib_1_1'} ],                                    // ...and his Temper does not fade while an enemy carries his bleed (the state's fade.unless)
+    rh_2_3:[ {stat:{aspd:R(0.003)},per:{fn:'rage',max:[50,25,50/3]}} ],                     // Battle Rhythm: per Blood Rage stack (each 1% of Blood Rage), 15% in all
+    rh_4_3:[ {on:'out',if:{auto:true,window:'bloodthirst'},more:R(0.05)} ],                 // Bloodthirst Edge: his attacks while Bloodthirst runs
+    rh_7_2:[ {on:'kit',skill:'laststand',opt:{mul:{set:1},mulPerLv:{set:0}}},               // Red Stand: Last Stand gives up its reduction (its lifesteal stays)...
+             {stat:{atk:0.20},if:{window:'laststand'}} ],                                   //   ...and gives 20% attack for its duration
+    rh_5_2:[ {on:'cast',skill:'warcry',do:[{dot:'bleed',on:{team:'enemy',of:'self',withinOpt:'radius',fearedBy:true},amt:{pct:0.04,of:'atk'},dur:P('bleed.dur',3),every:1,color:BLEED}]} ],   // Red Tide: 4% of his attack a second for 3 s on every enemy Warcry fears
     rh_3_1:[ {on:'death',if:{unitHas:'quarry'},do:[{mark:'quarry',on:{team:'enemy',of:'self',n:1},unique:true},{mark:'pick',on:'holder:quarry'}]},   // Pick the Next
              {on:'crit',if:{targetHas:'pick'},force:true,do:[{mark:'pick',clear:true}]} ],
     rh_3_3:[ {on:'out',if:{targetDot:'bleed'},ignoreArmor:R(0.03)} ],                       // Sunder
@@ -6265,6 +6276,18 @@ module.exports={
     ib_2_2:[ {on:'heal',if:{overMin:0},do:[{stack:'bank',add:{pct:R(0.08),of:'over'}}]} ],  // Blood Bank
     ib_4_2:[ {on:'tick',unless:'ib_5_3',edge:true,if:{selfHpBelow:0.40},do:[{stack:'bank',spend:'all',then:[{heal:{pct:{r:0.10,b:1,$:'payout'},of:'spent'}},{emit:'payout'}]}]},   // Withdrawal
              {on:'tick',req:'ib_5_3',edge:true,if:{selfHpBelow:0.40},do:[{stack:'bank',spend:'all',then:[{heal:{pct:{r:0.10,b:1,$:'payout'},of:'spent'},on:{team:'ally',others:true,order:'lowHp',n:1}},{emit:'payout'}]}]} ],   // ...paid to the lowest-HP ally with Share the Wealth
+    ib_3_1:[ {on:'cast',skill:'lifestealbuff',if:{stackMin:{temper:20}},do:[{dmg:{pct:1,of:'atk'},on:AROUND(2)}]} ],   // White Hot: one hit of 100% attack on every enemy within 2 m, once per cast
+    ib_3_3:[ {on:'out',if:{auto:true,window:'bloodthirst'},more:R(0.04)} ],                 // Heavy Blows: his attacks while Bloodthirst runs
+    ib_4_1:[ {param:'temper.fade',add:R(-0.10)} ],                                          // Annealed: Temper's fade clock runs 10% slower per rank
+    ib_5_1:[ {stat:{mr:R(0.003)},per:{fn:'rage',max:[50,25,50/3,12.5,10]}} ],              // Forged Will: per Blood Rage stack, 15% in all
+    ib_8_3:[ {stat:{hp:R(0.002)},per:{fn:'rage',max:[75,37.5,25,18.75,15]}} ],             // Bloodied Resolve: per Blood Rage stack, 15% in all
+    ib_9_3:[ {on:'hit',if:{auto:true,window:'bloodthirst'},do:[{mark:'iclad',on:'target',dur:3}]},   // Ironclad Swing: while Bloodthirst runs, his attacks...
+             {stat:{atk:R(-0.01)},to:{team:'enemy',has:'iclad'}} ],                         //   ...lower the target's attack 1% per rank for 3 s (does not stack)
+    ib_11_2:[ {param:'hoard',add:1} ],                                                      // Hoarder: the Blood Bank neither fades nor empties between waves
+    ib_12_3:[ {on:'tick',edge:true,if:{selfHpBelow:0.20},do:[{window:'lastword',dur:1e6}]},   // Last Word: below 20% HP his NEXT Bloodthirst...
+              {on:'cast',skill:'lifestealbuff',if:{window:'lastword'},do:[{window:'lw',dur:{opt:'dur',d:6}},{window:'lastword',end:true}]},
+              {on:'cast',skill:'laststand',do:[{window:'lw',end:true}]},
+              {on:'out',if:{auto:true,window:'lw'},more:R(0.15)} ],                         //   ...his attacks deal 15% more per rank while it runs
     ib_3_4:[ {on:'hurt',do:[{fn:'grudge'}]},                                                // Grudge
              {on:'out',if:{targetHas:'grudge'},more:R(0.02)} ],
     ib_5_2:[ {on:'hit',if:{window:'bloodthirst',stackEmpty:'bank'},do:[{heal:{pct:1,of:'lifesteal'}}]} ],   // Investment
@@ -6291,7 +6314,8 @@ module.exports={
     ib_12_1:[ {on:'wave',do:[{stack:'temper',atLeast:R(5)}]} ],                             // Forgeborn
     ib_12_2:[ {param:'payout',add:R(0.04)}, {on:'payout',do:[{cleanse:1}]} ],               // Golden Vein (reading: the control effect is removed from Vael)
     ib_12_4:[ {on:'retal',do:[{heal:{pct:R(0.05),of:'spent'}}]} ],                          // Debt Paid
-    ib_13_2:[ {on:'tick',edge:true,once:'fight',if:{selfHpBelow:0.30},do:[{window:'heart',dur:8},{stack:'bank',spend:'all',then:[{shield:{pct:1,of:'spent'},dur:8}]}]},   // Heart of Iron (SIGNATURE). PARTIAL: what a Temper is worth as shield is not written
+    ib_13_2:[ {on:'tick',edge:true,once:'fight',if:{selfHpBelow:0.30},do:[{window:'heart',dur:8},{stack:'bank',spend:'all',then:[{shield:{pct:1,of:'spent'},dur:8}]},
+                {stack:'temper',spend:'all',then:[{shield:{pct:0.01,of:'maxHp',x:'spent'},dur:8}]}]},   // Heart of Iron (SIGNATURE): the bank and his Temper (1% max HP each, spent) become a shield
               {on:'hit',if:{auto:true,window:'heart'},do:[{dmg:{pct:1,of:'hit'},on:{team:'enemy',of:'self',within:3,skip:'target'}}]},   //   his attacks hit every enemy within 3 m
               {on:'hurt',if:{window:'heart'},do:[{stack:'temper',add:1}]},                  //   every hit he takes gives Temper
               {on:'end:heart',pts:['ironblood',91],do:[{stack:'bank',add:{pct:1,of:'shield'}},{unshield:1}]} ],   //   AT 91 POINTS: what is left of the shield flows back into the bank
@@ -6299,6 +6323,7 @@ module.exports={
     /* ============================== THE ASHFORD WALL ============================== */
     aw_1_1:[ {on:'hurt',if:{lostMin:{pct:R(-0.01,0.14),of:'maxHp'}},do:[{stack:'scars',add:1}]} ],   // First Scar
     aw_1_3:[ {on:'in',if:{auto:true},chance:R(0.03),less:0.35,do:[{emit:'block'}]} ],       // Shield Arm: Block (the one seeded roll among his talents)
+    aw_1_4:[ {stat:{move:R(0.03)},if:{fn:'lowAlly'}} ],                                     // Old Road: while his lowest-HP ally is below 50% HP
     aw_2_1:[ {stat:{armor:R(0.003),mr:R(0.003)},per:'scars'} ],                             // Hard Lessons
     aw_2_2:[ {on:'tick',if:{moved:true,noWindow:'planted'},do:[{stack:'footing',set:0}]},   // Footing: moving clears it...
              {on:'tick',if:{moved:false},period:1,rate:P('footing.rate',1),do:[{stack:'footing',add:1}]},   // ...each full second standing still adds one
@@ -6316,14 +6341,26 @@ module.exports={
     aw_5_1:[ {on:'death',if:{who:'ally'},do:[{stack:'scars',add:R(2)}]} ],                  // Grim Memory
     aw_5_2:[ {on:'cast',skill:'warcry',do:[{window:'planted',dur:2},{stack:'footing',set:'max'}]},   // Plant Your Feet: rooted = cannot walk, can still attack
              {stat:{move:-1},if:{window:'planted'}} ],
-    aw_5_4:[ {on:'diverted',do:[{stack:'ledger',add:{pct:1,of:'spent'}}]},                  // Oath Ledger
+    aw_5_3:[ {on:'cast',skill:'warcry',do:[{emit:'breach0',on:{team:'ally',others:true,order:'lowHp',n:1}}]},   // Charge the Breach (ruling: no dash - Warcry also taunts...
+             {on:'breach0',do:[{taunt:2,on:{team:'enemy',of:'target',n:1}},{emit:'breach',if:{some:{team:'enemy',of:'target',n:1}}}]} ],   //   ...the enemy closest to his lowest-HP ally for 2 s)
+    aw_6_3:[ {on:'breach',do:[{stack:'bm',set:3}]},                                          // Breach Momentum: after that taunt, his next 3 hits...
+             {on:'out',if:{stackMin:{bm:1}},more:R(0.04),do:[{stack:'bm',add:-1}]} ],       //   ...deal 4% more per rank
+    aw_7_1:[ {on:'teamIn',if:{srcTeam:'enemy',targetIs:{team:'ally',others:true,within:4,behind:true}},less:R(0.015)} ],   // Living Wall: allies behind him (farther from the enemy side, within 4 m)
+    aw_7_4:[ {on:'tick',edge:true,uses:P('cog.uses',1),if:{some:{team:'ally',has:'oath',hpBelow:0.25}},do:[{window:'guard',dur:2},{shield:{pct:{r:0.02,$:'cog.shield'},of:'maxHp'},dur:3}]},   // Change of Guard: he stands in for the Oath ally...
+             {on:'teamIn',if:{window:'guard',targetHas:'oath',srcTeam:'enemy'},divert:1} ],   //   ...every hit on them for 2 s lands on him
+    aw_10_4:[ {param:'cog.uses',add:1}, {param:'cog.shield',add:R(0.02)} ],                 // Oathkeeper
+    aw_5_4:[ {on:'diverted',if:{any:[{targetHas:'oath'},{targetHas:'oath2'}]},do:[{stack:'ledger',add:{pct:1,of:'spent'}}]},   // Oath Ledger (damage taken through his Oaths)
              {on:'cast',skill:'laststand',do:[{stack:'ledger',spend:'all',then:[{dmg:{pct:R(0.06),of:'spent'},on:AROUND(5)},{emit:'ledgerBurst'}]}]} ],
     aw_6_1:[ {stat:{atk:R(0.002)},per:'scars'} ],                                           // Callused
     aw_6_2:[ {on:'end:planted',do:[{dmg:{pct:R(0.03),of:'maxHp'},on:AROUND(3)}]} ],         // Footfall
     aw_6_4:[ {on:'death',if:{unitHas:'oath'},do:[{window:'unpaid',dur:'wave'}]},            // Unpaid Debt
              {on:'in',if:{window:'unpaid'},less:R(0.06)} ],
-    aw_7_2:[ {on:'cast',skill:'laststand',do:[{stack:'footing',set:'max'}]},                // Hold the Gate. PARTIAL: "enemies that walk into him are stopped" needs a ruling
-             {stat:{immovable:1},if:{window:'laststand'}} ],
+    aw_7_2:[ {on:'cast',skill:'laststand',do:[{stack:'footing',set:'max'},{mark:'gated',on:{team:'enemy',of:'self'},clear:true}]},   // Hold the Gate: full Footing...
+             {stat:{immovable:1},if:{window:'laststand'}},                                  //   ...cannot be moved...
+             {on:'tick',if:{window:'laststand'},do:[{emit:'gate',on:{team:'enemy',of:'self',within:2,lacks:'gated'}}]},   //   ...an enemy within 2 m is stopped (once each Last Stand)
+             {on:'gate',do:[{mark:'gated',on:'target'},{mark:'held',on:'target',dur:P('gate.stop',0.5)},{taunt:2,on:'target'},{dmg:{pct:P('gate.dmg',0),of:'maxHp'},on:'target'}]},   //   and must attack him for 2 s
+             {stat:{move:-1},to:{team:'enemy',has:'held'}} ],                               //   (stopped: cannot move, can still attack)
+    aw_12_2:[ {param:'gate.stop',add:R(0.1)}, {param:'gate.dmg',add:R(0.01)} ],             // Gatekeeper's Wrath: the stop 0.1 s longer and 1% of his max HP per rank
     aw_8_1:[ {on:'kit',skill:'warcry',opt:{fear:{add:R(0.03),per:'scars',ccRaw:true}}} ],   // War Ledger
     aw_8_3:[ {param:'footing.rate',add:R(0.10)} ],                                          // Stubborn Ground
     aw_8_4:[ {on:'hit',if:{window:'bloodthirst'},do:[{heal:{pct:R(0.04),of:'lifesteal'},on:'holder:oath'}]} ],   // Sworn Shield
@@ -6337,29 +6374,26 @@ module.exports={
     aw_11_1:[ {on:'scarsSpent',do:[{window:'ash',dur:4,count:'spent'}]},                    // Ash and Iron
               {stat:{armor:R(0.01)},per:{window:'ash'}} ],
     aw_11_4:[ {on:'ledgerBurst',do:[{taunt:R(0.2),on:AROUND(5)}]} ],                        // Debt Collector
+    aw_12_3:[ {on:'in',less:R(0.006),per:{fn:'rage',max:[25,12.5]}} ],                       // Iron in the Blood: per Blood Rage stack, 15% in all
+    aw_13_2:[ {on:'tick',each:{team:'ally',others:true},edge:true,if:{targetHpBelow:0.40},do:[{window:'gate',dur:6,cd:30},{mark:'gated',on:{team:'enemy',of:'self'},clear:true}]},   // The Ashford Gate (SIGNATURE): an ally first below 40% (cd 30 s): the Gate for 6 s
+              {on:'tick',if:{window:'gate'},do:[{emit:'gate',on:{team:'enemy',of:'self',within:2,lacks:'gated'}}]},   //   an enemy within 2 m is stopped and must attack him
+              {on:'gate',unless:'aw_7_2',do:[{mark:'gated',on:'target'},{mark:'held',on:'target',dur:P('gate.stop',0.5)},{taunt:2,on:'target'},{dmg:{pct:P('gate.dmg',0),of:'maxHp'},on:'target'}]},
+              {stat:{move:-1},to:{team:'enemy',has:'held'},unless:'aw_7_2'},
+              {on:'teamIn',if:{window:'gate',srcTeam:'enemy',targetIs:{team:'ally',others:true,within:5,behind:true}},divert:1},   //   every hit on an ally behind him within 5 m lands on him...
+              {on:'diverted',if:{window:'gate',targetIs:{team:'ally',others:true,within:5,behind:true}},do:[{stack:'scars',add:1}]} ],   //   ...and gives him a Scar
     aw_12_1:[ {on:'hurt',if:{lostBelow:{pct:{rk:'aw_1_1',r:-0.01,b:0.14},of:'maxHp'}},every:R(-2,30),do:[{stack:'scars',add:1}]} ],   // Ten Thousand Cuts
     aw_12_4:[ {on:'waveEnd',if:{holderAlive:'oath'},do:[{energy:R(1)}]} ]                   // Promise Kept
   },
-  /* one sentence runs, another waits for a ruling */
-  partial:{
-    rh_n2:'"his Temper does not fade while any enemy carries one of his bleeds": no tooltip says how Temper fades, so there is nothing to stop',
-    ib_13_2:'"all his banked blood and Temper become a shield": what one Temper is worth as shield is not written; the bank part, the 3 m attacks, Temper per hit taken and the 91-point line run',
-    aw_7_2:'"enemies that walk into him during Last Stand are stopped for 0.5 s": the engine has no walking-into rule; full Footing and cannot-be-moved run'
-  },
-  /* nothing implemented: the text cannot run against his real kit, or leaves out a number. Each one is written up for the owner. */
-  ruling:{
-    rh_2_3:'Blood Rage has no stacks', ib_5_1:'Blood Rage has no stacks', ib_8_3:'Blood Rage has no stacks', aw_12_3:'Blood Rage has no stacks',
-    rh_4_3:'Bloodthirst deals no damage', ib_3_3:'Bloodthirst deals no damage', ib_12_3:'Bloodthirst deals no damage',
-    ib_3_1:'Bloodthirst is not a strike', ib_9_3:'Bloodthirst has no target',
-    rh_7_2:'Last Stand already gives 100% lifesteal: "25% lifesteal" would be a loss',
-    rh_5_2:'the bleed has no size: Warcry is not a hit',
-    ib_4_1:'no tooltip says how Temper fades', ib_11_2:'no tooltip says how the Blood Bank fades or that it empties between waves',
-    aw_1_4:'Vael never walks toward an ally', aw_5_3:'a leap: new movement', aw_6_3:'depends on Charge the Breach',
-    aw_7_1:'no lanes, no "behind"', aw_7_4:'a position swap', aw_10_4:'depends on Change of Guard',
-    aw_12_2:'depends on the stop of Hold the Gate', aw_13_2:'lanes, "cannot walk past", "behind him"'
-  },
+  /* every talent runs (14 Nov 2026: the 21 rulings and 3 half-rulings decided in WIRING/10 - HERO RULINGS, built on this file) */
+  partial:{},
+  ruling:{},
   /* the few things that are not one of the generic primitives */
   fn:{
+    /* Blood Rage as stacks (ruling): one stack for each whole 1% of damage Blood Rage gives him now. It counts HP lost over the fight, so it never
+       goes down - kept as the highest reached (Bloodied Resolve's max HP would otherwise shrink its own count). As a count: per:{fn:'rage', max} */
+    rage(A,T,u){ const E=A.eng(), p=(E&&E.bloodRage)?E.bloodRage(u):0, n=Math.floor(p*100+1e-9); if(n>(T.s.br||0)) T.s.br=n; return T.s.br||0; },
+    /* Old Road: the ally with the lowest HP (the number, as for the Oath) is below 50% of its max */
+    lowAlly(A,T,u){ const x=A.pick(T,u,{team:'ally',others:true,order:'lowHp',n:1})[0]; return !!x&&x.hp<0.5*x.maxHp; },
     /* Grudge: the enemy that has dealt Vael the most damage this wave holds the 'grudge' mark. With Old Grudges learned, the enemy that
        was the Grudge keeps an 'oldgrudge' mark. Called on every hit he takes. */
     grudge(A,T,u,ctx){ const src=ctx.src; if(!src||!(ctx.hpLost>0)) return; const s=T.s, g=s.g||(s.g={w:-1,by:{},top:null});
@@ -6540,7 +6574,13 @@ module.exports={
              {on:'out',if:{casting:'hookline',targetHas:'sl'},more:R(0.03)} ],
     sl_4_1:[ {on:'lockpick',do:[{untarget:R(0.1)}]} ],                                                // Spring the Trap
     sl_5_2:[ {on:'dodged',do:[{window:'ctr',dur:99}]}, {on:'out',if:{window:'ctr',auto:true},more:0.30,do:[{window:'ctr',end:true}]} ],   // Counter-Cut
-    sl_5_3:[ {on:'in',less:2,per:{field:'_talDodge',of:'self'}} ],                                    // Rolling with It
+    sl_5_3:[ {on:'in',less:2,per:{field:'_talDodge',of:'self',max:0.20}} ],                           // Rolling with It: twice her dodge chance, 40% in all
+    sl_n1:[  {on:'in',if:{srcArea:true,srcTeam:'enemy'},less:R(0.02)} ],                             // Wide Berth: hits of enemy skills of the area kinds (the engine's own radius / cone / line lists)
+    sl_10_2:[ {on:'dodge',if:{selfMin:{_ultRootT:1e-9}},do:[{dodge:'quiet'},{stack:'td',add:1}]},    // Tempest Dance: while her ultimate holds her she dodges every attack (not a dodge for her other dodge talents)...
+              {on:'tick',edge:true,if:{selfBelow:{_ultRootT:1e-9},stackMin:{td:1}},do:[{stack:'tdb',add:{stack:'td'}},{stack:'td',set:0}]},   //   ...kept for her NEXT Razor Tempest...
+              {on:'kit',skill:'triplecleave',opt:{mul:{more:R(0.03),per:{stack:'tdb',max:[10,5,10/3]}}}},   //   ...3% per rank each, +30% at most
+              {on:'cast',skill:'triplecleave',do:[{stack:'tdb',set:0}]} ],
+    sc_5_2:[ {on:'pass',if:{wasOff:true,targetMin:{shield:1e-9}},do:[{strip:0.30,on:'target'}]} ],   // Gaping Wound: when the wound opens on a shielded enemy, the shield loses 30% (once per wound)
     sl_5_4:[ {stat:{move:R(0.05)},if:{targetHas:'sl'}} ],                                             // Keep Up
     sl_6_2:[ {stat:{crit:R(0.04)},if:{window:'ctr'}} ],                                               // Make Them Miss
     sl_6_3:[ {on:'in',less:R(0.01)} ],                                                                // Loose Shoulders
@@ -6573,11 +6613,7 @@ module.exports={
   /* one sentence runs, another waits for a ruling */
   partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
-  ruling:{
-    sc_5_2:'"shields on a wounded enemy absorb 30% less": a shield in the game is one number that soaks a hit whole; "absorb less" has two readings (a smaller shield, or part of each hit passing through)',
-    sl_n1:'"attacks that hit more than one target": the game does not know, when a hit lands on her, whether the same attack hits anyone else',
-    sl_10_2:'"during its three cuts" / "the next cut": Razor Tempest\'s three cuts land in the same instant, so no attack can come between them'
-  }
+  ruling:{}
 };
 
 return module.exports;})();
@@ -6711,7 +6747,7 @@ module.exports={
     ds_5_4:[ {on:'teamIn',if:{targetHas:'sour',srcTeam:'ally'},more:R(0.02)} ],                     // Tin Ear (her whole team, her own hits too)
     ds_6_1:[ {on:'chordDone',do:[{energy:R(1)}]} ],                                                 // Feedback
     ds_6_2:[ {on:'dmg:wound',more:R(0.05)} ],                                                       // Cutting Voice
-    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)} ],                                 // Clarity. PARTIAL: the Broken Chord half waits
+    ds_2_3:[ {on:'out',if:{casting:'symphony'},ignoreMr:R(0.03)}, {on:'dmg:chord',more:R(0.03)} ],  // Clarity: Grand Symphony ignores 3% magic resist per rank; Broken Chord deals 3% more per rank
     ds_6_4:[ {on:'healOut',less:R(0.04)}, {on:'out',more:R(0.04)} ],                                // Harsh Voice (RISK)
     ds_7_2:[ {on:'pitch',if:{who:'ally'},do:[{ustack:'dis',on:{team:'enemy',of:'target',n:1},add:1}]} ],   // Shrill Pitch
     ds_7_4:[ {on:'disGain',if:{targetHas:'sour'},do:[{dmg:{pct:R(0.03),of:'apow',k:1},on:'target',tag:'sting',color:SONG}]} ],   // Off-Beat Sting: per stack that lands
@@ -6784,13 +6820,10 @@ module.exports={
                do:[{stack:'str',spend:1,then:[{emit:'snap'}]},{heal:{pct:R(0.02),of:'tgtMaxHp'},pow:true,on:'target'}]} ],
     li_13_2:[ {on:'kit',skill:'symphony',if:{stackMin:{bars:6}},do:[{window:'fnote',dur:99}]},      // The Final Note (SIGNATURE). PARTIAL: the Strings' strike waits
               {on:'healOut',if:{window:'fnote',casting:'symphony'},more:1.5}, {on:'out',if:{window:'fnote',casting:'symphony'},more:1.5},
-              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{stack:'str',set:0},{stack:'bars',add:-3}]} ]
+              {on:'cast',skill:'symphony',if:{window:'fnote'},do:[{window:'fnote',end:true},{window:'final',dur:6},{dmg:{pct:0.20,of:'apow',x:'str'},on:{team:'enemy',of:'self'},color:SONG},{stack:'str',set:0},{stack:'bars',add:-3}]} ]   //   each String that snaps strikes every enemy for 20% of her ability power (no Snap Back, no Twang)
   },
   /* one sentence runs, another waits for a ruling */
-  partial:{
-    ds_2_3:'"Broken Chord ignores magic resist": talent damage already lands as stated (not reduced by magic resist), so there is nothing to ignore',
-    li_13_2:'"all her Strings snap at once to strike every enemy": the strike has no size'
-  },
+  partial:{},
   /* nothing implemented: the text cannot run against her real kit. Each one is written up for the owner. */
   ruling:{}
 };
@@ -6809,7 +6842,7 @@ return module.exports;})();
   const OVER={};                                // TalentFx.define(hero, def): a definition supplied at run time (the tests' scripted talents)
   const defOf=hero=>Object.prototype.hasOwnProperty.call(OVER,hero)?OVER[hero]:MECH[hero];
   function bind(api){ E=api; }
-  function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot)
+  function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot; Vael's Blood Rage; Vex's areaSkill)
   function define(hero,def){ if(def==null) delete OVER[hero]; else OVER[hero]=def; }
 
   /* ---- a value at a rank. number | [by rank] | {r: per rank, b: base, rk: 'other talent id' (use ITS rank), $: 'named number'
@@ -6951,7 +6984,7 @@ return module.exports;})();
     else if(per.dots) n=countDots(u,per.dots);
     else if(per.field){ const x=per.of==='self'?u:per.of==='unit'?(ctx&&ctx.unit):per.of==='source'?(ctx&&ctx.src):(ctx&&ctx.tgt); n=x?(+x[per.field]||0):0; }
     else if(per.units) n=pick(T,u,per.units,ctx).length;
-    else if(per.fn) n=+T.fn[per.fn](API,T,u,ctx,per)||0;                         // a count the hero file works out (Calypsa's cuts on the line, the Water spent)
+    else if(per.fn) n=+T.fn[per.fn](API,T,u,ctx,per)||0;                         // a count the hero file works out (Vael's Blood Rage stacks, Calypsa's cuts on the line, the Water spent)
     else if(per.roll){ const q=T.s.roll[per.roll]; let sum=0; if(q){ const t0=E.now()-q.span; for(let i=0;i<q.e.length;i++) if(q.e[i][0]>t0) sum+=q.e[i][1]; } const st=amtOf(T,u,per.step,ctx); n=st>0?Math.floor(sum/st+1e-9):0; }
     if(per.max!=null) n=Math.min(per.max,n); return n; }
 
@@ -7007,6 +7040,8 @@ return module.exports;})();
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
     const out=[], U=sel.mine!=null?mineOf(T,u).slice():E.units();                    // mine: only his own summons (true: any; or that summon's key)
+    const tg=sel.targeting?pick(T,u,sel.targeting,ctx):null; if(tg&&!tg.length) return [];   // targeting: the units whose current target is one the selector picks ("the enemy attacking her lowest-HP ally")
+    let bh=null; if(sel.behind){ let sx=0,sy=0,k=0; const UA=E.units(); for(let i=0;i<UA.length;i++){ const x=UA[i]; if(x.alive&&x.team!==u.team){ sx+=x.x; sy+=x.y; k++; } } if(!k) return []; bh={x:sx/k,y:sy/k}; bh.d=Math.hypot(c.x-bh.x,c.y-bh.y); }   // behind: farther from the enemy side (the middle of the living enemies) than `of`
     for(let i=0;i<U.length;i++){ const x=U[i]; if(!x.alive||x===skip||x._dropHidden||x._noTarget) continue;
       if(foe?(x.team===u.team):(x.team!==u.team)) continue;
       if(sel.mine!=null){ if(!isMine(u,x,sel.mine)) continue; }
@@ -7026,6 +7061,8 @@ return module.exports;})();
       if(sel.fn&&!T.fn[sel.fn](API,T,u,{u,tgt:x,unit:x})) continue;                   // fn: a named function of the hero file says yes for that unit (Ceraline's waxed enemies)
       if(sel.seg){ if(!(segDist(x,c,sb)-E.bodyR(x)<R)) continue; out.push([x,E.dist(c,x)]); continue; }
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
+      if(bh&&!(Math.hypot(x.x-bh.x,x.y-bh.y)>bh.d)) continue;
+      if(tg&&tg.indexOf(x.target)<0) continue;
       const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
@@ -7093,6 +7130,9 @@ return module.exports;})();
     any:(T,u,v,c)=>v.some(x=>ok(T,u,x,c)),                  // at least one of these condition sets holds ("Snagged or Blindsided")
     np:(T,u,v)=>!T.P[v],                                    // no learned talent adds to that named number (a fork that switches a behaviour off)
     selfMin:(T,u,v)=>fmin(u,v),                             // an engine counter on the owner: {field: at least}
+    wasOff:(T,u,v,c)=>!((c.was||0)>0)===v,                  // on 'pass': her passive's timer on the target was off before this swing (a new wound)
+    srcArea:(T,u,v,c)=>{ const s=c.src; let t=null; if(s&&s._castSlot&&!c.auto) t=s._castSlot==='ult'?(s.abilityOverride||(s.t&&s.t.ability)):(s._castSlot==='blue'?(s.blueAb&&s.blueAb.type):(s.greenAb&&s.greenAb.type));   // the hit comes from a skill the engine lists as an area (radius / cone / line) skill
+      return !!(t&&E.areaSkill&&E.areaSkill(t))===v; },
     unitUst:(T,u,v,c)=>{ for(const k in v) if(ustGet(T,u,c.unit,k)<v[k]) return false; return true; },
     unitDot:(T,u,v,c)=>hasDot(u,c.unit,v),                  // the unit the event is about carries a DoT of hers
     targetRow:(T,u,v,c)=>!!(c.tgt&&c.tgt.t&&c.tgt.t.row===v), // the game's own combat row of that hero ('Back'); a monster has none
@@ -7111,7 +7151,7 @@ return module.exports;})();
     mine:(T,u,v)=>{ const L=mineOf(T,u); for(let i=0;i<L.length;i++) if(v===true||L[i].key===v) return true; return false; },   // a summon of his (of that key) stands
     unitExtra:(T,u,v,c)=>!!(c.unit&&c.unit._talEx)===v,     // a summon his talents called (not his Ink Spirit skill)
     unitKey:(T,u,v,c)=>!!c.unit&&c.unit.key===v, srcKey:(T,u,v,c)=>!!c.src&&c.src.key===v,   // which kind of unit ('ink spirit', 'ink horror')
-    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner below that ({_pages:1}: he holds no Living Page)
+    selfBelow:(T,u,v)=>{ for(const f in v) if(!((+u[f]||0)<v[f])) return false; return true; },   // an engine counter on the owner below that ({_pages:1}: Aldren holds no Living Page; {_ultRootT:1e-9}: Vex's ultimate hold is over)
     wasBelow:(T,u,v,c)=>(c.was||0)<v,                      // the engine number before the engine changed it (pageW: the pages he held before the spell)
     fn:(T,u,v,c)=>!!T.fn[v](API,T,u,c)
   };
@@ -7165,7 +7205,7 @@ return module.exports;})();
     const up=x=>row.upTo!=null?Math.min(row.upTo,x):x;                            // upTo: the share never above that, whatever the count ("up to 10%")
     if(row.more!=null) ctx.amt*=1+up(row.more*n);
     if(row.less!=null) ctx.amt*=Math.max(0,1-up(row.less*n));
-    if(row.mul!=null) ctx.amt*=row.mul;
+    if(row.mul!=null){ ctx.amt*=row.mul; if(row.mul===0) ctx.mv=0; }   // a hit made to deal nothing ("cannot be hurt") is immunity, not reduction: the 95% ceiling leaves it at 0
     if(row.add!=null) ctx.amt+=row.add*n;
     if(row.critMore!=null&&ctx.crit) ctx.amt*=1+row.critMore*n;
     if(row.ignoreArmor!=null&&ctx.kind==='phys'&&ctx.tgt&&ctx.src){ const src=ctx.src, a=E.defMul(src,ctx.tgt,'phys');
@@ -7174,7 +7214,7 @@ return module.exports;})();
       if(a>0){ const sv=t.mrRating; t.mrRating=(sv||0)*Math.max(0,1-row.ignoreMr*n); const b=E.defMul(ctx.src,t,'magic'); t.mrRating=sv; ctx.amt*=b/a; } }
     if(row.addM!=null) ctx.amt+=row.addM*n*E.METER();                              // metres, for a number the engine keeps in its own length unit
     if(row.divert!=null){ const cut=ctx.amt*Math.min(1,row.divert*n);            // the owner takes this share of the hit in the target's place
-      if(cut>0){ ctx.amt-=cut; E.damage(u,cut,'#ffb37a',true); if(T.on.diverted) run(T,u,'diverted',Object.assign({},ctx,{spent:cut})); } }
+      if(cut>0){ ctx.amt-=cut; ctx.mv=(ctx.mv==null?1:ctx.mv)*(1-Math.min(1,row.divert*n)); E.damage(u,cut,'#ffb37a',true); if(T.on.diverted) run(T,u,'diverted',Object.assign({},ctx,{spent:cut})); } }
     if(row.force) ctx.force=true;
     if(row.opt&&ctx.o) for(const k in row.opt){ const op=row.opt[k], m=op.per!=null?cnt(T,u,op.per,ctx):1; let v=ctx.o[k];
       if(op.set!=null) v=op.set;
@@ -7209,7 +7249,7 @@ return module.exports;})();
     if(a.stack){ const have=stGet(T,a.stack);
       if(a.spend!=null){ const n=a.spend==='all'?have:a.spend; if(a.spend!=='all'&&have<n) return false; if(!(n>0)) return;
         stSet(T,u,a.stack,have-n); if(a.then) acts(T,u,a.then,Object.assign({},ctx,{spent:n})); return; }
-      if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k&&k.n>0&&d&&d.dur) k.t=d.dur; return; }
+      if(a.touch){ const k=s.k[a.stack], d=T.st[a.stack]; if(k){ k.idle=0; if(k.n>0&&d&&d.dur) k.t=d.dur; } return; }   // touch: its lapse starts again, and its fade waits again (as a gain would)
       if(a.refillIn!=null){ const k=s.k[a.stack]; if(k&&k.rf){ const at=E.now()+a.refillIn; for(let i=0;i<k.rf.length;i++) if(k.rf[i]>at) k.rf[i]=at; } return; }   // every spent unit comes back that soon
       if(a.set!=null){ stSet(T,u,a.stack,a.set==='max'?stMax(T,u,a.stack):amtOf(T,u,a.set,ctx)); return; }
       if(a.keep!=null){ const n=have*Math.max(0,Math.min(1,a.keep)); stSet(T,u,a.stack,a.whole?Math.floor(n+1e-9):n); return; }   // keep that share (whole: rounded down)
@@ -7259,7 +7299,7 @@ return module.exports;})();
     if(a.retarget){ const x=pick(T,u,a.retarget,ctx)[0]; if(x) ctx.tgt=x; return; }                // on skillTgt: the skill goes to that unit instead (when one is picked)
     if(a.miss){ ctx.amt=0; (ctx.tgt||u)._talMiss=1; return; }
     if(a.late!=null){ const x=amtOf(T,u,a.late,ctx); if(x>0) ctx.late={secs:x,pre:a.pre||null,ends:a.ends||null,emit:a.emit||null}; return; }   // on 'in': this hit arrives late (Fritz's Late Blows): see inc() and the tick                                    // on 'in': this hit misses her; on 'teamIn': it misses the watched unit it was aimed at (the page leaves the hit before any damage)
-    if(a.dodge){ ctx.dodged=true; return; }                                                       // on 'dodge': she dodges this hit
+    if(a.dodge){ ctx.dodged=a.dodge==='quiet'?'quiet':true; if(a.dodge==='quiet') ctx.stop=true; return; }   // quiet: a dodge that does not count as one for her other dodge talents (no 'dodged' rows; no other dodge row is asked)                                                       // on 'dodge': she dodges this hit
     if(a.weaken){ const f=a.weaken, cur=u[f], m=s.wk||(s.wk={}); if(cur==null||!(cur<1)){ m[f]=null; return; } if(m[f]===cur) return;   // a control on her that much weaker (a slow's strength), once per new value
       u[f]=1-(1-cur)*Math.max(0,1-amtOf(T,u,a.by,ctx)); m[f]=u[f]; return; }
     if(a.damp){ const f=a.damp, by=Math.max(0,Math.min(1,amtOf(T,u,a.by,ctx))), m=s.dp||(s.dp={});   // an engine number on a unit made that share smaller, once per new value (a drag's speed: Absalie's Weighted Robe)
@@ -7396,10 +7436,11 @@ return module.exports;})();
   /* outgoing damage: in _dealDamageCore once the hit has landed and its crit is known, just before the HP is removed */
   function out(src,tgt,amt,kind,auto,crit){ const T=src._tal, ctx={u:src,src,tgt,amt,kind,auto:!!auto,crit:!!crit,proc:T.s.d>0}; run(T,src,'out',ctx); return ctx.amt; }
   /* incoming damage: the same place. The target's own rows ('in'), then the rows of talented units watching it ('teamIn': team-wide effects) */
-  function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
-    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; lc=ctx.late||null; }
+  function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal, a0=amt; let mv=1; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
+    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; lc=ctx.late||null; if(ctx.mv!=null) mv*=ctx.mv; }
     const W=tgt._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===tgt||!o.alive||!To||!To.on.teamIn) continue;
-      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; }
+      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }
+    tgt._talIr=(amt!==a0)?[a0,mv]:null;   // the 95% ceiling (the page's drPreOf): the hit before these rows, and the share of it not moved onto another unit (divert)
     /* a late hit (an 'in' row's {late:secs}, Fritz's Late Blows): what every incoming row and every watcher left of it is taken off now - the page leaves
        the hit as a miss (no damage, no hit / hurt rows) - and it lands `secs` later through damage() (his shield and damage()'s own reductions then).
        Before it lands the 'pre' event's rows may change it (ctx.amt; 0: it misses), after it the 'ends' event's rows run (ctx.amt, hpLost). emit: an event now. */
@@ -7418,6 +7459,23 @@ return module.exports;})();
       if(T.on.hit) run(T,src,'hit',ctx);
       if(T.on.kill&&hpBefore>0&&!tgt.alive){ ctx.overkill=Math.max(0,-tgt.hp); run(T,src,'kill',ctx); } }
     if(tgt._tal&&tgt._tal.on.hurt&&src&&src.team!==tgt.team&&tgt.alive){ const T=tgt._tal; run(T,tgt,'hurt',{u:tgt,src,tgt,amt,hpLost,kind,auto:!!auto,crit:!!crit}); } }
+  /* the 95% ceiling's balance measurement (tests/balance-dr-ceiling.test.js): what the incoming rows of tgt and of the units watching it WOULD do to a
+     hit of `amt`, with no side effect - no action, no seeded draw, no limiter spent, no divert taken. Rows that hang on a chance, on counting events
+     (every / edge / period) or on per-unit limiters are left out. Returns {amt, mv}: the hit after the rows, and the share not moved onto another unit
+     (0: the rows make it deal nothing - immunity). Never called by a fight. */
+  function incProbe(tgt,src,amt,kind,auto){ let mv=1; const ctx0={src,tgt,kind,auto:!!auto,crit:false};
+    const one=(T,o,ev)=>{ const rows=T.on[ev]; if(!rows) return; const ctx=Object.assign({},ctx0,{u:o,amt});
+      for(const row of rows){ if(row.chance!=null||row.every||row.edge||row.period||row.each||row.by||row.skill) continue;
+        const L=T.s.lim[row.key]; if(L&&((row.once==='wave'&&L.w===T.s.wave)||(row.once==='fight'&&L.n>0)||(row.uses&&L.n>=row.uses)||(row.icd&&E.now()<L.t))) continue;
+        if(row.if&&!ok(T,o,row.if,ctx)) continue; const n=(row.per!=null?cnt(T,o,row.per,ctx):1)*(row.scale==null?1:row.scale);
+        const up=x=>row.upTo!=null?Math.min(row.upTo,x):x;   // upTo, as modify() reads it
+        if(row.more!=null) ctx.amt*=1+up(row.more*n); if(row.less!=null) ctx.amt*=Math.max(0,1-up(row.less*n)); if(row.add!=null) ctx.amt+=row.add*n;
+        if(row.mul!=null){ ctx.amt*=row.mul; if(row.mul===0) mv=0; }
+        if(row.divert!=null){ const sh=Math.min(1,row.divert*n); ctx.amt*=1-sh; mv*=1-sh; } }
+      amt=ctx.amt; };
+    if(tgt._tal&&tgt._tal.on.in&&src&&src.team!==tgt.team) one(tgt._tal,tgt,'in');
+    const W=tgt._talW; if(W) for(const o of W) if(o!==tgt&&o.alive&&o._tal&&o._tal.on.teamIn) one(o._tal,o,'teamIn');
+    return {amt,mv}; }
   /* a hit is about to kill: a row may keep the unit alive (action `undying`); while that holds, it cannot drop below 1 HP */
   function lethal(u){ const T=u._tal; if(T.s.undy>0){ u.hp=1; return; } run(T,u,'lethal',{u,tgt:u}); if(T.s.undy>0&&u.hp<1) u.hp=1; }
   /* a unit died: its own 'die' rows, then 'death' for every talented unit watching it */
@@ -7476,7 +7534,7 @@ return module.exports;})();
     if(T.on.aimed) run(T,t,'aimed',ctx);
     if(kind==='true'||sure||!T.on.dodge) return false;
     ctx.dodged=false; run(T,t,'dodge',ctx); if(!ctx.dodged) return false;
-    if(T.on.dodged) run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
+    if(T.on.dodged&&ctx.dodged!=='quiet') run(T,t,'dodged',Object.assign({},ctx,{dodged:true})); return true; }
   /* after the 'in' rows: a row said this hit misses her ({miss:true}) - the page leaves the hit before any damage */
   function miss(t){ const m=!!t._talMiss; t._talMiss=0; return m; }
   /* her passive just acted on t at a swing (Vex's Killer Instinct): passPre right before (what the engine timer was), pass right after: 'pass' rows (ctx.was) */
@@ -7587,13 +7645,13 @@ return module.exports;})();
   function cc(by,t,field,dur,tal){ if(t._tal&&t._tal.on.ccIn){ const c={u:t,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(t._tal,t,'ccIn',c); dur=c.amt; }
     if(by&&by._tal&&by._tal.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; } return dur; }
   /* a DoT tick: before it (the target's 'dotIn' rows, and a talent DoT's shorter last tick), and after it (the owner's 'dotTick', a kill by the DoT) */
-  function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps; const T=u._tal;
+  function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps, p=x; const T=u._tal;   // p: the tick without the target's own DoT rows (the 95% ceiling's reference)
     if(T&&T.on.dotIn){ const ctx={u,src:d.src,tgt:u,amt:x,dot:d}; run(T,u,'dotIn',ctx); x=ctx.amt; }
     if(u._talDw){ const W=u._talW; if(W) for(let i=0;i<W.length;i++){ const w=W[i], Tw=w._tal; if(w===u||!w.alive||!Tw||!Tw.on.teamDotIn) continue;   // teamDotIn: the rows of talented units watching u (Dandra's Lamplight)
         const c={u:w,src:d.src,tgt:u,unit:u,amt:x,dot:d}; run(Tw,w,'teamDotIn',c); x=Math.max(0,c.amt); } }
-    const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; }   // the owner's rows change her own DoT's tick
-    if(d._talF!=null&&d.remaining<=1) x*=d._talF; d.dps=x; d._talNow=true; return keep; }
-  function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
+    const o=d.src, To=o&&o._tal; if(To&&To.on.dotOut&&d._talO===o.uid&&o.alive){ const xi=x, c={u:o,src:o,tgt:u,amt:x,dot:d,tag:d._talK}; run(To,o,'dotOut',c); x=c.amt; p=xi>0?p*x/xi:x; }   // the owner's rows change her own DoT's tick
+    if(d._talF!=null&&d.remaining<=1){ x*=d._talF; p*=d._talF; } d.dps=x; d._talNow=true; if(x<p) u._talDp=p; return keep; }   // _talDp: read by the page's dotTickAmt for this tick
+  function dotPost(u,d,keep){ d.dps=keep[0]; d._talNow=false; if(u._talDp!=null) u._talDp=null; const o=d.src, T=o&&o._tal; if(!T||d._talO!==o.uid) return;
     if(T.on.dotTick&&o.alive) run(T,o,'dotTick',{u:o,src:o,tgt:u,dot:d,tag:d._talK,amt:Math.max(0,((keep[1]||0)-Math.max(0,u.hp))+((keep[2]||0)-(u.shield||0)))});   // amt: what the tick took off (HP and shield)
     if(!u.alive&&T.on.kill&&o.alive) run(T,o,'kill',{u:o,src:o,tgt:u,dot:d,overkill:0,viaDot:true}); }
   /* between waves (the page's per-wave reset): 'waveEnd' now; the new wave's start is run on the unit's next tick, when the field is set */
@@ -7617,7 +7675,8 @@ return module.exports;})();
           if(stSet(T,u,k,st.n+1)>0&&d.refilled&&T.on[d.refilled]) run(T,u,d.refilled,{u,tgt:u}); } }
       if(!d||!(st.n>0)) continue;
       if(d.dur){ st.t-=dt; if(st.t<=1e-9){ st.n=0; continue; } }
-      if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt; if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.lose||1)); } } }
+      if(d.fade&&!(d.fade.unless&&ok(T,u,d.fade.unless,{u}))){ st.idle+=dt*(d.fade.rate==null?1:Math.max(0,d.fade.rate));   // rate: the fade's clock (0.5 = it fades half as fast)
+        if(st.idle>=d.fade.after+d.fade.every-1e-9){ st.idle-=d.fade.every; st.n=Math.max(0,st.n-(d.fade.pct!=null?st.n*d.fade.pct:(d.fade.lose||1))); } } }   // pct: it loses that share of what it holds
     if(s.undy>0) s.undy=Math.max(0,s.undy-dt);
     if(T.on.tick) run(T,u,'tick',{u,tgt:u.target,dt});
     restat(T,u); auras(T,u,dt); }
@@ -7652,7 +7711,7 @@ return module.exports;})();
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),incProbe,healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
 
