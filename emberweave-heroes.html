@@ -32179,7 +32179,10 @@ function renderHeroDetail(){ try{ setTimeout(()=>ftutCheck('heroDetail'),350); }
   /* v621 (Phil: "under mythicals it still has the old banner, this tab is where you can put the new worded banners"):
      every hero's detail view shows its WORDED rarity banner (COMMON / UNCOMMON / RARE / MYTHICAL) under the portrait */
   const _rar=heroRarity(key);
-  const rarBanner = RARITY_READY ? `<div class="hd-rarb rb-${_rar}"><img src="/assets/img/banners/${_rar}-word.webp?v=${RARITY_V}" alt="${_rar[0].toUpperCase()+_rar.slice(1)}"></div>` : mythBanner;
+  /* 15 Nov 2026: width/height = the art's own 1000 x 400, so the banner's box (76 px at 190 wide) is there before the image arrives. Without them the
+     hero column was 76 px shorter until the banner loaded and grew under the player's eyes (on every open, and on a redraw while not cached) - the
+     intermittent "Stats after Talents = Stats before" failure of the landscape UI test (221 px measured before the banner, 297 px after). */
+  const rarBanner = RARITY_READY ? `<div class="hd-rarb rb-${_rar}"><img src="/assets/img/banners/${_rar}-word.webp?v=${RARITY_V}" width="1000" height="400" alt="${_rar[0].toUpperCase()+_rar.slice(1)}"></div>` : mythBanner;
   // ---- LEFT: portrait, stars + star-up, equipment slots, level ----
   // (27 Aug, Phil: the equipment slot grid lives ONLY in the Equipment tab — not on the hero card)
   const st=stars;
