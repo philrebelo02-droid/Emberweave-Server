@@ -16734,7 +16734,7 @@ return module.exports;})();
    Readings, caps and corrected tooltips: WIRING/56 - THARL IRONCOIL - talent decisions.md. */
 const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
 const RAM='knockstun', CURL='defensive', ULT='charge', PATH='chargePath', ULTS=[ULT,PATH];
-const DR_CAP=0.20, ALLY_CAP=0.50, CC_CAP=0.40, STUN_LOCK=0.5, RUN_MAX=4.0, PLATE_MAX=10, SIG_AT=6, IWL_AT=6;
+const DR_CAP=0.20, ALLY_CAP=0.25, CC_CAP=0.40, STUN_LOCK=0.5, RUN_MAX=4.0, PLATE_MAX=10, SIG_AT=6, IWL_AT=6;
 /* the families: the state's bookkeeping runs when any talent of it is learned */
 const PLATE=['se_1_1','se_2_1','se_3_1','se_4_1','se_6_4','se_9_4','se_11_1','se_13_2'];
 const SHEL=['se_2_2','se_4_2','se_5_2','se_5_3','se_6_3','se_6_2','se_8_2','se_10_2','se_12_2'];
@@ -17102,7 +17102,8 @@ module.exports={
     myDr(A,T,u,c){ T.s.api=A; c.amt*=T.fn.drK(A,T,u,c.src,c.kind,c.crit,false); },
     myDot(A,T,u,c){ T.s.api=A; const s=c.src; if(s&&s.team===u.team) return; c.amt*=T.fn.drK(A,T,u,s,'dot',false,true); },
     /* ---- HIS TALENTS ON HITS THAT ARE NOT ON HIM (one teamIn row). His team on an enemy: Wide Seam (Seamed), Heavy Earth (Buried). An enemy on an ally of his:
-       ONE capped group of 50% (Curled Around, the signature's 50%, Gravel, Weight on Them); Spiked Tail strikes back ---- */
+       ONE capped group of 25% (Curled Around, the signature's 50%, Gravel, Weight on Them; 15 Nov 2026: lowered 50->25 after Claude's
+       follow-up measurement - Rhukk's worst hit beside a most-defensive Tharl was 94.5%, now 81.2%); Spiked Tail strikes back ---- */
     teamK(A,T,u,c){ const t=c.tgt, s=c.src, P=T.P, o=O(T), E=A.eng(); if(!t||!s) return;
       if(t.team!==u.team&&s.team===u.team){ let m=1; if(P.wide&&on(o.seam,t)) m*=1+P.wide; if(P.heavy&&on(o.bur,t)) m*=1+P.heavy; c.amt*=m; return; }
       if(t.team!==u.team||t===u||s.team===u.team) return;

@@ -40,7 +40,7 @@ test('Tharl: every talent is accounted for - 10 plain stats, 112 with rows, none
   const M=FXN.mech(H); for(const id of ['se_1_1','sb_1_4','rc_1_1','se_13_2','sb_13_3','rc_13_2']) assert.ok(M.talents[id],id);
   for(const id of ['se_3_3','se_12_3','se_1_3','sb_1_2','sb_7_2','sb_8_2','sb_n1','rc_3_3','rc_9_3','rc_2_3']) assert.ok(FXN.has(H,id),id+' is a plain stat');
   const nm={se_6_1:'Weathered Plates',se_9_4:'Ironcoil Moult',sb_1_1:'Cover in Rubble',rc_5_2:'Bury the Line',rc_12_4:'Choking Scree'}; for(const id in nm) assert.equal(T.talent(H,id).name,nm[id]);
-  assert.ok(/at most 20%/.test(T.talent(H,'rc_4_1').text),'Tucked Tight names his damage-reduction cap'); assert.ok(/at most 50%/.test(T.talent(H,'se_2_2').text),'Curled Around names the allies\' cap');
+  assert.ok(/at most 20%/.test(T.talent(H,'rc_4_1').text),'Tucked Tight names his damage-reduction cap'); assert.ok(/at most 25%/.test(T.talent(H,'se_2_2').text),'Curled Around names the allies\' cap');
   assert.ok(/at most 40%/.test(T.talent(H,'se_5_1').text),'Layered Will names the control cap'); assert.ok(/1% more critical chance/.test(T.talent(H,'sb_3_2').text),'Rock Breaker: 5% at most');
   assert.equal(T.talent(H,'rc_5_3').lock,'rc_5_2','the fork still locks (Bury the Line)');
   const all=require(path.join(root,'talents-data.js')).heroes, names=new Set(); for(const h in all) if(h!==H) for(const tr of all[h].trees) for(const t of tr.talents) names.add(t[3].toLowerCase());
@@ -96,12 +96,12 @@ test('Tharl / Ironcoil Moult: once a wave below 40% HP every Scar Plate is shed 
   v.hp=0.3*v.maxHp; V.step(2); assert.equal(O(L).pl,5,'(once a wave)'); v.hp=0.5*v.maxHp; V.wave(); V.step(2); v.hp=0.3*v.maxHp; V.step(2); assert.equal(O(L).pl,0,'a new wave: again');
 });
 
-test('Tharl / Every Scale He Was Hit For (SIGNATURE): at 6 Scar Plates, once a fight - PLATED 6 s, a scale at every attacker (30%), the nearest ally 50% less',()=>{
+test('Tharl / Every Scale He Was Hit For (SIGNATURE): at 6 Scar Plates, once a fight - PLATED 6 s, a scale at every attacker (30%), the nearest ally half damage (the allies\' group caps it at 25%)',()=>{
   const L=lab(H,S(['se_1_1','se_13_2','se_12_4']),{foes:3,allies:2,big:true}), {v,F,A}=L; go(L); O(L).pl=4;
   plate(L); assert.ok(!(O(L).iron>0),'5 plates: not yet'); unplate(L); plate(L); assert.ok(O(L).iron>5.9,'6 plates: iron'); assert.ok(v._layT>5.9,'PLATED for 6 s');
-  assert.equal(O(L).ironA,A[0],'the ally nearest him'); const pa=plainHit(L,()=>hitAl(L,A[0],1000)); near(hitAl(L,A[0],1000),pa*0.5,'takes 50% less'); near(hitAl(L,A[1],1000),plainHit(L,()=>hitAl(L,A[1],1000)),'(not the other)');
+  assert.equal(O(L).ironA,A[0],'the ally nearest him'); const pa=plainHit(L,()=>hitAl(L,A[0],1000)); near(hitAl(L,A[0],1000),pa*0.75,'takes 50% less, capped by the allies\' 25% group'); near(hitAl(L,A[1],1000),plainHit(L,()=>hitAl(L,A[1],1000)),'(not the other)');
   still(F[1]); const h1=F[1].hp, A0=atk(L), k=physK(L,F[1],0.2); hitOn(L,100,{src:F[1]}); near(h1-F[1].hp,0.3*A0*k,'a hit on him: a scale at the attacker for 30% of his attack (Sharp Rain)',1e-6);
-  secs(6.1); assert.ok(!(O(L).iron>0),'6 s'); const h2=F[1].hp; hitOn(L,100,{src:F[1]}); assert.equal(F[1].hp,h2,'then no scale'); near(hitAl(L,A[0],1000),pa,'and no 50%');
+  secs(6.1); assert.ok(!(O(L).iron>0),'6 s'); const h2=F[1].hp; hitOn(L,100,{src:F[1]}); assert.equal(F[1].hp,h2,'then no scale'); near(hitAl(L,A[0],1000),pa,'and no cut from it');
   O(L).pl=4; unplate(L); plate(L); unplate(L); plate(L); assert.ok(!(O(L).iron>0),'once a fight');
 });
 
@@ -313,8 +313,8 @@ test('Tharl / damage reduction, one group of 20%: every condition at once never 
   near(L.T.fn.drK(api(L),L.T,v,F[0],'phys',true,false),0.80,'(the pure function the 95% check reads)');
   o.mom=0; delete o.rub[F[0].uid]; delete o.bur[F[0].uid]; v.hp=v.maxHp; o.sh=[]; o.curl=0; at(L,F[0],4.5,0); near(L.T.fn.drK(api(L),L.T,v,F[0],'phys',true,false),0.90*0.94,'(two crit talents: the shares multiply)',1e-9);
   near(L.T.fn.drK(api(L),L.T,v,F[0],'dot',false,true),0.94,'Rock Dust Lungs: 2% x 3 less from a DoT');
-  O(L).sh=[A[0]]; O(L).iron=6; O(L).ironA=A[0]; O(L).rub[F[1].uid]=9; O(L).bur[F[1].uid]=9; near(hitAl(L,A[0],1000,{src:F[1]})/plainHit(L,()=>hitAl(L,A[0],1000,{src:F[1]})),0.50,'his allies: 50% at most',1e-6);
-  O(L).iron=0; near(L.T.fn.allyK(api(L),L.T,v,A[0],F[1]),0.85*0.925*0.94,'(the shares multiply)',1e-9);
+  O(L).sh=[A[0]]; O(L).iron=6; O(L).ironA=A[0]; O(L).rub[F[1].uid]=9; O(L).bur[F[1].uid]=9; near(hitAl(L,A[0],1000,{src:F[1]})/plainHit(L,()=>hitAl(L,A[0],1000,{src:F[1]})),0.75,'his allies: 25% at most',1e-6);
+  O(L).iron=0; near(L.T.fn.allyK(api(L),L.T,v,A[0],F[1]),Math.max(0.75,0.85*0.925*0.94),'(the shares multiply, floored at the allies\' 25% cap)',1e-9);
   const dotOn=(Q)=>{ const u=Q.v; u.maxHp=1e6; u.hp=5e5; const h=u.hp; V.dot(u,100,1,1,Q.F[0]); V.step(40); return h-u.hp; };
   const P=lab(H,null,{foes:1,big:true}); go(P); const pd=dotOn(P); const Q=lab(H,S(['sb_12_4']),{foes:1,big:true}); go(Q); near(dotOn(Q),pd*0.94,'(on a real DoT tick: 6% less)',1e-6);
 });
