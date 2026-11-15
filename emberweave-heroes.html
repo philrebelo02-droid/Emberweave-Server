@@ -7441,6 +7441,7 @@ function lvSec(x){ return (+(+x).toFixed(2))+'s'; }
 function passLv(u){ return ((u&&u.skillLv&&u.skillLv[3])|0)||1; }
 /* talents (14 Nov 2026, Vael's rulings): Blood Rage as a number the talent runtime can read - the same expression as the hit line in _dealDamageCore */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ areaSkill:t=>ULT_RADIUS.includes(t)||ULT_CONE.includes(t)||ULT_LINE.includes(t), bloodRage:u=>(u&&u.pass&&u.pass.bloodrage&&(u._brTaken||0)>0)?Math.min(SKLV.bloodrageCap(passLv(u)),0.25*u._brTaken/Math.max(1,u.maxHp||1)):0 });
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ rvFire:(u,t,w)=>{ if(!u||!t||!(u.pass&&u.pass.arsenal)||RIVET_WPN.ranged.indexOf(w)<0) return; const k=u._rvWpn; u._rvWpn=w; try{ rivetFire(u,t,u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul,u.anim&&u.anim[u.anim['w_'+w]?'w_'+w:'attack'],null); } finally{ u._rvWpn=k; } } });   /* TALENT HOOK (bound): one of Rivet's ranged weapons fired by his talents (The Whole Workshop), as a swing fires it */
 /* v1310 (Phil 8 Nov 2026: "reduce thick chittin to 3% per 3 seconds, maxing at 15% at level 1 and 25% at 100"): a warden passive whose kit
    carries its own wardenStep (Rhukk's Thick Chitin) stacks that flat step to its own cap; Adamant Discipline / Fired Clay / Tempered Steel /
    Unmovable Mass keep the shared 4% x skill / SKLV.wardenCap rule. */
@@ -15764,21 +15765,24 @@ const RIVET_WPN={ ranged:['gatling','revolver','saw','bolt','cannon'], melee:['b
   vis:{gatling:4, revolver:5, saw:0, bolt:2, cannon:1} };   // the round in flight reuses the arsenal visuals (bearing, slug, spinning scrap, barb, shell)
 function rivetCC(u,t,f,v){ /* Phil's EXACT control length in the fight (ccFixed: v is authored /0.7). ccApply rolls the seeded level resist as for every hero; the
    length is then held at his number - the hook's 3 s stun is past the game-wide stun ceiling (CC_DUR_MAX.stunned 4.0 x 0.7 = 2.8 s), set on purpose. */
-  if(ccApply(u,t,f,v)){ const sec=+(v*CC_NERF).toFixed(6); if((t[f]||0)<sec) t[f]=sec; return true; } return false; }
+  if(ccApply(u,t,f,v)){ const sec=+(v*CC_NERF).toFixed(6), _sec=(u._tal&&u._tal.on.num)?TalentFx.num(u,'rvCC',sec,t):sec;   /* TALENT HOOK num 'rvCC': the length his weapon's control is held at (Rivet's talents: longer, Hammer Hand's 1 s, the stun-lock rule; untalented the old number) */
+    if((t[f]||0)<_sec) t[f]=_sec; return true; } return false; }
 function rivetGap(u,e){ return dist(u,e)-bodyR(u)-bodyR(e); }   /* the open ground between the two bodies: his body alone is 1.56 m in radius, so touching
    bodies sit 3.1-3.6 m apart centre to centre - a centre distance would never reach 3 m. 'Within 3 m' = 3 m or less of ground between them. */
 function rivetPick(u,t){ const m=rivetGap(u,t)<=RIVET_WPN.meleeR, L=m?RIVET_WPN.melee:RIVET_WPN.ranged, k=m?'_rvMi':'_rvRi';
-  const w=L[(u[k]|0)%L.length]; u[k]=((u[k]|0)+1)%L.length; return w; }
+  const w=L[(u[k]|0)%L.length]; u[k]=((u[k]|0)+1)%L.length; return (u._tal&&u._tal.on.num)?TalentFx.num(u,'rvPick',w,t):w; }   /* TALENT HOOK num 'rvPick': the weapon this attack fires (Rivet's talents: Keep Them Out, Hook in the Cycle, Hammer Hand, Next Barrel Up, Arms for the Gap; the Rack and the melee cycle counted) */
 function rivetFire(u,t,dmg,clip,crit){ const W=RIVET_WPN, w=u._rvWpn, rate=u._atkSpdMul||1, melee=W.melee.indexOf(w)>=0;
+  const _rq=(u._tal&&u._tal.on.num)?TalentFx.num(u,'rvFire',0,t):0;   /* TALENT HOOK num 'rvFire': this attack's record for Rivet's talents (0 untalented: nothing below changes) */
+  if(_rq&&w==='hook'){ rivetHook(u,t,_rq); return; }   /* TALENT HOOK: Hook in the Cycle - the chain hook on its turn of the melee cycle (only a talent row returns 'hook') */
   const fly=melee?0:0.22*HERO_FX_MUL;   // the same flight the old ranged swing used
-  const hit=(fn,extra)=>{ const _fd=fuseStrike(u,t,clip,()=>{ _preCrit=crit; _autoAtk=1; try{ fn(); } finally{ _preCrit=null; _autoAtk=0; } },extra,rate); if(typeof SFX!=='undefined'&&SFX.loop) sfxAtkFuse(u,_fd,melee); return _fd; };   /* v1138 sound: every weapon blow plays his attack pick on its own fuse (his melee pick in melee) - rivetFire bypassed the generic swing's hook */
+  const hit=(fn,extra)=>{ const _fd=fuseStrike(u,t,clip,()=>{ _preCrit=crit; _autoAtk=1; if(_rq) TalentFx.partPre(u,t,'rv:'+_rq); try{ fn(); } finally{ _preCrit=null; _autoAtk=0; if(_rq) TalentFx.part(u,t,'rv:'+_rq); } },extra,rate); if(typeof SFX!=='undefined'&&SFX.loop) sfxAtkFuse(u,_fd,melee); return _fd; };   /* TALENT HOOK partPre / part 'rv:<record>' (the two guarded calls above): while this weapon's blow resolves, Rivet's rows know which attack it is */   /* v1138 sound: every weapon blow plays his attack pick on its own fuse (his melee pick in melee) - rivetFire bypassed the generic swing's hook */
   const vis=(extra)=>fuseStrike(u,t,clip,()=>{ try{ if(t.alive){ const i=W.vis[w]; spawnArsenalShot(u,t,i,()=>{ try{ burstAt(t.x,t.y,ARSENAL[i].col,8); }catch(e){} }); } }catch(e){} },extra||0,rate);   /* display only - a plain burst: the old rounds' labels (RICOCHET, HEAVY...) would misname his weapons */
   switch(w){
     case 'gatling': for(let k=0;k<W.gatShots;k++){ const off=k*W.gatGap/rate; vis(off); hit(()=>{ if(t.alive) dealDamage(u,t,dmg*W.gatPct,'#ffe08a'); },fly+off); } break;
     case 'revolver': vis(); hit(()=>{ u._wpnCrit=W.revCrit; try{ dealDamage(u,t,dmg*W.revPct,'#fff'); } finally{ u._wpnCrit=0; } },fly); break;
     case 'saw': vis(); hit(()=>{ dealDamage(u,t,dmg*W.sawPct,'#e0e0e0'); if(t.alive) pushDot(t,dmg*W.sawBleed/W.sawBleedDur,W.sawBleedDur,1,'#c0392b',u); },fly); break;
     case 'bolt': vis(); hit(()=>{ u._wpnArmIgn=W.boltArmIgn; try{ dealDamage(u,t,dmg*W.boltPct,'#bfe6ff'); } finally{ u._wpnArmIgn=0; } },fly); break;
-    case 'cannon': { const ax=t.x-u.x, ay=t.y-u.y, aL=Math.hypot(ax,ay)||1, cMin=Math.cos(W.canAngle/2*Math.PI/180);
+    case 'cannon': { const ax=t.x-u.x, ay=t.y-u.y, aL=Math.hypot(ax,ay)||1, cMin=Math.cos((_rq?TalentFx.num(u,'rvCone',W.canAngle):W.canAngle)/2*Math.PI/180);   /* TALENT HOOK num 'rvCone': the chest cannon's cone (Next Barrel Up) */
       vis(); hit(()=>{ enemiesOf(u).forEach(e=>{ if(!e.alive) return; const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy);
         if(L>W.canLen*METER) return; if(L>1&&(dx*ax+dy*ay)/(L*aL)<cMin) return; dealDamage(u,e,dmg*W.canPct,'#ffa657'); }); },fly); break; }
     case 'blade': hit(()=>{ dealDamage(u,t,dmg*W.bladePct,'#fff'); },0); break;
@@ -15792,20 +15796,21 @@ function rivetFire(u,t,dmg,clip,crit){ const W=RIVET_WPN, w=u._rvWpn, rate=u._at
    pullT), is hooked. The hook flies on the hook clip's fuse (the same 2.0 s clip / relFrac 0.5 as every weapon), then pulls it back to 0.5 m of ground from him (unless it
    cannot be displaced - immovable, Unstepped, Unstoppable, gear immovable), deals 50% attack damage and stuns it 3 s. He cannot hook while stunned,
    feared, airborne, pulled or frozen; silence does not stop it (it is a weapon, not a skill). */
-function rivetHook(u,e){ const W=RIVET_WPN, clip=(u.anim&&u.anim.w_hook)||(BATTLE_ANIM.rivet||{}).w_hook||(u.anim&&u.anim.attack), rate=u._atkSpdMul||1;
+function rivetHook(u,e,_rq){ if(!_rq&&u._tal&&u._tal.on.num) _rq=TalentFx.num(u,'rvHook',0,e);   /* TALENT HOOK num 'rvHook': the automatic hook's record for Rivet's talents (_rq: Hook in the Cycle's, from rivetFire) */
+  const W=RIVET_WPN, clip=(u.anim&&u.anim.w_hook)||(BATTLE_ANIM.rivet||{}).w_hook||(u.anim&&u.anim.attack), rate=u._atkSpdMul||1;
   const dmg=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
   u._rvHookT=clipDur(clip)*0.5*BATTLE_PACE/rate+0.05;   // one hook in flight at a time
   u._atkClip='w_hook'; u.attackAnim=.18; u._faceDir=(e.x>=u.x)?1:-1; u._idleHold=0; u._idleFrozen=false; u._idleClip=null;   /* display: the hook clip plays (an idle flourish in progress gives way, as it does to CC) */
-  const _hfd=fuseStrike(u,e,clip,()=>{ if(!e.alive||!u.alive) return;
+  const _hfd=fuseStrike(u,e,clip,()=>{ if(!e.alive||!u.alive) return; if(_rq) TalentFx.partPre(u,e,'rv:'+_rq); try{   /* TALENT HOOK partPre / part 'rv:<record>': the hook's pull, blow and stun are that record's */
     if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
       const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1, to=Math.min(L,bodyR(u)+bodyR(e)+W.hookTo*METER);
       e._dash=null; e.x=u.x+dx/L*to; e.y=u.y+dy/L*to; e._ax=e.x; e._ay=e.y; }
     dealDamage(u,e,dmg*W.hookPct,'#bfe6ff');
-    if(e.alive) rivetCC(u,e,'stunned',W.hookStun); },0,rate);
+    if(e.alive) rivetCC(u,e,'stunned',W.hookStun); } finally{ if(_rq) TalentFx.part(u,e,'rv:'+_rq); } },0,rate);
   if(typeof SFX!=='undefined'&&SFX.loop) sfxAtkFuse(u,_hfd,true); }   /* v1138 sound: the chain hook plays his melee attack pick on the hook's fuse */
 function rivetHookTick(dt){ for(const u of units){ if(!u.alive||!(u.pass&&u.pass.arsenal)) continue;
     if((u._rvHookT||0)>0) u._rvHookT=Math.max(0,u._rvHookT-dt);
-    const R=RIVET_WPN.meleeR, can=!((u.stunned||0)>0||(u.fearT||0)>0||(u._airT||0)>0||(u.pullT||0)>0||(u._frozenT||0)>0);
+    const R=(u._tal&&u._tal.on.num)?TalentFx.num(u,'rvHookR',RIVET_WPN.meleeR):RIVET_WPN.meleeR, can=!((u.stunned||0)>0||(u.fearT||0)>0||(u._airT||0)>0||(u.pullT||0)>0||(u._frozenT||0)>0);
     const prev=u._rvNear||(u._rvNear=new Map());
     for(const e of units){ if(e.team===u.team) continue; const dNow=e.alive?rivetGap(u,e):1e9, p=prev.get(e);
       if(p&&p.near&&e.alive&&dNow>R&&can&&!((u._rvHookT||0)>0)&&!e._vpT&&!e._noTarget&&!((e._airT||0)>0)&&!((e.pullT||0)>0)
