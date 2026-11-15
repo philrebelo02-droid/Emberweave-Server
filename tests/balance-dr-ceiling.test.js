@@ -83,6 +83,8 @@ function defensive(hero){ const M=FXN.mech(hero), out=new Set();
     if((ev.includes('in')||ev.includes('teamIn'))&&(row.less!=null||(row.mul!=null&&row.mul<1)||row.divert!=null)) out.add(id);
     if(row.stat&&(row.stat.armor>0||row.stat.mr>0||(row.stat.armor&&row.stat.armor.r>0)||(row.stat.mr&&row.stat.mr.r>0))) out.add(id);
     if(deep(row.do,x=>x.undying!=null||x.atOne!=null||x.untarget!=null||x.miss)) out.add(id); }
+  /* a hero whose reductions run as ONE capped group in a hero function (Lumi: an `always` in / teamIn row switched on by reqAny): the talents that switch it on */
+  for(const row of (M.always||[])){ const ev=[].concat(row.on||[]); if((ev.includes('in')||ev.includes('teamIn'))&&Array.isArray(row.reqAny)) for(const id of row.reqAny) out.add(id); }
   return out; }
 function defBuild(hero,plan,R){ let b={r:{}}; const trees=T.trees(hero);
   const need=new Set(); for(const id of R){ let t=T.talent(hero,id); while(t&&t.prereq){ need.add(t.prereq); t=T.talent(hero,t.prereq); } }
