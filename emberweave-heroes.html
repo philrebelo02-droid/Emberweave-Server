@@ -14338,7 +14338,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const _pd=o.pdur||0.30, _VD=dB*(o.mul||.9)*rm;
       if(o.melee){ for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ groundHazards.push({arrival:true,delay:0.05+_r*(o.stagger||0.16),run:function(){ if(!e.alive)return; u.attackAnim=.2; dealDamage(u,e,_VD,'#b98bff'); burstAt(e.x,e.y,0xb98bff,8); }}); }); break; }   // v1303: 3 rapid axe swings, no projectile
       for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ const _fire=function(){ if(!e.alive)return; abilShot(u,o,e,u.t.color,(o.ownFx==='cards')?function(){ try{ sorrelHitFx(e,_one&&!!o.mark&&_r===_reps-1); }catch(_e){} }:undefined);   /* v1123: the card lands with its damage (same 0.30 s flight); the spark is display only */
-          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive) dealDamage(u,e,_VD,'#5ee89b'); }}); };
+          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive){ if(u._tal) TalentFx.landPre(u,e,'volley');   /* TALENT HOOK landPre: this writ's hit is the skill's (Quorrel's Contempt Storm talents) */ dealDamage(u,e,_VD,'#5ee89b'); if(u._tal) TalentFx.land(u,e,'volley');   /* TALENT HOOK land: a writ has landed */ } }}); };
         const _dl=_r*0.15+(o.stagger&&!_one?_list.indexOf(e)*o.stagger:0);   /* v1069: o.stagger = arrows leave one after another (Sloe) */
         if(_dl<=0) _fire(); else groundHazards.push({arrival:true,delay:_dl,run:_fire}); });
       if(o.mark&&_list.length){ const m=_list[0]; groundHazards.push({arrival:true,delay:(_reps-1)*0.15+_pd,run:function(){ if(!m.alive)return;
