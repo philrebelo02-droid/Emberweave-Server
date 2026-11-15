@@ -18872,11 +18872,13 @@ function _updateBattleCore(dt){
         firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0,e,{aboveBar:true});
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'hush'); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
-    if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; const _uwI=SKLV.unwind(passLv(u)); if(u._uwT>=_uwI){ u._uwT-=_uwI;   /* v1112: every 5 s - 0.015 s a level */
+    if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; const _uwI=SKLV.unwind(passLv(u))-(u._talUwOff||0); if(u._uwT>=_uwI){ u._uwT-=_uwI;   /* v1112: every 5 s - 0.015 s a level */   /* TALENT HOOK (a field only Tessit's rows set): Unwind comes sooner (Quick Unwind, Clean Books, Clear Sight, Glass Heart) */
       const hurt=alliesOf(u).filter(a=>a.alive&&((a.dots&&a.dots.length)||a.stunned>0||a.slow>0||a.silencedT>0||a.mortalT>0));
-      if(hurt.length){ const a=hurt[Math.floor(brnd()*hurt.length)%hurt.length];   // v268: seeded, not frame-count-derived
+      if(hurt.length){ let a=hurt[Math.floor(brnd()*hurt.length)%hurt.length];   // v268: seeded, not frame-count-derived
+        if(u._tal&&u._tal.on.skillTgt) a=TalentFx.skillTgt(u,'unwind',a,{hurt})||a;   /* TALENT HOOK skillTgt 'unwind': whom Unwind cleanses (Tessit's Careful Hand) */
         if(a.dots&&a.dots.length)a.dots.pop(); else if(a.stunned>0)a.stunned=0; else if(a.silencedT>0)a.silencedT=0;
         else if(a.slow>0)a.slow=0; else a.mortalT=0;
+        if(u._tal&&u._tal.on.pass) TalentFx.pass(u,a,'unwind');   /* TALENT HOOK pass 'unwind': Unwind has lifted one effect (Tessit's Burden, Clear, Kind Hands, Careful / Wide Hand) */
         firePassiveFx(u,a,{aboveBar:true});
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'unwind'); } } }
     if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); firePassiveFx(u,e,{aboveBar:true}); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
