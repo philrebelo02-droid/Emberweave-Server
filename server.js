@@ -21,6 +21,7 @@ const path = require('path');
 const crypto = require('crypto');
 const HERO61=require('./hero61.js');
 const TALENTS=require('./talents.js'), TALENT_FX=require('./talents-fx.js'), TALENT_POWER=require('./talents-power.js'), TALENTS_ON=process.env.TALENTS_ENABLED==='true';   /* 14 Nov 2026: talent trees - rules shared with the page; off unless the flag is set */
+const TALENT_WIRED=new Set((TALENT_FX&&typeof TALENT_FX.mechHeroes==='function')?TALENT_FX.mechHeroes():[]);   /* 14 Nov 2026 locked heroes: see talentWired */
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
@@ -4642,10 +4643,15 @@ function campaignHeroSpec(u,key){
   { const _tl=talentListFor(led,key); if(_tl) _spec.talents=_tl; }   /* 14 Nov 2026 talents: on the spec only when the hero has learned something */
   return _spec;
 }
+/* 14 Nov 2026 LOCKED HEROES: a hero's talents are WIRED when talents-mech/<key>.js exists - tools/build_talent_fx.py puts every such file into
+   talents-fx.js and TalentFx.mechHeroes() lists them, so a hero that lands is wired with no list to edit (the page reads the same function).
+   An unwired hero cannot learn (the learn route refuses) and its saved talents, if a save holds any, reach no fight unit, snapshot or power
+   number (talentListFor is null). Nothing is deleted: the points simply stay in the save until the hero is wired. */
+function talentWired(key){ return TALENT_WIRED.has(key); }   /* TALENT_WIRED is set beside the require at the top of this file */
 /* 14 Nov 2026 talents: the learned list a fight is built with ([[id,rank],...] sorted), or null. A build that the rules no longer accept
    (a data correction, a level that dropped) fights with NO talents - never with half of one. Off unless TALENTS_ENABLED=true. */
 const TALENT_RESET_GEMS=1000;   /* Phil 14 Nov 2026: "1000 diamonds to reset talents" (the page reads it from the ledger view: talentResetGems) */
-function talentListFor(led,key){ if(!TALENTS_ON||!led||!led.talents) return null; const b=led.talents[key]; if(!b||!TALENTS.has(key)) return null;
+function talentListFor(led,key){ if(!TALENTS_ON||!led||!led.talents) return null; const b=led.talents[key]; if(!b||!TALENTS.has(key)||!talentWired(key)) return null;
   if(TALENTS.invalid(key,b,ledHeroLevel(led,key))) return null; const l=TALENTS.learned(key,b); return l.length?l:null; }
 /* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
    ledTx is the one choke point every grant and every spend passes through, so it is where the write
@@ -8947,6 +8953,7 @@ async function api(req,res,url){
       const led=ensureLedger(me); const key=String(b.key||'');
       if(!validHero(key)||!TALENTS.has(key)) return {ok:false,error:'Unknown hero.'};
       if(!ownsHeroK(led,key)) return {ok:false,error:'You have not unlocked that hero.'};
+      if(!isReset&&!talentWired(key)) return {ok:false,locked:true,error:"This hero's talents are not ready yet. Your points are kept."};   /* LOCKED HEROES (see talentWired): refused before the build is read or cleared */
       led.talents=led.talents||{}; const lv=ledHeroLevel(led,key);
       let build=led.talents[key]||{r:{}}, cleared=false;
       if(TALENTS.invalid(key,build,lv)){ build={r:{}}; cleared=true; }

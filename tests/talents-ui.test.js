@@ -5,7 +5,8 @@
    Covers: the tab order with the server switch on and off; the three trees; the talent card (hover, click, tap);
    learning by the card's button and by a double click / double tap, down to the tier-13 signature (61 points);
    a pick-one fork's locked half; reset with its in-page confirm; a hero under level 10; no page errors; nothing
-   wider than the screen at 390 x 844 and 1400 x 900.
+   wider than the screen at 390 x 844 and 1400 x 900; a hero whose talents are not wired yet (trees shown, a notice, nothing learnable);
+   the Talents red dot on the tab and the hero card, with in-page controls, and its cost on the hero list.
    Run: node --test tests/talents-ui.test.js      Screenshots: set TALENT_SHOTS=<folder>. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),net=require('node:net'),os=require('node:os');
 const root=path.resolve(__dirname,'..'),T=require(path.join(root,'talents.js')),TEMPLE=require(path.join(root,'server/temple-of-ash.js')),token='talent-ui-token',start=Date.now();
@@ -15,11 +16,15 @@ const xpFor=level=>{ let x=0; for(let L=2;L<=level;L++) x+=STEP[L-2]; return x; 
 const SHOTS=process.env.TALENT_SHOTS||''; if(SHOTS) fs.mkdirSync(SHOTS,{recursive:true});
 const LOW='konwu';     // a hero seeded at level 9: no points, his talents not open yet (his art was painted on 14 Nov: the rule holds whatever art exists)
 const ORDER_ON=['stats','glyphs','talents','equip','skills','lore'], ORDER_OFF=['stats','glyphs','equip','skills','lore'];
+/* 14 Nov 2026 locked heroes: a hero is wired when talents-mech/<key>.js exists (TalentFx.mechHeroes()). LOCKED = the last unwired hero in the data's order. */
+const FX=require(path.join(root,'talents-fx.js')), DATA=require(path.join(root,'talents-data.js')), SIMB=require(path.join(root,'server/sim.js')).HERO_BASE;
+const WIRED=new Set(FX.mechHeroes()), LOCKED=Object.keys(DATA.heroes).filter(k=>!WIRED.has(k)&&SIMB[k]).pop()||null, DOTH='vex';   // DOTH: a wired hero seeded at level 10 (one point)
 
-async function server(flag){
+async function server(flag,extra){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'emberweave-talents-ui-')),file=path.join(dir,'db.json');
   const user={id:'talent-ui-user',name:'Talent Screen',created:start-1000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},qc:{wish:0},
     led:{v:1,migratedAt:start-1000,rev:1,gold:100000,gems:1000,px:2000000000,hero:{vael:{xp:xpFor(100),stars:1,pips:0,ref:0},[LOW]:{xp:xpFor(9),stars:1,pips:0,ref:0}},unlocked:{vael:true,[LOW]:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:TEMPLE.newState(),txs:[],quests:{claimed:{},chainStep:0}}};
+  if(extra) extra(user);   /* more heroes on the seeded account (the locked-hero and red-dot test) */
   fs.writeFileSync(file,JSON.stringify({users:{[user.id]:user},byName:{'talent screen':user.id},tokens:{[crypto.createHash('sha256').update(token).digest('hex')]:{id:user.id,iat:start,exp:start+90*86400000}},seeded:true,seedVersion:3,heroIdV:3,guilds:{},idem:{},feedback:[],reports:[],meta:{rollSecret:'talent-ui-test'}}));
   const s=net.createServer(); await new Promise(r=>s.listen(0,'127.0.0.1',r)); const port=s.address().port; await new Promise(r=>s.close(r));
   let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',SIM_WORKERS:'0',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else delete env.TALENTS_ENABLED; delete env.CLOCK_FILE;
@@ -181,7 +186,7 @@ test('flag on: tab order, the trees, the card, learn to the signature, a locked 
   assert.equal(await pg.evaluate(()=>!!document.querySelector('#heroDetailBody .hd-tab[data-tab="talents"] .hupDot')),false,'no points, no red dot');
   await shot(pg,'desktop-07-no-art-hero');
   const nf=T.trees(LOW)[0].talents[0]; await pg.dblclick('#tl_'+nf[0]); await wait(500);
-  assert.match(await pg.evaluate(()=>document.querySelector('#tlCard .tl-cw').textContent),/Talents open at hero level 10/); assert.equal(s.disk().led.talents[LOW],undefined);
+  assert.match(await pg.evaluate(()=>document.querySelector('#tlCard .tl-cw').textContent),WIRED.has(LOW)?/Talents open at hero level 10/:/^Coming soon$/,'the reason on the card (a hero whose talents are not wired yet says so instead)'); assert.equal(s.disk().led.talents[LOW],undefined);
   assert.deepEqual(await fits(pg),[]);
   assert.deepEqual(pg._errs,[],'no page errors'); assert.equal(pg._dialogs,0,'no browser alert / confirm / prompt');
 } finally{ if(pg) await pg.context().close(); await s.stop(); } });
@@ -265,6 +270,97 @@ test('flag on, a phone in landscape (844 x 390): at least 4 tiers of the board w
   for(const tab of ['glyphs','equip','skills','lore']){ await pg.tap('#heroDetailBody .hd-tab[data-tab="'+tab+'"]'); const l=await lay(); assert.equal(l.short,false,tab); assert.equal(l.leftPos,'static',tab); assert.equal(l.leftH,stats0.leftH,tab+': the full hero header'); }
   await openHero(pg,LOW,'talents'); await wait(300); assert.equal((await lay()).short,true); assert.match(await pg.evaluate(()=>document.querySelector('.tl-pts span').textContent),/level 10/); assert.deepEqual(await fits(pg),[]); await shot(pg,'landscape-06-no-art-hero');
   assert.deepEqual(pg._errs,[],'no page errors'); assert.equal(pg._dialogs,0);
+} finally{ if(pg) await pg.context().close(); await s.stop(); } });
+
+/* LOCKED HEROES and the RED DOT (14 Nov 2026). Phil: "Yes red dot on any tab with available upgrades."
+   A hero whose talents are not wired yet: its trees (art, text) are shown with one notice ("Coming soon"), nothing can be learned, no dot, and a build
+   in the save reaches neither its fights nor its power. A wired hero: the Talents tab's dot is on while a talent can be learned and goes the moment the
+   last point is spent, on the tab and on the hero's card in the list. Each check has its control in the page itself: the same check run with that piece
+   of the page put back as it was (the lock removed, the old points-only dot, a cache that ignores the build, no card refresh) must come out the other way.
+   Also measures what the dot costs the hero list. */
+/* LOCKDOTS_OUT=<file>: this test's notes (the cost, a failure's message) are also written there - the queue script shows only ok / not ok lines */
+const note=x=>{ if(process.env.LOCKDOTS_OUT) try{ fs.appendFileSync(process.env.LOCKDOTS_OUT,x+String.fromCharCode(10)); }catch(e){} };
+function statBuild(hero,level,n){ let b={r:{}}; const tr=T.trees(hero)[0];
+  for(let g=0;g<400&&T.spent(hero,b).total<n;g++){ const nx=tr.talents.slice().sort((a,c)=>(FX.has(hero,c[0])-FX.has(hero,a[0]))||a[1]-c[1]||a[2]-c[2]).find(t=>T.canLearn(hero,b,t[0],level)); if(!nx) break; b=T.learn(hero,b,nx[0],level).build; }
+  return b; }
+test('flag on: an unwired hero shows its trees with a notice and cannot learn; the red dot follows what can be learned; the hero list is no slower (1400 x 900)',{skip:!LOCKED&&'every hero is wired'},async()=>{
+  assert.equal(WIRED.has(DOTH),true,DOTH+' is wired'); assert.equal(WIRED.has('vael'),true);
+  const s=await server(true,u=>{ const L=u.led; L.gold=0; L.gems=10000;   /* no gold: no skill can be raised, so a hero card's dot is the Talents one alone; gems for three 1000-diamond resets */
+    L.hero[LOCKED]={xp:xpFor(50),stars:1,pips:0,ref:0}; L.unlocked[LOCKED]=true; L.hero[DOTH]={xp:xpFor(10),stars:1,pips:0,ref:0}; L.unlocked[DOTH]=true; }); let pg; try{
+  pg=await game(s.port,1400,900,false); try{
+  const view=k=>pg.evaluate(k=>({soon:(document.getElementById('tlSoon')||{}).textContent||null,cells:document.querySelectorAll('.tl-cell').length,can:document.querySelectorAll('.tl-cell.can').length,
+    art:document.querySelectorAll('.tl-cell img.tl-art').length,lit:document.querySelectorAll('.tl-cell:not(.no):not(.lock) img.tl-art').length,plays:document.getElementById('tlPlays').textContent,
+    dot:heroUpgrades(k).talents,tabDot:!!document.querySelector('#heroDetailBody .hd-tab[data-tab="talents"] .hupDot')}),k);
+  const cardDot=k=>pg.evaluate(k=>!!document.querySelector('#heroList .hero-card[data-hero-key="'+k+'"] > .hupDot'),k);
+  // ---- the unwired hero ----
+  await openHero(pg,LOCKED,'stats'); assert.deepEqual(await tabs(pg),ORDER_ON,'the Talents tab is there for an unwired hero');
+  await pg.click('#heroDetailBody .hd-tab[data-tab="talents"]'); await pg.waitForFunction(()=>document.querySelectorAll('.tl-cell img.tl-art').length>0,null,{timeout:15000});
+  const tr=T.trees(LOCKED)[0], v=await view(LOCKED);
+  assert.equal(v.soon,'Coming soon','one short notice'); assert.equal(v.cells,tr.talents.length,'the whole tree is drawn'); assert.equal(v.plays,tr.plays,'the tree\'s text');
+  assert.equal(v.art,v.cells,'every icon has its art'); assert.ok(v.lit>0,'the open tier\'s art is shown at full colour'); assert.equal(v.can,0,'no talent is shown as learnable');
+  assert.equal(v.dot,false,'unspent points, but no red dot'); assert.equal(v.tabDot,false);
+  assert.deepEqual(await fits(pg),[]); await shot(pg,'desktop-09-locked-hero');
+  const t1=tr.talents.find(t=>t[1]===1&&!t[7]);
+  await pg.click('#tl_'+t1[0]); await wait(450);
+  const card=await pg.evaluate(()=>({ct:document.querySelector('#tlCard .tl-ct').textContent,cw:(document.querySelector('#tlCard .tl-cw')||{}).textContent||null,learn:!!document.getElementById('tlLearn')}));
+  assert.deepEqual(card,{ct:t1[5],cw:'Coming soon',learn:false},'the card: the talent\'s text, the notice, no Learn button'); await shot(pg,'desktop-10-locked-card');
+  await pg.evaluate(()=>talentCardHide()); await wait(450); await pg.dblclick('#tl_'+t1[0]); await wait(700);
+  assert.equal(await pg.evaluate(k=>!!(G.talents&&G.talents[k]),LOCKED),false,'a double click learns nothing'); assert.equal(((s.disk().led.talents)||{})[LOCKED],undefined,'and nothing reached the server');
+  // a build in the save (as if one got there): no fight list, no power
+  const sb=statBuild(LOCKED,50,7); assert.ok(Object.keys(FX.totals(LOCKED,T.learned(LOCKED,sb))).length>0);
+  const pw=await pg.evaluate(([k,b])=>{ const p0=heroPower(k), keep=G.talents; G.talents=Object.assign({},keep,{[k]:b}); const p1=heroPower(k), l=talentListLocal(k), u=heroTalentsCanUp(k); G.talents=keep; return {p0,p1,l,u}; },[LOCKED,sb]);
+  assert.equal(pw.l,null,'no learned list for its fights'); assert.equal(pw.p1,pw.p0,'the power number is the no-talent one'); assert.equal(pw.u,false);
+  /* controls: the same checks with the lock taken out (talentsWired always yes), and with the old dot (any unspent point) */
+  const ctl=await pg.evaluate(([k,b,id])=>{ const W=talentsWired, H=heroTalentsCanUp, out={}; try{
+      talentsWired=function(){ return true; }; renderHeroDetail(); out.soon=!!document.getElementById('tlSoon'); out.can=document.querySelectorAll('.tl-cell.can').length>0; out.dot=heroUpgrades(k).talents;
+      talentCardShow(k,id,true); out.learn=!!document.getElementById('tlLearn')&&!document.getElementById('tlLearn').disabled; talentCardHide();
+      const keep=G.talents; G.talents=Object.assign({},keep,{[k]:b}); out.list=!!talentListLocal(k); G.talents=keep;   /* (the power: talents-power.js itself prices an unwired hero at 0, a second guard) */
+      talentsWired=W; heroTalentsCanUp=function(key){ try{ if(!talentsOn(key)||!heroOwned(key)) return false; return TALENTS.spent(key,talentBuild(key)).total<TALENTS.pointsTotal(heroLevel(key)); }catch(e){ return false; } };
+      out.oldDot=heroUpgrades(k).talents; return out; } finally{ talentsWired=W; heroTalentsCanUp=H; renderHeroDetail(); } },[LOCKED,sb,t1[0]]);
+  assert.deepEqual(ctl,{soon:false,can:true,dot:true,learn:true,list:true,oldDot:true},'control: without the lock every check above comes out the other way');
+  assert.equal((await view(LOCKED)).soon,'Coming soon','the page is itself again');
+  // ---- the red dot on a wired hero: level 10, one point ----
+  await pg.evaluate(()=>{ renderHeroList(); });
+  const up0=await pg.evaluate(k=>heroUpgrades(k),DOTH); assert.deepEqual(up0,{skills:false,glyphs:false,equip:false,talents:true},'a talent can be learned, nothing else waits');
+  assert.equal(await cardDot(DOTH),true,'the hero\'s card in the list has the dot'); assert.equal(await cardDot(LOCKED),false,'the unwired hero\'s card has none');
+  await openHero(pg,DOTH,'stats');
+  assert.equal(await pg.evaluate(()=>[...document.querySelectorAll('#heroDetailBody .hd-tab')].filter(b=>b.querySelector('.hupDot')).map(b=>b.dataset.tab).join()),'talents','the Talents tab has the dot, and no other tab');
+  await shot(pg,'desktop-11-dot-on');
+  const d1=T.trees(DOTH)[0].talents.find(t=>t[1]===1&&!t[7]);
+  const learnOne=async()=>{ await pg.click('#heroDetailBody .hd-tab[data-tab="talents"]'); await pg.evaluate(()=>talentCardHide()); await pg.click('#tl_'+d1[0]); await pg.waitForFunction(()=>{ const b=document.getElementById('tlLearn'); return b&&!b.disabled; });
+    await pg.click('#tlLearn'); await pg.waitForFunction(([k,id])=>(G.talents&&G.talents[k]&&G.talents[k].r[id])===1&&!TAL.busy,[DOTH,d1[0]]); await wait(200); };
+  const dots=()=>pg.evaluate(k=>({tab:!!document.querySelector('#heroDetailBody .hd-tab[data-tab="talents"] .hupDot'),card:!!document.querySelector('#heroList .hero-card[data-hero-key="'+k+'"] > .hupDot'),up:heroUpgrades(k).talents}),DOTH);
+  const resetAll=async()=>{ await pg.evaluate(k=>talentReset(k),DOTH); await pg.waitForFunction(k=>!(G.talents&&G.talents[k])&&!TAL.busy,DOTH); await wait(200); };
+  await learnOne(); assert.deepEqual(await dots(),{tab:false,card:false,up:false},'the last point spent: the dot goes from the tab and from the card at once');
+  await shot(pg,'desktop-12-dot-off');
+  await resetAll(); assert.deepEqual(await dots(),{tab:true,card:true,up:true},'a reset gives the point back, and the dot');
+  /* control 1: an answer cached per hero with no regard to its build would keep the dot after the learn */
+  await pg.evaluate(k=>{ const H=heroTalentsCanUp, memo={}; window.__tdH=H; heroTalentsCanUp=function(x){ return (x in memo)?memo[x]:(memo[x]=H(x)); }; heroTalentsCanUp(k); },DOTH);
+  await learnOne(); const c1=await dots(); await pg.evaluate(()=>{ heroTalentsCanUp=window.__tdH; renderHeroDetail(); heroUpDotsAll(); });
+  assert.deepEqual(c1,{tab:true,card:true,up:true},'control: a cache that ignores the build leaves the dot on'); assert.deepEqual(await dots(),{tab:false,card:false,up:false});
+  /* control 2: without the card refresh after a learn, the card in the list keeps its dot */
+  await resetAll(); assert.equal((await dots()).card,true);
+  await pg.evaluate(()=>{ window.__tdR=heroUpDotsRefresh; heroUpDotsRefresh=function(){}; });
+  await learnOne(); const c2=await dots(); await pg.evaluate(()=>{ heroUpDotsRefresh=window.__tdR; heroUpDotsAll(); });
+  assert.deepEqual(c2,{tab:false,card:true,up:false},'control: no refresh, the card keeps a dot the hero no longer has'); assert.equal((await dots()).card,false);
+  // ---- cost: every hero owned (as a late account has them), each with a build, the hero list drawn with and without the Talents dot ----
+  const builds={}; for(const k of Object.keys(DATA.heroes)) if(SIMB[k]) builds[k]=statBuild(k,60,30);
+  const perf=await pg.evaluate(B=>{ const keep={u:G.unlocked,x:G.heroXP,t:G.talents}; G.unlocked=Object.assign({},keep.u); G.heroXP=Object.assign({},keep.x); G.talents=Object.assign({},keep.t||{});
+    for(const k of HERO_KEYS){ G.unlocked[k]=true; G.heroXP[k]=Math.max(G.heroXP[k]||0,xpForLevel(60)); if(B[k]&&!G.talents[k]) G.talents[k]=B[k]; }
+    const med=n=>{ const a=[]; for(let i=0;i<n;i++){ const t0=performance.now(); renderHeroList(); a.push(performance.now()-t0); } a.sort((x,y)=>x-y); return a[n>>1]; };
+    const H=heroTalentsCanUp; let out; try{
+      med(2); heroTalentsCanUp=function(){ return false; }; const base=med(9); heroTalentsCanUp=H;
+      for(const k in TAL_DOT) delete TAL_DOT[k]; let t0=performance.now(), on=0; for(const k of HERO_KEYS) if(heroTalentsCanUp(k)) on++; const cold=performance.now()-t0;
+      t0=performance.now(); for(const k of HERO_KEYS) heroTalentsCanUp(k); const warm=performance.now()-t0;
+      const real=med(9); out={heroes:HERO_KEYS.length,on,base:+base.toFixed(2),real:+real.toFixed(2),cold:+cold.toFixed(3),warm:+warm.toFixed(3)};
+    } finally{ heroTalentsCanUp=H; G.unlocked=keep.u; G.heroXP=keep.x; G.talents=keep.t; for(const k in TAL_DOT) delete TAL_DOT[k]; renderHeroList(); }
+    return out; },builds);
+  note('hero list cost: '+JSON.stringify(perf)); console.log('    hero list cost: '+JSON.stringify(perf)+' (ms; base = the list with no Talents dot, real = with it; cold / warm = the dot asked for every hero, uncached / cached)');
+  assert.ok(perf.on>=10,'many owned heroes have a dot ('+perf.on+')');
+  assert.ok(perf.warm<2,'the cached answer for every hero takes '+perf.warm+' ms'); assert.ok(perf.cold<60,'uncached, every hero takes '+perf.cold+' ms');
+  assert.ok(perf.real<=perf.base*1.25+5,'the hero list takes '+perf.real+' ms with the dot against '+perf.base+' ms without');
+  assert.deepEqual(pg._errs,[],'no page errors'); assert.equal(pg._dialogs,0,'no browser alert / confirm / prompt');
+  } catch(e){ note('FAILED: '+String(e&&e.stack||e).slice(0,1500)+' | page errors: '+JSON.stringify(pg._errs)); throw e; }
 } finally{ if(pg) await pg.context().close(); await s.stop(); } });
 
 test('flag off: five tabs in the new order, no Talents anywhere, a deep link to it falls back to Stats',async()=>{ const s=await server(false); let pg; try{

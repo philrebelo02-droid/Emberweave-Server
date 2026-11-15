@@ -35,10 +35,16 @@ function loadServer(src,flag){
   } finally{ console.log=log; delete process.env.TALENTS_ENABLED; }
 }
 const SRC=fs.readFileSync(path.join(root,'server.js'),'utf8');
-const ON=loadServer(SRC,true), OFF=loadServer(SRC,false);
+/* 14 Nov 2026 locked heroes: a hero whose talents are not wired yet (no talents-mech/<key>.js) fights and is priced with none - tests/talents-server.test.js
+   proves that. This file proves the STAT MAPPING for every hero of the roster, so its switched-on server (and, in setup, the page) treat every hero as
+   wired: the one line that reads the wired list is swapped, nothing else. */
+const WIRED_LINE=/const TALENT_WIRED=new Set\(.*?\);/, SRC_ALL=SRC.replace(WIRED_LINE,'const TALENT_WIRED={has:()=>true};');
+if(SRC.indexOf('TALENT_WIRED')>=0&&SRC_ALL===SRC) throw new Error('talents-line: the wired-list line of server.js was not found');
+const ON=loadServer(SRC_ALL,true), OFF=loadServer(SRC,false);
 let BASE=null; try{ BASE=loadServer(cp.execFileSync('git',['-C',root,'show',BASE_SHA+':server.js'],{maxBuffer:1<<28}).toString('utf8'),false); }catch(e){ console.log('BASE server not available ('+String(e.message||e).slice(0,120)+') - identity checks against it are skipped'); }
 const PAGE=SH.load(path.join(root,'emberweave-heroes.html'));
 const R=code=>vm.runInContext(code,PAGE.ctx);
+if(vm.runInContext('typeof talentsWired',PAGE.ctx)==='function') vm.runInContext('talentsWired=function(){ return true; };',PAGE.ctx);   /* every hero wired, as ON above */
 const J=JSON.stringify;
 
 /* ---- one hero state, set identically on a server account and on the page's save ---- */

@@ -1515,6 +1515,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tl-pts b i{font-style:normal;color:#fff}
 .tl-pts span{display:block;font-size:10.5px;color:#8b98a9;margin-top:1px}
 .tl-bar .btn{flex:none;white-space:nowrap}
+.tl-soon{flex:none;padding:3px 9px;border:1px solid #6b5628;border-radius:6px;background:rgba(15,20,32,.85);font:700 12px system-ui,sans-serif;color:#ffe6a8;white-space:nowrap}   /* 14 Nov 2026: a hero whose talents are not wired yet */
 .tl-ask{flex:1 1 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid #8a3b3b;border-radius:10px;background:#1d1216;font-size:12px;color:#f1d6d6}.tl-cost{color:#e8d9b0}.tl-cost.short{color:#ff9b8b}
 .tl-ask span{flex:1 1 140px;min-width:0}
 /* the board keeps 10 px on the right and bottom so the rank counters that hang off an icon's corner are never cut */
@@ -12413,7 +12414,12 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   if(owned){ const _tl=S?S.talents:talentListLocal(key); if(_tl&&_tl.length&&typeof TalentFx!=='undefined'){ TalentFx.applyStats(u,key,_tl); u._talList=_tl.map(e=>[e[0],e[1]]); if(TalentFx.attach) TalentFx.attach(u,key,u._talList); } }
   return u;
 }
-function talentListLocal(key){ try{ const b=(typeof G!=='undefined'&&G&&G.talents)?G.talents[key]:null; if(!b||typeof TALENTS==='undefined') return null; if(TALENTS.invalid(key,b,heroLevel(key))) return null;   /* = server talentListFor: a build the rules no longer accept fights, and is priced, with NO talents */ const l=TALENTS.learned(key,b); return l.length?l:null; }catch(e){ return null; } }
+/* 14 Nov 2026 LOCKED HEROES: a hero's talents are WIRED when talents-mech/<key>.js exists (tools/build_talent_fx.py puts each such file into talents-fx.js;
+   TalentFx.mechHeroes() lists them - the server's talentWired reads the same list). An unwired hero shows its trees but cannot learn, and a save that holds
+   talents for it fights and is priced with none (talentListLocal is null), exactly as the server does. The list is fixed for the page's life. */
+var _talWired=null;   /* var: safe to read even before this line has run */
+function talentsWired(key){ try{ if(!_talWired){ if(typeof TalentFx==='undefined'||typeof TalentFx.mechHeroes!=='function') return false; _talWired=new Set(TalentFx.mechHeroes()); } return _talWired.has(key); }catch(e){ return false; } }
+function talentListLocal(key){ try{ const b=(typeof G!=='undefined'&&G&&G.talents)?G.talents[key]:null; if(!b||typeof TALENTS==='undefined'||!talentsWired(key)) return null; if(TALENTS.invalid(key,b,heroLevel(key))) return null;   /* = server talentListFor: a build the rules no longer accept fights, and is priced, with NO talents */ const l=TALENTS.learned(key,b); return l.length?l:null; }catch(e){ return null; } }
 /* ---------------------------------------------------------------------------------------------
    SUMMONS (Hurne the Chained). The first units in the game spawned mid-battle.
    A summon is a real unit built by makeUnit() — it fights, takes damage and dies like anything
@@ -32007,8 +32013,15 @@ const TAL={tree:{}, sel:null, pin:false, ask:null, busy:false, icons:null, icons
 function talentsShort(){ try{ return ewGameView().height<=500; }catch(e){ return false; } }
 function talentsOn(key){ try{ return !!(G.talents&&typeof G.talents==='object'&&typeof TALENTS!=='undefined'&&TALENTS.has(key)); }catch(e){ return false; } }
 function talentBuild(key){ return (G.talents&&G.talents[key])||{r:{}}; }
-/* unspent points = something to do on the Talents tab (the red dot) */
-function heroTalentsCanUp(key){ try{ if(!talentsOn(key)||!heroOwned(key)) return false; return TALENTS.spent(key,talentBuild(key)).total<TALENTS.pointsTotal(heroLevel(key)); }catch(e){ return false; } }
+/* The Talents tab's red dot (Phil 14 Nov: "Yes red dot on any tab with available upgrades"): the hero is wired, has an unspent point AND at least one
+   talent takes it right now (tier gate, prerequisite, fork - TALENTS.anyLearnable, the rule canLearn uses). It runs for every owned hero on every hero-list
+   draw, so the answer is kept per hero and asked again only when the hero's build object (adoptLedger makes a new one on every learn / reset / sync) or
+   its level (a level-up is a new point) changes. */
+const TAL_DOT={};
+function heroTalentsCanUp(key){ try{ if(!talentsOn(key)||!heroOwned(key)||!talentsWired(key)) return false;
+  const b=(G.talents&&G.talents[key])||null, lv=heroLevel(key), c=TAL_DOT[key];
+  if(c&&c.b===b&&c.lv===lv) return c.on;
+  const on=TALENTS.anyLearnable(key,b||{r:{}},lv); TAL_DOT[key]={b,lv,on}; return on; }catch(e){ return false; } }
 /* The list of painted icons (tools/build_talent_icons.py writes it) is read once; a talent that is not on it shows the plain framed tile. */
 function talentIconsLoad(){ if(TAL.iconsAsked) return; TAL.iconsAsked=true;
   fetch('/assets/img/talents/index.json?v='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:'0')).then(r=>r.ok?r.json():null).then(d=>{
@@ -32018,7 +32031,7 @@ function talentIconsLoad(){ if(TAL.iconsAsked) return; TAL.iconsAsked=true;
     if(heroTab==='talents'&&detailHero) try{ renderHeroDetail(); }catch(e){}
   }).catch(()=>{ setTimeout(()=>{ TAL.iconsAsked=false; },15000); }); }
 function talentsTabHTML(key){ talentIconsLoad();
-  const trees=TALENTS.trees(key), build=talentBuild(key), lvl=heroLevel(key), sp=TALENTS.spent(key,build), total=TALENTS.pointsTotal(lvl);
+  const trees=TALENTS.trees(key), build=talentBuild(key), lvl=heroLevel(key), sp=TALENTS.spent(key,build), total=TALENTS.pointsTotal(lvl), wired=talentsWired(key);   /* not wired: the trees to read, nothing to learn */
   let ti=TAL.tree[key]|0; if(!trees[ti]) ti=0; const tr=trees[ti];
   const have=(TAL.icons&&TAL.icons[key]&&TAL.icons[key][tr.id])||null;
   { const sc=document.getElementById('tlScroll'); TAL.keepScroll=(sc&&sc.dataset.k===key+'/'+tr.id)?sc.scrollTop:0; }   // the board's own scroll (short layout) survives a redraw
@@ -32029,8 +32042,8 @@ function talentsTabHTML(key){ talentIconsLoad();
   for(let k=1;k<=TALENTS.TIERS;k++) tiers+=`<div class="tl-tier${above[k]>=TALENTS.tierOpenAt(k)?' open':''}" style="grid-row:${k}"><b>${k}</b>${k>1?`<i>${ewT('talent.tier_pts',{n:TALENTS.tierOpenAt(k)})}</i>`:''}</div>`;
   const byId={}; for(const x of tr.talents) byId[x[0]]=x;
   for(const x of tr.talents){ const id=x[0], tier=x[1], col=x[2], ranks=x[4], pre=x[6], lock=x[7];
-    const rk=TALENTS.rankOf(build,id), locked=!!(lock&&TALENTS.rankOf(build,lock)>0), can=TALENTS.canLearn(key,build,id,lvl);
-    const cls=locked?' lock':((rk>=ranks?' max':(rk>0?' some':''))+(can?' can':(rk>0?'':' no')));
+    const rk=TALENTS.rankOf(build,id), locked=!!(lock&&TALENTS.rankOf(build,lock)>0), open=TALENTS.canLearn(key,build,id,lvl), can=wired&&open;   /* not wired: an open tile keeps its full-colour art, without the green 'learn me' look */
+    const cls=locked?' lock':((rk>=ranks?' max':(rk>0?' some':''))+(can?' can':(rk>0||open?'':' no')));
     const art=(have&&have.has(id))?`<img class="tl-art" src="/assets/img/talents/${key}/${tr.id}/${id}.webp?v=${TAL.iconsV}" alt="" draggable="false" onerror="this.remove()">`:'';
     cells+=`<button type="button" class="tl-cell${cls}${TAL.sel===id&&TAL.pin?' sel':''}" id="tl_${id}" data-tl="${id}" aria-label="${escapeHTML(x[3])} ${rk}/${ranks}" style="grid-row:${tier};grid-column:${col+1}"><span class="tl-blank"></span>${art}<span class="tl-lk">${hudIcon('lock')}</span><span class="tl-rk">${rk}/${ranks}</span></button>`;
     if(pre&&byId[pre]&&byId[pre][2]===col&&byId[pre][1]<tier){ const p=byId[pre];
@@ -32049,6 +32062,7 @@ function talentsTabHTML(key){ talentIconsLoad();
       <div class="tl-role" id="tlRole"><span>${escapeHTML(tr.role||'')}</span><span class="tl-info">${uiIcon('info')}</span></div>
       <div class="tl-bar">
         <div class="tl-pts"><b id="tlPts">${ewT('talent.points',{spent:'<i>'+sp.total+'</i>',total})}</b>${lvl<TALENTS.FIRST_LEVEL?`<span>${ewT('talent.open_at',{n:TALENTS.FIRST_LEVEL})}</span>`:''}</div>
+        ${wired?'':`<div class="tl-soon" id="tlSoon">${ewT('shop.coming_soon')}</div>`}
         ${ask?'':`<button class="btn secondary sm" id="tlReset" ${sp.total>0?'':'disabled'}>${ewT('talent.reset')}</button>`}
         ${ask?`<div class="tl-ask" id="tlAsk"><span>${ewT('talent.reset_ask',{n:sp.total,hero})}</span><span class="tl-cost${rsShort?' short':''}" id="tlResetCost">${ewT('talent.reset_cost',{c:hudIcon('gem')+' '+rsCost,h:hudIcon('gem')+' '+rsHave})}${rsShort?' '+ewT('talent.reset_short'):''}</span><button class="btn sm" id="tlResetYes"${rsShort?' disabled':''}>${ewT('talent.reset_yes')}</button><button class="btn secondary sm" id="tlResetNo">${ewT('common.cancel')}</button></div>`:''}
       </div>
@@ -32069,14 +32083,14 @@ function talentCardShow(key,id,pin){ const tl=TALENTS.talent(key,id), a=document
   if(TAL.sel&&TAL.sel!==id){ const old=document.getElementById('tl_'+TAL.sel); if(old) old.classList.remove('sel'); }
   let pop=document.getElementById('tlCard'); if(!pop){ pop=document.createElement('div'); pop.id='tlCard'; document.body.appendChild(pop); }
   TAL.sel=id; TAL.pin=!!pin; a.classList.toggle('sel',!!pin); pop.className=(pin?'':'hov')+(TAL.short?' short':'');
-  const build=talentBuild(key), rk=TALENTS.rankOf(build,id), why=TALENTS.whyNot(key,build,id,heroLevel(key));
+  const build=talentBuild(key), rk=TALENTS.rankOf(build,id), wired=talentsWired(key), why=wired?TALENTS.whyNot(key,build,id,heroLevel(key)):ewT('shop.coming_soon');   /* not wired: the notice, no Learn button */
   const other=tl.lock?TALENTS.talent(key,tl.lock):null;
   pop.innerHTML=`<div class="tl-cn">${escapeHTML(tl.name)}</div>
     <div class="tl-cr${rk>=tl.ranks?' max':''}">${ewT('talent.rank',{n:rk,max:tl.ranks})}</div>
     <div class="tl-ct">${escapeHTML(tl.text)}</div>
     ${other&&!(TALENTS.rankOf(build,other.id)>0)?`<div class="tl-cf">${ewT('talent.pick_one',{name:escapeHTML(other.name)})}</div>`:''}
     ${why?`<div class="tl-cw">${escapeHTML(why)}</div>`:''}
-    ${pin?`<div class="tl-cb"><button class="btn sm" id="tlLearn" ${why||TAL.busy?'disabled':''}>${ewT('talent.learn')}</button></div>`:(why?'':`<div class="tl-ch">${ewT('talent.hint_dbl')}</div>`)}`;
+    ${pin&&wired?`<div class="tl-cb"><button class="btn sm" id="tlLearn" ${why||TAL.busy?'disabled':''}>${ewT('talent.learn')}</button></div>`:(why||pin?'':`<div class="tl-ch">${ewT('talent.hint_dbl')}</div>`)}`;
   const lb=pop.querySelector('#tlLearn'); if(lb) lb.onclick=()=>talentLearn(key,id);
   talentCardPlace();
   if(!TAL.wired){ TAL.wired=true;   // once: a press anywhere else closes the card; scrolling keeps a pinned card on its icon
@@ -32086,14 +32100,14 @@ function talentCardShow(key,id,pin){ const tl=TALENTS.talent(key,id), a=document
 /* One point into one talent. The same request pattern as a skill upgrade (skillUpgrade): the page checks first, the server decides,
    apiOnce re-sends the same requestId on a lost reply or a refused save, and the returned ledger is the truth. No offline path. */
 async function talentLearn(key,id){ if(TAL.busy) return false;
-  const why=TALENTS.whyNot(key,talentBuild(key),id,heroLevel(key)); if(why){ talentCardShow(key,id,true); return false; }
+  const why=talentsWired(key)?TALENTS.whyNot(key,talentBuild(key),id,heroLevel(key)):'locked'; if(why){ talentCardShow(key,id,true); return false; }
   if(!(ACC&&ACC.token)){ bannerMsg(ewT('net.connection_lost')); return false; }
   TAL.busy=true; const lb=document.getElementById('tlLearn'); if(lb) lb.disabled=true;
   let r=null; try{ r=await apiOnce('talent','/api/talents/learn',{key,id}); }catch(e){ r={error:'offline'}; } finally{ TAL.busy=false; }
   if(r&&r.busy) return false;
   if(!r||r.error||!r.ok){ bannerMsg(r&&r.error?(r.error==='offline'?ewT('net.connection_lost'):escapeHTML(String(r.error))):ewT('talent.learn_failed'));
     try{ await ledgerSync(); }catch(e){} if(heroTab==='talents'&&detailHero===key) renderHeroDetail(); return false; }
-  adoptLedger(r.ledger); saveG(); try{ updateHubChrome(); }catch(e){}
+  adoptLedger(r.ledger); saveG(); try{ updateHubChrome(); }catch(e){} try{ heroUpDotsRefresh(key); }catch(e){}   /* the hero card's dot follows at once */
   if(heroTab==='talents'&&detailHero===key) renderHeroDetail(); return true; }
 async function talentReset(key){ if(TAL.busy) return false;
   if(!(ACC&&ACC.token)){ bannerMsg(ewT('net.connection_lost')); return false; }
@@ -32102,7 +32116,7 @@ async function talentReset(key){ if(TAL.busy) return false;
   TAL.ask=null;
   if(!r||r.error||!r.ok){ bannerMsg(r&&r.error?(r.error==='offline'?ewT('net.connection_lost'):escapeHTML(String(r.error))):ewT('talent.reset_failed'));
     try{ await ledgerSync(); }catch(e){} if(heroTab==='talents'&&detailHero===key) renderHeroDetail(); return false; }
-  adoptLedger(r.ledger); saveG(); try{ updateHubChrome(); }catch(e){}
+  adoptLedger(r.ledger); saveG(); try{ updateHubChrome(); }catch(e){} try{ heroUpDotsRefresh(key); }catch(e){}
   talentCardHide(); if(heroTab==='talents'&&detailHero===key) renderHeroDetail(); return true; }
 /* after every redraw of the hero panel: wire the Talents tab, or put its card away when another tab (or hero) is showing */
 function talentsWire(body,key){ const board=body.querySelector('#tlBoard'), host=document.getElementById('heroDetail');

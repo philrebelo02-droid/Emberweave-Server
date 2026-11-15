@@ -97,3 +97,34 @@ test('learned(): a stable, sorted [id, rank] list; learn() never changes the bui
   assert.deepEqual(b0,{r:{}});
   assert.deepEqual(T.learned('vael',b2),[[a[0][0],1],[a[1][0],1]].sort((x,y)=>x[0]<y[0]?-1:1));
 });
+
+/* ---- LOCKED HEROES and the RED DOT (14 Nov 2026). Controls: tests/talents-lockdots-controls.js ---- */
+const fs=require('node:fs'), FX=require(path.join(root,'talents-fx.js'));
+test('wired heroes: exactly the heroes with a talents-mech/<key>.js file (built into talents-fx.js), each a hero of the data; an unwired hero has no mechanics',()=>{
+  const files=fs.readdirSync(path.join(root,'talents-mech')).filter(f=>f.endsWith('.js')&&!f.startsWith('_')).map(f=>f.slice(0,-3)).sort();
+  assert.deepEqual(FX.mechHeroes().slice().sort(),files,'talents-fx.js lists every talents-mech file and nothing else (run tools/build_talent_fx.py after adding one)');
+  for(const k of files) assert.ok(heroes.includes(k),k+'.js is named by a hero key of talents-data.js (Morvayne is hero61)');
+  assert.ok(files.includes('vael'));
+  for(const k of heroes.filter(h=>!files.includes(h))){ assert.equal(FX.mech(k),null,k); assert.equal(FX.attach({},k,[[T.trees(k)[0].talents[0][0],1]]),null,k+': no mechanic can attach'); }
+});
+
+/* the red dot's rule, by brute force: some talent of the hero passes canLearn */
+const anyBrute=(h,b,lv)=>T.trees(h).some(tr=>tr.talents.some(t=>T.canLearn(h,b,t[0],lv)));
+function dotCases(h){ const out=[[{r:{}},9],[{r:{}},10],[{r:{}},100]];
+  for(const tr of T.trees(h)) for(const n of [1,5,23,61]){ const b=fill(h,{},100,tr.id,n), sp=T.spent(h,b).total; out.push([b,100],[b,sp+9],[b,sp+10]); }
+  { let b=fill(h,{},100,T.trees(h)[0].id,61); b=fill(h,b,100,T.trees(h)[1].id,30); out.push([b,100]); }
+  /* a pick-one fork taken: its other half is shut, the rest of the tier may still be open */
+  for(const tr of T.trees(h)){ const f=tr.talents.find(t=>t[7]); if(!f) continue; let b=fill(h,{},100,tr.id,T.tierOpenAt(f[1])); const p=f[6]&&T.talent(h,f[6]); if(p) while(T.rankOf(b,p.id)<p.ranks&&T.canLearn(h,b,p.id,100)) b=T.learn(h,b,p.id,100).build;
+    if(T.canLearn(h,b,f[0],100)){ b=T.learn(h,b,f[0],100).build; out.push([b,T.spent(h,b).total+10]); } }
+  return out; }
+test('anyLearnable (the Talents tab\'s red dot) is exactly "some talent passes canLearn", for every hero, and it is cheap',()=>{
+  let yes=0, no=0, calls=0, ms=0;
+  for(const h of heroes) for(const [b,lv] of dotCases(h)){ const want=anyBrute(h,b,lv);
+    const t0=process.hrtime.bigint(); const got=T.anyLearnable(h,b,lv); ms+=Number(process.hrtime.bigint()-t0)/1e6; calls++;
+    assert.equal(got,want,h+' at level '+lv+' with '+T.spent(h,b).total+' spent'); want?yes++:no++; }
+  assert.ok(yes>500&&no>200,'both answers are exercised ('+yes+' yes, '+no+' no)');
+  assert.equal(T.anyLearnable('vael',{r:{}},9),false,'no point before level 10'); assert.equal(T.anyLearnable('vael',{r:{}},10),true,'one point and tier 1 open');
+  assert.equal(T.anyLearnable('not_a_hero',{r:{}},100),false);
+  const per=ms/calls; console.log('    anyLearnable: '+calls+' calls, '+ms.toFixed(1)+' ms in all, '+(per*1000).toFixed(1)+' us a call (uncached; the page keeps the answer per hero)');
+  assert.ok(per<2,'a call takes '+per.toFixed(3)+' ms: too slow for the hero list');
+});

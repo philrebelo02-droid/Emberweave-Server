@@ -29,12 +29,9 @@
     return out;
   }
   const tierOpenAt=tier=>POINTS_PER_TIER*(tier-1);            // points needed in the tree, in the tiers above this one
-  /* Why a talent cannot take one more rank right now, or '' when it can. */
-  function whyNot(hero,build,id,level){
-    const ix=index(hero); if(!ix) return 'This hero has no talents yet.';
-    const t=ix.byId[id]; if(!t) return 'Unknown talent.';
-    const sp=spent(hero,build), have=rankOf(build,id);
-    if(have>=t.ranks) return 'Already at max rank.';
+  /* the rule itself, for one talent t against points already counted (sp): '' when it can take one more rank */
+  function why1(ix,sp,build,t,level){
+    if(rankOf(build,t.id)>=t.ranks) return 'Already at max rank.';
     if(sp.total>=pointsTotal(level)) return pointsTotal(level)?'No talent points left.':'Talents open at hero level '+FIRST_LEVEL+'.';
     let above=0; for(let k=1;k<t.tier;k++) above+=sp.tier[t.tree][k];
     if(above<tierOpenAt(t.tier)) return 'Spend '+(tierOpenAt(t.tier)-above)+' more point'+(tierOpenAt(t.tier)-above===1?'':'s')+' in this tree to open this tier.';
@@ -42,7 +39,21 @@
     if(t.lock&&rankOf(build,t.lock)>0) return 'Locked: '+ix.byId[t.lock].name+' was chosen.';
     return '';
   }
+  /* Why a talent cannot take one more rank right now, or '' when it can. */
+  function whyNot(hero,build,id,level){
+    const ix=index(hero); if(!ix) return 'This hero has no talents yet.';
+    const t=ix.byId[id]; if(!t) return 'Unknown talent.';
+    return why1(ix,spent(hero,build),build,t,level);
+  }
   const canLearn=(hero,build,id,level)=>whyNot(hero,build,id,level)==='';
+  /* Can at least one talent of this hero take a point right now (the Talents tab's red dot)? The same rule as canLearn for every talent,
+     with the points counted once: no unspent point answers at once, otherwise the first learnable talent ends the search. */
+  function anyLearnable(hero,build,level){
+    const ix=index(hero); if(!ix) return false;
+    const sp=spent(hero,build); if(sp.total>=pointsTotal(level)) return false;
+    for(const id in ix.byId) if(why1(ix,sp,build,ix.byId[id],level)==='') return true;
+    return false;
+  }
   /* One point into one talent. Returns { ok, build } (a new build object) or { ok:false, error }. */
   function learn(hero,build,id,level){
     const why=whyNot(hero,build,id,level); if(why) return {ok:false,error:why};
@@ -72,5 +83,5 @@
   }
   const talent=(hero,id)=>{ const ix=index(hero); return (ix&&ix.byId[id])||null; };
   const trees=hero=>{ const ix=index(hero); return ix?ix.trees:[]; };
-  return Object.freeze({FIRST_LEVEL,MAX_POINTS,POINTS_PER_TIER,TIERS,COLS,has,pointsTotal,rankOf,spent,tierOpenAt,whyNot,canLearn,learn,invalid,learned,talent,trees});
+  return Object.freeze({FIRST_LEVEL,MAX_POINTS,POINTS_PER_TIER,TIERS,COLS,has,pointsTotal,rankOf,spent,tierOpenAt,whyNot,canLearn,anyLearnable,learn,invalid,learned,talent,trees});
 });
