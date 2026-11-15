@@ -7401,6 +7401,13 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ weakest
 /* 14 Nov 2026 (Hobb Kilnmask's talents): Fired Clay as the game works it out (what the passive takes off now, and its cap at his passive's level), so a talent that raises its cap or
    counts more stacks adds only what the passive does not already take. Only a learned talent row calls them. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ wardenCut:u=>wardenCut(u), wardenCap:u=>SKLV.wardenCap(passLv(u)) });
+/* 14 Nov 2026 (Hollow's talents): his passive's cooldown at its level, a unit's formation depth (the back rank), a bleed stack as his skills add it, whether a unit's
+   hit comes from an area skill of its own (radius, cone, line, chain, several targets), and his own Vanishing Point cast at a unit (his skill at its level, no energy) */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ ntCd:u=>SKLV.notthere(passLv(u)), depth:k=>_laneDepthOf(k), bleedStack:(u,t)=>addBleedStack(u,t,KITS.hollow?KITS.hollow.blue:{}),
+  skillArea:x=>{ const sl=x&&x._castSlot; if(!sl) return false; const ab=sl==='ult'?ULT_DEF[x.abilityOverride||(x.t&&x.t.ability)]:(sl==='blue'?x.blueAb:x.greenAb); return !!(ab&&(ab.radius||ab.angle||ab.width||ab.chain||ab.jumps||ab.pierce||ab.farthest>1||ab.n>1)); },
+  castUlt:(u,t)=>{ const ab=u.abilityOverride||(u.t&&u.t.ability); if(!ab||!t||!t.alive) return; const k=[u.target,u._castSM,u._castLv,u._castSlot], lv=(u.skillLv&&u.skillLv[0])||1;
+    u._pend=null; u._castT=0; u.target=t; u._castLv=lv; u._castSM=skillMul(lv); u._castSlot='ult';
+    try{ _doEffectCore(u,ab,Object.assign({},ULT_DEF[ab]||{},(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } finally{ if(!((u._vpT||0)>0)) u.target=k[0]; u._castSM=k[1]; u._castLv=k[2]; u._castSlot=k[3]; } } });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -12562,11 +12569,12 @@ function nearestEnemy(u){let b=null,bd=1e9;
   // entirely while anything softer is still standing.
   if(u._backHunter){ let best=null,bs=-1e9;
     for(const o of units){ if(!o.alive||o.team===u.team||o._dropHidden||o._noTarget)continue;
+      if(o._talHide&&TalentFx.hideFrom(u,o))continue;   /* TALENT HOOK hideFrom: u has Forgotten o (only a talented Hollow sets _talHide) */
       const depth=(typeof _laneDepthOf==='function')?_laneDepthOf(o.key):1;
       const sc=depth*100 - dist(u,o)*0.05 - (o.hp/o.maxHp)*20;
       if(sc>bs){bs=sc;best=o;} }
     if(best)return best; }
-  for(const o of units){if(o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)){const d=dist(u,o);if(d<bd){bd=d;b=o;}}}return b;}
+  for(const o of units){if(o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)&&!(o._talHide&&TalentFx.hideFrom(u,o))){const d=dist(u,o);if(d<bd){bd=d;b=o;}}}return b;}   /* TALENT HOOK hideFrom (the last test): an enemy that has Forgotten Hollow does not pick him; _talHide is set only by a talented Hollow */
 /* 30 Aug — HEALERS WERE HEALING SOMEONE WHO WASN'T THERE.
    alliesOf() excludes allies that are off the field (_dropHidden, mid-rise, parked off-world during
    a vanish or a drop) because they cannot be affected. lowestAlly() did not — and an off-field ally
@@ -13581,10 +13589,12 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
+  if(tgt._tal&&tgt._tal.on.bankPre&&tgt.pass&&tgt.pass.notthere&&src&&src.team!==tgt.team&&TalentFx.bankPre(tgt,src,amt,kind,_isAuto)) tgt._ntReady=true;   /* TALENT HOOK bankPre: Hollow's talents may make this blow miss as his passive does (a stored Interval, Knife Screen; only a talented Hollow has bankPre rows) */
   if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=SKLV.notthere(passLv(tgt));   /* v1112: 4 s - 0.01 s a level */
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'notthere');
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
     firePassiveClip(tgt, tgt.anim&&tgt.anim.passive?(tgt.anim.passive.n/(tgt.anim.passive.fps||12)):0);
+    if(tgt._tal&&tgt._tal.on.bank) TalentFx.bank(tgt,src,amt,kind,_isAuto);   /* TALENT HOOK bank: his passive has just made this blow miss (Hollow's talents: Misdirect, Forgotten, Intervals) */
     return; }
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   const _svT=(tgt.pass&&tgt.pass.stormdodge&&tgt._tal&&tgt._tal.on.veil)?TalentFx.veil(tgt,src,_isAuto,kind,((tgt._stormT||0)>0||(tgt._castT||0)>0),SKLV.stormdodge(passLv(tgt))):-1;   /* TALENT HOOK veil: Static Veil's chance, and whether it is up, for a talented Fritz (-1 for every other unit: the line below is then the old one) */
@@ -13699,8 +13709,11 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
 function addBleedStack(src,tgt,o){ if(!tgt||!tgt.alive)return; o=o||{};
   tgt._blStk=(tgt._blStk||0)+1; tgt._blT=o.stackDur||6;
   pushDot(tgt,src.dmg*(o.bleed||0.16),o.stackDur||6,1,'#8f8fa8',src);
-  if(tgt._blStk>=(o.rupture||3)){ tgt._blStk=0; tgt._blT=0;
+  if(src&&src._tal&&src._tal.on.pass) TalentFx.pass(src,tgt,'bleedstack');   /* TALENT HOOK pass: a bleed stack was just pushed (Hollow's talents make it his) */
+  if(tgt._blStk>=((src&&src._tal&&src._tal.on.num)?TalentFx.num(src,'rupN',(o.rupture||3)):(o.rupture||3))){ tgt._blStk=0; tgt._blT=0;   /* TALENT HOOK num: the stacks it ruptures at (Open Season) */
+    if(src&&src._tal) TalentFx.partPre(src,tgt,'rupture');   /* TALENT HOOK partPre: the rupture ('casting' is 'rupture') */
     dealDamage(src,tgt,src.dmg*(o.ruptMul||1.9),'#ff5b6b');
+    if(src&&src._tal) TalentFx.part(src,tgt,'rupture');   /* TALENT HOOK part: after the rupture (All the Others) */
     burstAt(tgt.x,tgt.y,0xff5b6b,20); ringBurst(tgt.x,tgt.y,0x8f8fa8,14);
     floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'RUPTURE',t:1.2,color:'#ff5b6b',vy:1,sz:14}); }
   else floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'bleed x'+tgt._blStk,t:.7,color:'#8f8fa8',vy:1,sz:10});
@@ -13754,25 +13767,28 @@ function hollowStrike(u){ const o=u._vpO||{}; if(!u.alive){ u._vpO=null; u._noTa
     const sc=depth*1000 - (e.hp/Math.max(1,e.maxHp))*100;   // deepest first, then whoever is closest to breaking
     if(sc>bs){ bs=sc; tg=e; } }
   u._vpForced=null;
+  if(tg&&u._tal&&u._tal.on.skillTgt) tg=TalentFx.skillTgt(u,'vanishpoint',tg,o)||tg;   /* TALENT HOOK skillTgt: whom this strike comes down behind (Hollow's Clause of Silence) */
   if(!tg){ u._vpO=null; u._noTarget=false; return; }
   // arrive behind them, on the far side from his own line
   const home=u._dropHome||{x:FW/2,y:FD/2};
   const behind=(tg.y<home.y)?tg.y-2.0*METER:tg.y+2.0*METER;
   u.x=Math.max(60,Math.min(FW-60,tg.x)); u.y=Math.max(80,Math.min(FD-60,behind)); u._ax=u.x; u._ay=u.y;
   u._noTarget=false; u.attackAnim=.18; u.target=tg;
-  const step=u._vpStep||0, fall=Math.pow(o.falloff||0.8, step);
+  const step=u._vpStep||0, fall=(u._tal&&u._tal.on.num)?TalentFx.num(u,'vpFall',Math.pow(o.falloff||0.8, step)):Math.pow(o.falloff||0.8, step);   /* TALENT HOOK num: this hop's fall-off (Countersigned) */
   const rm=rageMul, sm=u._vpSM||1;
   const dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
   const weak=1+(1-tg.hp/Math.max(1,tg.maxHp))*1.6;
   const amt=dB*(o.mul||2.0)*rm*fall*weak;
-  const thresh=(o.exec||0.20)*tg.maxHp;
+  const thresh=((u._tal&&u._tal.on.num)?TalentFx.num(u,'vpExec',(o.exec||0.20)):(o.exec||0.20))*tg.maxHp;   /* TALENT HOOK num: the HP line it finishes under (The Contract Is Kept) */
   try{ burstAt(u.x,u.y,0x7a3fa0,18); ringBurst(u.x,u.y,0x1a1a22,14); }catch(e){}
   try{ hollowVoidFx(u,tg); }catch(_e){}   /* v1191 the void slash on the enemy he strikes (display only) */
+  if(u._tal) TalentFx.landPre(u,tg,'vanishpoint');   /* TALENT HOOK landPre: the strike is Vanishing Point's ('casting') */
   if(tg.hp-amt<=thresh){   // anything left under a fifth is finished where it stands
     dealDamage(u,tg,tg.hp+9999,'#c9a6ff');
     try{ floatTexts.push({x:tg.x,y:tg.y-16,txt:'TERMINATED',t:1.2,color:'#c9a6ff',vy:1,sz:15}); }catch(e){} }
   else dealDamage(u,tg,dB*(o.mul||2.0)*rm*fall,'#c9a6ff');   // v538: not executable -> FLAT damage (no wound bonus), and no vanish after it
   try{ addBleedStack(u,tg,KITS.hollow?KITS.hollow.blue:{}); }catch(e){}
+  if(u._tal) TalentFx.land(u,tg,'vanishpoint');   /* TALENT HOOK land: after the strike and its bleed stack */
   u._vpStep=step+1;
   if(!tg.alive && u._vpStep<(o.chain||3)){   // it killed — he is gone again before the body lands
     u._vpT=(o.hop||0.35); u._noTarget=true; u.target=null;

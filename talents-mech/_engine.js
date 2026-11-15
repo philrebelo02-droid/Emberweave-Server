@@ -57,6 +57,7 @@
     for(const k in T.st){ const d=T.st[k]; if(d.start==='max') T.s.k[k]={n:stMax(T,u,k),t:0,idle:0}; }   // a pool that starts full (Vireo's Strings)
     T.watch=!!(T.on.death||T.on.teamIn||T.on.teamDotIn||T.on.teamHeal||T.on.healMe||T.on.teamLethal||T.on.teamCc||T.on.teamNrg||M.watch===true||(Array.isArray(M.watch)&&M.watch.some(id=>r[id])));   // watch: true, or the talents whose rows read what other units remember ('lastHit')
     T.mv=!!T.on.moved;                                                        // rows about an ally being pushed, pulled or knocked up (Askel's Breakwater): the owner's tick looks for it
+    if(M.hide) u._talHide=M.hide;                                            // an enemy carrying this mark of his cannot pick him as its target (Hollow's Forgotten: the page's nearestEnemy asks hideFrom)
     u._tal=T; return T; }
 
   /* ---- named stacks / pools (T.st[name] = {max, dur, fade:{after,every,lose,unless}, wave:'reset'}) ---- */
@@ -836,6 +837,14 @@
      line after the tick hook. Nothing else of his runs: his auras were taken off at his death, and no other hook runs for a dead hero's rows */
   function fallen(u,dt){ const T=u._tal, s=T.s; if(s.fresh){ s.ghost=false; return; } if(T.on.fallenTick) run(T,u,'fallenTick',{u,dt}); }
 
+  /* ---- A BANKED-MISS PASSIVE (Hollow's The Space He Isn't In: a miss is banked every few seconds; the next blow aimed at him while it is ready never lands).
+     bankPre: a blow from an enemy is about to reach him, right before the passive's own test (the page's _dealDamageCore): 'bankPre' rows (ctx src = unit = the
+     thrower, amt = the blow as thrown, kind, auto) may set ctx.miss = true: the page then makes it miss exactly as the passive does (its float text, its clip).
+     bank: the passive has just made a blow miss (its own, or one bankPre sent): 'bank' rows (same ctx). Nothing here draws from the seeded stream. ---- */
+  function bankPre(t,s,amt,kind,auto){ const T=t._tal, c={u:t,src:s,tgt:t,unit:s,amt,kind,auto:!!auto,miss:false}; run(T,t,'bankPre',c); return !!c.miss; }
+  function bank(t,s,amt,kind,auto){ const T=t._tal; run(T,t,'bank',{u:t,src:s,tgt:t,unit:s,amt,kind,auto:!!auto}); }
+  /* hideFrom: can `u` not pick `o` as its target? o's hero file says which of o's marks hides him (hide:'fg'); true while u carries it (the page's nearestEnemy) */
+  function hideFrom(u,o){ const T=o._tal; return !!(T&&o.alive&&o._talHide&&markOf(o,u,o._talHide)); }
   const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
   /* A hook never lets an error out into the fight: it is counted (TalentFx.errors() - the tests require zero) and the hook answers as if the hero
      had no talent row there. An error is as deterministic as anything else here, so device and server still agree. Diagnostics only: nothing in a
@@ -845,6 +854,6 @@
   const RUNTIME={bind,bindMore,define,attach:guard(attach,()=>null),
     summon:guard(summon),sOut:guard(sOut,(x,t,amt)=>amt),sHit:guard(sHit),sGone:guard(sGone),sCc:guard(sCc,(by,t,f,dur)=>dur),pagePre:guard(pagePre),page:guard(page),pageW0:guard(pageW0),pageW:guard(pageW),
     out:guard(out,(s,t,amt)=>amt),inc:guard(inc,(t,s,amt)=>amt),crit:guard(crit,(s,t,pre)=>pre),hit:guard(hit),lethal:guard(lethal),death:guard(death),heal:guard(heal),
-    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
+    kit:guard(kit,(u,type,o)=>o),cast:guard(cast),healOut,hotPre:guard(hotPre,()=>null),hotPost:guard(hotPost,(t,h,k)=>{ if(k) h.hps=k.keep; }),num:guard(num,(u,n,v)=>v),ccHit:guard(ccHit),healIn:guard(healIn,(u,a)=>a),dodge:guard(dodge,()=>false),miss:guard(miss,()=>false),passPre:guard(passPre),pass:guard(pass),skillTgt:guard(skillTgt,(u,sk,m)=>m),at:guard(at),absorb:guard(absorb),evade:guard(evade),veil:guard(veil,(t,s,a,k,base,p)=>base?p:0),veiled:guard(veiled),chainEnd:guard(chainEnd),line:guard(line,(u,sk,o,f,ux,uy,len)=>len+24),poisQ:guard(poisQ),pois:guard(pois),spreadR:guard(spreadR,(o,d,r)=>r),spreadIn:guard(spreadIn,(o,d,e,r)=>Math.hypot(e.x-d.x,e.y-d.y)<r),spread:guard(spread,o=>{ if(o&&o._tal) o._tal.s.spr=null; }),wax:guard(wax,()=>3),encase:guard(encase),partPre:guard(partPre),part:guard(part,u=>{ const s=u&&u._tal&&u._tal.s; if(s) s.cur=(s.ps&&s.ps.length)?s.ps.pop():null; }),landPre:guard(landPre),land:guard(land),bankPre:guard(bankPre,()=>false),bank:guard(bank),hideFrom:guard(hideFrom,()=>false),chill:guard(chill),teamLethal:guard(teamLethal),teamCc:guard(teamCc),nrgPre:guard(nrgPre),nrgIn:guard(nrgIn,u=>u.energy),cd:guard(cd,(u,slot,v)=>v),cc:guard(cc,(by,t,f,dur)=>dur),dotPre:guard(dotPre,(u,d)=>[d.dps]),dotPost:guard(dotPost),wave:guard(wave),tick:guard(tick),fallen:guard(fallen),
     errors:()=>({n:ERR.n,last:ERR.last}), errorsReset:()=>{ ERR.n=0; ERR.last=''; },
     mech:hero=>defOf(hero)||null, mechHeroes:()=>Object.keys(MECH)};
