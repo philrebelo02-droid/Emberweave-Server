@@ -14478,7 +14478,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           pushDot(e,_sD*0.12*sm,3,1,'#c0392b',u); } });
       for(let h=0;h<hits;h++) setTimeout(()=>ringBurst(u.x+Math.cos(dir)*R*.4,u.y+Math.sin(dir)*R*.4,0x7a3fa0,10), h*160);
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'RAZOR TEMPEST',t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
-    case 'mendburst':{ const l=lowestAlly(u); if(!l)break;
+    case 'mendburst':{ let l=lowestAlly(u);
+      if(l&&u._tal&&u._tal.on.skillTgt) l=TalentFx.skillTgt(u,'mendburst',l,o)||l;   /* TALENT HOOK skillTgt: Mending Stitch's ally (Linnet's The Thread She Can See) */
+      if(!l)break;
       if(o.pctLo!=null){ /* v1376 (Phil 12 Nov: "Seedlight shouldnt be a percent of their HP that high. Lets say 10% of their max hp at level 1 and 30% at 100.
            Have it scale off 30% ap") */ const _sl=(u.skillLv&&u.skillLv[1])||_kLv;
         /* "the heal over time should be essentially half the amount of the direct heal" */
@@ -15640,7 +15642,7 @@ function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
      _healing guards the one hop so a link can never feed itself in a loop. */
   if(!u._healing){ u._healing=1;
     try{
-      if(u.pass&&u.pass.goldthread&&u._gtTo&&u._gtTo.alive&&u._gtTo!==u) healUnit(u._gtTo,a*0.4*(u.passMul||1));
+      if(u.pass&&u.pass.goldthread&&u._gtTo&&u._gtTo.alive&&u._gtTo!==u) healUnit(u._gtTo,(u._tal&&u._tal.on.num)?TalentFx.num(u,'gtPass',a*0.4*(u.passMul||1),u._gtTo):a*0.4*(u.passMul||1));   /* TALENT HOOK num 'gtPass': Golden Thread's share (Linnet's thread talents) */
       if(u._linkTo&&u._linkTo.alive&&(u._linkT||0)>0&&u._linkTo!==u) healUnit(u._linkTo,a*0.35);
     }catch(e){}
     u._healing=0; } floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
