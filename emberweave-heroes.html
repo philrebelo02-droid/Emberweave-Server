@@ -18905,7 +18905,7 @@ function _updateBattleCore(dt){
     if(h.life<=0)groundHazards.splice(i,1); }
   if(!GSPLIT.active) battleFrameTail(dt);
   units.forEach(u=>{if(!u.alive)u.deathT+=dt;});
-  units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh&&!deathCorpse(u)){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});   /* v1182: a body mid death clip moves to _corpses (display) */
+  units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9&&!u._talKeep).forEach(u=>{if(u.mesh&&!deathCorpse(u)){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});   /* v1182: a body mid death clip moves to _corpses (display) */   /* TALENT HOOK _talKeep: a fallen talented hero waiting to regrow (Oakmir's Second Growth) keeps his body; only his talent sets it */
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended){ if(CUR.mode==='graid') raidReinforce(); else vaultReinforce(); }   // The Vault pauses for the player's pick; the guild raid substitutes automatically (v666)
