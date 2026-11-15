@@ -7398,6 +7398,9 @@ function talentChainRun(u,cur,dmg,jumps,dec,hit,o,prev){ for(let j=0;j<jumps && 
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ chainRun:(u,from,dmg,jumps,dec,hit,o,prev)=>talentChainRun(u,from,dmg,jumps,dec,hit,o,prev) });
 /* 14 Nov 2026 (Deepcleft's talents): the game's own pick of the weakest back-row enemy, so Pop Up Behind can send Burrow Guard's emerge there */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ weakestBack:u=>weakestBackEnemy(u) });
+/* 14 Nov 2026 (Hobb Kilnmask's talents): Fired Clay as the game works it out (what the passive takes off now, and its cap at his passive's level), so a talent that raises its cap or
+   counts more stacks adds only what the passive does not already take. Only a learned talent row calls them. */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ wardenCut:u=>wardenCut(u), wardenCap:u=>SKLV.wardenCap(passLv(u)) });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
