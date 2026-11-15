@@ -13815,6 +13815,7 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
   const sm=u._blinkSM||1, rm=rageMul, dB=(monScaleMode(u)?monSkillStat(u):u.dmg)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);   /* v1313 */
   const R=o.range||15*METER; const inRange=enemiesOf(u).filter(e=>dist(u,e)<=R);
   let tg=inRange.length?inRange.reduce((a,b)=>a.hp<=b.hp?a:b):nearestEnemy(u); if(!tg){u._blinkO=null;return;}
+  if(u._tal&&u._tal.on.skillTgt) tg=TalentFx.skillTgt(u,'blink',tg,o)||tg;   /* TALENT HOOK skillTgt: whom Phantom Step lands behind (KonWu's Thrown Down Again: the same mark again; Behind You) */
   burstAt(u.x,u.y,0xb98bff,16); ringBurst(u.x,u.y,0xb98bff,12);   // vanish
   const behind=(tg.y<u.y)?tg.y-24:tg.y+24;
   u.x=Math.max(60,Math.min(FW-60,tg.x+(tg.x>=u.x?18:-18))); u.y=Math.max(80,Math.min(FD-60,behind)); u._ax=u.x; u._ay=u.y;
@@ -13832,7 +13833,9 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
 function konwuKickExec(u){ const tg=u._kickTg, o=u._kickO||{}; u._kickTg=null; u._kickO=null;
   u._kickHoldT=0.25;   /* v1046 (Phil: "kunwo has an anchoring issue whils using his blue"): he holds the kick in place 0.25 s, THEN the clip ends and the run starts - he used to slide ~40 px along the ground in the kick pose */
   if(!u.alive||!tg||!tg.alive||dist(u,tg)>(u._kickD0||0)+1*METER) return;   // the mark died, or got more than 1 m further away than where he arrived (bodies shoving apart on arrival is fine)
+  if(u._tal) TalentFx.landPre(u,tg,'blink');   /* TALENT HOOK landPre: the hit that follows is Phantom Step's kick ('casting') */
   dealDamage(u,tg,u._kickDmg||0,'#c9b6ff');
+  if(u._tal) TalentFx.land(u,tg,'blink');   /* TALENT HOOK land: the kick has landed (KonWu's Back on His Feet, Second Step) */
   floatTexts.push({x:u.x,y:u.y-8,txt:'+20%',t:.8,color:'#c9b6ff',vy:1});
   if(!tg.alive) return;
   if(!tg.immovable&&!(tg.pass&&(tg.pass.unstepped||tg.pass.unstoppable))&&!((tg._gearImmovableT||0)>0)){
@@ -13840,7 +13843,8 @@ function konwuKickExec(u){ const tg=u._kickTg, o=u._kickO||{}; u._kickTg=null; u
     tg.x=Math.max(40,Math.min(FW-40,tg.x+ux*K)); tg.y=Math.max(90,Math.min(FD-40,tg.y+uy*K)); tg._ax=tg.x; tg._ay=tg.y; tg._airT=Math.max(tg._airT||0,0.35); }
   ccApply(u,tg,'stunned',o.stun||2);
   ringBurst(tg.x,tg.y,0xc9b6ff,14);
-  u.target=tg; u._chaseTg=tg; u._chaseT=3; u._chaseMul=o.chase||1.5; }
+  u.target=tg; u._chaseTg=tg; u._chaseT=3; u._chaseMul=o.chase||1.5;
+  if(u._tal&&u._tal.on.pass) TalentFx.pass(u,tg,'kick'); }   /* TALENT HOOK pass: the kick, its knock-back, its stun and the chase are done (KonWu's Hard Landing, Long Pursuit, Thrown Down Again) */
 /* v367 (Phil): "[The reference] spell FX are so much larger than ours … double all spell effects 2× larger."
    FX_SIZE scales SPELL visuals — ground plates, billboard plates, beams (fatter), spell particle rings
    and rains — and nothing about hitboxes. v368 (Phil): "auto-attack effects aren't spells" — projectiles,
