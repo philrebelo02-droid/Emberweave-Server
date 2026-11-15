@@ -18795,8 +18795,11 @@ function _updateBattleCore(dt){
     // Scriptorium (Vesper "The Annotator"): the whole team's ultimates charge faster
     if(u.pass.scriptorium){ const pm=(u.passMul||1); units.forEach(o=>{ if(o.alive&&o.team===u.team) o.energy=Math.min(100,o.energy+1*pm*dt); }); }
     // Hush (Lumi): every 5s the quietest hour takes one enemy's voice for a second
-    if(u.pass.hush){ u._hushT=(u._hushT||0)+dt; if(u._hushT>=5){ u._hushT-=5; const foes=enemiesOf(u).filter(e=>e.alive);
-      if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.silencedT=Math.max(e.silencedT||0,ccDur(1*(u.passMul||1)));   // v268: seeded, not frame-count-derived
+    if(u.pass.hush){ const _huP=(u._tal&&u._tal.on.num)?TalentFx.num(u,'hushP',5):5;   /* TALENT HOOK num: Hush's period (Lumi's Early Hours; The Street at Dawn: every second); 5 untalented */
+      u._hushT=(u._hushT||0)+dt; if(u._hushT>=_huP){ u._hushT-=_huP; const foes=enemiesOf(u).filter(e=>e.alive);
+      if(foes.length){ let e=foes[Math.floor(brnd()*foes.length)%foes.length]; if(u._tal&&u._tal.on.skillTgt) e=TalentFx.skillTgt(u,'hush',e,{list:foes})||e;   /* TALENT HOOK skillTgt: whom Hush silences (Lumi's One Voice, Sun in the Eyes); the seeded draw is made as before */
+        e.silencedT=Math.max(e.silencedT||0,(u._tal&&u._tal.on.num)?TalentFx.num(u,'hushD',ccDur(1*(u.passMul||1)),e):ccDur(1*(u.passMul||1)));   // v268: seeded, not frame-count-derived   /* TALENT HOOK num: Hush's silence (Lumi's Early Quiet, One Voice, Lingering Hush) */
+        if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'hush');   /* TALENT HOOK pass: Hush has silenced e (Lumi's Voices, Muffled, Quiet Courage, Stolen Breath, Swallowed Word, Many Voices) */
         /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
