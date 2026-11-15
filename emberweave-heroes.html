@@ -13871,7 +13871,7 @@ function konwuKickExec(u){ const tg=u._kickTg, o=u._kickO||{}; u._kickTg=null; u
   if(u._tal) TalentFx.land(u,tg,'blink');   /* TALENT HOOK land: the kick has landed (KonWu's Back on His Feet, Second Step) */
   floatTexts.push({x:u.x,y:u.y-8,txt:'+20%',t:.8,color:'#c9b6ff',vy:1});
   if(!tg.alive) return;
-  if(!tg.immovable&&!(tg.pass&&(tg.pass.unstepped||tg.pass.unstoppable))&&!((tg._gearImmovableT||0)>0)){
+  if(tg&&tg._tal&&tg._tal.on.unmoved&&tg.immovable) TalentFx.unmoved(tg,u,'knock'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!tg.immovable&&!(tg.pass&&(tg.pass.unstepped||tg.pass.unstoppable))&&!((tg._gearImmovableT||0)>0)){
     const dx=tg.x-u.x, dy=tg.y-u.y, L=Math.hypot(dx,dy)||1, K=o.knock||8*METER, ux=L>1?dx/L:(u._faceDir||1), uy=L>1?dy/L:0;
     tg.x=Math.max(40,Math.min(FW-40,tg.x+ux*K)); tg.y=Math.max(90,Math.min(FD-40,tg.y+uy*K)); tg._ax=tg.x; tg._ay=tg.y; tg._airT=Math.max(tg._airT||0,0.35); }
   ccApply(u,tg,'stunned',o.stun||2);
@@ -14352,7 +14352,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         m._waxCoatT=0; m._waxCoatBy=null; if(u._tal) TalentFx.part(u,m,'bellBurst');   /* TALENT HOOK part: the coat has burst */ ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
       const C=aimCtr||u; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,o,dB*(o.mul||1)*rm);   /* TALENT HOOK at: where this area skill strikes */ enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
-      if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
+      if(o.push&&e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25);
         if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'novaPush'); }   /* TALENT HOOK pass: the ring has just pushed this enemy (Pyroclast's Heat Shimmer, Back Draft) */
       if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a',u);}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
@@ -14430,10 +14430,10 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const _R=o.radius||6*METER, _spd=o.wave||12*METER, _D=dB*(o.mul||0.45)*rm, _st=o.stun||0.4, _n=o.slams||3, _gap=o.gap||0.7;
       u._castT=Math.max(u._castT||0,_gap*(_n-1)+0.4);
       for(let _k=0;_k<_n;_k++){ const _last=(_k===_n-1);
-        groundHazards.push({arrival:true,delay:Math.max(0.01,_k*_gap),run:function(){ if(!u.alive)return; const _cx=u.x,_cy=u.y;
+        groundHazards.push({arrival:true,delay:Math.max(0.01,_k*_gap),run:function(){ if(!u.alive)return; const _cx=u.x,_cy=u.y; if(u._tal&&u._tal.on.pass) TalentFx.pass(u,u,'wbSlam'+_k);   /* TALENT HOOK pass: this slam of Worldbreaker Fists (Pellucid's slam talents; 'wbSlam0' .. 'wbSlam2') */
           ringBurst(_cx,_cy,0xff7a2a,22); burstAt(_cx,_cy,0xffb060,14); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2);
           enemiesOf(u).forEach(e=>{ if(!e.alive)return; const _d=Math.hypot(e.x-_cx,e.y-_cy); if(_d>_R+(e.r||0))return;
-            groundHazards.push({arrival:true,delay:Math.max(0.02,_d/_spd),run:function(){ if(!e.alive)return; dealDamage(u,e,_D,'#ff9a4a'); ccApply(u,e,'stunned',_last?_st*3:_st); e.brighten=Math.max(e.brighten||0,0.5); }}); }); }});
+            groundHazards.push({arrival:true,delay:Math.max(0.02,_d/_spd),run:function(){ if(!e.alive)return; if(u._tal) TalentFx.landPre(u,e,'wb'+_k);   /* TALENT HOOK landPre: this shockwave's hit and stagger are that slam's ('casting' 'wb0' .. 'wb2') */ dealDamage(u,e,_D,'#ff9a4a'); ccApply(u,e,'stunned',_last?_st*3:_st); if(u._tal) TalentFx.land(u,e,'wb'+_k);   /* TALENT HOOK land */ e.brighten=Math.max(e.brighten||0,0.5); }}); }); }});
       }
       break; }
     case 'monkSlam':{ const ctr=u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to EVERY enemy within 15 m of KonWu himself (Phil); a phantom Ruyi slams each
@@ -14549,7 +14549,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(u._tal&&u._tal.on.at) TalentFx.at(u,type,u,o,apB*(o.mul||1.1)*rm);   /* TALENT HOOK at: where the wave breaks (around him today; release v1391 moves it onto his target: pass that centre here) */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
         dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',o.slow||2.5);
-        if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
+        if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
           e._ax=e.x; e._ay=e.y; if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'tsPush'); } });   /* TALENT HOOK pass: the wave has just shoved this enemy (Maren's Fouled, Keel, Hull Wake) */
       ringBurst(u.x,u.y,0x9fe0ff,22); burstAt(u.x,u.y,0x6fb6d0,14);
@@ -14762,7 +14762,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           if(pr<0||pr>_pl||Math.abs(side)>_W||(o.slamOne?e===tg2:dist({x:lx,y:ly},e)<_cR)) return;   // v1303: slamOne - every other enemy on the path is hit + knocked aside
           groundHazards.push({arrival:true,delay:Math.max(0.03,_dur*pr/_pl),run:function(){ if(!e.alive)return;
             if(o.pathHit){ if(u._tal) TalentFx.landPre(u,e,'chargePath'); dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); if(u._tal) TalentFx.land(u,e,'chargePath'); burstAt(e.x,e.y,0xffcf40,8); }   /* TALENT HOOK landPre / land: a hit on the charge's path (its hits are that skill's) */
-            if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
+            if(o.knockAside&&e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'charge'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
               e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25);
               if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'knockaside');   /* TALENT HOOK pass: the charge has just knocked this enemy aside (Askel's talents: Flattened) */
               } }}); }); }
@@ -14845,7 +14845,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'knockstun':{ if(!tgt)break;                               // "stunning ... and pushing it backward"
       dealDamage(u,tgt,dB*(o.mul||1.4)*rm,o.color||'#ffd08a');
       ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
-      if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
+      if(tgt&&tgt._tal&&tgt._tal.on.unmoved&&tgt.immovable) TalentFx.unmoved(tgt,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
         const dx=(tgt.x-u.x)||1, L=Math.abs(dx)||1, push=o.push||(1.6*METER);
         tgt.x+=Math.sign(dx)*push; tgt._ax=tgt.x; tgt._airT=Math.max(tgt._airT||0,0.35); }
       ringBurst(tgt.x,tgt.y,0xffd08a,12); break; }
@@ -15079,7 +15079,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const _kc=(u._tal&&u._tal.on.skillTgt)?(TalentFx.skillTgt(u,type,u,o)||u):u;   /* TALENT HOOK skillTgt: the knot's centre (Absalie herself; a talent may move it) */
       if(u._tal&&u._tal.on.at) TalentFx.at(u,type,_kc,o,apB*(o.mul||0.6)*rm);   /* TALENT HOOK at: where the knot forms */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(_kc,e)>R)return; n++;
-        if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
+        if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
           const dx=_kc.x-e.x, dy=_kc.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         ccApply(u,e,'slow',o.slow||3);
@@ -15107,7 +15107,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const R=o.radius||4.5*METER; const bd=_sD*(o.dps||0.35)*sm;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
         try{ tolleyQuenchHit(u,e); }catch(_e){}   /* v1197 the chain on the enemy this case hits (display only) */
-        if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
+        if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
           const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.4*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         dealDamage(u,e,dB*(o.mul||0.8)*rm,'#ff8a3a');
@@ -15135,7 +15135,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'grapple':{ if(!tgt)break;                                 // "launch a hook that pulls an enemy inward and stuns it"
       dealDamage(u,tgt,dB*(o.mul||1.2)*rm,o.color||'#d8b06a');
-      if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
+      if(tgt&&tgt._tal&&tgt._tal.on.unmoved&&tgt.immovable) TalentFx.unmoved(tgt,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
         const dx=u.x-tgt.x, dy=u.y-tgt.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.75,o.pull||5*METER);
         tgt.x+=dx/L*pull; tgt.y+=dy/L*pull; tgt._ax=tgt.x; tgt._ay=tgt.y; tgt.pullT=Math.max(tgt.pullT||0,0.35); }
       ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
@@ -15174,7 +15174,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,(dur)+edgeTauntPlus(u,e)); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,(dur)+edgeTauntPlus(u,e)); if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
       /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX ... i asked you to use
          her own"). This burst was hardcoded gold-brown, which is Grosk's palette — he is the other
          hero on `pullsilence` — so Void Weaver's Gravity Knot painted his colours over her own
@@ -15210,7 +15210,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||7*METER, pullT=o.pull||1.2;
       const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y)); const caught=[];
       if(u._tal&&u._tal.on.at) TalentFx.at(u,type,{x:cx,y:cy},o,apB*(o.mul||1.9)*rm);   /* TALENT HOOK at: where the singularity forms */
-      enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
+      enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
       const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
       const und=(type==='abyssalundertow');   /* v1391: decided by the effect code, not the hero key. v1136 Abyssal Undertow (Phil 14 Oct "rename and change veyrs"): Veyr's own version - the same drag and damage, but the
          collapse SLOWS 2 s instead of silencing (Absalie keeps Event Horizon: silence). Same mul/radius/pull, so his power is unchanged. */
@@ -15223,18 +15223,18 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         e._castT=0; e.castAnim=0; e._animLockT=0; e._lockPri=0; e._abilHold=0; e._atkHold=0; e._ultRootT=0; });   /* the lift itself holds them (think) - no stun under it, so the total is lift + slam stun */
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER; if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||2.0)*rm);   /* TALENT HOOK at */
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); ccApply(u,e,'stunned',o.stun||1.0); } });
+      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); ccApply(u,e,'stunned',o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
       const proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; const others=foes.filter(e=>e!==proj);
       const anvil=others.length?others.slice().sort((a,b)=>dist(proj,a)-dist(proj,b))[0]:null;
       dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); ccApply(u,proj,'stunned',0.6);
-      if(anvil){ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); ccApply(u,anvil,'stunned',0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
+      if(anvil){ if(proj&&proj._tal&&proj._tal.on.unmoved&&proj.immovable) TalentFx.unmoved(proj,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); ccApply(u,anvil,'stunned',0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
       burstAt(proj.x,proj.y,0x8B5CF6,14); break; }
     case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       let pullFoes=foes;
       if(o.knockback){ const near=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0];
-        if(!near.immovable&&!((near._gearImmovableT||0)>0)){
+        if(near&&near._tal&&near._tal.on.unmoved&&near.immovable) TalentFx.unmoved(near,u,'knock'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!near.immovable&&!((near._gearImmovableT||0)>0)){
           const dx=near.x-u.x, dy=near.y-u.y, L=Math.hypot(dx,dy)||1;
           near.x=Math.max(25,Math.min(FW-25,near.x+dx/L*o.knockback));
           near.y=Math.max(25,Math.min(FD-25,near.y+dy/L*o.knockback));
@@ -15249,7 +15249,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          finished closing. It is now timed off the HAND CLIP itself, a shade quicker, so he lands as the fist shuts. */
       const _hand=(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].dur)||o.dur||3;
       const dur=_hand, stopD=(o.stop||10)*METER;
-      if(!tg2.immovable&&!((tg2._gearImmovableT||0)>0)){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(1,(dist(u,tg2)-stopD))/(dur*0.97); tg2._pullGhost=true; }   // no speed floor: near or far, the trip lasts exactly one hand-close // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
+      if(tg2&&tg2._tal&&tg2._tal.on.unmoved&&tg2.immovable) TalentFx.unmoved(tg2,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!tg2.immovable&&!((tg2._gearImmovableT||0)>0)){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(1,(dist(u,tg2)-stopD))/(dur*0.97); tg2._pullGhost=true; }   // no speed floor: near or far, the trip lasts exactly one hand-close // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
       if(o.mul&&tg2.alive) dealDamage(u,tg2,dB*o.mul*rm,'#8B5CF6');   /* v1112 BUG FIX (Veyr Gravity Crescent): the kit's 150% slash was never dealt; dB carries the skill curve */
       if(o.silence)ccApply(u,tg2,'silencedT',dur); ccApply(u,tg2,'stunned',dur);   // rooted for the whole drag so it can't walk back out
       if(o.ownFx==='crescent'){ try{ veyrCrescentFx(u,tg2); }catch(_e){} }   /* v1160 Gravity Crescent: the crescent leaves his blade and rides the enemy it drags (display only) */
@@ -15797,7 +15797,7 @@ function rivetHook(u,e){ const W=RIVET_WPN, clip=(u.anim&&u.anim.w_hook)||(BATTL
   u._rvHookT=clipDur(clip)*0.5*BATTLE_PACE/rate+0.05;   // one hook in flight at a time
   u._atkClip='w_hook'; u.attackAnim=.18; u._faceDir=(e.x>=u.x)?1:-1; u._idleHold=0; u._idleFrozen=false; u._idleClip=null;   /* display: the hook clip plays (an idle flourish in progress gives way, as it does to CC) */
   const _hfd=fuseStrike(u,e,clip,()=>{ if(!e.alive||!u.alive) return;
-    if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
+    if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
       const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1, to=Math.min(L,bodyR(u)+bodyR(e)+W.hookTo*METER);
       e._dash=null; e.x=u.x+dx/L*to; e.y=u.y+dy/L*to; e._ax=e.x; e._ay=e.y; }
     dealDamage(u,e,dmg*W.hookPct,'#bfe6ff');
@@ -17673,7 +17673,7 @@ function think(u,dt){
         // v1343 Nameless Admiral (Phil 10 Nov): every 4th attack knocks the target 15 m straight back for +100% Ability Power; everyone it passes through takes the same.
         if(u.pass.knock4){ u._k4N=((u._k4N||0)+1)%4;
           if(u._k4N===0&&t&&t.alive){ const bonus=(u.monster||(u.t&&u.t.monster))?monSkillStat(u):(u.apow||u.dmg||0);
-            const moves=!t.immovable&&!(t.pass&&(t.pass.unstepped||t.pass.unstoppable))&&!((t._gearImmovableT||0)>0);
+            if(t&&t._tal&&t._tal.on.unmoved&&t.immovable) TalentFx.unmoved(t,u,'knock'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ const moves=!t.immovable&&!(t.pass&&(t.pass.unstepped||t.pass.unstoppable))&&!((t._gearImmovableT||0)>0);
             const dx=t.x-u.x, dy=t.y-u.y, L=Math.hypot(dx,dy)||1, ux=L>1?dx/L:(u._faceDir||1), uy=L>1?dy/L:0, sx=t.x, sy=t.y;
             const ex=moves?Math.max(40,Math.min(FW-40,sx+ux*15*METER)):sx, ey=moves?Math.max(90,Math.min(FD-40,sy+uy*15*METER)):sy;
             if(moves){ const vx=ex-sx, vy=ey-sy, V2=vx*vx+vy*vy||1;
@@ -18704,7 +18704,7 @@ function _updateBattleCore(dt){
         const near=dist(u,e)<=u._stampW+bodyR(u)+bodyR(e);
         if(near || (tt<=along+8 && tt>=-8 && Math.abs(side)<=u._stampW)){ u._stampHit.add(e);
           dealDamage(u,e,u._stampDmg,'#ffcf40'); e.stunned=Math.max(e.stunned||0,ccDur((u._stampStun||1)*(1-(e.ctrlRes||0))));
-          if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const s=side>=0?1:-1;   /* v1389: immovable holds (Pellucid) */
+          if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'charge'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const s=side>=0?1:-1;   /* v1389: immovable holds (Pellucid) */
             e.x+=(-u._stampUY)*s*u._stampPush; e.y+=(u._stampUX)*s*u._stampPush;
             e.x=Math.max(40,Math.min(FW-40,e.x)); e.y=Math.max(90,Math.min(FD-40,e.y)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.35); }
           burstAt(e.x,e.y,0xffcf40,10); } });
@@ -20890,7 +20890,7 @@ function castGearSkill(u,_fromTick){
   try{ ringBurst(u.x,u.y,0xffd45e,22); burstAt(u.x,u.y,0xfff1b0,14); if(u.team==='ally') screenFlash=Math.max(screenFlash,.18); }catch(e){}   // v478: the active is a visible event
   const burn=(t,frac,dur)=>{ if(t&&frac&&t.dots) pushDot(t,u.dmg*frac/(2*(dur||3)),dur||3,0.5,'#ff9a3c',u); };
   switch(ty){
-    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
+    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&t&&t._tal&&t._tal.on.unmoved&&t.immovable) TalentFx.unmoved(t,u,'knock'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
     case 'stun': { const ts=p.target==='caster' ? [_gsNearCaster(u)||_gsNearFoe(u)].filter(Boolean) : _gsFoes(u,p.target==='aoe'?'aoe':'near',p.target==='aoe'?3:1);   /* v646: Static Crown stuns the nearest CASTER */
       ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,ccDur(p.dur||0.75)); }); break; }
     case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,ccDur(p.dur||1.25)); break; }
