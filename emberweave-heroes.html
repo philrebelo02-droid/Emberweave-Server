@@ -7424,6 +7424,7 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ castUlt
 /* 14 Nov 2026 (Meridian's talents): Well-Read's full ramp at his passive's level (Warm Up, Ever Faster, Charted Rest and every "at its full ramp" talent) */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ momCap:u=>SKLV.momentumCap(passLv(u)) });
 /* 14 Nov 2026 (Maren's talents): the fight's ground hazards, so a talent can find the Tide Pool his skill has just put down (its water) and change it in place */
+/* 14 Nov 2026 (Orryn's talents): the field's ground hazards (his whirlpool, his flood), so a talent row can find the hazard his skill has just made and change it (run farther, stop and spin, land more often, stay longer). Only a learned talent row reads it. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ hazards:()=>groundHazards });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
@@ -18896,12 +18897,14 @@ function _updateBattleCore(dt){
       const _chO=(h.heal&&h.src&&h.src._talS&&h.src._talS._tal)?h.src._talS:null; if(_chO) TalentFx.partPre(_chO,h,'chant');   /* TALENT HOOK partPre: this circle's heals are the Bone-Chanter's (Hurne's talents: her heals stronger, reaching his whole herd) */
       if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
       if(_chO) TalentFx.part(_chO,h,'chant');   /* TALENT HOOK part: the circle has mended its side this second */
-      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,(h._talH&&h._talH._tal)?TalentFx.num(h._talH,'hzTick',h.dmg,e):h.dmg,h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true);   /* TALENT HOOK num: a tick of a hazard a talented hero's rows made his (h._talH: Korvux's Falling Star crater; unit = the enemy) */ if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,(h.choir&&h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirSil',ccDur(h.silence),e):ccDur(h.silence));   /* TALENT HOOK num: the Choir's silence on e (Nerisse's Choir of Warnings, Long Silence, Echo) */
+      const _hzO=(h._talZ&&h._talZ._tal&&h._talZ._tal.on.num)?h._talZ:null; if(_hzO) TalentFx.partPre(_hzO,h,'hz');   /* TALENT HOOK partPre: this tick is a talented hero's own water (Orryn's whirlpool and flood: only his rows set h._talZ) */
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,_hzO?TalentFx.num(_hzO,'hzTick',h.dmg,e,h):((h._talH&&h._talH._tal)?TalentFx.num(h._talH,'hzTick',h.dmg,e):h.dmg),h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true);   /* TALENT HOOK num 'hzTick' (Orryn: his own water, h._talZ, first):  a tick of a hazard a talented hero's rows made his (h._talH: Korvux's Falling Star crater; unit = the enemy) */ if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,(h.choir&&h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirSil',ccDur(h.silence),e):ccDur(h.silence));   /* TALENT HOOK num: the Choir's silence on e (Nerisse's Choir of Warnings, Long Silence, Echo) */
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;
             const _d=Math.hypot(a.x-e.x,a.y-e.y); if(_d<_bd){_bd=_d;_b=a;} }
           if(_b) healUnit(_b,(h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirHeal',h.choir*(e.apow||0),_b,e):h.choir*(e.apow||0)); }   /* TALENT HOOK num: the Choir's heal on _b for e (Nerisse's Choir heals, Sky Full of Stars) */
-      } }); if(DD.on){ DD.hit=_ddP; DD.ctx=_ddC; } if(Math.random()<0.6)burstAt(h.x+(Math.random()*2-1)*h.r*0.6,h.y+(Math.random()*2-1)*h.r*0.6,0xff5b2a,4); }
+      } }); if(_hzO) TalentFx.part(_hzO,h,'hz');   /* TALENT HOOK part: his water has ticked (Orryn's rows: Whorls, Sea Weight, drags, the stuns his talents add) */
+      if(DD.on){ DD.hit=_ddP; DD.ctx=_ddC; } if(Math.random()<0.6)burstAt(h.x+(Math.random()*2-1)*h.r*0.6,h.y+(Math.random()*2-1)*h.r*0.6,0xff5b2a,4); }
     if(h.life<=0)groundHazards.splice(i,1); }
   if(!GSPLIT.active) battleFrameTail(dt);
   units.forEach(u=>{if(!u.alive)u.deathT+=dt;});
