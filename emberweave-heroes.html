@@ -7423,6 +7423,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ castUlt
     u._castLv=lv; u._castSM=skillMul(lv); u._castSlot='ult'; try{ _doEffectCore(u,ab,Object.assign({},ULT_DEF[ab]||{},(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } finally{ u._castSM=k[0]; u._castLv=k[1]; u._castSlot=k[2]; } } });
 /* 14 Nov 2026 (Meridian's talents): Well-Read's full ramp at his passive's level (Warm Up, Ever Faster, Charted Rest and every "at its full ramp" talent) */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ momCap:u=>SKLV.momentumCap(passLv(u)) });
+/* 14 Nov 2026 (Maren's talents): the fight's ground hazards, so a talent can find the Tide Pool his skill has just put down (its water) and change it in place */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ hazards:()=>groundHazards });
 /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): a timed control-resist bonus - one at a time per unit, the larger wins and refreshes; _ctrlAdded = what was really added (after the cap) */
 function ctrlBonusSet(a,amt,dur,cap){ const base=(a.ctrlRes||0)-(a._ctrlAdded||0), live=(a._ctrlBonusT||0)>0, b=Math.max(live?(a._ctrlBonus||0):0,amt);
   const nv=Math.min(cap,base+b); a._ctrlAdded=Math.max(0,nv-base); a._ctrlBonus=b; a.ctrlRes=nv; a._ctrlBonusT=Math.max(live?a._ctrlBonusT:0,dur); }
@@ -14539,12 +14541,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       ringBurst(big.x,big.y,0xb9a06a,14); break; }
 
     // ---- Old Maren: a wave that physically SHOVES the enemy line backwards. ----
-    case 'tidalsurge':{ const R=o.radius||3.4*METER, push=o.push||1.6*METER;
+    case 'tidalsurge':{ const R=o.radius||3.4*METER, push=(u._tal&&u._tal.on.num)?TalentFx.num(u,'tsPush',o.push||1.6*METER):(o.push||1.6*METER);   /* TALENT HOOK num: how far the wave shoves (Maren's Long Push, Long Shoulder) */
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,type,u,o,apB*(o.mul||1.1)*rm);   /* TALENT HOOK at: where the wave breaks (around him today; release v1391 moves it onto his target: pass that centre here) */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
         dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',o.slow||2.5);
         if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
-          e._ax=e.x; e._ay=e.y; } });
+          e._ax=e.x; e._ay=e.y; if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'tsPush'); } });   /* TALENT HOOK pass: the wave has just shoved this enemy (Maren's Fouled, Keel, Hull Wake) */
       ringBurst(u.x,u.y,0x9fe0ff,22); burstAt(u.x,u.y,0x6fb6d0,14);
       floatTexts.push({x:u.x,y:u.y-12,txt:'TSUNAMI',t:1.0,color:'#9fe0ff',vy:1,sz:13}); break; }
 
@@ -15316,7 +15319,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          under each of the N farthest enemies (picked at launch - the art is drawn there); an enemy caught by both is hit once. Sloe/Maren unchanged. */
       let _ctrs=(o.farthest>0)?((o._farTgts||enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest)).map(f=>({x:f.x,y:f.y}))):[aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u];
       if(!_ctrs.length) _ctrs=[u]; const _hit=[];
-      _ctrs.forEach(ctr=>{ enemiesOf(u).forEach(e=>{ if(_hit.indexOf(e)<0 && dist(ctr,e)<R){ _hit.push(e); dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); ccApply(u,e,'stunned',o.root||2);
+      _ctrs.forEach(ctr=>{ if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,apB*(o.mul||0.7)*rm);   /* TALENT HOOK at: where the water closes (Maren's Maelstrom circle) */
+        enemiesOf(u).forEach(e=>{ if(_hit.indexOf(e)<0 && dist(ctr,e)<R){ _hit.push(e); dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); ccApply(u,e,'stunned',o.root||2);
         if(o.silence) ccApply(u,e,'silencedT',o.silence); floatTexts.push({x:e.x,y:e.y-8,txt:o.silence?'ROOTED + SILENCED':'ROOTED',t:.9,color:'#8fbf3f',vy:1,sz:12}); } });
         ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); });
       break; }
@@ -17591,7 +17595,7 @@ function think(u,dt){
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval*(((u._hexUntil||0)>battleTime)?EDGE.hexAtk:1)/(u.hasteT>0?u.hasteMul:1)/((typeof edAtkRamp==='function')?edAtkRamp():1); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp. v663: guarded - edAtkRamp lives in the Emberdraft <script>, which server/sim-host.js does not load, so every server replay threw "edAtkRamp is not defined"
-    if((u.key!==HERO61.KEY||HERO61.canAttack(u,units)) && u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
+    if((u.key!==HERO61.KEY||HERO61.canAttack(u,units)) && u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && !(u._talDisarmT>0) && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       u._atkSpdMul=Math.max(0.25,Math.min(4,(u._atkI0||u.atkInterval)/Math.max(0.05,ai)));   /* v1024 (Phil): every attack-speed source speeds this swing's clip and its blow */
       if(u.pass&&u.pass.desertmom){ const _pm=(u.passMul||1); u._dmAS=Math.min(0.5*_pm,(u._dmAS||0)+0.04*_pm); u._dmPen=Math.min(120*_pm,(u._dmPen||0)+6*_pm); }   // v545 Desert Momentum: +4% attack speed, +6 penetration per auto (caps 50% / 120)
       /* v532 CRIT CLIP (Phil: "when a hero crit attacks they will do this instead of attack"; "melees from this point on
@@ -18833,7 +18837,7 @@ function _updateBattleCore(dt){
       if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=(u._tal&&u._tal.on.num)?TalentFx.num(u,'tfDark',((u.apow||0)*0.4+2)*dt*SKLV.twinfonts(passLv(u))):((u.apow||0)*0.4+2)*dt*SKLV.twinfonts(passLv(u));   /* TALENT HOOK num: Twin Fonts' drain this tick (Aureth's talents: Hunger, Deep Drain, the signature) */ dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+((u._tal&&u._tal.on.num)?TalentFx.num(u,'tfLight',(u.maxHp*0.012+(u.apow||0)*0.25)*dt*SKLV.twinfonts(passLv(u))):(u.maxHp*0.012+(u.apow||0)*0.25)*dt*SKLV.twinfonts(passLv(u)))));   /* v1112: Twin Fonts x(1 + 0.0066 a level) */   /* TALENT HOOK num: Twin Fonts' Light regeneration this tick (Aureth's talents: stronger / weaker, Overgrowth, Brother of Light) */ } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
     if(u.pass.immolate){ const _imG=!!(u._tal&&u._tal.on.num); u._immT=(u._immT||0)+(_imG?TalentFx.num(u,'immRate',dt):dt); if(u._immT>=1){ u._immT-=1; const R=_imG?TalentFx.num(u,'immR',2.4*METER):2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,dotTickAmt(u,e,_imG?TalentFx.num(u,'immAmt',u.dmg*SKLV.immolate(passLv(u)),e):u.dmg*SKLV.immolate(passLv(u)),dotDmgKind(u,'#ff6a3a')),'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura   /* TALENT HOOK num: Emberskin's clock ('immRate'), its reach ('immR', once a burn tick) and each burn ('immAmt', unit = the enemy) - Korvux's talents. Untalented every expression is the old one; the reach test itself (dist < R) is the game's and is left alone */
     // Deep Reserves (Old Maren): the sea keeps him topped up — health AND energy
-    if(u.pass.tidereserve){ const pm=(u.passMul||1); const _hurt=u.hp<u.maxHp; u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+u.maxHp*0.01*pm*dt)); u.energy=Math.min(100,u.energy+1*pm*dt);
+    if(u.pass.tidereserve){ const pm=(u.passMul||1); const _hurt=u.hp<u.maxHp; u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+((u._tal&&u._tal.on.num)?TalentFx.num(u,'drsv',u.maxHp*0.01*pm*dt):u.maxHp*0.01*pm*dt)));   /* TALENT HOOK num: Deep Reserves' heal this tick (Maren's Ballast takes what would pass his max HP) */ u.energy=Math.min(100,u.energy+1*pm*dt);
       u._drFxT=(u._drFxT||0)+dt; if(u._drFxT>=6){ u._drFxT=0; if(_hurt) firePassiveFx(u,u,{aboveBar:true}); } }   /* v1044 (Phil: "finish them all"): Deep Reserves' plate pulses over his bar every 6 s while it is healing him - art only (a heal marker, v498) */
     // Scriptorium (Vesper "The Annotator"): the whole team's ultimates charge faster
     if(u.pass.scriptorium){ const pm=(u.passMul||1); units.forEach(o=>{ if(o.alive&&o.team===u.team) o.energy=Math.min(100,o.energy+1*pm*dt); }); }
@@ -18866,7 +18870,7 @@ function _updateBattleCore(dt){
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; const _talH=h._talU?TalentFx.hotPre(u,h):null;   /* TALENT HOOK hot tick (before): only a heal over time a talented healer's rows made hers */ if(DD.on){ const _g=DD.tag.get(h), _p=DD.healBy; DD.healBy=_g?_g.src:null; try{ healUnit(u,h.hps); } finally{ DD.healBy=_p; } } else healUnit(u,h.hps); if(_talH) TalentFx.hotPost(u,h,_talH);   /* TALENT HOOK hot tick (after) */ h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
-    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ if(u.dmgBuffT>0){u.dmgBuffT-=dt; if(u.dmgBuffT<=0)u.dmgBuffMul=1;} if(u.drT>0){u.drT-=dt; if(u.drT<=0)u.drMul=1;}   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): an expired buff's multiplier no longer seeds the next one */ if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
+    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ if(u.dmgBuffT>0){u.dmgBuffT-=dt; if(u.dmgBuffT<=0)u.dmgBuffMul=1;} if(u.drT>0){u.drT-=dt; if(u.drT<=0)u.drMul=1;}   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): an expired buff's multiplier no longer seeds the next one */ if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._talDisarmT>0)u._talDisarmT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
     if(u._gearDelayedHeals&&u._gearDelayedHeals.length){ for(let i=u._gearDelayedHeals.length-1;i>=0;i--){ const h=u._gearDelayedHeals[i]; h.t-=dt; if(h.t<=0){ healUnit(u,h.amt); u._gearDelayedHeals.splice(i,1); } } }
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd

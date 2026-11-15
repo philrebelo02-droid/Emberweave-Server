@@ -514,6 +514,12 @@
     if(a.stun!=null||a.silence!=null){ const f=a.stun!=null?'stunned':'silencedT', secs=amtOf(T,u,a.stun!=null?a.stun:a.silence,ctx); if(!(secs>0)) return;
       for(const t of pick(T,u,a.on,ctx)) if(t.alive) control(T,u,t,f,secs,a.asIs); return; }                                           // the stated seconds, written straight on (no resist roll, no seeded draw)
     if(a.endCc){ for(const t of pick(T,u,a.on,ctx)) if(t.alive) t[a.endCc]=0; return; }                                   // a control on that unit ends now (a shattered freeze)
+    /* a disarm (Maren's Numb Fingers): for that many seconds the unit cannot START a basic attack (the page's swing test reads _talDisarmT; the status pass counts
+       it down); it still moves and casts. The stated seconds, written straight on (no resist roll, no draw), through the owner's ccOut and the target's ccIn rows
+       (field 'disarm'), then told to the owner's ccHit rows. The game has no disarm of its own: only a talent ever writes this timer. */
+    if(a.disarm!=null){ const secs=amtOf(T,u,a.disarm,ctx); if(!(secs>0)) return;
+      for(const t of pick(T,u,a.on,ctx)){ if(!t.alive) continue; const d=cc(u,t,'disarm',secs,true); if(!(d>0)) continue; t._talDisarmT=Math.max(t._talDisarmT||0,d);
+        if(T.on.ccHit) run(T,u,'ccHit',{u,src:u,tgt:t,field:'disarm',amt:d,talent:true}); } return; }
     /* a push, pull or knock-up undone (on a 'moved' row): the unit is put back where it stood at the owner's last tick, with the knock / pull it had then (Askel's Breakwater) */
     if(a.unmove){ const m=s.mv||{}; for(const t of pick(T,u,a.unmove,ctx)){ const p=m[t.uid]; if(!p||!t.alive) continue;
         t.x=p[0]; t.y=p[1]; t._ax=t.x; t._ay=t.y; t._airT=p[2]; t.pullT=p[3]; t.pulledBy=p[4]; t.pullStop=p[5]; t.pullSpeed=p[6]; } return; }
