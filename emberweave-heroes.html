@@ -14339,7 +14339,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const _pd=o.pdur||0.30, _VD=dB*(o.mul||.9)*rm;
       if(o.melee){ for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ groundHazards.push({arrival:true,delay:0.05+_r*(o.stagger||0.16),run:function(){ if(!e.alive)return; u.attackAnim=.2; dealDamage(u,e,_VD,'#b98bff'); burstAt(e.x,e.y,0xb98bff,8); }}); }); break; }   // v1303: 3 rapid axe swings, no projectile
       for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ const _fire=function(){ if(!e.alive)return; abilShot(u,o,e,u.t.color,(o.ownFx==='cards')?function(){ try{ sorrelHitFx(e,_one&&!!o.mark&&_r===_reps-1); }catch(_e){} }:undefined);   /* v1123: the card lands with its damage (same 0.30 s flight); the spark is display only */
-          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive){ if(u._tal) TalentFx.landPre(u,e,'volley');   /* TALENT HOOK landPre: this writ's hit is the skill's (Quorrel's Contempt Storm talents) */ dealDamage(u,e,_VD,'#5ee89b'); if(u._tal) TalentFx.land(u,e,'volley');   /* TALENT HOOK land: a writ has landed */ } }}); };
+          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive){ if(u._tal) TalentFx.landPre(u,e,'volley');   /* TALENT HOOK landPre: this writ's hit is the skill's (Quorrel's Contempt Storm talents) */ if(u._tal&&u.key==='rafe') TalentFx.partPre(u,e,'rfBullet');   /* TALENT HOOK partPre: a Pistol Barrage bullet to Rafe's rows */ dealDamage(u,e,_VD,'#5ee89b'); if(u._tal&&u.key==='rafe') TalentFx.part(u,e,'rfBullet'); if(u._tal) TalentFx.land(u,e,'volley');   /* TALENT HOOK land: a writ has landed */ } }}); };
         const _dl=_r*0.15+(o.stagger&&!_one?_list.indexOf(e)*o.stagger:0);   /* v1069: o.stagger = arrows leave one after another (Sloe) */
         if(_dl<=0) _fire(); else groundHazards.push({arrival:true,delay:_dl,run:_fire}); });
       if(o.mark&&_list.length){ const m=_list[0]; groundHazards.push({arrival:true,delay:(_reps-1)*0.15+_pd,run:function(){ if(!m.alive)return;
@@ -14393,7 +14393,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         break; }
       { const _pd=o.pdur||0.30, _MD=dB*(o.mul||1.6)*rm;   /* v891 - each shot's damage lands when it arrives */
         enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{ abilShot(u,o,e,'#5ee89b',o.spark?()=>shotSpark(o.spark,e):undefined);   /* v1075: a spark where each shot lands (display only) */
-          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive) dealDamage(u,e,_MD,'#5ee89b'); }}); }); }
+          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(u._tal&&u.key==='rafe') TalentFx.partPre(u,e,'rfDmf');   /* TALENT HOOK partPre: a Dead Man's Fortune shot to Rafe's rows */ if(e.alive) dealDamage(u,e,_MD,'#5ee89b'); if(u._tal&&u.key==='rafe') TalentFx.part(u,e,'rfDmf'); }}); }); }
       break;}
     /* CHOIR OF THE DEEP SKY — Nerisse's aimed orb. No damage; nearest ally to each silenced enemy heals. */
     case 'deepchoir':{ const R=o.radius||8*METER, C=aimCtr||((tgt&&tgt.alive)?tgt:(nearestEnemy(u)||u));
@@ -17665,8 +17665,9 @@ function think(u,dt){
             floatTexts.push({x:u.x,y:u.y-12,txt:'CHARGED',t:1.0,color:'#8fd0ff',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'staticcharge'); } }
         if(u.pass.staticcharge&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'scSwing');   /* TALENT HOOK pass: Static Charge has just built on this swing (Iver's talents keep their own count past five, the extra Charge, the threshold) */
         // Pirate's Instinct (Corsair): every few shots one goes straight through the armour.
+        if(u.pass.instinct&&u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'rfPre');   /* TALENT HOOK pass: right before Pirate's Instinct counts this swing (Rafe's Third Is Yours moves his count) */
         if(u.pass.instinct){ u._piN=((u._piN||0)+1)%4;
-          if(u._piN===0&&t){ dealDamage(u,t,dmg*instinctDmg(u),'#ffe08a','true');   // every 4th basic attack, melee or ranged
+          if(u._piN===0&&t){ if(u._tal) TalentFx.partPre(u,t,'rfInst');   /* TALENT HOOK partPre: the hit below is a Pirate's Instinct shot to Rafe's rows */ dealDamage(u,t,dmg*instinctDmg(u),'#ffe08a','true'); if(u._tal) TalentFx.part(u,t,'rfInst');   /* TALENT HOOK part: the shot has landed */   // every 4th basic attack, melee or ranged
             firePassiveFx(u,t);
             floatTexts.push({x:t.x,y:t.y-8,txt:'THROUGH',t:.8,color:'#ffe08a',vy:1.2,sz:11}); } }
         // v1343 Nameless Admiral (Phil 10 Nov): every 4th attack knocks the target 15 m straight back for +100% Ability Power; everyone it passes through takes the same.
@@ -17703,13 +17704,13 @@ function think(u,dt){
         /* v339 (Phil): "shooting to slicing based on how close his target is — within 2 m he does sword
            attacks, further he's ranged." The attack sheet is the saber cut; the Pistol Barrage sheet is the
            pistol firing, so it doubles as the shooting clip. Saber hits harder (it is the close-quarters answer). */
-        const close = d <= 2.5*METER;   // target's centre within ~2 m of his (bodies are ~1 m wide)
+        const close = d <= ((u._tal&&u._tal.on.num)?TalentFx.num(u,'rfClose',2.5*METER,t):2.5*METER);   /* TALENT HOOK num: the cutlass reach (Rafe's Stand and Fight); untalented the old 2.5 m */   // target's centre within ~2 m of his (bodies are ~1 m wide)
         const _rcr=!!_swCrit&&!!(u.anim&&u.anim.crit);   /* v1173 (Phil 16 Oct: sword and gun kept apart for the attack AND the crit) */
         u._atkClip = close ? ((u.anim&&u.anim.melee)?((_rcr&&u.anim.critMelee)?'critMelee':'melee'):'attack') : ((u.anim&&u.anim.melee)?(_rcr?'crit':'attack'):'green');   // v436: dedicated melee clip (cutlass) when he has one; then 'attack' is the pistol shot and Pistol Barrage is the ability only
         /* v1173: the blow lands on the swing's fuse - the release cell of the clip it plays (the shot's flash / the cutlass at full reach), as every other
            hero's swing; it used to land on the press, before the clip showed it. The pre-rolled crit (v532) is the one dealDamage takes. */
         const _rClip=(RAFE_SWING.fuse&&u.anim)?u.anim[u._atkClip]:null;   /* RAFE_SWING.fuse false = the old landing on the press (a null clip fuses at once) - kept only so older tests can rebuild their BASE */
-        { const _fd=fuseStrike(u,t,_rClip,()=>{ _preCrit=_swCrit; _autoAtk=1; try{ dealDamage(u,t,dmg*(close?1.15:1),'#fff'); } finally{ _preCrit=null; _autoAtk=0; }
+        { const _fd=fuseStrike(u,t,_rClip,()=>{ if(u._tal) TalentFx.partPre(u,t,close?'rfCut':'rfShot');   /* TALENT HOOK partPre: this swing's blow is his cutlass or his pistol to Rafe's rows */ _preCrit=_swCrit; _autoAtk=1; try{ dealDamage(u,t,dmg*(close?1.15:1),'#fff'); } finally{ _preCrit=null; _autoAtk=0; } if(u._tal) TalentFx.part(u,t,close?'rfCut':'rfShot');   /* TALENT HOOK part: the blow has landed (or missed) */
             if(!close){ if(typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx('bullet',co.x,co.y,t.x,t.y,RAFE_BULLET_SCALE,.13*HERO_FX_MUL,null,co.h); } else spawnShot(u,t,0xffd27a); } },0,u._atkSpdMul);
           if(typeof SFX!=='undefined'&&SFX.loop) sfxAtk(u,_fd,close); }   /* v1138 sound: his cut or his shot - v1173 on the blow */
       } else {
