@@ -138,7 +138,8 @@ test('Sorrel / Clean Deck (stun 0.5 s longer, heal 30% more), Shaking Paw (+0.1 
   low(v,0.25); near(shredOf(L,F[1],()=>L.T.fn.play(A,L.T,v,F[1],2,0,{})),SH(L,1+0.35+0.18),'Last Chip: below 30% HP 6% x 3 more',1e-9); low(v,0.8);
   near(shredOf(L,F[1],()=>L.T.fn.play(A,L.T,v,F[1],2,0,{mul:9})),0.75,'an armour break never above 75%',1e-9);
   low(v,0.33); const a=VMX('rageMul')*v.dmg, h=v.hp; L.T.fn.play(A,L.T,v,F[1],3,0,{}); near(v.hp-h,a*0.5*PM(L)*(1+0.30+0.20),'the heal suit: Clean Deck 30% + Green Lamp 4% x 5',1e-6);
-  const P0=sl(S(['hc_5_1'])), w=P0.v; V.step(1); const b0=lost(P0.F[1],()=>P0.T.fn.play(so(P0).api,P0.T,w,P0.F[1],0,0,{}));
+  const P0=sl(S(['hc_5_1'])), w=P0.v; V.step(1); const b0=lost(P0.F[1],()=>P0.T.fn.play(so(P0).api,P0.T,w,P0.F[1],0,0,{})), ref=lost(P0.F[1],()=>V.hit(w,P0.F[1],VMX('rageMul')*w.dmg*0.9*PM(P0),{kind:undefined}));
+  near(b0,ref,'the heavy hit: a hit of 90% of his swing x the multiplier of the passive',1e-9);
   const L2=sl(S(['hc_3_3'])); V.step(1); const b1=lost(L2.F[1],()=>L2.T.fn.play(so(L2).api,L2.T,L2.v,L2.F[1],0,0,{})); near(b1/b0,1.20,'Hard Cards: the heavy hit 4% x 5 more',1e-6);
 });
 
@@ -152,7 +153,7 @@ test('Sorrel / Marked Deal\'s cards: Edged Cards, Clean Throw, Spin the Deck (3%
 
 test('Sorrel / Grand Reveal: Fanned Deck and Giant Cards (3% x 5 each), Deeper Mark, Steady Edge, Point First, Close Game, Final Hand, Fine Gloves',()=>{
   const P0=sl(null), h0=P0.F.map(f=>f.hp); ult(P0); secs(0.5); const p=P0.F.map((f,i)=>h0[i]-f.hp);
-  const L=sl(S(['sd_7_3','sc_7_3','sd_4_2','sd_10_1','sd_9_3','hc_9_3','sc_9_3'])), {v,F}=L, h1=F.map(f=>f.hp); ult(L); secs(0.5);
+  const L=sl(S(['sd_7_3','sc_7_3','sc_3_3','sd_4_2','sd_10_1','sd_9_3','hc_9_3','sc_9_3'])), {v,F}=L, h1=F.map(f=>f.hp); ult(L); secs(0.5);
   for(let i=0;i<3;i++) near((h1[i]-F[i].hp)/p[i],1.15*1.15,'Grand Reveal 15% x 2',1e-6);
   near(ratio(L,v,F[1]),1,'',1e-9); F[1]._markT=9; near(ratio(L,v,F[1]),1.03,'Deeper Mark: a marked enemy 1% x 3 more',1e-9); F[1]._markT=0;
   near(ratio(L,v,F[1],{auto:true}),1.10,'Steady Edge: his basic attacks 2% x 5 more',1e-9);
@@ -244,14 +245,14 @@ test('Sorrel / Third Signs Them (the mark on a Signed enemy lasts 9 s), Counters
 
 test('Sorrel / Markers: What\'s Owed (a Signed death: a Marker, max 3; the next Marked Deal throws a fourth card, 25% x 3), Fourth Card, Collector, Marker Paid, Called In, Interest, Good Coat, Saving the Last, Settling Up',()=>{
   const L=sl(S(['sc_1_4','sc_12_1','sc_3_4','sc_7_4','sc_9_4','sc_5_4','sc_4_1','sc_12_2','sc_11_1'])), {v,F}=L; budget(L); V.step(1); const a0=v.dmg, l0=v.lifestealStat||0; low(v,0.5); F[0]._markT=0;
-  L.T.fn.sign(so(L).api,L.T,v,F[1]); F[1].hp=50; let h=v.hp; hitOn(L,v,F[1],1000); assert.ok(!F[1].alive,'a Signed enemy he kills');
+  L.T.fn.sign(so(L).api,L.T,v,F[1]); F[1].hp=50; let h=v.hp; hitOn(L,v,F[1],1000); const tK=V.now(); assert.ok(!F[1].alive,'a Signed enemy he kills');
   assert.equal(stk(L,'soMk'),1,'a Marker'); near(v.hp-h,0.05*v.maxHp,'Good Coat: 1% x 5',1e-6); V.step(1);
   near(v.dmg/a0,1.075,'Collector 1% x 5 a Marker, Saving the Last 0.5% x 5 (attack rows add)',1e-6); near((v.lifestealStat||0)-l0,0.05,'Settling Up: 1% x 5 lifesteal',1e-9);
   h=v.hp; let mp=0;
   const c=cards(L,F[0],()=>{ green(L,F[0]); mp=v.hp-h; },1.5); assert.equal(c.length,4,'four cards'); near(mp,0.06*v.maxHp,'Marker Paid: 2% x 3 as it is spent',1e-6);
   near(c[3]/c[0],0.75*1.30*1.22,'the fourth card: 25% x 3 of a card, Fourth Card 10% x 3 more (it lands after the mark: x1.22)',1e-6); assert.equal(stk(L,'soMk'),0,'spent');
   assert.ok(L.T.fn.tSigned(so(L).api,L.T,v,{tgt:F[2]})&&F[2]._markT>0,'Called In: the nearest other enemy Signed and marked');
-  secs(5); near((v.lifestealStat||0)-l0,0,'Settling Up: 5 s',1e-9);
+  secs(4.9-(V.now()-tK)); assert.ok((v.lifestealStat||0)-l0>0.04,'Settling Up: still at 4.9 s'); secs(0.2); near((v.lifestealStat||0)-l0,0,'Settling Up: 5 s',1e-9);
   /* Interest: a Marker held two waves */
   setStack(L,'soMk',0); so(L).mks=[]; F[2].hp=50; hitOn(L,v,F[2],1000); assert.equal(stk(L,'soMk'),1); for(let i=0;i<2;i++){ L.T.s.fresh=true; V.step(1); }
   F[0]._markT=0; const c2=cards(L,F[0],()=>green(L,F[0]),1.5); near(c2[3]/c2[0],0.75*1.30*1.22*(1+0.15*2),'Interest: 3% x 5 for each wave it was held',1e-6);
@@ -266,7 +267,7 @@ test('Sorrel / House Edge: House Advantage and Smell the End (its speed 3% x 5 s
   secs(6.1); assert.ok(!win(L,'soHe')); V.step(1); assert.ok(!(v.forcedTargetT>0)||v.forcedTarget!==F[1],'after House Edge: his own pick again'); near(ratio(L,v,F[1]),1,'',1e-9);
   L=sl(S(['sc_5_2','sc_6_2'])); ({v,F}=L); V.step(1); const m0=v.speed; setWin(L,'soHe'); V.step(1); near(v.speed/m0,1.10,'Long Chase: 2% x 5 faster in House Edge',1e-6);
   L=sl(S(['sc_6_2'])); ({v}=L); V.step(1); const m1=v.speed; setWin(L,'soHe'); V.step(1); near(v.speed/m1,1,'(only while Run Them Down is chosen)',1e-6);
-  L=sl(S(['sc_5_2'])); ({v,F}=L); v.forcedTarget=F[0]; v.forcedTargetT=3; F[2]._markT=9; setWin(L,'soHe'); V.step(1); assert.equal(v.forcedTarget,F[0],'never over a real taunt');
+  L=sl(S(['sc_5_2'])); ({v,F}=L); v.forcedTarget=F[0]; v.forcedTargetT=3; F[1]._markT=9; setWin(L,'soHe'); V.step(1); assert.equal(v.forcedTarget,F[0],'never over a real taunt');
 });
 
 test('Sorrel / Wait Them Out (House Edge 3 s longer, but only while a marked enemy lives), Patient Fox (3% x 3 less while it holds)',()=>{
@@ -313,7 +314,8 @@ test('Sorrel / The Stranger\'s Ace (SIGNATURE): once every 20 s a Signed enemy b
   const L=sl(S(['sc_13_2','sc_1_4'])), {v,F}=L; L.T.fn.sign(so(L).api,L.T,v,F[1]); L.T.fn.sign(so(L).api,L.T,v,F[2]); low(F[0],0.1); low(F[1],0.26); V.step(2); assert.ok(F[1].alive,'26%: not yet'); assert.ok(F[0].alive,'(not Signed)');
   low(F[1],0.24); V.step(1); assert.ok(!F[1].alive,'below 25%: finished'); assert.equal(stk(L,'soMk'),3,'3 Markers');
   low(F[2],0.2); secs(10); assert.ok(F[2].alive,'not again within 20 s'); F[2].t=Object.assign({},F[2].t,{isboss:true}); const h=F[2].hp; secs(10.1);
-  near(h-F[2].hp,0.12*F[2].maxHp,'a boss: 12% of its max HP',1e-6); assert.ok(F[2].alive);
+  near(h-F[2].hp,0.12*F[2].maxHp,'a boss: 12% of its max HP',1e-6); assert.ok(F[2].alive); assert.equal(stk(L,'soMk'),3,'and 3 Markers (none was spent: still 3)');
+  so(L).mks=[]; setStack(L,'soMk',0); so(L).aceCd=0; F[2].hp=F[2].maxHp*0.2; V.step(1); assert.equal(stk(L,'soMk'),3,'the ace on a boss: 3 Markers with no death');
 });
 
 /* ======================= CAPS AND RULES ======================= */
@@ -322,7 +324,7 @@ test('Sorrel / his caps: damage reduction ONE group at most 25%, critical chance
   f._markT=99; L.T.fn.sign(so(L).api,L.T,v,f); setStack(L,'soStr',2); setWin(L,'soHe'); V.step(1); near(ratio(L,f,v),0.75,'every reduction on him at once: held at 25%',1e-9);
   setStack(L,'soCnt',5); so(L).card={rec:{ult:false},i:0,e:f}; near(L.T.fn.critP(so(L).api,L.T,v,{tgt:f}),0.05,'every crit chance at once: 5%',1e-12); so(L).card=null;
   low(v,0.2); const o=so(L); o.rgV=0; o.rgAt=V.now(); secs(1); const h=v.hp; for(let i=0;i<5;i++) L.T.fn.heal(o.api,L.T,v,0.05*v.maxHp); near(v.hp-h,0.012*v.maxHp,'talent heals in a second: at most 1.2% of his max HP',0.05);
-  const M=sl(S(['sd_1_1'])), A=so(M).api, x=M.F[1]; x.stunned=0.4; M.T.fn.play(A,M.T,M.v,x,1,0,{talent:true}); near(x.stunned,0.4,'a talent stun never lands on a stunned enemy',1e-9);
+  const M=sl(S(['sd_1_1'])), A=so(M).api, x=M.F[1]; x.stunned=0.2; M.T.fn.play(A,M.T,M.v,x,1,0,{talent:true}); near(x.stunned,0.2,'a talent stun never lands on a stunned enemy',1e-9);
   x.stunned=0; M.T.fn.play(A,M.T,M.v,x,1,0,{}); const d=x.stunned; assert.ok(d>0,'his stun'); secs(d+0.25); free(x); M.T.fn.play(A,M.T,M.v,x,1,0,{talent:true}); assert.ok(!(x.stunned>0),'nor within 0.5 s after his stun on it ended');
   secs(0.3); M.T.fn.play(A,M.T,M.v,x,1,0,{talent:true}); assert.ok(x.stunned>0,'then it can');
   free(x); secs(1); const r={}; for(let i=0;i<3;i++){ x.stunned=0; so(M).st={}; M.T.fn.play(A,M.T,M.v,x,1,0,{talent:true,rec:r}); } assert.equal(r.sn[x.uid],2,'at most twice per cast');
@@ -333,7 +335,7 @@ test('Sorrel / across a wave (the clock starts again at 0): the signatures\' 20 
   const L=sl(S(['sd_13_2','sd_1_1'])), {v,F}=L; for(const f of F) free(f); ult(L); secs(0.5); assert.ok(so(L).sigA>19);
   secs(15); waveNext(L); V.step(1);
   assert.ok(so(L).sigA>4&&so(L).sigA<5.2,'its lock has the 5 s it had left ('+so(L).sigA+')');
-  so(L).st={7:V.now()+0.2}; waveNext(L); assert.ok(so(L).st[7]<0.5,'a stamp moved back with the clock');
+  secs(10); so(L).st={7:V.now()+0.2}; waveNext(L); assert.ok(so(L).st[7]<0.5,'a stamp moved back with the clock');
 });
 
 /* ======================= WHOLE FIGHTS ======================= */

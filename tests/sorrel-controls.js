@@ -21,7 +21,7 @@ const C=[
   ['draw at Loaded Hand',HTML,LH,"if(u.pass.loadedhand&&(brnd()>=0)&&!(u._tal&&u._tal.on.num&&TalentFx.num(u,'lhSwing',0,t)>0)){",ID],
   ['draw at the card landing',HTML,LAND,"if(e.alive){ brnd(); if(u._tal) TalentFx.landPre(u,e,'volley');",ID],
   // ---- Loaded Hand as the passive plays it ----
-  ['heavy hit 95%',FXJ,"strike0(A,T,u,t,a*0.9*pm*k,'#c0392b');","strike0(A,T,u,t,a*0.95*pm*k,'#c0392b');",'same seeded draw|Clean Deck'],
+  ['heavy hit 95%',FXJ,"strike0(A,T,u,t,a*0.9*pm*k,'#c0392b');","strike0(A,T,u,t,a*0.95*pm*k,'#c0392b');",'Clean Deck'],
   ['stun suit 0.6 s',FXJ,"E.ccDur(0.5)*k","E.ccDur(0.6)*k",'Clean Deck'],
   ['heal suit 55%',FXJ,"else E.healUnit(u,a*0.5*pm*k);","else E.healUnit(u,a*0.55*pm*k);",'Clean Deck'],
   ['armour break 5 s',FXJ,"t._shredT=Math.max(t._shredT||0,4); }","t._shredT=Math.max(t._shredT||0,5); }",'same seeded draw'],
@@ -68,7 +68,7 @@ const C=[
   ['Green Lamp 5%',FXJ,"hc_10_1:[ {param:'hl.k',add:R(0.04)} ]","hc_10_1:[ {param:'hl.k',add:R(0.05)} ]",'Clean Deck'],
   ['Hard Cards 5%',FXJ,"hc_3_3:[ {param:'hv.k',add:R(0.04)} ]","hc_3_3:[ {param:'hv.k',add:R(0.05)} ]",'Clean Deck'],
   ['Edged Cards 4%',FXJ,"sd_2_2:[ {on:'out',if:{targetTeam:'enemy',fn:'mdCard'},more:R(0.03)} ]","sd_2_2:[ {on:'out',if:{targetTeam:'enemy',fn:'mdCard'},more:R(0.04)} ]",'Edged Cards'],
-  ['Clean Throw on Grand Reveal too',FXJ,"sc_3_3:[ {on:'out',if:{targetTeam:'enemy',fn:'mdCard'}","sc_3_3:[ {on:'out',if:{targetTeam:'enemy',fn:'anyCard'}",'Edged Cards'],
+  ['Clean Throw on Grand Reveal too',FXJ,"sc_3_3:[ {on:'out',if:{targetTeam:'enemy',fn:'mdCard'}","sc_3_3:[ {on:'out',if:{targetTeam:'enemy',fn:'anyCard'}",'Grand Reveal: Fanned'],
   ['Spin the Deck 4%',FXJ,"hc_8_2:[ {on:'out',if:{targetTeam:'enemy',fn:'mdCard'},more:R(0.03)} ]","hc_8_2:[ {on:'out',if:{targetTeam:'enemy',fn:'mdCard'},more:R(0.04)} ]",'Edged Cards'],
   ['Second Card on the third',FXJ,"o.card.i===1); },","o.card.i===2); },",'Edged Cards'],
   ['Long Mark 0.5 s',FXJ,"sd_3_3:[ {param:'mark.add',add:R(0.4)} ]","sd_3_3:[ {param:'mark.add',add:R(0.5)} ]",'Edged Cards'],
@@ -178,7 +178,7 @@ const C=[
   // ---- the caps and rules ----
   ['his group at 30%',FXJ,"DR_FLOOR=0.75,","DR_FLOOR=0.70,",'his caps'],
   ['crit at 6%',FXJ,"DR_FLOOR=0.75, CRIT_CAP=0.05,","DR_FLOOR=0.75, CRIT_CAP=0.06,",'his caps'],
-  ['the heal budget 1.5%',FXJ,"CRIT_CAP=0.05, REGEN=0.012,","CRIT_CAP=0.05, REGEN=0.015,",'his caps'],
+  ['the heal budget 1.5%',FXJ,"DR_FLOOR=0.75, CRIT_CAP=0.05, REGEN=0.012,","DR_FLOOR=0.75, CRIT_CAP=0.05, REGEN=0.015,",'his caps'],
   ['his stuns up to 4.5 s',FXJ,"CC_TOP=4.0, SHRED_TOP=0.75,","CC_TOP=4.5, SHRED_TOP=0.75,",'his caps'],
   ['a talent stun on a stunned enemy',FXJ,"if(f.talent){ if((t.stunned||0)>0) return; const e=st[t.uid];","if(f.talent){ const e=st[t.uid];",'his caps'],
   ['no 0.5 s after his stun',FXJ,"if(e!=null&&now>=e-1e-9&&now<e+0.5) return;","",'his caps'],
