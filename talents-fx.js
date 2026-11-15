@@ -12850,6 +12850,7 @@ module.exports={
           for(const x of nearFoes(A,u,u,3)) A.acts(T,u,[{dmg:d,on:'target',tag:'peSig',color:'#ff7a2a'}],{u,src:u,tgt:x}); } }
       if(P.cbm) T.fn.cbmTick(A,T,u,dt); },
     waveStart(A,T,u){ const o=S(T), P=T.P; o.api=A; o.q.length=0; o.hf=null; o.cbCd=0; o.cbm=null; o.firstT=true; o.mkW=-1; o.sigT=0; o.sigF=false; o.lkA=0; o.tsN={};   // the probe of the 95% test reads o.api
+      for(const x of A.eng().units()){ const M=x._talM, m=M&&M[u.uid]; if(m) delete m.peKn; }   // First Knock (fm_n2): each enemy is a fresh knock each wave (the mark has no clock of its own)
       if(P.kiln) A.stSet(T,u,'peCraze',Math.min(4,P.kiln));
       if(P.coal) A.stSet(T,u,'peHeat',P.coal); },
     /* ---- THE GLASS CRUST: Craze from hits on him worth more than 5% of his max HP (Spider Lines: 1% less a rank), none while the Flow runs; at 5 the crust breaks ---- */
