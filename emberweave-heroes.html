@@ -17542,7 +17542,8 @@ function think(u,dt){
     const _w=(u._danceSpins*2*Math.PI)/u._danceDur, _a0=u._danceA, _a1=_a0+_w*_st, _TP=2*Math.PI; u._danceA=_a1;
     enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>u._danceR+(e.r||0)) return;
       const _b=Math.atan2(e.y-u.y,e.x-u.x), _n=Math.floor((_a1-_b)/_TP)-Math.floor((_a0-_b)/_TP);
-      for(let _k=0;_k<_n&&e.alive;_k++){ dealDamage(u,e,u._danceHit,'#5ee89b'); burstAt(e.x,e.y,0x5ee89b,8);
+      for(let _k=0;_k<_n&&e.alive;_k++){ if(u._tal) TalentFx.partPre(u,e,'sdPass');   /* TALENT HOOK partPre: a pass of the star ('casting' is 'sdPass': Seyla's dance talents) */
+        dealDamage(u,e,u._danceHit,'#5ee89b'); if(u._tal) TalentFx.part(u,e,'sdPass');   /* TALENT HOOK part: after the pass's hit, before the execute */ burstAt(e.x,e.y,0x5ee89b,8);
         if(e.alive&&e.hp<e.maxHp*u._danceExec){ dealDamage(u,e,e.hp+9999,'#ff5b6b'); floatTexts.push({x:e.x,y:e.y-14,txt:'EXECUTED',t:1.0,color:'#ff5b6b',vy:1.2,sz:13}); } } });
     if(u._danceT<=0) u._danceT=0;
     return; }
@@ -17643,10 +17644,11 @@ function think(u,dt){
          "continuous attacks against one target". */
       if(u.pass){ const _pm=(u.passMul||1);
         // Venom Rhythm (Silkcoil): every third attack injects venom - less healing, slower energy.
-        if(u.pass.venomrhythm){ u._vrN=((u._vrN||0)+1)%3;
+        if(u.pass.venomrhythm){ u._vrN=((u._vrN||0)+1)%((u._tal&&u._tal.on.num)?TalentFx.num(u,'vrN',3,t):3);   /* TALENT HOOK num 'vrN': the count Venom Rhythm bites on (Seyla's Long Count, Never Heard a Note; untalented the old 3) */
           if(u._vrN===0&&t){ t.mortalT=Math.max(t.mortalT||0,4); t._nrgSlowT=Math.max(t._nrgSlowT||0,4); t._nrgSlowPct=Math.max(t._nrgSlowPct||0,0.4*_pm);
             firePassiveFx(u,t,{aboveBar:true});
-            floatTexts.push({x:t.x,y:t.y-8,txt:'VENOM',t:.8,color:'#3f8f5c',vy:1.1,sz:11}); } }
+            floatTexts.push({x:t.x,y:t.y-8,txt:'VENOM',t:.8,color:'#3f8f5c',vy:1.1,sz:11}); }
+          if(u._tal&&u._tal.on.pass) TalentFx.pass(u,t,'venomrhythm'); }   /* TALENT HOOK pass: the swing has been counted (and the venom written): Seyla's beats and bites */
         // Killer Instinct (Vex, 11 Sep 2026): EVERY auto leaves a mortal wound that keeps refreshing.
         // Phil: "her passive should apply a mortal wound that lasts 3 seconds everytime she keeps auto attacking it re applies".
         if(u._tal&&u._tal.on.pass&&t&&u.pass.killerinstinct) TalentFx.passPre(u,t);   /* TALENT HOOK passPre: the wound timer before Killer Instinct writes it */
