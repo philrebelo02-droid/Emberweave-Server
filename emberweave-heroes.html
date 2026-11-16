@@ -7388,6 +7388,8 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ summon:
     u.target=t; u._castLv=lv; u._castSM=skillMul(lv); try{ _doEffectCore(u,ab.type,Object.assign({},ab,ab.deliver?{_arrived:true,_tgtU:t}:{})); } finally{ u.target=k[0]; u._castSM=k[1]; u._castLv=k[2]; } } });
 /* 14 Nov 2026 (Ambrel's talents): the skill-level multiplier, so a talent can deal a skill's damage at its level (A Building That Would Not Be Left: Divine Mass at half strength) */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ skillMul:lv=>skillMul(lv) });
+/* 16 Nov 2026 (Zahri's talents): the field's size, so Never Turn Back's full 20 m run is clamped to the field as the stampede's own run is */
+if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ fieldWH:()=>[FW,FD] });
 /* 14 Nov 2026 (Aureth's talents): Twin Fonts' strength at its level, and the shield Duality's Light stance writes (its own expression), so a talent can give the font he is not in, or the Light shield, at the game's own size */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ twinMul:u=>SKLV.twinfonts(passLv(u)), lightShield:(u,o)=>u.maxHp*skLvNum('duality',o||{},(u._castLv|0)||1)+(u.apow||0)*2 });
 /* 14 Nov 2026 (Askel's talents): a skill's own number at its level (Rallying Ground's damage reduction) and the game's timed control-resist bonus, so a talent can rally an ally as the banner does */
@@ -12471,7 +12473,7 @@ function backRowSpawn(owner,key){ const team=owner.team;
   const keys=mates.map(o=>o.key).concat([key]); return laneSlot(team,key,keys.length-1,keys.length,keys); }
 function summonUnit(owner,key,dur,off){
   if(!owner||!owner.alive)return null;
-  if(livingSummonsOf(owner,key)>=(SUMMON_CAPS[key]||3))return null;
+  if(livingSummonsOf(owner,key)>=(SUMMON_CAPS[key]||3)+(owner._zhCap||0))return null;   /* TALENT HOOK (guarded field): Zahri's A Herd Again / They Followed Her raise her mirage cap (only her mechanics set _zhCap; 0 for every other unit) */
   const ang=(off&&off.a)||0, rad=(off&&off.r)||1.6*METER;
   let px=Math.max(60,Math.min(FW-60, owner.x+Math.cos(ang)*rad));
   let py=Math.max(80,Math.min(FD-60, owner.y+Math.sin(ang)*rad));
@@ -15427,7 +15429,7 @@ function debuffArtAll(u,o,tgt,aimCtr,type,snap){
     }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBelowFeet=false; window._fxAtH=null; window._fxDir=1; } });
 }
 function kitReady(u,ab){ const ty=ab.type;
-  if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
+  if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)+(u._zhCap||0)) return false;   /* TALENT HOOK (guarded field): A Herd Again's second mirage (only Zahri's mechanics set _zhCap) */   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
   if(ty==='hot'){const l=lowestAlly(u);return l&&l.hp/l.maxHp<0.92;}
   if(ty==='chantzone'){ const l=lowestAlly(u); if(l&&l.hp/l.maxHp<0.9) return true; const R=(ab.radius||5*METER)*gsplitAreaMul(u), C=densestAllyCluster(u,R); return !!(C&&enemiesOf(u).some(e=>dist(C,e)<=R)); }   // v548: chant when someone is hurt, or when foes stand in the circle it would draw
   if(ty==='shield'){const l=ab.self?u:lowestAlly(u);return l&&l.shieldT<=0&&l.hp/l.maxHp<0.95;}
@@ -15445,7 +15447,7 @@ function kitReady(u,ab){ const ty=ab.type;
   const depth=heroFormationDepth(u.key), role=(u.t&&u.t.role)||'', profile=(u.t&&u.t.damageProfile)||'';
   const caster=(role==='Mage'||role==='Support'||profile==='Magic'||profile==='Healer');
   const crossRowCast=(!u.t.monster&&!u.melee&&((depth>2&&caster)||(depth>0&&depth<=2&&(caster||role==='Marksman'))))?28*METER:0;
-  return dist(u,ne) <= Math.max(u.range||60*UNIT_SIZE, u.reach||0, crossRowCast) + bodyR(u) + bodyR(ne);   // v534: a long melee casts from its reach
+  return dist(u,ne) <= Math.max(u.range||60*UNIT_SIZE, u.reach||0, crossRowCast) + bodyR(u) + bodyR(ne) + ((ty==='shred'&&u._zhLc)||0);   /* TALENT HOOK (guarded field): Zahri's Lance Charge starts Solar Impalement up to 4 m farther out (only her mechanics set _zhLc) */   // v534: a long melee casts from its reach
 }
 const _KIT_ANYWHERE={defensive:1,lifestealbuff:1,warcry:1,selfheal:1,harmonyshield:1,heal:1,summonwarriors:1,summonshaman:1,summonmirage:1,dawnward:1,mendburst:1,duality:1,worldtree:1,own:1,mine:1,region:1};
 const AUTO_GROUND_AOE={thundershower:1,aoeStun:1,fireball:1,gravcrush:1,worldweight:1,eventhorizon:1,abyssalundertow:1,blizzard:1,umbralcata:1,swamproot:1,ashfall:1,shadeburst:1,hornetswarm:1};
