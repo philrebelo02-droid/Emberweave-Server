@@ -7494,7 +7494,7 @@ function lastStandTaken(o,lv){ o=o||{}; return (o.mul||0.25)-(o.mulPerLv||0)*lvS
    a punchflurry kit with armorMul hits for the caster's armour x (armorMul + armorPerLv a level). unitArmorNow = the armour dealDamage mitigates his hits with
    (u.armorRating - base x level + tech + glyph sockets x3 + temple, built in makeUnit - plus Hero61's aura, less any active shred / gear armour cut) */
 function punchArmorPct(o,lv){ return (o.armorMul||0)+(o.armorPerLv||0)*lvStep(lv); }
-function unitArmorNow(u){ return Math.max(0,(u.armorRating||0)+HERO61.aura(u,units))*(1-(((u._shredT||0)>0)?(u._shredPct||0):0))*(1-(((u._gearArmorCutT||0)>0)?(u._gearArmorCut||0):0)); }
+function unitArmorNow(u){ return Math.max(0,(u.armorRating||0)+HERO61.aura(u,units)+(u._moAr||0))*(1-(((u._shredT||0)>0)?(u._shredPct||0):0))*(1-(((u._gearArmorCutT||0)>0)?(u._gearArmorCut||0):0)); }
 function heroArmorPreview(key){ let a=0; const _q=_uidSeq; try{ a=makeUnit(key,'ally',0,0,null,{owned:true}).armorRating||0; }catch(e){} finally{ _uidSeq=_q; } return a; }   /* the card's armour: a throwaway unit, uid counter restored so a fight's ids never move */
 function lastStandHeal(o,lv,hpFrac){ const cap=skLvNum('laststand',o,lv), miss=100*(1-Math.max(0,Math.min(1,hpFrac))); return cap*Math.min(1,(1+Math.floor(miss/5+1e-9))/20); }
 /* the levelled main number of an active skill, from its own kit data (perLv = the gain for each level above 1; no perLv = no change) */
@@ -8997,7 +8997,7 @@ function firePassiveClip(o,hold,target,options){
    fires immediately, exactly as before, so nothing without art changes. */
 function fuseStrike(u,tgt,clip,go,extra,rate){
   // Hero61's kit uses pending casts; his timed attack blows must still meet its gate at landing.
-  if(u.key===HERO61.KEY){const land=go;go=()=>{if(HERO61.canAttack(u,units))return land();};}
+  if(u.key===HERO61.KEY){const land=go;go=()=>{if(HERO61.canAttack(u,units)||u._moSwing>0)return land();};}
   const dur=clipDur(clip)*(clip&&clip.relFrac!=null?clip.relFrac:0.5)*BATTLE_PACE/(rate||1)+(extra||0);   // v1024: `rate` = the swing's attack-speed factor
   if(!(dur>0.02)){ go(); return 0; }
   (u._fuse||(u._fuse=[])).push({t:dur,tgt,go});
@@ -13781,8 +13781,8 @@ const DOT_MITIGATION=true;
 function defMul(src,tgt,kind){ if(kind==='true') return 1; if(typeof classEdge==='function'&&classEdge(src,tgt)==='Support'){ const _r=_defMulRaw(src,tgt,kind,EDGE.armorIgnore); return _r; }   /* v1367 Sundering grace */
   return _defMulRaw(src,tgt,kind,1); }
 function _defMulRaw(src,tgt,kind,rk){
-  if(kind==='magic') return 1-defToDR(Math.max(0,Math.max(0,(tgt.mrRating||0))*rk*(1-(((tgt._mrShredT||0)>0)?(tgt._mrShredPct||0):0))-((src&&src.magicPen)||0)),tgt.lvl);   // MR vs Magic Pen
-  return 1-defToDR(Math.max(0,Math.max(0,(tgt.armorRating||0)+HERO61.aura(tgt,units))*rk*(1-((src&&src._wpnArmIgn)||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0))-((src&&src.armorPen)||0)),tgt.lvl); }   // Armor vs Armor Pen
+  if(kind==='magic') return 1-defToDR(Math.max(0,Math.max(0,(tgt.mrRating||0)+(tgt._moMr||0))*rk*(1-(((tgt._mrShredT||0)>0)?(tgt._mrShredPct||0):0))-((src&&src.magicPen)||0)),tgt.lvl);   // MR vs Magic Pen
+  return 1-defToDR(Math.max(0,Math.max(0,(tgt.armorRating||0)+HERO61.aura(tgt,units)+(tgt._moAr||0))*rk*(1-((src&&src._wpnArmIgn)||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0))-((src&&src.armorPen)||0)),tgt.lvl); }   // Armor vs Armor Pen
 /* v1309: a DoT's damage kind. An explicit kind wins (the kind of the hit that applies it, e.g. Dandra's sting, the plague breaths); else a
    colour the engine NAMES as a bleed is physical and one it names as a curse is magic (DOT_KIND_BY_COLOR - no hue guess); else dealDamage's
    own default: a Magic / Healer hero's damage is magic, everyone else's (monsters carry no damageProfile) physical. */
@@ -15482,15 +15482,22 @@ function hero61Cast(u,slot,target){
   if(slot==='ult'&&u._pend&&u._pend.hero61Slot==='ult')return false;
   if(slot==='ult'&&(!target||!target.alive||target.team!==u.team))return false;
   castCancel(u,''); u._castT=0; u._ultRootT=0;
-  const ct=HERO61.CAST[slot],lv=Math.max(1,(u.skillLv&&u.skillLv[slot==='ult'?0:slot==='blue'?2:1])|0);
+  let ct=HERO61.CAST[slot]; const lv=Math.max(1,(u.skillLv&&u.skillLv[slot==='ult'?0:slot==='blue'?2:1])|0);
+  if(u._tal&&u._tal.on.num) ct=TalentFx.num(u,'h61ct:'+slot,ct,target||null);   /* TALENT HOOK num 'h61ct:<slot>': his cast time (Morvayne's talents; 0 = the heal lands at once) */
   u._castSlot=slot;startAbilityClip(u,slot==='ult'?'noneShallFall':slot==='blue'?'crownShelter':'kingsMercy');u._castSlot=null;
   u._pend={t:ct,sm:1,lv,hero61Slot:slot,spell:slot!=='ult',fire:()=>{
     if(slot==='ult'){
-      if(target.alive&&target.team===u.team){target._openGateImmuneUntil=battleTime+4;try{hero61Effect(u,target,'ult');}catch(_e){}}
+      if(u._tal&&u._tal.on.skillTgt) target=TalentFx.skillTgt(u,'h61ult',target)||target;   /* TALENT HOOK skillTgt: whom None Shall Fall protects (Morvayne's talents) */
+      if(u._tal) TalentFx.partPre(u,target,'h61ult');   /* TALENT HOOK partPre: None Shall Fall resolving (Morvayne's talents) */
+      if(target.alive&&target.team===u.team){target._openGateImmuneUntil=battleTime+((u._tal&&u._tal.on.num)?TalentFx.num(u,'h61imm',4,target):4);try{hero61Effect(u,target,'ult');}catch(_e){}}   /* TALENT HOOK num 'h61imm': how long it protects */
+      if(u._tal) TalentFx.part(u,target,'h61ult');   /* TALENT HOOK part: None Shall Fall released */
     }else{
-      const ally=HERO61.weakest(u,units);
-      if(ally){healFrom(u,ally,HERO61.healAmount(slot,lv,ally,u));try{hero61Effect(u,ally,slot);}catch(_e){}}
-      if(slot==='blue')u.blueCd=8; // successful release, never at press or interrupted cast
+      let ally=HERO61.weakest(u,units);
+      if(ally&&u._tal&&u._tal.on.skillTgt) ally=TalentFx.skillTgt(u,'h61'+slot,ally)||ally;   /* TALENT HOOK skillTgt: whom his heal goes to (Morvayne's talents) */
+      if(ally){if(u._tal) TalentFx.partPre(u,ally,'h61'+slot);   /* TALENT HOOK partPre: King's Mercy / Shelter of the Crown resolving (his heal rows read it) */
+        healFrom(u,ally,HERO61.healAmount(slot,lv,ally,u));try{hero61Effect(u,ally,slot);}catch(_e){}
+        if(u._tal) TalentFx.part(u,ally,'h61'+slot);}   /* TALENT HOOK part: the heal released */
+      if(slot==='blue')u.blueCd=(u._tal&&u._tal.on.cd)?TalentFx.cd(u,'blue',8):8; // successful release, never at press or interrupted cast   /* TALENT HOOK cd: Shelter of the Crown's cooldown (Morvayne's talents) */
     }
   }};
   /* v1285 (Phil 5 Nov: "hes canceling his own animation"): filmed on the live build - the next cast started at each release, so Green was
@@ -17624,7 +17631,7 @@ function think(u,dt){
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval*(((u._hexUntil||0)>battleTime)?EDGE.hexAtk:1)/(u.hasteT>0?u.hasteMul:1)/((typeof edAtkRamp==='function')?edAtkRamp():1); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp. v663: guarded - edAtkRamp lives in the Emberdraft <script>, which server/sim-host.js does not load, so every server replay threw "edAtkRamp is not defined"
-    if((u.key!==HERO61.KEY||HERO61.canAttack(u,units)) && u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && !(u._talDisarmT>0) && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
+    if((u.key!==HERO61.KEY||HERO61.canAttack(u,units)||u._moSwing>0) && u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && !(u._talDisarmT>0) && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       u._atkSpdMul=Math.max(0.25,Math.min(4,(u._atkI0||u.atkInterval)/Math.max(0.05,ai)));   /* v1024 (Phil): every attack-speed source speeds this swing's clip and its blow */
       if(u.pass&&u.pass.desertmom){ const _pm=(u.passMul||1); u._dmAS=Math.min(0.5*_pm,(u._dmAS||0)+0.04*_pm); u._dmPen=Math.min(120*_pm,(u._dmPen||0)+6*_pm); }   // v545 Desert Momentum: +4% attack speed, +6 penetration per auto (caps 50% / 120)
       /* v532 CRIT CLIP (Phil: "when a hero crit attacks they will do this instead of attack"; "melees from this point on
