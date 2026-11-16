@@ -104,7 +104,7 @@ async function run() {
     assert.ok(initial.capacity>0);
     const map=await request('GET','/api/world/mines',null,admin.token);
     assert.equal(map.ok,true);
-    assert.equal(map.nodes.length,240);
+    assert.equal(map.nodes.length,require('../server/world-mines.js').COUNT);   // v1392: 360 per region + 120 wild = 1560
     const castle=await request('GET','/api/world/state',null,admin.token);
     assert.equal(castle.ok,true);
     assert.equal(castle.locked,false);
