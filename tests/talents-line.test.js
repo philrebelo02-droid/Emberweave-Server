@@ -155,7 +155,7 @@ test('(b) each stat talent lands on its line-model field by exactly its percent,
       for(const k in F) if(tot[k]>0&&k!=='crit') for(const f of F[k]) if(whole.includes(f)?p[f]*tot[k]>=1:(p[f]>0||f==='healPow')) assert.ok(q[f]>p[f],m+': '+f+' did not rise with '+k);
     }
     checked++; }
-  assert.ok(checked>=559,'only '+checked+' stat talents checked')   /* 588 on 14 Nov after the reader stopped taking skill and summon sentences for hero stats; 559 on 16 Nov - Veyr's two pooled crit talents (Weighted Edge, Light Blade) joined the Hurne-style capped crits the count never includes, so the fight-only pool stat no longer double-reads as a line stat */
+  assert.ok(checked>=557,'only '+checked+' stat talents checked')   /* 588 on 14 Nov after the reader stopped taking skill and summon sentences for hero stats; 559 on 16 Nov - Veyr's two pooled crit talents (Weighted Edge, Light Blade) joined the Hurne-style capped crits the count never includes, so the fight-only pool stat no longer double-reads as a line stat; 557 on 16 Nov - Yenna's Bone Sight and Sharp Teeth joined her CRIT5 pool the same way */
   for(const k of ['hp','atk','apow','armor','mr','crit','critDmg','aspd','heal','shield']) assert.ok(alone[k]>0,'no build isolates the '+k+' stat (seen alone: '+J(alone)+')');
 });
 

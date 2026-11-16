@@ -14398,10 +14398,10 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         break; }
       if(o.evadeEva){ const _add=Math.max(0,Math.min(o.evadeEva,0.75-(u.evaStat||0))); u.evaStat=(u.evaStat||0)+_add; u._miragEva=(u._miragEva||0)+_add;
         u._miragT=Math.max(u._miragT||0,o.evadeDur||3); floatTexts.push({x:u.x,y:u.y-18,txt:'EVADING',t:1.0,color:'#ffe08a',vy:1,sz:11}); }   /* v935 Corsair: evades while the barrage runs */
-      if(o.ricochet){ const _marked=enemiesOf(u).filter(e=>e.alive&&(e._markT||0)>0);   /* v935 Cacklefang: the boomerang ricochets between every MARKED enemy */
+      if(o.ricochet){ const _marked=enemiesOf(u).filter(e=>e.alive&&((e._markT||0)>0||(u._tal&&e._yeRic===u)));   /* TALENT HOOK (Yenna): an enemy her talents count as marked for the ricochet (only her mech sets _yeRic) */   /* v935 Cacklefang: the boomerang ricochets between every MARKED enemy */
         const _ring=_marked.length?_marked:enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,3);
         if(_ring.length){ const _H=Math.min(8,Math.max(4,2*_ring.length)), _per=dB*(o.mul||1.6)*rm*(o.n||4)/_H;   /* the same total as before, split over the hops */
-          for(let _h=0;_h<_H;_h++){ const e=_ring[_h%_ring.length]; groundHazards.push({arrival:true,delay:0.22*(_h+1),run:function(){ if(!e.alive)return; abilShot(u,o,e,'#e8dcc0'); dealDamage(u,e,_per,'#e8dcc0'); }}); } }
+          for(let _h=0;_h<_H;_h++){ const e=_ring[_h%_ring.length]; groundHazards.push({arrival:true,delay:0.22*(_h+1),run:function(){ if(!e.alive)return; abilShot(u,o,e,'#e8dcc0'); if(u._tal) TalentFx.partPre(u,e,'yeHop');   /* TALENT HOOK partPre: a hop of Crescent Stampede (Yenna's rows) */ dealDamage(u,e,_per,'#e8dcc0'); if(u._tal) TalentFx.part(u,e,'yeHop'); }}); } }
         break; }
       { const _pd=o.pdur||0.30, _MD=dB*(o.mul||1.6)*rm;   /* v891 - each shot's damage lands when it arrives */
         enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{ abilShot(u,o,e,'#5ee89b',o.spark?()=>shotSpark(o.spark,e):undefined);   /* v1075: a spark where each shot lands (display only) */
@@ -17526,7 +17526,7 @@ function think(u,dt){
   if((u._waxCoatT||0)>0){ u._waxCoatT-=dt; if(u._waxCoatT<=0){ u._waxCoatT=0; u._waxCoatBy=null; } }
   /* the boomerang's return pass - the leg the pack says hits harder */
   if((u._boomT||0)>0){ u._boomT-=dt;
-    if(u._boomT<=0&&u._boomFoes){ (u._boomFoes||[]).forEach(e=>{ if(e&&e.alive) dealDamage(u,e,u._boomDmg||0,u._boomCol||'#e8dcc0'); });
+    if(u._boomT<=0&&u._boomFoes){ (u._boomFoes||[]).forEach(e=>{ if(e&&e.alive){ if(u._tal) TalentFx.partPre(u,e,'yeBack');   /* TALENT HOOK partPre: this hit is Rending Return's return (Yenna's rows) */ dealDamage(u,e,u._boomDmg||0,u._boomCol||'#e8dcc0'); if(u._tal) TalentFx.part(u,e,'yeBack'); } });
       u._boomFoes=null; } }
   /* Rewrite the Pattern reads this: one health sample every half-second, five seconds deep */
   u._hpSampT=(u._hpSampT||0)-dt;
