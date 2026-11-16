@@ -92,7 +92,7 @@ const C=[
   ['Courage in a Dream not on the charmed',FXJ,"if(P.cid&&mt>=5&&(sl||charmed(T,t))) k*=1+P.cid;","if(P.cid&&mt>=5&&sl) k*=1+P.cid;",'Courage in a Dream'],
   ['Courage in a Dream\'s Debt 30%',FXJ,"{param:'cid.debt',add:0.25,req:'lp_2_3'}","{param:'cid.debt',add:0.30,req:'lp_2_3'}",'Courage in a Dream'],
   ['Strong Bouquet 0.15 s',FXJ,"lp_4_1:[ {param:'bq.add',add:R(0.1)} ]","lp_4_1:[ {param:'bq.add',add:R(0.15)} ]",'Soporific Bouquet:'],
-  ['the extension capped at 3 s',FXJ,"STUN_TOP=4.0,","STUN_TOP=3.0,",'Soporific Bouquet:'],
+  ['the extension capped at 3 s',FXJ,"REGEN=0.012, STUN_TOP=4.0,","REGEN=0.012, STUN_TOP=3.0,",'Soporific Bouquet:'],
   ['Breathing It In added, not multiplied',FXJ,"let d=base*(1+(P['slp.k']||0))*","let d=(base+(P['slp.k']||0))*",'Soporific Bouquet:'],
   ['Deep Slumber 4 Languor',FXJ,"lp_3_2:[ {param:'ds',add:5} ]","lp_3_2:[ {param:'ds',add:4} ]",'Soporific Bouquet:'],
   ['Second Bouquet 4 Languor',FXJ,"lp_7_3:[ {param:'sb',add:3} ]","lp_7_3:[ {param:'sb',add:4} ]",'Soporific Bouquet:'],
