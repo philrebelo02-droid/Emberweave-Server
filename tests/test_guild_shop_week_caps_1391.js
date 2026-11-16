@@ -22,9 +22,9 @@ let rid=0; const buy=what=>call('/api/shop/buy',{what,requestId:'gsw-'+(++rid)})
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'gsw1391-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
   await editDB((db,u)=>{ u.led.guildCoins=200000; u.led.gold=0; u.led.gems=0;
-    db.guilds=db.guilds||{}; db.guilds.gsw={id:'gsw',name:'Cap Guild',members:[id],level:5,exp:0}; u.guildId='gsw'; });
+    db.guilds=db.guilds||{}; db.guilds.gsw={id:'gsw',name:'Cap Guild',members:[id],level:7,exp:0}; u.guildId='gsw'; });
   const L0=await led();
-  ok(L0.gshopLeft&&L0.gshopLeft[1]===7&&L0.gshopLeft[9]===1&&L0.gshopLeft[5]===5,'the ledger carries gshopLeft ('+JSON.stringify(L0.gshopLeft)+')');
+  ok(L0.gshopLeft&&L0.gshopLeft[1]===7&&L0.gshopLeft[9]===1&&L0.gshopLeft[5]===5&&L0.gshopLeft[0]==null,'the ledger carries gshopLeft ('+JSON.stringify(L0.gshopLeft)+')');
   // slot 1: Gold Cache, 7 a week
   for(let i=0;i<7;i++){ const r=await buy('gshop:1'); ok(r.data.ok===true,'Gold Cache buy '+(i+1)+' of 7 ('+(r.data.error||'ok')+')'); }
   const c0=(await led()).guildCoins; const r8=await buy('gshop:1'); const L1=await led();
@@ -38,6 +38,21 @@ let rid=0; const buy=what=>call('/api/shop/buy',{what,requestId:'gsw-'+(++rid)})
   // slot 5: pieces_guild, 5 a week
   for(let i=0;i<5;i++){ const r=await buy('pieces_guild'); ok(r.data.ok===true,'Equipment Pieces buy '+(i+1)+' of 5 ('+(r.data.error||'ok')+')'); }
   const p6=await buy('pieces_guild'); ok(p6.data.ok===false&&/Sold out for this week/.test(p6.data.error||''),'the 6th Equipment Pieces is refused');
+  // Phil 16 Nov: cooldowns on purchase - shield 24 h, wild teleport 24 h, teleport 72 h; attack card once a week
+  const sh1=await buy('gshop:0'), sh2=await buy('gshop:0');
+  ok(sh1.data.ok===true&&sh2.data.ok===false&&/on cooldown/.test(sh2.data.error||''),'Protection Shield: a second buy is on cooldown ('+(sh1.data.error||'ok')+' / '+(sh2.data.error||'ok')+')');
+  ok(sh2.data.errCode==='you_bought_this_recently_it','the cooldown refusal carries its translation code ('+sh2.data.errCode+')');
+  const t1=await buy('gshop:12'), t2=await buy('gshop:12'), w1=await buy('gshop:13'), w2=await buy('gshop:13');
+  ok(t1.data.ok===true&&t1.data.got&&t1.data.got.teleScrolls===1&&t2.data.ok===false,'Teleport Scroll: one, then cooldown ('+(t1.data.error||'ok')+' / '+(t2.data.error||'ok')+')');
+  ok(w1.data.ok===true&&w1.data.got&&w1.data.got.wildScrolls===1&&w2.data.ok===false,'Wild Teleport Scroll: one, then cooldown ('+(w1.data.error||'ok')+' / '+(w2.data.error||'ok')+')');
+  const Lc=await led(); ok(Lc.gshopCd&&Lc.gshopCd[0]>23*3600000&&Lc.gshopCd[12]>71*3600000&&Lc.gshopCd[13]>23*3600000,'the ledger shows the cooldowns left ('+JSON.stringify(Lc.gshopCd)+')');
+  const u1=disk().users[id]; ok((u1.worldTravel.teleScrolls|0)===1&&(u1.worldTravel.wildScrolls|0)===1,'the scrolls land in the world travel state');
+  const a1=await buy('gshop:14'), a2=await buy('gshop:14');
+  ok(a1.data.ok===true&&a2.data.ok===false&&/Sold out for this week/.test(a2.data.error||''),'Attack Card: once a week ('+(a1.data.error||'ok')+' / '+(a2.data.error||'ok')+')');
+  ok((disk().users[id].led.cards.attack|0)===1,'the attack card lands in led.cards');
+  // the cooldowns end: 72 h + 1 min later the teleport sells again (cooldown stamps moved back)
+  await editDB((db,u)=>{ for(const k in u.led.gshopCd) u.led.gshopCd[k]-=72*3600000+60000; });
+  const t3=await buy('gshop:12'), sh3=await buy('gshop:0'); ok(t3.data.ok===true&&sh3.data.ok===true,'after the cooldowns the teleport and the shield sell again');
   // a new game week resets the counts
   await editDB((db,u)=>{ u.led.gshopWk.wk='2000-01-03'; });
   const L2=await led(); ok(L2.gshopLeft[1]===7&&L2.gshopLeft[9]===1&&L2.gshopLeft[5]===5,'a new week resets every cap ('+JSON.stringify(L2.gshopLeft)+')');

@@ -2122,13 +2122,21 @@ const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow',
 const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, zahrifrag:{cost:500,frag:'zahri',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
 /* v1391 (Soul Eater 15 Nov 23:24: "Limit the number of times items can be purchased from the guild shop"; Phil 16 Nov: "you do it" - Claude set the numbers):
    each Guild Shop item has a WEEKLY purchase cap per player, reset at the game-week start (Monday, game day = nyDayKey). Slot 5 is pieces_guild. */
-const GSHOP_WEEK_LIMIT={0:3,1:7,2:3,3:7,4:5,5:5,6:5,7:7,8:2,9:1,10:3,11:2};
+const GSHOP_WEEK_LIMIT={1:7,2:3,3:7,4:5,5:5,6:5,7:7,8:2,9:1,10:3,11:2,14:1};
+/* Phil 16 Nov ~01:45: "protection shields should be 24 hour cooldown on purchase, wild teleport 24 hour cooldown, teleport 72 hour cooldown"
+   / "on guild purchase" / "the shop" / "you can buy an attack card once a week": slot 0 (Protection Shield) has a 24 h cooldown instead of a
+   weekly cap; new slots 12 Teleport Scroll (72 h), 13 Wild Teleport Scroll (24 h), 14 Attack Card (once a week). The cooldown counts from
+   the player's own last purchase of that item. */
+const GSHOP_COOLDOWN_MS={0:24*3600000,12:72*3600000,13:24*3600000};
+function gshopCdLeft(led,idx,now){ const cd=GSHOP_COOLDOWN_MS[idx]; if(!cd) return 0; const t=(led.gshopCd&&+led.gshopCd[idx])||0; return Math.max(0,t+cd-(now||Date.now())); }
+function gshopCdMark(led,idx){ if(!GSHOP_COOLDOWN_MS[idx]) return; led.gshopCd=(led.gshopCd&&typeof led.gshopCd==='object')?led.gshopCd:{}; led.gshopCd[idx]=Date.now(); }
+function gshopCdView(led){ const o={}, now=Date.now(); for(const k in GSHOP_COOLDOWN_MS) o[k]=gshopCdLeft(led,+k,now); return o; }
 function gshopWeekKey(){ const d=new Date(nyDayKey()+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7)); return d.toISOString().slice(0,10); }
 function gshopWk(led){ const w=gshopWeekKey(); if(!led.gshopWk||led.gshopWk.wk!==w) led.gshopWk={wk:w,n:{}}; return led.gshopWk; }
-function gshopLeft(led,idx){ return Math.max(0,(GSHOP_WEEK_LIMIT[idx]|0)-(gshopWk(led).n[idx]|0)); }
-function gshopCount(led,idx){ const W=gshopWk(led); W.n[idx]=(W.n[idx]|0)+1; }
+function gshopLeft(led,idx){ if(GSHOP_WEEK_LIMIT[idx]==null) return Infinity; return Math.max(0,(GSHOP_WEEK_LIMIT[idx]|0)-(gshopWk(led).n[idx]|0)); }
+function gshopCount(led,idx){ gshopCdMark(led,idx); if(GSHOP_WEEK_LIMIT[idx]==null) return; const W=gshopWk(led); W.n[idx]=(W.n[idx]|0)+1; }
 function gshopLeftView(led){ const o={}; for(const k in GSHOP_WEEK_LIMIT) o[k]=gshopLeft(led,+k); return o; }
-const GUILD_SHOP_SRV={0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
+const GUILD_SHOP_SRV={12:{cost:1200,tele:1},13:{cost:600,wild:1},14:{cost:1000,attackCard:1},0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
@@ -5364,7 +5372,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
-    gshopLeft:gshopLeftView(led),   /* v1391: Guild Shop weekly caps left */
+    gshopLeft:gshopLeftView(led), gshopCd:gshopCdView(led),   /* v1391: Guild Shop weekly caps left + cooldown ms left */
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
@@ -8723,12 +8731,17 @@ async function api(req,res,url){
         if(!gg||!(gg.members||[]).includes(me.id)) return {ok:false,error:'Join a guild to use the Guild Shop.'};
         if(idx>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'};
         if(gshopLeft(led,idx)<=0) return {ok:false,error:'Sold out for this week. It restocks on Monday.'};
+        if(gshopCdLeft(led,idx)>0) return {ok:false,error:'You bought this recently. It is on cooldown.'};
         if((led.guildCoins|0)<it.cost) return {ok:false,error:'Not enough guild coins.'};
         const got={};
         if(it.refill){ ledStamRegen(led); const need=Math.max(0,ledStamMax(led)-led.stam.v); if(need<=0) return {ok:false,error:'Stamina is already full.'};
           led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
         else if(it.res){ const A=ensureAcad(me); led.guildCoins=(led.guildCoins|0)-it.cost; got.res={};
           for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
+        else if(it.tele||it.wild){ const tr=worldTravelState(me); led.guildCoins=(led.guildCoins|0)-it.cost;   /* v1391: teleport scrolls (Phil 16 Nov) */
+          if(it.tele){ tr.teleScrolls=(tr.teleScrolls|0)+it.tele; got.teleScrolls=it.tele; } else { tr.wildScrolls=(tr.wildScrolls|0)+it.wild; got.wildScrolls=it.wild; } }
+        else if(it.attackCard){ led.guildCoins=(led.guildCoins|0)-it.cost; led.cards=(led.cards&&typeof led.cards==='object')?led.cards:{};   /* v1391: Phil 16 Nov "you can buy an attack card once a week" */
+          led.cards.attack=(led.cards.attack|0)+it.attackCard; got.attackCards=it.attackCard; }
         else if(it.shields){ if((me.shields|0)+it.shields>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 */
           led.guildCoins=(led.guildCoins|0)-it.cost; me.shields=Math.min(99,(me.shields|0)+it.shields); got.shields=it.shields; }   /* v1081: guild-shop shields are the server's */
         else if(it.arenaCoins){ if((me.coins|0)+it.arenaCoins>ECON_CAP.arenaCoins) return {ok:false,error:'You cannot hold more of those arena coins.'};   /* v1356 (Ember sweep 2): it took the guild coins and clamped the grant */ led.guildCoins=(led.guildCoins|0)-it.cost; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+it.arenaCoins); got.arenaCoins=it.arenaCoins; }   /* v1079 */

@@ -221,7 +221,8 @@ const EXACT=[
   ["join_a_guild_to_use_the","Join a guild to use the Guild Shop."],
   ["your_guild_has_not_unlocked_that","Your guild has not unlocked that item yet."],
   ["not_enough_guild_coins","Not enough guild coins."],
-  ["sold_out_for_this_week","Sold out for this week. It restocks on Monday."],   // v1391 Guild Shop weekly caps
+  ["sold_out_for_this_week","Sold out for this week. It restocks on Monday."],
+  ["you_bought_this_recently_it","You bought this recently. It is on cooldown."],   // v1391 Guild Shop cooldowns   // v1391 Guild Shop weekly caps
   ["stamina_is_already_full","Stamina is already full."],
   ["you_can_hold_at_most_99","You can hold at most 99 shields."],
   ["the_market_has_no_more_shields","The market has no more shields this hour."],
