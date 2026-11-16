@@ -976,6 +976,8 @@
   .citymenu{position:absolute;transform:translate(-50%,-118%);background:rgba(12,16,24,.97);border:1px solid #3a4a6a;border-radius:10px;padding:6px;z-index:20;display:flex;flex-direction:column;gap:4px;min-width:132px;box-shadow:0 8px 22px rgba(0,0,0,.6);}
   .citymenu .cm-t{font-size:10px;color:#c3ccd8;font-weight:700;text-align:center;padding:2px 2px 4px;border-bottom:1px solid #26314a;margin-bottom:2px;}
   .citymenu .cm-b{background:#1a2233;border:1px solid #2e3c58;color:#e6edf3;font-size:12px;font-weight:700;padding:6px 8px;border-radius:7px;cursor:pointer;text-align:left;white-space:nowrap;}
+  .citymenu .cm-b.cm-pending{opacity:.6;filter:grayscale(.5)}   /* v1393: war still preparing */
+  .citymenu .cm-wait{color:#ffd45e;font-variant-numeric:tabular-nums;margin-left:4px}
   .citymenu .cm-b:active{transform:scale(.97);}
   #marchVeh>div{will-change:left,top;}
   /* floating world chat widget */
@@ -30449,7 +30451,16 @@ function openCityMenu(c){
   inner.appendChild(pop); cityMenuEl=pop;
   pop.addEventListener('click',e=>e.stopPropagation());
   pop.querySelectorAll('.cm-b').forEach(btn=>btn.onclick=()=>cityAction(btn.dataset.a,c));
+  /* v1393 (Phil 16 Nov: "declaring war is meant to take 30 minutes to be able to attack someone" / "the timer should be on the attack button
+     telling me when i can attack"): while a declared war is in its 30-minute preparation, Attack and Group Attack show the time left,
+     greyed, ticking every second; at zero they turn back into plain Attack buttons. */
+  if(enemy){ const atkBtns=[...pop.querySelectorAll('.cm-b[data-a="attack"],.cm-b[data-a="group"]')], base=atkBtns.map(b=>b.innerHTML);
+    const tick=()=>{ if(!pop.isConnected){ clearInterval(iv); return; } const left=warPending(c.name,false)?warPrepRemaining(c.name,false):0;
+      atkBtns.forEach((b,i)=>{ b.innerHTML=base[i]+(left>0?' <span class="cm-wait">'+uiIcon('timer')+' '+fmtClock(left)+'</span>':''); b.classList.toggle('cm-pending',left>0); }); };
+    const iv=setInterval(tick,1000); tick(); }
 }
+function fmtClock(ms){ const t=Math.max(0,Math.ceil(ms/1000)), h=Math.floor(t/3600), m=Math.floor(t%3600/60), sec=t%60;
+  return (h?h+':'+String(m).padStart(2,'0'):String(m))+':'+String(sec).padStart(2,'0'); }
 function showCityInfo(c){ closeCityMenu();
   const {cx,cy}=castleCoord(c.x,c.y), rank=c.rank||'—', pw=c.power!=null?c.power:null;
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
@@ -36630,7 +36641,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088829';
+const BUILD_ID = '1794347088830';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
