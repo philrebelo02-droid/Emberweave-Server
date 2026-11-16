@@ -218,7 +218,7 @@ const C=[
   ['Weights and Chains 0.4%',FXJ,[["bw_8_3:[ {param:'wc',add:R(0.003)} ]","bw_8_3:[ {param:'wc',add:R(0.004)} ]"]],'healing budget|Momentum Gears'],
   ['Weights and Chains every 2 s',FXJ,[["k.wcT=(k.wcT||0)+dt; if(k.wcT>=3-1e-9){ k.wcT-=3;","k.wcT=(k.wcT||0)+dt; if(k.wcT>=2-1e-9){ k.wcT-=2;"]],'healing budget|Momentum Gears'],
   ['Turned by Hand outside the budget',FXJ,[["if(P.tbh&&k.strokes%10===0) T.fn.heal(A,T,u,P.tbh*u.maxHp);","if(P.tbh&&k.strokes%10===0) T.fn.heal(A,T,u,P.tbh*u.maxHp,true);"]],'healing budget'],
-  ['the row of his hits removed',FXJ,[["    {on:'hit',if:{targetTeam:'enemy'},do:[{fn:'myHit'}]},",""]],'Chimes:|Static:|Strain:|live fight'],
+  ['the row of his hits removed',FXJ,[["    {on:'hit',if:{targetTeam:'enemy'},do:[{fn:'myHit'}]},                                                                        // every hit of his that lands: Chimes, Static, Strain, Strokes, Spin, Flywheel's count",""]],'Chimes:|Static:|Strain:|live fight'],
 ];
 
 const SKIP=new Set(['.logs','.base','.bin','.git','node_modules','assets','backups','.remote-logs','.tmp']);
