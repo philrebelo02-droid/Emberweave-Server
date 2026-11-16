@@ -6,7 +6,7 @@
   function validate(data){
     if(!data||!data.ok||data.locked||!Number.isSafeInteger(data.epoch)||data.epoch<0||!Number.isFinite(data.serverNow)||
       Math.floor(data.serverNow/EPOCH_MS)!==data.epoch||data.epochEndsAt!==(data.epoch+1)*EPOCH_MS||
-      !Array.isArray(data.nodes)||data.nodes.length!==COUNT)throw Error('Unavailable field');
+      !Array.isArray(data.nodes)||data.nodes.length<1||data.nodes.length>COUNT*4)throw Error('Unavailable field');   /* v1393 (Phil 16 Nov: "think you broke mines in region" / "i have zero within 20 minutes of me"): v1392 raised the field 240 -> 1560 and every client still holding the old exact-count check threw the whole field away. The count is the server's; each node is still validated below. */
     const positions=new Set(),G=geo();
     const nodes=data.nodes.map((n,i)=>{
       if(!n||n.id!=='mn'+data.epoch+'_'+i||!RES.includes(n.res)||!Number.isInteger(n.level)||n.level<1||n.level>MAX_LEVEL||
