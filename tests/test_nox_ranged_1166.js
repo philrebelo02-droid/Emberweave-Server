@@ -68,7 +68,7 @@ try {
   const kits = r => r('JSON.stringify([KITS.nox,ULT_DEF.openeverydoor,ULT_SCALE.openeverydoor||null,HERO_ULT_ART.nox||null,ABILITY_CAST.nox||null])');
   ck('no new damage number or multiplier: his kit (Lockpick Soul, Forbidden Key, Skeleton-Key Savant), Open Every Door and their cast times are BASE\'s', kits(run) === kits(R0));
   // v1232: enemy-only campaign fields (Vael's enemyHpMul / enemyDmgMul, Phil 31 Oct) are not part of the hero's own line
-  const otherTypes = "JSON.stringify(Object.keys(HERO_TYPES).filter(k=>k!=='nox').map(k=>[k,Object.fromEntries(Object.entries(HERO_TYPES[k]).filter(([f])=>!/^enemy/.test(f)))]))";
+  const otherTypes = "JSON.stringify(Object.keys(HERO_TYPES).filter(k=>k!=='nox').map(k=>[k,Object.fromEntries(Object.entries(HERO_TYPES[k]).filter(([f])=>!/^enemy/.test(f)))]),(k,v)=>v==='abyssalundertow'?'eventhorizon':v)";   // v1391: Veyr's own effect code (ee8edab85) is a later change
   ck('every other hero\'s HERO_TYPES line is BASE\'s (enemy-only fields aside)', run(otherTypes) === R0(otherTypes));
   // 2. the unit the engine builds
   const U = r => JSON.parse(r(`(()=>{ const u=makeUnit('nox','ally',300,600,30,{owned:false,rank:3}); const b=makeUnit('nox','enemy',300,600,30,{owned:false,rank:3,boss:true});

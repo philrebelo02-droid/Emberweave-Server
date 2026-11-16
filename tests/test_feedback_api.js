@@ -13,7 +13,8 @@ let child,token='';
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',reject);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
 async function start(){
-  child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});
+  // v1391 (067b7e825): this test's results carry no page build; with the 48 h other-build grace they would be excused - grace 0 keeps the cheat-evidence checks
+  child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile,OTHER_BUILD_GRACE_HOURS:'0'},stdio:'ignore',windowsHide:true});
   for (const _t0 = Date.now(); Date.now() - _t0 < 60000; ){if(child.exitCode!==null)throw new Error('throwaway server exited');try{if((await fetch(base+'/health')).ok)return;}catch(_){} await delay(100);}   /* 11 Nov: a 60 s deadline, not an iteration count (was 100 tries) */
   throw new Error('throwaway server did not start');
 }

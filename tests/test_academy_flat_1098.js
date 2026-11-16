@@ -46,7 +46,7 @@ ok(/PROPOSED - Phil tunes/.test(srv.slice(srv.indexOf('const TECH_BASE_SRV'), sr
 
 /* ---- 2. server unit vs client unit ---- */
 const keys = Object.keys(SIM.HERO_BASE);
-const OPT = { level: 100, stars: 5, pips: 0, ref: 0 };
+const OPT = { level: 100, stars: 5, pips: 0, ref: 0, rank: 3 };   // v1391: the server unit's quality rank = the client spec's glyphRank 6 (G2_TIER16[6] = 3), so the purple passives (Vulmar's Ability Power) apply on both sides
 const lvAll = L => { const lv = { academy: L }; TRACKS.forEach(k => { lv[k] = L; }); return { lv }; };
 function serverUnit(SA, key, L) { const R = {}, XT = {}; SA.acadApply(R, XT, L ? SA.acadCombatOf(lvAll(L)) : null);
   return SIM.heroCombatStats(key, Object.assign({}, OPT, { ratings: R, extra: XT })); }

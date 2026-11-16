@@ -91,7 +91,7 @@ ok(C.FIFTH_ORB_BONUS === 0.15, 'FIFTH_ORB_BONUS is 0.15 (Phil 9 Oct: "make 5th d
 
 /* ---- an earned blessing changes the battle unit: server applyCore vs client applyClient, identically ---- */
 const host = require('../server/sim-host.js').load(path.join(ROOT, 'emberweave-heroes.html'));
-const OPT = { level: 100, stars: 5, pips: 0, ref: 0 };
+const OPT = { level: 100, stars: 5, pips: 0, ref: 0, rank: 3 };   // v1391: the server unit's quality rank = the client spec's glyphRank 6 (G2_TIER16[6] = 3), so the purple passives (Vulmar's Ability Power) apply on both sides
 function coreUnit(key, b) { const R = {}, X = {}; FX.coreRatings(R, X, b); return FX.applyCore(SIM.heroCombatStats(key, Object.assign({}, OPT, { ratings: R, extra: X })), b); }
 function clientUnit(key, b) { return host.snapFromSpecs([{ key: key, level: 100, stars: 5, pips: 0, ref: 0, glyphRank: 6, tt: {}, ex: {}, fAtk: 0, fHp: 0, fApow: 0, apMul: 1, skillLv: [1, 1, 1, 1], templeBonuses: b }])[0]; }
 function deltas(s0, s1, c0, c1) {

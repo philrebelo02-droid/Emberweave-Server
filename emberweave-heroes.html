@@ -5953,7 +5953,7 @@ function _applyTexQual(tx){
     /* v1365: a sheet released (evictUnusedArt marks it _ewFreed) while it was still loading finishes into a texture nothing uses any more - it kept its
        decoded image and came back into _texReg for good (measured: 1.3 GB more on a phone after a stage card was opened in the same tick as the release).
        It lets its image go instead; the clip loads a fresh one when it is next needed. */
-    if(tx&&tx._ewFreed){ texImgFree(tx); try{ tx.image=null; }catch(_){} const i=_texReg.indexOf(tx); if(i>=0) _texReg.splice(i,1); return; }
+    if(tx&&tx._ewFreed){ texImgFree(tx); try{ tx.image=undefined; }catch(_){}   /* v1391: undefined, not null - three skips a texture with no image (a warning) but reads image.complete of null and throws; the download gate makes a release-while-loading likelier */ const i=_texReg.indexOf(tx); if(i>=0) _texReg.splice(i,1); return; }
     if(_texReg.indexOf(tx)<0) _texReg.push(tx);
     if(_texCaps()){ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter; tx.anisotropy=_ANISO; }
     else { tx.generateMipmaps=false; tx.minFilter=TH.LinearFilter; }
@@ -5971,7 +5971,7 @@ function requalifyTextures(){
     _texRequalDone=true;
     for(const tx of _texReg){
       try{ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter;
-           tx.magFilter=TH.LinearFilter; tx.anisotropy=_ANISO; tx.needsUpdate=true; }catch(e){}
+           tx.magFilter=TH.LinearFilter; tx.anisotropy=_ANISO; if(tx.image) tx.needsUpdate=true; }catch(e){}   /* v1391: a sheet still waiting in the download gate has no image yet - marking it made three read image.complete of null; it uploads when its image lands */
     }
     try{ console.log('texture quality: re-applied to '+_texReg.length+' sheets at anisotropy '+_ANISO); }catch(e){}
   }catch(e){}
