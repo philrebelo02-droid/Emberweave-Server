@@ -1,6 +1,6 @@
 // v1392 - Soul Eater 16 Nov (via Phil: "build both and push together" / "please make the Attack button at the top"):
 //  1. the castle menu lists Attack (and Group Attack) first, Info after;
-//  2. a war attack opens the hero picker with the wall line preselected (openMarchSelect(a,c,wallOrderedSquad())), never startMarch blind;
+//  2. a war attack opens the attack screen with the wall line preselected (openAttackPrep(a,c,wallOrderedSquad())), never startMarch blind;
 //  3. the Watch Tower's server view carries the target's display name (defName, via opts.nameOf) and, on the player's OWN marches only,
 //     the heroes sent (heroIds); guild mates' rows carry no hero ids.
 const assert=require('assert'),fs=require('fs'),path=require('path');
@@ -10,9 +10,21 @@ let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };
 const mi=page.indexOf("opts.push(['attack',"), ii=page.indexOf("opts.push(['info',uiIcon('info')");
 ok(mi>0&&ii>0&&mi<ii,'the castle menu pushes Attack before Info');
 // 2) war attack -> picker with the wall line
-ok(/openMarchSelect\(a,c,wallOrderedSquad\(\)\); return; \}/.test(page),'a war attack opens the hero picker with the wall line');
+ok(/openAttackPrep\(a,c,wallOrderedSquad\(\)\); return; \}/.test(page),'a war attack opens the attack screen with the wall line');
+// v1392 attack screen (Phil 16 Nov: "use this format" - the Select Heroes reference; "make the frames large then reduce size")
+const ap=page.slice(page.indexOf('function openAttackPrep('),page.indexOf('\n}\n',page.indexOf('function openAttackPrep('))), css=page.slice(page.indexOf('function apCss('),page.indexOf('function openAttackPrep('));
+ok(/const first=\(Array\.isArray\(pre\)&&pre\.length\)\?pre:G\.team;/.test(ap),'the attack screen preselects pre, else the team');
+ok(/startMarch\(ctype,c,\[\.\.\.sel\]\)/.test(ap),'Attack sends startMarch with the picked line');
+ok(/sel\.size<5/.test(ap)&&/if\(blocked\(k\)\) return;/.test(ap),'at most five heroes; marching or fallen heroes cannot be picked');
+ok(/\/api\/witch\/heal-all/.test(ap),"Heal is the Witch's Hut heal-all");
+ok(!/ROSTER_CLASS_IC\[cl\]/.test(ap),'the class tabs show names only (Phil: "remove the emojis off the right class panels")');
+ok(!/border-image/.test(css)&&!/v4L\//.test(css),'no 9-slice stretching and no stopgap art: every frame is one large picture reduced into its slot');
+for(const k of ['grid-frame','tray-frame','title','heal','preset','pow','timer','tab-idle','tab-active','tab-all-idle','tab-all-active','back','empty-176','empty-158']){
+  ok(css.includes('attack-panel/v5/'+k+'.png'),'uses v5 '+k);   // pow / timer carry ?v=2 after the .png
+  ok(fs.existsSync(path.join(root,'assets/img/ui/attack-panel/v5/'+k+'.png')),'ships v5 '+k); }
+ok(fs.existsSync(path.join(root,'assets/img/ui/attack-panel/v4/flame-side.png'))&&fs.existsSync(path.join(root,'assets/img/ui/attack-panel/v4/attack-ring.png')),'ships the flame sides and the ring');
 ok(!/startMarch\(a,c,squad\); return; \}/.test(page),'the blind startMarch(a,c,squad) is gone');
-ok(/function openMarchSelect\(ctype,c,pre\)/.test(page)&&/const first=\(Array\.isArray\(pre\)&&pre\.length\)\?pre:G\.team;/.test(page),'the picker preselects pre, else the team');
+ok(/function openMarchSelect\(ctype,c,pre\)/.test(page),'the generic picker still takes a preselected line (Defend / mines)');
 // 3) the Watch Tower server view
 const W=require(path.join(root,'server','world-watch-state.js'));
 const now=1800000000000, mk=(id,defId,heroIds)=>({id,kind:'attack',defId,heroIds,depart:now-60000,arriveAt:now+60000,homeAt:now+120000});

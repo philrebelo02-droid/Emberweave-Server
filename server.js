@@ -5989,7 +5989,8 @@ function worldCityRowsRefresh(){ const now=Date.now(); if(_cityBuiltAt&&now-_cit
     const line=(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]));
     const row={ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
       academy:(u.led&&u.led.acad&&u.led.acad.lv)?(u.led.acad.lv.academy|0):undefined,
-      power:serverTeamPower(line,u)|0, region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null };
+      power:serverTeamPower(line,u)|0, region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null,
+      burning:(function(){ try{ return wallView(u).pct<100; }catch(e){ return false; } })() };   /* v1392 (Phil 16 Nov): a damaged wall burns on the map */
     const s=JSON.stringify(row), old=_cityRows.get(u.id);
     if(!old||old.s!==s){ const tile=cityTileOf(row.x,row.y);
       if(!old||old.row.x!==row.x||old.row.y!==row.y||old.row.region!==row.region){ _regionVer[row.region]=(_regionVer[row.region]|0)+1; if(old&&old.row.region!==row.region) _regionVer[old.row.region]=(_regionVer[old.row.region]|0)+1; }

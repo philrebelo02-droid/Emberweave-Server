@@ -26,7 +26,7 @@ const root=path.join(__dirname,'..'); let pass=0; const ok=(c,m)=>{ assert(c,m);
   // the cache the map draws from (create().sync -> state().nodes)
   const c=S.create({token:()=>'t',online:()=>true,fetchState:()=>all,clock:()=>0});
   const st=await c.sync(true);
-  ok(st.status==='ready'&&st.nodes.length===M.COUNT&&new Set(st.nodes.map(n=>n.level)).size===10,'the map cache is ready with all 240 nodes, levels 1-10 ('+st.status+', '+st.nodes.length+')');
+  ok(st.status==='ready'&&st.nodes.length===M.COUNT&&new Set(st.nodes.map(n=>n.level)).size===10,'the map cache is ready with all '+M.COUNT+' nodes, levels 1-10 ('+st.status+', '+st.nodes.length+')');
   // client range covers everything the server can deal, legacy and current
   let hi=0,lo=99; for(let ep=61900;ep<62400;ep+=7) for(const n of M.field(ep)){ hi=Math.max(hi,n.level); lo=Math.min(lo,n.level); }
   ok(lo===1&&hi===10&&M.MAX_LEVEL===hi,'server deals levels '+lo+'-'+hi+' and declares MAX_LEVEL '+M.MAX_LEVEL);

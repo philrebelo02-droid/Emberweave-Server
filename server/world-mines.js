@@ -9,12 +9,17 @@ const REALM=require('../world-realm.js'), GEO=REALM.GEO;
 // the squares"), one square in size: gx,gy is that vertex, x,y = GEO.mineX/mineY, and the four cells around it are its cells (all one
 // zone's open land); two mines never share a cell. COUNT stays 240: the land's world area did not change, so mines per area of land
 // are what they were on the 220 grid (one per ~920 land squares of this grid).
-const EPOCH_MS=8*3600000, COUNT=240, GRID_COLS=GEO.COLS, GRID_ROWS=GEO.ROWS, GRID_CELL=GEO.CELL, FOOT=GEO.FOOT;
+// v1392 (Soul Eater 16 Nov: "many level 6/7 mines and very few level 1/2/3"; Phil: "also increase the mine levels amount" / "it should be
+// per region" / "and wild has higher level ones" -> 360 per region + 120 wild): every home region gets exactly REGION_QUOTA mines (levels 1-6),
+// the wild islets share WILD_QUOTA (levels 7-10) by land area, and the level-6 coast band is 2 cells of THIS grid (~11% of region land, as
+// designed) - the old Math.round(4*oldSquareCells)=15 cells covered 59% of it, so 136 of 240 mines were level 6.
+const REGION_QUOTA=360, WILD_QUOTA=120;
+const EPOCH_MS=8*3600000, COUNT=4*REGION_QUOTA+WILD_QUOTA, GRID_COLS=GEO.COLS, GRID_ROWS=GEO.ROWS, GRID_CELL=GEO.CELL, FOOT=GEO.FOOT;
 const RESOURCES=['iron','crystal','silver','coal'];
 const MAX_LEVEL=10;   // highest level field() deals (wild 7-10); assets/ui/world-mine-sync.js validates against the same number
 const TERRAIN_BLOCKED=new Set(require('./world-terrain-blocked.json').cells);
 // 4 and 8 squares of the 220 grid (8 = the old wild corridor's region-edge band), in cells of this grid
-const SQ=REALM.META.oldSquareCells, COAST_BAND=Math.round(4*SQ), NEAR_REGION=Math.round(8*SQ);
+const SQ=REALM.META.oldSquareCells, COAST_BAND=2, NEAR_REGION=Math.round(8*SQ);
 const REGION_KEYS=['crystor','draymon','tefron','alumron'];
 function epochAt(now){ return Math.floor(now/EPOCH_MS); }
 function mineRand(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
@@ -42,18 +47,36 @@ function eligibleCells(){
   }
   return _cells=out;
 }
+let _quotas=null;
+function quotas(){   // [zone, its cells, how many mines] in a fixed order: the four regions, then the wild islets by land area (largest remainder)
+  if(_quotas) return _quotas;
+  const by={}; for(const c of eligibleCells()) (by[c.zone]=by[c.zone]||[]).push(c);
+  const q=REGION_KEYS.filter(z=>by[z]).map(z=>[z,by[z],REGION_QUOTA]);
+  const wild=Object.keys(by).filter(z=>!REGION_KEYS.includes(z)).sort(), land=wild.reduce((a,z)=>a+by[z].length,0);
+  const share=wild.map(z=>({z,exact:WILD_QUOTA*by[z].length/land})); share.forEach(w=>w.n=Math.floor(w.exact));
+  let left=WILD_QUOTA-share.reduce((a,w)=>a+w.n,0);
+  [...share].sort((a,b)=>(b.exact-b.n)-(a.exact-a.n)||(a.z<b.z?-1:1)).forEach(w=>{ if(left>0){ w.n++; left--; } });
+  for(const w of share) q.push([w.z,by[w.z],w.n]);
+  return _quotas=q;
+}
+const _fieldCache=new Map();   // epoch -> field (nodeById runs on every mine action; the field is not rebuilt each time)
 function field(epoch){
-  const cells=eligibleCells(),out=[],occupied=new Set(),rnd=mineRand((epoch*2654435761)>>>0); let guard=0;
-  while(out.length<COUNT&&guard++<COUNT*12){
-    const c=cells[Math.floor(rnd()*cells.length)], square=GEO.mineCellsAt(c.gx,c.gy).map(p=>p[0]+','+p[1]);
-    if(square.some(k=>occupied.has(k))) continue;
-    for(const k of square) occupied.add(k);
-    let level; const r=rnd();
-    if(c.region) level=c.coast<=COAST_BAND?6:(r<0.30?1:r<0.55?2:r<0.75?3:r<0.90?4:5);
-    else level=c.near<=NEAR_REGION?7:(r<0.4?8:r<0.75?9:10);
-    const res=RESOURCES[Math.floor(rnd()*RESOURCES.length)];
-    out.push({id:'mn'+epoch+'_'+out.length,res,level,gx:c.gx,gy:c.gy,x:GEO.mineX(c.gx),y:GEO.mineY(c.gy),region:c.zone});
+  if(_fieldCache.has(epoch)) return _fieldCache.get(epoch);
+  const out=[],occupied=new Set(),rnd=mineRand((epoch*2654435761)>>>0);
+  for(const [zone,cells,n] of quotas()){
+    let placed=0,guard=0;
+    while(placed<n&&guard++<n*40){
+      const c=cells[Math.floor(rnd()*cells.length)], square=GEO.mineCellsAt(c.gx,c.gy).map(p=>p[0]+','+p[1]);
+      if(square.some(k=>occupied.has(k))) continue;
+      for(const k of square) occupied.add(k);
+      let level; const r=rnd();
+      if(c.region) level=c.coast<=COAST_BAND?6:(r<0.30?1:r<0.55?2:r<0.75?3:r<0.90?4:5);
+      else level=c.near<=NEAR_REGION?7:(r<0.4?8:r<0.75?9:10);
+      const res=RESOURCES[Math.floor(rnd()*RESOURCES.length)];
+      out.push({id:'mn'+epoch+'_'+out.length,res,level,gx:c.gx,gy:c.gy,x:GEO.mineX(c.gx),y:GEO.mineY(c.gy),region:zone}); placed++;
+    }
   }
+  _fieldCache.set(epoch,out); if(_fieldCache.size>4) _fieldCache.delete(_fieldCache.keys().next().value);
   return out;
 }
 function nodeById(id,now){
@@ -63,4 +86,4 @@ function nodeById(id,now){
   if(!Number.isInteger(index)||index<0||index>=COUNT||id!==prefix+index) return null;
   return field(ep)[index]||null;
 }
-module.exports={EPOCH_MS,COUNT,GRID_COLS,GRID_ROWS,GRID_CELL,FOOT,COAST_BAND,NEAR_REGION,RESOURCES,MAX_LEVEL,epochAt,mineRand,field,nodeById};
+module.exports={EPOCH_MS,COUNT,REGION_QUOTA,WILD_QUOTA,GRID_COLS,GRID_ROWS,GRID_CELL,FOOT,COAST_BAND,NEAR_REGION,RESOURCES,MAX_LEVEL,epochAt,mineRand,field,nodeById};

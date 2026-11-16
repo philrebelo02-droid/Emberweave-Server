@@ -1,6 +1,6 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.EmberweaveWorldMineSync=factory();})(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
-  const EPOCH_MS=8*3600000,COUNT=240,RES=['iron','crystal','silver','coal'],MAX_LEVEL=10;   // v1131: server/world-mines.js MAX_LEVEL (region 1-6, wild 7-10; legacy fields 1-8)
+  const EPOCH_MS=8*3600000,COUNT=1560,RES=['iron','crystal','silver','coal'],MAX_LEVEL=10;   // v1131: server/world-mines.js MAX_LEVEL (region 1-6, wild 7-10; legacy fields 1-8)
   // v1227: the grid comes from world-realm.js (GEO: META.cols x rows); a node's gx,gy is the grid intersection it stands on
   function geo(){const g=typeof window!=='undefined'?window:globalThis,R=g.EmberweaveRealm||(typeof require==='function'?require('../../world-realm.js'):null);if(!R||!R.GEO)throw Error('No realm grid');return R.GEO;}
   function validate(data){
