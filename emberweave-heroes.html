@@ -13637,12 +13637,15 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
-  if(tgt._tal&&tgt._tal.on.bankPre&&tgt.pass&&tgt.pass.notthere&&src&&src.team!==tgt.team&&TalentFx.bankPre(tgt,src,amt,kind,_isAuto)) tgt._ntReady=true;   /* TALENT HOOK bankPre: Hollow's talents may make this blow miss as his passive does (a stored Interval, Knife Screen; only a talented Hollow has bankPre rows) */
+  if(tgt._tal&&tgt._tal.on.bankPre&&tgt.pass&&(tgt.pass.notthere||tgt.pass.weightless)&&src&&src.team!==tgt.team&&TalentFx.bankPre(tgt,src,amt,kind,_isAuto)){ if(tgt.pass.notthere) tgt._ntReady=true; else tgt._vyBankMiss=1; }   /* TALENT HOOK bankPre: Hollow's talents may make this blow miss as his passive does (a stored Interval, Knife Screen; only a talented Hollow has bankPre rows). v1395 (Veyr): his Weightless Predator passive gates the lane too - It Never Let Go / Head in the Clouds (only his mech sets _vyBankMiss) */
   if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=SKLV.notthere(passLv(tgt));   /* v1112: 4 s - 0.01 s a level */
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'notthere');
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
     firePassiveClip(tgt, tgt.anim&&tgt.anim.passive?(tgt.anim.passive.n/(tgt.anim.passive.fps||12)):0);
     if(tgt._tal&&tgt._tal.on.bank) TalentFx.bank(tgt,src,amt,kind,_isAuto);   /* TALENT HOOK bank: his passive has just made this blow miss (Hollow's talents: Misdirect, Forgotten, Intervals) */
+    return; }
+  if(tgt._vyBankMiss&&src&&src.team!==tgt.team){ tgt._vyBankMiss=0;   /* TALENT HOOK (Veyr): his bankPre rows (It Never Let Go, Head in the Clouds) made this blow miss - exactly as the banked passive above (only his mech sets _vyBankMiss) */
+    if(tgt._tal&&tgt._tal.on.bank) TalentFx.bank(tgt,src,amt,kind,_isAuto);
     return; }
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   const _svT=(tgt.pass&&tgt.pass.stormdodge&&tgt._tal&&tgt._tal.on.veil)?TalentFx.veil(tgt,src,_isAuto,kind,((tgt._stormT||0)>0||(tgt._castT||0)>0),SKLV.stormdodge(passLv(tgt))):-1;   /* TALENT HOOK veil: Static Veil's chance, and whether it is up, for a talented Fritz (-1 for every other unit: the line below is then the old one) */
@@ -13664,11 +13667,11 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
      is spent, and the counter is fired ONE level deep only (_ctring) so two duellists with the
      window up can never bounce counters off each other forever. */
   if(tgt&&(tgt._evadeT||0)>0&&src&&src.team!==tgt.team&&!tgt._ctring){
-    tgt._evadeT=0; tgt._untouched=0;
+    if(!((tgt._vyHm||0)>0)&&!((tgt._vyNlg||0)>0)) tgt._evadeT=0;   /* TALENT HOOK (Veyr): Hungry Mantle / Never Lets Go hold the window through its 2.4 s (only his mech sets _vyHm / _vyNlg) */ tgt._untouched=0;
     if(tgt._tal&&tgt._tal.on.evade) TalentFx.evade(tgt,src);   /* TALENT HOOK evade: the evade window was spent on src's hit (Calypsa's dodges) */
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'EVADE',t:.6,color:'#bfe8ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x9fd8ff,10); }catch(e){}
-    if(tgt.alive&&src.alive&&(tgt._evadeMul||0)>0){ tgt._ctring=1; if(typeof SFX!=='undefined'&&SFX.loop) sfxMoment(tgt,'blue');   /* v1138 sound: the counter strike */
+    if(tgt.alive&&src.alive&&(tgt._evadeMul||0)>0&&!((tgt._vyNlg||0)>0)&&!((tgt._vyNoCtr||0)>0)){ tgt._ctring=1; if(typeof SFX!=='undefined'&&SFX.loop) sfxMoment(tgt,'blue');   /* v1138 sound: the counter strike */   /* TALENT HOOK (Veyr): with Never Lets Go the counter falls at the window's end (his mech fires it); with Hungry Mantle it falls once (his mech clears _vyNoCtr when the window ends) */
       if(tgt._bloomOn){ tgt._bloomOn=0; bloomstepJump(tgt,src); }   /* v1186 Bloomstep: he appears behind the one that hit him, then the counter lands */
       /* v1114: the counter used Attack for every hero - Vaelora (Mage, 16 Attack / 32 AP) and Veyr (Magic) countered at half strength.
          It now swings off the hero's own stat like every other ability (heroScaleMode: Magic/Healer -> Ability Power, magic damage). */
@@ -13679,8 +13682,8 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
       tgt._ctring=0; }
     /* v527 - the two passives that pay out ON a dodge, not on a hit. */
     if(tgt.pass&&tgt.pass.weightless){ const pm=(tgt.passMul||1);
-      tgt.hasteMul=Math.min(1.6,Math.max(tgt.hasteMul||1,1)+0.08*pm); tgt.hasteT=Math.max(tgt.hasteT||0,5);
-      { const _c0=tgt.glyphCrit||0; tgt.glyphCrit=Math.min(0.6,_c0+0.05*pm); tgt._wlCrit=(tgt._wlCrit||0)+(tgt.glyphCrit-_c0); }   /* v1311 (Phil 8 Nov: "no reset it per wave"): the dodge crit is counted apart and cleared every wave */
+      tgt.hasteMul=Math.min(1.6,Math.max(tgt.hasteMul||1,1)+0.08*pm*(tgt._vyWlH||1)); tgt.hasteT=Math.max(tgt.hasteT||0,5);
+      { const _c0=tgt.glyphCrit||0; tgt.glyphCrit=Math.min(0.6,_c0+0.05*pm*(tgt._vyWlC||1)); tgt._wlCrit=(tgt._wlCrit||0)+(tgt.glyphCrit-_c0); }   /* v1311 (Phil 8 Nov: "no reset it per wave"): the dodge crit is counted apart and cleared every wave */   /* TALENT HOOK (Veyr): Predator's Ease / Giddy Height strengthen the two payments (only his mech sets _vyWlH / _vyWlC, 1 without them) */
       firePassiveFx(tgt);
       floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'WEIGHTLESS',t:.8,color:'#3a5fa8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'weightless',1.5); }
     if(tgt.pass&&tgt.pass.prismscales&&src.alive&&!tgt._ctring){ tgt._ctring=1;
