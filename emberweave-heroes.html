@@ -15229,6 +15229,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil,slow:und?(o.undertowSlow||2/0.7):0};   /* v1137 (Phil 15 Oct "make it a full 2 seconds"): 2 s AFTER ccDur's 30% cut, like Vael's Warcry fear */
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'worldweight':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER, L=o.lift||2.0;   /* v920 Weight of the World (Phil): lift 2 s, slam, stun 1 s - not a pull */
+      if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||2.0)*rm);   /* TALENT HOOK at: the ultimate's centre and radius (Vulmar's The Pressed District, Avalanche Field, What Cannot Be Lifted) */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(ctr,e)>=R) return; const amt=dB*(o.mul||2.0)*rm;
         if(brnd()>=ccChanceFor(u,e)){ dealDamage(u,e,amt,'#b06bff'); floatTexts.push({x:e.x,y:e.y-10,txt:'RESIST',t:.7,color:'#9fb4cc',vy:1.1,sz:10}); return; }
         e._liftT=L; e._liftL=L; e._liftBy=u; e._liftDmg=amt; e._liftStun=o.slamStun||1.0;   /* not 'stun': the control table would rewrite it (Phil set 1 s) */
@@ -15238,10 +15239,10 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); ccApply(u,e,'stunned',o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
-      const proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; const others=foes.filter(e=>e!==proj);
-      const anvil=others.length?others.slice().sort((a,b)=>dist(proj,a)-dist(proj,b))[0]:null;
+      let proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; if(u._tal&&u._tal.on.skillTgt) proj=TalentFx.skillTgt(u,type,proj,o)||proj;   /* TALENT HOOK skillTgt: whom the sling seizes (Vulmar's Sling Aside; his rows see it) */ const others=foes.filter(e=>e!==proj);
+      let anvil=others.length?others.slice().sort((a,b)=>dist(proj,a)-dist(proj,b))[0]:null; if(anvil&&u._tal&&u._tal.on.skillTgt) anvil=TalentFx.skillTgt(u,'vuAnvil',anvil,o)||anvil;   /* TALENT HOOK skillTgt: whom it is hurled into (Vulmar's Cast Far) */
       dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); ccApply(u,proj,'stunned',0.6);
-      if(anvil){ if(proj&&proj._tal&&proj._tal.on.unmoved&&proj.immovable) TalentFx.unmoved(proj,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); ccApply(u,anvil,'stunned',0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
+      if(anvil&&!(u._vuNoAnvil>0)){   /* TALENT HOOK (Vulmar): Great Fall drops the enemy with no second one hit (only his mech sets _vuNoAnvil, in his sling's kit row) */ if(proj&&proj._tal&&proj._tal.on.unmoved&&proj.immovable) TalentFx.unmoved(proj,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); ccApply(u,anvil,'stunned',0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
       burstAt(proj.x,proj.y,0x8B5CF6,14); break; }
     case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       let pullFoes=foes;
@@ -15255,7 +15256,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         }
         pullFoes=foes.filter(e=>e!==near); if(!pullFoes.length)break;
       }
-      const tg2=o.nearest?pullFoes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]:pullFoes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
+      let tg2=o.nearest?pullFoes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]:pullFoes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0]; if(u._tal&&u._tal.on.skillTgt) tg2=TalentFx.skillTgt(u,type,tg2,o)||tg2;   /* TALENT HOOK skillTgt: whom the drag seizes (Vulmar's Gravity Shelter; his rows see it) */
       /* v489 (Phil: "just make the hero get dragged faster, make its arrival time match the animation time"). The drag was
          timed off the ability's own `dur` with a 22px/s floor, so on a long yank he was still travelling after the fist had
          finished closing. It is now timed off the HAND CLIP itself, a shade quicker, so he lands as the fist shuts. */
@@ -17391,7 +17392,7 @@ function think(u,dt){
   /* v920 Weight of the World: a lifted unit hangs in the air for the whole lift (Control Resist does not shorten it), then is slammed. */
   if((u._liftT||0)>0){ u._liftT-=dt; u.target=null; u.attackAnim=0; u.castAnim=0;
     if(u._liftT<=0){ u._liftT=0; const by=u._liftBy; u._liftBy=null;
-      if(u.alive){ dealDamage(by,u,u._liftDmg||0,'#b06bff'); if(u.alive) u.stunned=Math.max(u.stunned||0,u._liftStun||1.0);
+      if(u.alive){ if(by&&by._tal) TalentFx.partPre(by,u,'slam');   /* TALENT HOOK partPre: the slam's hit is the ultimate's (Vulmar's slam rows) */ dealDamage(by,u,u._liftDmg||0,'#b06bff'); if(u.alive) u.stunned=Math.max(u.stunned||0,u._liftStun||1.0); if(by&&by._tal) TalentFx.part(by,u,'slam');   /* TALENT HOOK part: the slam has landed (his slam riders) */
         try{ ringBurst(u.x,u.y,0x8B5CF6,16); burstAt(u.x,u.y,0xb06bff,10); }catch(_e){} } }
     else return; }
   if((u._sealT||0)>0){ u._sealT-=dt;   /* v920 Sealing Wax: the wax sets */
