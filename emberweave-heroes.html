@@ -7379,7 +7379,8 @@ function resetPerWave(){ try{ for(const u of units){ if(u&&u._wlCrit){ u.glyphCr
 if(typeof TalentFx!=='undefined'&&TalentFx.bind) TalentFx.bind({ units:()=>units, now:()=>battleTime, rage:()=>rageMul, rnd:()=>brnd(), METER:()=>METER,
   dist:(a,b)=>dist(a,b), damage:(u,a,c,ne)=>damage(u,a,c,ne), healUnit:(u,a)=>healUnit(u,a), healCap:u=>worldHealCap(u), pushDot:(t,dps,dur,iv,col,src,kind)=>pushDot(t,dps,dur,iv,col,src,kind),
   defMul:(s,t,k)=>defMul(s,t,k), ccDur:d=>ccDur(d), bodyR:u=>bodyR(u), ccCap:f=>CC_DUR_MAX[f], pushHot:(t,hps,dur,iv)=>pushHot(t,hps,dur,iv),
-  slowMul:u=>slowMulFor((u&&u._castLv)||(u&&u.level)||1), healFrom:(s,t,a)=>healFrom(s,t,a), lowestAlly:u=>lowestAlly(u), densest:(u,R)=>densestEnemyCluster(u,R), pitch:(u,sym)=>SKLV[sym?'pitchSymphony':'pitch'](passLv(u)), fx:{ chill:(t,u)=>{ if(!(u&&u.pass&&u.pass.coldsnap)) return false; applyChill(t); } } });   /* Chill exists only with Cold Snap unlocked, as for her skills */
+  slowMul:u=>slowMulFor((u&&u._castLv)||(u&&u.level)||1), healFrom:(s,t,a)=>healFrom(s,t,a), lowestAlly:u=>lowestAlly(u), densest:(u,R)=>densestEnemyCluster(u,R), pitch:(u,sym)=>SKLV[sym?'pitchSymphony':'pitch'](passLv(u)),
+  castCancel:(u,why)=>castCancel(u,why),   /* 15 Nov 2026 (Vesper's talents): a cast of the unit's fails by the game's own cancel (Marginalia's Correction, The True Version's window) */ fx:{ chill:(t,u)=>{ if(!(u&&u.pass&&u.pass.coldsnap)) return false; applyChill(t); } } });   /* Chill exists only with Cold Snap unlocked, as for her skills */
 /* 14 Nov 2026 (Aldren's talents): more of the fight's own functions for the mechanics runtime - a summon called by a talent, a summon sent away, and one of the
    hero's own skills cast at a unit by a talent (no press, no cooldown). Only learned talent rows ever call them. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ summon:(o,key,dur,off)=>summonUnit(o,key,dur,off), unsummon:p=>killSummon(p),
@@ -14614,7 +14615,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const far=foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const ddx=far.x-u.x, ddy=far.y-u.y, L=Math.hypot(ddx,ddy)||1, ux=ddx/L, uy=ddy/L, W=o.width||34*UNIT_SIZE;
       const hit=foes.filter(e=>{ const rx=e.x-u.x, ry=e.y-u.y, t=rx*ux+ry*uy;
-        return t>=0 && t<=L+20 && Math.abs(rx*uy-ry*ux)<=W; });
+        return t>=0 && t<=L+(o.reach!=null?o.reach:20) && Math.abs(rx*uy-ry*ux)<=W; });
       hit.forEach(e=>dealDamage(u,e,dB*(o.mul||1.1)*rm,'#c9a227'));
       spawnShot(u,far,'#c9a227');
       u._pageBack={list:hit,t:(o.back||0.45)*BATTLE_PACE,mul:dB*(o.backMul||0.7)*rm};
@@ -18745,7 +18746,9 @@ function _updateBattleCore(dt){
     if((u._blT||0)>0){ u._blT-=dt; if(u._blT<=0)u._blStk=0; }
     // Vesper "The Annotator"'s pages coming back down the lane
     if(u._pageBack){ u._pageBack.t-=dt; if(u._pageBack.t<=0){ const pb=u._pageBack; u._pageBack=null;
+      if(u._tal) TalentFx.partPre(u,pb,'vpBack');   /* TALENT HOOK partPre / part 'vpBack': the Loose Leaf pages' return pass is the skill's (Vesper's Loose Leaf rows; ctx.tgt = the pending return, whose list it cuts) */
       pb.list.forEach(e=>{ if(e.alive) dealDamage(u,e,pb.mul,'#c9a227'); });
+      if(u._tal) TalentFx.part(u,pb,'vpBack');   /* TALENT HOOK */
       ringBurst(u.x,u.y,0xc9a227,10); } }
   });
   // Purple passives that tick over time (team-wide)

@@ -19074,7 +19074,7 @@ return module.exports;})();
    - Scriptorium (passive, from 3 stars): every living unit of her side gains 1 x passMul energy a second.
    Notes, Corrected, Struck Out, Second Verse, Ink, Proof, Crossed, Deadline, Proofread and Fair Copy exist only through her talents. Each family's bookkeeping runs
    when any talent of it is learned, so every talent works on its own (the defining talent's ranks give the family's base number).
-   Readings, caps and corrected tooltips: WIRING/61 - VESPER - talent decisions.md. */
+   Readings, caps and corrected tooltips: WIRING/62 - VESPER - talent decisions.md. */
 const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
 const P=(name,b)=>({$:name,b:b||0});      // a base + everything her learned talents add to the named number
 /* the families: their bookkeeping runs when any of these is learned */
@@ -19150,7 +19150,7 @@ module.exports={
     rp_8_3:[ {on:'cd',less:R(0.01)} ],                                                                           // Fine Print
     rp_8_4:[ {on:'kit',skill:'erratafield',opt:{dps:{more:R(0.05)}}} ],                                          // Dry Ink
     rp_9_1:[ {param:'so.eh',add:R(0.015)} ],                                                                     // Errant Hand (in struckOut; srcK)
-    rp_9_2:[ {param:'cr.fd',add:1} ],                                                                            // Last Revision (was Final Draft; in press)
+    rp_9_2:[ {param:'cr.fd',add:1} ],                                                                            // Final Draft (in press)
     rp_10_1:[ {param:'so.k',add:R(0.05)} ],                                                                      // Long Memory
     rp_10_3:[ {param:'fz.ext',add:R(0.1)} ],                                                                     // Eleven Errors (in ccHit)
     rp_n3:[  {param:'fr.k',add:R(0.05)} ],                                                                       // For the Record (in silence, ccHit, castEnd; srcK)
@@ -19186,7 +19186,7 @@ module.exports={
     sv_7_3:[ {param:'ab.ev',add:R(0.02)} ],                                                                      // Early Verse (in abK)
     sv_8_3:[ {param:'ec.bt',add:R(0.04)} ],                                                                      // Bold Type (in echoLand)
     sv_5_2:[ {param:'tt.on',add:1} ],                                                                            // Twice Torn (PICK ONE; backEnd)
-    sv_5_3:[ {on:'kit',skill:'pagestorm',opt:{width:{more:0.3}}} ],                                              // Long Stanza (PICK ONE)
+    sv_5_3:[ {on:'kit',skill:'pagestorm',opt:{width:{more:0.3},reach:{addM:3}}} ],                              // Long Stanza (PICK ONE): the line reaches 3 m past the farthest enemy (the page reads o.reach, engine length units)
     sv_8_4:[ {param:'ink.max',add:R(5)}, {param:'pf.ov',add:R(0.02)} ],                                          // Overflowing Ink
     sv_9_2:[ {param:'ink.tp',add:R(1)} ],                                                                        // Turned Page (in backEnd)
     sv_9_3:[ {param:'ab.uf',add:R(0.02)} ],                                                                      // Unfinished (in abK)
@@ -19248,7 +19248,7 @@ module.exports={
       if(o.f==null) o.f={nt:any(T,NOTE), so:any(T,SO), ink:any(T,INK), pr:any(T,PR), fc:any(T,FC), dl:any(T,DL), hd:!!P['ink.hd']&&!!T.r.sv_1_4};
       /* her Errata fields still down; one that has gone (its time ran out) ends: Redaction */
       if(o.hz.length){ const H=E.hazards?E.hazards():[]; for(let i=0;i<o.hz.length;i++){ const h=o.hz[i]; if(H.indexOf(h)>=0&&h.life>0) continue; o.hz.splice(i--,1);
-          if(P['red.on']&&!o.wvCut) for(const e of F) if(Math.hypot(e.x-h.x,e.y-h.y)<=h.r) T.fn.silence(A,T,u,e,1); } }
+          if(P['red.on']&&!o.wvCut) for(const e of F) if(Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ const cap=E.ccCap('silencedT'), d=0.7*(1-Math.min(1,e.ctrlRes||0)); e.silencedT=Math.min(cap||(e.silencedT||0)+d,(e.silencedT||0)+d); } } }
       o.wvCut=0;
       /* the enemies, one walk: records' countdowns, presses, freeze ends, half health */
       const tvOn=A.winOn(T,'vpTV'), watchP=o.f.nt||tvOn;
@@ -19303,10 +19303,10 @@ module.exports={
     addInk(A,T,u,n){ if(!(n>0)) return; A.stSet(T,u,'vpInk',A.stGet(T,'vpInk')+n); },
     castEnd(A,T,u,c){ const o=S(T), P=T.P, E=A.eng(), R0=o.rec, sk=c.skill; o.rec=null; if(!R0||R0.skill!==sk) return;
       if(sk==='erratafield'&&any(T,ERR)){ const H=E.hazards?E.hazards():[]; for(let i=H.length-1;i>=0;i--){ const h=H[i]; if(h.src===u&&h.silence&&!h._talZ){ h._talZ=u; h._vpF={seen:new Set(),sil:new Set()}; h._vpL0=h.life; o.hz.push(h); R0.hz=h; break; } } }
-      if(sk==='pagestorm'){ if(u._pageBack) u._pageBack._vpR=R0;
+      if(sk==='pagestorm'){ if(u._pageBack){ u._pageBack._vpR=R0; o.pbT=u._pageBack.t; }
         if(P['mh.k']){ const F=foes(A,u); let far=null,fd=-1; for(const e of F){ const d=E.dist(u,e); if(d>fd){ fd=d; far=e; } }
-          if(far){ const L=Math.hypot(far.x-u.x,far.y-u.y)||1, ux=(far.x-u.x)/L, uy=(far.y-u.y)/L, W=(c.o&&c.o.width)||34*1.15;
-            for(const a of mates(A,u)){ const rx=a.x-u.x, ry=a.y-u.y, p=rx*ux+ry*uy; if(p>=0&&p<=L+20&&Math.abs(rx*uy-ry*ux)<=W) a.energy=Math.min(100,(a.energy||0)+P['mh.k']); } } } }
+          if(far){ const L=Math.hypot(far.x-u.x,far.y-u.y)||1, ux=(far.x-u.x)/L, uy=(far.y-u.y)/L, W=(c.o&&c.o.width)||34*1.15, RCH=(c.o&&c.o.reach!=null)?c.o.reach:20;
+            for(const a of mates(A,u)){ const rx=a.x-u.x, ry=a.y-u.y, p=rx*ux+ry*uy; if(p>=0&&p<=L+RCH&&Math.abs(rx*uy-ry*ux)<=W) a.energy=Math.min(100,(a.energy||0)+P['mh.k']); } } } }
       if(sk==='riftpuncture') T.fn.puncture(A,T,u,c,R0);
       /* the Second Verse: every 3rd ability (Chorus: every 2nd); Marked for Reprint's link; The Unprinted Verse's 6 s at full damage */
       if(any(T,ECHO)){ o.cn++; const every=P['ec.ch']?2:3, uv=A.winOn(T,'vpUV')&&sk!=='riftpuncture', link=o.lk&&T.r.sv_1_1;
@@ -19329,8 +19329,8 @@ module.exports={
     ccHit(A,T,u,c){ const o=S(T), P=T.P, t=c.tgt; if(c.talent||!t||t.team===u.team||!(c.amt>0)||T.s.cur!=='riftpuncture') return; const R0=o.rec;
       if(c.field==='stunned'){ const r=T.fn.rec(T,t), run=r.st>0, room=run?Math.max(0,RUN_TOP-r.re):RUN_TOP, x=P['fz.ext']||0;
         const L=(r.cap>0)?0:Math.min(CTRL_MAX,(c.amt||0)+x,room); t.stunned=L>c.amt?L:Math.min(t.stunned||0,Math.max(L,0)); if(r.cap>0&&!(L>0)) t.stunned=Math.max(0,t.stunned);
-        r.fx=Math.max(0,(t.stunned||0)-(c.amt||0)); if(!run) r.re=0; r.st=Math.max(r.st,t.stunned||0); if(R0&&t.alive&&(t.stunned||0)>0) R0.fz.push(t); }
-      if(c.field==='silencedT'){ if(R0) R0.sil.add(t); const r=T.fn.rec(T,t), x=(r.fx||0)+(P['si.ext']||0); r.fx=0; if(x>0) t.silencedT=Math.max(t.silencedT||0,Math.min((t.stunned||0)+CTRL_MAX,(c.amt||0)+x));
+        if(!run) r.re=0; r.st=Math.max(r.st,t.stunned||0); if(R0&&t.alive&&(t.stunned||0)>0) R0.fz.push(t); }
+      if(c.field==='silencedT'){ if(R0) R0.sil.add(t); const r=T.fn.rec(T,t), x=P['si.ext']||0; if(x>0) t.silencedT=Math.max(t.silencedT||0,Math.min((t.stunned||0)+CTRL_MAX,(c.amt||0)+x));
         if(P['so.pun']||(any(T,SO)&&T.r.rp_11_1)) T.fn.struckOut(A,T,u,t); } },
     /* ---- AN ENEMY PRESSED A GREEN OR BLUE (its cooldown is set and its cast is pending): a Correction makes it fail (the game's own cast cancel: the cooldown
        runs from the press, nothing resolves), Last Revision; The True Version's 6 s: one cast inside an Errata of hers fails and is Struck Out ---- */
@@ -19352,12 +19352,13 @@ module.exports={
        pressed: Last Revision); Lost Lines, Errant Hand ---- */
     struckOut(A,T,u,e,how){ const P=T.P, add=P['so.k']||0; if(!e||!e.alive) return; const L=[];
       if(e.greenAb&&e.greenAb.cd>0) L.push('greenCd'); if(e.blueAb&&e.blueAb.cd>0) L.push('blueCd'); if(!L.length) return;
-      let pick=[]; if(how==='other'){ const p=L.slice().sort((a,b)=>(e[b]||0)-(e[a]||0)); pick=p.slice(1); if(!pick.length) return; }
+      let pick=[]; if(how==='other'){ const p=L.slice().sort((a,b)=>(e[a]||0)-(e[b]||0)); pick=p.slice(1); if(!pick.length) return; }   // the pressed one (closest to ready) is left alone; the others take the penalty
       else { let b=L[0]; for(const f of L) if((e[f]||0)<(e[b]||0)) b=f; pick=[b]; }
       for(const f of pick){ if(add>0) e[f]=(e[f]||0)+add; if(P['so.nrg']) u.energy=Math.min(100,(u.energy||0)+P['so.nrg']); S(T).soN=(S(T).soN||0)+1; }
       if(P['so.eh']) A.setMark(T,u,e,'vpEH',{dur:3}); },
-    /* ---- a silence a talent of hers writes (Errata Slip, Redaction, Blotted): the stated seconds, through the engine's control; For the Record when it does not take ---- */
-    silence(A,T,u,t,secs){ if(!t||!t.alive) return; A.control(T,u,t,'silencedT',secs); if(!((t.silencedT||0)>0)) T.fn.ftr(A,T,u,t); },
+    /* ---- a silence a talent of hers writes (Errata Slip, Redaction, Blotted): the stated seconds through the engine's control
+       (the same 0.7 the engine's own controls land at); For the Record when it does not take ---- */
+    silence(A,T,u,t,secs){ if(!t||!t.alive) return; A.control(T,u,t,'silencedT',secs*0.7); if(!((t.silencedT||0)>0)) T.fn.ftr(A,T,u,t); },
     ftr(A,T,u,t){ const P=T.P; if(!P['fr.k']||!t||!t.alive) return; const r=T.fn.rec(T,t); if(r.fr>0) return; r.fr=12; A.setMark(T,u,t,'vpFR',{dur:3}); S(T).frN=(S(T).frN||0)+1; },
     /* ---- HER ERRATA: each tick on one enemy (num 'hzTick': her damage talents, Ink the first time it reaches an enemy), then after the tick (part 'hz'): the enemies
        it silenced, Struck Out the first time this field silences each one ---- */
