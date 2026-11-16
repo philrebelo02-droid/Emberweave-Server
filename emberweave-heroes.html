@@ -24489,7 +24489,10 @@ async function renderWatchTower(){
       const rows=[];
       recorded.mates.forEach(w=>(Array.isArray(w.marches)?w.marches:[]).forEach(m=>{
         if((m.kind!=='city'&&m.kind!=='mine')||m.defend||m.garrison)return;   // v1097: stationed defenders are not attacks (v1237: nor city garrison lines)
-        const target=m.kind==='mine'?t('watch.mine',{lv:m.level??'?',res:m.resource||'resource'}):t('watch.city',{id:m.defId||'target'});
+        /* v1392 (Soul Eater 16 Nov: "Neither the troops nor the enemy's name appear correctly"): the server's defName (the castle's map name), and
+           on your own marches the heroes you sent */
+        let target=m.kind==='mine'?t('watch.mine',{lv:m.level??'?',res:m.resource||'resource'}):t('watch.city',{id:m.defName||m.defId||'target'});
+        if(w.you&&Array.isArray(m.heroIds)&&m.heroIds.length) target+=' · '+m.heroIds.map(k=>escapeHTML((HERO_TYPES[k]&&HERO_TYPES[k].name)||k)).join(', ');
         const status=m.resolveReady?t('watch.awaiting'):m.phase==='returning'?t('watch.returning_home',{t:fmtDur(m.homeInMs)}):t('watch.arrival',{t:fmtDur(m.arriveInMs)});
         rows.push(line(w.name||t('watch.player'),target,status,!!w.you));
       }));
@@ -30419,8 +30422,8 @@ function openCityMenu(c){
     inner.appendChild(pop0); cityMenuEl=pop0; pop0.addEventListener('click',e=>e.stopPropagation());
     pop0.querySelectorAll('.cm-b').forEach(btn=>btn.onclick=()=>cityAction(btn.dataset.a,c)); return;
   }
+  if(enemy){ opts.push(['attack',statusIcon('attack')+' '+ewT('castle.attack')],['group',statusIcon('attack')+' '+ewT('castle.group_attack')]); }   /* v1392 (Phil 16 Nov: "please make the Attack button at the top") */
   opts.push(['info',uiIcon('info')+' '+ewT('castle.info')]);
-  if(enemy){ opts.push(['attack',statusIcon('attack')+' '+ewT('castle.attack')],['group',statusIcon('attack')+' '+ewT('castle.group_attack')]); }
   if(c.ally){ opts.push(['defend',statusIcon('shield')+' '+ewT('castle.defend')]); }
   opts.push(['scout',uiIcon('scout-telescope')+' '+ewT('castle.scout')],['whisper',uiIcon('chat')+' '+ewT('castle.whisper')]);
   if(!c.bot) opts.push(['block',ewT('castle.block')]);   /* v1097 (sweep #18) */
@@ -30464,9 +30467,9 @@ function cityAction(a,c){ closeCityMenu();
   // attack / group attack: only allowed once a declared war has gone LIVE (30-min countdown elapsed)
   if(a==='attack'||a==='group'){
     if(atWarWith(c.name,false)){                                                 // war is live → auto-march your wall lines (1→2→3)
-      const squad=wallOrderedSquad();
-      if(!squad.length){ bannerMsg(uiIcon('warning')+' '+ewT('castle.no_wall_heroes')); return; }
-      startMarch(a,c,squad); return; }
+      /* v1392 (Soul Eater 16 Nov: "When you press this button, a screen should appear allowing you to choose which heroes to use to attack that
+         enemy" / "the system automatically sends the first line selected on my wall"): the hero picker opens, the wall line preselected. */
+      openMarchSelect(a,c,wallOrderedSquad()); return; }
     if(warPending(c.name,false)){ bannerMsg(uiIcon('timer')+' '+ewT('castle.cannot_yet',{name:escapeHTML(String(c.name||'')),t:fmtDur(warPrepRemaining(c.name,false))})); return; }
     gameConfirm(ewT('castle.not_at_war',{name:'<b>'+escapeHTML(c.name)+'</b>',b:'<b>',eb:'</b>'}),()=>{ declareWarByMe(c); });
     return;
@@ -30474,10 +30477,11 @@ function cityAction(a,c){ closeCityMenu();
   openMarchSelect(a,c);   // defend → choose heroes
 }
 // hero-selection window for a march
-function openMarchSelect(ctype,c){
+function openMarchSelect(ctype,c,pre){   // v1392: pre = heroes to preselect (an attack's wall line), else the team
   const busy=committedHeroes(), heroes=HERO_KEYS.filter(k=>G.unlocked[k]); let hp={};
   const fallen=k=>hp[k]!=null&&hp[k]<=0, blocked=k=>busy.has(k)||fallen(k);
-  const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
+  const first=(Array.isArray(pre)&&pre.length)?pre:G.team;
+  const sel=new Set(); first.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
   const verb=ctype==='garrison'?ewT('castle.defense'):ctype==='defend'?ewT('castle.defend'):ctype==='group'?ewT('castle.group_attack'):ewT('castle.attack');
   function render(){ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:calc(var(--ew-game-height,100vh) * 0.86);overflow:auto;max-width:600px">
@@ -30492,7 +30496,7 @@ function openMarchSelect(ctype,c){
   }
   render(); document.body.appendChild(ov);
   worldHeroHp().then(h=>{ hp=h; if(!ov.isConnected) return; [...sel].forEach(k=>{ if(fallen(k)) sel.delete(k); });
-    G.team.forEach(k=>{ if(G.unlocked[k]&&!blocked(k)&&sel.size<5) sel.add(k); }); render(); });
+    first.forEach(k=>{ if(G.unlocked[k]&&!blocked(k)&&sel.size<5) sel.add(k); }); render(); });
 }
 // simple text-input modal (used by Whisper)
 function gamePrompt(title,ph,cb){

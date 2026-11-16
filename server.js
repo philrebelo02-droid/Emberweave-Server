@@ -10928,7 +10928,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     if(!me.led||ledPlayerLevel(me.led)<WITCH.UNLOCK_LEVEL)
       return send(res,200,{ok:true,locked:true,needLevel:WITCH.UNLOCK_LEVEL});
-    return send(res,200,{ok:true,locked:false,...WORLD_WATCH_STATE.snapshot(DB,me,Date.now())});
+    return send(res,200,{ok:true,locked:false,...WORLD_WATCH_STATE.snapshot(DB,me,Date.now(),{nameOf:id=>{ const u=DB.users&&DB.users[id]; if(u&&typeof u.name==='string') return u.name; const b=worldBotTarget(me,id); return b&&b.name||null; }})});   /* v1392: the target's display name */
   }
   if(p.startsWith('/api/watch')){
     if(!me) return send(res,401,{error:'auth'});

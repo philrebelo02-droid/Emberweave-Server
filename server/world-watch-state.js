@@ -1,7 +1,7 @@
 'use strict';
 const {summarize}=require('./world-march-state.js');
 // Read-only, server-recorded activity. Client reports are deliberately not read.
-function snapshot(db,me,now=Date.now()){
+function snapshot(db,me,now=Date.now(),opts={}){   // v1392: opts.nameOf(id) -> a city target's display name (Soul Eater 16 Nov)
   if(!me||typeof me.id!=='string')throw Error('Authenticated user required');
   const users=db?.users||{}, guilds=db?.guilds||{};
   const gid=typeof me.guildId==='string'?me.guildId:null;
@@ -22,7 +22,11 @@ function snapshot(db,me,now=Date.now()){
       if(m.kind==='mine'){row.mineId=m.mineId;row.resource=m.resource;row.level=m.level;}
       // Target identifier was already shared by own-march route. Never include
       // target account data, hero IDs, combat snapshots, receipts or currency.
-      if(m.kind==='city'){row.defId=m.defId;row.defend=m.defend===true;if(m.garrison===true)row.garrison=true;}   // v1211: a stationed defender is not an attack (the client filters on it); v1237: nor a city garrison line
+      if(m.kind==='city'){row.defId=m.defId;row.defend=m.defend===true;if(m.garrison===true)row.garrison=true;}
+      /* v1392 (Soul Eater 16 Nov: "Neither the troops nor the enemy's name appear correctly"): the target's DISPLAY name (the map shows it to
+         everyone already), and the player's OWN marches list their own heroes - guild mates still see no hero ids. */
+      if(m.kind==='city'&&typeof opts.nameOf==='function'){ try{ const n=opts.nameOf(m.defId); if(typeof n==='string'&&n) row.defName=n.slice(0,40); }catch(_){} }
+      if(id===me.id&&Array.isArray(m.heroIds)) row.heroIds=m.heroIds.slice(0,5);   // v1211: a stationed defender is not an attack (the client filters on it); v1237: nor a city garrison line
       return row;
     });
     if(id!==me.id&&!marches.length)continue;
