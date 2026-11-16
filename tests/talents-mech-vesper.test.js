@@ -188,7 +188,7 @@ test('Vesper / Errata\'s own rows: Narrow Margin, Broad Margin, Long Errata, Cau
   at(A2,A2.F[0],1,0); castErr(A2,A2.F[0]);
   const q0=plainHit(A2,()=>allyHit(A2,A2.A[0],A2.F[0],1000));
   near(allyHit(A2,A2.A[0],A2.F[0],1000),q0*1.09,'Ink Stain: her whole team deals 3% x 3 more to an enemy inside her Errata',1e-9);
-  /* Redaction (Phil's ruling, Claude 00:49 16 Nov): when the field ends, each enemy still inside gets +0.7 s ON TOP of
+  /* Redaction (Claude's ruling, 00:49 16 Nov): when the field ends, each enemy still inside gets +0.7 s ON TOP of
      the silence it has (1 x 0.7, minus its control resist, never past the silence ceiling); one with no silence gets the
      plain 0.7 s. The ticks silence the field's own target every 0.52 s (1.05 s each, kept-longer): an enemy the last
      tick touched ends at 1.05 + 0.7; a second foe steps in for the last heartbeat, after the last tick, once the target
