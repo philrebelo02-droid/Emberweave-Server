@@ -2120,6 +2120,14 @@ const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow',
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
 /* v1079: the arena shop catalogue (= the client's ARENA_SHOP: id, price in arena coins); day = the old /api/tx/earn daily cap / amount. */
 const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, zahrifrag:{cost:500,frag:'zahri',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
+/* v1391 (Soul Eater 15 Nov 23:24: "Limit the number of times items can be purchased from the guild shop"; Phil 16 Nov: "you do it" - Claude set the numbers):
+   each Guild Shop item has a WEEKLY purchase cap per player, reset at the game-week start (Monday, game day = nyDayKey). Slot 5 is pieces_guild. */
+const GSHOP_WEEK_LIMIT={0:3,1:7,2:3,3:7,4:5,5:5,6:5,7:7,8:2,9:1,10:3,11:2};
+function gshopWeekKey(){ const d=new Date(nyDayKey()+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7)); return d.toISOString().slice(0,10); }
+function gshopWk(led){ const w=gshopWeekKey(); if(!led.gshopWk||led.gshopWk.wk!==w) led.gshopWk={wk:w,n:{}}; return led.gshopWk; }
+function gshopLeft(led,idx){ return Math.max(0,(GSHOP_WEEK_LIMIT[idx]|0)-(gshopWk(led).n[idx]|0)); }
+function gshopCount(led,idx){ const W=gshopWk(led); W.n[idx]=(W.n[idx]|0)+1; }
+function gshopLeftView(led){ const o={}; for(const k in GSHOP_WEEK_LIMIT) o[k]=gshopLeft(led,+k); return o; }
 const GUILD_SHOP_SRV={0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
@@ -5356,6 +5364,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
+    gshopLeft:gshopLeftView(led),   /* v1391: Guild Shop weekly caps left */
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
@@ -8713,6 +8722,7 @@ async function api(req,res,url){
         const gg=me.guildId&&(DB.guilds||{})[me.guildId];
         if(!gg||!(gg.members||[]).includes(me.id)) return {ok:false,error:'Join a guild to use the Guild Shop.'};
         if(idx>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'};
+        if(gshopLeft(led,idx)<=0) return {ok:false,error:'Sold out for this week. It restocks on Monday.'};
         if((led.guildCoins|0)<it.cost) return {ok:false,error:'Not enough guild coins.'};
         const got={};
         if(it.refill){ ledStamRegen(led); const need=Math.max(0,ledStamMax(led)-led.stam.v); if(need<=0) return {ok:false,error:'Stamina is already full.'};
@@ -8729,6 +8739,7 @@ async function api(req,res,url){
           if(it.gold){ got.gold=creditGold(me,led,it.gold,'gshop:'+idx); }
           else { got.gems=creditGems(me,led,it.gems,'gshop:'+idx); }
         }
+        gshopCount(led,idx);
         ledTx(me,'gshop:'+idx,Object.assign({guildCoins:-it.cost},got));
         writeDB(); return {ok:true, got, cost:it.cost, ledger:ledgerView(me)}; }
       /* v1081 (scan 2 #1): shields are server purchases - the Shady pack (550 diamonds -> 3) and the Market Peace Shield (the market's
@@ -8769,9 +8780,11 @@ async function api(req,res,url){
         { const gg=me.guildId&&(DB.guilds||{})[me.guildId];
           if(!gg||!(gg.members||[]).includes(me.id)) return {ok:false,error:'Join a guild to use the Guild Shop.'};
           if(5>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'}; }
+        if(gshopLeft(led,5)<=0) return {ok:false,error:'Sold out for this week. It restocks on Monday.'};
         if((led.guildCoins|0)<c) return {ok:false,error:'Not enough guild coins.'};
         led.guildCoins=(led.guildCoins|0)-c; led.eqMats=led.eqMats||{};
         const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }
+        gshopCount(led,5);
         ledTx(me,'guildshop:pieces',{guildCoins:-c, mats:got});
         writeDB(); return {ok:true, mats:got, cost:c, ledger:ledgerView(me)}; }
       return {ok:false,error:'Unknown item.'};
