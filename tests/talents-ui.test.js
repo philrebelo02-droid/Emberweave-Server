@@ -91,7 +91,8 @@ test('flag on: tab order, the trees, the card, learn to the signature, a locked 
   assert.equal(await pg.evaluate(()=>!!document.getElementById('tlNote')),false,'"Talents open at hero level 10" is not shown once the hero is level 10 or more');
   assert.equal(await pg.evaluate(()=>document.getElementById('heroDetail').classList.contains('tl-short')),false,'a tall window keeps the full hero header');
   assert.deepEqual(await pg.evaluate(()=>{ const sc=document.getElementById('tlScroll'); return {hdrOut:!sc.contains(document.getElementById('tlPts'))&&!sc.contains(document.querySelector('.tl-bn'))&&!sc.contains(document.getElementById('tlReset')),scroll:getComputedStyle(sc).overflowY,taller:sc.scrollHeight>sc.clientHeight}; }),{hdrOut:true,scroll:'auto',taller:true},'the banners, Points and Reset are a fixed header; the board scrolls under it');
-  assert.equal(await pg.evaluate(()=>document.querySelector('.tl-plays').textContent),trees[0].plays);
+  assert.equal(await pg.evaluate(()=>!!document.querySelector('.tl-plays')),false,'no tree text on the panel (v1399: Phil "use that entire left area")');
+  await pg.hover('.tl-bn.on'); await wait(150); assert.ok(await pg.evaluate(p=>{ const t=document.getElementById('tlTreeTip'); return !!t&&t.textContent.includes(p); },trees[0].plays),'hover on the tree banner: its description as a tooltip'); await pg.mouse.move(2,2);
   await pg.waitForFunction(()=>document.querySelectorAll('.tl-cell img.tl-art').length>0,null,{timeout:15000});
   for(let i=0;i<3;i++){ await pg.click('.tl-bn[data-tl-tree="'+i+'"]');
     const got=await pg.evaluate(()=>({n:document.querySelectorAll('.tl-cell').length,art:document.querySelectorAll('.tl-cell img.tl-art').length,arrows:document.querySelectorAll('.tl-ln').length,tiers:document.querySelectorAll('.tl-tier').length,
@@ -133,7 +134,7 @@ test('flag on: tab order, the trees, the card, learn to the signature, a locked 
   // a double click shows the tooltip (and learns nothing); a press anywhere else puts it away
   await pg.mouse.move(5,5); await wait(450); await pg.dblclick('#tl_'+first[0]); await wait(300);
   assert.equal((await tip(pg)||{}).id,first[0],'a double click keeps the tooltip up'); assert.deepEqual(await build(pg),{r:{[first[0]]:1}},'a double click learns nothing');
-  await pg.click('.tl-plays'); assert.equal(await pg.evaluate(()=>!!document.getElementById('tlCard')),false,'a press anywhere else closes the tooltip');
+  await pg.click('#tlPts'); assert.equal(await pg.evaluate(()=>!!document.getElementById('tlCard')),false,'a press anywhere else closes the tooltip');
   await pg.click('#tl_'+first[0]); await pg.click('#tlLearn'); await pg.waitForFunction(id=>(G.talents.vael||{r:{}}).r[id]===2,first[0]);
   await wait(450); await pg.dblclick('#tl_'+deep[0]); await wait(600);
   assert.deepEqual(await build(pg),{r:{[first[0]]:2}}); assert.match(await pg.evaluate(()=>document.querySelector('#tlCard .tl-cw').textContent),/more points? in this tree/);
@@ -249,14 +250,18 @@ test('flag on, a phone in landscape (844 x 390): the painted panel in the right 
     const tiers=document.querySelectorAll('.tl-tier').length, rows=new Set([...document.querySelectorAll('.tl-cell')].filter(ok).map(c=>c.style.top)).size;
     const strip=[...document.querySelectorAll('#heroDetailBody .hd-left > .hd-name,#heroDetailBody .hd-left > .hd-lvl,#heroDetailBody .hd-port')].map(e=>{ const r=e.ewGameRect(); return r.width>0&&r.top>=0&&r.bottom<=V.height; });
     const side=['.tl-hdr','#tlPts','#tlReset'].map(q=>{ const r=document.querySelector(q).ewGameRect(); return r.height>0&&r.top>=0&&r.bottom<=V.height+1; });
-    return {tiers,rows,strip,side,plays:getComputedStyle(document.getElementById('tlPlays')).display,sy:getComputedStyle(document.getElementById('tlScroll')).overflowY,name:document.querySelector('#heroDetailBody .hd-left > .hd-name').textContent.trim().slice(0,4),lvl:document.querySelector('#heroDetailBody .hd-lvl').textContent}; });
-  assert.ok(vis.tiers===0&&vis.rows>=4,'at least 4 whole rows of the board are on screen without scrolling, no tier column ('+vis.tiers+' tier labels, '+vis.rows+' icon rows)');
+    return {tiers,rows,strip,side,plays:!!document.getElementById('tlPlays'),sy:getComputedStyle(document.getElementById('tlScroll')).overflowY,name:document.querySelector('#heroDetailBody .hd-left > .hd-name').textContent.trim().slice(0,4),lvl:document.querySelector('#heroDetailBody .hd-lvl').textContent}; });
+  /* v1399 (Phil 17 Nov: "use that entire left area for the talent tab"): the board is the whole panel wide and scrolls - at least one whole row on screen */
+  assert.ok(vis.tiers===0&&vis.rows>=1,'a whole row of the board is on screen, no tier column ('+vis.tiers+' tier labels, '+vis.rows+' icon rows)');
+  assert.equal(vis.plays,false,'no tree text on the panel (it is the tree banner tooltip)');
   assert.deepEqual(vis.strip,[true,true,true],'portrait, name and level are on the strip'); assert.equal(vis.name,'Vael'); assert.match(vis.lvl,/100/);
-  assert.deepEqual(vis.side,[true,true,true],'tree banners, points and Reset are on screen'); assert.equal(vis.plays,'block','the description stands in the info column'); assert.equal(vis.sy,'auto');
-  assert.equal(await pg.evaluate(()=>{ const i=document.querySelector('.tl-info').ewGameRect(), p=document.getElementById('tlPw').ewGameRect(); return i.right<=p.left+1; }),true,'the info column on the left, the painted panel on the right');
+  assert.deepEqual(vis.side,[true,true,true],'tree banners, points and Reset are on screen'); assert.equal(vis.sy,'auto');
+  assert.equal(await pg.evaluate(()=>{ const p=document.querySelector('.tl-panel'), w=document.getElementById('tlPw'); return !document.querySelector('.tl-plays')&&w.offsetWidth>=p.clientWidth-40; }),true,'no info column: the painted panel takes the whole width (v1399)');
   assert.deepEqual(await fits(pg),[]); await shot(pg,'landscape-01-talents-open');
-  // the tree's description is in the info column; another tree's banner switches tree
-  assert.equal(await pg.evaluate(()=>document.getElementById('tlPlays').textContent),T.trees('vael')[0].plays);
+  // the tree's description is a tooltip on its banner (a double tap); another tree's banner switches tree
+  await pg.tap('.tl-bn[data-tl-tree="0"]'); await pg.tap('.tl-bn[data-tl-tree="0"]'); await wait(200);
+  assert.ok(await pg.evaluate(p=>{ const t=document.getElementById('tlTreeTip'); return !!t&&t.textContent.includes(p); },T.trees('vael')[0].plays),'a double tap on the tree banner shows its description');
+  await pg.tap('#tlPts'); assert.equal(await pg.evaluate(()=>!!document.getElementById('tlTreeTip')),false,'a tap elsewhere puts it away'); await wait(450);
   await pg.tap('.tl-bn[data-tl-tree="1"]'); assert.equal(await pg.evaluate(()=>document.getElementById('tlBoard').dataset.tree),T.trees('vael')[1].id); await shot(pg,'landscape-02-second-tree'); await pg.tap('.tl-bn[data-tl-tree="0"]');
   // the board scrolls by itself, and a learn keeps it where it was
   const first=T.trees('vael')[0].talents.find(x=>x[1]===1);
@@ -299,7 +304,7 @@ test('flag on: an unwired hero shows its trees with a notice and cannot learn; t
     L.hero[LOCKED]={xp:xpFor(50),stars:1,pips:0,ref:0}; L.unlocked[LOCKED]=true; L.hero[DOTH]={xp:xpFor(10),stars:1,pips:0,ref:0}; L.unlocked[DOTH]=true; }); let pg; try{
   pg=await game(s.port,1400,900,false); try{
   const view=k=>pg.evaluate(k=>({soon:(document.getElementById('tlSoon')||{}).textContent||null,cells:document.querySelectorAll('.tl-cell').length,can:document.querySelectorAll('.tl-cell.can').length,
-    art:document.querySelectorAll('.tl-cell img.tl-art').length,lit:document.querySelectorAll('.tl-cell:not(.no):not(.lock) img.tl-art').length,plays:document.getElementById('tlPlays').textContent,
+    art:document.querySelectorAll('.tl-cell img.tl-art').length,lit:document.querySelectorAll('.tl-cell:not(.no):not(.lock) img.tl-art').length,plays:(TALENTS.trees(k)[TAL.tree[k]|0]||{}).plays,
     dot:heroUpgrades(k).talents,tabDot:!!document.querySelector('#heroDetailBody .hd-tab[data-tab="talents"] .hupDot')}),k);
   const cardDot=k=>pg.evaluate(k=>!!document.querySelector('#heroList .hero-card[data-hero-key="'+k+'"] > .hupDot'),k);
   // ---- the unwired hero ----
@@ -415,7 +420,7 @@ test('painted panel: the kit, each tree in its element, four columns, no tier co
       await wait(450); assert.deepEqual(await build(pg),{r:{}},'a tap learns nothing');
       await pg.tap('#tl_'+t1[0]); await pg.tap('#tl_'+t1[0]); await wait(300); assert.deepEqual(await tip(pg),{id:t1[0],clear:true,in:true},'a double tap: the tooltip beside the talent');
       assert.deepEqual(await build(pg),{r:{}},'a double tap learns nothing');
-      await pg.tap('#tlPlays'); assert.equal(await pg.evaluate(()=>!!document.getElementById('tlCard')),false,'a tap elsewhere puts it away');
+      await pg.tap('#tlPts'); assert.equal(await pg.evaluate(()=>!!document.getElementById('tlCard')),false,'a tap elsewhere puts it away');
       await shot(pg,'kit-landscape-'+trees[0].id); }
     else { await pg.hover('#tl_'+t1[0]); assert.deepEqual(await tip(pg),{id:t1[0],clear:true,in:true},'hover: the tooltip beside the talent');
       const ta=await pg.evaluate(()=>{ const c=document.getElementById('tlCard'), m=/\/ui\/talents\/([A-Za-z]+)\/tooltip-notch-(\w+)\.png/.exec(c.querySelector('.tl-tbg').getAttribute('src')); return {el:m[1],notch:m[2],side:c.dataset.side,board:document.getElementById('tlPnl').dataset.el}; });

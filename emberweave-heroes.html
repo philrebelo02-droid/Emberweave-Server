@@ -1516,6 +1516,9 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tl-role{display:flex;align-items:center;gap:5px;font:800 10px system-ui,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#e9c66c;margin-bottom:4px}
 .tl-plays{font-size:12px;line-height:1.5;color:#c3ccd8}
 .tl-note{margin-top:5px;font-size:11px;color:#9fb0c9}
+/* v1399: the tree's role and how it plays - a tooltip on its banner (mouse hover, or a double tap), never a column on the panel */
+#tlTreeTip{position:fixed;z-index:99990;max-width:300px;box-sizing:border-box;padding:9px 12px;border-radius:10px;border:1px solid var(--tl-hi);background:linear-gradient(#1b1626,#0d0b13);box-shadow:0 10px 26px rgba(0,0,0,.75);color:var(--tl-tx);font:12px/1.45 system-ui,sans-serif;pointer-events:none}
+#tlTreeTip b{display:block;margin-bottom:4px;font:800 10px system-ui,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--tl-hi)}
 .tl-pw{position:relative;margin:0 auto;overflow:hidden;width:520px;height:780px;border-radius:8px;box-shadow:0 8px 26px rgba(0,0,0,.55);background:#07080b}
 .tl-pnl{position:absolute;left:0;top:0;width:520px;height:780px;transform-origin:0 0;overflow:hidden;-webkit-user-select:none;user-select:none;
   --tl-hi:#e8c48a;--tl-tx:#f6e6c8;--tl-bt:#f3dfbd;--tl-tt:#3a2a1a;--tl-tw:#8a2414;--tl-tf:#6b4a12}
@@ -1600,13 +1603,13 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 #heroDetail.tl-short .hd-tabbar.hd-six .hd-tab,#heroDetail.tl-short .hd-tab{padding:5px 3px}
 #heroDetail.tl-short .hd-tabcontent{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 #heroDetail.tl-short .hd-power{display:none}
-#heroDetail.tl-short .tl-panel{flex:1 1 auto;min-height:0;max-width:none;margin:0;padding:4px 5px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:8px}
-#heroDetail.tl-short .tl-info{margin:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px 2px 4px}
+#heroDetail.tl-short .tl-panel{flex:1 1 auto;min-height:0;max-width:none;margin:0;padding:4px 5px;display:flex;flex-direction:column;align-items:center;gap:4px}   /* v1399: the board alone, whole width */
+#heroDetail.tl-short .tl-info{margin:0;flex:none;align-self:stretch;padding:0 2px}
 #heroDetail.tl-short .tl-plays{font-size:11.5px;line-height:1.45}
 #heroDetail.tl-short .tl-ask{flex:none;padding:6px 7px;gap:5px;font-size:11px}
 #heroDetail.tl-short .tl-ask span{flex:1 1 100%}
 #heroDetail.tl-short .tl-ask .btn{flex:1}
-#heroDetail.tl-short .tl-pw{margin:0}
+#heroDetail.tl-short .tl-pw{margin:0 auto;flex:none}
 /* six tabs in the row (Talents is there): every label stays on one line beside its icon */
 .hd-tabbar.hd-six{gap:3px}
 .hd-tabbar.hd-six .hd-tab{flex:1 1 auto;min-width:0;padding:8px 3px;font-size:11px;white-space:nowrap;letter-spacing:-.1px}
@@ -32402,12 +32405,7 @@ function talentsTabHTML(key){ talentIconsLoad(); talentLangLoad();
   const u=TAL.u||1, hs=TAL.hs||Math.round(TLS.H*u);   /* the last measured fit (talentsFit puts the right one in before the first paint) */
   /* the tree's role and description, and "Talents open at hero level 10" while the hero is under it: above the panel (a side column in the short layout) */
   return `<div class="panel tl-panel${short?' tl-sh':''}">
-    <div class="tl-info">
-      <div class="tl-role" id="tlRole"><span>${escapeHTML(tr.role||'')}</span></div>
-      <div class="tl-plays" id="tlPlays">${escapeHTML(tr.plays||'')}</div>
-      ${lvl<TALENTS.FIRST_LEVEL?`<div class="tl-note" id="tlNote">${ewT('talent.open_at',{n:TALENTS.FIRST_LEVEL})}</div>`:''}
-      ${short?askHTML:''}
-    </div>
+    ${lvl<TALENTS.FIRST_LEVEL?`<div class="tl-info"><div class="tl-note" id="tlNote">${ewT('talent.open_at',{n:TALENTS.FIRST_LEVEL})}</div></div>`:''}
     <div class="tl-pw" id="tlPw" style="width:${Math.round(TLS.W*u)}px;height:${hs}px">
       <div class="tl-pnl tl-el-${el}" id="tlPnl" data-el="${el}" style="transform:scale(${u});height:${hs/u}px">
         <div class="tl-hdr" style="background-image:url(${talentKit(el,'board-cap-top.webp')})">
@@ -32420,7 +32418,7 @@ function talentsTabHTML(key){ talentIconsLoad(); talentLangLoad();
           <div class="tl-board" id="tlBoard" data-tree="${tr.id}" style="height:${boardH}px;background-image:url(${talentKit(el,'board-tile.webp')})">${links}${forks}${cells}</div>
           <div class="tl-capb" style="background-image:url(${talentKit(el,'board-cap-bottom.webp')})"></div>
         </div>
-        ${short?'':askHTML}
+        ${askHTML}
       </div>
     </div>
   </div>`; }
@@ -32437,8 +32435,11 @@ function talentsFit(_try){ const pw=document.getElementById('tlPw'), pn=document
   if(!panel.clientWidth&&(_try|0)<20){ requestAnimationFrame(()=>talentsFit((_try|0)+1)); return; }
   const V=ewGameView(), cs=getComputedStyle(panel), padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0), padY=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
   let u, hs;
-  if(TAL.short){ const H=Math.max(120,panel.clientHeight-padY), W=Math.max(200,panel.clientWidth-padX-8-150);   /* 150 px stay for the info column */
-    u=Math.max(0.3,Math.min(W/TLS.W,H/(TLS.HEAD+4*TLS.PITCH+6))); hs=Math.floor(H); }
+  if(TAL.short){ const inf=panel.querySelector('.tl-info'), ih=inf?inf.offsetHeight+4:0;
+    /* v1399 (Phil 17 Nov: "why do I need the ability description here i told you use that entire left area for the talent tab" /
+       "The text should appear only as a tool tip when I hover or double tap"): no info column - the board is the whole panel wide and scrolls */
+    const H=Math.max(120,panel.clientHeight-padY-ih), W=Math.max(200,panel.clientWidth-padX);
+    u=Math.max(0.3,Math.min(W/TLS.W,1.25)); hs=Math.floor(H); }
   else { const hostW=panel.clientWidth; const W=Math.max(240,hostW-padX); u=Math.min(W/TLS.W,1.25);
     hs=Math.round(Math.max((TLS.HEAD+2.6*TLS.PITCH)*u,Math.min(TLS.H*u,V.height-70))); }
   u=Math.round(u*1000)/1000; TAL.u=u; TAL.hs=hs;
@@ -32452,6 +32453,14 @@ function talentsFit(_try){ const pw=document.getElementById('tlPw'), pn=document
 const TL_TIP={r:{f:'tooltip-notch-left.png',w:266.5,h:101,bx:11.5,by:0},l:{f:'tooltip-notch-right.png',w:266.5,h:101,bx:0,by:0},
   b:{f:'tooltip-notch-top.png',w:255,h:112.5,bx:0,by:11.5},t:{f:'tooltip-notch-bottom.png',w:255,h:112.5,bx:0,by:0}};
 function talentTipHide(){ const p=document.getElementById('tlCard'); if(p) p.remove(); TAL.tip=null; }
+function talentTreeTipHide(){ const p=document.getElementById('tlTreeTip'); if(p) p.remove(); }
+function talentTreeTipShow(key,i,b){ const tr=TALENTS.trees(key)[i]; if(!tr||!b) return; talentTipHide();
+  let p=document.getElementById('tlTreeTip'); if(!p){ p=document.createElement('div'); p.id='tlTreeTip'; document.body.appendChild(p); }
+  p.className='tl-el-'+(b.dataset.el||'Neutral');
+  p.innerHTML=`<b>${escapeHTML(tr.role||tr.name||'')}</b>${escapeHTML(tr.plays||'')}`;
+  const r=b.getBoundingClientRect(), vw=window.innerWidth, vh=window.innerHeight, w=p.offsetWidth, h=p.offsetHeight;
+  let x=Math.max(6,Math.min(vw-w-6,r.left+r.width/2-w/2)), y=r.bottom+6; if(y+h>vh-6) y=Math.max(6,r.top-h-6);
+  p.style.left=x+'px'; p.style.top=y+'px'; }
 /* kept for the old name (tests, other callers): put the tooltip away and drop the selection */
 function talentCardHide(){ talentTipHide(); if(TAL.sel){ const el=document.getElementById('tl_'+TAL.sel); if(el) el.classList.remove('sel'); } TAL.sel=null; talentLearnState(); }
 function talentTipShow(key,id,pin){ const tl=TALENTS.talent(key,id), a=document.getElementById('tl_'+id), pn=document.getElementById('tlPnl'); if(!tl||!a||!pn) return;
@@ -32519,10 +32528,18 @@ function talentsWire(body,key){ const board=body.querySelector('#tlBoard'), host
   if(host){ const was=host.classList.contains('tl-short'); host.classList.toggle('tl-short',TAL.short); if(TAL.short&&!was) host.scrollTop=0; }   // only while the Talents tab shows: every other tab keeps its layout
   if(!TAL.rsz){ TAL.rsz=true; window.addEventListener('resize',()=>{ try{ if(heroTab!=='talents'||!detailHero||!document.getElementById('tlBoard')) return;
     if(talentsShort()!==TAL.short) renderHeroDetail(); else { talentsFit(); if(document.getElementById('tlCard')) talentTipPlace(); } }catch(e){} }); }
-  if(!board){ talentTipHide(); TAL.sel=null; TAL.ask=null; return; }
+  if(!board){ talentTipHide(); talentTreeTipHide(); TAL.sel=null; TAL.ask=null; return; }
   talentsFit();
   { const sc=body.querySelector('#tlScroll'); if(sc&&TAL.keepScroll) sc.scrollTop=TAL.keepScroll; }
-  body.querySelectorAll('[data-tl-tree]').forEach(b=>b.onclick=()=>{ if(b.classList.contains('on')) return; TAL.tree[key]=+b.dataset.tlTree; talentCardHide(); renderHeroDetail(); });
+  talentTreeTipHide();
+  body.querySelectorAll('[data-tl-tree]').forEach(b=>{ const i=+b.dataset.tlTree;
+    /* the tree's text: a tooltip on its banner - hover (mouse) while on it, or a double tap (second tap within 400 ms, the first one opens the tree) until a press elsewhere */
+    b.addEventListener('pointerenter',e=>{ if(e.pointerType==='mouse') talentTreeTipShow(key,i,b); });
+    b.addEventListener('pointerleave',e=>{ if(e.pointerType==='mouse') talentTreeTipHide(); });
+    b.onclick=()=>{ const now=Date.now(), dbl=(TAL.bnTap&&TAL.bnTap.i===i&&TAL.bnTap.key===key&&now-TAL.bnTap.at<400);
+      TAL.bnTap=dbl?null:{i,key,at:now};
+      if(dbl){ talentTreeTipShow(key,i,b); return; }
+      if(b.classList.contains('on')) return; TAL.tree[key]=i; talentCardHide(); renderHeroDetail(); }; });
   const lb=body.querySelector('#tlLearn'); if(lb) lb.onclick=()=>{ if(TAL.sel) talentLearn(key,TAL.sel); };
   const rs=body.querySelector('#tlReset'); if(rs) rs.onclick=()=>{ TAL.ask=key; talentTipHide(); renderHeroDetail(); };
   const no=body.querySelector('#tlResetNo'); if(no) no.onclick=()=>{ TAL.ask=null; renderHeroDetail(); };
@@ -32535,7 +32552,7 @@ function talentsWire(body,key){ const board=body.querySelector('#tlBoard'), host
     c.addEventListener('click',()=>{ const now=Date.now(), dbl=(TAL.tapId===id&&now-TAL.tapAt<400);
       TAL.tapId=dbl?null:id; TAL.tapAt=dbl?0:now; talentSelect(key,id); if(dbl) talentTipShow(key,id,true); }); });
   if(!TAL.wired){ TAL.wired=true;   // once: a press anywhere but on the talent puts the tooltip away; scrolling keeps a double-tapped one beside its talent
-    document.addEventListener('pointerdown',e=>{ if(!TAL.tip) return; const tg=e.target, c=tg&&tg.closest&&tg.closest('.tl-cell'); if(c&&c.dataset.tl===TAL.tip.id) return; talentTipHide(); },true);
+    document.addEventListener('pointerdown',e=>{ const tb=e.target&&e.target.closest&&e.target.closest('[data-tl-tree]'); if(!tb) talentTreeTipHide(); if(!TAL.tip) return; const tg=e.target, c=tg&&tg.closest&&tg.closest('.tl-cell'); if(c&&c.dataset.tl===TAL.tip.id) return; talentTipHide(); },true);
     document.addEventListener('scroll',()=>{ if(!TAL.tip) return; if(TAL.tip.pin) talentTipPlace(); else talentTipHide(); },true); }
   talentLearnState();
   if(TAL.tip&&TAL.tip.key===key&&document.getElementById('tl_'+TAL.tip.id)) talentTipShow(key,TAL.tip.id,TAL.tip.pin); else talentTipHide(); }
@@ -37264,7 +37281,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088834';
+const BUILD_ID = '1794347088835';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

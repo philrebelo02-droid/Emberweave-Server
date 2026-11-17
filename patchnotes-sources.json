@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.6.3", "releases": "v1399", "items": [{"text": "Phil 17 Nov: \"why do I need the ability description here i told you use that entire left area for the talent tab\" / \"The text should appear only as a tool tip when I hover or double tap\" (SHIPPED-v1399)"}]},
     {"ver": "1.6.2", "releases": "v1398", "items": [{"text": "talents-fix1 b186c72ed (Phil: talents-fix1 deploys when green); Absalie/Aureth/Pyroclast talent rows measured like the skill after v1391 (SHIPPED-v1398)"}, {"text": "ChatGPT talent translations snapshot 01:38 17 Nov (Phil: finish the languages) via tools/lang/talents_build.js"}]},
     {"ver": "1.6.1", "releases": "v1397", "items": [{"text": "Soul Eater 17 Nov via Phil: \"There is no standard view format\" / \"Some are big and some are small\"; Phil: \"make sure the talents fill the box\" (SHIPPED-v1397)"}]},
     {"ver": "1.6.0", "releases": "v1396", "items": [{"text": "Phil 16 Nov 22:5x: \"push the talents now, and release the remaining languages and any bugs kimi finds in his audit later\"; 'Push now, fix next' (SHIPPED-v1396)"}]},
