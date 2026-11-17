@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.7.4", "date": "17 November 2026", "time": "14:30 EST", "title": "Translations", "items": ["26 screen texts that were still in English are now translated into all 15 languages."]},
     {"ver": "1.7.3", "date": "17 November 2026", "time": "13:30 EST", "title": "Hero window", "items": ["The hero window always opens as the same window, and the talent board is the same size everywhere."]},
     {"ver": "1.7.2", "date": "17 November 2026", "time": "12:45 EST", "title": "Talent board size", "items": ["The talent board keeps the right size when the hero window changes between the pop-out and the full screen."]},
     {"ver": "1.7.1", "date": "17 November 2026", "time": "11:30 EST", "title": "Talents in every language", "items": ["Every talent of all 61 heroes is now translated into all 15 languages.", "Hero tabs: the tab row stays in the same place on every tab.", "Morvayne's hero window and Lore open again.", "The full-screen hero window: nothing covers the tabs any more, and it is laid out like the pop-out."]},
