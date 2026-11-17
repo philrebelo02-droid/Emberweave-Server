@@ -11698,6 +11698,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero61.js') return serveFile(res,'hero61.js','application/javascript',null,req);
   if(p==='/talents.js') return serveFile(res,'talents.js','application/javascript',null,req);
   if(p==='/talents-data.js') return serveFile(res,'talents-data.js','application/javascript',null,req);
+  if(p==='/talents-tree-element.js') return serveFile(res,'talents-tree-element.js','application/javascript',null,req);   /* 16 Nov 2026: which painted kit each talent tree uses (the page only) */
   if(p==='/talents-fx.js') return serveFile(res,'talents-fx.js','application/javascript',null,req);
   if(p==='/talents-power.js') return serveFile(res,'talents-power.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
