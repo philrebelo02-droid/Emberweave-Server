@@ -315,6 +315,7 @@
     background:linear-gradient(180deg,#2a2416,#171208);border:1px solid #6b5a2e;border-radius:20px;padding:3px 11px;
     font-family:Georgia,serif;font-weight:800;font-size:clamp(9px,calc(var(--ew-game-width,100vw) * 0.015),14px);color:#f6e8c8;text-shadow:0 1px 2px #000;box-shadow:0 2px 7px rgba(0,0,0,.55);}
   .townlbl .lockwrap{position:relative;pointer-events:auto;cursor:pointer;font-size:.92em;color:#ffcf6b;}
+  .acaleft{margin-left:3px;font-variant-numeric:tabular-nums;color:#ffd45e;font-weight:700;white-space:nowrap}   /* v1395: Academy time left */
   .townlbl .locktip{position:absolute;left:50%;bottom:130%;transform:translateX(-50%);display:none;background:#0e1626;border:1px solid #3a6df0;color:#ffe6a8;
     font-family:sans-serif;font-weight:800;font-size:11px;padding:2px 7px;border-radius:7px;white-space:nowrap;box-shadow:0 2px 8px #000a;}
   .townlbl .lockwrap.show .locktip{display:block;}
@@ -20111,7 +20112,7 @@ function renderHome(){
     const lab=document.createElement('div'); lab.className='townlbl'; lab.style.left=h.lx+'%'; lab.style.top=h.ly+'%';
     let inner='<span>'+h.label+'</span>';
     if(h.locked) inner+='<span class="lockwrap"><img class="lkIc" src="/assets/img/ui/hud-lock.webp?v=2" alt="'+t('common.locked')+'"><span class="locktip">'+t('hub.unlocks_at',{n:h.lockLv})+'</span></span>';
-    if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">'+uiIcon('timer')+'<span class="locktip">'+t('hub.research',{t:fmtDur(nl-Date.now())})+'</span></span>'; }
+    if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">'+uiIcon('timer')+'<span class="acaleft" data-end="'+nl+'">'+fmtClock(nl-Date.now())+'</span><span class="locktip">'+t('hub.research',{t:fmtDur(nl-Date.now())})+'</span></span>'; }   /* v1395 (Soul Eater 16 Nov: "If the remaining time counter could be displayed here as well"): the time shows on the label, not only in the tip */
     lab.innerHTML=inner;
     const wrapEl=lab.querySelector('.lockwrap');
     if(wrapEl && !wrapEl.classList.contains('acatimer')) townLockHold(lab, wrapEl);   // hold the name (not just the lock) to see the level
@@ -20292,6 +20293,7 @@ setInterval(()=>{
   const b=document.querySelector('[data-academy-timer]'), nl=nextLearn();
   if(b&&nl){ const tip=b.querySelector('.locktip'); if(tip) tip.textContent=t('hub.research',{t:fmtDur(nl-Date.now())}); } else if((b&&!nl)||(!b&&nl)) ewBgRender('home',()=>{ if(state==='home') renderHome(); });
 },1000);
+setInterval(()=>{ document.querySelectorAll('.acaleft[data-end]').forEach(el=>{ const left=(+el.dataset.end)-Date.now(); el.textContent=fmtClock(left); }); },1000);   /* v1395: Academy time-left counters (hub label, Academy plate) */
 /* ================= AETHER VAULT + SKYFALL — client (server-authoritative, render-only) ================= */
 let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
 /* 3 Oct audit (Vault F5): a floor result is saved before it is sent; a lost reply (offline) or a refused save (storageFailed) keeps it,
@@ -27399,7 +27401,7 @@ function renderTech(){ if(ewHoldRender('tech',()=>{ if(state==='tech') renderTec
   const acadLvl=G.tech.academy||0, acadLearning=(G.techLearn.academy||0)>Date.now();
   wheel.insertAdjacentHTML('beforeend',`<div class="tw-center${techSel==='academy'?' sel':''}" id="twAcademy">
       <img src="/assets/img/ui/academy-main/academy-grimoire.webp?v=1" alt="" draggable="false">
-      <div class="tw-lbl">${t('bld.academy').toLocaleUpperCase(LANG.cur)} · ${acadLearning?uiIcon('timer'):t('roster.lv',{n:acadLvl})}</div></div>`);
+      <div class="tw-lbl">${t('bld.academy').toLocaleUpperCase(LANG.cur)} · ${(()=>{ const nl=nextLearn(); return (nl&&nl>Date.now())?uiIcon('timer')+' <span class="acaleft" data-end="'+nl+'">'+fmtClock(nl-Date.now())+'</span>':t('roster.lv',{n:acadLvl}); })()}</div></div>`);   /* v1395 (Soul Eater 16 Nov: "The remaining update time would be better displayed if it were visible here at all times"): the plate shows the running research's time left, ticking */
   const nodeTray=document.createElement('div'); nodeTray.className='ac-tracks'; wheel.appendChild(nodeTray);
   const rows=[13,38,62,87];              // 4 vertical slots (% of height)
   const bulge=(r)=>7*Math.sin(Math.PI*(r/3));   // half-moon: 0 at top/bottom, bows outward in the middle
@@ -32344,14 +32346,19 @@ function showWishResults10(list,pool){ const ov=document.createElement('div');
       ${list.map((r,i)=>{ const ic = r.hero ? `<div style="width:52px;height:52px;margin:0 auto">${heroIcon(r.hero,52)}</div>`
             : (r.art ? `<div style="height:56px;display:flex;align-items:center;justify-content:center;overflow:hidden">${String(r.art).replace(/width:\d+px;height:\d+px/,'width:52px;height:52px')}</div>`
             : `<div style="font-size:24px;line-height:1;height:56px;display:flex;align-items:center;justify-content:center">${r.icon}</div>`);
-        return `<div class="w10card" style="opacity:0;transform:scale(.5) translateY(8px);transition:opacity .26s ease-out,transform .26s ease-out;background:#0f1524;border:1px solid ${r.big?'#ffd45e':'#2a3550'};border-radius:10px;padding:7px 3px;${r.big?'box-shadow:0 0 8px rgba(255,212,94,.5)':''}">
-        ${ic}<div style="font-size:8.5px;color:#cdd6e4;line-height:1.2;margin-top:3px">${r.name}</div></div>`; }).join('')}
+        return `<div class="w10card" style="opacity:0;transform:scale(.5) translateY(8px);animation:w10In .26s ease-out ${130+i*115}ms forwards;background:#0f1524;border:1px solid ${r.big?'#ffd45e':'#2a3550'};border-radius:10px;padding:7px 3px;${r.big?'box-shadow:0 0 8px rgba(255,212,94,.5)':''}">
+        ${ic}<div style="font-size:8.5px;color:#cdd6e4;line-height:1.2;margin-top:3px">${r.name}</div>${r.extra?`<div style="font-size:8px;color:#5ee89b;line-height:1.2;margin-top:2px">${r.extra}</div>`:''}</div>`; }).join('')}
     </div>
     <button class="btn" style="width:100%" id="_w10Ok">${t('wish.collect_all')}</button>
     ${wishAgainBtnHTML(pool,10,'_w10Again')}</div>`;
-  document.body.appendChild(ov); startHeroIdleAnims(ov);
+  /* v1395 (Soul Eater 16 Nov: "When you're doing x10 spins, in the Mythic pool, it gets stuck displaying the image of the items you won. It freezes like it
+     did with item 3, and then the other 6 or 7 items appear"): the dominoes were setTimeouts started together with the hero idle animations, so a
+     hero card's art load blocked the page and the timers fired late, all at once. Now each card is a CSS animation with its own delay, and the
+     hero animations start only after the last card is in. */
+  if(!document.getElementById('w10InCss')){ const st=document.createElement('style'); st.id='w10InCss'; st.textContent='@keyframes w10In{to{opacity:1;transform:scale(1) translateY(0)}}'; document.head.appendChild(st); }
+  document.body.appendChild(ov);
   const _cards=[...ov.querySelectorAll('.w10card')];   // dominoes: reveal one at a time
-  _cards.forEach((c,i)=>{ setTimeout(()=>{ c.style.opacity='1'; c.style.transform='scale(1) translateY(0)'; }, 130+i*115); });
+  setTimeout(()=>{ if(ov.isConnected) startHeroIdleAnims(ov); }, 130+_cards.length*115+300);
   const _close=()=>{ stopHeroIdleAnims(ov); ov.remove(); };
   ov.querySelector('#_w10Ok').onclick=_close;
   { const a=ov.querySelector('#_w10Again'); if(a) a.onclick=()=>{ _close(); (pool==='myth'?wishMyth10:pool==='gem'?wishGem10:wishGold10)(); }; }   /* v1097 (sweep 9 Oct #8): a Mythical x10 is repeated as a Mythical x10 */
@@ -39304,5 +39311,16 @@ if(!window._ewBackWired){ window._ewBackWired=true; let _leaving=false, depth=0,
     return r; }; })();
 </script>
 
+<style id="ewBackStd">
+/* v1395 (Soul Eater 16 Nov: "The back icons in most interfaces are almost at the edge of the screen, and they're very small. It would be good to
+   standardize that and make them a bit larger so they're easier to tap" / "On my phone, that icon appears at the edge of the screen; it's visible in
+   about half of it"): ONE back button everywhere - at least 44 x 40 px, 14 px text, and kept inside the phone's safe area (rounded corners and
+   camera cut-outs report env(safe-area-inset-*); a screenshot shows the whole screen, the phone's glass does not). Last in the page so it wins. */
+.screen > .backbtn, .screen > .btn.backbtn{min-width:44px!important;min-height:40px!important;font-size:14px!important;padding:8px 14px!important;box-sizing:border-box!important;
+  left:calc(max(14px, env(safe-area-inset-left,0px)) + 0px)!important;top:calc(max(10px, env(safe-area-inset-top,0px)) + 0px)!important}
+.screen.popout > .ew-pinned-exits .backbtn{left:auto!important;top:auto!important}
+#campaign.active > .backbtn, #campaign > .btn.backbtn{left:max(14px, env(safe-area-inset-left,0px))!important;top:max(6px, env(safe-area-inset-top,0px))!important;height:38px!important;min-height:38px!important;min-width:56px!important;font-size:14px!important;padding:6px 14px!important}   /* the campaign's own rule (top/left 4px, 34 px) sat in the corner Soul Eater's phone hides */
+.wlBackB, .edl-back{min-width:44px!important;min-height:40px!important;font-size:14px!important;padding:8px 14px!important;box-sizing:border-box!important;margin-left:max(0px, calc(env(safe-area-inset-left,0px) - 8px))!important}
+</style>
 </body>
 </html>
