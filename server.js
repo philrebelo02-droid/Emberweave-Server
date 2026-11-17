@@ -20,7 +20,7 @@ const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const HERO61=require('./hero61.js');
-const TALENTS=require('./talents.js'), TALENT_FX=require('./talents-fx.js'), TALENT_POWER=require('./talents-power.js'), TALENTS_ON=process.env.TALENTS_ENABLED==='true';   /* 14 Nov 2026: talent trees - rules shared with the page; off unless the flag is set */
+const TALENTS=require('./talents.js'), TALENT_FX=require('./talents-fx.js'), TALENT_POWER=require('./talents-power.js'), TALENTS_ON=process.env.TALENTS_ENABLED!=='false';   /* 14 Nov 2026: talent trees - rules shared with the page. Talents release (Phil 16 Nov 22:5x: "push the talents now"): ON unless TALENTS_ENABLED is exactly 'false' (the deploy sets no environment; 'false' is the off switch) */
 const TALENT_WIRED=new Set((TALENT_FX&&typeof TALENT_FX.mechHeroes==='function')?TALENT_FX.mechHeroes():[]);   /* 14 Nov 2026 locked heroes: see talentWired */
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
@@ -4748,7 +4748,7 @@ function campaignHeroSpec(u,key){
    number (talentListFor is null). Nothing is deleted: the points simply stay in the save until the hero is wired. */
 function talentWired(key){ return TALENT_WIRED.has(key); }   /* TALENT_WIRED is set beside the require at the top of this file */
 /* 14 Nov 2026 talents: the learned list a fight is built with ([[id,rank],...] sorted), or null. A build that the rules no longer accept
-   (a data correction, a level that dropped) fights with NO talents - never with half of one. Off unless TALENTS_ENABLED=true. */
+   (a data correction, a level that dropped) fights with NO talents - never with half of one. Off only when TALENTS_ENABLED=false. */
 const TALENT_RESET_GEMS=1000;   /* Phil 14 Nov 2026: "1000 diamonds to reset talents" (the page reads it from the ledger view: talentResetGems) */
 function talentListFor(led,key){ if(!TALENTS_ON||!led||!led.talents) return null; const b=led.talents[key]; if(!b||!TALENTS.has(key)||!talentWired(key)) return null;
   if(TALENTS.invalid(key,b,ledHeroLevel(led,key))) return null; const l=TALENTS.learned(key,b); return l.length?l:null; }
@@ -9048,7 +9048,7 @@ async function api(req,res,url){
      The rules (points, tier gates, prerequisites, pick-one forks) live in talents.js, the same file the page uses. Learn = one point into
      one talent; reset = every point of that hero back for TALENT_RESET_GEMS diamonds (Phil 14 Nov: "1000 diamonds to reset talents"); a build the rules
      already found illegal (cleared by a data correction) is reset free.
-     A build that a data correction made illegal is cleared on its next learn or reset, never silently kept. Off unless TALENTS_ENABLED=true. */
+     A build that a data correction made illegal is cleared on its next learn or reset, never silently kept. Off only when TALENTS_ENABLED=false. */
   if((p==='/api/talents/learn'||p==='/api/talents/reset') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!TALENTS_ON) return send(res,404,{error:'not found'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});

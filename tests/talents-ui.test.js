@@ -28,7 +28,7 @@ async function server(flag,extra){
   if(extra) extra(user);   /* more heroes on the seeded account (the locked-hero and red-dot test) */
   fs.writeFileSync(file,JSON.stringify({users:{[user.id]:user},byName:{'talent screen':user.id},tokens:{[crypto.createHash('sha256').update(token).digest('hex')]:{id:user.id,iat:start,exp:start+90*86400000}},seeded:true,seedVersion:3,heroIdV:3,guilds:{},idem:{},feedback:[],reports:[],meta:{rollSecret:'talent-ui-test'}}));
   const s=net.createServer(); await new Promise(r=>s.listen(0,'127.0.0.1',r)); const port=s.address().port; await new Promise(r=>s.close(r));
-  let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',SIM_WORKERS:'0',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else delete env.TALENTS_ENABLED; delete env.CLOCK_FILE;
+  let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',SIM_WORKERS:'0',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else env.TALENTS_ENABLED='false';   /* on by default since the talents release: off = 'false' */ delete env.CLOCK_FILE;
   const child=cp.spawn(process.execPath,[path.join(root,'server.js')],{cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe'],env});
   child.stdout.on('data',x=>log+=x); child.stderr.on('data',x=>log+=x);
   for(let i=0;;i++){ if(child.exitCode!==null) throw Error(log.slice(-2000)); try{ if((await fetch('http://127.0.0.1:'+port+'/api/health')).ok) break; }catch{} if(i>400) throw Error('server not ready: '+log.slice(-1000)); await wait(50); }

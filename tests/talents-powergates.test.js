@@ -23,7 +23,7 @@ const EXPORTS=['heroCardPower','heroGatePower','cardPower','ensureLedger','D_HER
 function loadServer(src,flag){
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ew-powergates-')); dirs.push(tmp);
   process.env.DB_FILE=path.join(tmp,'db.json'); process.env.PORT='0'; process.env.DATABASE_URL=''; process.env.SIM_WORKERS='0';
-  if(flag) process.env.TALENTS_ENABLED='true'; else delete process.env.TALENTS_ENABLED;
+  if(flag) process.env.TALENTS_ENABLED='true'; else process.env.TALENTS_ENABLED='false';   /* the switch is on by default since the talents release: off = 'false' */
   const http=require('http'), fakeHttp=Object.assign({},http,{createServer:()=>({listen(){},on(){},prependListener(){},close(){},address(){ return {port:0}; }})});
   const req=Module.createRequire(path.join(root,'server.js')), myReq=n=>n==='http'?fakeHttp:req(n), noop=()=>({unref(){},ref(){}});
   const log=console.log; console.log=()=>{};

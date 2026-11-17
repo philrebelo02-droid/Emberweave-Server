@@ -13,7 +13,7 @@ async function server(flag,heroLevel,playerPx,led,extra){
   if(extra) extra(user);   /* more heroes / a saved build on the seeded account (the locked-hero tests) */
   fs.writeFileSync(file,JSON.stringify({users:{[user.id]:user},byName:{'talent fixture':user.id},tokens:{[crypto.createHash('sha256').update(token).digest('hex')]:{id:user.id,iat:start,exp:start+90*86400000}},seeded:true,seedVersion:3,heroIdV:3,guilds:{},idem:{},feedback:[],reports:[],meta:{rollSecret:'talent-test'}}));
   const s=net.createServer(); await new Promise(r=>s.listen(0,'127.0.0.1',r)); const port=s.address().port; await new Promise(r=>s.close(r));
-  let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else delete env.TALENTS_ENABLED;
+  let log=''; const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:file,NODE_ENV:'test',GAME_URL:'http://127.0.0.1:1'}; if(flag) env.TALENTS_ENABLED='true'; else env.TALENTS_ENABLED='false';   /* on by default since the talents release: off = 'false' */
   const child=cp.spawn(process.execPath,[path.join(root,'server.js')],{cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe'],env});
   child.stdout.on('data',x=>log+=x); child.stderr.on('data',x=>log+=x);
   for(let i=0;;i++){ if(child.exitCode!==null) throw Error(log.slice(-2000)); try{ await fetch('http://127.0.0.1:'+port+'/api/manifest'); break; }catch{} if(i>200) throw Error('server not ready: '+log.slice(-1000)); await wait(50); }
@@ -106,7 +106,7 @@ function loadServerInProcess(flag){
   const vm=require('node:vm'),Module=require('node:module');
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'ew-talent-lock-'));
   process.env.DB_FILE=path.join(tmp,'db.json'); process.env.PORT='0'; process.env.DATABASE_URL='';
-  if(flag) process.env.TALENTS_ENABLED='true'; else delete process.env.TALENTS_ENABLED;
+  if(flag) process.env.TALENTS_ENABLED='true'; else process.env.TALENTS_ENABLED='false';   /* the switch is on by default since the talents release: off = 'false' */
   const http=require('http'), fakeHttp=Object.assign({},http,{createServer:()=>({listen(){},on(){},prependListener(){},close(){},address(){ return {port:0}; }})});
   const req=Module.createRequire(path.join(root,'server.js')), myReq=n=>n==='http'?fakeHttp:req(n), noop=()=>({unref(){},ref(){}}), log=console.log; console.log=()=>{};
   try{ const wrap=vm.runInThisContext('(function(exports,require,module,__filename,__dirname,setInterval,setTimeout){'+fs.readFileSync(path.join(root,'server.js'),'utf8')+
