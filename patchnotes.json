@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.7.3", "date": "17 November 2026", "time": "13:30 EST", "title": "Hero window", "items": ["The hero window always opens as the same window, and the talent board is the same size everywhere."]},
     {"ver": "1.7.2", "date": "17 November 2026", "time": "12:45 EST", "title": "Talent board size", "items": ["The talent board keeps the right size when the hero window changes between the pop-out and the full screen."]},
     {"ver": "1.7.1", "date": "17 November 2026", "time": "11:30 EST", "title": "Talents in every language", "items": ["Every talent of all 61 heroes is now translated into all 15 languages.", "Hero tabs: the tab row stays in the same place on every tab.", "Morvayne's hero window and Lore open again.", "The full-screen hero window: nothing covers the tabs any more, and it is laid out like the pop-out."]},
     {"ver": "1.7.0", "date": "17 November 2026", "time": "11:00 EST", "title": "Longer battles", "items": ["Heroes and monsters have more health.", "Every battle now lasts up to 3 minutes.", "The late-battle damage surge now starts at 1 minute instead of 22 seconds, and builds more slowly.", "Recommended power updated.", "Talents: the board is the same size on every hero, tab and tree, and is never cut off.", "Switching hero tabs keeps your place instead of jumping to the top."]},

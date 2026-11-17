@@ -19982,6 +19982,7 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   /* v1198 (tester, Fold, 18 Oct: froze leaving Vael's skills / glyphs): the tutorial opens Heroes as the FULL screen; the hero window's
      Back then popped Heroes out as a pop-out of itself, and its X took the screen's 'active' away with it - no screen left, a black page.
      When the screen asked for is the one already under the pop-out, Back just closes the pop-out and redraws that screen. */
+  if(name==='heroDetail'&&name===state&&el.classList.contains('active')&&!el.classList.contains('popout')){ el.classList.remove('active'); state='heroesPanel'; try{ _showScreen('heroesPanel'); }catch(e){} }   /* v1403: a full hero screen left over (an old save / any path) turns into the pop-out over Heroes */
   if(name===state&&el.classList.contains('active')&&!el.classList.contains('popout')){ closePopout(); try{ popoutRender(name); }catch(e){ console.error('popoutRender',name,e); } _ensureScreen(); return; }
   closePopout();
   if(WELL_HEROVIEW_NEXT){ if(name==='heroesPanel'){ WELL_HEROVIEW=WELL_HEROVIEW_NEXT; document.body.classList.add('wlHeroView'); } WELL_HEROVIEW_NEXT=null; }   /* the Starless Well's Heroes button */
@@ -20010,7 +20011,7 @@ function _ensureScreen(){ try{ if(typeof state==='undefined'||state==='battle'||
     if(el){ el.classList.remove('popout'); el.classList.add('active'); try{ _fitApp(); }catch(e){} try{ muteBtnPlace(true); }catch(e){} }
     else if(!_ensureScreen.busy){ _ensureScreen.busy=true; try{ show('home'); }finally{ _ensureScreen.busy=false; } }
   }catch(e){} }
-function show(name){ try{ ewStep('screen:'+name); }catch(e){} if(name==='home'&&typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ CAMP_RETURN=null; try{ campBackLabel(); }catch(e){} } show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
+function show(name){ try{ ewStep('screen:'+name); }catch(e){} if(name==='heroDetail'&&!show._hd){ show._hd=1; try{ if(state!=='heroesPanel') show('heroesPanel'); popoutScreen('heroDetail'); } finally { show._hd=0; } return; }   /* v1403 (Phil 17 Nov: "if I click around enough it bugs" - 500 random clicks ended on the FULL hero screen): the hero window is always the pop-out (over Heroes); no path opens it as a full screen */ if(name==='home'&&typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ CAMP_RETURN=null; try{ campBackLabel(); }catch(e){} } show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
 let vaultScreenEpoch=0;
 function _showScreen(name){
   /* v1369 (Phil: "Do it like spire"): leaving a live Emberdraft match for any other screen saves it (AI) or ends it as a loss (player vs player) - never a frozen match holding its art */
@@ -32460,6 +32461,7 @@ function talentFitText(e,max,min,wrap){ if(!e) return; let f=max; e.style.fontSi
   const over=()=>e.scrollWidth>e.clientWidth+0.5||e.scrollHeight>e.clientHeight+0.5;
   while(over()&&f>min){ f-=0.5; e.style.fontSize=f+'px'; }
   if(over()&&wrap){ e.classList.add('wrap'); f=Math.min(max,12.5); e.style.fontSize=f+'px'; while(over()&&f>7){ f-=0.5; e.style.fontSize=f+'px'; } } }
+const TL_BOARD_MAX_SHORT=506, TL_BOARD_MAX=490;   /* v1403: the pop-out's board widths (phone landscape / tall windows) - the full screen matches them */
 function talentsFit(_try){ const pw=document.getElementById('tlPw'), pn=document.getElementById('tlPnl'), panel=pw&&pw.closest('.tl-panel'); if(!pw||!pn||!panel) return;
   /* v1397 (Soul Eater 17 Nov via Phil: "There is no standard view format" / "Some are big and some are small"; Phil: "The talents all need to be the same size panels hero wide" /
      "i want the wider one" / "it should be universal" / "make sure the talents fill the box"): never size the board from a panel that has not laid out yet
@@ -32473,9 +32475,11 @@ function talentsFit(_try){ const pw=document.getElementById('tlPw'), pn=document
   if(TAL.short){ const inf=panel.querySelector('.tl-info'), ih=inf?inf.offsetHeight+4:0;
     /* v1399 (Phil 17 Nov: "why do I need the ability description here i told you use that entire left area for the talent tab" /
        "The text should appear only as a tool tip when I hover or double tap"): no info column - the board is the whole panel wide and scrolls */
-    const H=Math.max(120,panel.clientHeight-padY-ih), W=Math.max(200,panel.clientWidth-padX);
+    /* v1403 (Phil 17 Nov: "Sorry keep this size" / "the larger size you can only see 1 talent at a time" - then the full screen still drew the big one): the board is never
+       wider than in the pop-out (506 px there), so every window shows the same board */
+    const H=Math.max(120,panel.clientHeight-padY-ih), W=Math.min(TL_BOARD_MAX_SHORT,Math.max(200,panel.clientWidth-padX));
     u=Math.max(0.3,Math.min(W/TLS.W,1.25)); hs=Math.floor(H); }
-  else { const hostW=panel.clientWidth; const W=Math.max(240,hostW-padX); u=Math.min(W/TLS.W,1.25);
+  else { const hostW=panel.clientWidth; const W=Math.min(TL_BOARD_MAX,Math.max(240,hostW-padX)); u=Math.min(W/TLS.W,1.25);   /* v1403: never wider than the pop-out's board */
     hs=Math.round(Math.max((TLS.HEAD+2.6*TLS.PITCH)*u,Math.min(TLS.H*u,V.height-70))); }
   u=Math.round(u*1000)/1000; TAL.u=u; TAL.hs=hs;
   pw.style.width=Math.round(TLS.W*u)+'px'; pw.style.height=hs+'px'; pn.style.transform='scale('+u+')'; pn.style.height=(hs/u)+'px';
@@ -37334,7 +37338,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088838';
+const BUILD_ID = '1794347088839';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
