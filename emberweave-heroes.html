@@ -1510,6 +1510,8 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
    logical pixels and scaled as a whole to the space it has (talentsFit): a fixed header (tree banners, Points, Learn, Reset) over a board that scrolls.
    Each tree has its own element colours (talents-tree-element.js; Phil: "each talent TAB specifically gets it own color scheme based on the spec"). */
 .tl-panel{position:relative}
+#heroDetail:not(.tl-short) .tl-panel{width:100%;box-sizing:border-box}   /* v1397: hero-wide, the same for every hero */
+#heroDetail:not(.tl-short) .tl-pw{margin-left:auto;margin-right:auto}
 .tl-info{margin:0 0 8px}
 .tl-role{display:flex;align-items:center;gap:5px;font:800 10px system-ui,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#e9c66c;margin-bottom:4px}
 .tl-plays{font-size:12px;line-height:1.5;color:#c3ccd8}
@@ -32428,12 +32430,16 @@ function talentFitText(e,max,min,wrap){ if(!e) return; let f=max; e.style.fontSi
   const over=()=>e.scrollWidth>e.clientWidth+0.5||e.scrollHeight>e.clientHeight+0.5;
   while(over()&&f>min){ f-=0.5; e.style.fontSize=f+'px'; }
   if(over()&&wrap){ e.classList.add('wrap'); f=Math.min(max,12.5); e.style.fontSize=f+'px'; while(over()&&f>7){ f-=0.5; e.style.fontSize=f+'px'; } } }
-function talentsFit(){ const pw=document.getElementById('tlPw'), pn=document.getElementById('tlPnl'), panel=pw&&pw.closest('.tl-panel'); if(!pw||!pn||!panel) return;
+function talentsFit(_try){ const pw=document.getElementById('tlPw'), pn=document.getElementById('tlPnl'), panel=pw&&pw.closest('.tl-panel'); if(!pw||!pn||!panel) return;
+  /* v1397 (Soul Eater 17 Nov via Phil: "There is no standard view format" / "Some are big and some are small"; Phil: "The talents all need to be the same size panels hero wide" /
+     "i want the wider one" / "it should be universal" / "make sure the talents fill the box"): never size the board from a panel that has not laid out yet
+     (width 0 -> the 240 px fallback that made boards small) - wait for the next frame; the panel is width:100% of the hero panel, so every hero gets the same board. */
+  if(!panel.clientWidth&&(_try|0)<20){ requestAnimationFrame(()=>talentsFit((_try|0)+1)); return; }
   const V=ewGameView(), cs=getComputedStyle(panel), padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0), padY=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
   let u, hs;
   if(TAL.short){ const H=Math.max(120,panel.clientHeight-padY), W=Math.max(200,panel.clientWidth-padX-8-150);   /* 150 px stay for the info column */
     u=Math.max(0.3,Math.min(W/TLS.W,H/(TLS.HEAD+4*TLS.PITCH+6))); hs=Math.floor(H); }
-  else { const W=Math.max(240,panel.clientWidth-padX); u=Math.min(W/TLS.W,1.25);
+  else { const hostW=panel.clientWidth; const W=Math.max(240,hostW-padX); u=Math.min(W/TLS.W,1.25);
     hs=Math.round(Math.max((TLS.HEAD+2.6*TLS.PITCH)*u,Math.min(TLS.H*u,V.height-70))); }
   u=Math.round(u*1000)/1000; TAL.u=u; TAL.hs=hs;
   pw.style.width=Math.round(TLS.W*u)+'px'; pw.style.height=hs+'px'; pn.style.transform='scale('+u+')'; pn.style.height=(hs/u)+'px';
@@ -37258,7 +37264,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088832';
+const BUILD_ID = '1794347088833';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

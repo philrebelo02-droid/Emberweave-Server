@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.6.1", "releases": "v1397", "items": [{"text": "Soul Eater 17 Nov via Phil: \"There is no standard view format\" / \"Some are big and some are small\"; Phil: \"make sure the talents fill the box\" (SHIPPED-v1397)"}]},
     {"ver": "1.6.0", "releases": "v1396", "items": [{"text": "Phil 16 Nov 22:5x: \"push the talents now, and release the remaining languages and any bugs kimi finds in his audit later\"; 'Push now, fix next' (SHIPPED-v1396)"}]},
     {"ver": "1.5.85", "releases": "v1395", "items": [{"text": "Soul Eater 16 Nov (via Phil: \"can you handle those tester suggestions?\" / \"push it after the fix for the tester\") (SHIPPED-v1395)"}]},
     {"ver": "1.5.84", "releases": "v1394", "items": [{"text": "Phil 16 Nov: \"declaring war is meant to take 30 minutes to be able to attack someone\" / \"the timer should be on the attack button telling me when i can attack\" (SHIPPED-v1394)"}]},
