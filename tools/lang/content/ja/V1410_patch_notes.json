@@ -1,0 +1,8 @@
+{
+  "Skill and ultimate names are translated in battle banners, aiming, the Skills tab, the Glossary and the Spire (first {0} ultimates; the rest follow).": "バトル中の表示、照準、スキルタブ、用語集、尖塔でスキル名と必殺技名が翻訳されました。まず必殺技{0}件に対応し、残りは順次追加します。",
+  "More battle text is translated into all {0} languages: stack counts, energy gains and losses, damage reduction and skill callouts.": "スタック数、エネルギーの増減、ダメージ軽減、スキルの表示などの戦闘テキストを全{0}言語に翻訳しました。",
+  "Combat callouts and battle labels are translated into all {0} languages.": "戦闘中の通知とラベルを全{0}言語に翻訳しました。",
+  "Recent patch notes now show in your language.": "最近のパッチノートが選択中の言語で表示されます。",
+  "Glyph material names, server messages (purchases, limits, saved matches, Arena, rankings), Skyfall lock and schedule times, and the Forge, Patch Notes and Wishing Pool screens are translated into all {0} languages.": "グリフ素材名、購入・上限・保存済みマッチ・アリーナ・ランキングのサーバーメッセージ、Skyfallのロックと日程、および鍛冶場、パッチノート、願いの泉の画面を全{0}言語に翻訳しました。",
+  "Glyph stats that are percentages now show the % sign.": "割合で示すグリフの能力値に%記号を表示します。"
+}

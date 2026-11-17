@@ -37,7 +37,12 @@ const H=require('./harness.js');
     const merged=res.out;   // the whole list is regenerated every run (a template the game no longer makes drops out)
     // Glyph material reward names come from server data, including bonus-stage reward variants.
     const glyphs=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/glyph-source.json'),'utf8'));
-    for(const {material} of glyphs){
+    for(const {material,name} of glyphs){
+      if(name){
+        let n=0;
+        const label=name.replace(/\d+(?:\.\d+)?/g,()=>'{'+n+++'}');
+        if(!(label in merged)) merged[label]='glyph_name';
+      }
       if(!material) continue;
       merged[material]='glyph_material';
       merged[material+' Fragment']='glyph_material';

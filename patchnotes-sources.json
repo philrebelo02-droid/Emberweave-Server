@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.8.1", "releases": "v1411", "items": [{"text": "ChatGPT 17 Nov 18:33-18:40 v1410-hero-skill-localization-pending + release-notes + glyph-names grey/green/green-plus patches (base bcd4f3628, applied clean); Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1411)"}]},
     {"ver": "1.8.0", "releases": "v1410", "items": [{"text": "ChatGPT 17 Nov 18:04-18:07 v1409-skill-display + v1409-ultimate-names-a + -b localization patches (base 1d1fdbd02, applied clean); Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1410)"}]},
     {"ver": "1.7.9", "releases": "v1409", "items": [{"text": "ChatGPT 17 Nov 16:3x-16:42 v1406-combat-dynamic + v1406-combat-conditional localization patches, merged onto v1408; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1409)"}]},
     {"ver": "1.7.8", "releases": "v1408", "items": [{"text": "ChatGPT 17 Nov 16:25-16:28 v1406-pending + v1406-combat-callouts + v1406-combat-callouts-final localization patches (rebased on v1406), merged onto v1407; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1408)"}]},

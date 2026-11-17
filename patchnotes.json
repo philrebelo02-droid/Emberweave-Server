@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.8.1", "date": "17 November 2026", "time": "19:00 EST", "title": "Translations", "items": ["Every hero skill name (all 244) is translated in battle, the Skills tab, Damage Done and tooltips.", "Grey and Green glyph names are translated."]},
     {"ver": "1.8.0", "date": "17 November 2026", "time": "18:30 EST", "title": "Translations", "items": ["Skill and ultimate names are translated in battle banners, aiming, the Skills tab, the Glossary and the Spire (first 22 ultimates; the rest follow)."]},
     {"ver": "1.7.9", "date": "17 November 2026", "time": "18:00 EST", "title": "Translations", "items": ["More battle text is translated into all 15 languages: stack counts, energy gains and losses, damage reduction and skill callouts."]},
     {"ver": "1.7.8", "date": "17 November 2026", "time": "17:45 EST", "title": "Translations", "items": ["Combat callouts and battle labels are translated into all 15 languages.", "Recent patch notes now show in your language."]},

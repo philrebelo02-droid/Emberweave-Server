@@ -6,6 +6,13 @@
         "abilityName"
       ],
       "area": "skill_name"
+    },
+    {
+      "expr": "KITS",
+      "fields": [
+        "name"
+      ],
+      "area": "skill_name"
     }
   ]
 }
