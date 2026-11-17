@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "Pannello dei talenti a dimensione intera",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "Il pannello dei talenti ora occupa tutto lo spazio. Passa il cursore sulla scheda di un albero o toccala due volte per leggere la descrizione.",
+  "Talent board fix": "Correzione del pannello dei talenti",
+  "The talent board now fills the hero panel and is the same size for every hero.": "Il pannello dei talenti ora riempie la finestra dell’eroe e ha le stesse dimensioni per tutti gli eroi.",
+  "Talent trees": "Alberi dei talenti",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "Ognuno dei {0} eroi ha ora tre alberi. Dal livello {1} al {2}, ogni eroe ottiene un punto talento per livello, per un totale di {3} punti da spendere nei talenti che preferisci.",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "Ogni albero ha uno stile diverso. Passa il cursore su un talento o toccalo due volte per vederne l’effetto.",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "Azzerare i talenti di un eroe costa {0}.{1} diamanti.",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "I talenti della maggior parte degli eroi sono tradotti. Gli altri per ora appaiono in inglese."
+}

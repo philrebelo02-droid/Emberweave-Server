@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "完整尺寸的天赋面板",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "天赋面板现在占满整个面板。将鼠标悬停在天赋树标签上或轻点两次即可查看说明。",
+  "Talent board fix": "天赋面板修复",
+  "The talent board now fills the hero panel and is the same size for every hero.": "天赋面板现在填满英雄面板，所有英雄的面板尺寸一致。",
+  "Talent trees": "天赋树",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "全部 {0} 位英雄现在各有三棵天赋树。英雄从 {1} 级到 {2} 级每级获得一个天赋点，共 {3} 点，可用于任选的天赋。",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "每棵树都有不同外观。将鼠标悬停在天赋上或轻点两次即可查看效果。",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "重置英雄的天赋需要 {0},{1} 钻石。",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "大多数英雄的天赋已翻译，其余目前仍显示为英文。"
+}

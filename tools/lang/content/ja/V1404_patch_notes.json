@@ -1,0 +1,10 @@
+{
+  "Translations": "翻訳",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "実績ジャーナルを含む、英語のままだった画面テキスト{0}件を全{1}言語に翻訳しました。",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "キャンペーンの「拠点」ボタンを左上に移動し、食料カウンターから離しました。",
+  "The hero window can no longer turn into a full screen.": "英雄ウィンドウが全画面に切り替わることはなくなりました。",
+  "Hero window": "英雄ウィンドウ",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "英雄ウィンドウは常に同じ形式で開き、才能ボードのサイズはどこでも同じです。",
+  "Talent board size": "才能ボードのサイズ",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "英雄ウィンドウをポップアップと全画面の間で切り替えても、才能ボードが正しいサイズを保ちます。"
+}

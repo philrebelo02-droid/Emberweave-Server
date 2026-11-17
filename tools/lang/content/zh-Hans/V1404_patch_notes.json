@@ -1,0 +1,10 @@
+{
+  "Translations": "翻译",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "成就日志等界面中原先仍显示英文的 {0} 条文本现已译成全部 {1} 种语言。",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "战役的基地按钮位于左上角，与食物计数器分开。",
+  "The hero window can no longer turn into a full screen.": "英雄窗口不会再切换到全屏。",
+  "Hero window": "英雄窗口",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "英雄窗口始终以同样的方式打开，天赋面板在各处保持相同大小。",
+  "Talent board size": "天赋面板大小",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "英雄窗口在弹出式窗口和全屏之间切换时，天赋面板会保持正确大小。"
+}

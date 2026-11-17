@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "전체 크기 특성 보드",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "특성 보드가 이제 패널 전체를 사용합니다. 트리 탭에 마우스를 올리거나 두 번 탭하면 설명이 표시됩니다.",
+  "Talent board fix": "특성 보드 수정",
+  "The talent board now fills the hero panel and is the same size for every hero.": "이제 특성 보드는 영웅 패널을 채우며 모든 영웅에서 크기가 같습니다.",
+  "Talent trees": "특성 트리",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "영웅 {0}명 모두에게 세 가지 특성 트리가 생겼습니다. 레벨 {1}부터 {2}까지 레벨마다 1점씩 총 {3}점을 얻어 원하는 특성에 쓸 수 있습니다.",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "트리마다 외형이 다릅니다. 특성에 마우스를 올리거나 두 번 탭하면 효과를 볼 수 있습니다.",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "영웅의 특성을 초기화하려면 다이아몬드 {0},{1}개가 필요합니다.",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "대부분의 영웅 특성이 번역되었습니다. 나머지는 당분간 영어로 표시됩니다."
+}

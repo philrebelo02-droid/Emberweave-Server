@@ -1,0 +1,12 @@
+{
+  "Talent fixes": "才能の修正",
+  "Absalie's Knot talents now count every enemy the Knot catches, and Close Knot pulls enemies to the Knot's centre.": "アブサリーのGravity Knotの才能は、捕らえた敵すべてを数えます。狭い結び目は敵を結び目の中心へ引き寄せます。",
+  "Aureth's Last Word Taken and Same Flash now count every enemy Green Sunburst hits.": "オーレスの奪われた最後の言葉と同じ閃光は、緑のスキルSunburstが命中した敵すべてを数えます。",
+  "Pyroclast's Heat Shimmer and Back Draft no longer count Blazing Orbit's own target as pushed.": "パイロクラストの陽炎と吹き返しは、Blazing Orbitの主対象を押し出した敵に数えなくなりました。",
+  "More talent texts are translated: {0}-{1} of the {2} heroes in all {3} languages.": "全{2}体のうち{0}～{1}体の英雄の才能が全{3}言語に翻訳されました。",
+  "Academy timer, Wishing Pool and bigger back buttons": "アカデミーのタイマー、願いの泉、戻るボタンの拡大",
+  "The Academy shows how long your research has left, on the Academy screen and on its label on the base map.": "研究の残り時間がアカデミー画面と拠点マップのアカデミーのラベルに表示されます。",
+  "Wishing Pool x{0}: a hero you already own now shows how many fragments you get instead.": "願いの泉×{0}：所持済みの英雄の場合、獲得するかけらの数が表示されます。",
+  "Mythical x{0} wishes no longer freeze partway through showing your rewards.": "神話の願い×{0}で報酬の表示途中に止まることがなくなりました。",
+  "Back buttons are bigger and stay clear of rounded screen corners and camera cut-outs.": "戻るボタンが大きくなり、角丸やカメラの切り欠きと重ならなくなりました。"
+}

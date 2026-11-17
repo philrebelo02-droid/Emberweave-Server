@@ -1,0 +1,10 @@
+{
+  "Translations": "Çeviriler",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "Başarı Günlüğü de dâhil olmak üzere İngilizce kalan {0} arayüz metni artık {1} dilin tümünde çevrildi.",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "Sefer: Üs düğmesi sol üst köşede, yiyecek sayacından ayrı durur.",
+  "The hero window can no longer turn into a full screen.": "Kahraman penceresi artık tam ekrana geçemez.",
+  "Hero window": "Kahraman penceresi",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "Kahraman penceresi her zaman aynı biçimde açılır ve yetenek panosu her yerde aynı boyuttadır.",
+  "Talent board size": "Yetenek panosu boyutu",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "Kahraman penceresi açılır pencere ile tam ekran arasında geçiş yaptığında yetenek panosu doğru boyutta kalır."
+}

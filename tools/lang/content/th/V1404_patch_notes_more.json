@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "กระดานพรสวรรค์ขนาดเต็ม",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "กระดานพรสวรรค์ใช้พื้นที่ทั้งแผงแล้ว เลื่อนเมาส์ไปที่แท็บสายหรือแตะสองครั้งเพื่อดูคำอธิบาย",
+  "Talent board fix": "แก้ไขกระดานพรสวรรค์",
+  "The talent board now fills the hero panel and is the same size for every hero.": "กระดานพรสวรรค์เต็มแผงฮีโร่แล้วและมีขนาดเท่ากันทุกตัว",
+  "Talent trees": "ผังพรสวรรค์",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "ฮีโร่ทั้ง {0} ตัวมีผังพรสวรรค์คนละสามสาย ได้หนึ่งแต้มต่อเลเวลตั้งแต่เลเวล {1} ถึง {2} รวม {3} แต้มสำหรับพรสวรรค์ที่คุณเลือก",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "แต่ละสายมีหน้าตาต่างกัน เลื่อนเมาส์ไปที่พรสวรรค์หรือแตะสองครั้งเพื่อดูผล",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "การรีเซ็ตพรสวรรค์ของฮีโร่ใช้ {0},{1} เพชร",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "พรสวรรค์ของฮีโร่ส่วนใหญ่แปลแล้ว ส่วนที่เหลือยังแสดงเป็นภาษาอังกฤษ"
+}

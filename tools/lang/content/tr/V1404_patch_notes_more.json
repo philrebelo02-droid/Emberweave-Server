@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "Tam boy yetenek panosu",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "Yetenek panosu artık tüm paneli kullanır. Açıklamayı görmek için ağacın sekmesinin üzerine gel veya iki kez dokun.",
+  "Talent board fix": "Yetenek panosu düzeltmesi",
+  "The talent board now fills the hero panel and is the same size for every hero.": "Yetenek panosu artık kahraman panelini doldurur ve tüm kahramanlarda aynı boyuttadır.",
+  "Talent trees": "Yetenek ağaçları",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "{0} kahramanın her birinin artık üç ağacı var. {1}. seviyeden {2}. seviyeye kadar her seviyede bir puan, toplam {3} puan kazanır ve bunları seçtiğin yeteneklere harcayabilirsin.",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "Her ağacın görünümü farklıdır. Etkisini görmek için yeteneğin üzerine gel veya iki kez dokun.",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "Bir kahramanın yeteneklerini sıfırlamak {0}.{1} elmasa mal olur.",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "Çoğu kahramanın yetenekleri çevrildi. Kalanlar şimdilik İngilizce görünür."
+}

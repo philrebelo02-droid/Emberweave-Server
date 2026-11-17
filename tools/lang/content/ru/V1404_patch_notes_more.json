@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "Панель талантов в полном размере",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "Панель талантов теперь занимает всё окно. Чтобы увидеть описание ветки, наведите указатель на её вкладку или коснитесь вкладки дважды.",
+  "Talent board fix": "Исправление панели талантов",
+  "The talent board now fills the hero panel and is the same size for every hero.": "Панель талантов теперь заполняет окно героя и имеет одинаковый размер для всех героев.",
+  "Talent trees": "Ветки талантов",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "У всех {0} героев теперь по три ветки. С уровня {1} по {2} герой получает по одному очку за уровень, всего {3} очко для выбранных талантов.",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "У каждой ветки свой стиль. Чтобы увидеть эффект таланта, наведите на него указатель или коснитесь его дважды.",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "Сброс талантов героя стоит {0} {1} алмазов.",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "Таланты большинства героев переведены. Остальные пока отображаются на английском."
+}

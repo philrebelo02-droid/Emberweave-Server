@@ -1,0 +1,11 @@
+{
+  "Talent board, full size": "才能ボードの全体表示",
+  "The talent board now uses the whole panel. A tree's description shows when you hover over its tab, or double-tap it.": "才能ボードがパネル全体に表示されます。ツリーのタブにカーソルを合わせるか、ダブルタップすると説明が表示されます。",
+  "Talent board fix": "才能ボードの修正",
+  "The talent board now fills the hero panel and is the same size for every hero.": "才能ボードが英雄パネル全体に表示され、すべての英雄で同じサイズになりました。",
+  "Talent trees": "才能ツリー",
+  "Every one of the {0} heroes now has three talent trees. A hero earns one talent point per level from level {1} to {2} - {3} points in all - to spend on talents of their choice.": "全{0}体の英雄に3つの才能ツリーが追加されました。レベル{1}から{2}まで、1レベルごとに1ポイント、合計{3}ポイントを獲得し、好きな才能に使えます。",
+  "Each tree has its own look, and each talent shows its effect when you hover over it or double-tap it.": "ツリーごとに見た目が異なります。才能にカーソルを合わせるかダブルタップすると効果が表示されます。",
+  "Resetting a hero's talents costs {0},{1} diamonds.": "英雄の才能のリセットにはダイヤが{0},{1}個必要です。",
+  "Talent texts are translated for most heroes; the rest show in English for now.": "ほとんどの英雄の才能は翻訳済みです。残りは当面、英語で表示されます。"
+}

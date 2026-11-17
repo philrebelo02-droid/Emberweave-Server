@@ -1,0 +1,10 @@
+{
+  "Translations": "Traductions",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "Les {0} textes d’interface encore en anglais, notamment dans le Journal des succès, sont désormais traduits dans les {1} langues.",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "Campagne : le bouton Base se trouve en haut à gauche, à l’écart du compteur de nourriture.",
+  "The hero window can no longer turn into a full screen.": "La fenêtre du héros ne peut plus passer en plein écran.",
+  "Hero window": "Fenêtre du héros",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "La fenêtre du héros s’ouvre toujours de la même façon et le tableau des talents garde la même taille partout.",
+  "Talent board size": "Taille du tableau des talents",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "Le tableau des talents garde la bonne taille lorsque la fenêtre du héros passe du mode flottant au plein écran, ou inversement."
+}

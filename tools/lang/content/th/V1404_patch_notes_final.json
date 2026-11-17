@@ -1,0 +1,12 @@
+{
+  "Talent fixes": "แก้ไขพรสวรรค์",
+  "Absalie's Knot talents now count every enemy the Knot catches, and Close Knot pulls enemies to the Knot's centre.": "พรสวรรค์ Gravity Knot ของ Absalie นับศัตรูทุกตัวที่ติดปมแล้ว และ ปมปิด จะดึงศัตรูเข้าไปยังกลางปม",
+  "Aureth's Last Word Taken and Same Flash now count every enemy Green Sunburst hits.": "ชิงคำสุดท้าย และ แสงวาบเดิม ของ Aureth นับศัตรูทุกตัวที่โดนสกิลสีเขียว Sunburst",
+  "Pyroclast's Heat Shimmer and Back Draft no longer count Blazing Orbit's own target as pushed.": "ไอร้อนระยับ และ เปลวไฟย้อนกลับ ของ Pyroclast ไม่นับเป้าหมายหลักของ Blazing Orbit ว่าถูกผลักอีกแล้ว",
+  "More talent texts are translated: {0}-{1} of the {2} heroes in all {3} languages.": "แปลพรสวรรค์ของฮีโร่แล้ว {0}–{1} จาก {2} ตัว ครบทั้ง {3} ภาษา",
+  "Academy timer, Wishing Pool and bigger back buttons": "เวลาวิจัยของสถาบัน บ่ออธิษฐาน และปุ่มย้อนกลับที่ใหญ่ขึ้น",
+  "The Academy shows how long your research has left, on the Academy screen and on its label on the base map.": "สถาบันแสดงเวลาวิจัยที่เหลือทั้งบนหน้าสถาบันและบนป้ายในแผนที่ฐาน",
+  "Wishing Pool x{0}: a hero you already own now shows how many fragments you get instead.": "บ่ออธิษฐาน x{0}: หากมีฮีโร่แล้ว จะแสดงจำนวนชิ้นส่วนที่ได้รับ",
+  "Mythical x{0} wishes no longer freeze partway through showing your rewards.": "การอธิษฐานระดับตำนาน x{0} ไม่ค้างระหว่างแสดงรางวัลอีกแล้ว",
+  "Back buttons are bigger and stay clear of rounded screen corners and camera cut-outs.": "ปุ่มย้อนกลับใหญ่ขึ้นและอยู่ห่างจากมุมมนและช่องกล้อง"
+}

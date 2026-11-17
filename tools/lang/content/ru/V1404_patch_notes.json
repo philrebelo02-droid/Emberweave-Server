@@ -1,0 +1,10 @@
+{
+  "Translations": "Переводы",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "{0} элементов интерфейса, которые оставались на английском, включая журнал достижений, теперь переведены на все {1} языков.",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "Кампания: кнопка «База» находится в левом верхнем углу и больше не перекрывает счётчик еды.",
+  "The hero window can no longer turn into a full screen.": "Окно героя больше не может развернуться на весь экран.",
+  "Hero window": "Окно героя",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "Окно героя всегда открывается в одном виде, а размер панели талантов везде одинаков.",
+  "Talent board size": "Размер панели талантов",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "Панель талантов сохраняет правильный размер при переключении окна героя между всплывающим и полноэкранным режимами."
+}

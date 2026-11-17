@@ -51,6 +51,15 @@ const H=require('./harness.js');
         if(material) merged[core[1]+' '+material+' Core']='glyph_material';
       }
     }
+    const patchFeed=JSON.parse(fs.readFileSync(path.join(__dirname,'../../patchnotes.json'),'utf8'));
+    for(const note of (patchFeed.patches||[]).slice(0,10)){
+      for(const text of [note.title,...(note.items||[])]){
+        if(typeof text!=='string'||!text) continue;
+        let n=0;
+        const key=text.replace(/\{[^{}]*\}|<[^>]*>|&#?\w+;|\d+(?:\.\d+)?/g,m=>('{<&'.includes(m[0])?m:'{'+n+++'}'));
+        if(!(key in merged)) merged[key]='patch_notes';
+      }
+    }
     const keys=Object.keys(merged).sort();
     fs.writeFileSync(f,'{\n'+keys.map(k=>JSON.stringify(k)+':'+JSON.stringify(merged[k])).join(',\n')+'\n}\n');
     console.log('collect: '+res.heroes+' heroes, '+Object.keys(res.out).length+' skill templates ('+Object.values(res.out).length+'), '+keys.length+' total, '+keys.join('').length+' chars');

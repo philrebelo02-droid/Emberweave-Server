@@ -1,0 +1,10 @@
+{
+  "Translations": "การแปล",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "ข้อความบนหน้าจอ {0} รายการที่ยังเป็นภาษาอังกฤษ รวมถึงบันทึกความสำเร็จ ได้รับการแปลครบทั้ง {1} ภาษาแล้ว",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "แคมเปญ: ปุ่มฐานอยู่มุมซ้ายบน แยกจากตัวนับอาหาร",
+  "The hero window can no longer turn into a full screen.": "หน้าต่างฮีโร่ไม่สามารถเปลี่ยนเป็นเต็มจอได้อีกแล้ว",
+  "Hero window": "หน้าต่างฮีโร่",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "หน้าต่างฮีโร่เปิดในรูปแบบเดิมเสมอ และกระดานพรสวรรค์มีขนาดเท่ากันทุกหน้าจอ",
+  "Talent board size": "ขนาดกระดานพรสวรรค์",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "กระดานพรสวรรค์คงขนาดที่ถูกต้องเมื่อหน้าต่างฮีโร่สลับระหว่างหน้าต่างป๊อปอัปกับโหมดเต็มจอ"
+}

@@ -1,0 +1,10 @@
+{
+  "Translations": "번역",
+  "{0} screen texts that were still in English (including the Achievement Journal) are now translated into all {1} languages.": "업적 일지를 포함해 영어로 남아 있던 화면 문구 {0}개를 이제 {1}개 언어 모두에서 볼 수 있습니다.",
+  "Campaign: the Base button sits in the top-left corner, clear of the food counter.": "캠페인에서 기지 버튼이 왼쪽 위에 표시되어 식량 표시와 겹치지 않습니다.",
+  "The hero window can no longer turn into a full screen.": "영웅 창이 더 이상 전체 화면으로 바뀌지 않습니다.",
+  "Hero window": "영웅 창",
+  "The hero window always opens as the same window, and the talent board is the same size everywhere.": "영웅 창은 항상 같은 방식으로 열리며, 특성 보드 크기는 모든 화면에서 같습니다.",
+  "Talent board size": "특성 보드 크기",
+  "The talent board keeps the right size when the hero window changes between the pop-out and the full screen.": "영웅 창이 팝업과 전체 화면 사이를 전환해도 특성 보드가 올바른 크기를 유지합니다."
+}
