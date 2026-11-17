@@ -61,8 +61,9 @@ test('Pyroclast: her real kit, as the talents read it - Ember Lash and its Scorc
     const h0=F[0].hp; castL(P,F[0]); const hit=h0-F[0].hp; near(hit,(v.apow||0)*sm10()*dm(v,F[0]),'Ember Lash: one hit of her ability power x skill level (magic)',1e-6);
     const d=F[0].dots[F[0].dots.length-1]; assert.ok(d&&d.src===v,'its Scorch is pushed at once'); near(d.dps,lashDps(v),'55% of her ability power x skill level a second'); assert.equal(d.remaining,4,'4 ticks'); assert.equal(d.kind,'magic','magic');
     castL(P,F[0]); assert.equal(F[0].dots.filter(x=>x.src===v).length,2,'a second Ember Lash is a NEW DoT (with no talent they never overlap: the cooldown is 6 s)');
-    orbAt(P,F[1]); at(P,F[2],4.5,3); const x1=F[1].x, h1=F[1].hp, h2=F[2].hp; castO(P,F[1]);
-    assert.ok(F[1].hp<h1,'Blazing Orbit strikes an enemy whose centre is within 2.8 m'); near(F[2].hp,h2,'not one farther'); near((F[1].x-x1)/V.METER,1.5,'and pushes it 1.5 m away from the centre',1e-6);
+    /* talents-fix1: since v1391 the ring forms on her TARGET (F1) and strikes every enemy whose BODY is within 2.8 m of it; the target, on the centre, is not moved */
+    orbAt(P,F[1]); at(P,F[0],3.9,0); at(P,F[2],2.4,2.01+3.0); const x1=F[1].x, x0=F[0].x, g0=F[0].hp, h1=F[1].hp, h2=F[2].hp; castO(P,F[1]);
+    assert.ok(F[1].hp<h1&&F[0].hp<g0,'Blazing Orbit strikes its target and an enemy whose body is within 2.8 m of it'); near(F[2].hp,h2,'not one whose body is 3 m away'); near((F[0].x-x0)/V.METER,1.5,'and pushes it 1.5 m away from the centre',1e-6); near(F[1].x,x1,'(its target stays on the centre)',1e-9);
     const b=F[1].dots[F[1].dots.length-1]; near(b.dps,(v.apow||0)*0.3*sm10(),'its burn: 30% x skill level a second'); assert.equal(b.remaining,3,'for 3 s');
     at(P,F[3],0,3.5); at(P,F[4],0,3.7); const g3=F[3].hp, g4=F[4].hp; castC(P,F[3]); assert.ok(F[3].hp<g3,'Crownfire strikes its centre'); at(P,F[4],0,3.5+3.6); const k4=F[4].hp; castC(P,F[3]); near(F[4].hp,k4,'not an enemy 3.6 m from it (3.55 m centre to centre)');
     for(const f of F) f.dots.length=0; V.dot(F[0],1,9,1,v); V.dot(F[1],1,9,1,F[0]); v.apMul=1; swing(P,F[0]);
@@ -204,8 +205,8 @@ test('Pyroclast / an eruption\'s riders: Hot Spring, Vented, Crater, Obsidian Pl
 
 test('Pyroclast / Blazing Orbit: Fierce Ring, Fire Guard, Wide Ring, Heat Wave, Flare Up, Quick Orbit, Ring of Cinders',()=>{
   const L=lab(H,S(['er_2_4','nh_5_1','er_1_4','er_6_4','er_5_4','nh_5_4','er_7_4']),{foes:3,big:true}), {v,F}=L;
-  orbAt(L,F[0]); const p=plainHit(L,()=>{ const x=F[0].hp; castO(L,F[0]); return x-F[0].hp; }); F[0].dots.length=0; orbAt(L,F[0]); at(L,F[1],1.2,2.9); const h1=F[1].hp, x0=F[0].x, h0=F[0].hp; castO(L,F[0]);
-  near(h0-F[0].hp,p*1.12*1.15,'Fierce Ring 4% x 3, Fire Guard 3% x 5 more'); assert.ok(F[1].hp<h1,'Wide Ring: 0.2 x 3 m wider'); near((F[0].x-x0)/V.METER,2.1,'Heat Wave: pushed 0.2 x 3 m farther',1e-6);
+  orbAt(L,F[0]); const p=plainHit(L,()=>{ const x=F[0].hp; castO(L,F[0]); return x-F[0].hp; }); F[0].dots.length=0; orbAt(L,F[0]); at(L,F[1],2.4,2.01+3.1); at(L,F[2],3.9,0); const h1=F[1].hp, x2=F[2].x, h0=F[0].hp; castO(L,F[0]);   // talents-fix1: around her target F0 (v1391), to the body edge
+  near(h0-F[0].hp,p*1.12*1.15,'Fierce Ring 4% x 3, Fire Guard 3% x 5 more'); assert.ok(F[1].hp<h1,'Wide Ring: 0.2 x 3 m wider (a body 3.1 m away)'); near((F[2].x-x2)/V.METER,2.1,'Heat Wave: pushed 0.2 x 3 m farther',1e-6);
   near(left(dots(L,F[0],'pyR')[0]),5,'Ring of Cinders: Scorched 1 x 5 s'); near(dots(L,F[0],'pyR')[0].dps,lashDps(v),'(Ember Lash\'s Scorch)');
   near(FX.cd(v,'blue',8),8-0.9-0.75,'Flare Up 0.3 x 3 s, Quick Orbit 0.15 x 5 s shorter');
 });
@@ -274,8 +275,8 @@ test('Pyroclast / Unheld: a stun landing on her ends early by 15% x 5, enemies w
 });
 
 test('Pyroclast / Heat Shimmer: 1 for each enemy Blazing Orbit pushes (4, Ember Ward 7), 4 s (Shimmering Air longer), 1% x 3 less each; Mirage, Cooling Glass, Lava Blood, Back Draft',()=>{
-  const L=lab(H,S(['nh_1_4','nh_2_4','nh_3_4','nh_6_4','nh_10_4','nh_12_4','nh_8_2']),{foes:3,big:true}), {v,F}=L; orbAt(L,F[1]); castO(L,F[1]); assert.equal(stack(L,'pyShim'),1,'a real Orbit push: 1 Shimmer');
-  near(F[1].slowMul,0.85,'Back Draft: the enemy pushed slowed 5% x 3'); near(F[1].slow,2,'for 2 s',1e-9);
+  const L=lab(H,S(['nh_1_4','nh_2_4','nh_3_4','nh_6_4','nh_10_4','nh_12_4','nh_8_2']),{foes:3,big:true}), {v,F}=L; orbAt(L,F[1]); castO(L,F[1]); assert.equal(stack(L,'pyShim'),1,'a real Orbit push: 1 Shimmer (F0, pushed off its target F1; the target on the centre is not pushed: talents-fix1)');
+  near(F[0].slowMul,0.85,'Back Draft: the enemy pushed slowed 5% x 3'); near(F[0].slow,2,'for 2 s',1e-9); assert.ok(!(F[1].slowMul<1),'(not its target, which it did not move)');
   v.maxHp=1e6; v.hp=5e5; const h=v.hp; for(let i=0;i<3;i++) FX.pass(v,F[0],'novaPush'); assert.equal(stack(L,'pyShim'),4,'');
   near(v.hp-h,1e6*0.03,'Cooling Glass: reaching 4, she heals 1% x 3 of her max HP',1e-6); const d=lost(v,()=>V.hit(F[0],v,1000,{kind:'phys',auto:true})); near(d,0,'Mirage: at 4, the next basic attack aimed at her misses');
   assert.ok(lost(v,()=>V.hit(F[0],v,1000,{kind:'phys',auto:true}))>0,'only that one'); for(let i=0;i<5;i++) FX.pass(v,F[0],'novaPush'); assert.equal(stack(L,'pyShim'),7,'Ember Ward: up to 4 + 1 x 3');

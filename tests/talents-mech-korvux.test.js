@@ -97,11 +97,13 @@ test('Korvux / Cleave the Heat (+3 Cooking a hit), Blistered (6% at 4+ Cooking),
 });
 
 test('Korvux / Emberskin\'s reach: Wide Heat (0.2 m x 3), Scalding Mist (0.1 m x 3 per Steam), Kellsmarch Summer (1 m while 3 enemies are Cooking)',()=>{
-  const L=kl(S(['rh_4_2','rh_2_2','rh_1_2','rh_11_1']),{big:true,foes:4}), {v,F}=L; close(L,F[0],2.95); assert.ok(lost(F[0],()=>burnNow(L))>0,'Wide Heat: 3.0 m reaches 2.95 m');
-  close(L,F[0],3.05); assert.equal(lost(F[0],()=>burnNow(L)),0,'not 3.05 m');
-  setStack(L,'kxSt',3); close(L,F[0],3.85); assert.ok(lost(F[0],()=>burnNow(L))>0,'3 Steam: +0.9 m'); close(L,F[0],3.95); assert.equal(lost(F[0],()=>burnNow(L)),0,'not 3.95 m');
-  setStack(L,'kxSt',0); for(const f of [F[1],F[2],F[3]]) setUst(L,f,'kxCk',1); setUst(L,F[0],'kxCk',0,0); close(L,F[0],3.9); assert.ok(lost(F[0],()=>burnNow(L))>0,'Kellsmarch Summer: 4.0 m'); setUst(L,F[0],'kxCk',0,0); close(L,F[0],4.1); assert.equal(lost(F[0],()=>burnNow(L)),0,'not 4.1 m'); setUst(L,F[0],'kxCk',0,0);
-  setUst(L,F[3],'kxCk',0,0); setUst(L,F[0],'kxCk',0,0); close(L,F[0],3.9); assert.equal(lost(F[0],()=>burnNow(L)),0,'two Cooking enemies are not enough');
+  /* talents-fix1: since v1391 Emberskin reaches to the enemy's BODY EDGE: each distance below is the gap between his centre and the enemy's body */
+  const closeE=(L,f,g)=>at(L,f,g+V.bodyR(f),0);
+  const L=kl(S(['rh_4_2','rh_2_2','rh_1_2','rh_11_1']),{big:true,foes:4}), {v,F}=L; closeE(L,F[0],2.95); assert.ok(lost(F[0],()=>burnNow(L))>0,'Wide Heat: 3.0 m reaches a body 2.95 m away');
+  closeE(L,F[0],3.05); assert.equal(lost(F[0],()=>burnNow(L)),0,'not 3.05 m');
+  setStack(L,'kxSt',3); closeE(L,F[0],3.85); assert.ok(lost(F[0],()=>burnNow(L))>0,'3 Steam: +0.9 m'); closeE(L,F[0],3.95); assert.equal(lost(F[0],()=>burnNow(L)),0,'not 3.95 m');
+  setStack(L,'kxSt',0); for(const f of [F[1],F[2],F[3]]) setUst(L,f,'kxCk',1); setUst(L,F[0],'kxCk',0,0); closeE(L,F[0],3.9); assert.ok(lost(F[0],()=>burnNow(L))>0,'Kellsmarch Summer: 4.0 m'); setUst(L,F[0],'kxCk',0,0); closeE(L,F[0],4.1); assert.equal(lost(F[0],()=>burnNow(L)),0,'not 4.1 m'); setUst(L,F[0],'kxCk',0,0);
+  setUst(L,F[3],'kxCk',0,0); setUst(L,F[0],'kxCk',0,0); closeE(L,F[0],3.9); assert.equal(lost(F[0],()=>burnNow(L)),0,'two Cooking enemies are not enough');
 });
 
 test('Korvux / Steam: Rain to Steam (1 a hit, max 5, 4 s; 0.4% x 5 a Steam in the group), Old Scales, Ash Tongue, Boiling Off under the 1.2% a second budget',()=>{

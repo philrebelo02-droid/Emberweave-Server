@@ -193,7 +193,7 @@
   const isMine=(u,x,v)=>!!x&&x._talS===u&&(v===true||x.key===v);                      // (alive or not: a death row asks about the one that just fell)
 
   /* ---- who: 'self' | 'target' | 'source' | 'unit' | 'holder:<mark>' | {team:'enemy'|'ally', of:'self'|'target'|'unit'|'source', within: metres,
-          withinOpt:'radius', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
+          withinOpt:'radius', edge:true|'target', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
           DISTANCE: `within` is measured BODY TO BODY (the gap between the two units' bodies). A hero's body is 1.6 to 2 m in radius, so two units
           that touch are about 3.6 m apart centre to centre: "within 3 m" measured between centres would hold nobody. `withinOpt` (the radius of the
           skill being cast) and `centre:true` measure centre to centre, as the engine's own skills do. ---- */
@@ -208,6 +208,7 @@
     const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
     const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally'&&sel.mine==null;
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
+    const edg=!!sel.withinOpt&&(sel.edge===true||(sel.edge==='target'&&!!(ctx&&ctx.o&&ctx.o.at==='target'))||(typeof sel.edge==='function'&&sel.edge(ctx)));   // edge (talents-fix1): withinOpt measured from the centre to the BODY EDGE, as v1391's skills measure (true; 'target': when the skill is at:'target'; a function of ctx)
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
     const out=[], U=sel.mine!=null?mineOf(T,u).slice():E.units();                    // mine: only his own summons (true: any; or that summon's key)
     const tg=sel.targeting?pick(T,u,sel.targeting,ctx):null; if(tg&&!tg.length) return [];   // targeting: the units whose current target is one the selector picks ("the enemy attacking her lowest-HP ally")
@@ -233,7 +234,7 @@
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       if(bh&&!(Math.hypot(x.x-bh.x,x.y-bh.y)>bh.d)) continue;
       if(tg&&tg.indexOf(x.target)<0) continue;
-      const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
+      const d=E.dist(c,x); if(!(edg?(d-E.bodyR(x)<=R):(sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
     else if(od==='lowMax') out.sort((a,b)=>(a[0].maxHp||0)-(b[0].maxHp||0));        // the most fragile first (the lowest max HP, as Hookline itself ranks them)

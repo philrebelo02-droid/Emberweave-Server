@@ -185,8 +185,9 @@ test('Hurne / Cost: What It Costs, Pay Gladly, Cost Taken (at most 5, for the fi
   feed(L); V.step(1); assert.equal(stack(L,'hCost'),1,'each Feed Them pays 1 Cost'); near(v.dmg,a0*1.06,'What It Costs: 2% x 3 attack per Cost');
   for(let i=0;i<6;i++) feed(L); V.step(1); assert.equal(stack(L,'hCost'),5,'at most 5'); near(v.dmg,a0*1.30,'30%'); near((v.lifestealStat||0)-ls0,0.075,'Pay Gladly: 0.5% x 3 lifesteal per Cost'); near(v.maxHp,hp0*1.075,'Cost Taken: 0.3% x 5 max HP per Cost');
   V.wave(); V.step(1); assert.equal(stack(L,'hCost'),5,'for the fight, not the wave');
-  setStack(L,'hCost',4); raise(L,WK,3,0,-1); V.step(1); at(L,F[0],4.4,0); const f=F[0].hp; feed(L); assert.equal(F[0].hp,f,'Overfed: not at 4 Cost (3 m)');
-  raise(L,WK,3,0,-1); V.step(1); at(L,F[0],4.4,0); feed(L); assert.ok(F[0].hp<f,'at 5 Cost the rupture reaches 5 m (centre to centre today)');
+  /* talents-fix1: since v1391 the rupture reaches to the enemy's body edge - F0 at 5.6 m (a 3.59 m gap) is outside 3 m and inside 5 m */
+  setStack(L,'hCost',4); raise(L,WK,3,0,-1); V.step(1); at(L,F[0],5.6,0); const f=F[0].hp; feed(L); assert.equal(F[0].hp,f,'Overfed: not at 4 Cost (3 m to the body edge)');
+  raise(L,WK,3,0,-1); V.step(1); at(L,F[0],5.6,0); feed(L); assert.ok(F[0].hp<f,'at 5 Cost the rupture reaches 5 m (to the body edge, v1391)');
 });
 
 test('Hurne / Smoke of the Feast (LINK): 4% more for each Cost; with Her Young, 2 Smoulder on each enemy hit',()=>{

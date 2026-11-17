@@ -21,6 +21,7 @@
 const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
 const P=(name,b)=>({$:name,b:b||0});      // a base + everything his learned talents add to the named number
 const SUN='sunburst', DUAL='duality', ECL='eclipse';
+const SUN_HIT={team:'enemy',withinOpt:'radius',edge:true};   // the enemies Sunburst hits: since v1391 a Green Sunburst burns every enemy whose BODY is within its radius (its heal on allies keeps the centre)
 /* the states several talents read: their bookkeeping runs when any of these is learned */
 const HUN=['hb_1_1','hb_2_1','hb_3_1','hb_5_1','hb_7_1','hb_9_1','hb_10_1','hb_11_2','hb_12_3','hb_13_2'];
 const QUI=['hb_1_4','hb_3_4','hb_5_2','hb_5_3','hb_6_3','hb_6_4','hb_7_4','hb_9_4','hb_10_4','hb_11_2','hb_12_4','hb_13_2'];
@@ -101,7 +102,7 @@ module.exports={
     hb_9_1:[ {on:'in',if:{stackFull:'hun'},less:R(0.015)} ],                                                   // Gorged
     hb_9_3:[ {param:'pen.mr',add:R(0.015)} ],                                                                  // Edge of Night
     hb_6_3:[ {on:'rooted',do:[{after:0,do:[{ustack:'quiet',on:{team:'enemy',of:'target',skip:'target',n:1},add:R(1)}]}]} ],   // Stillness Spreads
-    hb_9_4:[ {on:'cast',skill:SUN,if:{fn:'isDark'},do:[{ustack:'quiet',on:{team:'enemy',withinOpt:'radius'},add:2},{fn:'drainEach'}]} ],   // Last Word Taken
+    hb_9_4:[ {on:'cast',skill:SUN,if:{fn:'isDark'},do:[{ustack:'quiet',on:SUN_HIT,add:2},{fn:'drainEach'}]} ],   // Last Word Taken
     hb_10_1:[ {on:'wave',do:[{stack:'hun',atLeast:R(1)}]} ],                                                   // Hunger Wakes
     hb_10_4:[ {on:'death',if:{who:'enemy',unitUst:{quiet:1}},do:[{heal:{pct:R(0.005),of:'maxHp'},on:'self'}]} ],   // Lean Fang
     hb_11_1:[ {on:'out',if:{auto:true},more:R(0.02)} ],                                                        // Bitter Root
@@ -178,7 +179,7 @@ module.exports={
     tb_5_4:[ {on:'switch',do:[{heal:{pct:R(0.006),of:'maxHp'},on:'self'}]} ],                                  // Middle Path
     tb_7_1:[ {param:'ecl.sh',add:R(0.04)} ],                                                                   // Two Rings
     tb_7_2:[ {on:'out',if:{casting:ECL},more:R(0.03)} ],                                                       // Measured Dark
-    tb_6_4:[ {on:'cast',skill:SUN,do:[{heal:{pct:R(0.01),of:'maxHp',x:{units:{team:'enemy',withinOpt:'radius'}}},on:'self'}]} ],   // Same Flash
+    tb_6_4:[ {on:'cast',skill:SUN,do:[{heal:{pct:R(0.01),of:'maxHp',x:{units:SUN_HIT}},on:'self'}]} ],   // Same Flash
     tb_8_3:[ {on:'tick',if:{fn:'lvl0'},do:[{fn:'hps',p:R(0.003)}]} ],                                         // Long Pause: 0.3% of his max HP a second, each tick it sits level
     tb_7_4:[ {on:'in',if:{srcHas:'wd'},less:R(0.01)} ],                                                        // Counterweight
     tb_8_4:[ {stat:{armor:R(0.02)},if:{fn:'isLight'}} ],                                                       // Keeper's Hide
@@ -236,7 +237,7 @@ module.exports={
       if(dk(u)){ const c2={u,tgt:u,amt:(u.maxHp*0.012+(u.apow||0)*0.25)*m*k}; if(T.on.rgMod) A.run(T,u,'rgMod',c2); if(c2.amt>0) E.healUnit(u,c2.amt); }
       else { const e=A.pick(T,u,{team:'enemy',n:1},c)[0]; if(e) drainOne(A,T,u,e,m*k,c); } },
     /* Last Word Taken: every enemy Sunburst hit in Dark stance is drained once, 1 s of Twin Fonts' drain */
-    drainEach(A,T,u,c){ const E=A.eng(); if(!E.twinMul) return; const m=E.twinMul(u); for(const e of A.pick(T,u,{team:'enemy',withinOpt:'radius'},c)) drainOne(A,T,u,e,m,c); },
+    drainEach(A,T,u,c){ const E=A.eng(); if(!E.twinMul) return; const m=E.twinMul(u); for(const e of A.pick(T,u,SUN_HIT,c)) drainOne(A,T,u,e,m,c); },
     /* ---- Quiet ---- */
     reach5(A,T,u,c){ const t=c.tgt; if(!t||!t.alive) return; const n=A.ustGet(T,u,t,'quiet'); if(n>=5-1e-9&&n-(c.k||0)<5-1e-9) A.run(T,u,'q5',Object.assign({},c,{tgt:t,unit:t})); },
     still(A,T,u,c){ const t=c.tgt; if(!t||!t.alive) return; A.setMark(T,u,t,'root',{dur:1}); A.acts(T,u,[{window:'rootW',dur:1,longest:true}],c); A.ustPut(T,u,t,'quiet',0); A.run(T,u,'rooted',c); },

@@ -65,7 +65,8 @@ test('Hollow: his real kit, as the talents read it - the entrance, Fan of Knives
   plain({foes:4},P=>{ const {v,F}=P, sm=VMX('skillMul')(10);
     assert.ok(v.pass&&v.pass.notthere,'his passive is unlocked in the lab');
     const h0=F[0].hp, d0=F[0].dots.length; fanAt(P,F[0]); assert.ok(F[0].hp<h0,'Fan of Knives strikes an enemy 2.9 m from his centre'); assert.equal(F[0].dots.length,d0+1,'and leaves a bleed stack'); assert.equal(F[0]._blStk,1);
-    const h1=F[1].hp; at(P,F[1],3.2,0.2); V.cast(v,'green',F[1]); near(h1-F[1].hp,0,'the game\'s Fan does not reach 3.2 m centre to centre (the body-edge fix is v1391, elsewhere)');
+    /* talents-fix1: since v1391 the Fan reaches to the enemy's body edge (3 m from his centre to its body) */
+    const h1=F[1].hp, h3=F[3].hp; at(P,F[1],3.2,0.2); at(P,F[3],5.2,0.2); V.cast(v,'green',F[1]); assert.ok(F[1].hp<h1,'the Fan reaches an enemy 3.2 m away, centre to centre (v1391: to the body edge)'); near(h3-F[3].hp,0,'not one whose body is 3.19 m away');
     const g=F[2]; lac(P,g); assert.equal(g._blStk,1); const b0=g.dots.length; lac(P,g); assert.equal(g._blStk,2);
     const h2=g.hp; lac(P,g); assert.equal(g._blStk,0,'the third stack ruptures and clears'); assert.equal(g.dots.length,b0+2,'each stack its own bleed');
     const d=g.dots[g.dots.length-1]; near(d.dps,v.dmg*BLK(),'a bleed: 16% of his attack a tick (x the skill level curve)',1e-9); assert.equal(d.remaining,6,'6 ticks');

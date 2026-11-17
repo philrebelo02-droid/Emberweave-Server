@@ -27,6 +27,10 @@ const markUntil=(L,t,name)=>{ const m=t._talM&&t._talM[L.v.uid]&&t._talM[L.v.uid
 const metres=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)/V.METER;
 const casting=(f,spell)=>{ f._pend={t:5,spell:spell!==false,fire(){}}; f._castNow=5; };   // an enemy part-way through a cast (the engine's own pending cast)
 const VMX=s=>vm.runInContext(s,NOW.ctx);
+/* talents-fix1 (17 Nov): since v1391 the Knot forms on her TARGET (at:'target') and catches every enemy whose BODY is within 4 m of that spot. The Knot tests
+   cast it on a hub enemy (knot) and place the others around the hub (near). */
+const near2=(c,f,dx,dy)=>{ f.x=c.x+dx*V.METER; f.y=c.y+dy*V.METER; };
+const knot=(L,c)=>V.cast(L.v,'blue',c);
 
 test('Absalie: every talent is accounted for - 9 plain stats, 109 with rows, none waiting',()=>{
   accounting(H,[118,9,109,0,0]);
@@ -34,14 +38,14 @@ test('Absalie: every talent is accounted for - 9 plain stats, 109 with rows, non
   for(const id of ['ec_10_3','gk_11_2','us_6_4']) assert.ok(!FXN.has(H,id)&&M.talents[id],id+': "Absalie\'s ultimate energy fills faster" is a row, not a plain stat');
 });
 
-test('Absalie: her real kit, as the talents read it - Event Horizon really drags, its silence is written straight on; the Knot forms on her; Dark Convergence pays at the Knot press',()=>{
+test('Absalie: her real kit, as the talents read it - Event Horizon really drags, its silence is written straight on; the Knot forms on her target (v1391); Dark Convergence pays at the Knot press',()=>{
   plain({foes:3},P=>{ const {v,F}=P; sure(P); still(P); noMr(P); const x0=F.map(f=>[f.x,f.y]);
     cast(P,'ult',10,0); assert.ok(F.every(f=>f.pullT>0&&f.pullStop===6),'the ultimate sets a drag with a stopping distance on every enemy within 7 m');
     near(v.energy,0,'Dark Convergence gives nothing for the ultimate'); collapse(P);
     assert.ok(metres(F[2],{x:x0[2][0],y:x0[2][1]})>3,'and it really moves them toward its centre (unlike Collapsing Star)');
     assert.ok(F.every(f=>f.silencedT>1.0&&f.silencedT<=1.05+1e-9),'the collapse silences each caught enemy 1.05 s (the control table 1.5 s, cut by 30%)');
-    at(P,F[0],3,0); at(P,F[1],0,-2.5); V.cast(v,'blue'); near(metres(F[0],v),3*0.4,'the Knot moves an enemy 3 m from her 60% of the way to her',1e-6);
-    assert.ok(F[0].slow>0&&F[1].slow>0&&!(F[2].slow>0),'and slows the enemies within 4 m of HER (centre to centre)');
+    const c=F[2]; near2(c,F[0],3,0); near2(c,F[1],0,2.01+4.2); knot(P,c); near(metres(F[0],c),3*0.4,'the Knot moves an enemy 3 m from her target 60% of the way to it',1e-6);
+    assert.ok(F[0].slow>0&&c.slow>0&&!(F[1].slow>0),'and slows the enemies whose body is within 4 m of her target (v1391: on the target, to the body edge)');
     const press=VMX('castKit'), cancel=VMX('castCancel'); v.energy=0; press(v,v.blueAb); cancel(v,''); near(v.energy,12*v.passMul,'Dark Convergence: 4 x 3 energy x her passive level at the Knot press, however many it will hit');
     v.energy=0; press(v,v.greenAb); cancel(v,''); near(v.energy,0,'nothing for the Needle (one target)'); });
 });
@@ -150,28 +154,28 @@ test('Absalie / The Empty Chair (SIGNATURE): the caught enemy with the most Thre
 /* ============================== THE GREAT KNOT ============================== */
 test('Absalie / Tangle: Tangle, Snarl, Shared Weight, Pulled Tight, Choke Point, Bound Together, Thread Cloak',()=>{
   const L=lab(H,S(['gk_1_1','gk_2_1','gk_6_1','gk_9_1','gk_5_1','gk_11_1','gk_12_4']),{foes:5,allies:1,big:true}), {v,F,A}=L; noMr(L); const ai=F[0].atkInterval;
-  at(L,F[0],3,0); at(L,F[1],0,3); at(L,F[2],-3,0); at(L,F[3],2.5,2.5);
+  at(L,F[0],8,0); near2(F[0],F[1],0,3); near2(F[0],F[2],-3,0); near2(F[0],F[3],2.5,2.5); near2(F[0],F[4],0,-(2.01+4.5));   // the Knot on F0: F1-F3 caught, F4's body 4.5 m away
   const bA=plainHit(L,()=>lost(F[0],()=>V.hit(A[0],F[0],1000))), bIn=plainHit(L,()=>lost(v,()=>V.hit(F[0],v,1000))), bIA=plainHit(L,()=>lost(A[0],()=>V.hit(F[0],A[0],1000))), bIn4=plainHit(L,()=>lost(v,()=>V.hit(F[4],v,1000)));
-  V.cast(v,'blue'); assert.ok([0,1,2,3].every(i=>mark(L,F[i],'tng'))&&!mark(L,F[4],'tng'),'Tangle: every enemy the Knot catches'); near(markUntil(L,F[0],'tng')-V.now(),3+1.5,'for 3 s, Snarl 0.5 x 3 longer');
+  knot(L,F[0]); assert.ok([0,1,2,3].every(i=>mark(L,F[i],'tng'))&&!mark(L,F[4],'tng'),'Tangle: every enemy the Knot catches'); near(markUntil(L,F[0],'tng')-V.now(),3+1.5,'for 3 s, Snarl 0.5 x 3 longer');
   const d=losses(L,()=>V.hit(v,F[0],1000,{auto:true})); for(const i of [1,2,3]) near(d[i],d[0]*(0.20+0.06),'4% x 5 of her hit on one goes to each other Tangled enemy; Shared Weight 2% x 3 more with 4 Tangled'); assert.equal(d[4],0);
   near(lost(F[0],()=>V.hit(A[0],F[0],1000)),bA*1.05,'Pulled Tight: 1% x 5 more from her allies');
   V.step(1); near(F[0].atkInterval,ai/(1-0.075),'Choke Point: they attack 1.5% x 5 slower'); near(F[4].atkInterval,ai);
   near(lost(v,()=>V.hit(F[0],v,1000)),bIn*0.95*0.88,'Bound Together: a Tangled enemy deals 1% x 5 less; Thread Cloak: she takes 1% x 3 less per Tangled enemy');
   near(lost(A[0],()=>V.hit(F[0],A[0],1000)),bIA*0.95,'to her allies too (Bound Together)'); near(lost(v,()=>V.hit(F[4],v,1000)),bIn4*0.88,'Thread Cloak counts the Tangled enemies, whoever hits her');
   secs(4.6); assert.ok(!mark(L,F[0],'tng')); const e=losses(L,()=>V.hit(v,F[0],1000,{auto:true})); assert.equal(e[1],0,'Tangle over: nothing shared'); V.step(1); near(F[0].atkInterval,ai); near(lost(v,()=>V.hit(F[4],v,1000)),bIn4);
-  const N=lab(H,S(['gk_1_1','gk_6_1']),{foes:3,big:true}); noMr(N); at(N,N.F[0],3,0); at(N,N.F[1],0,3); at(N,N.F[2],-3,0); V.cast(N.v,'blue'); const g=losses(N,()=>V.hit(N.v,N.F[0],1000,{auto:true}));
+  const N=lab(H,S(['gk_1_1','gk_6_1']),{foes:3,big:true}); noMr(N); at(N,N.F[0],8,0); near2(N.F[0],N.F[1],0,3); near2(N.F[0],N.F[2],-3,0); knot(N,N.F[0]); const g=losses(N,()=>V.hit(N.v,N.F[0],1000,{auto:true}));
   near(g[1],g[0]*0.20,'3 Tangled: no Shared Weight'); near(markUntil(N,N.F[0],'tng')-V.now(),3,'without Snarl: 3 s');
   const C=lab(H,S(['gk_12_4']),{foes:9,big:true}); C.F.slice(0,7).forEach(f=>{ f._talM={[C.v.uid]:{tng:{t0:0,until:1e9,v:0}}}; }); const b9=plainHit(C,()=>lost(C.v,()=>V.hit(C.F[8],C.v,1000)));
   near(lost(C.v,()=>V.hit(C.F[8],C.v,1000)),b9*0.85,'Thread Cloak: up to 5 Tangled enemies');
 });
 
 test('Absalie / the Knot: Deeper Pull, Long Reach, Tight Knot, Pull of Home, Hard Pull, Quiet Hands, Leaning In, Dense Weave, Gravity Well, Converging Lines',()=>{
-  const O={foes:4,big:true}, pl=plain(O,P=>{ noMr(P); at(P,P.F[0],3,0); at(P,P.F[1],4.6,1.0); const d=losses(P,()=>V.cast(P.v,'blue')); return {d,sm:P.F[0].slowMul}; });
-  assert.equal(pl.d[1],0,'(plain: 4.71 m from her is outside 4 m)');
-  const L=lab(H,S(['gk_2_4','gk_4_4','gk_1_4','gk_12_2','gk_4_2','us_12_4','gk_3_2','gk_8_3','gk_10_4','gk_6_2']),O), {v,F}=L; noMr(L); at(L,F[0],3,0); at(L,F[1],4.6,1.0); at(L,F[2],0,-3); at(L,F[3],-3,0);
+  const O={foes:4,big:true}, pl=plain(O,P=>{ noMr(P); const c=P.F[3]; at(P,c,10,0); near2(c,P.F[0],3,0); near2(c,P.F[1],6.6,1.0); const d=losses(P,()=>knot(P,c)); return {d,sm:P.F[0].slowMul}; });
+  assert.equal(pl.d[1],0,'(plain: a body 4.67 m from her target is outside 4 m)');
+  const L=lab(H,S(['gk_2_4','gk_4_4','gk_1_4','gk_12_2','gk_4_2','us_12_4','gk_3_2','gk_8_3','gk_10_4','gk_6_2']),O), {v,F}=L; noMr(L); const c=F[3]; at(L,c,10,0); near2(c,F[0],3,0); near2(c,F[1],6.6,1.0); near2(c,F[2],0,-3);   // the Knot on F3: it, F0, F2 and (Long Reach) F1
   const nd=plainHit(L,()=>lost(F[0],()=>needle(L,F[0]))), au=plainHit(L,()=>lost(F[0],()=>V.hit(v,F[0],1000,{auto:true}))), bIn=plainHit(L,()=>lost(v,()=>V.hit(F[0],v,1000)));
-  v.energy=0; const d=losses(L,()=>V.cast(v,'blue')); near(d[0],pl.d[0]*1.15*1.15*1.10,'Tight Knot 5% x 3 and Pull of Home 3% x 5 more (and Dense Weave: the Knot slows before it strikes)'); assert.ok(d[1]>0,'Long Reach: 0.2 x 5 m farther (5 m)');
-  near(metres(F[1],v),Math.hypot(4.6,1.0)-2.8,'Deeper Pull: it pulls 0.2 x 3 m farther (2.8 m)',1e-6); near(metres(F[0],v),3*0.4,'(never more than 60% of the way)',1e-6);
+  v.energy=0; const d=losses(L,()=>knot(L,c)); near(d[0],pl.d[0]*1.15*1.15*1.10,'Tight Knot 5% x 3 and Pull of Home 3% x 5 more (and Dense Weave: the Knot slows before it strikes)'); assert.ok(d[1]>0,'Long Reach: 0.2 x 5 m farther (5 m)');
+  near(metres(F[1],c),Math.hypot(6.6,1.0)-2.8,'Deeper Pull: it pulls 0.2 x 3 m farther (2.8 m)',1e-6); near(metres(F[0],c),3*0.4,'(never more than 60% of the way)',1e-6);
   near(F[0].slowMul,1-(1-pl.sm)*1.15,'Leaning In: the slow 3% x 5 stronger');
   near(v.energy,2*5,'Converging Lines: 1 x 5 energy for each enemy it catches after the second (4 caught)');
   near(lost(F[0],()=>needle(L,F[0])),nd*1.10,'Dense Weave: her abilities 2% x 5 more to a slowed enemy'); near(lost(F[0],()=>V.hit(v,F[0],1000,{auto:true})),au,'not her basic attacks');
@@ -190,26 +194,26 @@ test('Absalie / Crowded Room: 1% x 5 more for each enemy within 3 m of the targe
 test('Absalie / Tension: Tension, Taut, Coiled, Snap, Overwound',()=>{
   const O={foes:3,big:true}, pE=plain(O,P=>{ noMr(P); sure(P); return losses(P,()=>{ cast(P,'ult',10,0); collapse(P); }); });
   const L=lab(H,S(['gk_2_3','gk_3_3','gk_8_2','gk_4_3','gk_9_2']),O), {v,F}=L; noMr(L); sure(L); const ap=v.apow, ai=v.atkInterval;
-  at(L,F[0],3,0); at(L,F[1],0,3); V.cast(v,'blue'); assert.equal(stack(L,'tension'),2,'Tension: 1 for each enemy the Knot catches');
+  at(L,F[0],8,0); near2(F[0],F[1],0,3); knot(L,F[0]); assert.equal(stack(L,'tension'),2,'Tension: 1 for each enemy the Knot catches');
   V.step(1); near(v.apow,ap*(1+0.015*2),'0.3% x 5 ability power each'); near(v.atkInterval,ai/(1+0.006*2),'Coiled: 0.2% x 3 attack speed each');
   secs(12.8); assert.equal(stack(L,'tension'),2,'Taut: it lasts 10 s + 1 x 3'); secs(0.3); assert.equal(stack(L,'tension'),0); V.step(1); near(v.apow,ap); near(v.atkInterval,ai);
-  still(L); setStack(L,'tension',12); at(L,F[0],3,0); at(L,F[1],0,3); V.cast(v,'blue'); near(F[0].stunned,0.8,'Snap: at 12 Tension the Knot stuns every enemy it catches 0.8 s'); near(F[1].stunned,0.8); assert.equal(stack(L,'tension'),2,'and spends it all (then gains this Knot 2)');
-  F.forEach(f=>{ f.stunned=0; }); at(L,F[0],3,0); V.cast(v,'blue'); assert.ok(!(F[0].stunned>0),'below 12: no stun');
+  still(L); setStack(L,'tension',12); at(L,F[0],8,0); near2(F[0],F[1],0,3); knot(L,F[0]); near(F[0].stunned,0.8,'Snap: at 12 Tension the Knot stuns every enemy it catches 0.8 s'); near(F[1].stunned,0.8); assert.equal(stack(L,'tension'),2,'and spends it all (then gains this Knot 2)');
+  F.forEach(f=>{ f.stunned=0; }); at(L,F[0],8,0); knot(L,F[0]); assert.ok(!(F[0].stunned>0),'below 12: no stun');
   at(L,F[0],4.5,0); at(L,F[1],10,0); at(L,F[2],15.5,0); setStack(L,'tension',18); const u=losses(L,()=>{ cast(L,'ult',10,0); collapse(L); }); for(const i of [0,1,2]) near(u[i],pE[i]*1.03,'Overwound: 18 Tension, 0.5% more Event Horizon damage for each above 12');
   assert.equal(stack(L,'tension'),18,'it can reach 18');
-  const N=lab(H,S(['gk_2_3']),O); setStack(N,'tension',11); at(N,N.F[0],3,0); at(N,N.F[1],0,3); V.cast(N.v,'blue'); assert.equal(stack(N,'tension'),12,'without Overwound: at most 12'); near(N.F[0].stunned,1e6,'without Snap: no stun of its own');
+  const N=lab(H,S(['gk_2_3']),O); setStack(N,'tension',11); at(N,N.F[0],8,0); near2(N.F[0],N.F[1],0,3); knot(N,N.F[0]); assert.equal(stack(N,'tension'),12,'without Overwound: at most 12'); near(N.F[0].stunned,1e6,'without Snap: no stun of its own');
 });
 
 test('Absalie / Wide Knot and Slipknot; Close Knot (a PICK ONE: its own lab)',()=>{
   const W=lab(H,S(['gk_5_2','gk_7_2','gk_2_4']),{foes:3,big:true}), {v,F}=W; sure(W); still(W);
-  V.cast(v,'blue'); const pt=W.T.s.pt.gravknot; assert.ok(pt&&metres(pt,v)>5,'Wide Knot: it forms on the densest group, not around her');
+  V.cast(v,'blue'); const pt=W.T.s.pt.gravknot; assert.ok(pt&&metres(pt,v)>5&&metres(pt,F[0])>1,'Wide Knot: it forms on the densest group, not around her nor on her target (the nearest, F0)');
   const c=F.filter(f=>f.slow>0); assert.equal(c.length,2,'the two enemies of that group are caught'); for(const f of c) near(metres(f,pt),2.75*0.4,'each 60% of the way to its centre',1e-6);
   const sl=c[0].slow; let i=0; for(;i<200&&!(c[0].pullT>0&&c[0].pulledBy&&Math.abs(c[0].pulledBy.x-pt.x)<1e-9);i++) V.step(1);
   near(i*V.STEP,sl,'Slipknot: when its slow ends',0.08); near((Math.hypot(c[0].x-pt.x,c[0].y-pt.y)-c[0].pullStop)/V.METER,1.1+0.3,'the knot pulls once more, half as far (half of 2.2 + 0.2 x 3 m)',0.2);
-  const m0=plain({foes:3,big:true},P=>{ at(P,P.F[0],3,0); V.cast(P.v,'blue'); return P.F[0].slowMul; });
-  const K=lab(H,S(['gk_5_3']),{foes:3,big:true}); at(K,K.F[0],3,0); V.cast(K.v,'blue'); const f=K.F[0];
-  assert.ok(f.pullT>0&&Math.abs(f.pulledBy.x-K.v.x)<1e-9&&f.pullStop===0,'Close Knot: pulled all the way in, to her'); near(f.slowMul,1-(1-m0)*1.2,'and slowed 20% harder');
-  assert.ok(metres(K.T.s.pt.gravknot,K.v)<1e-9,'(the Knot formed around her)');
+  const m0=plain({foes:3,big:true},P=>{ near2(P.F[1],P.F[0],3,0); knot(P,P.F[1]); return P.F[0].slowMul; });
+  const K=lab(H,S(['gk_5_3']),{foes:3,big:true}); near2(K.F[1],K.F[0],3,0); knot(K,K.F[1]); const f=K.F[0], kp=K.T.s.pt.gravknot;
+  assert.ok(metres(kp,K.F[1])<1e-9,'(the Knot formed on her target: v1391)');
+  assert.ok(f.pullT>0&&Math.abs(f.pulledBy.x-kp.x)<1e-9&&Math.abs(f.pulledBy.y-kp.y)<1e-9&&f.pullStop===0,'Close Knot: pulled all the way in, to the centre of the Knot'); near(f.slowMul,1-(1-m0)*1.2,'and slowed 20% harder');
 });
 
 test('Absalie / Event Horizon: Deep Gravity, Centre of Mass, Mouth of the Void, Collapse, Event Line, Thread of Quiet, The Long Pause, Breath Held',()=>{
@@ -228,7 +232,7 @@ test('Absalie / Event Horizon: Deep Gravity, Centre of Mass, Mouth of the Void, 
 
 test('Absalie / Shared Fall, Knot Breaker, Knotwork, Weighted Robe, Steady Mind',()=>{
   const L=lab(H,S(['gk_1_1','gk_12_1','gk_10_1','gk_3_1','gk_11_4','gk_3_4']),{foes:4,allies:1,big:true}), {v,F,A}=L; still(L);
-  at(L,F[0],3,0); at(L,F[1],0,3); at(L,F[2],-3,0); at(L,F[3],30,30); V.cast(v,'blue'); assert.ok([0,1,2].every(i=>mark(L,F[i],'tng')));
+  at(L,F[0],8,0); near2(F[0],F[1],0,3); near2(F[0],F[2],-3,0); at(L,F[3],30,30); knot(L,F[0]); assert.ok([0,1,2].every(i=>mark(L,F[i],'tng')));
   let spread=0,n=0; for(let i=0;i<80;i++){ F.forEach(f=>{ f.stunned=0; }); if(!V.cc(A[0],F[0],'stunned',2)) continue; n++; if(F[1].stunned>0){ spread++; near(F[1].stunned,F[0].stunned,'the same seconds'); near(F[2].stunned,F[0].stunned); } else assert.ok(!(F[2].stunned>0),'all or none'); }
   assert.ok(n>=30,'stuns landed: '+n); assert.ok(spread/n>0.12&&spread/n<0.50,'Shared Fall: an ally stun on one Tangled enemy hits them all 10% x 3 of the time: '+spread+' of '+n);
   F.forEach(f=>{ f.stunned=0; }); let m=0; for(let i=0;i<30;i++){ F[3].stunned=0; if(V.cc(A[0],F[3],'stunned',2)) m++; } assert.ok(m>5&&!(F[0].stunned>0),'a stun on an enemy that is not Tangled: never');

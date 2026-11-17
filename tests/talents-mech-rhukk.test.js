@@ -373,6 +373,9 @@ test('Rhukk: in seeded fights with his stun build, no enemy stays stunned by him
     for(const seed of [3,5,8,13]) NOW.auto(JSON.parse(JSON.stringify(sn)),JSON.parse(JSON.stringify(foe)),seed);
     const s=VMX('__st'); for(const k in s.cur) if(s.cur[k]) s.runs.push(s.cur[k]); const mx=Math.max(0,...s.runs);
     console.log('  stun chain (91 Straight Through): '+s.runs.length+' runs of an enemy stunned by him, the longest '+mx.toFixed(2)+' s');
-    assert.ok(s.runs.length>0,'he stunned someone'); assert.ok(mx<=4.0+0.05,'never past 4 s in a row: '+mx.toFixed(2)); }
+    assert.ok(s.runs.length>0,'he stunned someone'); 
+    /* Phil, 17 Nov 2026 (00:3x, via the coordinator), on the chains v1391's wider reach brought (Tharl 5.14 s, Rhukk 4.10 s on a24261fd9): ACCEPTED -
+     "5 seconds at max talents, level 100" / "but those stuns are 16 second CD". The check now holds the measured chain (a regression guard), not 4.0 s. */
+    assert.ok(mx<=4.10+0.05,'never past the accepted 4.10 s in a row: '+mx.toFixed(2)); }
   finally{ VMX('ccApply=__sc; _updateBattleCore=__su;'); }
 });

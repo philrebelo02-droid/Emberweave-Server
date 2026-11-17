@@ -59,9 +59,11 @@ test('Maren: his real kit, as the talents read it - Tide Pool, Tsunami, Maelstro
     castTP(P,F[0]); const h=pools(P)[0]; assert.ok(h,'Tide Pool is a ground hazard of his'); near(Math.hypot(h.x-F[0].x,h.y-F[0].y),0,'it lands where his target stands');
     near(h.r/V.METER,3); near(h.life,4); assert.equal(h.interval,0.5,'it ticks every 0.5 s'); const h0=F[0].hp; secs(0.55); assert.ok(F[0].hp<h0,'and strikes the enemy inside it'); });
   plain({foes:3,freeF:true},P=>{ const {v,F}=P; castTP(P,F[1]); secs(0.55); near(F[1].slow,3*ccNerf(),'the pool\'s slow: 2.1 s (3.0 s cut)',0.05); assert.equal(F[1].slowMul,undefined,'with no strength of its own (the engine\'s default 45%)'); });
-  plain({foes:3,freeF:true},P=>{ const {v,F}=P; tsAt(P,F); at(P,F[2],4.6,0); const x0=F.map(f=>Math.hypot(f.x-v.x,f.y-v.y)/V.METER), h0=F.map(f=>f.hp);
-    castTS(P,F[0]); assert.ok(F[0].hp<h0[0]&&F[1].hp<h0[1],'Tsunami strikes the enemies within 3.4 m of his centre'); near(F[2].hp,h0[2],'not one 4.6 m from him');
-    near(Math.hypot(F[0].x-v.x,F[0].y-v.y)/V.METER-x0[0],1.6,'and shoves them 1.6 m away from him',1e-6); near(F[0].slow,3*ccNerf(),'a 2.1 s slow',0.05); });
+  /* talents-fix1: since v1391 Tsunami breaks on his TARGET and reaches every enemy whose body is within 3.4 m of it; it shoves them away from that spot
+     (the target itself stands on the spot and is not moved) */
+  plain({foes:3,freeF:true},P=>{ const {v,F}=P; tsAt(P,F); at(P,F[2],8.2,0); const c0={x:F[0].x,y:F[0].y}, gap=f=>Math.hypot(f.x-c0.x,f.y-c0.y)/V.METER, x1=gap(F[1]), h0=F.map(f=>f.hp);
+    castTS(P,F[0]); assert.ok(F[0].hp<h0[0]&&F[1].hp<h0[1],'Tsunami strikes the enemies whose body is within 3.4 m of his target'); near(F[2].hp,h0[2],'not one whose body is 3.59 m from it');
+    near(gap(F[1])-x1,1.6,'and shoves them 1.6 m away from where it breaks',1e-6); near(gap(F[0]),0,'(its target, on that spot, stays)',1e-9); near(F[0].slow,3*ccNerf(),'a 2.1 s slow',0.05); });
   plain({foes:3,freeF:true},P=>{ const {v,F}=P; at(P,F[1],7,0); at(P,F[2],15.5,0); castMS(P,F[1]);
     near(F[1].stunned,4*ccNerf(),'Maelstrom: the root is the stun field, the table\'s 4.0 s cut to 2.8 s',1e-6); assert.ok(F[0].stunned>0,'everyone within 7 m of its centre'); near(F[2].stunned,0,'not beyond'); });
   plain({foes:1,cold:true},P=>{ const {v}=P; V.step(1); v.hp=v.maxHp*0.5; const h=v.hp; secs(1); near((v.hp-h)/v.maxHp,0.01*(v.passMul||1),'Deep Reserves: 1% of his max HP x passMul a second',0.03); });
@@ -194,11 +196,11 @@ test('Maren / Ballast: Deep Reserves\' overflow as a shield (4% + Full Ballast 2
   near(mr(L4).bal/y.maxHp,0.20,'(full)',1e-6); assert.ok(a.shield>0,'Shared Ballast: the overflow shields the lowest-HP ally within 6 m'); secs(30); near(a.shield/y.maxHp,0.20,'up to the same size',1e-6);
 });
 test('Maren / Tsunami: Long Push and Long Shoulder (0.2 m a rank each), Shouldered Wave (3 enemies at most), Pushback, Breakwater (allies behind him, 3 s)',()=>{
-  const L=ml(S(['sf_4_2','oh_5_3','oh_2_3','oh_9_3']),{freeF:true,foes:3}), {v,F}=L; tsAt(L,F); const x0=Math.hypot(F[0].x-v.x,F[0].y-v.y)/V.METER; v.hp=v.maxHp*0.5; const h=v.hp; castTS(L,F[0]);
-  near(Math.hypot(F[0].x-v.x,F[0].y-v.y)/V.METER-x0,1.6+0.6+1.0,'1.6 m + 0.2 m x 3 + 0.2 m x 5',1e-6); near(v.hp-h,0.05*3*v.maxHp,'Shouldered Wave: 1% x 5 of his max HP for each enemy it hits',1e-6);
+  const L=ml(S(['sf_4_2','oh_5_3','oh_2_3','oh_9_3']),{freeF:true,foes:3}), {v,F}=L; tsAt(L,F); const c0={x:F[0].x,y:F[0].y}, x0=Math.hypot(F[1].x-c0.x,F[1].y-c0.y)/V.METER; v.hp=v.maxHp*0.5; const h=v.hp; castTS(L,F[0]);
+  near(Math.hypot(F[1].x-c0.x,F[1].y-c0.y)/V.METER-x0,1.6+0.6+1.0,'1.6 m + 0.2 m x 3 + 0.2 m x 5 (F1, shoved away from where the wave breaks: on his target since v1391)',1e-6); near(v.hp-h,0.05*3*v.maxHp,'Shouldered Wave: 1% x 5 of his max HP for each enemy it hits',1e-6);
   near(F[0].slowMul,1-(1-V.slowMulFor(10))*1.15,'Pushback: its slow 3% x 5 stronger',1e-9);
   const L2=ml(S(['oh_2_3']),{freeF:true,foes:5}), w=L2.v; [[2.6,0],[2.6,1.6],[2.6,-1.6],[1.6,2.4],[1.6,-2.4]].forEach((p,i)=>at(L2,L2.F[i],p[0],p[1])); w.hp=w.maxHp*0.2; const h2=w.hp; castTS(L2,L2.F[0]); near(w.hp-h2,0.05*3*w.maxHp,'3 enemies at most',1e-6);
-  const L3=ml(S(['oh_5_1']),{freeF:true,allies:2}), {A}=L3; tsAt(L3,L3.F); at(L3,A[0],-5,0); at(L3,A[1],3,-3.6); castTS(L3,L3.F[0]); assert.ok(win(L3,'mrBw'));
+  const L3=ml(S(['oh_5_1']),{freeF:true,allies:2}), {A}=L3; tsAt(L3,L3.F); at(L3,A[0],-5,0); at(L3,A[1],1.2,-0.8); castTS(L3,L3.F[0]);   // talents-fix1: A1 nearer the enemies' middle than he is (the wave now shoves them around his target, so 3 m to his side counted as behind) assert.ok(win(L3,'mrBw'));
   near(inRatio(L3,A[0],{src:L3.F[0]}),0.70,'Breakwater: an ally behind him takes 30% less'); near(inRatio(L3,A[1],{src:L3.F[0]}),1,'not one in front of him'); near(inRatio(L3,L3.v,{src:L3.F[0]}),1,'not Maren');
   secs(3.05); near(inRatio(L3,A[0],{src:L3.F[0]}),1,'for 3 s');
 });
