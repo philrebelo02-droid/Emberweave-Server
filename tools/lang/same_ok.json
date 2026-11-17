@@ -33,7 +33,9 @@
   "xp2.superior",
   "world2.oasis",
   "vault.info",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "pt-BR": [
   "arena.league_bronze",
@@ -80,7 +82,9 @@
   "tut.r_potion",
   "xp2.superior",
   "vault.info",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "fr": [
   "arena.league_bronze",
@@ -171,7 +175,10 @@
   "tech.amount",
   "tut.r_potion",
   "world2.oasis",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_journal",
+  "bb.mode_skyfall"
  ],
  "de": [
   "arena.league_bronze",
@@ -280,7 +287,9 @@
   "vault.info",
   "herolist.element",
   "bb.v_guild",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "it": [
   "battle.boss",
@@ -343,7 +352,9 @@
   "tut.r_potion",
   "vault.info",
   "bb.v_guild",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "nl": [
   "arena.npc",
@@ -440,7 +451,9 @@
   "herolist.element",
   "bb.v_guild",
   "set.graphics",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "ru": [
   "arena.npc",
@@ -451,7 +464,9 @@
   "res2.plus_n_item",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "tr": [
   "arena.npc",
@@ -481,7 +496,9 @@
   "signin.month_year",
   "tech.amount",
   "tut.r_potion",
-  "herolist.element"
+  "herolist.element",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "ja": [
   "arena.npc",
@@ -489,7 +506,9 @@
   "areport.vs",
   "draft.vs",
   "graid.hp_line",
-  "roster.vs"
+  "roster.vs",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "ko": [
   "arena.npc",
@@ -498,7 +517,9 @@
   "draft.vs",
   "graid.hp_line",
   "roster.vs",
-  "bb.v_guild"
+  "bb.v_guild",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "zh-Hans": [
   "arena.npc",
@@ -508,7 +529,9 @@
   "res2.plus_n_item",
   "tech.amount",
   "tut.r_potion",
-  "bb.v_guild"
+  "bb.v_guild",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "zh-Hant": [
   "arena.npc",
@@ -519,7 +542,9 @@
   "res2.plus_n_item",
   "tech.amount",
   "tut.r_potion",
-  "bb.v_guild"
+  "bb.v_guild",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "th": [
   "arena.npc",
@@ -530,7 +555,9 @@
   "res2.plus_n_item",
   "signin.month_year",
   "tech.amount",
-  "bb.v_guild"
+  "bb.v_guild",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "id": [
   "arena.league_master",
@@ -623,7 +650,9 @@
   "world2.oasis",
   "vault.info",
   "bb.v_guild",
-  "hud.zoom"
+  "hud.zoom",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ],
  "hi": [
   "arena.npc",
@@ -635,6 +664,8 @@
   "signin.month_year",
   "tech.amount",
   "tut.r_potion",
-  "bb.v_guild"
+  "bb.v_guild",
+  "bb.mode_emberdraft",
+  "bb.mode_skyfall"
  ]
 }
