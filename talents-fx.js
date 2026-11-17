@@ -78,7 +78,7 @@
 const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
 const P=(name,b)=>({$:name,b:b||0});      // a base + everything her learned talents add to the named number
 const NE='mrshred', GK='gravknot', EH='eventhorizon';
-const IN_PT={team:'enemy',of:'pt',withinOpt:'radius'};                            // every enemy the skill catches where it forms, centre to centre as the skill measures
+const IN_PT={team:'enemy',of:'pt',withinOpt:'radius',edge:'target'};              // every enemy the skill catches where it forms, as the skill measures (the Knot, at:'target' since v1391: to the body edge; Event Horizon: centre to centre)
 const GKC={team:'enemy',has:'gkC'}, EHC={team:'enemy',has:'ehC'};                 // what this Knot / this Event Horizon caught
 const TNG={team:'enemy',has:'tng'}, TNG_O={team:'enemy',has:'tng',skip:'target'}; // Tangled enemies (the others)
 const NEAR_O={team:'enemy',of:'target',n:1,skip:'target'};                        // the nearest other enemy to the target
@@ -190,7 +190,7 @@ module.exports={
     gk_5_2:[ {on:'skillTgt',skill:GK,do:[{retarget:'densest'}]} ],                                              // Wide Knot (PICK ONE): on the densest group
     gk_8_2:[ {stat:{aspd:R(0.002)},per:'tension'} ],                                                            // Coiled
     gk_8_3:[ {on:'out',if:{auto:false,targetMin:{slow:1e-9}},more:R(0.02)} ],                                   // Dense Weave
-    gk_5_3:[ {param:'gk.slow',add:0.20}, {on:'cast',skill:GK,do:[{pull:GKC,to:'self',secs:0.3}]} ],             // Close Knot (PICK ONE): all the way in, slowed 20% harder
+    gk_5_3:[ {param:'gk.slow',add:0.20}, {on:'cast',skill:GK,do:[{pull:GKC,to:'pt:gravknot',secs:0.3}]} ],      // Close Knot (PICK ONE): all the way in to the Knot's centre (v1391: her target's spot, no longer her), slowed 20% harder
     gk_9_1:[ {on:'teamIn',if:{targetHas:'tng',srcIs:'ally'},more:R(0.01)} ],                                    // Pulled Tight
     gk_9_2:[ {param:'tension.max',add:6}, {on:'kit',skill:EH,opt:{mul:{more:0.005,per:{stack:'tension',over:12}}}} ],   // Overwound
     gk_9_3:[ {on:'cd',less:R(0.01)} ],                                                                          // Dark Pull
@@ -1304,6 +1304,7 @@ return module.exports;})();
 const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
 const P=(name,b)=>({$:name,b:b||0});      // a base + everything his learned talents add to the named number
 const SUN='sunburst', DUAL='duality', ECL='eclipse';
+const SUN_HIT={team:'enemy',withinOpt:'radius',edge:true};   // the enemies Sunburst hits: since v1391 a Green Sunburst burns every enemy whose BODY is within its radius (its heal on allies keeps the centre)
 /* the states several talents read: their bookkeeping runs when any of these is learned */
 const HUN=['hb_1_1','hb_2_1','hb_3_1','hb_5_1','hb_7_1','hb_9_1','hb_10_1','hb_11_2','hb_12_3','hb_13_2'];
 const QUI=['hb_1_4','hb_3_4','hb_5_2','hb_5_3','hb_6_3','hb_6_4','hb_7_4','hb_9_4','hb_10_4','hb_11_2','hb_12_4','hb_13_2'];
@@ -1384,7 +1385,7 @@ module.exports={
     hb_9_1:[ {on:'in',if:{stackFull:'hun'},less:R(0.015)} ],                                                   // Gorged
     hb_9_3:[ {param:'pen.mr',add:R(0.015)} ],                                                                  // Edge of Night
     hb_6_3:[ {on:'rooted',do:[{after:0,do:[{ustack:'quiet',on:{team:'enemy',of:'target',skip:'target',n:1},add:R(1)}]}]} ],   // Stillness Spreads
-    hb_9_4:[ {on:'cast',skill:SUN,if:{fn:'isDark'},do:[{ustack:'quiet',on:{team:'enemy',withinOpt:'radius'},add:2},{fn:'drainEach'}]} ],   // Last Word Taken
+    hb_9_4:[ {on:'cast',skill:SUN,if:{fn:'isDark'},do:[{ustack:'quiet',on:SUN_HIT,add:2},{fn:'drainEach'}]} ],   // Last Word Taken
     hb_10_1:[ {on:'wave',do:[{stack:'hun',atLeast:R(1)}]} ],                                                   // Hunger Wakes
     hb_10_4:[ {on:'death',if:{who:'enemy',unitUst:{quiet:1}},do:[{heal:{pct:R(0.005),of:'maxHp'},on:'self'}]} ],   // Lean Fang
     hb_11_1:[ {on:'out',if:{auto:true},more:R(0.02)} ],                                                        // Bitter Root
@@ -1461,7 +1462,7 @@ module.exports={
     tb_5_4:[ {on:'switch',do:[{heal:{pct:R(0.006),of:'maxHp'},on:'self'}]} ],                                  // Middle Path
     tb_7_1:[ {param:'ecl.sh',add:R(0.04)} ],                                                                   // Two Rings
     tb_7_2:[ {on:'out',if:{casting:ECL},more:R(0.03)} ],                                                       // Measured Dark
-    tb_6_4:[ {on:'cast',skill:SUN,do:[{heal:{pct:R(0.01),of:'maxHp',x:{units:{team:'enemy',withinOpt:'radius'}}},on:'self'}]} ],   // Same Flash
+    tb_6_4:[ {on:'cast',skill:SUN,do:[{heal:{pct:R(0.01),of:'maxHp',x:{units:SUN_HIT}},on:'self'}]} ],   // Same Flash
     tb_8_3:[ {on:'tick',if:{fn:'lvl0'},do:[{fn:'hps',p:R(0.003)}]} ],                                         // Long Pause: 0.3% of his max HP a second, each tick it sits level
     tb_7_4:[ {on:'in',if:{srcHas:'wd'},less:R(0.01)} ],                                                        // Counterweight
     tb_8_4:[ {stat:{armor:R(0.02)},if:{fn:'isLight'}} ],                                                       // Keeper's Hide
@@ -1519,7 +1520,7 @@ module.exports={
       if(dk(u)){ const c2={u,tgt:u,amt:(u.maxHp*0.012+(u.apow||0)*0.25)*m*k}; if(T.on.rgMod) A.run(T,u,'rgMod',c2); if(c2.amt>0) E.healUnit(u,c2.amt); }
       else { const e=A.pick(T,u,{team:'enemy',n:1},c)[0]; if(e) drainOne(A,T,u,e,m*k,c); } },
     /* Last Word Taken: every enemy Sunburst hit in Dark stance is drained once, 1 s of Twin Fonts' drain */
-    drainEach(A,T,u,c){ const E=A.eng(); if(!E.twinMul) return; const m=E.twinMul(u); for(const e of A.pick(T,u,{team:'enemy',withinOpt:'radius'},c)) drainOne(A,T,u,e,m,c); },
+    drainEach(A,T,u,c){ const E=A.eng(); if(!E.twinMul) return; const m=E.twinMul(u); for(const e of A.pick(T,u,SUN_HIT,c)) drainOne(A,T,u,e,m,c); },
     /* ---- Quiet ---- */
     reach5(A,T,u,c){ const t=c.tgt; if(!t||!t.alive) return; const n=A.ustGet(T,u,t,'quiet'); if(n>=5-1e-9&&n-(c.k||0)<5-1e-9) A.run(T,u,'q5',Object.assign({},c,{tgt:t,unit:t})); },
     still(A,T,u,c){ const t=c.tgt; if(!t||!t.alive) return; A.setMark(T,u,t,'root',{dur:1}); A.acts(T,u,[{window:'rootW',dur:1,longest:true}],c); A.ustPut(T,u,t,'quiet',0); A.run(T,u,'rooted',c); },
@@ -13472,7 +13473,7 @@ module.exports={
     {on:'dotTick',reqAny:MAG,if:{fn:'scTag'},do:[{stack:'pyMag',add:1}]},                                                       // Magma: each tick of her Scorches
     {on:'tick',reqAny:ASH,do:[{fn:'ashTick'}]},                                                                                 // Ashfall: its Scorch each second, its slow, the walk out
     {on:'hurt',reqAny:CIN,if:{auto:true,srcMelee:true},do:[{fn:'cinHit'}]},                                                     // Cinders: a melee enemy's basic attack on her
-    {on:'pass',reqAny:SHIM,skill:'novaPush',do:[{stack:'pyShim',add:1}]},                                                      // Heat Shimmer: each enemy Blazing Orbit pushes
+    {on:'pass',reqAny:SHIM,skill:'novaPush',if:{fn:'pushedOff'},do:[{stack:'pyShim',add:1}]},                                  // Heat Shimmer: each enemy Blazing Orbit pushes (not its target, on the centre: talents-fix1)
     {on:'pyShimG',reqAny:SHIM,do:[{fn:'shimG'}]},                                                                               //   reaching 4 (Mirage, Cooling Glass)
     {on:'tick',reqAny:UH,do:[{fn:'uhTick'}]},                                                                                   // Unheld: a stun or pull landing on her; Clear Ground and the crown hold her free
     {on:'ccIn',reqAny:['nh_9_2','nh_13_2'],if:{cc:['stunned'],fn:'free'},mul:0},                                               //   (no stun lands while she is held free)
@@ -13579,7 +13580,7 @@ module.exports={
     nh_7_2:[ {on:'tick',do:[{fn:'bp'}]} ],                                                                    // Breaking Point
     nh_9_4:[ {on:'healMe',more:R(0.02)}, {param:'gs',add:R(0.02)}, {on:'tick',do:[{fn:'gsTick'}]} ],          // Glass Skin
     nh_5_2:[ {on:'at',skill:ORB,do:[{fn:'wallAt'}]} ],                                                        // Wall of Flame (PICK ONE; fieldTick)
-    nh_8_2:[ {on:'pass',skill:'novaPush',do:[{slow:R(0.05),dur:2,on:'target'}]} ],                            // Back Draft
+    nh_8_2:[ {on:'pass',skill:'novaPush',if:{fn:'pushedOff'},do:[{slow:R(0.05),dur:2,on:'target'}]} ],        // Back Draft (the enemies it really pushed)
     nh_8_3:[ {on:'cd',less:R(0.01)} ],                                                                        // Ash Step
     nh_5_3:[ {on:'cast',skill:ORB,do:[{fn:'tbArm'}]}, {on:'num',skill:'dlv:'+LASH,if:{fn:'tbOn'},mul:1/1.5,do:[{fn:'tbFly'}]},   // Turn and Burn (PICK ONE)
              {on:'out',if:{casting:LASH,fn:'tbHit'},more:0.25} ],
@@ -13597,6 +13598,9 @@ module.exports={
     nh_13_2:[ {param:'crown',add:1} ]                                                                         // The Vent at Sixteen (SIGNATURE: cfCast, fieldTick, uhTick)
   },
   fn:{
+    /* talents-fix1 (17 Nov): since v1391 Blazing Orbit forms on her target, which stands on the ring's centre: the page still calls its push line for it, but it is
+       moved 0 m. "Each enemy Blazing Orbit pushes" (Heat Shimmer, Back Draft) = an enemy the ring moved away from its centre */
+    pushedOff(A,T,u,c){ const p=T.s.pt&&T.s.pt[ORB], t=c.tgt; if(!p||!t) return true; return Math.hypot(t.x-p.x,t.y-p.y)>0.05*A.eng().METER(); },
     keep(A,T){ T.s.api=A; },
     /* ---- HER COUNTDOWNS. battleTime starts again at 0 at every wave (beginWaveEnter), so none of her locks is an absolute fight time: each is seconds left,
        counted down here. Unheld's cooldown, Cinderburst's and the crown's per-enemy locks, the stun-lock after her stuns. ---- */
@@ -22304,7 +22308,7 @@ return module.exports;})();
   const isMine=(u,x,v)=>!!x&&x._talS===u&&(v===true||x.key===v);                      // (alive or not: a death row asks about the one that just fell)
 
   /* ---- who: 'self' | 'target' | 'source' | 'unit' | 'holder:<mark>' | {team:'enemy'|'ally', of:'self'|'target'|'unit'|'source', within: metres,
-          withinOpt:'radius', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
+          withinOpt:'radius', edge:true|'target', n, skipN, skip:'target'|'unit'|'self', others:true, order:'near'|'lowHp', has:'mark', hpBelow, fearedBy:true, centre:true}
           DISTANCE: `within` is measured BODY TO BODY (the gap between the two units' bodies). A hero's body is 1.6 to 2 m in radius, so two units
           that touch are about 3.6 m apart centre to centre: "within 3 m" measured between centres would hold nobody. `withinOpt` (the radius of the
           skill being cast) and `centre:true` measure centre to centre, as the engine's own skills do. ---- */
@@ -22319,6 +22323,7 @@ return module.exports;})();
     const c=ref(sel.of||'self'); if(!c) return []; const cb=c.pt?0:E.bodyR(c);   // a point (where a skill landed) has no body
     const skip=sel.skip?ref(sel.skip):null, foe=sel.team!=='ally'&&sel.mine==null;
     const R=sel.within!=null?sel.within*E.METER():(sel.withinOpt?(((ctx&&ctx.o&&ctx.o[sel.withinOpt])||0)+(sel.withinAdd||0)*E.METER()):Infinity);   // withinAdd: metres beyond the skill's own reach
+    const edg=!!sel.withinOpt&&(sel.edge===true||(sel.edge==='target'&&!!(ctx&&ctx.o&&ctx.o.at==='target'))||(typeof sel.edge==='function'&&sel.edge(ctx)));   // edge (talents-fix1): withinOpt measured from the centre to the BODY EDGE, as v1391's skills measure (true; 'target': when the skill is at:'target'; a function of ctx)
     const sb=sel.seg?(ctx&&ctx.tgt):null; if(sel.seg&&!sb) return [];                // seg: the units whose body the straight line from `of` to the target crosses (within: metres of slack)
     const out=[], U=sel.mine!=null?mineOf(T,u).slice():E.units();                    // mine: only his own summons (true: any; or that summon's key)
     const tg=sel.targeting?pick(T,u,sel.targeting,ctx):null; if(tg&&!tg.length) return [];   // targeting: the units whose current target is one the selector picks ("the enemy attacking her lowest-HP ally")
@@ -22344,7 +22349,7 @@ return module.exports;})();
       if(sel.fearedBy&&!((x.fearT||0)>0&&x._fearFrom===u)) continue;
       if(bh&&!(Math.hypot(x.x-bh.x,x.y-bh.y)>bh.d)) continue;
       if(tg&&tg.indexOf(x.target)<0) continue;
-      const d=E.dist(c,x); if(!((sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
+      const d=E.dist(c,x); if(!(edg?(d-E.bodyR(x)<=R):(sel.withinOpt||sel.centre)?(d<R):(x===c||d-cb-E.bodyR(x)<R))) continue; out.push([x,d]); }
     const od=typeof sel.order==='string'?sel.order:'';
     if(od==='lowHp') out.sort((a,b)=>a[0].hp-b[0].hp);
     else if(od==='lowMax') out.sort((a,b)=>(a[0].maxHp||0)-(b[0].maxHp||0));        // the most fragile first (the lowest max HP, as Hookline itself ranks them)

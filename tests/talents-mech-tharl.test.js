@@ -424,6 +424,8 @@ test('Tharl: his most defensive legal 91-point build never takes 95% off a hit, 
        enemy stayed stunned in a row while one of his stuns was on it */
     const L2=S(['sb_1_1','sb_1_4','sb_2_4','sb_3_4','sb_5_2','sb_6_2','sb_7_1','sb_9_1','sb_10_4','sb_2_3','sb_4_3','sb_11_3','sb_12_3','sb_13_3','rc_1_1','rc_3_1','rc_11_1','rc_13_2','rc_1_2','rc_5_3']);   // every stun of his and every Scale Ram reset at once (not a legal build: the most stuns)
     const e=seeded(L2); console.log('  stun chain: the longest one enemy stayed stunned in a row once one of his stuns was on it '+e.stMax.toFixed(2)+' s (allies\' stuns included), of it under his own stuns '+e.shMax.toFixed(2)+' s');
-    assert.ok(e.shMax<=4.0+0.05,'his stuns never more than 4.0 s in a row on one enemy ('+e.shMax.toFixed(2)+' s)'); }
+    /* Phil, 17 Nov 2026 (00:3x, via the coordinator), on the chains v1391's wider reach brought (Tharl 5.14 s, Rhukk 4.10 s on a24261fd9): ACCEPTED -
+     "5 seconds at max talents, level 100" / "but those stuns are 16 second CD". The check now holds the measured chain (a regression guard), not 4.0 s. */
+    assert.ok(e.shMax<=5.14+0.06,'his stuns never more than the accepted 5.14 s in a row on one enemy ('+e.shMax.toFixed(2)+' s)'); }
   finally{ VMX('_dealDamageCore=__ddc; _updateBattleCore=__ubc;'); }
 });

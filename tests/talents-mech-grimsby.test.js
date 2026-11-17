@@ -188,11 +188,12 @@ test('Grimsby / the Deposit: Security Deposit, Fees Withheld, Refund Policy, Ite
 });
 
 test('Grimsby / Doors Locked Behind Him (SIGNATURE)',()=>{
-  const L=lab(H,S(['ev_13_2','ev_1_1']),{foes:4,big:true}), {v,F}=L; for(const f of F) free(f); at(L,F[0],3.5,0); at(L,F[1],0,3.6); at(L,F[2],-3.6,12); at(L,F[3],20,0); L.T.s.dep=0;
-  slam(L); assert.ok(!win(L,'doors'),'two Served: not yet'); assert.ok(!mark(L,F[3],'served')); for(const f of F) free(f); at(L,F[0],3.5,0); at(L,F[1],0,3.6); at(L,F[2],-3.6,0);
-  slam(L); for(const f of F) assert.ok(mark(L,f,'served'),'every enemy Served'); near(F[3].silencedT,2,'and silenced 2 s (F3 far away too)'); assert.ok(win(L,'doors'));
+  const L=lab(H,S(['ev_13_2','ev_1_1']),{foes:4,big:true}), {v,F}=L; for(const f of F) free(f); at(L,F[0],3.5,0); at(L,F[1],3.5,3.6); at(L,F[2],-0.1,12); at(L,F[3],20,0); L.T.s.dep=0;
+  /* talents-fix1: since v1391 Ledger Slam lands around his TARGET (F0 here), to the body edge: F1 and F2 stand 3.6 m from F0, not from him */
+  V.cast(v,'blue',F[0]); assert.ok(!win(L,'doors'),'two Served: not yet'); assert.ok(!mark(L,F[3],'served')); for(const f of F) free(f); at(L,F[0],3.5,0); at(L,F[1],3.5,3.6); at(L,F[2],-0.1,0);
+  V.cast(v,'blue',F[0]); for(const f of F) assert.ok(mark(L,f,'served'),'every enemy Served'); near(F[3].silencedT,2,'and silenced 2 s (F3 far away too)'); assert.ok(win(L,'doors'));
   near(inRatio(L,{src:F[3]}),0.70,'he takes 30% less'); const d=L.T.s.dep; hitOn(L,v,1000,{src:F[3]}); near(L.T.s.dep-d,700,'what they deal him goes into the Deposit (he still takes it), no limit');
-  secs(4.05); assert.ok(!win(L,'doors'),'4 s'); for(const f of F) free(f); at(L,F[0],3.5,0); slam(L); near(F[3].silencedT,0,'once every 25 s');
+  secs(4.05); assert.ok(!win(L,'doors'),'4 s'); for(const f of F) free(f); at(L,F[0],3.5,0); V.cast(v,'blue',F[0]); near(F[3].silencedT,0,'once every 25 s');
 });
 
 test('Grimsby / Eviction Notice, Mass Eviction, Rent Strike, No Forwarding Address',()=>{

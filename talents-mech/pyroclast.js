@@ -83,7 +83,7 @@ module.exports={
     {on:'dotTick',reqAny:MAG,if:{fn:'scTag'},do:[{stack:'pyMag',add:1}]},                                                       // Magma: each tick of her Scorches
     {on:'tick',reqAny:ASH,do:[{fn:'ashTick'}]},                                                                                 // Ashfall: its Scorch each second, its slow, the walk out
     {on:'hurt',reqAny:CIN,if:{auto:true,srcMelee:true},do:[{fn:'cinHit'}]},                                                     // Cinders: a melee enemy's basic attack on her
-    {on:'pass',reqAny:SHIM,skill:'novaPush',do:[{stack:'pyShim',add:1}]},                                                      // Heat Shimmer: each enemy Blazing Orbit pushes
+    {on:'pass',reqAny:SHIM,skill:'novaPush',if:{fn:'pushedOff'},do:[{stack:'pyShim',add:1}]},                                  // Heat Shimmer: each enemy Blazing Orbit pushes (not its target, on the centre: talents-fix1)
     {on:'pyShimG',reqAny:SHIM,do:[{fn:'shimG'}]},                                                                               //   reaching 4 (Mirage, Cooling Glass)
     {on:'tick',reqAny:UH,do:[{fn:'uhTick'}]},                                                                                   // Unheld: a stun or pull landing on her; Clear Ground and the crown hold her free
     {on:'ccIn',reqAny:['nh_9_2','nh_13_2'],if:{cc:['stunned'],fn:'free'},mul:0},                                               //   (no stun lands while she is held free)
@@ -190,7 +190,7 @@ module.exports={
     nh_7_2:[ {on:'tick',do:[{fn:'bp'}]} ],                                                                    // Breaking Point
     nh_9_4:[ {on:'healMe',more:R(0.02)}, {param:'gs',add:R(0.02)}, {on:'tick',do:[{fn:'gsTick'}]} ],          // Glass Skin
     nh_5_2:[ {on:'at',skill:ORB,do:[{fn:'wallAt'}]} ],                                                        // Wall of Flame (PICK ONE; fieldTick)
-    nh_8_2:[ {on:'pass',skill:'novaPush',do:[{slow:R(0.05),dur:2,on:'target'}]} ],                            // Back Draft
+    nh_8_2:[ {on:'pass',skill:'novaPush',if:{fn:'pushedOff'},do:[{slow:R(0.05),dur:2,on:'target'}]} ],        // Back Draft (the enemies it really pushed)
     nh_8_3:[ {on:'cd',less:R(0.01)} ],                                                                        // Ash Step
     nh_5_3:[ {on:'cast',skill:ORB,do:[{fn:'tbArm'}]}, {on:'num',skill:'dlv:'+LASH,if:{fn:'tbOn'},mul:1/1.5,do:[{fn:'tbFly'}]},   // Turn and Burn (PICK ONE)
              {on:'out',if:{casting:LASH,fn:'tbHit'},more:0.25} ],
@@ -208,6 +208,9 @@ module.exports={
     nh_13_2:[ {param:'crown',add:1} ]                                                                         // The Vent at Sixteen (SIGNATURE: cfCast, fieldTick, uhTick)
   },
   fn:{
+    /* talents-fix1 (17 Nov): since v1391 Blazing Orbit forms on her target, which stands on the ring's centre: the page still calls its push line for it, but it is
+       moved 0 m. "Each enemy Blazing Orbit pushes" (Heat Shimmer, Back Draft) = an enemy the ring moved away from its centre */
+    pushedOff(A,T,u,c){ const p=T.s.pt&&T.s.pt[ORB], t=c.tgt; if(!p||!t) return true; return Math.hypot(t.x-p.x,t.y-p.y)>0.05*A.eng().METER(); },
     keep(A,T){ T.s.api=A; },
     /* ---- HER COUNTDOWNS. battleTime starts again at 0 at every wave (beginWaveEnter), so none of her locks is an absolute fight time: each is seconds left,
        counted down here. Unheld's cooldown, Cinderburst's and the crown's per-enemy locks, the stun-lock after her stuns. ---- */

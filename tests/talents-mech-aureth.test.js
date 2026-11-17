@@ -137,12 +137,14 @@ test('Aureth / his skills: Dark Flash, Brighter Burst, Judged Twice, Noon Goes D
 test('Aureth / The Hand Closes, Long Eclipse, Last Word Taken: Eclipse and Sunburst in Dark stance fill the Quiet',()=>{
   const L=lab(H,S(['hb_11_2','hb_12_2','hb_9_4']),{foes:3,big:true}), {v,F}=L; noDef(L); for(const x of F) free(x);
   at(L,F[1],-2,0); V.cast(v,'green',F[1]); assert.equal(ust(L,F[1],'quiet'),0,'Last Word Taken: only in Dark stance');
-  D(L); at(L,F[1],-2,0); const s=lost(F[1],()=>V.cast(v,'green',F[1])), s0=plainHit(L,()=>lost(F[1],()=>V.cast(v,'green',F[1])));
+  D(L); at(L,F[1],-2,0); at(L,F[0],7.5,0); const s=lost(F[1],()=>V.cast(v,'green',F[1]))   /* talents-fix1: since v1391 Sunburst reaches to the body edge - F0 at 4.5 m (a 2.49 m gap) is now inside 2.8 m, so it stands at 7.5 m here */, s0=plainHit(L,()=>lost(F[1],()=>V.cast(v,'green',F[1])));
   assert.equal(ust(L,F[1],'quiet'),3,'Last Word Taken: 2 Quiet to each enemy it hits (and 1 for the hit)'); near(s-s0,drain(v),'and Twin Fonts drains it: 1 s of its drain at once',1e-6);
   assert.equal(ust(L,F[0],'quiet'),0,'not one it did not reach');
-  at(L,F[1],10,0); V.cast(v,'ult'); assert.equal(ust(L,F[0],'quiet'),5,'The Hand Closes: 5 Quiet to every enemy Eclipse hits'); assert.equal(stack(L,'hun'),10,'and full Hunger'); assert.equal(ust(L,F[1],'quiet'),3,'not 10 m away (what Sunburst gave it, unchanged)');
+  at(L,F[0],4.5,0); at(L,F[1],10,0); V.cast(v,'ult'); assert.equal(ust(L,F[0],'quiet'),5,'The Hand Closes: 5 Quiet to every enemy Eclipse hits'); assert.equal(stack(L,'hun'),10,'and full Hunger'); assert.equal(ust(L,F[1],'quiet'),3,'not 10 m away (what Sunburst gave it, unchanged)');
   near(swing(L,F[0],'l'),plainHit(L,()=>swing(L,F[0],'l'))*1.10,'Long Eclipse: they take 2% x 5 more from him'); secs(6.05); near(swing(L,F[0],'l'),plainHit(L,()=>swing(L,F[0],'l')),'for 6 s');
   D(L); setStack(L,'hun',0); V.cast(v,'ult'); assert.equal(stack(L,'hun'),0,'not in Light stance');
+  const E=lab(H,S(['hb_9_4']),{foes:3,big:true}); noDef(E); for(const x of E.F) free(x); D(E); at(E,E.F[1],-2,0); at(E,E.F[0],4.5,0); V.cast(E.v,'green',E.F[1]);
+  assert.equal(ust(E,E.F[0],'quiet'),3,'Last Word Taken: an enemy whose body is 2.49 m away is hit by Sunburst (v1391: to the body edge) and gets its 2 Quiet as well'); assert.equal(ust(E,E.F[2],'quiet'),0,'(15.5 m away: no)');
 });
 
 test('Aureth / The Second Brother Speaks (SIGNATURE): at full Hunger in Dark stance, 5 s of triple drain, 2 Quiet a hit, a 1 s stun at 5 Quiet, then Duality turns him to Light; once every 25 s',()=>{

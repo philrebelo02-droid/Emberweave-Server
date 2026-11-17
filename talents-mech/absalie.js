@@ -23,7 +23,7 @@
 const R=(x,b)=>({r:x,b:b||0});            // x per rank (+ a base)
 const P=(name,b)=>({$:name,b:b||0});      // a base + everything her learned talents add to the named number
 const NE='mrshred', GK='gravknot', EH='eventhorizon';
-const IN_PT={team:'enemy',of:'pt',withinOpt:'radius'};                            // every enemy the skill catches where it forms, centre to centre as the skill measures
+const IN_PT={team:'enemy',of:'pt',withinOpt:'radius',edge:'target'};              // every enemy the skill catches where it forms, as the skill measures (the Knot, at:'target' since v1391: to the body edge; Event Horizon: centre to centre)
 const GKC={team:'enemy',has:'gkC'}, EHC={team:'enemy',has:'ehC'};                 // what this Knot / this Event Horizon caught
 const TNG={team:'enemy',has:'tng'}, TNG_O={team:'enemy',has:'tng',skip:'target'}; // Tangled enemies (the others)
 const NEAR_O={team:'enemy',of:'target',n:1,skip:'target'};                        // the nearest other enemy to the target
@@ -135,7 +135,7 @@ module.exports={
     gk_5_2:[ {on:'skillTgt',skill:GK,do:[{retarget:'densest'}]} ],                                              // Wide Knot (PICK ONE): on the densest group
     gk_8_2:[ {stat:{aspd:R(0.002)},per:'tension'} ],                                                            // Coiled
     gk_8_3:[ {on:'out',if:{auto:false,targetMin:{slow:1e-9}},more:R(0.02)} ],                                   // Dense Weave
-    gk_5_3:[ {param:'gk.slow',add:0.20}, {on:'cast',skill:GK,do:[{pull:GKC,to:'self',secs:0.3}]} ],             // Close Knot (PICK ONE): all the way in, slowed 20% harder
+    gk_5_3:[ {param:'gk.slow',add:0.20}, {on:'cast',skill:GK,do:[{pull:GKC,to:'pt:gravknot',secs:0.3}]} ],      // Close Knot (PICK ONE): all the way in to the Knot's centre (v1391: her target's spot, no longer her), slowed 20% harder
     gk_9_1:[ {on:'teamIn',if:{targetHas:'tng',srcIs:'ally'},more:R(0.01)} ],                                    // Pulled Tight
     gk_9_2:[ {param:'tension.max',add:6}, {on:'kit',skill:EH,opt:{mul:{more:0.005,per:{stack:'tension',over:12}}}} ],   // Overwound
     gk_9_3:[ {on:'cd',less:R(0.01)} ],                                                                          // Dark Pull

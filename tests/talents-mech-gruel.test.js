@@ -396,9 +396,12 @@ test('Gruel: his most defensive legal 91-point build never takes more than 95% o
   assert.ok(best.worst<0.95&&wg<0.95,'the worst possible hit on his most defensive build ('+best.o.join(' > ')+') is reduced by '+(best.worst*100).toFixed(1)+'% ('+(wg*100).toFixed(1)+'% with 30% glyph reduction): below 95%');
   /* seeded fights: every hit on him as it landed, and each tick a probe of what a plain enemy hit would lose right now (his skill slot, his armor or magic resist
      against each living enemy, his talents' group through the incoming hook; the most favourable enemy and kind counts), with his glyphs as built and at 30% */
-  VMX('var __dr={max:0,n:0,at:0,hi:0,imm:0,ticks:0,all:[],pr:[],pg:[],mv:0}; var __ddc=_dealDamageCore, __ubc=_updateBattleCore;'+
-    '_dealDamageCore=function(src,tgt,amt,color,kind,silent){ const me=tgt&&tgt.key==="gruel"&&tgt.team==="ally"&&src&&src.team!==tgt.team; let h0=0,s0=0; if(me){ h0=tgt.hp+(tgt.shield||0); s0=tgt.shield||0; } const r=__ddc.apply(this,arguments);'+
-    '  if(me&&amt>0&&tgt.alive){ const l=h0-tgt.hp-(tgt.shield||0), raw=amt*elemMul(src,tgt); if((tgt.shield||0)<=s0&&raw>0&&l>1e-6*raw){ const d=1-l/raw; __dr.n++; __dr.all.push(d); if(d>__dr.max) __dr.max=d; if(d>=0.95) __dr.at++; if(d>=0.85) __dr.hi++; } } return r; };'+
+  /* talents-fix1 (17 Nov): a heal on him that the hit itself sets off (his 'hurt' rows run inside the hit: Counterpoise's tip heal) is added back - it is
+     healing, not reduction. On a24261fd9 one hit of 405 lost 214 to him (47% off, his armour) and Counterpoise healed 197 inside it: read as 95.7% */
+  VMX('var __dr={max:0,n:0,at:0,hi:0,imm:0,ticks:0,all:[],pr:[],pg:[],mv:0}; var __ddc=_dealDamageCore, __ubc=_updateBattleCore, __dhu=healUnit, __dIn=0, __dH=0;'+
+    'healUnit=function(u,a){ const h=u&&u.hp; const r=__dhu.apply(this,arguments); if(__dIn&&u&&u.key==="gruel"&&u.team==="ally") __dH+=Math.max(0,u.hp-h); return r; };'+
+    '_dealDamageCore=function(src,tgt,amt,color,kind,silent){ const me=tgt&&tgt.key==="gruel"&&tgt.team==="ally"&&src&&src.team!==tgt.team; let h0=0,s0=0,H0=__dH; if(me){ h0=tgt.hp+(tgt.shield||0); s0=tgt.shield||0; } let r; __dIn++; try{ r=__ddc.apply(this,arguments); } finally{ __dIn--; }'+
+    '  if(me&&amt>0&&tgt.alive){ const l=h0-tgt.hp-(tgt.shield||0)+(__dH-H0), raw=amt*elemMul(src,tgt); if((tgt.shield||0)<=s0&&raw>0&&l>1e-6*raw){ const d=1-l/raw; __dr.n++; __dr.all.push(d); if(d>__dr.max) __dr.max=d; if(d>=0.95) __dr.at++; if(d>=0.85) __dr.hi++; } } return r; };'+
     '_updateBattleCore=function(dt){ for(const u of units){ if(u&&u.key==="gruel"&&u.alive&&u.team==="ally"){ __dr.ticks++; if(HERO61.immune(u,battleTime)) __dr.imm++;'+
     '    let best=0,bestG=0; const sl=(u.drT>0)?u.drMul:1, gd=u.glyphDR||0, T0=u._tal, sw=T0&&T0.s.w.settle, st=sw?sw.t:0; if(sw) sw.t=0;'+
     '    for(const e of units){ if(!e||!e.alive||e.team===u.team) continue; for(const k of ["phys","magic"]){ const tk=T0?TalentFx.inc(u,e,1,k,true,false):1, f=sl*tk*defMul(e,u,k); const r1=1-f*(1-gd), r2=1-f*0.70; if(r1>best) best=r1; if(r2>bestG) bestG=r2; } }'+
@@ -415,5 +418,5 @@ test('Gruel: his most defensive legal 91-point build never takes more than 95% o
     assert.ok(d.n>30&&d.ticks>500,'hits on him: '+d.n);
     assert.ok(d.max<0.95,'no hit on him was reduced by 95% or more (the most: '+(d.max*100).toFixed(1)+'%)'); assert.equal(d.at,0,'so he never sits at the ceiling'); assert.equal(d.imm,0,'and he is never immune');
     assert.ok(sh(pg,0.95)===0,'even with 30% glyph reduction the probe never reaches 95%'); assert.ok(sh(pg,0.85)<0.5,'and it is above 85% for less than half of the fight'); }
-  finally{ VMX('_dealDamageCore=__ddc; _updateBattleCore=__ubc;'); }
+  finally{ VMX('_dealDamageCore=__ddc; _updateBattleCore=__ubc; healUnit=__dhu;'); }
 });

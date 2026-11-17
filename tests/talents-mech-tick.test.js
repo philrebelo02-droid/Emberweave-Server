@@ -25,6 +25,9 @@ const dmgOf=(t,fn)=>{ const h=t.hp+(t.shield||0); fn(); return h-t.hp-(t.shield|
 const castOC=L=>V.cast(L.v,'green',L.v);
 const castMS=(L,t)=>V.cast(L.v,'blue',t||L.F[0]);
 const castFW=(L,t)=>V.cast(L.v,'ult',t||L.F[0]);
+/* talents-fix1 (17 Nov): since v1391 Flywheel reaches to the enemy's BODY EDGE (its radius from his centre to the enemy's body; Whirring, Wider Wheel and Twelve Bells
+   widen that radius). gap(L,f,g,dx,dy): f placed so that the gap between his centre and its body is g metres, along (dx,dy) */
+const gap=(L,f,g,dx,dy)=>{ const n=Math.hypot(dx,dy)||1, d=g+V.bodyR(f); at(L,f,dx/n*d,dy/n*d); };
 const near3=(L,...F)=>{ const a=[[2.9,0],[0,2.9],[-2.9,0],[0,-2.9]]; F.forEach((f,i)=>at(L,f,a[i][0],a[i][1])); };   // inside Flywheel's 3 m (centre to centre)
 const ccOn=(src,t,field,s)=>{ const lv=src.level; src.level=200; try{ V.cc(src,t,field,s); } finally{ src.level=lv; } };
 const api=L=>L.T.s.api;
@@ -45,11 +48,11 @@ test('Tick: every talent is accounted for - 10 plain stats, 108 with rows, none 
   for(const id of ['sq_13_2','kb_13_3','bw_13_3']) assert.ok(FXN.mech(H).talents[id],id);
 });
 
-test('Tick: his real kit, as the talents read it - Overclock (x1.368 for 5 s at the lab\'s level), Mainspring (5 punches at once, physical), Flywheel (3 m centre to centre), Momentum Gears (0.025 a second, cap +52.25%)',()=>{
+test('Tick: his real kit, as the talents read it - Overclock (x1.368 for 5 s at the lab\'s level), Mainspring (5 punches at once, physical), Flywheel (3 m to the body edge since v1391), Momentum Gears (0.025 a second, cap +52.25%)',()=>{
   plain({foes:4,big:true},P=>{ const {v,F}=P; const sm=VMX('skillMul(10)');
     castOC(P); near(v.hasteMul,1.368,'Overclock: x1.368 attack speed',1e-9); near(v._ocT,5,'for 5 s',1e-9);
     const h0=F[0].hp; castMS(P,F[0]); near(h0-F[0].hp,5*atkNow(v)*0.36*sm*VMX('defMul')(v,F[0],'phys'),'Mainspring: 5 punches of 36% x skill level, physical (his profile\'s default: armour applies)',1e-6);
-    at(P,F[1],2.9,0); at(P,F[2],3.1,0); at(P,F[0],0,8); const g=F.map(f=>f.hp); castFW(P,F[1]); assert.ok(F[1].hp<g[1],'Flywheel strikes an enemy 2.9 m from his centre'); assert.equal(F[2].hp,g[2],'not one 3.1 m away (centre to centre: an enemy touching him stands 3.4 m away)');
+    gap(P,F[1],2.9,1,0); gap(P,F[2],3.1,-1,0); at(P,F[0],0,8+V.bodyR(F[0])); const g=F.map(f=>f.hp); castFW(P,F[1]); assert.ok(F[1].hp<g[1],'Flywheel strikes an enemy whose body is 2.9 m from his centre'); assert.equal(F[2].hp,g[2],'not one whose body is 3.1 m away');
     near(VMX('SKLV.momentumCap(passLv(units[0]))'),0.5225,'Momentum Gears\' cap at the lab\'s passive level'); const m0=v._momStk; V.step(30); near(v._momStk-m0,0.025*30*V.STEP,'ramps 0.025 a second',1e-6); });
 });
 
@@ -267,15 +270,15 @@ test('Tick / Spin: Great Wheel (each enemy Flywheel hits, max 10, the wave; 0.3%
 test('Tick / Flywheel: Whirring and Wider Wheel (reach), Flywheel Teeth, Gear Teeth, Steady Swing, Final Quarter, Last Turn, Rhythm of Blows',()=>{
   let p=0; plain({foes:3,big:true},P=>{ near3(P,P.F[0]); p=dmgOf(P.F[0],()=>castFW(P,P.F[0])); });
   const P0=lab(H,null,{foes:2,big:true}), ai0=P0.v.atkInterval;
-  const L=lab(H,S(['kb_10_3','bw_4_3','sq_7_4','kb_8_4','bw_4_2','sq_12_4','bw_12_1','bw_10_2']),{foes:3,big:true}), {v,F}=L; v.maxHp=1e6; v.hp=5e5; near3(L,F[0]); at(L,F[1],3.9,0); at(L,F[2],-4.0,0);
-  const h=F.map(f=>f.hp); const d=dmgOf(F[0],()=>castFW(L,F[0])); assert.ok(F[1].hp<h[1],'0.1 x 5 + 0.15 x 3 m farther: an enemy 3.9 m from his centre'); assert.equal(F[2].hp,h[2],'(not 4.0 m)');
+  const L=lab(H,S(['kb_10_3','bw_4_3','sq_7_4','kb_8_4','bw_4_2','sq_12_4','bw_12_1','bw_10_2']),{foes:3,big:true}), {v,F}=L; v.maxHp=1e6; v.hp=5e5; near3(L,F[0]); gap(L,F[1],3.9,1,0.6); gap(L,F[2],4.0,-1,0);
+  const h=F.map(f=>f.hp); const d=dmgOf(F[0],()=>castFW(L,F[0])); assert.ok(F[1].hp<h[1],'0.1 x 5 + 0.15 x 3 m farther: an enemy whose body is 3.9 m from his centre'); assert.equal(F[2].hp,h[2],'(not 4.0 m)');
   near(d,p*1.15*1.15*1.15,'Flywheel Teeth 3% x 5, Gear Teeth 3% x 5, Steady Swing 5% x 3 more'); near(v.hp,5e5+0.02*2*1e6,'Last Turn: 1% x 2 of his max HP for each enemy it hit (2)',1e-6);
   V.step(1); near(v.atkInterval,ai0/1.09,'Rhythm of Blows: for 4 s after it, 3% x 3 faster'); secs(4); near(v.atkInterval,ai0,'',1e-9);
   near3(L,F[0]); F[0].hp=0.32*F[0].maxHp; near(dmgOf(F[0],()=>castFW(L,F[0])),p*1.15*1.15*1.15,'(32%: no Final Quarter)'); near3(L,F[0]); F[0].hp=0.29*F[0].maxHp; near(dmgOf(F[0],()=>castFW(L,F[0])),p*1.15*1.15*1.15*1.16,'Final Quarter: below 30% HP 8% x 2 more');
 });
 
 test('Tick / Twelve Bells: at 12 Hours Flywheel reaches every enemy within 5 m and stuns them 0.8 s - never on one already stunned, nor within 0.5 s after his stun on it ended',()=>{
-  const L=lab(H,S(['bw_11_4','bw_1_4']),{foes:4,big:true}), {v,F}=L; for(const f of F){ f.stunned=0; f.level=1; f.ctrlRes=0; } at(L,F[0],2.9,0); at(L,F[1],0,4.9); at(L,F[2],0,-5.1); at(L,F[3],-2.9,0);
+  const L=lab(H,S(['bw_11_4','bw_1_4']),{foes:4,big:true}), {v,F}=L; for(const f of F){ f.stunned=0; f.level=1; f.ctrlRes=0; } at(L,F[0],2.9,0); gap(L,F[1],4.9,0,1); gap(L,F[2],5.1,0,-1); at(L,F[3],-2.9,0);   // F1 / F2: their bodies 4.9 m / 5.1 m from his centre (v1391: to the body edge)
   kk(L).hours=11; const h=F.map(f=>f.hp); castFW(L,F[0]); assert.ok(F[0].hp<h[0]&&F[1].hp===h[1],'(11 Hours: 3 m)'); near(F[0].stunned,0,'(and no stun)');
   kk(L).hours=12; F[3].stunned=0.3; const g=F.map(f=>f.hp); castFW(L,F[0]); assert.ok(F[1].hp<g[1],'12 Hours: 4.9 m away'); assert.equal(F[2].hp,g[2],'(not 5.1 m)');
   near(F[0].stunned,0.8,'stunned 0.8 s',1e-9); near(F[1].stunned,0.8,'',1e-9); near(F[3].stunned,0.3,'(not one already stunned)',1e-9);

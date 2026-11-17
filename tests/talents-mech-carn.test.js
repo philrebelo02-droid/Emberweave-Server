@@ -44,15 +44,17 @@ test('Carn: every talent is accounted for - 11 plain stats, 104 with rows, none 
   for(const id of ['pr_2_3','pr_7_1','pr_8_1','pr_11_4','fc_2_3','fc_8_3','fc_1_2','bt_3_3','bt_8_1','bt_9_3','bt_8_3']) assert.ok(FXN.has(H,id),id+' is a plain stat');
 });
 
-test('Carn: his real kit, as the talents read it - Reckless Blow\'s cost, Vein Burst\'s 2.8 m from centre to centre (nobody), Crimson Reap\'s wedge and bleed',()=>{
+test('Carn: his real kit, as the talents read it - Reckless Blow\'s cost, Vein Burst\'s 2.8 m to the body edge (v1391), Crimson Reap\'s wedge and bleed',()=>{
   plain({foes:5},P=>{ const {v,F}=P; noDef(P); v.hp=v.maxHp*0.9; const h0=v.hp, f0=F[0].hp;
     V.cast(v,'green',F[0]); assert.ok(F[0].hp<f0,'Reckless Blow strikes its target'); near(h0-v.hp,v.maxHp*0.06,'and costs him 6% of his max HP');
     v.hp=v.maxHp*0.03; V.cast(v,'green',F[0]); near(v.hp,1,'never below 1 HP');
-    const g=F.map(f=>f.hp); V.cast(v,'blue',F[0]); assert.deepEqual(F.map(f=>f.hp),g,'Vein Burst: 2.8 m from his centre to the enemy\'s centre reaches nobody (F0 is 4.5 m away)'); assert.equal(F[0].dots.length,0,'');
-    at(P,F[3],0,6); const r=F.map(f=>f.hp); V.cast(v,'ult',F[0]); assert.ok(F[0].hp<r[0],'Crimson Reap: F0 in the wedge'); near(r[3]-F[3].hp,0,'not F3 (90 degrees off)'); near(r[1]-F[1].hp,0,'not F1 (10 m: 7.99 m to its body edge, past 6.5 m)');
+    /* talents-fix1: since v1391 Vein Burst reaches to the enemy's body edge for everyone (the 'veinBody' hook his Vein Burst talents set is now the game's own reach) */
+    const g=F.map(f=>f.hp); V.cast(v,'blue',F[0]); assert.ok(F[0].hp<g[0],'Vein Burst: 2.8 m to the body edge reaches F0 (4.5 m away, a 2.49 m gap) with no talent'); assert.ok(F[0].dots.length>0,'and bleeds it');
+    for(const i of [1,2,3,4]) near(g[i]-F[i].hp,0,'not F'+i+' (its body more than 2.8 m away)');
+    F[0].dots.length=0; at(P,F[3],0,6); const r=F.map(f=>f.hp); V.cast(v,'ult',F[0]);   // (talents-fix1: Vein Burst's bleed, the same colour, cleared first) assert.ok(F[0].hp<r[0],'Crimson Reap: F0 in the wedge'); near(r[3]-F[3].hp,0,'not F3 (90 degrees off)'); near(r[1]-F[1].hp,0,'not F1 (10 m: 7.99 m to its body edge, past 6.5 m)');
     const d=F[0].dots.find(x=>x.color==='#c0392b'); assert.ok(d,'its bleed'); assert.equal(d.remaining,4,'for 4 s'); near(d.dps,v.dmg*0.3,'30% of his attack a second'); assert.equal(d._talO,undefined,'(the game\'s: nobody\'s talents)'); });
   const L=lab(H,S(['pr_10_3']),{foes:5}), {v,F}=L;
-  const g=F.map(f=>f.hp); V.cast(v,'blue',F[0]); assert.ok(F[0].hp<g[0],'with a Vein Burst talent it reaches to the body edge: F0 (2.49 m)'); near(g[3]-F[3].hp,0,'not F3 (3.99 m)');
+  const g=F.map(f=>f.hp); V.cast(v,'blue',F[0]); assert.ok(F[0].hp<g[0],'with a Vein Burst talent: the same reach, F0 (2.49 m) - its sentence "reaches to the body edge" adds nothing since v1391'); near(g[3]-F[3].hp,0,'not F3 (3.99 m)');
   assert.equal(mine(L,F[0],'vein').length,1,'its bleed is his (vein)'); V.cast(v,'ult',F[0]); assert.equal(mine(L,F[0],'reap').length,1,'and Crimson Reap\'s (reap)');
 });
 
