@@ -43,7 +43,11 @@ try {
   ck('... and exactly what dealDamage takes off a magic hit on the same target', near(c.mr.magicHit, c.ref, 1e-7) && near(rMr[0] / r0[0], c.mr.magicHit, 1e-7), JSON.stringify({ tick: rMr[0] / r0[0], hit: c.mr.magicHit }));
   ck('Corruption vs 3000 Armor (0 MR): ticks unchanged (it is magic)', same(c.arm.ticks, r0), JSON.stringify(c.arm.ticks));
   ck('MR shred 50% on 3000 MR: ticks x (1 - defToDR(1500)), the shred dealDamage reads', c.mrShred.ticks.every((t, i) => near(t, r0[i] * c.refShred, 1e-7)) && near(c.mrShred.magicHit, c.refShred, 1e-7), JSON.stringify({ t: c.mrShred.ticks, mul: c.refShred }));
-  ck('Corruption on 0 Armor / 0 MR: tick for tick the live numbers', same(r0, cL.zero.ticks), JSON.stringify({ now: r0, live: cL.zero.ticks }));
+  /* v1400 (stale baseline): the "live" page here is still 9dc5b320 (v1309's live), from before two Bitwraith nerfs - v1388 694780358 (tester via Phil
+     13 Nov: dmg 18 -> 16.2, tests/test_bitwraith_nerf_1388.js) and v1390 1111ae191 (Phil 14 Nov: Corruption dps 0.425 -> 0.25, tests/test_rhukk_bitwraith_1308.js).
+     A tick is dps x his damage, so today's tick is live's x (0.25 / 0.425) x (16.2 / 18); the bleed / hazard / dealDamage live checks are untouched. */
+  const CORR_NERF = (0.25 / 0.425) * (16.2 / 18);
+  ck('Corruption on 0 Armor / 0 MR: tick for tick the live numbers x the v1388 + v1390 Bitwraith nerfs (x' + CORR_NERF.toFixed(6) + ')', r0.length === cL.zero.ticks.length && r0.every((t, i) => near(t, cL.zero.ticks[i] * CORR_NERF, 1e-7)), JSON.stringify({ now: r0, live: cL.zero.ticks, mul: CORR_NERF }));
   ck('live: Corruption ticks are the same against 3000 MR (true damage - what v1309 changes)', same(cL.mr.ticks, cL.zero.ticks), JSON.stringify(cL.mr.ticks));
   // (the helper also puts the v1308 Corruption numbers back, so its ticks are compared with its own 0-MR ticks, not with live's)
   ck('helper undo (DOT_MITIGATION=false): Corruption ticks the same vs 3000 MR as vs 0 (pre-v1309)', cU.zero.ticks.length === 4 && same(cU.mr.ticks, cU.zero.ticks), JSON.stringify({ undo: cU.mr.ticks, zero: cU.zero.ticks }));

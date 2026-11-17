@@ -350,8 +350,14 @@ try {
         /* v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks"; branch v1397-hp): this rendered
            harness runs the LIVE /play page, where every body now lasts about twice as long - in 900 ticks the deaths came too late for the removal
            (0.9 s vs the control's 1.5 s) to show inside the trace, so the logic-change CONTROL went blind. The window is 1800 ticks (the frame loop
-           still ends at 60 s) so the trace holds the deaths and their removal again. */
-        for (let j = 0; j < 60 * 60 && !ended && tr.length < 1800; j++) { window.__t += 1000 / 60; loop(window.__t); units.concat(_corpses).forEach(u => { if (u._die && !seen.has(u)) { seen.add(u); clips++; } }); }
+           still ends at 60 s) so the trace holds the deaths and their removal again.
+           v1400 (death_state 1476 vs 1475 ticks): 60 s of 60 fps frames is 3600 x 1/60 x SIM_HZ 30 x BATTLE_PACE 0.82 = exactly 1476.0 ticks, so
+           with the 1800-tick window the FRAME budget ended the trace, not the tick window - and whether the fixed-step accumulator reaches tick 1476
+           on frame 3600 or stops at 1475.99999 is float rounding of dt = (now - last) / 1000 at the wall-clock base window.__t = performance.now()
+           (a 50/50 coin per run; measured off-page: 920 x 1475 / 1080 x 1476 over 2000 random bases). With HP x2 the seed-21 fight outlives the
+           window, so clips on / off could get different coins - the engine was identical on every tick. The frame budget is 120 s (2952 ticks) so
+           the 1800-tick window always ends the trace, as the 900-tick one did before v1397. */
+        for (let j = 0; j < 120 * 60 && !ended && tr.length < 1800; j++) { window.__t += 1000 / 60; loop(window.__t); units.concat(_corpses).forEach(u => { if (u._die && !seen.has(u)) { seen.add(u); clips++; } }); }
         tr.length = Math.min(tr.length, 1800);
         let h = 2166136261 >>> 0; const s = tr.join('#'); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
         DEATH_CLIPS.on = true; updateBattle = window.__upd0; return { h: tr.length + ':' + h.toString(16), clips, n: tr.length, tr }; }, [T, seed, on, pre || '']); };
