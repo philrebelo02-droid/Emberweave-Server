@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Clases",
+  "aff.chart_elements": "Elementos",
+  "aff.chart_legend": "Las flechas indican ventaja",
+  "aff.element_cycle": "Daño contra {strong}: +{pct}%. Daño contra {weak}: −{pct}%.",
+  "aff.element_mutual": "Ambos elementos se infligen un {pct}% más de daño entre sí.",
+  "aff.element_neutral": "Inflige y recibe daño normal contra todos los elementos.",
+  "aff.support_t": "Gracia demoledora",
+  "aff.support_d": "El daño de Apoyo ignora el 50% de armadura y resistencia mágica del Tanque. Los aliados que atacan al Tanque reciben un 20% más de curación si tienen un Apoyo vivo.",
+  "aff.tank_t": "Muro de escudos",
+  "aff.tank_d": "Bloquea el 25% de los ataques básicos del Tirador y lo provoca durante 1 segundo más.",
+  "aff.marksman_t": "Interrupción",
+  "aff.marksman_d": "Cada impacto quita 10 de energía al Mago.",
+  "aff.mage_t": "Maleficio",
+  "aff.mage_d": "Durante 2 segundos, los hechizos alargan un 30% el intervalo de ataque y reducen un 20% la velocidad de movimiento del Luchador.",
+  "aff.bruiser_t": "Contraataque",
+  "aff.bruiser_d": "Al recibir un golpe del Asesino, contraataca con el 100% de su ataque, una vez cada 3 segundos.",
+  "aff.assassin_t": "Silenciar al sanador",
+  "aff.assassin_d": "Los impactos reducen un 40% la curación que recibe el Apoyo durante 4 segundos e infligen el doble de daño a sus escudos."
+}

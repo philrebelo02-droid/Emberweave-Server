@@ -1,0 +1,10 @@
+{
+  "reward.named_fragment": "Фрагмент «{name}»",
+  "reward.player_xp": "Опыт игрока",
+  "reward.hero_xp_each": "Опыт за героя",
+  "arena.vote_like": "Нравится",
+  "arena.vote_dislike": "Не нравится",
+  "patch.notes": "Примечания к обновлению",
+  "patch.whats_new": "Что нового",
+  "patch.update": "Обновление {ver}"
+}

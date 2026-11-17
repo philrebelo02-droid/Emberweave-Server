@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Classes",
+  "aff.chart_elements": "Éléments",
+  "aff.chart_legend": "Les flèches indiquent l’avantage",
+  "aff.element_cycle": "Dégâts contre {strong} : +{pct} %. Dégâts contre {weak} : −{pct} %.",
+  "aff.element_mutual": "Chacun de ces deux éléments inflige {pct} % de dégâts supplémentaires à l’autre.",
+  "aff.element_neutral": "Inflige et subit des dégâts normaux face à tous les éléments.",
+  "aff.support_t": "Grâce perforante",
+  "aff.support_d": "Les dégâts du Soutien ignorent 50 % de l’armure et de la résistance magique du Tank. Les alliés qui attaquent le Tank reçoivent 20 % de soins en plus si un Soutien allié est en vie.",
+  "aff.tank_t": "Mur de boucliers",
+  "aff.tank_d": "Bloque 25 % des attaques de base du Tireur et prolonge de 1 seconde la provocation contre lui.",
+  "aff.marksman_t": "Interruption",
+  "aff.marksman_d": "Chaque coup retire 10 points d’énergie au Mage.",
+  "aff.mage_t": "Maléfice",
+  "aff.mage_d": "Pendant 2 secondes, les sorts allongent de 30 % l’intervalle d’attaque du Combattant et réduisent de 20 % sa vitesse de déplacement.",
+  "aff.bruiser_t": "Riposte",
+  "aff.bruiser_d": "Après un coup de l’Assassin, riposte à 100 % de son attaque, une fois toutes les 3 secondes.",
+  "aff.assassin_t": "Faire taire le soigneur",
+  "aff.assassin_d": "Les coups réduisent de 40 % les soins reçus par le Soutien pendant 4 secondes et infligent le double de dégâts à ses boucliers."
+}

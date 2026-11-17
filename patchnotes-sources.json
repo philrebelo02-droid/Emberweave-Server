@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.7.6", "releases": "v1406", "items": [{"text": "ChatGPT 17 Nov 15:35-15:45 v1404-journal-tracks / v1404-affinities-complete / v1404-rewards-ui localization patches, merged by key; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1406)"}]},
     {"ver": "1.7.5", "releases": "v1405", "items": [{"text": "ChatGPT 17 Nov 14:18 v1404-ranking-modes-localization.patch (11 rankings tabs, all languages); Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1405)"}]},
     {"ver": "1.7.4", "releases": "v1404", "items": [{"text": "ChatGPT 17 Nov 13:35 v1402-ui-localization.patch (26 keys x 15 languages = 390 strings, Chromium-verified); Phil 13:4x: \"Push all the fixes and translations once you can\" (SHIPPED-v1404)"}]},
     {"ver": "1.7.3", "releases": "v1403", "items": [{"text": "Phil 17 Nov 12:4x: Pellucid full-screen board big again / \"This is perfect its like this most of the time\" / \"if I click around enough it bugs\" (SHIPPED-v1403)"}]},

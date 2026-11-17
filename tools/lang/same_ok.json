@@ -84,7 +84,8 @@
   "vault.info",
   "hud.zoom",
   "bb.mode_emberdraft",
-  "bb.mode_skyfall"
+  "bb.mode_skyfall",
+  "aff.chart_classes"
  ],
  "fr": [
   "arena.league_bronze",
@@ -178,7 +179,9 @@
   "hud.zoom",
   "bb.mode_emberdraft",
   "bb.mode_journal",
-  "bb.mode_skyfall"
+  "bb.mode_skyfall",
+  "aff.bruiser_t",
+  "aff.chart_classes"
  ],
  "de": [
   "arena.league_bronze",
@@ -289,7 +292,9 @@
   "bb.v_guild",
   "hud.zoom",
   "bb.mode_emberdraft",
-  "bb.mode_skyfall"
+  "bb.mode_skyfall",
+  "bb.track_veteran_short",
+  "patch.update"
  ],
  "it": [
   "battle.boss",
@@ -453,7 +458,8 @@
   "set.graphics",
   "hud.zoom",
   "bb.mode_emberdraft",
-  "bb.mode_skyfall"
+  "bb.mode_skyfall",
+  "patch.update"
  ],
  "ru": [
   "arena.npc",
@@ -652,7 +658,8 @@
   "bb.v_guild",
   "hud.zoom",
   "bb.mode_emberdraft",
-  "bb.mode_skyfall"
+  "bb.mode_skyfall",
+  "bb.track_veteran_short"
  ],
  "hi": [
   "arena.npc",

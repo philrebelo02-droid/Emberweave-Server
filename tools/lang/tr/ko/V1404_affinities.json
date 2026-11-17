@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "클래스",
+  "aff.chart_elements": "속성",
+  "aff.chart_legend": "화살표는 우세 관계를 나타냅니다",
+  "aff.element_cycle": "{strong} 속성에 주는 피해: +{pct}%. {weak} 속성에 주는 피해: −{pct}%.",
+  "aff.element_mutual": "두 속성은 서로에게 {pct}% 더 많은 피해를 줍니다.",
+  "aff.element_neutral": "모든 속성에 일반 피해를 주고 받습니다.",
+  "aff.support_t": "관통의 은총",
+  "aff.support_d": "지원가의 피해는 탱커의 방어력과 마법 저항력 50%를 무시합니다. 아군 지원가가 살아 있는 동안 탱커를 공격하는 아군은 받는 회복량이 20% 증가합니다.",
+  "aff.tank_t": "방패벽",
+  "aff.tank_d": "원거리 딜러의 기본 공격을 25% 막고 도발이 1초 더 지속됩니다.",
+  "aff.marksman_t": "방해",
+  "aff.marksman_d": "적중할 때마다 마법사의 에너지를 10 감소시킵니다.",
+  "aff.mage_t": "저주",
+  "aff.mage_d": "주문에 맞은 브루저는 2초 동안 공격 간격이 30% 늘고 이동 속도가 20% 감소합니다.",
+  "aff.bruiser_t": "반격",
+  "aff.bruiser_d": "암살자에게 맞으면 공격력의 100%로 반격합니다. 3초마다 한 번 발동합니다.",
+  "aff.assassin_t": "치유사 제압",
+  "aff.assassin_d": "적중한 지원가의 받는 치유량이 4초 동안 40% 감소하고 보호막에는 두 배의 피해를 줍니다."
+}

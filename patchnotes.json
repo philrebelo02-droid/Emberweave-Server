@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.7.6", "date": "17 November 2026", "time": "16:30 EST", "title": "Translations", "items": ["The Achievement Journal tracks, the affinities chart and the reward screens are translated into all 15 languages."]},
     {"ver": "1.7.5", "date": "17 November 2026", "time": "15:45 EST", "title": "Translations", "items": ["The ranking tabs are translated into all 15 languages."]},
     {"ver": "1.7.4", "date": "17 November 2026", "time": "14:30 EST", "title": "Translations", "items": ["40 screen texts that were still in English (including the Achievement Journal) are now translated into all 15 languages.", "Campaign: the Base button sits in the top-left corner, clear of the food counter.", "The hero window can no longer turn into a full screen."]},
     {"ver": "1.7.3", "date": "17 November 2026", "time": "13:30 EST", "title": "Hero window", "items": ["The hero window always opens as the same window, and the talent board is the same size everywhere."]},

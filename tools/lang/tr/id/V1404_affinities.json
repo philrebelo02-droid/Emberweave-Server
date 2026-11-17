@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Kelas",
+  "aff.chart_elements": "Elemen",
+  "aff.chart_legend": "Panah menunjukkan keunggulan",
+  "aff.element_cycle": "Damage terhadap {strong}: +{pct}%. Damage terhadap {weak}: −{pct}%.",
+  "aff.element_mutual": "Kedua elemen saling memberikan {pct}% damage tambahan.",
+  "aff.element_neutral": "Memberikan dan menerima damage normal saat melawan semua elemen.",
+  "aff.support_t": "Anugerah penembus",
+  "aff.support_d": "Damage Support mengabaikan 50% armor dan resistansi sihir Tank. Rekan yang menyerang Tank menerima 20% lebih banyak pemulihan jika Support sekutu masih hidup.",
+  "aff.tank_t": "Dinding perisai",
+  "aff.tank_d": "Memblokir 25% serangan dasar Marksman dan memperpanjang provokasi terhadapnya 1 detik.",
+  "aff.marksman_t": "Interupsi",
+  "aff.marksman_d": "Setiap serangan yang mengenai Mage menguras 10 energi.",
+  "aff.mage_t": "Kutukan",
+  "aff.mage_d": "Selama 2 detik, mantra menambah interval serangan Bruiser sebesar 30% dan mengurangi kecepatan geraknya sebesar 20%.",
+  "aff.bruiser_t": "Serangan balasan",
+  "aff.bruiser_d": "Saat terkena serangan Assassin, Bruiser membalas dengan 100% kekuatan serangannya, sekali tiap 3 detik.",
+  "aff.assassin_t": "Bungkam penyembuh",
+  "aff.assassin_d": "Serangan yang mengenai Support mengurangi pemulihan yang diterimanya sebesar 40% selama 4 detik dan memberi damage dua kali lipat pada perisainya."
+}

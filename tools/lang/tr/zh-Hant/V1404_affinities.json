@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "職業",
+  "aff.chart_elements": "元素",
+  "aff.chart_legend": "箭頭表示剋制關係",
+  "aff.element_cycle": "對{strong}造成的傷害：+{pct}%。對{weak}造成的傷害：−{pct}%。",
+  "aff.element_mutual": "這兩種元素對彼此造成的傷害皆增加{pct}%。",
+  "aff.element_neutral": "對所有元素造成和受到的傷害皆無修正。",
+  "aff.support_t": "破甲恩典",
+  "aff.support_d": "輔助的傷害無視坦克50%的護甲和魔抗。己方輔助存活時，攻擊坦克的隊友受到的治療增加20%。",
+  "aff.tank_t": "盾牆",
+  "aff.tank_d": "格擋射手25%的普通攻擊，對射手的嘲諷延長1秒。",
+  "aff.marksman_t": "打斷",
+  "aff.marksman_d": "每次命中使法師失去10點能量。",
+  "aff.mage_t": "詛咒",
+  "aff.mage_d": "法術使命中的鬥士攻擊間隔延長30%，移動速度降低20%，持續2秒。",
+  "aff.bruiser_t": "反擊",
+  "aff.bruiser_d": "受到刺客攻擊時，以自身攻擊力的100%反擊，每3秒觸發一次。",
+  "aff.assassin_t": "壓制治療者",
+  "aff.assassin_d": "命中使輔助受到的治療降低40%，持續4秒，並對其護盾造成雙倍傷害。"
+}

@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "职业",
+  "aff.chart_elements": "元素",
+  "aff.chart_legend": "箭头表示克制关系",
+  "aff.element_cycle": "对{strong}造成的伤害：+{pct}%。对{weak}造成的伤害：−{pct}%。",
+  "aff.element_mutual": "这两种元素对彼此造成的伤害均增加{pct}%。",
+  "aff.element_neutral": "对所有元素造成和受到的伤害均无修正。",
+  "aff.support_t": "破甲恩典",
+  "aff.support_d": "辅助的伤害无视坦克50%的护甲和魔抗。己方辅助存活时，攻击坦克的队友受到的治疗增加20%。",
+  "aff.tank_t": "盾墙",
+  "aff.tank_d": "格挡射手25%的普通攻击，对射手的嘲讽延长1秒。",
+  "aff.marksman_t": "打断",
+  "aff.marksman_d": "每次命中使法师失去10点能量。",
+  "aff.mage_t": "诅咒",
+  "aff.mage_d": "法术使命中的斗士攻击间隔延长30%，移动速度降低20%，持续2秒。",
+  "aff.bruiser_t": "反击",
+  "aff.bruiser_d": "受到刺客攻击时，以自身攻击力的100%反击，每3秒触发一次。",
+  "aff.assassin_t": "压制治疗者",
+  "aff.assassin_d": "命中使辅助受到的治疗降低40%，持续4秒，并对其护盾造成双倍伤害。"
+}

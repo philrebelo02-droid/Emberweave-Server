@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Classes",
+  "aff.chart_elements": "Elementos",
+  "aff.chart_legend": "As setas indicam vantagem",
+  "aff.element_cycle": "Dano contra {strong}: +{pct}%. Dano contra {weak}: −{pct}%.",
+  "aff.element_mutual": "Os dois elementos causam {pct}% a mais de dano um ao outro.",
+  "aff.element_neutral": "Causa e recebe dano normal contra todos os elementos.",
+  "aff.support_t": "Graça perfurante",
+  "aff.support_d": "O dano do Suporte ignora 50% da armadura e da resistência mágica do Tanque. Aliados que atacam o Tanque recebem 20% mais cura enquanto houver um Suporte aliado vivo.",
+  "aff.tank_t": "Muralha de escudos",
+  "aff.tank_d": "Bloqueia 25% dos ataques básicos do Atirador e prolonga a provocação contra ele em 1 segundo.",
+  "aff.marksman_t": "Interrupção",
+  "aff.marksman_d": "Cada acerto drena 10 de energia do Mago.",
+  "aff.mage_t": "Maldição",
+  "aff.mage_d": "Por 2 segundos, os feitiços aumentam em 30% o intervalo de ataque do Lutador e reduzem em 20% sua velocidade de movimento.",
+  "aff.bruiser_t": "Contra-ataque",
+  "aff.bruiser_d": "Ao ser atingido pelo Assassino, revida com 100% do seu ataque, uma vez a cada 3 segundos.",
+  "aff.assassin_t": "Silenciar o curandeiro",
+  "aff.assassin_d": "Os acertos reduzem em 40% a cura recebida pelo Suporte por 4 segundos e dobram o dano aos escudos dele."
+}

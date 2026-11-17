@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Classi",
+  "aff.chart_elements": "Elementi",
+  "aff.chart_legend": "Le frecce indicano il vantaggio",
+  "aff.element_cycle": "Danni contro {strong}: +{pct}%. Danni contro {weak}: −{pct}%.",
+  "aff.element_mutual": "I due elementi si infliggono a vicenda il {pct}% di danni in più.",
+  "aff.element_neutral": "Infligge e subisce danni normali contro tutti gli elementi.",
+  "aff.support_t": "Grazia perforante",
+  "aff.support_d": "Il danno del Supporto ignora il 50% dell’armatura e della resistenza magica del Tank. Gli alleati che attaccano il Tank ricevono il 20% di cure in più se c’è un Supporto alleato vivo.",
+  "aff.tank_t": "Muro di scudi",
+  "aff.tank_d": "Blocca il 25% degli attacchi base del Tiratore e lo provoca per 1 secondo in più.",
+  "aff.marksman_t": "Interruzione",
+  "aff.marksman_d": "Ogni colpo sottrae 10 energia al Mago.",
+  "aff.mage_t": "Maledizione",
+  "aff.mage_d": "Per 2 secondi, gli incantesimi allungano del 30% l’intervallo d’attacco del Combattente e riducono del 20% la sua velocità di movimento.",
+  "aff.bruiser_t": "Contrattacco",
+  "aff.bruiser_d": "Quando l’Assassino lo colpisce, contrattacca con il 100% del suo attacco, una volta ogni 3 secondi.",
+  "aff.assassin_t": "Silenzia il guaritore",
+  "aff.assassin_d": "I colpi riducono del 40% le cure ricevute dal Supporto per 4 secondi e infliggono danni doppi ai suoi scudi."
+}

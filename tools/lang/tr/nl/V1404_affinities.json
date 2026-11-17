@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Klassen",
+  "aff.chart_elements": "Elementen",
+  "aff.chart_legend": "Pijlen geven voordeel aan",
+  "aff.element_cycle": "Schade tegen {strong}: +{pct}%. Schade tegen {weak}: −{pct}%.",
+  "aff.element_mutual": "Beide elementen richten {pct}% meer schade aan tegen elkaar.",
+  "aff.element_neutral": "Richt normale schade aan en ontvangt normale schade tegen elk element.",
+  "aff.support_t": "Doordringende genade",
+  "aff.support_d": "Schade van Support negeert 50% van het pantser en de magieweerstand van de Tank. Bondgenoten die de Tank aanvallen ontvangen 20% meer genezing als een bevriende Support leeft.",
+  "aff.tank_t": "Schildmuur",
+  "aff.tank_d": "Blokkeert 25% van de basisaanvallen van de Schutter en houdt hem 1 seconde langer bespot.",
+  "aff.marksman_t": "Onderbreking",
+  "aff.marksman_d": "Elke treffer ontneemt de Magiër 10 energie.",
+  "aff.mage_t": "Vloek",
+  "aff.mage_d": "Spreuken verlengen het aanvalsinterval van de Vechter 2 seconden lang met 30% en verminderen zijn bewegingssnelheid met 20%.",
+  "aff.bruiser_t": "Tegenaanval",
+  "aff.bruiser_d": "Na een treffer van de Sluipmoordenaar slaat de Vechter terug voor 100% van zijn aanval, eenmaal per 3 seconden.",
+  "aff.assassin_t": "Breng de genezer tot zwijgen",
+  "aff.assassin_d": "Treffers verminderen de ontvangen genezing van Support 4 seconden lang met 40% en doen dubbele schade aan zijn schilden."
+}

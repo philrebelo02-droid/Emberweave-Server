@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Klassen",
+  "aff.chart_elements": "Elemente",
+  "aff.chart_legend": "Pfeile zeigen den Vorteil",
+  "aff.element_cycle": "Schaden gegen {strong}: +{pct} %. Schaden gegen {weak}: −{pct} %.",
+  "aff.element_mutual": "Beide Elemente fügen einander {pct} % mehr Schaden zu.",
+  "aff.element_neutral": "Verursacht und erleidet normalen Schaden gegen alle Elemente.",
+  "aff.support_t": "Durchdringende Gnade",
+  "aff.support_d": "Schaden des Unterstützers ignoriert 50 % der Rüstung und Magieresistenz des Tanks. Verbündete, die den Tank angreifen, erhalten 20 % mehr Heilung, solange ein verbündeter Unterstützer lebt.",
+  "aff.tank_t": "Schildwall",
+  "aff.tank_d": "Blockt 25 % der Standardangriffe des Schützen und verspottet ihn 1 Sekunde länger.",
+  "aff.marksman_t": "Unterbrechung",
+  "aff.marksman_d": "Jeder Treffer entzieht dem Magier 10 Energie.",
+  "aff.mage_t": "Fluch",
+  "aff.mage_d": "Zauber verlängern das Angriffsintervall des Kämpfers 2 Sekunden lang um 30 % und senken sein Bewegungstempo um 20 %.",
+  "aff.bruiser_t": "Gegenstoß",
+  "aff.bruiser_d": "Nach einem Treffer des Assassinen schlägt der Kämpfer mit 100 % seiner Angriffskraft zurück, einmal alle 3 Sekunden.",
+  "aff.assassin_t": "Den Heiler zum Schweigen bringen",
+  "aff.assassin_d": "Treffer verringern die erhaltene Heilung des Unterstützers 4 Sekunden lang um 40 % und verursachen doppelten Schaden an seinen Schilden."
+}

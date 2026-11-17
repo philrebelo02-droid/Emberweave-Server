@@ -1,0 +1,20 @@
+{
+  "aff.chart_classes": "Sınıflar",
+  "aff.chart_elements": "Elementler",
+  "aff.chart_legend": "Oklar üstünlüğü gösterir",
+  "aff.element_cycle": "{strong} elementine verilen hasar: +%{pct}. {weak} elementine verilen hasar: −%{pct}.",
+  "aff.element_mutual": "İki element de birbirine %{pct} daha fazla hasar verir.",
+  "aff.element_neutral": "Tüm elementlere normal hasar verir ve onlardan normal hasar alır.",
+  "aff.support_t": "Delici lütuf",
+  "aff.support_d": "Desteğin hasarı Tankın zırhının ve büyü direncinin %50’sini yok sayar. Canlı bir müttefik Destek varken Tanka saldıran müttefikler %20 daha fazla iyileşir.",
+  "aff.tank_t": "Kalkan duvarı",
+  "aff.tank_d": "Nişancının temel saldırılarının %25’ini engeller ve onu 1 saniye daha uzun kışkırtır.",
+  "aff.marksman_t": "Kesinti",
+  "aff.marksman_d": "Her isabet Büyücüden 10 enerji çeker.",
+  "aff.mage_t": "Lanet",
+  "aff.mage_d": "Büyüler 2 saniye boyunca Dövüşçünün saldırı aralığını %30 uzatır ve hareket hızını %20 düşürür.",
+  "aff.bruiser_t": "Karşı saldırı",
+  "aff.bruiser_d": "Suikastçı vurduğunda 3 saniyede bir, saldırısının %100’üyle karşılık verir.",
+  "aff.assassin_t": "Şifacıyı sustur",
+  "aff.assassin_d": "İsabetler Desteğin aldığı iyileştirmeyi 4 saniye boyunca %40 azaltır ve kalkanlarına iki kat hasar verir."
+}
