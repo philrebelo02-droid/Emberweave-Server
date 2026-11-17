@@ -19,6 +19,9 @@ const HP1397_SWAPS = [
   // v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every single battle mode"; ships WITH the HP rule): every wave
   //   times out at 180 s - put back to 90 for the older BASE fights, which were written against a 90 s time-out (tests/test_battle_limit_1399.js checks v1399 itself)
   ['const BATTLE_TIME_LIMIT=180;', 'const BATTLE_TIME_LIMIT=90;', /const BATTLE_TIME_LIMIT=\d+;/],
+  // v1400 (Phil 17 Nov, with the HP rule and the 180 s limit: "Stretch it"): the late-fight damage ramp starts at 60 s and rises 6/90 a second - put back to
+  //   22 s / 0.16 for the older BASE fights
+  ['const RAGE_START=60, RAGE_RATE=6/90;', 'const RAGE_START=22, RAGE_RATE=.16;', /const RAGE_START=\d+, RAGE_RATE=[\d./]+;/],
 ];
 const SWAPS = [
   ...HP1397_SWAPS,

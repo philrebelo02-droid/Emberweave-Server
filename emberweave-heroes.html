@@ -8742,6 +8742,9 @@ statusTextStack.n=0;
    wave counted as won depended on a DOM query — something a headless server replay cannot answer the
    same way. The pause is a piece of battle state now, and the modal merely reflects it. */
 let VAULT_PICK_OPEN=false;
+/* v1400 (Phil 17 Nov, with base HP x2 and the 180 s limit: "Stretch it"): the late-fight damage ramp starts at 60 s (was 22 s) and rises 6.67%/s
+   (was 16%/s): x7 at 150 s, x9 at 180 s (was x7 at 60 s, x26 at 180 s), so fights can run toward the 3-minute limit. Emberdraft keeps its own attack-speed ramp. */
+const RAGE_START=60, RAGE_RATE=6/90;
 let selected=null,battleTime=0,ended=false,rageMul=1, _edCarBlank=false, _edPlanPR=false;
 /* At most ONE pending result screen. A queued result belongs to the fight that scheduled it;
    if another fight starts first, that result is stale and must never reach the screen. */
@@ -18724,7 +18727,7 @@ function _updateBattleCore(dt){
   // frame rate — the sim's own numbers never depend on the device's frame rate again.
   pumpInputs();   // v269: a tap is applied HERE, on a tick boundary — never mid-frame
   simTick++;
-  battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>22?1+(battleTime-22)*.16:1); screenFlash=Math.max(0,screenFlash-dt);   // v636: Emberdraft ramps attack speed instead (edAtkRamp). v644: the flash decay had been swallowed by this comment since v636 - every mode kept a permanent gold tint after the first ally ult
+  battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>RAGE_START?1+(battleTime-RAGE_START)*RAGE_RATE:1); screenFlash=Math.max(0,screenFlash-dt);   // v636: Emberdraft ramps attack speed instead (edAtkRamp). v644: the flash decay had been swallowed by this comment since v636 - every mode kept a permanent gold tint after the first ally ult
   if(CUR && CUR.mode==='emberdraft' && window.ED && ED.fighting){ edTick(dt); if(ended) return; }   // v604 Emberdraft: item actives, leaps, the 30 s draw, instant end
   if(!ended && CUR.mode!=='online' && CUR.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // v644: Emberdraft draws at ED_FIGHT_LIMIT in edTick   // ⏱ time's up → defeat (battle timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
