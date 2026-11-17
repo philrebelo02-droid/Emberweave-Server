@@ -237,6 +237,7 @@ function state(us){ return us.map(u=>({key:u.key,hp:Math.max(0,Math.round(u.hp))
 
 /* ---- the ONE typed damage entry point (also used by gear actives) ----
    kind: 'phys' | 'magic' | 'true'. Returns damage actually removed from hp+shields. */
+const DR_FLOOR=0.05;   /* the 95% damage-reduction ceiling (client: DR_FLOOR at damage() in emberweave-heroes.html) */
 function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   opts=opts||{};
   raw*=elemMul(src,tgt); const edge=classEdge(src,tgt);   /* v1372 elements (client dealDamage: amt*=elemMul(src,tgt)) */
@@ -250,7 +251,7 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   if(kind!=='true' && !opts.noDodge && evaRoll<eva){
     if(log.length<600) log.push([round,side,src.key,'miss',tgt.key,0,opts.ult?1:0,kind,0]);
     return 0; }
-  let dmg=raw*(src.dmgBonus||1);
+  let dmg=raw*(src.dmgBonus||1), red=1;   /* red: the share the TARGET's own reductions leave (the 95% ceiling below) */
   // crit — rolls ALWAYS consumed
   const critRoll=rnd(); let crit=false;
   if(!opts.noCrit && (src.crit||0)>0 && critRoll<Math.max(0,(src.crit||0)-(tgt.defense||0))){   /* Academy v2: the target's Defense comes off the crit chance; the roll is still always consumed */
@@ -259,16 +260,17 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   // TYPED mitigation: armor vs phys (blockable), MR vs magic — each countered only by its own pen
   const rk=(edge==='Support')?EDGE.armorIgnore:1;   /* v1372 Sundering grace: a Support's hit reads the Tank's Armor / MR at x0.5 (client _defMulRaw rk) */
   if(kind==='phys'){
-    dmg*=1-defToDR(Math.max(0,(tgt.armor||0)*rk-(src.armorPen||0)), tgt.level);
+    { const m=1-defToDR(Math.max(0,(tgt.armor||0)*rk-(src.armorPen||0)), tgt.level); dmg*=m; red*=m; }
     const blockRoll=rnd();
-    if((tgt.block||0)>0 && blockRoll<(tgt.block||0)){ dmg*=0.5; if(log.length<600) log.push([round,side,tgt.key,'block',src.key,0,0,kind,0]); }
+    if((tgt.block||0)>0 && blockRoll<(tgt.block||0)){ dmg*=0.5; red*=0.5; if(log.length<600) log.push([round,side,tgt.key,'block',src.key,0,0,kind,0]); }
   } else if(kind==='magic'){
-    dmg*=1-defToDR(Math.max(0,(tgt.mr||0)*rk-(src.magicPen||0)), tgt.level);
+    { const m=1-defToDR(Math.max(0,(tgt.mr||0)*rk-(src.magicPen||0)), tgt.level); dmg*=m; red*=m; }
     rnd();   // parity roll so phys/magic consume identical stream length
   } else { rnd(); }
   if(edge==='Assassin' && tgt.shieldPool>0) tgt.shieldPool-=Math.min(tgt.shieldPool,Math.round(dmg));   /* v1372 Silence the healer: double damage to a shield - only a blow that lands */
-  if(tgt._drR>0) dmg*=0.65;                      // gear brace
-  dmg*=1-(tgt.dmgRed||0);                        // Damage Reduction rating
+  if(tgt._drR>0){ dmg*=0.65; red*=0.65; }        // gear brace
+  dmg*=1-(tgt.dmgRed||0); red*=1-(tgt.dmgRed||0); // Damage Reduction rating
+  if(red<DR_FLOOR&&red>0) dmg=dmg/red*DR_FLOOR;  /* the 95% ceiling (Phil 14 Nov 2026), = the client's damage(): the target's reductions together take at most 95% of the hit */
   dmg=Math.max(0,Math.round(dmg));
   let removed=0;
   if(tgt.shieldPool>0){ const ab=Math.min(tgt.shieldPool,dmg); tgt.shieldPool-=ab; dmg-=ab; removed+=ab; }

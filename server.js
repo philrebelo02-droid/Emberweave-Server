@@ -20,6 +20,8 @@ const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const HERO61=require('./hero61.js');
+const TALENTS=require('./talents.js'), TALENT_FX=require('./talents-fx.js'), TALENT_POWER=require('./talents-power.js'), TALENTS_ON=process.env.TALENTS_ENABLED==='true';   /* 14 Nov 2026: talent trees - rules shared with the page; off unless the flag is set */
+const TALENT_WIRED=new Set((TALENT_FX&&typeof TALENT_FX.mechHeroes==='function')?TALENT_FX.mechHeroes():[]);   /* 14 Nov 2026 locked heroes: see talentWired */
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
@@ -1097,7 +1099,7 @@ const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
 /* Everything on this list is decided by the server ledger. None of it is stored from a client save. */
 const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
   'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
-  'techLearn','skillLevel','dust','starShards','eqMats','mats',
+  'techLearn','skillLevel','talents','dust','starShards','eqMats','mats',   /* 14 Nov 2026: learned talents live in led.talents; the page only mirrors them (G.talents) */
   /* Retired Prayer of Power is stripped from old saves. The Temple is ledger-owned too;
      arenaCoins still has no ledger owner and remains in the client save. */
   'prayer','temple','guildCoins',
@@ -1427,21 +1429,23 @@ function cardPowerForget(uid){ const p=String(uid)+'|'; for(const k of CARD_POWE
 /* v813 - `fresh` is passed whenever the hero belongs to the player who is ASKING. Their own five
    heroes are five snapshots on a screen they are looking at, and they are the one person who will
    notice the number being 15 seconds old, because they just changed it. */
-function cardPower(u, key, fresh){
+/* opt = NO_TALENTS (WIRING/41d): the decision number, cached under its own key so it can never be served as the card or the other way round */
+function cardPower(u, key, fresh, opt){
   if(!u||!key) return 0;
-  const ck=String(u.id)+'|'+key, hit=CARD_POWER_CACHE.get(ck), now=Date.now();
+  const nt=!!(opt&&opt.noTalents);
+  const ck=String(u.id)+'|'+key+(nt?'|nt':''), hit=CARD_POWER_CACHE.get(ck), now=Date.now();
   if(!fresh && hit && (now-hit.t)<CARD_POWER_TTL_MS) return hit.v;
-  let v=0; try{ v=heroCardPower(u,key); }catch(e){ return hit?hit.v:0; }
+  let v=0; try{ v=heroCardPower(u,key,nt?NO_TALENTS:undefined); }catch(e){ return hit?hit.v:0; }
   CARD_POWER_CACHE.set(ck,{t:now,v});
   return v;
 }
-function ledgerTeamPower(u){
+function ledgerTeamPower(u,opt){   /* opt = NO_TALENTS: the Tower's decision number (WIRING/41d) */
   const led=ensureLedger(u);
   const keys=Array.isArray(u.team)?u.team.map(h=>h&&h.key).filter(k=>k&&ownsHeroK(led,k)).slice(0,5):[];
   const use=keys.length?keys:Object.keys(led.unlocked).slice(0,5);
   /* v808 - the card, the same number the player is looking at */
   let p=0;
-  for(const k of use) p += cardPower(u,k);
+  for(const k of use) p += cardPower(u,k,false,opt);
   return Math.round(p);
 }
 /* v328 — A STORED ROSTER LINE HAS NO LEVEL AND NO RANK. sanitizeRoster():337 writes bare {key}, so
@@ -2271,7 +2275,16 @@ function snapshotHeroFromServer(u, key, save, sOpts){
   const _board=u.glyphs&&u.glyphs.boards&&u.glyphs.boards[key];
   const rank=SKILL_QUALITY_TIER16[Math.max(0,Math.min(15,(_board&&_board.ascensionIndex)|0))];
   const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, rank, ratings:R, gearSkillSlot, gearSkill, extra:XT});
-  return sOpts&&sOpts.noTempleEffects?unit:TEMPLE_EFFECTS.applyCore(unit,TB);
+  if(!(sOpts&&sOpts.noTempleEffects)) TEMPLE_EFFECTS.applyCore(unit,TB);
+  /* 14 Nov 2026 talents, LINE MODEL: the hero's learned STAT talents change the core unit by their percent (talents-fx.js applyCore), after
+     the Temple, as the page's makeUnit does. talentListFor is null unless the flag is on and this hero has a legal, non-empty build, so a
+     hero with nothing learned leaves through the line above exactly as before. Mechanic talents cannot act in the line model.
+     noTalentStats is passed by the card ONLY (heroCardPower): the card carries the talents through talentPowerFlat (talents-power.js, rule 26,
+     one power), so it must not also price their stats. Every other caller builds a unit that fights. A bot never comes here (snapshotNpcHero). */
+  const _tl=(unit&&!(sOpts&&sOpts.noTalentStats))?talentListFor(u.led,key):null;
+  if(_tl){ TALENT_FX.applyCore(unit,key,_tl);
+    unit.atk=Math.max(unit.atkP,unit.atkM); unit.dr=(SIM.CORE.defToDR(unit.armor,unit.level)+SIM.CORE.defToDR(unit.mr,unit.level))/2; }   /* the legacy aliases heroCombatStats set, re-read */
+  return unit;
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -2287,7 +2300,11 @@ const VAULT_HERO_XP_PER_FLOOR=30;
    on the card scale with the same factor the campaign uses (CAMP_POWER_SCALE). */
 const VAULT_POWER_SCALE=3.0908, VAULT_UNDERPOWER_RATIO=0.80;
 function vaultRecommendedCardPower(floor){ try{ return Math.round(((vaultFloorRecord(floor)||{}).recommendedPower||0)*VAULT_POWER_SCALE); }catch(e){ return 0; } }
-function vaultHeroPowerRow(u,k){ const led=ensureLedger(u), h=(led.hero&&led.hero[k])||{}; return { key:k, power:Math.round(cardPower(u,k,true)||0), xp:h.xp|0, stars:h.stars|0, pips:h.pips|0 }; }
+/* 14 Nov 2026 (WIRING/41d): `power` is the card (what the review report shows); `gate` is the talent-less card the underpower review
+   compares with the authored recommendation (vaultReviewSquadPower), so switching talents on files no more and no fewer reviews by number. */
+function vaultHeroPowerRow(u,k){ const led=ensureLedger(u), h=(led.hero&&led.hero[k])||{}; return { key:k, power:Math.round(cardPower(u,k,true)||0), gate:Math.round(cardPower(u,k,true,NO_TALENTS)||0), xp:h.xp|0, stars:h.stars|0, pips:h.pips|0 }; }
+/* an attempt started before this field existed has only `power` (the switch was off then, so the two were the same) */
+function vaultReviewSquadPower(pw){ return pw&&Array.isArray(pw.fighters)?pw.fighters.reduce((t,h)=>t+((h&&typeof h.gate==='number')?h.gate:(h&&h.power)|0),0):null; }
 const VAULT_SWEEP_FREE=2, VAULT_SWEEP_PAID_COST=[200,400,600];   // v372 (Phil): 3rd, 4th and 5th sweep of the day cost 200 / 400 / 600 diamonds   // v370 (Phil): "heroes should get 30 exp per floor, sweeps also" — every hero on the line, per floor, never the player   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
 const DUNGEON_QUALITY_BANDS=[
   {min:1,max:10,q:'Grey'},{min:11,max:20,q:'Green'},{min:21,max:30,q:'Blue'},{min:31,max:40,q:'Blue +2'},
@@ -2343,7 +2360,7 @@ function writeDBNow(ids,pieces){   /* v1000 (Account audit #9): returns false wh
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
-const DURABLE_IDEM_KINDS=new Set(['bonusres','dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
+const DURABLE_IDEM_KINDS=new Set(['bonusres','dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest','talentlearn','talentreset']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
 /* v1042 RECEIPTS LAST ONE HOUR (Phil 6 Oct 2026: "Make it one hour, with a copy of the report living in the players war inbox up to 50
    mails total"): every request receipt (idem, durable planners, world routes) is kept 3600000 ms (was 24 h). A city attack's full
    report now lives in both players' war mail instead; the settled march (kept 2 days) blocks a late retry from paying twice. */
@@ -3032,14 +3049,36 @@ function unitCardPower(s,key,AC){
   if(AC&&AC.healRating>0) dps*=acadHealDpsMul(AC.healRating,key);   /* v1311 */
   return POWER_K*Math.sqrt(ehp*dps);
 }
+/* 14 Nov 2026 TALENTS IN THE POWER NUMBER (WIRING/41b - TALENT POWER FORMULA). MUST stay identical in emberweave-heroes.html heroPower:
+   both add the same talents-power.js number (TalentPower.power), at the same place (with the glyph tier, before the Temple multiplier).
+   Phil: "91 talents should be around the same power as max glyphs" / "Make it a formula, all of these mechanics need to be created not
+   hijack another one". Max glyphs add a FLAT 25,000 to every hero's card (glyph stats reach the fight, the card prices the tier); talents
+   are priced the same way: every learned rank adds a fixed amount by its depth and its kind of effect (damage dealt, damage taken, shields,
+   healing, control time, energy and cooldown, summons, on-death and conditional, skill upgrades, other), so a typical full 91-point build
+   reads about 25,000 on every hero at every progression. Talent STATS still reach every fight (snapshotHeroFromServer), but the CARD unit
+   is built without them ({noTalentStats}) so no stat is counted twice. An unwired hero (no talents-mech/<key>.js), the switch off, or
+   nothing learned: TL is null or the number is 0, and the card is the pre-talent one to the bit. list = [[id,rank],...]. */
+function talentPowerFlat(key,list){ return TALENT_POWER.power(key,list); }
+/* 14 Nov 2026 POWER-ONLY DECISIONS (WIRING/41d - POWER-ONLY DECISIONS). The manager's rule: until every mode runs the real fight engine, a
+   place that decides an OUTCOME, a REWARD, a COST, a cut, a seed or a gate from the power number alone uses the card WITHOUT its talent term,
+   so switching talents on changes nothing there; the card the player sees and the power leaderboard keep the full number. This is NOT a
+   second formula: it is heroCardPower itself with the one talentPowerFlat line skipped (opt.noTalents). The card unit is already built
+   without talent stats ({noTalentStats}, see snapshotHeroFromServer), so the result is exactly the card the hero would show with nothing
+   learned - and, with the switch off or nothing learned (TL null), exactly the card. There is still no "no talents" option for a unit that
+   FIGHTS (snapshotHeroFromServer): every fight carries the talents; only the decision number leaves them out. Both sides of every comparison
+   or price that uses it are talent-less (the targets are authored or benchmark numbers that never carried talents). */
+const NO_TALENTS=Object.freeze({noTalents:true});
+function heroGatePower(u,key){ return heroCardPower(u,key,NO_TALENTS); }
 /* v806 - ONE HERO, PRICED EXACTLY AS THEIR CARD PRICES THEM. */
-function heroCardPower(u,key){
+function heroCardPower(u,key,opt){
   if(!u||!SIM.HERO_BASE[key]) return 0;
   let p=0;
   let gf=null; try{ gf=(u.gear&&typeof gearHeroFlats==='function')?gearHeroFlats(u,key):null; }catch(e){ gf=null; }   /* v1316 (Phil 8 Nov): the gear totals the snapshot folds in (= client gearSockMul) */
-  const AC=acadCombat(u), PC=(gf&&(gf.critRes>0||gf.healPow>0)) ? Object.assign({},AC||{},{critResRating:((AC&&AC.critResRating)||0)+gf.critRes, healRating:((AC&&AC.healRating)||0)+gf.healPow}) : AC;   /* v1316: gear crit resist + healing power ride the v1311 Academy terms */
-  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key,PC); }catch(e){ return 0; }
+  const AC=acadCombat(u); let PC=(gf&&(gf.critRes>0||gf.healPow>0)) ? Object.assign({},AC||{},{critResRating:((AC&&AC.critResRating)||0)+gf.critRes, healRating:((AC&&AC.healRating)||0)+gf.healPow}) : AC;   /* v1316: gear crit resist + healing power ride the v1311 Academy terms */
+  let TL=null; try{ TL=talentListFor(u.led,key); }catch(e){ TL=null; }   /* 14 Nov 2026 talents: TL is null for a hero with nothing learned - then PC is untouched and every line below runs as before */
+  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true,noTalentStats:true}),key,PC); }catch(e){ return 0; }   /* 14 Nov 2026: talents are priced by talentPowerFlat below, not through the unit's stats */
   try{ const sk=ledSkillArr(u.led,key)||[]; for(let i=0;i<4;i++) p+=Math.max(0,((sk[i]|0)||1)-1)*20; }catch(e){}
+  if(TL&&!(opt&&opt.noTalents)) p+=talentPowerFlat(key,TL);   /* opt.noTalents: heroGatePower (the decision number, WIRING/41d) */
   try{ p+=glyphHeroPower(u,key); }catch(e){}
   const TB=templeBonusesFor(u,key), TP=(gf&&(gf.armorPen>0||gf.magicPen>0)) ? Object.assign({},TB,{armorPenFlat:(Number(TB&&TB.armorPenFlat)||0)+gf.armorPen, magicPenFlat:(Number(TB&&TB.magicPenFlat)||0)+gf.magicPen}) : TB;   /* v1316: gear pen joins the Temple pen term (= client heroPower) */
   return Math.round(p*TEMPLE_EFFECTS.powerMultiplier(TP));
@@ -3070,6 +3109,9 @@ function witchState(u,now){
   return {state:u.witch,capacity:cap,playerLevel:level};
 }
 const WITCH_MAX_LEVEL=100;   // witchBenchmarkCapacity stops growing at 100
+/* 14 Nov 2026 (WIRING/41d): a heal costs 10% of this number per full HP and heal-all goes strongest first by it. The cauldron's capacity
+   (witchBenchmarkCapacity) is priced without talents, so the cost is too: learning talents never makes a heal dearer. */
+function witchHealPower(u,key){ return heroGatePower(u,key); }
 function witchUpgradeOffer(w,A){
   const level=(w.state.level|0)+1;
   if(level>WITCH_MAX_LEVEL) return {maxed:true};
@@ -3083,8 +3125,8 @@ function witchView(u,now){
     playerLevel:ledPlayerLevel(ensureLedger(u))};
   const led=ensureLedger(u), A=ensureAcad(u); acadCollect(A);   // the Hut spends the Academy's resources
   const heroes=Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)&&SIM.HERO_BASE[k])
-    .map(key=>{ const power=heroCardPower(u,key), hp=WITCH.health(w.state,key);
-      return {key,power,hp,healCost:Math.ceil(power*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL),
+    .map(key=>{ const power=heroCardPower(u,key), hp=WITCH.health(w.state,key);   /* power = the card shown; the cost is priced on witchHealPower (41d) */
+      return {key,power,hp,healCost:Math.ceil(witchHealPower(u,key)*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL),
         returnAt:worldHeroReturnAt(u,key,now)}; })
     .filter(h=>h.hp<WITCH.HP_FULL).sort((a,b)=>b.power-a.power||a.key.localeCompare(b.key));
   return {ok:true,locked:false,level:w.state.level,playerLevel:w.playerLevel,
@@ -3103,7 +3145,11 @@ function buildRegisteredLines(u){
   const mk=(heroes,i)=>({ memberId:u.id, line:i, name:u.name+' \u00b7 line '+(i+1),
     /* v785 - skill level is part of power now */
     /* v806 - a line is the sum of its heroes' CARDS */
-    heroes, power:Math.round(heroes.reduce((s,h)=>s+heroCardPower(u,h&&h.key),0)) });
+    heroes, power:Math.round(heroes.reduce((s,h)=>s+heroCardPower(u,h&&h.key),0)),
+    /* 14 Nov 2026 (WIRING/41d): the line FIGHTS with stat talents only (no mechanic talents in the line model), so every Skyfall decision
+       made from a line's number - the Monday cut and seeding (seedPool), the tie-break, which line marches and which defender meets it -
+       reads this talent-less sum. `power` stays the card sum the boards show. */
+    gatePower:Math.round(heroes.reduce((s,h)=>s+heroGatePower(u,h&&h.key),0)) });
 
   /* v740 - THE MEMBER'S OWN CHOICE WINS, when they have made one. Re-checked against the ledger on
      every read rather than trusted from when it was saved, and a hero that somehow appears twice is
@@ -3128,7 +3174,7 @@ function buildRegisteredLines(u){
 
   /* no choice made (or none of it survives): the automatic deal, strongest first, five at a time */
   const all=Object.keys(SIM.HERO_BASE).filter(k=>ownsHeroK(rled,k)).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
-  all.sort((a,b)=>heroCardPower(u,b&&b.key)-heroCardPower(u,a&&a.key));   /* v806 - by the card */
+  all.sort((a,b)=>heroGatePower(u,b&&b.key)-heroGatePower(u,a&&a.key));   /* v806 - by the card; 14 Nov 2026 (41d): the talent-less card, so the deal (and who is left off a line) does not move when talents switch on */
   const out=[];
   for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5) out.push(mk(all.slice(i,i+5), out.length));
   return out;
@@ -3163,8 +3209,31 @@ function warQualifyGuild(g){
   /* v781 - the banner comes with it. Entrants are rebuilt from scratch at the Monday lock, so
      without this the banner registration stored was thrown away before the bracket was even
      drawn. */
-  return { guildId:g.id, name:g.name, banner:g.banner||null, lines, powerPool:lines.reduce((s,l)=>s+l.power,0) };
+  return { guildId:g.id, name:g.name, banner:g.banner||null, lines, powerPool:lines.reduce((s,l)=>s+l.power,0),
+    seedPool:lines.reduce((s,l)=>s+(l.gatePower|0),0) };   /* 41d: the cut, seeding and tie-break number (talent-less); powerPool is shown */
 }
+/* 14 Nov 2026 (WIRING/41d): the number an entrant is cut, seeded and tie-broken by. An entrant stored before seedPool existed has only
+   powerPool (the switch was off, so they were equal). A line or a defender the same: gatePower, else its shown power. */
+function warSeedPool(e){ return e?((typeof e.seedPool==='number')?e.seedPool:(e.powerPool||0)):0; }
+function warPickPower(d){ return d?((typeof d.gatePower==='number')?d.gatePower:(d.power|0)):0; }
+/* v775 - THE WEAKEST LIVING LINE MARCHES (the board lists them weakest-first; line 0 is a player's strongest). A line that has taken its
+   five kills is stepped over; only if every living line of theirs is retired is the first of them returned (the route refuses it).
+   Moved here from /api/guild-war/assault on 14 Nov 2026 (41d) so it can be tested; the order reads warPickPower (talent-less). */
+function warAttackerLine(cit,memberId){
+  const alive=cit.defenders.filter(d=>d.memberId===memberId && d.alive!==false)
+    .sort((x,y)=>(warPickPower(x)-warPickPower(y)) || ((x.line|0)-(y.line|0)));
+  return alive.find(d=>(d.kills|0)<WAR_KILL_CAP) || alive[0]; }
+/* v696 (Phil): the tower queues by MEMBER - each member's committed lines are totalled, the lowest total goes first, and a member's own
+   lines stay together. v775: WITHIN that member it is the weakest LINE (the tie-break used to be the lowest line index, and line 0 is the
+   strongest line). ok(d) says which defenders may answer. Moved from the assault route on 14 Nov 2026 (41d): reads warPickPower. */
+function warDefenderPick(cit,ok){
+  const tot={}; for(const d of cit.defenders) tot[d.memberId]=(tot[d.memberId]||0)+warPickPower(d);
+  let best=null,bt=0,bp=0,bid='',bl=0;
+  for(const d of cit.defenders){ if(!ok(d)) continue;
+    const t=tot[d.memberId]||0, p=warPickPower(d), id=String(d.memberId||''), ln=d.line|0;
+    if(!best || t<bt || (t===bt && (p<bp || (p===bp && (id<bid || (id===bid && ln<bl))))))
+      { best=d; bt=t; bp=p; bid=id; bl=ln; } }
+  return best; }
 /* v803b (Phil: "make sure if i click register, this power number increases everytime someone
    increases their power") - THE POOL AS IT STANDS RIGHT NOW.
    `warQualifyGuild` walks every member and rebuilds every line from their heroes, so it already
@@ -3214,7 +3283,7 @@ function warDropMember(gid,uid){ const t=DB.tournaments&&DB.tournaments.current;
   const m0=warMatchOfGuild(t,gid), m=(m0&&m0.state==='planning'&&m0.sides&&m0.sides[gid])?m0:null; let changed=false;
   const ent=Array.isArray(t.entrants)?t.entrants.find(e=>e.guildId===gid):null;
   if(ent&&Array.isArray(ent.lines)&&(t.state==='registration'||m)){ const n=ent.lines.length; ent.lines=ent.lines.filter(l=>String(l.memberId)!==sid);
-    if(ent.lines.length!==n){ ent.powerPool=ent.lines.reduce((s,l)=>s+(l.power|0),0); changed=true; } }
+    if(ent.lines.length!==n){ ent.powerPool=ent.lines.reduce((s,l)=>s+(l.power|0),0); ent.seedPool=ent.lines.reduce((s,l)=>s+warPickPower(l),0); changed=true; } }   /* 41d */
   if(m){ const side=m.sides[gid];
     for(const c of (side.citadels||[])){ const n=(c.defenders||[]).length; c.defenders=(c.defenders||[]).filter(d=>String(d.memberId)!==sid); if(c.defenders.length!==n) changed=true; }
     const n=(side.unplaced||[]).length; side.unplaced=(side.unplaced||[]).filter(x=>String((x&&typeof x==='object')?x.memberId:x)!==sid); if(side.unplaced.length!==n) changed=true;
@@ -3278,7 +3347,7 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
       }
       const hut=huts.get(L.memberId);
       const hpState=L.heroes.map(h=>({hp:hut?WITCH.combatHp(hut.state,h.key,h.maxHp):h.maxHp,energy:0}));
-      return { memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
+      return { memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0, gatePower:warPickPower(L),   /* 41d: the march / defender order reads gatePower */
         lineSnapshot:JSON.parse(JSON.stringify(L.heroes)), hpState,
         alive:hpState.some(h=>h.hp>0) };
     };
@@ -3326,7 +3395,7 @@ function warTiebreak(t,m){
   const [ga,gb]=Object.keys(m.sides);
   const da=warDestroyedCount(m,ga), db=warDestroyedCount(m,gb);
   if(da!==db) return warFinishMatch(t,m, da>db?ga:gb, 'citadels');
-  const pa=(warEntrant(t,ga)||{}).powerPool||0, pb=(warEntrant(t,gb)||{}).powerPool||0;
+  const pa=warSeedPool(warEntrant(t,ga)), pb=warSeedPool(warEntrant(t,gb));   /* 41d: talent-less */
   if(pa!==pb) return warFinishMatch(t,m, pa>pb?ga:gb, 'power');
   const sa=(warEntrant(t,ga)||{}).seed||99, sb=(warEntrant(t,gb)||{}).seed||99;
   return warFinishMatch(t,m, sa<sb?ga:sb<sa?gb:ga, 'seed');
@@ -3339,7 +3408,7 @@ function warAdvance(t){ // lazy state machine, called on every /api/guild-war re
     // server data (current members, current ledger-backed lines), then the top 16 are seeded.
     t.entrants=t.entrants.map(e=>{ const g=(DB.guilds||{})[e.guildId];
       return g?Object.assign(warQualifyGuild(g),{registeredAt:e.registeredAt||0}):null; }).filter(e=>e&&e.lines);   /* v980 (3 Oct Guild audit #6): a guild that no longer exists is dropped, never kept with its old lines */
-    t.entrants.sort((a,b)=>b.powerPool-a.powerPool);
+    t.entrants.sort((a,b)=>warSeedPool(b)-warSeedPool(a));   /* 14 Nov 2026 (41d): the cut to 16 and the seeds read the talent-less pool */
     t.entrants=t.entrants.slice(0,16);
     t.entrants.forEach((e,i)=>e.seed=i+1);
     t.state=t.entrants.length>=2?'bracket':'finished';
@@ -4655,7 +4724,7 @@ function campaignHeroSpec(u,key){
     if(d&&d.active&&Object.values((u.gear.equipped||{})[key]||{}).includes(aid)) gearSkill={
       name:d.active, slot:d.slot, defId:d.id, type:d.activeType||null,
       params:d.activeParams||null, desc:d.effect||'' }; }
-  return {
+  const _spec={
     key, level:ledHeroLevel(led,key),
     stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:SIM.refineClamp(h.ref),
     glyphRank:Math.max(0,Math.min(16,(board&&board.ascensionIndex)|0)),
@@ -4670,7 +4739,19 @@ function campaignHeroSpec(u,key){
     apMul:1,
     skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses:templeBonusesFor(u,key)
   };
+  { const _tl=talentListFor(led,key); if(_tl) _spec.talents=_tl; }   /* 14 Nov 2026 talents: on the spec only when the hero has learned something */
+  return _spec;
 }
+/* 14 Nov 2026 LOCKED HEROES: a hero's talents are WIRED when talents-mech/<key>.js exists - tools/build_talent_fx.py puts every such file into
+   talents-fx.js and TalentFx.mechHeroes() lists them, so a hero that lands is wired with no list to edit (the page reads the same function).
+   An unwired hero cannot learn (the learn route refuses) and its saved talents, if a save holds any, reach no fight unit, snapshot or power
+   number (talentListFor is null). Nothing is deleted: the points simply stay in the save until the hero is wired. */
+function talentWired(key){ return TALENT_WIRED.has(key); }   /* TALENT_WIRED is set beside the require at the top of this file */
+/* 14 Nov 2026 talents: the learned list a fight is built with ([[id,rank],...] sorted), or null. A build that the rules no longer accept
+   (a data correction, a level that dropped) fights with NO talents - never with half of one. Off unless TALENTS_ENABLED=true. */
+const TALENT_RESET_GEMS=1000;   /* Phil 14 Nov 2026: "1000 diamonds to reset talents" (the page reads it from the ledger view: talentResetGems) */
+function talentListFor(led,key){ if(!TALENTS_ON||!led||!led.talents) return null; const b=led.talents[key]; if(!b||!TALENTS.has(key)||!talentWired(key)) return null;
+  if(TALENTS.invalid(key,b,ledHeroLevel(led,key))) return null; const l=TALENTS.learned(key,b); return l.length?l:null; }
 /* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
    ledTx is the one choke point every grant and every spend passes through, so it is where the write
    becomes real. Before this, a crash inside the 200 ms debounce could drop a reward, a spend, or the
@@ -5371,7 +5452,7 @@ function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS,
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
-    skill:led.skill||{}, temple:templeClientState(led), wall:wallView(u),
+    skill:led.skill||{}, talents:(TALENTS_ON?(led.talents||{}):undefined), talentResetGems:(TALENTS_ON?TALENT_RESET_GEMS:undefined), temple:templeClientState(led), wall:wallView(u),
     gshopLeft:gshopLeftView(led), gshopCd:gshopCdView(led),   /* v1391: Guild Shop weekly caps left + cooldown ms left */
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
@@ -5434,7 +5515,14 @@ function towerMaxForPower(pow){ let f=0; while(f<5000&&towerReqS(f+1)<=pow) f++;
    kept 24 h). A receipt that exists and succeeded is a payment that happened; nothing else is inferred. */
 function towerOldReceipt(u,rid){ const ep=(u.led&&u.led.migratedAt)||0, r=DB.idem&&DB.idem[u.id+':earn:'+ep+':'+rid]; return !!(r&&r.resp&&r.resp.ok===true); }
 /* the strongest five cards the player owns - a weaker team picked today must not shrink a floor already reached */
-function towerBenchPower(u){ const led=u.led||{}; const ps=Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)).map(k=>cardPower(u,k)).sort((a,b)=>b-a); let p=0; for(const x of ps.slice(0,5)) p+=x; return Math.max(Math.round(p),ledgerTeamPower(u)); }
+function towerBenchPower(u,opt){ const led=u.led||{}; const ps=Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)).map(k=>cardPower(u,k,false,opt)).sort((a,b)=>b-a); let p=0; for(const x of ps.slice(0,5)) p+=x; return Math.max(Math.round(p),ledgerTeamPower(u,opt)); }
+/* 14 Nov 2026 (WIRING/41d): the Tower climbs and pays on a power check with NO fight, so it reads the talent-less card (towerReqS never
+   carried talents). Switching talents on changes no floor, no payout and no migration cap. */
+function towerSquadPower(u){ return ledgerTeamPower(u,NO_TALENTS); }
+/* 14 Nov 2026 (WIRING/41d): the world mine march gate (/api/world/mine/start) - refuses a squad below this, before the real fight.
+   = the page's mineReqPower (POWER_SCALE 1.4276); the page's gate reads its talent-less card too (heroGatePower). */
+function mineNeedPower(level){ return Math.round(300*Math.pow(1.75,level-1)*1.4276); }
+function mineSquadPower(u,ids){ return ids.reduce((sum,k)=>sum+heroGatePower(u,k),0); }
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
@@ -7264,7 +7352,7 @@ async function api(req,res,url){
           if(t.state!=='registration'||!myGuildObj) return ent.powerPool;
           const q=warLivePool(myGuildObj); if(!q) return ent.powerPool;
           if(q.powerPool!==ent.powerPool || (q.lines||[]).length!==(ent.lines||[]).length){
-            ent.lines=q.lines; ent.powerPool=q.powerPool; t.version++; writeDB([me.id]); }
+            ent.lines=q.lines; ent.powerPool=q.powerPool; ent.seedPool=q.seedPool; t.version++; writeDB([me.id]); }
           return q.powerPool; })(),
         canRegister:canWarRegister, canArrange:canWarManage,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
@@ -7306,7 +7394,7 @@ async function api(req,res,url){
       const probe=warQualifyGuild(myGuildObj);   // display-only preview; AUTHORITY is the Monday-lock recompute (audit C8)
       if(!probe.lines.length) return send(res,400,{error:'No eligible members.'});
       t.entrants.push({ guildId:myGid, name:myGuildObj.name, banner:myGuildObj.banner||null, registeredAt:warNow(),
-        lines:probe.lines, powerPool:probe.powerPool, indicative:true });
+        lines:probe.lines, powerPool:probe.powerPool, seedPool:probe.seedPool, indicative:true });
       t.version++; writeDB([me.id]);
       return send(res,200,{ok:true, powerPool:probe.powerPool, lines:probe.lines.length, note:'Qualification is recalculated for every registered guild at the Monday lock.'});
     }
@@ -7335,7 +7423,7 @@ async function api(req,res,url){
          bracket is still open; after that warLockMatch rebuilds from warQualifyGuild anyway. */
       try{ const ent=warEntrant(t,myGid);
         if(ent && t.state==='registration' && myGuildObj){ const probe=warQualifyGuild(myGuildObj);
-          ent.lines=probe.lines; ent.powerPool=probe.powerPool; t.version++; } }catch(e){}
+          ent.lines=probe.lines; ent.powerPool=probe.powerPool; ent.seedPool=probe.seedPool; t.version++; } }catch(e){}
       writeDB([me.id]);
       return send(res,200, warLinesView(me, true, ''));
     }
@@ -7491,10 +7579,7 @@ async function api(req,res,url){
          weakest-first since v774 and the server was sending the opposite one.
          A line that has taken its five kills no longer blocks the rest: it is stepped over, and
          only if EVERY living line of yours is retired does the retirement message below fire. */
-      const mineAlive=mine.defenders
-        .filter(d=>d.memberId===me.id && d.alive!==false)
-        .sort((x,y)=>((x.power|0)-(y.power|0)) || ((x.line|0)-(y.line|0)));
-      const attacker=mineAlive.find(d=>(d.kills|0)<WAR_KILL_CAP) || mineAlive[0];
+      const attacker=warAttackerLine(mine,me.id);   /* 14 Nov 2026 (41d): the weakest living line by the talent-less number (top-level, so it is tested) */
       if(!attacker) return send(res,400,{error:'Your line is not deployed (alive) in this citadel.'});
       /* v677: five is the cap on MARCHING. A line defends for as long as it lives, and the weakest
          living line is the one that meets the march - the simulator's rule. */
@@ -7505,17 +7590,7 @@ async function api(req,res,url){
       m.assaults=m.assaults||{};
       /* v696 (Phil): the tower queues by MEMBER - each member's committed lines are totalled, the
          lowest total goes first, and a member's own lines stay together. Same rule as the simulator. */
-      const warTotals=cit=>{ const t={}; for(const d of cit.defenders) t[d.memberId]=(t[d.memberId]||0)+(d.power|0); return t; };
-      /* v775 (measured: the defender went 663 -> 561 -> 561 -> 494 -> 405 -> 374, strongest
-         first) - the member with the lowest TOTAL still steps up first, which is Phil's rule, but
-         WITHIN that member it is now the weakest LINE. The tie-break used to be the lowest line
-         index, and line 0 is the strongest line, so the tower always answered with its best. */
-      const warPick=(cit,ok)=>{ const tot=warTotals(cit); let best=null,bt=0,bp=0,bid='',bl=0;
-        for(const d of cit.defenders){ if(!ok(d)) continue;
-          const t=tot[d.memberId]||0, p=d.power|0, id=String(d.memberId||''), ln=d.line|0;
-          if(!best || t<bt || (t===bt && (p<bp || (p===bp && (id<bid || (id===bid && ln<bl))))))
-            { best=d; bt=t; bp=p; bid=id; bl=ln; } }
-        return best; };
+      const warPick=warDefenderPick;   /* 14 Nov 2026 (41d): moved to the top level unchanged except for the talent-less number - see warDefenderPick */
       let defender = warPick(foe, warFresh);
       if(!defender){   /* v678 fix: the tower is out of kills - what stands there is overrun, not fought */
         const spent = warPick(foe, warStanding);
@@ -7898,7 +7973,7 @@ async function api(req,res,url){
             'battle timing');
         const reward=makeFirstClearDungeonReward(a.floor);   // rolls with server RNG; persisted below + in the idempotency record
         grantDungeonReward(me, reward);
-        { const rec=vaultRecommendedCardPower(a.floor), pw=a.power, squad=pw&&Array.isArray(pw.fighters)?pw.fighters.reduce((t,h)=>t+(h.power|0),0):null;
+        { const rec=vaultRecommendedCardPower(a.floor), pw=a.power, squad=vaultReviewSquadPower(pw);   /* 41d: talent-less on both sides */
           if(rec>0&&squad!=null&&squad<VAULT_UNDERPOWER_RATIO*rec){ const pct=Math.round(100*squad/rec);
             const report={ mode:'vault', floor:a.floor, recommendedPower:rec, squadPower:squad, percentOfRecommended:pct, threshold:Math.round(VAULT_UNDERPOWER_RATIO*100),
               fighters:pw.fighters, backups:pw.backups||[], battleMs:vaultBattleMs, attemptId:a.id, startedAt:a.startedAt, reward:{dust:reward.dust|0, fragments:(reward.fragments||[]).length, gearFragments:(reward.gearFragments||[]).length} };
@@ -8190,14 +8265,14 @@ async function api(req,res,url){
         if(!SIM.HERO_BASE[key] || !ownsHeroK(led,key)) return {ok:false,error:'You do not own that hero.'};
         if(worldHeroReturnAt(me,key,now)>now)
           return {ok:false,error:'That hero is still marching. Heal them when they return to your city.'};
-        const result=WITCH.heal(w.state,key,heroCardPower(me,key),w.capacity,now);
+        const result=WITCH.heal(w.state,key,witchHealPower(me,key),w.capacity,now);   /* 41d */
         if(!(result.spent>0)) return {ok:false,error:'That hero needs no heal, or the cauldron is empty.'};
         return {ok:true,result,witch:witchView(me,now)};
       }
       if(p==='/api/witch/heal-all'){
         const heroes=Object.keys(led.unlocked||{}).filter(key=>led.unlocked[key]&&SIM.HERO_BASE[key]
           && WITCH.health(w.state,key)<WITCH.HP_FULL && worldHeroReturnAt(me,key,now)<=now)
-          .map(key=>({key,power:heroCardPower(me,key)}));
+          .map(key=>({key,power:witchHealPower(me,key)}));   /* 41d: the cost and the strongest-first order */
         const results=WITCH.healAll(w.state,heroes,w.capacity,now).filter(h=>h.spent>0);
         if(!results.length) return {ok:false,error:'No damaged heroes at your city could be healed.'};
         return {ok:true,results,witch:witchView(me,now)};
@@ -8269,8 +8344,8 @@ async function api(req,res,url){
         const needLevel=[1,8,16,26,36,44,52,58,66,74][node.level-1]||1;   // levels 9-10: Phil 3 Oct (wild 7-10)
         if(!ids.some(k=>ledHeroLevel(led,k)>=needLevel))
           return {ok:false,error:'One hero must be level '+needLevel+' for this mine.'};
-        const power=ids.reduce((sum,k)=>sum+heroCardPower(me,k),0);
-        const needPower=Math.round(300*Math.pow(1.75,node.level-1)*1.4276);
+        const power=mineSquadPower(me,ids);   /* 41d: the gate reads the talent-less card */
+        const needPower=mineNeedPower(node.level);
         if(power<needPower) return {ok:false,error:'The squad needs '+needPower+' card power.'};
         const host=simHost();
         if(!host) return {ok:false,error:'Mine battle engine unavailable.'};
@@ -8572,14 +8647,14 @@ async function api(req,res,url){
        must not collapse into one receipt). */
     const towerRid=v=>(typeof v==='string'&&v.length>=1&&v.length<=48)?v:null;
     if(p==='/api/tower/state'){ const led=ensureLedger(me), T=towerLed(led);
-      const view=t=>({ok:true,floor:t.floor,trib:t.trib,today:towerDayKey(),power:ledgerTeamPower(me),nextReq:towerReqS(t.floor+1)});
+      const view=t=>({ok:true,floor:t.floor,trib:t.trib,today:towerDayKey(),power:towerSquadPower(me),nextReq:towerReqS(t.floor+1)});   /* the number the climb compares (41d) */
       /* Cross-device: until the first SERVER climb, the highest local floor any of the player's devices reports counts
          (capped by the power floor, paying nothing - every floor up to it is one a climb would reach and be PAID for, so
          the claim can only cost the player those floor rewards, never gain). A tribute a device says it took today stays
          taken; so does today's tribute if any old client-side 'earn:tower' landed today (a device that forgot to say so
          cannot be paid twice). The migration commits to disk BEFORE it is acknowledged (503 on a failed save). */
       if(!T.srv){ const legacy=(typeof b.legacyFloor==='number'&&Number.isFinite(b.legacyFloor))?Math.max(0,Math.min(5000,Math.floor(b.legacyFloor))):0;
-        const f=Math.min(legacy,towerMaxForPower(towerBenchPower(me))), day=towerDayKey();
+        const f=Math.min(legacy,towerMaxForPower(towerBenchPower(me,NO_TALENTS))), day=towerDayKey();   /* 41d: talent-less */
         const earnedToday=towerOldReceipt(me,'tower:tribute:'+day);   /* the old client's exact tribute receipt for today */
         const wantTrib=(b.legacyTrib===day||earnedToday)&&T.trib!==day;
         if(!T.mig||f>T.floor||wantTrib){
@@ -8591,7 +8666,7 @@ async function api(req,res,url){
       (me)=>{ const led=ensureLedger(me), T=towerLed(led);
         if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
-        const next=T.floor+1, need=towerReqS(next), pow=ledgerTeamPower(me);
+        const next=T.floor+1, need=towerReqS(next), pow=towerSquadPower(me);   /* 41d: no fight, so the talent-less card */
         if(pow<need) return {ok:false,wall:true,req:need,power:pow,error:'Squad too weak for Floor '+next+'.'};
         const pay=towerFloorPay(next);
         /* a floor whose gold/gems the old client already received (its exact receipt) is climbed without paying that part again */
@@ -8969,6 +9044,36 @@ async function api(req,res,url){
       devState:{arenaCoins:tgt.coins|0,arenaRank:tgt.rank|0,bestArenaRank:tgt.bestRank!=null?(tgt.bestRank|0):5000,
         shieldItems:parseSaveOf(tgt).shieldItems|0}}); }
 
+  /* TALENTS (14 Nov 2026, Phil: "they are only activated when someone clicks learn talent"). led.talents[heroKey] = { r: { talentId: rank } }.
+     The rules (points, tier gates, prerequisites, pick-one forks) live in talents.js, the same file the page uses. Learn = one point into
+     one talent; reset = every point of that hero back for TALENT_RESET_GEMS diamonds (Phil 14 Nov: "1000 diamonds to reset talents"); a build the rules
+     already found illegal (cleared by a data correction) is reset free.
+     A build that a data correction made illegal is cleared on its next learn or reset, never silently kept. Off unless TALENTS_ENABLED=true. */
+  if((p==='/api/talents/learn'||p==='/api/talents/reset') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(!TALENTS_ON) return send(res,404,{error:'not found'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const isReset=(p==='/api/talents/reset');
+    const out=idem(me.id+':talent'+(isReset?'reset':'learn')+':'+reqId,()=>{
+      const led=ensureLedger(me); const key=String(b.key||'');
+      if(!validHero(key)||!TALENTS.has(key)) return {ok:false,error:'Unknown hero.'};
+      if(!ownsHeroK(led,key)) return {ok:false,error:'You have not unlocked that hero.'};
+      if(!isReset&&!talentWired(key)) return {ok:false,locked:true,error:"This hero's talents are not ready yet. Your points are kept."};   /* LOCKED HEROES (see talentWired): refused before the build is read or cleared */
+      led.talents=led.talents||{}; const lv=ledHeroLevel(led,key);
+      let build=led.talents[key]||{r:{}}, cleared=false;
+      if(TALENTS.invalid(key,build,lv)){ build={r:{}}; cleared=true; }
+      if(isReset){ const had=TALENTS.spent(key,build).total; if(!had&&!cleared) return {ok:false,error:'This hero has no talents learned.'};
+        const cost=cleared?0:TALENT_RESET_GEMS;   /* a build cleared by a data correction is not the player's doing: free */
+        if(cost>0&&(led.gems|0)<cost) return {ok:false,error:'Not enough diamonds - a talent reset costs '+cost+'.',cost,gems:led.gems|0};
+        if(cost>0) led.gems-=cost;
+        delete led.talents[key]; led.rev++; ledTx(me,'talentreset:'+key,{points:had,gems:-cost}); writeDB();
+        return {ok:true, key, build:{r:{}}, spent:0, points:TALENTS.pointsTotal(lv), refunded:had, cost, ledger:ledgerView(me)}; }
+      const id=String(b.id||'').slice(0,40);
+      const r=TALENTS.learn(key,build,id,lv);
+      if(!r.ok){ if(cleared){ delete led.talents[key]; led.rev++; writeDB(); } return {ok:false,error:r.error,cleared:cleared||undefined}; }
+      led.talents[key]=r.build; led.rev++; ledTx(me,'talent:'+key+':'+id,{rank:TALENTS.rankOf(r.build,id)}); writeDB();
+      return {ok:true, key, id, rank:TALENTS.rankOf(r.build,id), build:r.build, spent:TALENTS.spent(key,r.build).total, points:TALENTS.pointsTotal(lv), ledger:ledgerView(me)};
+    });
+    return send(res,out&&out.storageFailed?503:200,out); }   /* a save that failed answers 503 like the skill route, so the page re-sends the same requestId */
   /* 28 Aug — skill upgrades are server-owned. They used to be a local write that the next ledger
      sync overwrote, so the gold was spent and the level came back. The server now holds led.skill,
      charges the same curve the client shows, and returns the ledger. */
@@ -11664,6 +11769,11 @@ const server=http.createServer((req,res)=>{
     return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{shed:{on:SHED.on}},FULL_TRACE?{fullCallers:FULL_CALLERS}:{})); }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
   if(p==='/hero61.js') return serveFile(res,'hero61.js','application/javascript',null,req);
+  if(p==='/talents.js') return serveFile(res,'talents.js','application/javascript',null,req);
+  if(p==='/talents-data.js') return serveFile(res,'talents-data.js','application/javascript',null,req);
+  if(p==='/talents-tree-element.js') return serveFile(res,'talents-tree-element.js','application/javascript',null,req);   /* 16 Nov 2026: which painted kit each talent tree uses (the page only) */
+  if(p==='/talents-fx.js') return serveFile(res,'talents-fx.js','application/javascript',null,req);
+  if(p==='/talents-power.js') return serveFile(res,'talents-power.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   /* v1265 LANGUAGES step 1: one small file per language (lang/<code>.json, e.g. es, pt-BR, zh-Hant); the client fetches only the chosen one,

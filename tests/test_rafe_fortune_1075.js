@@ -18,7 +18,10 @@ ok(/applyQuaternion\(camera\.quaternion\)\.multiplyScalar\(\(e\.sprH\|\|3\.9\)\*
 ok(/fo\.m\.renderOrder=2;/.test(fn), 'drawn in front of the body it hits');
 ok(/if\(o&&o\.spark\) break;/.test(H), 'no green rain-down on the targets (Grok: no other art)');
 // CONTROL: display only - damage timing and amount come from the same lines as before
-ok(/const _pd=o\.pdur\|\|0\.30, _MD=dB\*\(o\.mul\|\|1\.6\)\*rm;/.test(H) && /groundHazards\.push\(\{arrival:true,delay:_pd,run:function\(\)\{ if\(e\.alive\) dealDamage\(u,e,_MD,'#5ee89b'\); \}\}\);/.test(H), 'CONTROL: each shot still deals its damage at 0.30 s, same amount');
+// v15Nov talents (Rafe's own landing, b5e3c9cd6): a guarded 'rfDmf' hook was added inside the hazard callback (no-op without talents);
+// strip comments and guarded talent hooks so the source-shape check below matches the pre-hook layout.
+const Hctl = H.replace(/\/\*[\s\S]*?\*\//g, '').replace(/if\(u\._tal[^;]*;\s*/g, '');
+ok(/const _pd=o\.pdur\|\|0\.30, _MD=dB\*\(o\.mul\|\|1\.6\)\*rm;/.test(Hctl) && /groundHazards\.push\(\{arrival:true,delay:_pd,run:function\(\)\{ if\(e\.alive\) dealDamage\(u,e,_MD,'#5ee89b'\); \}\}\);/.test(Hctl), 'CONTROL: each shot still deals its damage at 0.30 s, same amount');
 ok(!/dealDamage|\.hp\s*[-+]?=|groundHazards/.test(fn), 'CONTROL: the spark touches no hp, damage or hazards');
 
 console.log('\nPASS: ' + pass + '  FAIL: ' + fail);

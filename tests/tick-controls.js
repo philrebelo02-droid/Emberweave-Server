@@ -1,0 +1,240 @@
+'use strict';
+/* The controls for Tick's talent tests (run on the cluster through tools/remote_test.sh as a plain node script, TOGETHER with
+   tests/talents-mech-tick.test.js: the runner sends the pre-talent page only for SHAs named in the files of the run). Each control copies this checkout to
+   a folder under os.tmpdir() (which follows TMPDIR: on the cluster a folder beside the slot, wiped after the run), breaks ONE thing there (an exact text swap
+   in the generated talents-fx.js: a row, a cap, a number or a function of his), runs the named tests of tests/talents-mech-tick.test.js in that copy, and
+   expects them to FAIL. One copy at a time; each is deleted as soon as it has run; .logs, node_modules and the art are not copied (node_modules and assets are
+   linked). The checkout itself is never changed. His talents added no page line, so there is no page control.
+   Prints one line per control and a count; exits 1 if any was not caught.  --check: only verifies that every text to break is found exactly once. */
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process');
+const root=path.resolve(__dirname,'..');
+const FXJ='talents-fx.js';
+/* dropped, could never matter: the slow and control caps equal those talents' own full ranks (30%, 20%); a Chime flag on a skill hit (it is set and spent within one basic attack); Heavy Static's aura on an enemy without Static (the count is 0); Every Second without an enemy (the fight is over) */
+const C=[
+  // ---- caps and limits ----
+  ['damage-reduction group 30% -> 35%',FXJ,[["const DR_CAP=0.30, CRIT_CAP=0.05, SLOW_CAP=0.30","const DR_CAP=0.35, CRIT_CAP=0.05, SLOW_CAP=0.30"]],'damage reduction'],
+  ['crit group 5% -> 6%',FXJ,[["const DR_CAP=0.30, CRIT_CAP=0.05,","const DR_CAP=0.30, CRIT_CAP=0.06,"]],'Ring True'],
+  ['regeneration 1.2% -> 2%',FXJ,[["TEN_CAP=0.20, REGEN=0.012, BANK=5, OC_FLOOR","TEN_CAP=0.20, REGEN=0.02, BANK=5, OC_FLOOR"]],'healing budget|Chimes:'],
+  ['budget kept 5 s -> 6 s',FXJ,[["REGEN=0.012, BANK=5, OC_FLOOR","REGEN=0.012, BANK=6, OC_FLOOR"]],'healing budget'],
+  ['Overclock floor 5 -> 4',FXJ,[["BANK=5, OC_FLOOR=5, MS_FLOOR","BANK=5, OC_FLOOR=4, MS_FLOOR"]],'cooldowns|Wheel Overwound'],
+  ['Mainspring floor 4 -> 3',FXJ,[["OC_FLOOR=5, MS_FLOOR=4, SIG_CD","OC_FLOOR=5, MS_FLOOR=3, SIG_CD"]],'cooldowns|Chimes:'],
+  ['signature every 24 s',FXJ,[["MS_FLOOR=4, SIG_CD=25, SIG2_SR","MS_FLOOR=4, SIG_CD=24, SIG2_SR"]],'Only the Clockmaker'],
+  ['an Hour every 11 Strokes',FXJ,[["STROKES=10, HOURS","STROKES=11, HOURS"]],'Strokes and Hours'],
+  ['13 Hours',FXJ,[["STROKES=10, HOURS=12, STUN_TOP","STROKES=10, HOURS=13, STUN_TOP"]],'Strokes and Hours|Twelve Bells|Ring True'],
+  ['lock 0.5 s -> 0.1 s',FXJ,[["HOURS=12, STUN_TOP=4.0, LOCK=0.5;","HOURS=12, STUN_TOP=4.0, LOCK=0.1;"]],'Twelve Bells'],
+  ['talent stun on a stunned enemy',FXJ,[["if((t.stunned||0)>0){ k.ts.onStun++; return false; } const r=rec(T,t);","const r=rec(T,t);"]],'Twelve Bells'],
+  ['talent stun inside the lock',FXJ,[["if(r.lk>0||r.cap>0){ k.ts.lk++; return false; }",""]],'Twelve Bells'],
+  ['no lock when his stun ends',FXJ,[["r.sn=0; r.re=0; r.lk=LOCK; } }","r.sn=0; r.re=0; } }"]],'Twelve Bells'],
+  ['the signature cooldown as an absolute fight time',FXJ,[["if(P.sig2&&!(k.s2>0)&&!(k.sig2>0)&&k.wind","if(P.sig2&&!(k.s2>0)&&!(A.eng().now()<(k.s2a||-1))&&!(k.sig2>0)&&k.wind"],["k.s2=SIG_CD; k.sig2=6;","k.s2=SIG_CD; k.s2a=A.eng().now()+SIG_CD; k.sig2=6;"]],'Only the Clockmaker'],
+  // ---- Chimes ----
+  ['Chimes every 5th',FXJ,[["const every=T.P.tb?3:4;","const every=T.P.tb?3:5;"]],'Chimes:'],
+  ['Three Bells every 4th',FXJ,[["const every=T.P.tb?3:4;","const every=T.P.tb?4:4;"]],'Chimes:'],
+  ['Quarter Bell 8% -> 9%',FXJ,[["sq_1_1:[ {param:'ch.more',add:R(0.08)}","sq_1_1:[ {param:'ch.more',add:R(0.09)}"]],'Chimes:'],
+  ['Echo in the Tower 3% -> 4%',FXJ,[["sq_12_1:[ {on:'out',if:{fn:'chimeNow'},critMore:R(0.03)} ]","sq_12_1:[ {on:'out',if:{fn:'chimeNow'},critMore:R(0.04)} ]"]],'Chimes:'],
+  ['Every Quarter 1% -> 1.2%',FXJ,[["sq_6_1:[ {param:'ch.heal',add:R(0.01)} ]","sq_6_1:[ {param:'ch.heal',add:R(0.012)} ]"]],'Chimes:'],
+  ['Every Quarter outside the budget',FXJ,[["if(P['ch.heal']) T.fn.heal(A,T,u,P['ch.heal']*u.maxHp);","if(P['ch.heal']) T.fn.heal(A,T,u,P['ch.heal']*u.maxHp,true);"]],'Chimes:'],
+  ['Count the Strokes 5 s',FXJ,[["if(T.r.sq_10_1) k.cs=4;","if(T.r.sq_10_1) k.cs=5;"]],'Chimes:'],
+  ['Count the Strokes 2%',FXJ,[["sq_10_1:[ {stat:{aspd:R(0.01)},if:{fn:'csOn'}} ]","sq_10_1:[ {stat:{aspd:R(0.02)},if:{fn:'csOn'}} ]"]],'Chimes:'],
+  ['Ringing Head 3 s',FXJ,[["if(P.rh&&t.alive) rec(T,t).ra=2;","if(P.rh&&t.alive) rec(T,t).ra=3;"]],'Chimes:'],
+  ['Ringing Head 5%',FXJ,[["{param:'rh',add:R(0.04)}, {stat:{aspd:R(-0.04)}","{param:'rh',add:R(0.04)}, {stat:{aspd:R(-0.05)}"]],'Chimes:'],
+  ['Dawn and Dusk 1.5 s',FXJ,[["if(P.dd&&u.blueCd>0) u.blueCd=Math.min(u.blueCd,Math.max(0,u.blueCd-1,MS_FLOOR-k.bE));","if(P.dd&&u.blueCd>0) u.blueCd=Math.min(u.blueCd,Math.max(0,u.blueCd-1.5,MS_FLOOR-k.bE));"]],'Chimes:'],
+  ['Dawn and Dusk without the floor',FXJ,[["u.blueCd=Math.min(u.blueCd,Math.max(0,u.blueCd-1,MS_FLOOR-k.bE));","u.blueCd=Math.min(u.blueCd,Math.max(0,u.blueCd-1));"]],'Chimes:'],
+  ['Ring True 1.5% -> 2%',FXJ,[["sq_2_1:[ {param:'cr.chime',add:R(0.015)} ]","sq_2_1:[ {param:'cr.chime',add:R(0.02)} ]"]],'Ring True'],
+  ['Storm Coil 1% -> 0.8%',FXJ,[["sq_8_2:[ {param:'cr.punch',add:R(0.01)} ]","sq_8_2:[ {param:'cr.punch',add:R(0.008)} ]"]],'Ring True'],
+  ['Ticking Heart 1% -> 1.2%',FXJ,[["kb_12_2:[ {param:'cr.all',add:R(0.01)} ]","kb_12_2:[ {param:'cr.all',add:R(0.012)} ]"]],'Ring True'],
+  ['Overrun 0.1% -> 0.2%',FXJ,[["kb_5_1:[ {param:'cr.strain',add:R(0.001)} ]","kb_5_1:[ {param:'cr.strain',add:R(0.002)} ]"]],'Ring True'],
+  ['Dusk Bell at 11 Hours',FXJ,[["((P['cr.dusk']&&k.hours>=HOURS)?P['cr.dusk']:0)","((P['cr.dusk']&&k.hours>=HOURS-1)?P['cr.dusk']:0)"]],'Ring True'],
+  ['the crit roll ignores the stat part',FXJ,[["P['cr.punch']) p+=P['cr.punch'];\n      p=Math.min(p,Math.max(0,CRIT_CAP-T.fn.critS(A,T)));","P['cr.punch']) p+=P['cr.punch'];\n      p=Math.min(p,CRIT_CAP);"]],'Ring True'],
+  ['The Hour every 3rd Chime',FXJ,[["const hour=k.chN%4===0, h2","const hour=k.chN%3===0, h2"]],'The Hour'],
+  ['The Hour 3 m',FXJ,[["{team:'enemy',of:'target',within:2,skip:'target'},c)) A.hurt(T,u,x,raw","{team:'enemy',of:'target',within:3,skip:'target'},c)) A.hurt(T,u,x,raw"]],'The Hour'],
+  ['The Hour ignores armour',FXJ,[["A.hurt(T,u,x,raw*E.defMul(u,x,'phys'),'#ffe08a','tkHour');","A.hurt(T,u,x,raw,'#ffe08a','tkHour');"]],'The Hour'],
+  ['Strike the Hour 5 m',FXJ,[["if(h2&&P.sth){ for(const x of A.pick(T,u,{team:'enemy',within:4},{u}))","if(h2&&P.sth){ for(const x of A.pick(T,u,{team:'enemy',within:5},{u}))"]],'The Hour'],
+  ['Strike the Hour without Long Fuse\'s triple',FXJ,[["T.fn.discharge(A,T,u,x,!!T.P.lf,true);","T.fn.discharge(A,T,u,x,false,true);"]],'The Hour'],
+  ['Strike the Hour: 1 Static after',FXJ,[["if(x.alive) T.fn.addStatic(A,T,u,x,2,true); }","if(x.alive) T.fn.addStatic(A,T,u,x,1,true); }"]],'The Hour'],
+  ['Strike the Hour: Mainspring not ready',FXJ,[["T.fn.addStatic(A,T,u,x,2,true); }\n        u.blueCd=0; } },","T.fn.addStatic(A,T,u,x,2,true); }\n        } },"]],'The Hour'],
+  // ---- Static ----
+  ['Static at 6',FXJ,[["const stMax=T=>T.r.sq_5_3?10:5;","const stMax=T=>T.r.sq_5_3?10:6;"]],'Static:'],
+  ['Short Circuit at 4',FXJ,[["const stAt=T=>T.r.sq_5_2?3:stMax(T);","const stAt=T=>T.r.sq_5_2?4:stMax(T);"]],'Static:'],
+  ['Long Fuse double',FXJ,[["*(triple?3:1)*(1+(P['st.more']||0));","*(triple?2:1)*(1+(P['st.more']||0));"]],'Static:'],
+  ['Static in the Gears 6% -> 7%',FXJ,[["sq_1_2:[ {param:'st.dmg',add:R(0.06)} ]","sq_1_2:[ {param:'st.dmg',add:R(0.07)} ]"]],'Static:'],
+  ['no 6% floor',FXJ,[["Math.max(0.06,P['st.dmg']||0)","(P['st.dmg']||0)"]],'Static:'],
+  ['discharge ignores magic resist',FXJ,[["A.hurt(T,u,t,x*E.defMul(u,t,'magic'),'#9fd8ff','tkStatic');","A.hurt(T,u,t,x,'#9fd8ff','tkStatic');"]],'Static:'],
+  ['Static kept after the discharge',FXJ,[["const at10=!!T.P.lf&&r.st>=10-1e-9; r.st=0;","const at10=!!T.P.lf&&r.st>=10-1e-9;"]],'Static:'],
+  ['Thunder Flurry 3',FXJ,[["T.fn.addStatic(A,T,u,t,(c.crit&&P.tf)?2:1);","T.fn.addStatic(A,T,u,t,(c.crit&&P.tf)?3:1);"]],'Static:'],
+  ['Static from basic attacks too',FXJ,[["if(T.s.cur===MS&&any(T,ST)&&t.alive)","if((T.s.cur===MS||c.auto)&&any(T,ST)&&t.alive)"]],'Static:|Ring True|Chimes:'],
+  ['Charged Brass 25%',FXJ,[["sq_2_2:[ {param:'st.jump',add:R(0.20)} ]","sq_2_2:[ {param:'st.jump',add:R(0.25)} ]"]],'discharges'],
+  ['Charged Brass 6 m',FXJ,[["{team:'enemy',of:'target',within:4,skip:'target',n:1},{u,tgt:t})[0]; if(o) A.hurt","{team:'enemy',of:'target',within:60,skip:'target',n:1},{u,tgt:t})[0]; if(o) A.hurt"]],'discharges'],
+  ['Earth Wire 2%',FXJ,[["sq_10_2:[ {param:'st.sh',add:R(0.015)} ]","sq_10_2:[ {param:'st.sh',add:R(0.02)} ]"]],'discharges'],
+  ['Earth Wire 4 s',FXJ,[["{shield:{pct:P['st.sh'],of:'maxHp'},dur:3,mode:'max'}","{shield:{pct:P['st.sh'],of:'maxHp'},dur:4,mode:'max'}"]],'discharges'],
+  ['Lightning Gears 4%',FXJ,[["sq_6_2:[ {param:'st.more',add:R(0.03)} ]","sq_6_2:[ {param:'st.more',add:R(0.04)} ]"]],'discharges'],
+  ['Storm in the Tower 11',FXJ,[["if(T.r.sq_11_2) k.gs=Math.min(10,k.gs+1);","if(T.r.sq_11_2) k.gs=Math.min(11,k.gs+1);"]],'discharges'],
+  ['Storm in the Tower 0.6%',FXJ,[["sq_11_2:[ {stat:{atk:R(0.005)},per:{fn:'gsN'}} ]","sq_11_2:[ {stat:{atk:R(0.006)},per:{fn:'gsN'}} ]"]],'discharges'],
+  ['Tower Lightning at 9',FXJ,[["if(P['st.air']&&k.gs>=10) x*=1+P['st.air'];","if(P['st.air']&&k.gs>=9) x*=1+P['st.air'];"]],'discharges'],
+  ['Tower Lightning 5%',FXJ,[["sq_12_2:[ {param:'st.air',add:R(0.04)} ]","sq_12_2:[ {param:'st.air',add:R(0.05)} ]"]],'discharges'],
+  ['Charged Casing 0.6%',FXJ,[["sq_4_2:[ {on:'out',if:{targetTeam:'enemy',fn:'hasSt'},more:R(0.005),per:{fn:'stN'}} ]","sq_4_2:[ {on:'out',if:{targetTeam:'enemy',fn:'hasSt'},more:R(0.006),per:{fn:'stN'}} ]"]],'Static on a target'],
+  ['Heavy Static 1.2%',FXJ,[["sq_6_3:[ {stat:{move:R(-0.01)}","sq_6_3:[ {stat:{move:R(-0.012)}"]],'Static on a target'],
+  ['Charged Spin 25%',FXJ,[["chance:R(0.2),do:[{fn:'spinStatic'}]","chance:R(0.25),do:[{fn:'spinStatic'}]"]],'Static on a target'],
+  ['Charged Spin 1 Static',FXJ,[["spinStatic(A,T,u,c){ if(c.tgt&&c.tgt.alive) T.fn.addStatic(A,T,u,c.tgt,2); }","spinStatic(A,T,u,c){ if(c.tgt&&c.tgt.alive) T.fn.addStatic(A,T,u,c.tgt,1); }"]],'Static on a target'],
+  // ---- his hits ----
+  ['Rapid Quarters 6%',FXJ,[["sq_4_3:[ {on:'out',if:{casting:MS},more:R(0.05)} ]","sq_4_3:[ {on:'out',if:{casting:MS},more:R(0.06)} ]"]],'his hits'],
+  ['Rapid Gears on every hit',FXJ,[["kb_4_4:[ {on:'out',if:{casting:MS},more:R(0.03)} ]","kb_4_4:[ {on:'out',more:R(0.03)} ]"]],'his hits'],
+  ['Grinding Gears 4%',FXJ,[["bw_8_2:[ {on:'out',if:{casting:MS},more:R(0.03)} ]","bw_8_2:[ {on:'out',if:{casting:MS},more:R(0.04)} ]"]],'his hits'],
+  ['Fast Fists 4%',FXJ,[["kb_6_4:[ {on:'out',if:{auto:true},more:R(0.03)} ]","kb_6_4:[ {on:'out',if:{auto:true},more:R(0.04)} ]"]],'his hits'],
+  ['Deep Movement on every hit',FXJ,[["bw_7_2:[ {on:'out',if:{auto:true},more:R(0.02)} ]","bw_7_2:[ {on:'out',more:R(0.02)} ]"]],'his hits'],
+  ['Bell-Metal Fists 3%',FXJ,[["sq_3_3:[ {on:'out',ignoreArmor:R(0.02)} ]","sq_3_3:[ {on:'out',ignoreArmor:R(0.03)} ]"]],'his hits'],
+  ['Filed Cogs off',FXJ,[["kb_3_2:[ {on:'out',ignoreArmor:R(0.02)} ]","kb_3_2:[ {on:'out',ignoreArmor:R(0)} ]"]],'his hits'],
+  ['Quick Escapement 4%',FXJ,[["sq_5_4:[ {stat:{move:R(0.03)}} ]","sq_5_4:[ {stat:{move:R(0.04)}} ]"]],'his hits'],
+  ['Near the Snap below 35%',FXJ,[["kb_12_4:[ {stat:{aspd:R(0.04)},if:{selfHpBelow:0.30}} ]","kb_12_4:[ {stat:{aspd:R(0.04)},if:{selfHpBelow:0.35}} ]"]],'his hits'],
+  // ---- Overclock ----
+  ['Overwound Coil 0.4',FXJ,[["sq_10_3:[ {param:'oc.dur',add:R(0.3)} ]","sq_10_3:[ {param:'oc.dur',add:R(0.4)} ]"]],'Overclock:'],
+  ['Wound Once 0.6',FXJ,[["bw_6_1:[ {param:'oc.dur',add:R(0.5)} ]","bw_6_1:[ {param:'oc.dur',add:R(0.6)} ]"]],'Overclock:'],
+  ['the window not the cast length',FXJ,[["k.oc=Math.max(k.oc,(c.o&&c.o.dur)||5);","k.oc=Math.max(k.oc,5);"]],'Overclock:'],
+  ['the game\'s buff not lengthened',FXJ,[["if(x>0&&c.o) c.o.dur=(c.o.dur||5)+x; },","if(x>0&&c.o) c.o.dur=(c.o.dur||5); },"]],'Overclock:'],
+  ['Racing Heart 4%',FXJ,[["kb_2_3:[ {stat:{aspd:R(0.03)},if:{fn:'ocOn'}} ]","kb_2_3:[ {stat:{aspd:R(0.04)},if:{fn:'ocOn'}} ]"]],'Overclock:'],
+  ['Bright Runs always',FXJ,[["sq_11_4:[ {stat:{aspd:R(0.02)},if:{fn:'ocOn'}} ]","sq_11_4:[ {stat:{aspd:R(0.02)}} ]"]],'Overclock:'],
+  ['Thrum 3%',FXJ,[["kb_10_1:[ {stat:{move:R(0.02)},if:{fn:'ocOn'}} ]","kb_10_1:[ {stat:{move:R(0.03)},if:{fn:'ocOn'}} ]"]],'Overclock:'],
+  ['Runaway 3%',FXJ,[["kb_7_1:[ {stat:{lifesteal:R(0.02)},if:{fn:'ocOn'}} ]","kb_7_1:[ {stat:{lifesteal:R(0.03)},if:{fn:'ocOn'}} ]"]],'Overclock:'],
+  ['Kick of the Spring on every basic attack',FXJ,[["if(k.kick>0) k.kick=0;",""]],'Overclock:'],
+  ['Kick of the Spring 6%',FXJ,[["kb_9_4:[ {on:'out',if:{auto:true,fn:'kickOn'},more:R(0.05)} ]","kb_9_4:[ {on:'out',if:{auto:true,fn:'kickOn'},more:R(0.06)} ]"]],'Overclock:'],
+  // ---- Wind ----
+  ['Overclock winds 6',FXJ,[["T.fn.setWind(A,T,u,k.wind+5+(P['wd.oc']||0));","T.fn.setWind(A,T,u,k.wind+6+(P['wd.oc']||0));"]],'Wind:'],
+  ['Wind max 11',FXJ,[["k.wind=Math.max(0,Math.min(10,n));","k.wind=Math.max(0,Math.min(11,n));"]],'Wind:'],
+  ['Wind runs down every 1.6 s',FXJ,[["if(k.wT<=1e-9){ k.wT=1.5; T.fn.setWind(A,T,u,k.wind-1); }","if(k.wT<=1e-9){ k.wT=1.6; T.fn.setWind(A,T,u,k.wind-1); }"]],'Wind:'],
+  ['Let It Run Down: no change',FXJ,[["k.wT-=dt*(P.lird?0.5:1);","k.wT-=dt;"]],'Wind:'],
+  ['Turn the Key 0.5%',FXJ,[["kb_1_4:[ {on:'out',if:{targetTeam:'enemy'},more:R(0.004),per:{fn:'wdN'}} ]","kb_1_4:[ {on:'out',if:{targetTeam:'enemy'},more:R(0.005),per:{fn:'wdN'}} ]"]],'Wind:'],
+  ['Extra Turns 2',FXJ,[["kb_2_4:[ {param:'wd.oc',add:R(1)} ]","kb_2_4:[ {param:'wd.oc',add:R(2)} ]"]],'Wind:'],
+  ['Overcharged 0.4%',FXJ,[["kb_10_4:[ {stat:{aspd:R(0.003)},per:{fn:'wdN'}} ]","kb_10_4:[ {stat:{aspd:R(0.004)},per:{fn:'wdN'}} ]"]],'Wind:'],
+  ['Wound Up at 4',FXJ,[["wd5(A,T){ return K(T).wind>=5-1e-9; }","wd5(A,T){ return K(T).wind>=4-1e-9; }"]],'Wind:'],
+  ['Wind Reserve 3 a rank',FXJ,[["kb_7_4:[ {param:'wd.res',add:R(2)} ]","kb_7_4:[ {param:'wd.res',add:R(3)} ]"]],'Wind:'],
+  ['Wind Reserve only once',FXJ,[["if(P['wd.res']) T.fn.setWind(","if(P['wd.res']&&!(T.s.wave>1)) T.fn.setWind("]],'Wind:'],
+  ['Spent Spring 1.2%',FXJ,[["kb_11_4:[ {param:'ss',add:R(0.01)} ]","kb_11_4:[ {param:'ss',add:R(0.012)} ]"]],'Wind:'],
+  ['Past the Stop 1 per 3',FXJ,[["const n=Math.floor(k.wind/2+1e-9);","const n=Math.floor(k.wind/3+1e-9);"]],'Past the Stop'],
+  ['Past the Stop keeps the Wind',FXJ,[["const n=Math.floor(k.wind/2+1e-9); T.fn.setWind(A,T,u,0);","const n=Math.floor(k.wind/2+1e-9);"]],'Past the Stop'],
+  ['Snap the Spring 3%',FXJ,[["{on:'out',if:{casting:MS,fn:'snapOn'},more:0.02,per:{fn:'snapN'}}","{on:'out',if:{casting:MS,fn:'snapOn'},more:0.03,per:{fn:'snapN'}}"]],'Past the Stop'],
+  ['Snap the Spring kept',FXJ,[["msCast(A,T){ K(T).snapQ=0; },","msCast(A,T){ },"],["const k=K(T); k.snapQ=k.snap; k.snap=0;","const k=K(T); k.snapQ=k.snap||k.snapQ;"]],'Past the Stop'],
+  // ---- Strain ----
+  ['Strain outside Overclock',FXJ,[["if(any(T,SR)&&k.oc>0){","if(any(T,SR)){"]],'Strain:'],
+  ['Strain max 11',FXJ,[["else k.strain=Math.min(10,k.strain+1); }","else k.strain=Math.min(11,k.strain+1); }"]],'Strain:'],
+  ['Something Wrong 1.2%',FXJ,[["kb_1_1:[ {stat:{aspd:R(0.01)},per:{fn:'srN'}} ]","kb_1_1:[ {stat:{aspd:R(0.012)},per:{fn:'srN'}} ]"]],'Strain:'],
+  ['Strain costs 0.6%',FXJ,[["return Math.max(0,0.005-(T.P['sr.hold']||0));","return Math.max(0,0.006-(T.P['sr.hold']||0));"]],'Strain:'],
+  ['Hold Together 0.1%',FXJ,[["kb_3_1:[ {param:'sr.hold',add:R(0.0008)} ]","kb_3_1:[ {param:'sr.hold',add:R(0.001)} ]"]],'Strain:'],
+  ['Let It Run Down keeps the cost',FXJ,[["if(!T.r.kb_1_1||T.P.lird) return 0;","if(!T.r.kb_1_1) return 0;"]],'Strain:'],
+  ['Strain runs down during Overclock',FXJ,[["if(k.strain>0&&!(k.oc>0)){","if(k.strain>0){"]],'Strain:'],
+  ['Strain runs down every 2.5 s',FXJ,[["if(k.sT<=1e-9){ k.sT=2; k.strain=","if(k.sT<=1e-9){ k.sT=2.5; k.strain="]],'Strain:'],
+  ['Hot Bearings at 9',FXJ,[["srFull(A,T){ return K(T).strain>=10-1e-9; }","srFull(A,T){ return K(T).strain>=9-1e-9; }"]],'Strain:'],
+  ['Wheel Overwound 4%',FXJ,[["{on:'out',if:{casting:FW,fn:'woOn'},more:0.03,per:{fn:'woN'}}","{on:'out',if:{casting:FW,fn:'woOn'},more:0.04,per:{fn:'woN'}}"]],'Wheel Overwound'],
+  ['Wheel Overwound keeps the Strain',FXJ,[["const n=k.strain; k.strain=0; k.fwS=n;","const n=k.strain; k.fwS=n;"]],'Wheel Overwound'],
+  ['Wheel Overwound 0.3 s',FXJ,[["Math.max(u.greenCd-0.2*n,OC_FLOOR-k.gE)","Math.max(u.greenCd-0.3*n,OC_FLOOR-k.gE)"]],'Wheel Overwound'],
+  ['Wheel Overwound without the floor',FXJ,[["Math.max(u.greenCd-0.2*n,OC_FLOOR-k.gE)","Math.max(u.greenCd-0.2*n,0)"]],'Wheel Overwound'],
+  ['Spun Down 0.4%',FXJ,[["kb_12_3:[ {param:'sd',add:R(0.003)} ]","kb_12_3:[ {param:'sd',add:R(0.004)} ]"]],'Wheel Overwound'],
+  // ---- Only the Clockmaker ----
+  ['the signature at 9 Wind',FXJ,[["k.wind>=10-1e-9&&k.strain>=SIG2_SR-1e-9&&u.alive","k.wind>=9-1e-9&&k.strain>=SIG2_SR-1e-9&&u.alive"]],'Only the Clockmaker'],
+  ['the signature at 7 Strain',FXJ,[["SIG_CD=25, SIG2_SR=6, STROKES","SIG_CD=25, SIG2_SR=7, STROKES"]],'Only the Clockmaker'],
+  ['Strike the Hour every 3rd Chime',FXJ,[["const hour=k.chN%4===0, h2=k.chN%2===0;","const hour=k.chN%4===0, h2=k.chN%3===0;"]],'The Hour'],
+  ['the signature 7 s',FXJ,[["k.s2=SIG_CD; k.sig2=6;","k.s2=SIG_CD; k.sig2=7;"]],'Only the Clockmaker'],
+  ['the signature: Mainspring not ready',FXJ,[["if(E.castSlot&&u.greenAb) E.castSlot(u,'green',u); u.blueCd=0; },","if(E.castSlot&&u.greenAb) E.castSlot(u,'green',u); },"]],'Only the Clockmaker'],
+  ['the signature: no Overclock',FXJ,[["if(E.castSlot&&u.greenAb) E.castSlot(u,'green',u); u.blueCd=0; },","u.blueCd=0; },"]],'Only the Clockmaker'],
+  ['the signature: Strain stays Strain',FXJ,[["if(k.sig2>0) T.fn.setWind(A,T,u,k.wind+1); else k.strain","if(false) T.fn.setWind(A,T,u,k.wind+1); else k.strain"]],'Only the Clockmaker'],
+  ['the signature: Momentum kept full',FXJ,[["if(m>=0&&u.pass&&u.pass.momentum) u._momStk=Math.min(capOf(A,u),m+0.025*6*(1+(T.P.ramp||0)));",""]],'Only the Clockmaker'],
+  ['the crash 25%',FXJ,[["u.slowMul=Math.min(u.slowMul==null?1:u.slowMul,0.70); k.swL=u.slowMul;","u.slowMul=Math.min(u.slowMul==null?1:u.slowMul,0.75); k.swL=u.slowMul;"]],'Only the Clockmaker'],
+  ['the crash weakened by his talents',FXJ,[["if(P.nots&&full(A,u)&&!(k.crash>0)&&(u.slow||0)>0) u.slow=0;","if(P.nots&&full(A,u)&&(u.slow||0)>0) u.slow=0;"]],'Only the Clockmaker'],
+  // ---- Feels Wrong, cooldowns ----
+  ['Feels Wrong while Overclock cools',FXJ,[["if(!u.alive||!u.greenAb||(u.greenCd||0)>0||(u.silencedT||0)>0","if(!u.alive||!u.greenAb||(u.silencedT||0)>0"]],'Feels Wrong'],
+  ['Feels Wrong while silenced',FXJ,[["||(u.greenCd||0)>0||(u.silencedT||0)>0||K(T).crash>0","||(u.greenCd||0)>0||K(T).crash>0"]],'Feels Wrong'],
+  ['Feels Wrong leaves the stun',FXJ,[["u.stunned=0; u.slow=0; E.castSlot(u,'green',u);","u.slow=0; E.castSlot(u,'green',u);"]],'Feels Wrong'],
+  ['Feels Wrong: no cooldown',FXJ,[["u.greenCd=Math.max(OC_FLOOR,(u.greenAb.cd||8)-(T.P['cd.oc']||0)); K(T).gE=0; },","K(T).gE=0; },"]],'Feels Wrong'],
+  ['Oiled Joints 0.4',FXJ,[["sq_8_3:[ {param:'cd.ms',add:R(0.3)} ]","sq_8_3:[ {param:'cd.ms',add:R(0.4)} ]"]],'cooldowns'],
+  ['Ticking Over 0.2',FXJ,[["kb_11_2:[ {param:'cd.ms',add:R(0.15)} ]","kb_11_2:[ {param:'cd.ms',add:R(0.2)} ]"]],'cooldowns'],
+  ['Short Rest 0.4',FXJ,[["kb_4_2:[ {param:'cd.oc',add:R(0.3)} ]","kb_4_2:[ {param:'cd.oc',add:R(0.4)} ]"]],'cooldowns|Feels Wrong'],
+  // ---- Momentum Gears ----
+  ['Second Hand 12%',FXJ,[["kb_8_2:[ {param:'ramp',add:R(0.10)} ]","kb_8_2:[ {param:'ramp',add:R(0.12)} ]"]],'Momentum Gears'],
+  ['Keeping Time 10%',FXJ,[["bw_8_4:[ {param:'ramp',add:R(0.08)} ]","bw_8_4:[ {param:'ramp',add:R(0.10)} ]"]],'Momentum Gears'],
+  ['True Running at 40%',FXJ,[["(u._momStk||0)>=0.5*capOf(A,u)-1e-9;","(u._momStk||0)>=0.4*capOf(A,u)-1e-9;"]],'Momentum Gears'],
+  ['True Running 3%',FXJ,[["sq_3_4:[ {on:'out',if:{targetTeam:'enemy',fn:'momHalf'},more:R(0.02)} ]","sq_3_4:[ {on:'out',if:{targetTeam:'enemy',fn:'momHalf'},more:R(0.03)} ]"]],'Momentum Gears'],
+  ['Heavy Gears without the passive',FXJ,[["const full=(A,u)=>!!(u.pass&&u.pass.momentum)&&(u._momStk||0)","const full=(A,u)=>(u._momStk||0)"]],'Momentum Gears'],
+  ['Heavy Gears 3%',FXJ,[["bw_3_2:[ {stat:{atk:R(0.02)},if:{fn:'momFull'}} ]","bw_3_2:[ {stat:{atk:R(0.03)},if:{fn:'momFull'}} ]"]],'Momentum Gears'],
+  ['Never Told to Stop 12%',FXJ,[["bw_3_1:[ {param:'head',add:R(0.10)} ]","bw_3_1:[ {param:'head',add:R(0.12)} ]"]],'Momentum Gears'],
+  ['Never Told to Stop every wave',FXJ,[["if(P.head&&!k.head&&u.pass","if(P.head&&u.pass"]],'Momentum Gears'],
+  ['Through Three Cities 3 points',FXJ,[["bw_3_4:[ {param:'ttc',add:0.02}","bw_3_4:[ {param:'ttc',add:0.03}"]],'Momentum Gears'],
+  ['Through Three Cities at once',FXJ,[["if(P.ttc&&(u._momStk||0)>=cap-1e-9) k.mx=Math.min(P.ttc*k.hours,k.mx+rate);","if(P.ttc&&(u._momStk||0)>=cap-1e-9) k.mx=P.ttc*k.hours;"]],'Momentum Gears'],
+  ['Through Three Cities when not full',FXJ,[["if(!(k.mx>0)||!full(A,u)) return 0;","if(!(k.mx>0)) return 0;"]],'Momentum Gears'],
+  ['No One to Stop It: slowed',FXJ,[["if(f==='slow'&&P.nots&&full(A,u)) x=0;",""],["if(P.nots&&full(A,u)&&!(k.crash>0)&&(u.slow||0)>0) u.slow=0;",""]],'Momentum Gears'],
+  ['No One to Stop It: Weights and Chains once',FXJ,[["P.wc*u.maxHp*((P.nots&&full(A,u))?2:1)","P.wc*u.maxHp"]],'Momentum Gears'],
+  // ---- Strokes and Hours ----
+  ['Strokes not from hits taken',FXJ,[["struck(A,T,u){ T.fn.addStrokes(A,T,u,1); },","struck(A,T,u){ },"]],'Strokes and Hours'],
+  ['Struck Hours 2',FXJ,[["bw_6_4:[ {param:'sh',add:R(1)} ]","bw_6_4:[ {param:'sh',add:R(2)} ]"]],'Strokes and Hours'],
+  ['Count Them 0.4%',FXJ,[["bw_1_4:[ {param:'dr.hr',add:R(0.003)} ]","bw_1_4:[ {param:'dr.hr',add:R(0.004)} ]"]],'Strokes and Hours|damage reduction'],
+  ['Patient Strokes 0.4%',FXJ,[["bw_2_4:[ {stat:{atk:R(0.003)},per:{fn:'hrN'}} ]","bw_2_4:[ {stat:{atk:R(0.004)},per:{fn:'hrN'}} ]"]],'Strokes and Hours'],
+  ['Count of Hours 0.3%',FXJ,[["bw_10_4:[ {stat:{hp:R(0.002)},per:{fn:'hrN'}} ]","bw_10_4:[ {stat:{hp:R(0.003)},per:{fn:'hrN'}} ]"]],'Strokes and Hours'],
+  ['Wound by the Hour 2%',FXJ,[["if(P.wbh){ T.fn.heal(A,T,u,0.01*u.maxHp,true);","if(P.wbh){ T.fn.heal(A,T,u,0.02*u.maxHp,true);"]],'Strokes and Hours'],
+  ['Wound by the Hour: Strain kept',FXJ,[["T.fn.setWind(A,T,u,k.wind+1); if(k.strain>0) k.strain--; } }","T.fn.setWind(A,T,u,k.wind+1); } }"]],'Strokes and Hours'],
+  ['The Hour Mark: Mainspring not ready',FXJ,[["if(P.thm) u.blueCd=0; },","},"]],'Strokes and Hours'],
+  ['Turned by Hand every 11',FXJ,[["if(P.tbh&&k.strokes%10===0)","if(P.tbh&&k.strokes%11===0)"]],'Strokes and Hours'],
+  ['Turned by Hand 0.5%',FXJ,[["bw_11_3:[ {param:'tbh',add:R(0.004)} ]","bw_11_3:[ {param:'tbh',add:R(0.005)} ]"]],'Strokes and Hours'],
+  ['Every Second every 2 s',FXJ,[["if(P.es&&k.ic){ k.es+=dt; if(k.es>=3-1e-9){ k.es-=3;","if(P.es&&k.ic){ k.es+=dt; if(k.es>=2-1e-9){ k.es-=2;"]],'Strokes and Hours'],
+  // ---- Spin ----
+  ['Spin max 11',FXJ,[["if(k.spin>=10-1e-9) return; k.spin++;","if(k.spin>=11-1e-9) return; k.spin++;"]],'Spin'],
+  ['Spin kept between waves',FXJ,[["if(any(T,SP)&&!P.kt) k.spin=0;",""]],'Spin'],
+  ['Great Wheel 0.4%',FXJ,[["bw_1_3:[ {stat:{armor:R(0.003)},per:{fn:'spN'}} ]","bw_1_3:[ {stat:{armor:R(0.004)},per:{fn:'spN'}} ]"]],'Spin'],
+  ['Balance Wheel 0.4%',FXJ,[["bw_2_3:[ {stat:{mr:R(0.003)},per:{fn:'spN'}} ]","bw_2_3:[ {stat:{mr:R(0.004)},per:{fn:'spN'}} ]"]],'Spin'],
+  ['Turning Guard 0.3%',FXJ,[["bw_7_1:[ {stat:{lifesteal:R(0.002)},per:{fn:'spN'}} ]","bw_7_1:[ {stat:{lifesteal:R(0.003)},per:{fn:'spN'}} ]"]],'Spin'],
+  ['Spun Steel at 9',FXJ,[["sp10(A,T){ return K(T).spin>=10-1e-9; }","sp10(A,T){ return K(T).spin>=9-1e-9; }"]],'Spin'],
+  ['Ringing Wheel 0.5%',FXJ,[["{on:'out',if:{casting:FW,fn:'spAny'},more:R(0.004),per:{fn:'spN'}}","{on:'out',if:{casting:FW,fn:'spAny'},more:R(0.005),per:{fn:'spN'}}"]],'Spin'],
+  ['Wheel at Rest 0.6%',FXJ,[["bw_5_2:[ {param:'war',add:0.005} ]","bw_5_2:[ {param:'war',add:0.006} ]"]],'Spin'],
+  ['Oil and Rest 0.3%',FXJ,[["bw_6_2:[ {param:'war',add:R(0.002)} ]","bw_6_2:[ {param:'war',add:R(0.003)} ]"]],'Spin'],
+  ['Ratchet 2 a rank',FXJ,[["bw_10_3:[ {param:'rat',add:R(1)} ]","bw_10_3:[ {param:'rat',add:R(2)} ]"]],'Spin'],
+  ['Ratchet not from stuns',FXJ,[["if(st>k.pst+1e-9){ if(P.rat)","if(false){ if(P.rat)"]],'Spin'],
+  // ---- Flywheel ----
+  ['Whirring 0.15 m',FXJ,[["kb_10_3:[ {param:'fw.r',add:R(0.1)} ]","kb_10_3:[ {param:'fw.r',add:R(0.15)} ]"]],'Flywheel:'],
+  ['Wider Wheel 0.1 m',FXJ,[["bw_4_3:[ {param:'fw.r',add:R(0.15)} ]","bw_4_3:[ {param:'fw.r',add:R(0.1)} ]"]],'Flywheel:'],
+  ['Steady Swing 6%',FXJ,[["bw_4_2:[ {on:'out',if:{casting:FW},more:R(0.05)} ]","bw_4_2:[ {on:'out',if:{casting:FW},more:R(0.06)} ]"]],'Flywheel:'],
+  ['Gear Teeth 4%',FXJ,[["kb_8_4:[ {on:'out',if:{casting:FW},more:R(0.03)} ]","kb_8_4:[ {on:'out',if:{casting:FW},more:R(0.04)} ]"]],'Flywheel:'],
+  ['Final Quarter below 35%',FXJ,[["sq_12_4:[ {on:'out',if:{casting:FW,targetHpBelow:0.30},more:R(0.08)} ]","sq_12_4:[ {on:'out',if:{casting:FW,targetHpBelow:0.35},more:R(0.08)} ]"]],'Flywheel:'],
+  ['Last Turn 1.2%',FXJ,[["bw_12_1:[ {param:'lt',add:R(0.01)} ]","bw_12_1:[ {param:'lt',add:R(0.012)} ]"]],'Flywheel:'],
+  ['Rhythm of Blows 5 s',FXJ,[["if(T.r.bw_10_2) k.rb=4;","if(T.r.bw_10_2) k.rb=5;"]],'Flywheel:'],
+  ['Twelve Bells at 11 Hours',FXJ,[["if(P.twb&&k.hours>=HOURS) r=Math.max(r,5*M);","if(P.twb&&k.hours>=HOURS-1) r=Math.max(r,5*M);"]],'Twelve Bells'],
+  ['Twelve Bells 6 m',FXJ,[["if(P.twb&&k.hours>=HOURS) r=Math.max(r,5*M);","if(P.twb&&k.hours>=HOURS) r=Math.max(r,6*M);"]],'Twelve Bells'],
+  ['Twelve Bells 0.9 s',FXJ,[["k.hours>=HOURS&&t.alive) T.fn.tstun(A,T,u,t,0.8); }","k.hours>=HOURS&&t.alive) T.fn.tstun(A,T,u,t,0.9); }"]],'Twelve Bells'],
+  // ---- damage reduction ----
+  ['Riveted Shell 1.2%',FXJ,[["sq_9_3:[ {param:'dr.all',add:R(0.01)} ]","sq_9_3:[ {param:'dr.all',add:R(0.012)} ]"]],'damage reduction'],
+  ['Verdigris Coat on every hit',FXJ,[["if(kind==='magic') cut(P['dr.mag']);","cut(P['dr.mag']);"]],'damage reduction'],
+  ['Faithful Frame from 10 s',FXJ,[["if(P['dr.ff']&&k.wt>=15-1e-9) cut(P['dr.ff']);","if(P['dr.ff']&&k.wt>=10-1e-9) cut(P['dr.ff']);"]],'damage reduction'],
+  ['Slow to Start 6 s',FXJ,[["if(P['dr.sts']&&k.wt<5-1e-9) cut(P['dr.sts']);","if(P['dr.sts']&&k.wt<6-1e-9) cut(P['dr.sts']);"]],'damage reduction'],
+  ['Brass Ribs on every hit',FXJ,[["if(crit) cut(P['dr.crit']);","cut(P['dr.crit']);"]],'damage reduction'],
+  ['Shock Absorber always',FXJ,[["if(P['dr.oc']&&k.oc>0) cut(P['dr.oc']);","if(P['dr.oc']) cut(P['dr.oc']);"]],'damage reduction'],
+  ['Weathered Face 1.5%',FXJ,[["bw_12_2:[ {param:'dr.wf',add:R(0.01)} ]","bw_12_2:[ {param:'dr.wf',add:R(0.015)} ]"]],'damage reduction'],
+  ['the wave clock not reset',FXJ,[["const k=K(T), P=T.P; k.api=A; T.s.api=A; k.e={}; k.wt=0; k.chP=false;","const k=K(T), P=T.P; k.api=A; T.s.api=A; k.e={}; k.chP=false;"]],'damage reduction|a wave change'],
+  ['the wave keeps the last enemies\' records',FXJ,[["const k=K(T), P=T.P; k.api=A; T.s.api=A; k.e={}; k.wt=0;","const k=K(T), P=T.P; k.api=A; T.s.api=A; k.wt=0;"]],'a wave change'],
+  // ---- controls on him, It Does Not Mind, the budget ----
+  ['Slow Old Movement 5%',FXJ,[["bw_4_4:[ {param:'ten',add:R(0.04)} ]","bw_4_4:[ {param:'ten',add:R(0.05)} ]"]],'controls on him'],
+  ['Gone in a Blur 20%',FXJ,[["kb_12_1:[ {param:'gb',add:R(0.15)} ]","kb_12_1:[ {param:'gb',add:R(0.20)} ]"]],'controls on him'],
+  ['Gone in a Blur outside Overclock',FXJ,[["if(!(k.oc>0)||!((u.slow||0)>0)||m==null","if(!((u.slow||0)>0)||m==null"]],'controls on him'],
+  ['It Does Not Mind 5 s',FXJ,[["{on:'lethal',reqAny:['bw_13_3'],once:'fight',do:[{undying:4},{fn:'idnm'}]}","{on:'lethal',reqAny:['bw_13_3'],once:'fight',do:[{undying:5},{fn:'idnm'}]}"],["idnm(A,T,u){ const k=K(T); k.sig3=4;","idnm(A,T,u){ const k=K(T); k.sig3=5;"]],'It Does Not Mind'],
+  ['It Does Not Mind twice',FXJ,[["{on:'lethal',reqAny:['bw_13_3'],once:'fight',do:","{on:'lethal',reqAny:['bw_13_3'],do:"]],'It Does Not Mind'],
+  ['It Does Not Mind: stunned',FXJ,[["if(f==='stunned'&&k.sig3>0) x=0;",""],["if(k.sig3>0){ u.stunned=0; k.s3h+=dt;","if(k.sig3>0){ k.s3h+=dt;"]],'It Does Not Mind'],
+  ['It Does Not Mind: 25% heal',FXJ,[["if(k.sig3>0&&c.hpLost>0) T.fn.heal(A,T,u,0.30*c.hpLost,true); }\n      else","if(k.sig3>0&&c.hpLost>0) T.fn.heal(A,T,u,0.25*c.hpLost,true); }\n      else"],["else if(k.sig3>0&&c.hpLost>0) T.fn.heal(A,T,u,0.30*c.hpLost,true);","else if(k.sig3>0&&c.hpLost>0) T.fn.heal(A,T,u,0.25*c.hpLost,true);"]],'It Does Not Mind'],
+  ['It Does Not Mind: no Hours',FXJ,[["if(k.s3h>=1-1e-9){ k.s3h-=1; T.fn.addHour(A,T,u); } }","if(k.s3h>=1-1e-9){ k.s3h-=1; } }"]],'It Does Not Mind'],
+  ['It Does Not Mind: no Energy',FXJ,[["k.sig3=4; k.s3h=0; u.stunned=0; u.energy=100; },","k.sig3=4; k.s3h=0; u.stunned=0; },"]],'It Does Not Mind'],
+  ['Weights and Chains 0.4%',FXJ,[["bw_8_3:[ {param:'wc',add:R(0.003)} ]","bw_8_3:[ {param:'wc',add:R(0.004)} ]"]],'healing budget|Momentum Gears'],
+  ['Weights and Chains every 2 s',FXJ,[["k.wcT=(k.wcT||0)+dt; if(k.wcT>=3-1e-9){ k.wcT-=3;","k.wcT=(k.wcT||0)+dt; if(k.wcT>=2-1e-9){ k.wcT-=2;"]],'healing budget|Momentum Gears'],
+  ['Turned by Hand outside the budget',FXJ,[["if(P.tbh&&k.strokes%10===0) T.fn.heal(A,T,u,P.tbh*u.maxHp);","if(P.tbh&&k.strokes%10===0) T.fn.heal(A,T,u,P.tbh*u.maxHp,true);"]],'healing budget'],
+  ['the row of his hits removed',FXJ,[["    {on:'hit',if:{targetTeam:'enemy'},do:[{fn:'myHit'}]},                                                                        // every hit of his that lands: Chimes, Static, Strain, Strokes, Spin, Flywheel's count",""]],'Chimes:|Static:|Strain:|live fight'],
+];
+
+const SKIP=new Set(['.logs','.base','.bin','.git','node_modules','assets','backups','.remote-logs','.tmp']);
+function copyTo(dir){ const ex=[...SKIP].map(k=>'--exclude=./'+k).join(' ')+' --exclude=./.remote-*';
+  const r=cp.spawnSync('bash',['-c','tar cf - '+ex+' . | tar xf - -C "'+dir+'"'],{cwd:root,encoding:'utf8',maxBuffer:1<<26});
+  if(!fs.existsSync(path.join(dir,FXJ))) throw new Error('copy failed: rc '+r.status+' '+String(r.stderr||r.error||'').slice(0,400));
+  for(const k of ['node_modules','assets','.bin','.base']) if(fs.existsSync(path.join(root,k))) fs.symlinkSync(path.join(root,k),path.join(dir,k)); }
+function swapAll(s,swaps){ for(const [from,to] of swaps){ const a=from.replace(/\n/g,s.indexOf('\r\n')>=0?'\r\n':'\n'), n=s.split(a).length-1; if(n!==1) return {err:'the text to break was found '+n+' times: '+from.slice(0,70)}; s=s.replace(a,()=>to); } return {s}; }
+function runOne(c){ const [name,file,swaps,pat]=c, dir=fs.mkdtempSync(path.join(os.tmpdir(),'ctl-tick-'));
+  try{ copyTo(dir); const p=path.join(dir,file); const w=swapAll(fs.readFileSync(p,'utf8'),swaps); if(w.err) return {name,ok:false,why:w.err};
+    fs.writeFileSync(p,w.s);
+    const r=cp.spawnSync(process.execPath,['--test','--test-name-pattern='+pat,'tests/talents-mech-tick.test.js'],{cwd:dir,env:process.env,encoding:'utf8',maxBuffer:1<<26});
+    const out=(r.stdout||'')+(r.stderr||''), m=/# fail (\d+)/.exec(out), pm=/# pass (\d+)/.exec(out), f=m?+m[1]:-1;
+    const why=/error: [^\n]*/.exec(out); return {name,ok:f>0,why:'fail '+f+', pass '+(pm?pm[1]:'?')+(why?' | '+why[0].slice(0,140):'')}; }
+  finally{ fs.rmSync(dir,{recursive:true,force:true}); } }
+if(process.argv.includes('--check')){ const s=fs.readFileSync(path.join(root,FXJ),'utf8'); let bad=0; for(const c of C){ const w=swapAll(s,c[2]); if(w.err){ bad++; console.log('BAD '+c[0]+': '+w.err); } } console.log(C.length+' controls, '+bad+' with a text not found exactly once'); process.exit(bad?1:0); }
+const only=process.env.TKCTL?new RegExp(process.env.TKCTL):(process.argv[2]?new RegExp(process.argv[2]):null);
+const out=[]; for(const c of C){ if(only&&!only.test(c[0])) continue; const r=runOne(c); out.push(r); console.log((r.ok?'CAUGHT ':'MISSED ')+r.name+'  ('+r.why+')'); }   // one copy at a time
+const miss=out.filter(r=>!r.ok); console.log('controls: '+(out.length-miss.length)+' of '+out.length+' caught'+(miss.length?'; missed: '+miss.map(r=>r.name).join(' | '):'')); process.exit(miss.length?1:0);

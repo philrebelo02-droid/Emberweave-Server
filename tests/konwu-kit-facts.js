@@ -1,0 +1,46 @@
+'use strict';
+/* KonWu's real kit, measured (not a test: a plain node script, run on the cluster through tools/remote_test.sh). What his talents build on: how often each of
+   his skills fires and what it reaches in seeded fights with NO talents learned - Cleaving Arc (casts, enemies struck, how far the nearest enemy stood, how
+   many a reach to the enemy's body edge would strike: the v1391 fix on another branch), Phantom Step (casts, blinks, kicks that land, knock-backs, the stun,
+   the chase and how it ends, marks that die soon after), Heaven-Splitting Slam (casts, enemies struck and stunned, the stun as written on), Adamant
+   Discipline (time to its 5 stacks each wave, the share of his time at 5), the hits and controls on him.
+   Run: node tests/konwu-kit-facts.js */
+const vm=require('node:vm'), fs=require('node:fs'), path=require('node:path');
+const {NOW,V,spec,snaps}=require('./talents-lab.js');
+const VMX=s=>vm.runInContext(s,NOW.ctx), ENC=JSON.parse(fs.readFileSync(path.join(__dirname,'..','server/campaign-encounters.json'),'utf8'));
+VMX('var __kk={fights:0,ticks:0,full:0,toFull:[],waveT:null,arc:0,arcHit:0,arcNone:0,arcPer:[],arcNearC:[],arcNearB:[],arcBody:0,arcBodyNone:0,arcCrit:0,ps:0,blink:0,blinkNone:0,kick:0,kickLand:0,kickAbort:0,knock:0,knockM:[],psStun:0,psStunT:[],chase:0,chaseT:[],chaseEnd:{},markDie3:0,slam:0,slamHit:0,slamPer:[],slamStun:0,slamStunT:[],hitsOn:0,autoOn:0,skillOn:0,stunOn:0,slowOn:0,fearOn:0,autos:0,kills:0,arcKill:0,psKill:0,slamKill:0};'+
+  'var __kkD=_doEffectCore, __kkDD=_dealDamageCore, __kkU=_updateBattleCore, __kkB=konwuBlinkExec, __kkK=konwuKickExec, __kkC=ccApply, __kkCur=null, __kkN=0, __kkCh=null, __kkKick=[];'+
+  '_doEffectCore=function(u,type,o){ const me=u&&u.key==="konwu"&&(!o||!o.deliver||o._arrived);'+
+  '  if(me&&type==="cleavecone"){ __kk.arc++; __kkCur="arc"; __kkN=0; const tgt=(o&&o._arrived&&o._tgtU)||u.target; const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==="ally"?0:Math.PI); const R=5*METER, half=(45*Math.PI/180)/2; let bc=1e9,bb=1e9,nb=0;'+
+  '    for(const e of enemiesOf(u)){ if(!e.alive) continue; const d=dist(u,e); if(d<bc) bc=d; const g=d-bodyR(e); if(g<bb) bb=g; let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half&&d-bodyR(e)<=R) nb++; }'+
+  '    __kk.arcNearC.push(bc/METER); __kk.arcNearB.push(bb/METER); __kk.arcBody+=nb; if(!nb) __kk.arcBodyNone++; }'+
+  '  if(me&&type==="blink") __kk.ps++; if(me&&type==="monkSlam"){ __kk.slam++; __kkCur="slam"; __kkN=0; }'+
+  '  try{ return __kkD.apply(this,arguments); } finally{ if(me&&type==="cleavecone"){ __kk.arcPer.push(__kkN); if(!__kkN) __kk.arcNone++; } if(me&&type==="monkSlam") __kk.slamPer.push(__kkN); if(me&&(type==="cleavecone"||type==="monkSlam")) __kkCur=null; } };'+
+  'konwuBlinkExec=function(u){ const had=!!u._blinkO; const r=__kkB.apply(this,arguments); if(had&&u.key==="konwu"){ __kk.blink++; if(!u._kickTg) __kk.blinkNone++; } return r; };'+
+  'konwuKickExec=function(u){ const tg=u._kickTg; if(u.key!=="konwu") return __kkK.apply(this,arguments); __kk.kick++; const x0=tg?tg.x:0, y0=tg?tg.y:0, h0=tg?tg.hp:0; __kkCur="ps"; let r; try{ r=__kkK.apply(this,arguments); } finally{ __kkCur=null; }'+
+  '  if(tg&&tg.hp<h0){ __kk.kickLand++; const m=Math.hypot(tg.x-x0,tg.y-y0)/METER; if(m>0.5){ __kk.knock++; __kk.knockM.push(m); } if((u._chaseT||0)>0){ __kk.chase++; __kkCh={u,tg,t0:battleTime}; } __kkKick.push({tg,t:battleTime}); } else __kk.kickAbort++; return r; };'+
+  'ccApply=function(u,t,field,dur){ const r=__kkC.apply(this,arguments); if(r&&u&&u.key==="konwu"&&field==="stunned"){ if(__kkCur==="ps"){ __kk.psStun++; __kk.psStunT.push(+t.stunned.toFixed(3)); } if(__kkCur==="slam"){ __kk.slamStun++; __kk.slamStunT.push(+t.stunned.toFixed(3)); } }'+
+  '  if(r&&t&&t.key==="konwu"&&u&&u.team!==t.team){ if(field==="stunned") __kk.stunOn++; if(field==="slow") __kk.slowOn++; if(field==="fearT") __kk.fearOn++; } return r; };'+
+  '_dealDamageCore=function(src,tgt,amt,color,kind,silent){ const me=src&&src.key==="konwu"&&tgt&&tgt.team!==src.team, al=tgt&&tgt.alive;'+
+  '  if(tgt&&tgt.key==="konwu"&&src&&src.team!==tgt.team){ __kk.hitsOn++; if(_autoAtk) __kk.autoOn++; else __kk.skillOn++; }'+
+  '  if(me&&_autoAtk) __kk.autos++; const r=__kkDD.apply(this,arguments);'+
+  '  if(me&&(__kkCur==="arc"||__kkCur==="slam")) __kkN++; if(me&&al&&!tgt.alive){ __kk.kills++; if(__kkCur==="arc") __kk.arcKill++; if(__kkCur==="ps") __kk.psKill++; if(__kkCur==="slam") __kk.slamKill++; } return r; };'+
+  '_updateBattleCore=function(dt){ for(const u of units){ if(u&&u.key==="konwu"&&u.alive){ __kk.ticks++; if((u.wardenStk||0)>=5){ __kk.full++; if(__kk.waveT!=null){ __kk.toFull.push(battleTime-__kk.waveT); __kk.waveT=null; } } else if(__kk.waveT==null&&(u.wardenStk||0)===0) __kk.waveT=battleTime;'+
+  '    if(__kkCh&&__kkCh.u===u&&!((u._chaseT||0)>0)){ const tg=__kkCh.tg, why=!tg.alive?"mark died":(dist(u,tg)<=u.range+(tg.r||0)?"reached":"3 s"); __kk.chaseEnd[why]=(__kk.chaseEnd[why]||0)+1; __kk.chaseT.push(battleTime-__kkCh.t0); __kkCh=null; } } }'+
+  '  for(let i=__kkKick.length-1;i>=0;i--){ const k=__kkKick[i]; if(!k.tg.alive){ if(battleTime-k.t<=3) __kk.markDie3++; __kkKick.splice(i,1); } else if(battleTime-k.t>3) __kkKick.splice(i,1); }'+
+  '  return __kkU.apply(this,arguments); };');
+const team=['konwu','vael','vireo','sylthaine','gruel'];
+const sn=snaps(team.map(k=>Object.assign(spec(k,100),{skillLv:[100,100,100,100]})));
+for(const node of [12,34,60,90]) for(const seed of [7,1000007,987654]){ VMX('__kk.fights++; __kk.waveT=null'); NOW.campaign(JSON.parse(JSON.stringify(sn)),ENC.find(e=>e.node===node).waves,seed,[[0,'auto',-1,1,null,null]]); }
+const foe=snaps(['ambrel','carn','dandra','hollow','ceraline'].map(k=>Object.assign(spec(k,100),{skillLv:[100,100,100,100]})));
+for(const seed of [5,77,31337,4242]){ VMX('__kk.fights++; __kk.waveT=null'); NOW.auto(JSON.parse(JSON.stringify(sn)),JSON.parse(JSON.stringify(foe)),seed); VMX('__kk.fights++; __kk.waveT=null'); NOW.auto(JSON.parse(JSON.stringify(foe)),JSON.parse(JSON.stringify(sn)),seed); }
+const c=VMX('__kk'), avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(2):'-', hist=a=>{ const h={}; for(const x of a) h[x]=(h[x]||0)+1; return JSON.stringify(h); }, step=VMX('SIM_STEP');
+console.log('fights '+c.fights+'; KonWu alive '+(c.ticks*step).toFixed(0)+' s, at 5 Adamant Discipline stacks '+(c.full*step).toFixed(0)+' s ('+(100*c.full/Math.max(1,c.ticks)).toFixed(1)+'%), time to 5 stacks each wave '+avg(c.toFull)+' s (n '+c.toFull.length+')');
+console.log('Cleaving Arc: '+c.arc+' casts, '+c.arcHit+' / '+c.arcPer.reduce((a,b)=>a+b,0)+' enemies struck ('+(c.arc?(c.arcPer.reduce((a,b)=>a+b,0)/c.arc).toFixed(2):'-')+' a cast), casts that struck nobody '+c.arcNone+' ('+(100*(c.arc-c.arcNone)/Math.max(1,c.arc)).toFixed(0)+'% land), per cast '+hist(c.arcPer)+', kills '+c.arcKill);
+console.log('  nearest enemy at the cast: centre '+avg(c.arcNearC)+' m, body edge '+avg(c.arcNearB)+' m; with the reach to the body edge (v1391): '+c.arcBody+' enemies, casts striking nobody '+c.arcBodyNone+' ('+(100*(c.arc-c.arcBodyNone)/Math.max(1,c.arc)).toFixed(0)+'% land)');
+console.log('Phantom Step: '+c.ps+' casts, '+c.blink+' blinks ('+c.blinkNone+' with no mark), '+c.kick+' kicks: '+c.kickLand+' landed, '+c.kickAbort+' aborted (mark died or moved > 1 m); knocked back '+c.knock+' (metres '+avg(c.knockM)+'); stun landed '+c.psStun+' ('+hist(c.psStunT)+'); chase '+c.chase+' (seconds '+avg(c.chaseT)+', ends '+JSON.stringify(c.chaseEnd)+'); marks dead within 3 s of the kick '+c.markDie3+'; kills by the kick '+c.psKill);
+console.log('Heaven-Splitting Slam: '+c.slam+' casts, enemies struck '+c.slamPer.reduce((a,b)=>a+b,0)+' (per cast '+hist(c.slamPer)+'), stunned '+c.slamStun+' ('+hist(c.slamStunT)+'), kills '+c.slamKill);
+console.log('on him: hits '+c.hitsOn+' (basic '+c.autoOn+', skills '+c.skillOn+'), stuns '+c.stunOn+', slows '+c.slowOn+', fears '+c.fearOn+'; his basic attacks '+c.autos+', kills '+c.kills);
+const L=V.arena(snaps([spec('konwu',100)]),snaps([spec('vael',100)]),7), k=L[0], e=L[1];
+console.log('body radius: KonWu '+V.bodyR(k).toFixed(2)+' m, Vael '+V.bodyR(e).toFixed(2)+' m; attack interval '+k.atkInterval.toFixed(3)+' s; max HP '+Math.round(k.maxHp)+', attack '+Math.round(k.dmg)+', armor '+Math.round(k.armorRating)+', mr '+Math.round(k.mrRating)+', melee '+!!k.melee+', range '+(k.range/V.METER).toFixed(2)+' m; passive '+JSON.stringify(k.pass)+' passMul '+k.passMul+'; green '+JSON.stringify(k.greenAb)+'; blue '+JSON.stringify(k.blueAb));
+console.log('defMul of a level-100 Vael on him: phys '+VMX('defMul')(e,k,'phys').toFixed(4)+', magic '+VMX('defMul')(e,k,'magic').toFixed(4)+'; wardenCut at 5 stacks '+(()=>{ k.wardenStk=5; const w=VMX('wardenCut')(k); k.wardenStk=0; return w.toFixed(4); })()+' (passive level '+VMX('passLv')(k)+'); the cast options: green '+JSON.stringify(VMX('skillScaleOpts')(Object.assign({},k.greenAb),VMX('skillMul')(100),100))+'; blue '+JSON.stringify(VMX('skillScaleOpts')(Object.assign({},k.blueAb),VMX('skillMul')(100),100))+'; ult '+JSON.stringify(VMX('skillScaleOpts')(Object.assign({},VMX('ULT_DEF').monkSlam,VMX('HERO_ULT_ART').konwu),VMX('skillMul')(100),100)));
