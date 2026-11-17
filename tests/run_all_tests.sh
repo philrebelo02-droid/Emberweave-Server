@@ -639,6 +639,8 @@ note "test_hero61.js (Hero61 real combat and six-stat progression)"
 node tests/test_hero61.js || FAILED=1
 node tests/test_hero61_art.js || FAILED=1
 node tests/test_hero61_fx.js || FAILED=1
+note "test_battle_limit_1399.js (v1399, Phil 17 Nov: \"all battles should be 3 minutes to time out now\" / \"every single battle mode\" - every mode's limit is 180 s, page and server)"
+node tests/test_battle_limit_1399.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

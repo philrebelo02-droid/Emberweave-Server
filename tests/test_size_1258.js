@@ -6,7 +6,7 @@ const fs = require('fs'), path = require('path'), os = require('os'), vm = requi
 const ROOT = path.join(__dirname, '..'), BASE = process.env.BASE || 'db7e16fb';
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; console.log('  ok   ' + m); };
 const load = file => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(file); return s => vm.runInContext(s, h.ctx); };
-const NEW = load(require('./helpers/global-1254-1260.js').speedPage(path.join(ROOT, 'emberweave-heroes.html')));   // v1377: today's move speeds (Phil 12 Nov: Bruisers x1.1, Assassins 95-100, Carn 80) put back, so speed still checks the x1.15 resize alone
+const NEW = load(require('./helpers/global-1254-1260.js').speedHp1397Page(path.join(ROOT, 'emberweave-heroes.html')));   // v1377: today's move speeds (Phil 12 Nov: Bruisers x1.1, Assassins 95-100, Carn 80) put back, so speed still checks the x1.15 resize alone; v1397 (Phil 17 Nov: "everyone double + 1000 for everyone but tanks" / "thats at 100"; branch v1397-hp): the HP rule put back too, so "hp unchanged" still checks that the resize alone moved no HP (tests/test_tank_hp.js checks v1397)
 const tmp = path.join(ROOT, '.size1258-base.html'); fs.writeFileSync(tmp, String(cp.execSync('git show ' + BASE + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 })).replace("stars:1,hp:360,dmg:28,", "stars:1,hp:360,dmg:34,").replace("name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,", "name:'Mainspring',type:'punchflurry',hits:5,mul:0.36,"));   // v1366 Tick buff (Phil "yes buff tick"): the BASE gets the same Tick so only the resize is compared
 let OLD; try { OLD = load(tmp); } finally { try { fs.unlinkSync(tmp); } catch (e) {} }
 const S = +NEW('UNIT_SIZE'); ok(Math.abs(S - 1.15) < 1e-9, 'UNIT_SIZE is 1.15');

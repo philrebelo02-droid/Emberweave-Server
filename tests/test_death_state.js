@@ -347,8 +347,12 @@ try {
         const tr = []; let clips = 0; const seen = new Set(); const U = updateBattle;
         updateBattle = function () { const r = U.apply(this, arguments);
           tr.push(battleTime.toFixed(3) + '/' + units.map(u => u.key + u.team[0] + ':' + Math.round(u.hp * 100) + ':' + Math.round(u.x * 10) + ':' + Math.round(u.y * 10) + ':' + (u.alive ? 1 : 0) + ':' + Math.round((u.energy || 0) * 10)).join('|')); return r; };
-        for (let j = 0; j < 60 * 60 && !ended && tr.length < 900; j++) { window.__t += 1000 / 60; loop(window.__t); units.concat(_corpses).forEach(u => { if (u._die && !seen.has(u)) { seen.add(u); clips++; } }); }
-        tr.length = Math.min(tr.length, 900);
+        /* v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks"; branch v1397-hp): this rendered
+           harness runs the LIVE /play page, where every body now lasts about twice as long - in 900 ticks the deaths came too late for the removal
+           (0.9 s vs the control's 1.5 s) to show inside the trace, so the logic-change CONTROL went blind. The window is 1800 ticks (the frame loop
+           still ends at 60 s) so the trace holds the deaths and their removal again. */
+        for (let j = 0; j < 60 * 60 && !ended && tr.length < 1800; j++) { window.__t += 1000 / 60; loop(window.__t); units.concat(_corpses).forEach(u => { if (u._die && !seen.has(u)) { seen.add(u); clips++; } }); }
+        tr.length = Math.min(tr.length, 1800);
         let h = 2166136261 >>> 0; const s = tr.join('#'); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
         DEATH_CLIPS.on = true; updateBattle = window.__upd0; return { h: tr.length + ':' + h.toString(16), clips, n: tr.length, tr }; }, [T, seed, on, pre || '']); };
       const firstDiff = (a, b) => { const i = a.tr.findIndex((x, j) => x !== b.tr[j]); if (i < 0) return 'none'; const A = a.tr[i].split('|'), B = (b.tr[i] || '').split('|');

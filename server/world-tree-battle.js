@@ -1,5 +1,8 @@
 'use strict';
 const vm=require('node:vm');
+/* v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every wave every battle" / "every single battle mode"): a World Tree fight runs to the page's BATTLE_TIME_LIMIT (180 battle-seconds, was a fixed 90 here),
+   which this resolver reports at 500 ms a battle-second: FIGHT_MS 45,000 -> 90,000. server/world-tree-control.js validates against the same FIGHT_MS. */
+const FIGHT_MS=90000;
 function once(source,old,next){if(source.split(old).length!==2)throw Error('World Tree battle anchor drift: '+old.slice(0,100));return source.replace(old,next);}
 function prepare(source){
   // Git/archive and Windows checkouts may retain CRLF inside Function.toString().
@@ -15,21 +18,21 @@ function prepare(source){
     let wtAlive=u.alive;
     Object.defineProperty(u,'alive',{configurable:true,enumerable:true,get:()=>wtAlive,set:value=>{
       if(!value&&wtAlive){wtAlive=false;u._dropHidden=true;
-        if(!wtSeen.has(u.uid)){wtSeen.add(u.uid);wtDeaths.push({key:u.key,team:u.team,atMs:Math.min(45000,Math.ceil(battleTime*500))});}
+        if(!wtSeen.has(u.uid)){wtSeen.add(u.uid);wtDeaths.push({key:u.key,team:u.team,atMs:Math.min(${FIGHT_MS},Math.ceil(battleTime*500))});}
       }else if(!wtSeen.has(u.uid))wtAlive=value;
     }});
   }
   const wtBenefited=new Set();let wtRegenTick=0;
   for(const u of units){u.energy=0;const s=(u.team==='ally'?allySnaps:foeTeam).find(s=>s.key===u.key);if(s?.worldTreeBenefit){wtBenefited.add(u.uid);u.dmgBonusMul2=(u.dmgBonusMul2||1)*1.1;}}
-  for(let i=0;i<Math.ceil(90/SIM_STEP) && !ended;i++){
+  for(let i=0;i<Math.ceil(BATTLE_TIME_LIMIT/SIM_STEP) && !ended;i++){
     updateBattle(SIM_STEP);
     const wtTick=Math.floor((battleTime*500+1e-6)/30000);
     if(wtTick>wtRegenTick){for(const u of wtTracked)if(wtBenefited.has(u.uid)&&u.alive){const gain=u.maxHp*.01*(wtTick-wtRegenTick);u._worldEntryHpCap=Math.min(u.maxHp,(u._worldEntryHpCap??u.maxHp)+gain);u.hp=Math.min(u.maxHp,u.hp+gain);}wtRegenTick=wtTick;}
     for(const u of wtTracked)if(!u.alive&&!wtSeen.has(u.uid)){
-      wtSeen.add(u.uid);wtDeaths.push({key:u.key,team:u.team,atMs:Math.min(45000,Math.ceil(battleTime*500))});
+      wtSeen.add(u.uid);wtDeaths.push({key:u.key,team:u.team,atMs:Math.min(${FIGHT_MS},Math.ceil(battleTime*500))});
     }
   }`);
-  s=once(s,'const won = (window._p2win===true) || (allyAlive>0 && foeAlive===0);','const won = battleTime<90 && allyAlive>0 && foeAlive===0;');
+  s=once(s,'const won = (window._p2win===true) || (allyAlive>0 && foeAlive===0);','const won = battleTime<BATTLE_TIME_LIMIT && allyAlive>0 && foeAlive===0;');
   s=once(s,'    u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) });',
     '    deaths:wtDeaths, u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) });');
   s=once(s,'  window._p2guard=false; autoUlt=svAuto;','  return won;\n  }finally{window._p2guard=false; autoUlt=svAuto;');
@@ -46,11 +49,11 @@ function create(host){
     host.sandbox.worldTreeFightResult(a,d,seed>>>0,false);
     const digest=JSON.parse(host.sandbox._p2digest||'null');
     if(!digest||!Array.isArray(digest.u)||!Array.isArray(digest.deaths)||!Number.isFinite(digest.t))throw Error('Incomplete World Tree battle digest');
-    const durationMs=Math.min(45000,Math.max(Math.ceil(digest.t*500),...digest.deaths.map(x=>x.atMs)));
+    const durationMs=Math.min(FIGHT_MS,Math.max(Math.ceil(digest.t*500),...digest.deaths.map(x=>x.atMs)));
     const outcomes=(snaps,team)=>snaps.map(s=>{const row=digest.u.find(r=>r[0]===s.key&&r[1]===team),cap=Math.min(s.maxHp,s.hp+(s.worldTreeBenefit?Math.floor(durationMs/30000)*s.maxHp*.01:0));return {key:s.key,maxHp:s.maxHp,hp:row&&row[2]?Math.max(0,Math.min(cap,+row[3]||0)):0};});
     const ao=outcomes(a,'ally'),fo=outcomes(d,'enemy');
     return {won:digest.won===true,durationMs,ally:ao,foe:fo,
       deaths:digest.deaths.filter(x=>x.team==='enemy'&&fo.some(r=>r.key===x.key&&r.hp===0)),digest,seed:seed>>>0,engine:host.buildVersion};
   };
 }
-module.exports={prepare,create};
+module.exports={prepare,create,FIGHT_MS};

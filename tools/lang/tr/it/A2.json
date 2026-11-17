@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"Linea {n} di 3 · combatte se cade la linea 1 · fino a {k} eroi",
 "roster.wall_sub_last":"Linea {n} di 3 · combatte per ultima · fino a {k} eroi",
 "roster.vault_sub":"I primi {n} combattono — gli altri entrano quando un combattente cade (fino a {m} in totale)",
-"roster.raid_sub":"I primi {n} affrontano il boss — gli altri entrano man mano che cadono · 90 secondi · ogni danno conta",
+"roster.raid_sub":"I primi {n} affrontano il boss — gli altri entrano man mano che cadono · 180 secondi · ogni danno conta",
 "roster.prov_title":"{name} — LIVELLO {n}",
 "roster.prov_sub":"Boss: {boss} · 3 ondate · ricompensa {reward} · una sconfitta non costa nulla",
 "roster.well_title":"IL POZZO SENZA STELLE — MAPPA {n}",

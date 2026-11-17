@@ -13,7 +13,7 @@ assert.equal(paths.support_tank_back.equipment.length,9);
 reset();
 assert.equal(run('HERO_TYPES.hero61.myth'),true);
 assert.equal(run('HERO_TYPES.hero61.source'),'purchase','same acquisition classification as existing Mythical heroes');
-assert.equal(run('baseAtLevel(HERO_TYPES.hero61,100).hp'),4184);
+assert.equal(run('baseAtLevel(HERO_TYPES.hero61,100).hp'),(620+36*99)*2+1000);   // v1397 (Phil 17 Nov: "everyone double + 1000 for everyone but tanks" / "thats at 100"; branch v1397-hp): the Lv 100 line 4184 x2 + 1000 (Support) = 9368
 assert.equal(run('baseAtLevel(HERO_TYPES.hero61,100).armor'),1050);
 assert.equal(run('baseAtLevel(HERO_TYPES.hero61,100).mr'),733);
 // Exact formulas use the target's max HP, then the caster healing multiplier once.

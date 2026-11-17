@@ -4,6 +4,8 @@ const SITE_IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];   // v1228:
 const clone=x=>JSON.parse(JSON.stringify(x));
 const safeId=x=>typeof x==='string'&&x.length>0&&x.length<=200&&!['__proto__','constructor','prototype'].includes(x);
 const ms=x=>Number.isSafeInteger(x)&&x>=0;
+/* v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every wave every battle" / "every single battle mode"): the longest authoritative fight, = server/world-tree-battle.js FIGHT_MS (180 battle-seconds at 500 ms each; was 45000) */
+const WT_FIGHT_MS=90000;
 const LIMIT=id=>id==='tree'?15:10;
 const HOLD=id=>id==='tree'?12*3600000:8*3600000;
 const BENEFIT=require('./world-tree-benefit.js');
@@ -62,14 +64,14 @@ function dispatch(saved,input,hooks){
     const aSnaps=m.snaps.filter(x=>x.hp>0).map(x=>({...clone(x),energy:0})),dSnaps=d.snaps.filter(x=>x.hp>0).map(x=>({...clone(x),energy:0,worldTreeBenefit:benefit}));
     const seed=hooks.seed(state.eventId,m.id,d.id,m.fights||0);
     const result=hooks.battle(aSnaps,dSnaps,seed);
-    if(!result||typeof result.won!=='boolean'||!ms(result.durationMs)||result.durationMs>45000||!Array.isArray(result.ally)||!Array.isArray(result.foe)||!Array.isArray(result.deaths))throw Error('Invalid authoritative battle');
+    if(!result||typeof result.won!=='boolean'||!ms(result.durationMs)||result.durationMs>WT_FIGHT_MS||!Array.isArray(result.ally)||!Array.isArray(result.foe)||!Array.isArray(result.deaths))throw Error('Invalid authoritative battle');
     for(const [rows,snaps]of [[result.ally,aSnaps],[result.foe,dSnaps]]){
       if(rows.length!==snaps.length||new Set(rows.map(r=>r.key)).size!==rows.length)throw Error('Incomplete battle outcomes');
       for(const row of rows){const original=snaps.find(x=>x.key===row.key);const cap=original?Math.min(original.maxHp,original.hp+(original.worldTreeBenefit?Math.floor(result.durationMs/30000)*original.maxHp*.01:0)):0;if(!original||!Number.isFinite(row.hp)||row.hp<0||row.hp>cap||row.maxHp!==original.maxHp)throw Error('Invalid battle HP');}
     }
     const aliveA=result.ally.some(r=>r.hp>0),aliveD=result.foe.some(r=>r.hp>0);
     // Full death and timeout always defend. Never trust a client winner.
-    const won=result.won&&aliveA&&!aliveD&&result.durationMs<45000;
+    const won=result.won&&aliveA&&!aliveD&&result.durationMs<WT_FIGHT_MS;
     const deaths=result.deaths.filter(x=>x.team==='enemy');
     if(new Set(deaths.map(x=>x.key)).size!==deaths.length||deaths.some(x=>!ms(x.atMs)||x.atMs>result.durationMs||!result.foe.some(r=>r.key===x.key&&r.hp===0)))throw Error('Invalid death schedule');
     if(result.foe.filter(r=>r.hp===0).length!==deaths.length)throw Error('Missing defender death schedule');

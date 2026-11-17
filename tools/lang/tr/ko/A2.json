@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"3개 중 {n}번 전열 · 1번 전열이 무너지면 전투 · 최대 영웅 {k}명",
 "roster.wall_sub_last":"3개 중 {n}번 전열 · 마지막에 전투 · 최대 영웅 {k}명",
 "roster.vault_sub":"처음 {n}명이 전투 — 전투원이 쓰러지면 나머지가 투입(총 최대 {m}명)",
-"roster.raid_sub":"처음 {n}명이 보스와 전투 — 쓰러지면 나머지가 투입 · 90초 · 모든 피해 집계",
+"roster.raid_sub":"처음 {n}명이 보스와 전투 — 쓰러지면 나머지가 투입 · 180초 · 모든 피해 집계",
 "roster.prov_title":"{name} — 스테이지 {n}",
 "roster.prov_sub":"보스: {boss} · 3웨이브 · 보상 {reward} · 패배해도 손실 없음",
 "roster.well_title":"별 없는 우물 — 맵 {n}",

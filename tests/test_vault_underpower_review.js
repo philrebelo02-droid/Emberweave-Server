@@ -32,7 +32,8 @@ const FIVE=Object.keys(require(path.join(root,'server/sim.js')).HERO_BASE).slice
   const r2=await call('/api/dungeon/resolve-battle',{attemptId:s2.data.attemptId,won:true,requestId:'vu-r2'}); ok(r2.data.ok===true&&r2.data.reward&&(r2.data.reward.dust|0)>0,'the under-power win still pays the reward');
   db=await readDB(); const cases2=(db.feedback||[]).filter(f=>f.signal==='vault-underpower:'+s2.data.attemptId);
   ok(cases2.length===1,'exactly one review case for the under-power win ('+cases2.length+')');
-  const rep=cases2[0]&&cases2[0].report; ok(rep&&rep.floor===50&&rep.recommendedPower===Math.round(15463*3.0908),'report carries the floor and the card-scale recommended power ('+(rep&&rep.recommendedPower)+')');
+  /* v1399 (Phil 17 Nov 02:2x: rescale fixed power gates and recommended power "by the average factor" so they feel the same as today): the HP rule raises a typical card x1.096, so the gate is x1.096 too (server.js VAULT_POWER_SCALE=3.0908*1.096: floor 50 47793 -> 52381) */
+  const rep=cases2[0]&&cases2[0].report; ok(rep&&rep.floor===50&&rep.recommendedPower===Math.round(15463*(3.0908*1.096)),'report carries the floor and the card-scale recommended power ('+(rep&&rep.recommendedPower)+')');
   ok(rep&&rep.squadPower>0&&rep.percentOfRecommended<80&&Array.isArray(rep.fighters)&&rep.fighters.length===5&&rep.fighters.every(h=>h.key&&h.power>0),'report carries the squad power, percent and every fighter with its power ('+(rep&&rep.percentOfRecommended)+'%)');
   ok(rep&&typeof rep.battleMs==='number'&&rep.reward&&(rep.reward.dust|0)===(r2.data.reward.dust|0),'report carries the fight time and the reward paid');
   console.log('test_vault_underpower_review.js: '+pass+' checks passed (server '+srvFile+' sha256 '+sha.slice(0,16)+', pairs '+pairsFile+')');

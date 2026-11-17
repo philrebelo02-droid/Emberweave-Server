@@ -345,7 +345,7 @@
 "roster.wall_sub_second":"Linie {n} van 3 · vecht als linie 1 valt · tot {k} helden",
 "roster.wall_sub_last":"Linie {n} van 3 · vecht als laatste · tot {k} helden",
 "roster.vault_sub":"De eerste {n} vechten — de rest valt in als een vechter sneuvelt (tot {m} in totaal)",
-"roster.raid_sub":"De eerste {n} vechten tegen de baas — de rest valt in als ze sneuvelen · 90 seconden · alle schade telt",
+"roster.raid_sub":"De eerste {n} vechten tegen de baas — de rest valt in als ze sneuvelen · 180 seconden · alle schade telt",
 "roster.prov_title":"{name} — LEVEL {n}",
 "roster.prov_sub":"Baas: {boss} · 3 golven · beloning {reward} · verliezen kost niets",
 "roster.well_title":"DE STERLOZE PUT — KAART {n}",

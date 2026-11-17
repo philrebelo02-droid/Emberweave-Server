@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"Linha {n} de 3 · luta se a linha 1 cair · até {k} heróis",
 "roster.wall_sub_last":"Linha {n} de 3 · luta por último · até {k} heróis",
 "roster.vault_sub":"Os {n} primeiros lutam — os demais entram quando um combatente cai (até {m} no total)",
-"roster.raid_sub":"Os {n} primeiros enfrentam o chefe — os demais entram conforme caem · 90 segundos · todo dano conta",
+"roster.raid_sub":"Os {n} primeiros enfrentam o chefe — os demais entram conforme caem · 180 segundos · todo dano conta",
 "roster.prov_title":"{name} — FASE {n}",
 "roster.prov_sub":"Chefe: {boss} · 3 ondas · recompensa {reward} · perder não custa nada",
 "roster.well_title":"O POÇO SEM ESTRELAS — MAPA {n}",

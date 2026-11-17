@@ -17,7 +17,11 @@ let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 // a whole fight; `rend` = draw every tick in the client (syncMesh for each unit), as the game loop does between engine steps
 const FIGHT = (seed, a, f, rend) => `(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
-  try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed}); if(typeof clearFx1123==='function') clearFx1123();
+  try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; seedBattle(${seed}); if(typeof clearFx1123==='function') clearFx1123();
+    /* v1397 (Phil 17 Nov: "everyone double + 1000 for everyone but tanks"; branch v1397-hp): with doubled HP the earlier fights in this page run to the 45 s
+       cap mid wave-end (waveXfer set, ended still false), and the next fight in the SAME page started inside that walk-off (allies walking, enemies
+       held) while the server replay starts fresh - a harness leak, not an engine difference (each fight alone in a fresh page = the replay tick for
+       tick). The wave transition is cleared before each fight, as the other replay harnesses do (tests/talents-lab.js). */
     units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
     ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
     units.forEach(u=>{ try{ buildFigure(u); }catch(_){} }); let jumps=0, hid=0;

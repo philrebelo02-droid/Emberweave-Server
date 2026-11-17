@@ -11,7 +11,17 @@
 //                     changed since BASE" is still what the older tests check
 //   undoText(s)    -> the same rewrite on a source string (safe on an older page, and on one already rewritten)
 const fs = require('fs'), path = require('path');
+const HP1397_SWAPS = [
+  // v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks" / "thats at 100"; branch v1397-hp): base HP x2 for
+  //   heroes and monsters, +1000 by Lv 100 for every class but Tank - put back to x1 / +0 for the older BASE fights (tests/test_tank_hp.js and
+  //   tests/test_parity_harness.js check v1397 itself). The same line is in server/sim.js, so undoText also undoes it on the server source.
+  ['const HP_MULT=2, HP_BONUS_L100=1000;', 'const HP_MULT=1, HP_BONUS_L100=0;', /const HP_MULT=\d+(\.\d+)?, HP_BONUS_L100=\d+;/],
+  // v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every single battle mode"; ships WITH the HP rule): every wave
+  //   times out at 180 s - put back to 90 for the older BASE fights, which were written against a 90 s time-out (tests/test_battle_limit_1399.js checks v1399 itself)
+  ['const BATTLE_TIME_LIMIT=180;', 'const BATTLE_TIME_LIMIT=90;', /const BATTLE_TIME_LIMIT=\d+;/],
+];
 const SWAPS = [
+  ...HP1397_SWAPS,
   // v1391 (Phil 14 Nov: "buff vulmars passive, give it 5% increase ability power + .05 per skill level"): Vulmar's Unstepped Ability Power off for the older
   //   BASE fights (tests/test_vulmar_passive_1391.js checks v1391 itself)
   ["\n    if(kit.purple.apPct!=null) u.apow*=passApMul(kit.purple,u.skillLv[3]); }   /* v1391: Vulmar's Unstepped also raises his finished Ability Power (= server/sim.js PURPLE_AP) */", " }", /if\(kit\.purple\.apPct!=null\) u\.apow\*=passApMul/],
@@ -222,4 +232,9 @@ function reach1391Back(s) { return swapAll(_LF(s), REACH1391_SWAPS); }
 function reach1391Page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-reach1391-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, reach1391Back(fs.readFileSync(htmlPath, 'utf8'))); made.push(out); return out; }
-module.exports = { page, undoText, dandraBack, dandraPage, speedBack, speedPage, reach1391Back, reach1391Page };
+/* v1397: only the HP rule undone (base x2, +1000 by Lv 100 for non-Tanks) - for tests that put back just one other change (test_size_1258 with speedPage) */
+function hp1397Back(s) { return swapAll(_LF(s), HP1397_SWAPS); }
+function speedHp1397Page(htmlPath) {
+  const out = path.join(path.dirname(htmlPath), '.test-speedhp1397-page-' + process.pid + '-' + made.length + '.html');
+  fs.writeFileSync(out, hp1397Back(speedBack(_LF(fs.readFileSync(htmlPath, 'utf8'))))); made.push(out); return out; }
+module.exports = { page, undoText, dandraBack, dandraPage, speedBack, speedPage, reach1391Back, reach1391Page, hp1397Back, speedHp1397Page };

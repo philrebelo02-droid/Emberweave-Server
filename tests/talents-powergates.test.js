@@ -34,7 +34,14 @@ function loadServer(src,flag){
   finally{ console.log=log; delete process.env.TALENTS_ENABLED; } }
 const SRC=fs.readFileSync(path.join(root,'server.js'),'utf8');
 const NEW_ON=loadServer(SRC,true), NEW_OFF=loadServer(SRC,false);
-const BASE_SRC=cp.execFileSync('git',['-C',root,'show',BASE_SHA+':server.js'],{maxBuffer:1<<28}).toString('utf8');
+/* v1399 (Phil 17 Nov 02:2x: ship the HP change with the 180 s limit and rescale fixed power gates and recommended power "by the average factor" so they
+   feel the same as today): every fixed gate is x1.096 (Tower, mine march, the Vault's review line, the served campaign recommendation). That is not a
+   talent change, so BASE gets the same x1.096 - the four-way comparison still tests only what the talents switch moves. Both servers already share
+   this checkout's server/sim.js, so the HP rule is on both sides. */
+const V1399_GATES=s=>{ for(const [a,b] of [['const VAULT_POWER_SCALE=3.0908,','const VAULT_POWER_SCALE=3.0908*1.096,'],['const TOWER_POWER_SCALE=1.4276;','const TOWER_POWER_SCALE=1.4276*1.096;'],
+    ['const CAMP_POWER_SCALE=3.0908;','const CAMP_POWER_SCALE=3.0908*1.096;'],['const needPower=Math.round(300*Math.pow(1.75,node.level-1)*1.4276);','const needPower=Math.round(300*Math.pow(1.75,node.level-1)*(1.4276*1.096));']]){
+    if(s.split(a).length!==2) throw new Error('powergates: BASE anchor moved: '+a); s=s.replace(a,b); } return s; };
+const BASE_SRC=V1399_GATES(cp.execFileSync('git',['-C',root,'show',BASE_SHA+':server.js'],{maxBuffer:1<<28}).toString('utf8'));
 const BASE_ON=loadServer(BASE_SRC,true), BASE_OFF=loadServer(BASE_SRC,false);
 for(const S of [NEW_ON,NEW_OFF,BASE_ON,BASE_OFF]) S.poisonSim();   /* the mine route stops at its battle with "Mine battle engine unavailable." once the gate passes */
 const J=JSON.stringify, clone=x=>JSON.parse(J(x)), sha=t=>crypto.createHash('sha256').update(String(t)).digest('hex');
@@ -141,7 +148,8 @@ test('witch: the Witches Hut heal cost, heal and heal-all are priced on the tale
 });
 
 test('mine: the world mine march gate reads the talent-less squad',async()=>{
-  const need=L=>Math.round(300*Math.pow(1.75,L-1)*1.4276), now=Date.now(), field=NEW_ON.WORLD_MINES.field(NEW_ON.WORLD_MINES.epochAt(now));
+  /* v1399 (Phil 17 Nov 02:2x: rescale fixed power gates and recommended power "by the average factor" so they feel the same as today): the HP rule raises a typical card x1.096, so the gate is x1.096 too (server.js mineNeedPower, the page's POWER_SCALE=1.4276*1.096) */
+  const need=L=>Math.round(300*Math.pow(1.75,L-1)*(1.4276*1.096)), now=Date.now(), field=NEW_ON.WORLD_MINES.field(NEW_ON.WORLD_MINES.epochAt(now));
   /* the smallest squad (first n of FIVE) with a mine level whose need lies between its two numbers, and a level it clears either way */
   let plan=null;
   for(let n=1;n<=5&&!plan;n++){ const hs=FIVE.slice(0,n), ks=hs.map(h=>h.key);
@@ -257,12 +265,17 @@ function clientSet(R,key,level,b){ const k=J(key);
     'G.skillLevel=G.skillLevel||{}; G.skillLevel['+k+']=[1,1,1,1]; G.glyphRank=G.glyphRank||{}; G.glyphRank['+k+']=0; G.tech={}; G.temple=undefined;'+(b?'G.talents={['+k+']:'+J(b)+'};':'delete G.talents;')); }
 test('page: the page gate number is the card with nothing learned (= the server gate); the card is unchanged; the mine panel gates on it',()=>{
   const R=loadPage(HTML), RB=loadPage(cp.execFileSync('git',['-C',root,'show',BASE_SHA+':emberweave-heroes.html'],{maxBuffer:1<<28}).toString('utf8'));
+  /* v1399 (Phil 17 Nov: "everyone double + 1000 for everyone but tanks"): the BASE page has no HP rule, so the card == BASE identity reads this page with
+     the HP rule (and the 180 s limit) undone (tests/helpers/global-1254-1260.js hp1397Back); every other line reads the live page. */
+  const R0=loadPage(require('./helpers/global-1254-1260.js').hp1397Back(HTML));
   assert.equal(R('typeof heroGatePower'),'function');
   for(const k of WIRED.slice(0,6)){ const b=build(k,100);
     clientSet(R,k,100,null); const p0=R('heroPower('+J(k)+')'), g0=R('heroGatePower('+J(k)+')');
     clientSet(R,k,100,b); const p1=R('heroPower('+J(k)+')'), g1=R('heroGatePower('+J(k)+')'), p1again=R('heroPower('+J(k)+')');
     clientSet(RB,k,100,null); const b0=RB('heroPower('+J(k)+')'); clientSet(RB,k,100,b); const b1=RB('heroPower('+J(k)+')');
-    assert.equal(p0,b0,k+': the page card, nothing learned, is the card BASE showed'); assert.equal(p1,b1,k+': the page card with talents is the card BASE showed');
+    clientSet(R0,k,100,null); const q0=R0('heroPower('+J(k)+')'); clientSet(R0,k,100,b); const q1=R0('heroPower('+J(k)+')');
+    assert.equal(q0,b0,k+': the page card (HP rule undone), nothing learned, is the card BASE showed'); assert.equal(q1,b1,k+': the page card (HP rule undone) with talents is the card BASE showed');
+    assert.ok(p0>q0,k+': the HP rule raises the card');
     assert.equal(g0,p0,k+': nothing learned, gate = card'); assert.equal(g1,p0,k+': talents learned, gate = the card with nothing learned');
     assert.ok(p1>p0,k+': the build raises the card'); assert.equal(p1again,p1,k+': the gate call leaves the card as it was');
     const su=mkUser(NEW_ON,[{key:k,level:100,build:b}]); assert.equal(NEW_ON.heroGatePower(su,k),g1,k+': page gate = server gate (one power)'); }

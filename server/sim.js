@@ -175,13 +175,15 @@ const ROLE_GROWTH={
 const TANK_HP_GROWTH={Attack:70, Magic:54};
 /* Returns a COPY of the hero base with every stat advanced to `lvl`. Heroes whose role is missing
    from the table fall back to the old 0.05/level multiplier so nothing can resolve to null. */
+/* v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks" / "thats at 100"; asked: the +1000 scales in with level, monsters and bosses double too): base HP x HP_MULT for heroes and monsters; every hero class but Tank also gets +HP_BONUS_L100 x (level-1)/99. Flat bonuses (glyphs, stars, Academy) are unchanged. MUST stay identical in emberweave-heroes.html and server/sim.js. */
+const HP_MULT=2, HP_BONUS_L100=1000;
 function baseAtLevel(b,lvl){
   const n=Math.max(0,((lvl|0)||1)-1), g=b.growth||ROLE_GROWTH[b.role];
   const o=Object.assign({},b);
   if(!g){ const s=1+0.05*n;
-    o.hp=(b.hp||0)*s; o.dmg=(b.dmg||0)*s; o.apow=(b.apow||0)*s; o.armor=(b.armor||0)*s; o.mr=(b.mr||0)*s; return o; }
+    o.hp=(b.hp||0)*s*HP_MULT; o.dmg=(b.dmg||0)*s; o.apow=(b.apow||0)*s; o.armor=(b.armor||0)*s; o.mr=(b.mr||0)*s; return o; }
   const gh=(b.role==='Tank'&&TANK_HP_GROWTH[b.damageProfile]!=null)?TANK_HP_GROWTH[b.damageProfile]:g.hp;
-  o.hp=(b.hp||0)+gh*n; o.dmg=(b.dmg||0)+g.dmg*n; o.apow=(b.apow||0)+g.apow*n;
+  o.hp=((b.hp||0)+gh*n)*HP_MULT+(b.role!=='Tank'?HP_BONUS_L100*Math.min(99,n)/99:0); o.dmg=(b.dmg||0)+g.dmg*n; o.apow=(b.apow||0)+g.apow*n;
   o.armor=(b.armor||0)+g.armor*n; o.mr=(b.mr||0)+g.mr*n; return o;
 }
 

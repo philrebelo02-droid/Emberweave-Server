@@ -62,7 +62,10 @@ const PORT=process.env.PORT||8871;
     // CLIENT-side displayed HP/ATK exactly as makeUnit computes them (v232: NO rank multipliers)
     const mm=heroMuls('vael'); const ht=HERO_TYPES['vael']; const lvl=heroLevel('vael');
     const scale=1+0.05*(lvl-1); const sm=starMult('vael');
-    const expHp=ht.hp*scale*mm.hp*sm + heroFlatHp('vael')+techFlat('hp');
+    /* v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks" / "thats at 100"; branch v1397-hp):
+       the base HP line is the client's own heroStat (baseAtLevel: base + growth, x HP_MULT, + the non-Tank level bonus), as makeUnit and the hero
+       panel use it - this hand copy (ht.hp x the old 0.05/level curve) matched only while that line was the raw ht.hp at Lv 1 (server 1244 vs 844). */
+    const expHp=heroStat('vael',ht.hp,'hp')*mm.hp + heroFlatHp('vael')+techFlat('hp');
     const expAtk=ht.dmg*scale*mm.atk*sm + heroFlatAtk('vael')+techFlat('atk');
     return {tot,exp,snap,clientSkillSlot:gs&&gs.slot,
       board6:bd.slots.every(x=>x&&x.locked), oneOption:(soN.options||[]).length===1,

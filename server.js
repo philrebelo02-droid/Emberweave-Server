@@ -2298,7 +2298,8 @@ const VAULT_HERO_XP_PER_FLOOR=30;
    The authored Vault recommendedPower is on the OLD campaign scale - measured 3 Oct (Open Projects/AUDIT 02OCT2026 - Vault Well Hut Trials/
    VAULT POWER SCALE MEASUREMENT 03OCT2026): card/old = 3.14 median and real squads start winning at 0.75-1.26x of rec x 3.0908 - so it is put
    on the card scale with the same factor the campaign uses (CAMP_POWER_SCALE). */
-const VAULT_POWER_SCALE=3.0908, VAULT_UNDERPOWER_RATIO=0.80;
+/* v1399 (Phil 17 Nov: rescale fixed power gates and recommended power "by the average factor" so they feel the same as today): the HP rule (base HP x2, +1000 by Lv 100 for non-Tanks) raises a typical card x1.096 on average (61 heroes, Lv 10-100, stars/gear/glyph board/skills rising with level: x1.13 at Lv 10 .. x1.06 at Lv 100; bare heroes x1.26-1.39), so every fixed gate is x1.096 too: the Vault's card-scale recommendation (the 80% review line) is x1.096 - floor 50: 47793 -> 52381. */
+const VAULT_POWER_SCALE=3.0908*1.096, VAULT_UNDERPOWER_RATIO=0.80;
 function vaultRecommendedCardPower(floor){ try{ return Math.round(((vaultFloorRecord(floor)||{}).recommendedPower||0)*VAULT_POWER_SCALE); }catch(e){ return 0; } }
 /* 14 Nov 2026 (WIRING/41d): `power` is the card (what the review report shows); `gate` is the talent-less card the underpower review
    compares with the authored recommendation (vaultReviewSquadPower), so switching talents on files no more and no fewer reviews by number. */
@@ -5502,7 +5503,7 @@ const EARN_RULES={
    = the client's towerReq() (POWER_SCALE 1.4276, Elite x1.3), floor reward = towerFloorReward(), tribute =
    towerTribute(), tribute day = arenaDayKey() (New York date at 09:00). Power = ledgerTeamPower(), the card
    sum of the chosen five (RULE 26 - one power). Nothing a player earns per floor changed. */
-const TOWER_POWER_SCALE=1.4276;   /* = the client's POWER_SCALE (v809). Change both or neither. */
+const TOWER_POWER_SCALE=1.4276*1.096;   /* = the client's POWER_SCALE (v809). Change both or neither. v1399: x1.096 (the HP rule's average card factor - see the client's POWER_SCALE) */
 function towerReqS(f){ let r=Math.round(560*Math.pow(1.185,f-1)*TOWER_POWER_SCALE); if(f%5===0)r=Math.round(r*1.3); return r; }
 function towerFloorPay(f){ let gold=Math.round(400*f*Math.pow(1.08,f)); if(gold>190000)gold=190000; if(f%2===0)gold+=200+f*25; if(gold>200000)gold=200000;
   return {gold, gems:(f%10===0)?Math.round(f*1.5):0}; }
@@ -5521,7 +5522,7 @@ function towerBenchPower(u,opt){ const led=u.led||{}; const ps=Object.keys(led.u
 function towerSquadPower(u){ return ledgerTeamPower(u,NO_TALENTS); }
 /* 14 Nov 2026 (WIRING/41d): the world mine march gate (/api/world/mine/start) - refuses a squad below this, before the real fight.
    = the page's mineReqPower (POWER_SCALE 1.4276); the page's gate reads its talent-less card too (heroGatePower). */
-function mineNeedPower(level){ return Math.round(300*Math.pow(1.75,level-1)*1.4276); }
+function mineNeedPower(level){ return Math.round(300*Math.pow(1.75,level-1)*(1.4276*1.096)); }   /* v1399: x1.096 with the client's POWER_SCALE (the HP rule) - L1-L5 469/821/1438/2516/4402 */
 function mineSquadPower(u,ids){ return ids.reduce((sum,k)=>sum+heroGatePower(u,k),0); }
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
@@ -9327,7 +9328,8 @@ async function api(req,res,url){
        exactly as written and the number is put on the card's scale as it is served. Measured across
        the roster and nine levels, a card reads 3.0908x what that old campaign formula read
        (`Pipeline tools/power-scale.js`), so a stage stands where it was authored to stand. */
-    const CAMP_POWER_SCALE=3.0908;
+    /* v1399 (Phil 17 Nov: rescale fixed power gates and recommended power "by the average factor" so they feel the same as today): the HP rule (base HP x2, +1000 by Lv 100 for non-Tanks) raises a typical card x1.096 on average (61 heroes, Lv 10-100, stars/gear/glyph board/skills rising with level: x1.13 at Lv 10 .. x1.06 at Lv 100; bare heroes x1.26-1.39), so every fixed gate is x1.096 too: the authored stages are left as written and served x1.096 (1-1 .. 16-10 alike). */
+    const CAMP_POWER_SCALE=3.0908*1.096;
     const stOut=Object.assign({},st);
     if(stOut.recommendedPower) stOut.recommendedPower=Math.round(stOut.recommendedPower*CAMP_POWER_SCALE);
     return send(res,200,{stage:stOut, mode, portal:PORTAL_LABEL[mode], yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,

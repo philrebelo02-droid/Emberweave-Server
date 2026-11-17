@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"第{n}/3队 · 第1队阵亡后出战 · 最多 {k} 名英雄",
 "roster.wall_sub_last":"第{n}/3队 · 最后出战 · 最多 {k} 名英雄",
 "roster.vault_sub":"前 {n} 名出战——其余在出战英雄阵亡时上场（最多共 {m} 名）",
-"roster.raid_sub":"前 {n} 名挑战首领——其余在阵亡时依次上场 · 90秒 · 所有伤害都计入",
+"roster.raid_sub":"前 {n} 名挑战首领——其余在阵亡时依次上场 · 180秒 · 所有伤害都计入",
 "roster.prov_title":"{name}——关卡 {n}",
 "roster.prov_sub":"首领：{boss} · 3波 · 奖励 {reward} · 失败无任何损失",
 "roster.well_title":"无星之井——地图 {n}",

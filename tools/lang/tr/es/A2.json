@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"Línea {n} de 3 · lucha si cae la línea 1 · hasta {k} héroes",
 "roster.wall_sub_last":"Línea {n} de 3 · lucha la última · hasta {k} héroes",
 "roster.vault_sub":"Los primeros {n} luchan: el resto entra cuando cae un luchador (hasta {m} en total)",
-"roster.raid_sub":"Los primeros {n} luchan contra el jefe: el resto entra cuando caen · 90 segundos · todo el daño cuenta",
+"roster.raid_sub":"Los primeros {n} luchan contra el jefe: el resto entra cuando caen · 180 segundos · todo el daño cuenta",
 "roster.prov_title":"{name}: FASE {n}",
 "roster.prov_sub":"Jefe: {boss} · 3 oleadas · recompensa {reward} · perder no cuesta nada",
 "roster.well_title":"EL POZO SIN ESTRELLAS: MAPA {n}",

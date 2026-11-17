@@ -30,12 +30,18 @@ const hp=async(k,tok)=>{ const s=await call('/api/admin/snapshot?hero='+k,null,t
   const after=JSON.parse(fs.readFileSync(dbFile,'utf8')).users[id].glyphs.boards.grosk.ascended.HP.val;
   ok(after<20000,'a board banked under the old Bastion path is recomputed at boot (HP banked '+after+')');
   const H={}; for(const k of keys) H[k]=await hp(k,tok);
-  ok(H.grosk>=21000&&H.grosk<=23000&&H.vael>=21000&&H.vael<=23000,'melee tanks are about 22k at max (grosk '+H.grosk+', vael '+H.vael+')');
-  ok(H.bloatus>=17000&&H.bloatus<=19000&&H.ambrel>=17000&&H.ambrel<=19000,'magic tanks are about 18k at max (bloatus '+H.bloatus+', ambrel '+H.ambrel+')');
+  /* v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks" / "thats at 100"; branch v1397-hp):
+     base HP (base + level growth) x2, flat glyph / star HP unchanged, no +1000 for Tanks. At Lv 100 that adds the base line once more:
+     grosk 620+70x99 = 7550 (21289 -> 28839), vael 400+70x99 = 7330 (21069 -> 28399), bloatus 540+54x99 = 5886, ambrel 620+54x99 = 5966.
+     So the v1019 targets (melee ~22k, magic ~18k) move to ~29k / ~24.7k; the bands keep their 2k width. */
+  ok(H.grosk>=28000&&H.grosk<=30000&&H.vael>=28000&&H.vael<=30000,'melee tanks are about 29k at max (v1019 22k + v1397 base x2) (grosk '+H.grosk+', vael '+H.vael+')');
+  ok(H.bloatus>=23700&&H.bloatus<=25700&&H.ambrel>=23700&&H.ambrel<=25700,'magic tanks are about 24.7k at max (v1019 18k + v1397 base x2) (bloatus '+H.bloatus+', ambrel '+H.ambrel+')');
   // v1022 balance layer 1 (Phil "Balance looks good") raised the squishies' HP growth on purpose; v1370 (flat star track, full mythical) re-measured
   // the other classes at max: astra 15306, grimsby 16587, yenna 15349, lumi 15314 (were 11517 / 13940 / 11619 / 11552 at 5 stars x1.9). +-5%.
   const near=(v,x)=>v>=x*0.95&&v<=x*1.05;
-  ok(near(H.astra,15306)&&near(H.grimsby,16587)&&near(H.yenna,15349)&&near(H.lumi,15314),'other classes hold their v1370 HP at max ('+JSON.stringify({astra:H.astra,grimsby:H.grimsby,yenna:H.yenna,lumi:H.lumi})+')');
+  /* v1397 (Phil 17 Nov, as above): non-Tanks get their Lv 100 base line again plus 1000 - astra 180+23x99+1000 = +3457, grimsby 360+34x99+1000 = +4726,
+     yenna 245+23x99+1000 = +3522, lumi 210+23x99+1000 = +3487 (measured 17 Nov: exactly 18763 / 21313 / 18871 / 18801) */
+  ok(near(H.astra,15306+3457)&&near(H.grimsby,16587+4726)&&near(H.yenna,15349+3522)&&near(H.lumi,15314+3487),'other classes hold their v1370 HP at max, + v1397 base x2 and +1000 ('+JSON.stringify({astra:H.astra,grimsby:H.grimsby,yenna:H.yenna,lumi:H.lumi})+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_tank_hp.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

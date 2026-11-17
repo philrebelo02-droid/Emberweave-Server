@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"隊列 {n}/3 · 隊列1が倒れたら戦う · 最大{k}人",
 "roster.wall_sub_last":"隊列 {n}/3 · 最後に戦う · 最大{k}人",
 "roster.vault_sub":"最初の{n}人が戦い、残りは出撃メンバーが倒れると交代します（合計最大{m}人）",
-"roster.raid_sub":"最初の{n}人がボスと戦い、残りは倒れるたびに交代 · 90秒 · 与えたダメージはすべて加算",
+"roster.raid_sub":"最初の{n}人がボスと戦い、残りは倒れるたびに交代 · 180秒 · 与えたダメージはすべて加算",
 "roster.prov_title":"{name} — ステージ{n}",
 "roster.prov_sub":"ボス: {boss} · 3ウェーブ · 報酬 {reward} · 敗北しても何も失いません",
 "roster.well_title":"星なき井戸 — マップ{n}",

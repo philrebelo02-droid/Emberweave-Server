@@ -345,7 +345,7 @@
 "roster.wall_sub_second":"Barisan {n} dari 3 · bertarung jika barisan 1 jatuh · hingga {k} pahlawan",
 "roster.wall_sub_last":"Barisan {n} dari 3 · bertarung terakhir · hingga {k} pahlawan",
 "roster.vault_sub":"{n} pertama bertarung — sisanya masuk saat petarung gugur (total hingga {m})",
-"roster.raid_sub":"{n} pertama melawan bos — sisanya masuk saat mereka gugur · 90 detik · semua kerusakan dihitung",
+"roster.raid_sub":"{n} pertama melawan bos — sisanya masuk saat mereka gugur · 180 detik · semua kerusakan dihitung",
 "roster.prov_title":"{name} — TAHAP {n}",
 "roster.prov_sub":"Bos: {boss} · 3 gelombang · hadiah {reward} · kalah tidak memakan apa pun",
 "roster.well_title":"SUMUR TANPA BINTANG — PETA {n}",

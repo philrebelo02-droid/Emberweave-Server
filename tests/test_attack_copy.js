@@ -92,6 +92,10 @@ function brokenTree(name, intact) {
   for (const f of ['server.js', ...fs.readdirSync(path.join(R.root, 'server')).filter(n => /\.js$/.test(n)).map(n => 'server/' + n)]) fs.copyFileSync(path.join(R.root, f), path.join(dir, f));   // this tree's code, whatever is committed (v1128: every server module - store-io.js is new)
   fs.symlinkSync(path.join(R.root, 'assets'), path.join(dir, 'assets'), 'junction');
   { const g = path.join(dir, 'emberweave-heroes.html'); fs.writeFileSync(g, require('./helpers/global-1254-1260.js').undoText(fs.readFileSync(path.join(R.root, 'emberweave-heroes.html'), 'utf8'))); }
+  { /* v1397 (Phil 17 Nov: "raise the base health of all classes now" / "everyone double + 1000 for everyone but tanks" / "thats at 100"; branch v1397-hp):
+       the HP rule also lives in server/sim.js (the server's snapshots) - undone there like the page, so the fights still compare with 59eaefba;
+       tests/test_tank_hp.js and tests/test_parity_harness.js check v1397 itself */
+    const p = path.join(dir, 'server/sim.js'); fs.writeFileSync(p, require('./helpers/global-1254-1260.js').hp1397Back(fs.readFileSync(p, 'utf8'))); }
   { /* v1370 (Phil 11 Nov, approved): stars are flat stats, not a multiplier - the old star rule is put back in this copy (page, sim, spec) so the
        fights still compare with 59eaefba; tests/test_refine_mythical_1369.js checks the star track itself */
     const U = require('./helpers/star-track-undo-1370.js'), ed = (f, fn) => { const p = path.join(dir, f); fs.writeFileSync(p, fn(fs.readFileSync(p, 'utf8'))); };

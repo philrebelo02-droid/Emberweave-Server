@@ -26,6 +26,11 @@ try { fs.mkdirSync(path.join(BD, 'server'));
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = baseOk ? load(path.join(BD, 'emberweave-heroes.html')) : null;
 const runNoReach = load(require('./helpers/global-1254-1260').reach1391Page(HTML));   // v1391: the skill reach fixes backed out, for the checks they would otherwise move
+/* v1399 (Phil 17 Nov: "everyone double + 1000 for everyone but tanks" / "all battles should be 3 minutes to time out now, not 90 seconds"): every body lasts
+   about twice as long and a wave runs to 180 s, so the whole-fight "nothing else moved" check also backs out the HP rule and the 180 s limit (hp1397Back) */
+const _GH = require('./helpers/global-1254-1260'), _nrhp = path.join(path.dirname(HTML), '.test-kit1389-nrhp-' + process.pid + '.html');
+fs.writeFileSync(_nrhp, _GH.hp1397Back(_GH.reach1391Back(fs.readFileSync(HTML, 'utf8')))); process.on('exit', () => { try { fs.unlinkSync(_nrhp); } catch (e) {} });
+const runNoReachHp = load(_nrhp);
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok   ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
 const J = (r, s) => JSON.parse(r(s));
@@ -121,7 +126,7 @@ try {
 
   // ---------- nothing else moved ----------
   for (const [s, a, f] of [[7, ['vael', 'sylthaine', 'vex'], ['grosk', 'nox', 'lumi']], [21, ['astra', 'hobb', 'vireo'], ['kharos', 'quorrel', 'veyr']]]) {
-    const x = FIGHT(runNoReach, s, a, f, false), y = FIGHT(R0, s, a, f, false);   // v1391: the later skill reach fixes (A: no stale aim on Green/Blue casts) backed out, they are not v1389's
+    const x = FIGHT(runNoReachHp, s, a, f, false), y = FIGHT(R0, s, a, f, false);   // v1391: the later skill reach fixes (A: no stale aim on Green/Blue casts) backed out, they are not v1389's
     ck('a fight with none of the touched kits (' + a.join('/') + ' v ' + f.join('/') + ', seed ' + s + ') is tick-identical to the pre-fix page', x.h === y.h, x.h + ' vs ' + y.h); }
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log((fail ? 'FAIL' : 'PASS') + ': ' + pass + ' passed, ' + fail + ' failed');

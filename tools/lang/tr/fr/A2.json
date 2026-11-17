@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"Ligne {n} sur 3 · combat si la ligne 1 tombe · jusqu’à {k} héros",
 "roster.wall_sub_last":"Ligne {n} sur 3 · combat en dernier · jusqu’à {k} héros",
 "roster.vault_sub":"Les {n} premiers combattent — les autres entrent en jeu quand un combattant tombe ({m} au total max)",
-"roster.raid_sub":"Les {n} premiers affrontent le boss — les autres prennent le relais à leur chute · 90 secondes · tous les dégâts comptent",
+"roster.raid_sub":"Les {n} premiers affrontent le boss — les autres prennent le relais à leur chute · 180 secondes · tous les dégâts comptent",
 "roster.prov_title":"{name} — NIVEAU {n}",
 "roster.prov_sub":"Boss : {boss} · 3 vagues · récompense {reward} · une défaite ne coûte rien",
 "roster.well_title":"LE PUITS SANS ÉTOILES — CARTE {n}",
