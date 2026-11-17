@@ -1,0 +1,11 @@
+{
+  "tables": [
+    {
+      "expr": "HERO_TYPES",
+      "fields": [
+        "abilityName"
+      ],
+      "area": "skill_name"
+    }
+  ]
+}
