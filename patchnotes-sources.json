@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.5.85", "releases": "v1395", "items": [{"text": "Soul Eater 16 Nov (via Phil: \"can you handle those tester suggestions?\" / \"push it after the fix for the tester\") (SHIPPED-v1395)"}]},
     {"ver": "1.5.84", "releases": "v1394", "items": [{"text": "Phil 16 Nov: \"declaring war is meant to take 30 minutes to be able to attack someone\" / \"the timer should be on the attack button telling me when i can attack\" (SHIPPED-v1394)"}]},
     {"ver": "1.5.83", "releases": "v1393", "items": [{"text": "Phil 16 Nov: \"think you broke mines in region\" / \"i have zero within 20 minutes of me\" (SHIPPED-v1393)"}]},
     {"ver": "1.5.82", "releases": "v1392", "items": [{"text": "Soul Eater 16 Nov via Phil: \"build both and push together\" / \"please make the Attack button at the top\" (e86f5eaee)"}, {"text": "Phil 16 Nov: attack screen revamp on his Select Heroes reference, ChatGPT v5 art (SHIPPED-v1392 'Attack screen')"}, {"text": "Soul Eater 16 Nov mine levels; Phil: \"increase the mine levels amount\" / \"per region\" / \"wild has higher level ones\" (SHIPPED-v1392 'Mine field')"}, {"text": "Soul Eater 16 Nov Well CLEARED banner idea (SHIPPED-v1392 'Well')"}]},
