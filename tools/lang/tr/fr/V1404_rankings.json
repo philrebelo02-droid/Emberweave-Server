@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "Étape la plus avancée",
+  "bb.metric_vault": "Étage le plus élevé",
+  "bb.metric_arena": "Puissance de l’équipe",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "Premières places",
+  "bb.mode_guildraid": "Raid de guilde",
+  "bb.metric_guildraid": "Contribution de la guilde",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "Classement saisonnier de la guilde",
+  "bb.mode_spire": "Flèche",
+  "bb.metric_spire": "Progression dans la Flèche de l’essaim",
+  "bb.mode_bonus": "Étapes bonus",
+  "bb.metric_bonus": "Étapes distinctes terminées",
+  "bb.metric_power": "Puissance des cinq meilleures cartes de héros",
+  "bb.mode_guilds": "Guildes",
+  "bb.metric_guilds": "Niveau et membres",
+  "bb.mode_journal": "Journal",
+  "bb.metric_journal": "Jalons atteints"
+}

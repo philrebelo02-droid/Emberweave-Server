@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "最远关卡",
+  "bb.metric_vault": "最高层数",
+  "bb.metric_arena": "队伍战力",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "夺冠次数",
+  "bb.mode_guildraid": "公会突袭",
+  "bb.metric_guildraid": "公会贡献",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "公会赛季排名",
+  "bb.mode_spire": "尖塔",
+  "bb.metric_spire": "虫群尖塔进度",
+  "bb.mode_bonus": "奖励关卡",
+  "bb.metric_bonus": "已通关的不同关卡数",
+  "bb.metric_power": "前五张英雄卡的战力",
+  "bb.mode_guilds": "公会",
+  "bb.metric_guilds": "等级和成员",
+  "bb.mode_journal": "日志",
+  "bb.metric_journal": "已达成的里程碑"
+}

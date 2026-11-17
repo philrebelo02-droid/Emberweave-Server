@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "ด่านที่ไปได้ไกลที่สุด",
+  "bb.metric_vault": "ชั้นสูงสุด",
+  "bb.metric_arena": "พลังทีม",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "จำนวนครั้งที่ได้ที่หนึ่ง",
+  "bb.mode_guildraid": "กิลด์เรด",
+  "bb.metric_guildraid": "ผลงานของกิลด์",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "อันดับกิลด์ในฤดูกาล",
+  "bb.mode_spire": "หอคอย",
+  "bb.metric_spire": "ความคืบหน้าในหอคอยฝูงอสูร",
+  "bb.mode_bonus": "ด่านโบนัส",
+  "bb.metric_bonus": "จำนวนด่านที่ผ่านแบบไม่นับซ้ำ",
+  "bb.metric_power": "พลังของการ์ดฮีโร่ห้าอันดับแรก",
+  "bb.mode_guilds": "กิลด์",
+  "bb.metric_guilds": "เลเวลและสมาชิก",
+  "bb.mode_journal": "บันทึก",
+  "bb.metric_journal": "เป้าหมายที่ทำสำเร็จ"
+}

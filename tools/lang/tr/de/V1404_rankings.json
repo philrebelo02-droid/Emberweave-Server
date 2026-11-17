@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "Weiteste Etappe",
+  "bb.metric_vault": "Höchste Ebene",
+  "bb.metric_arena": "Teamstärke",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "Erste Plätze",
+  "bb.mode_guildraid": "Gildenraid",
+  "bb.metric_guildraid": "Gildenbeitrag",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "Saisonplatzierung der Gilde",
+  "bb.mode_spire": "Turm",
+  "bb.metric_spire": "Fortschritt im Schwarmturm",
+  "bb.mode_bonus": "Bonus-Etappen",
+  "bb.metric_bonus": "Abgeschlossene unterschiedliche Etappen",
+  "bb.metric_power": "Stärke der fünf besten Heldenkarten",
+  "bb.mode_guilds": "Gilden",
+  "bb.metric_guilds": "Stufe und Mitglieder",
+  "bb.mode_journal": "Tagebuch",
+  "bb.metric_journal": "Erreichte Meilensteine"
+}

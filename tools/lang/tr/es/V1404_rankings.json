@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "Fase más avanzada",
+  "bb.metric_vault": "Piso más alto",
+  "bb.metric_arena": "Poder del equipo",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "Primeros puestos",
+  "bb.mode_guildraid": "Incursión de gremio",
+  "bb.metric_guildraid": "Contribución del gremio",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "Posición del gremio en la temporada",
+  "bb.mode_spire": "Torre",
+  "bb.metric_spire": "Progreso en la Torre del Enjambre",
+  "bb.mode_bonus": "Fases adicionales",
+  "bb.metric_bonus": "Fases distintas superadas",
+  "bb.metric_power": "Poder de las cinco mejores cartas de héroe",
+  "bb.mode_guilds": "Gremios",
+  "bb.metric_guilds": "Nivel y miembros",
+  "bb.mode_journal": "Diario",
+  "bb.metric_journal": "Hitos completados"
+}

@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "최고 도달 스테이지",
+  "bb.metric_vault": "최고 도달 층",
+  "bb.metric_arena": "팀 전투력",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "1위 횟수",
+  "bb.mode_guildraid": "길드 레이드",
+  "bb.metric_guildraid": "길드 기여도",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "길드 시즌 순위",
+  "bb.mode_spire": "첨탑",
+  "bb.metric_spire": "군단 첨탑 진행도",
+  "bb.mode_bonus": "보너스 스테이지",
+  "bb.metric_bonus": "클리어한 서로 다른 스테이지 수",
+  "bb.metric_power": "상위 영웅 카드 5장의 전투력",
+  "bb.mode_guilds": "길드",
+  "bb.metric_guilds": "레벨 및 인원",
+  "bb.mode_journal": "일지",
+  "bb.metric_journal": "달성한 이정표"
+}

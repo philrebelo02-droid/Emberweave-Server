@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "最遠到達ステージ",
+  "bb.metric_vault": "最高到達階",
+  "bb.metric_arena": "チーム戦力",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "優勝回数",
+  "bb.mode_guildraid": "ギルドレイド",
+  "bb.metric_guildraid": "ギルド貢献度",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "ギルドのシーズン順位",
+  "bb.mode_spire": "尖塔",
+  "bb.metric_spire": "群れの尖塔の進行度",
+  "bb.mode_bonus": "ボーナスステージ",
+  "bb.metric_bonus": "クリアしたステージの種類数",
+  "bb.metric_power": "上位5枚の英雄カードの戦力",
+  "bb.mode_guilds": "ギルド",
+  "bb.metric_guilds": "レベルとメンバー数",
+  "bb.mode_journal": "記録",
+  "bb.metric_journal": "達成済みの節目"
+}

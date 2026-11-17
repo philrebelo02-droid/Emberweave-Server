@@ -1,0 +1,20 @@
+{
+  "bb.metric_campaign": "最遠關卡",
+  "bb.metric_vault": "最高樓層",
+  "bb.metric_arena": "隊伍戰力",
+  "bb.mode_emberdraft": "Emberdraft",
+  "bb.metric_emberdraft": "奪冠次數",
+  "bb.mode_guildraid": "公會突襲",
+  "bb.metric_guildraid": "公會貢獻",
+  "bb.mode_skyfall": "Skyfall",
+  "bb.metric_skyfall": "公會賽季排名",
+  "bb.mode_spire": "尖塔",
+  "bb.metric_spire": "蟲群尖塔進度",
+  "bb.mode_bonus": "獎勵關卡",
+  "bb.metric_bonus": "已通關的不同關卡數",
+  "bb.metric_power": "前五張英雄卡的戰力",
+  "bb.mode_guilds": "公會",
+  "bb.metric_guilds": "等級和成員",
+  "bb.mode_journal": "日誌",
+  "bb.metric_journal": "已達成的里程碑"
+}
