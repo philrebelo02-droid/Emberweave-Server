@@ -381,7 +381,7 @@ const myBlU=(s,f)=>(f.dots||[]).some(d=>d._talO===s.uid&&d._talK==='bl'&&d.remai
 /* The page sites his talents added (the banked miss, before and after it; nearestEnemy's two tests; Vanishing Point's strike: its target, its fall-off, its HP
    line, landPre / land; the bleed stack, its rupture threshold, partPre / part around the rupture): with nothing learned, whole seeded fights with Hollow in the
    line-up are identical to the pre-talent page (ee8edab8), seed by seed. The counters are also the base-skill measure of the report. */
-const BASE_SHA=process.env.TALENT_BASE||'ee8edab85c45b52cf17c71c5e4890e03deb753bc';
+const BASE_SHA=process.env.TALENT_BASE||'9f1c2762f837a56a68e9315f7c0cab83a9f8ea2f';
 function baseHost(){ const SH=require(path.join(root,'server/sim-host.js')), dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-talent-base-')); TMP.push(dir);
   fs.writeFileSync(path.join(dir,'emberweave-heroes.html'),cp.execFileSync('git',['-C',root,'show',BASE_SHA+':emberweave-heroes.html'],{maxBuffer:1<<28}));
   for(const f of fs.readdirSync(root)) if(/\.(js|json)$/.test(f)&&!/^talents/.test(f)&&fs.statSync(path.join(root,f)).isFile()&&fs.statSync(path.join(root,f)).size<5e6) fs.copyFileSync(path.join(root,f),path.join(dir,f));

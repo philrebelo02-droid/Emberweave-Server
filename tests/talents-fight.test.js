@@ -5,7 +5,7 @@
    Run: node --test tests/talents-fight.test.js */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process');
 const root=path.resolve(__dirname,'..'),SH=require(path.join(root,'server/sim-host.js')),T=require(path.join(root,'talents.js')),FX=require(path.join(root,'talents-fx.js'));
-const BASE_SHA=process.env.TALENT_BASE||'ee8edab85c45b52cf17c71c5e4890e03deb753bc';
+const BASE_SHA=process.env.TALENT_BASE||'9f1c2762f837a56a68e9315f7c0cab83a9f8ea2f';
 /* a checkout-shaped temp folder holding the BASE page next to this checkout's other files (sim-host loads the page's local scripts from the page's folder) */
 function baseHost(){ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-talent-base-'));
   const page=cp.execFileSync('git',['-C',root,'show',BASE_SHA+':emberweave-heroes.html'],{maxBuffer:1<<28});

@@ -14,7 +14,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),vm=require('node:vm'),cp=require('node:child_process'),Module=require('node:module');
 const root=path.resolve(__dirname,'..'),T=require(path.join(root,'talents.js')),FX=require(path.join(root,'talents-fx.js')),SIM=require(path.join(root,'server/sim.js')),SH=require(path.join(root,'server/sim-host.js'));
 const WELL=require(path.join(root,'server/starless-well.js'));
-const BASE_SHA=process.env.TALENT_BASE||'ee8edab85c45b52cf17c71c5e4890e03deb753bc';
+const BASE_SHA=process.env.TALENT_BASE||'9f1c2762f837a56a68e9315f7c0cab83a9f8ea2f';
 const dirs=[]; process.on('exit',()=>{ for(const d of dirs) try{ fs.rmSync(d,{recursive:true,force:true}); }catch(e){} });
 
 /* ---- server.js in-process: the real file in a wrapper (no port, no timers, a throwaway world). flag = the TALENTS_ENABLED switch ---- */

@@ -362,7 +362,7 @@ test('Rivet: the mechanics act in a live fight, and whole fights are determinist
 /* The page sites his talents added (the weapon pick, the attack record and the blows around it, the hook's record and blows, a weapon control's length, the cannon's
    cone, the hook's reach, and the bound rvFire): with nothing learned, whole seeded fights with Rivet in the line-up are identical to the pre-talent page (ee8edab8),
    seed by seed. The counters are also the base-skill measure of the report. */
-const BASE_SHA=process.env.TALENT_BASE||'ee8edab85c45b52cf17c71c5e4890e03deb753bc';
+const BASE_SHA=process.env.TALENT_BASE||'9f1c2762f837a56a68e9315f7c0cab83a9f8ea2f';
 function baseHost(){ const SH=require(path.join(root,'server/sim-host.js')), dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-talent-base-')); TMP.push(dir);
   fs.writeFileSync(path.join(dir,'emberweave-heroes.html'),cp.execFileSync('git',['-C',root,'show',BASE_SHA+':emberweave-heroes.html'],{maxBuffer:1<<28}));
   for(const f of fs.readdirSync(root)) if(/\.(js|json)$/.test(f)&&!/^talents/.test(f)&&fs.statSync(path.join(root,f)).isFile()&&fs.statSync(path.join(root,f)).size<5e6) fs.copyFileSync(path.join(root,f),path.join(dir,f));

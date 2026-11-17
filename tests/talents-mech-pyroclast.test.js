@@ -353,7 +353,7 @@ test('Pyroclast: the page lines her talents added are reached - Crownfire\'s at,
 
 /* With nothing learned, whole seeded fights with Pyroclast in the line-up are identical to the pre-talent page (ee8edab8), seed by seed, and reach every page site her
    talents added: Crownfire's case, Blazing Orbit's push, Rising Heat at her swing, a delivered skill's launch. */
-const BASE_SHA=process.env.TALENT_BASE||'ee8edab85c45b52cf17c71c5e4890e03deb753bc';
+const BASE_SHA=process.env.TALENT_BASE||'9f1c2762f837a56a68e9315f7c0cab83a9f8ea2f';
 function baseHost(){ const SH=require(path.join(root,'server/sim-host.js')), dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-talent-base-'));
   fs.writeFileSync(path.join(dir,'emberweave-heroes.html'),cp.execFileSync('git',['-C',root,'show',BASE_SHA+':emberweave-heroes.html'],{maxBuffer:1<<28}));
   for(const f of fs.readdirSync(root)) if(/\.(js|json)$/.test(f)&&!/^talents/.test(f)&&fs.statSync(path.join(root,f)).isFile()&&fs.statSync(path.join(root,f)).size<5e6) fs.copyFileSync(path.join(root,f),path.join(dir,f));
