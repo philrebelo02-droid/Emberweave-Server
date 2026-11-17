@@ -2981,7 +2981,6 @@ body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none
 /* v1322 (Phil 9 Nov: "Make it have 5 columns now" / "Rows of 5"): the Heroes list shows 5 cards a row; its centred window widens to keep the cards their size */
 #heroList{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 #heroesPanel.popout,#heroDetail.popout{width:min(560px,96%)!important}
-#heroDetail.popout.tl-short{width:min(700px,96%)!important}   /* v1400 (Phil 17 Nov: "I like the icon sizes of the ones cut off" / "Can you use those icon sizes and make the panel larger"): a phone held sideways - the Talents tab widens the hero panel so the four columns fit at the big size */
 /* v1378 (Phil 12 Nov: "Why is the right side cut off" / "Of the pop outs"): the centred Heroes and hero windows kept the docked pop-out's frame with NO right border (border-width 6px 0 6px 6px) - they get the frame on all four sides */
 #heroesPanel.popout,#heroDetail.popout{border-width:6px!important;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 22px stretch!important;box-shadow:0 18px 55px rgba(0,0,0,.65)!important}   /* v1324 (Phil 9 Nov: "Make the width of the heroes hero card the same as the hero panel") */
 .screen.popout > .ew-pinned-exits{position:sticky;top:-18px;min-height:44px;width:100%;flex-shrink:0;align-self:stretch;z-index:40;display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#11172a;}
