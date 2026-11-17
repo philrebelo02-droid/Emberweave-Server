@@ -32564,6 +32564,11 @@ function talentsWire(body,key){ const board=body.querySelector('#tlBoard'), host
   if(!TAL.rsz){ TAL.rsz=true; window.addEventListener('resize',()=>{ try{ if(heroTab!=='talents'||!detailHero||!document.getElementById('tlBoard')) return;
     if(talentsShort()!==TAL.short) renderHeroDetail(); else { talentsFit(); if(document.getElementById('tlCard')) talentTipPlace(); } }catch(e){} }); }
   if(!board){ talentTipHide(); talentTreeTipHide(); TAL.sel=null; TAL.ask=null; return; }
+  /* v1402 (Phil 17 Nov: "Found another bug" - the same board at the pop-out size on the full screen): the board was measured during the render, and the
+     window became pop-out / full screen only after it, so it kept the other mode's size. Now it re-measures whenever the space it sits in changes size
+     (pop-out <-> full screen, turning the phone, browser bars) - one size per window, whatever the path. */
+  if(typeof ResizeObserver==='function'){ if(!TAL.ro){ let q=0; TAL.ro=new ResizeObserver(()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; try{ if(document.getElementById('tlPw')) talentsFit(); }catch(e){} }); }); }
+    TAL.ro.disconnect(); const host=document.getElementById('heroDetail'); if(host) TAL.ro.observe(host); TAL.ro.observe(body); }
   talentsFit();
   { const sc=body.querySelector('#tlScroll'); if(sc&&TAL.keepScroll) sc.scrollTop=TAL.keepScroll; }
   talentTreeTipHide();
@@ -37329,7 +37334,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1794347088837';
+const BUILD_ID = '1794347088838';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
