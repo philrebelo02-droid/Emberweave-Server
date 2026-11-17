@@ -366,7 +366,7 @@ test('Aureth: no talents - whole fights with him in the line-up are identical to
     const fo=h=>JSON.parse(JSON.stringify(h.snapFromSpecs(foeTeam.map(k=>spec(k,68)))));
     for(const seed of [5,77,31337]){ const g=(h,x,y)=>JSON.stringify(h.auto(JSON.parse(JSON.stringify(x)),JSON.parse(JSON.stringify(y)),seed));
       assert.equal(g(NOW,a,fo(NOW)),g(BASE,b,fo(BASE)),'two-sided fight seed '+seed); assert.equal(g(NOW,fo(NOW),a),g(BASE,fo(BASE),b),'him on the other side, seed '+seed); n+=2; }
-    const c=VMX('__auN'); assert.ok(c.dark>100&&c.light>2*c.dark&&c.dual>0,'the fights drained in Dark stance ('+c.dark+'), regenerated in Light ('+(c.light-c.dark)+') and cast Duality ('+c.dual+'): every new site was run'); }
+    const c=VMX('__auN'); /* talents RC: the Light count was required to exceed the Dark count; after v1391's base changes the seeded fights split 19,067 Dark / 18,707 Light - the check is that BOTH sites ran */ assert.ok(c.dark>100&&c.light-c.dark>100&&c.dual>0,'the fights drained in Dark stance ('+c.dark+'), regenerated in Light ('+(c.light-c.dark)+') and cast Duality ('+c.dual+'): every new site was run'); }
   finally{ VMX('_doEffectCore=__auD; SKLV.twinfonts=__auS; dealDamage=__auC;'); }
   assert.ok(n>=18);
 });

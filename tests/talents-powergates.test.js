@@ -106,7 +106,7 @@ test('identity: every card is the card BASE gave; the gate number is the card wi
       assert.equal(NEW_ON.cardPower(c1,k),full); assert.equal(NEW_ON.cardPower(c1,k,false,{noTalents:true}),want,m+': cache, card first then gate');
       assert.equal(NEW_ON.cardPower(c2,k,false,{noTalents:true}),want); assert.equal(NEW_ON.cardPower(c2,k),full,m+': cache, gate first then card'); }
     n++; }
-  assert.ok(n>=39);
+  assert.ok(n===3*(Math.min(10,WIRED.length)+Math.min(3,UNWIRED.length))&&n>=30,'heroes checked: '+n);   /* talents RC: was n>=39 (10 wired + 3 unwired heroes x 3 levels); since Morvayne every hero is wired, so 30 */
 });
 
 test('tower: the Tower of Trials climb and its migration cap read the talent-less squad',async()=>{
