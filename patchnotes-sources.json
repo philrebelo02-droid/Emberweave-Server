@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.7.9", "releases": "v1409", "items": [{"text": "ChatGPT 17 Nov 16:3x-16:42 v1406-combat-dynamic + v1406-combat-conditional localization patches, merged onto v1408; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1409)"}]},
     {"ver": "1.7.8", "releases": "v1408", "items": [{"text": "ChatGPT 17 Nov 16:25-16:28 v1406-pending + v1406-combat-callouts + v1406-combat-callouts-final localization patches (rebased on v1406), merged onto v1407; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1408)"}]},
     {"ver": "1.7.7", "releases": "v1407", "items": [{"text": "ChatGPT 17 Nov 15:55-16:07 v1404-integrated + skyfall-lock + skyfall-schedule + residual-ui localization patches, stacked and merged onto v1406; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1407)"}]},
     {"ver": "1.7.6", "releases": "v1406", "items": [{"text": "ChatGPT 17 Nov 15:35-15:45 v1404-journal-tracks / v1404-affinities-complete / v1404-rewards-ui localization patches, merged by key; Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1406)"}]},
