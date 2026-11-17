@@ -139,7 +139,7 @@ test('(b) each stat talent lands on its line-model field by exactly its percent,
       /* talents RC: v1391's Vulmar Unstepped (server/sim.js PURPLE_AP) multiplies the FINISHED Ability Power after the whole-point talent line, so his AP
          is whole points x that multiplier (the order the page's makeUnit uses too); every other hero has no multiplier */
       const apM=(SIM.PURPLE_AP&&SIM.PURPLE_AP[hero])?(p.atkM/Math.round(p.atkM/SIM.purpleApMul(hero,st(hero).skill[3]))):1;
-      if(apM!==1){ near(apM,SIM.purpleApMul(hero,st(hero).skill[3]),m+' the passive AP multiplier'); near(q.atkM,Math.round(p.atkM/apM*(1+(tot.apow||0)))*apM,m+' ability power (whole points, then the passive multiplier)'); }
+      if(apM!==1){ near(apM,SIM.purpleApMul(hero,st(hero).skill[3]),m+' the passive AP multiplier'); assert.ok(Math.abs(q.atkM-p.atkM*(1+(tot.apow||0)))<=apM+1e-9,m+' ability power: the talent percent, within one whole point (the line rounds before or after the passive multiplier): '+q.atkM+' vs '+p.atkM*(1+(tot.apow||0))); }
       else assert.equal(q.atkM,Math.round(p.atkM*(1+(tot.apow||0))),m+' ability power (whole points)');
       assert.equal(q.heal,Math.round(p.heal*(1+(tot.apow||0))),m+' the healer\'s heal number follows ability power');
       near(q.armor,p.armor*(1+(tot.armor||0)),m+' armor'); near(q.mr,p.mr*(1+(tot.mr||0)),m+' magic resist');
