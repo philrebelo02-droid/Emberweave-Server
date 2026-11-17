@@ -32726,12 +32726,15 @@ function renderHeroDetail(){ try{ setTimeout(()=>ftutCheck('heroDetail'),350); }
   { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=async()=>{ sm.disabled=true;
       const summoned=await doSummon(key); if(summoned){ bannerMsg(uiIcon('sparkle-new')+' '+ewT('hero.summoned_at',{hero:t.name,stars:summonStars(key)+uiIcon('star-filled')})); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
       else { renderHeroDetail(); } }; }
-  /* v1400 (Phil 17 Nov: "When i click between tabs it shouldnt shoot to the top again"): switching tabs keeps the tab bar where it was on screen -
-     leaving the Talents tab (its short layout has no hero header) used to land on the hero card at the top with the tabs out of view */
-  body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ const host=document.getElementById('heroDetail'), y0=b.getBoundingClientRect().top;
+  /* v1400/v1401 (Phil 17 Nov: "When i click between tabs it shouldnt shoot to the top again" / "Tabs still bounce"): every tab switch puts the tab bar
+     at the same height - right under the pinned Heroes / close row, where the Talents tab has it - and a short tab gets enough height to scroll there */
+  body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ const host=document.getElementById('heroDetail');
     heroTab=b.dataset.tab; renderHeroDetail();
     const fix=()=>{ if(!host||host.classList.contains('tl-short')) return; const nb=document.querySelector('#heroDetailBody .hd-tab[data-tab="'+heroTab+'"]'); if(!nb) return;
-      const d=nb.getBoundingClientRect().top-y0; if(Math.abs(d)>1) host.scrollTop+=d; };
+      const pin=host.querySelector('.ew-pinned-exits'), hr=host.getBoundingClientRect(), top=(pin?pin.getBoundingClientRect().bottom:hr.top)+2;
+      const bar=nb.parentElement, tc=document.querySelector('#heroDetailBody .hd-tabcontent');
+      if(tc&&bar){ tc.style.minHeight=''; const need=hr.bottom-top-bar.getBoundingClientRect().height-8; if(tc.getBoundingClientRect().height<need) tc.style.minHeight=Math.ceil(need)+'px'; }
+      const d=nb.getBoundingClientRect().top-top; if(Math.abs(d)>1) host.scrollTop+=d; };
     fix(); requestAnimationFrame(fix); });
   talentsWire(body,key);
   { const lb=body.querySelector('#loreBtn'); if(lb){ loreBtnSync(lb); lb.onclick=()=>loreToggle(key,lb); if(_lore.a&&_lore.key===key){ const a=_lore.a; a.onplay=a.onpause=a.onended=()=>loreBtnSync(lb); } } }   // v1048 lore narration
