@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "이 저장된 매치는 더 이상 열려 있지 않습니다.",
+  "err.saved_match_invalid": "유효하지 않은 매치 저장 데이터입니다.",
+  "err.saved_match_older": "이 저장 데이터는 매치 시작 전의 것입니다.",
+  "err.match_already_ended": "이 매치는 이미 종료되었습니다.",
+  "err.bad_request": "잘못된 요청입니다.",
+  "err.arena_battle_gone": "해당 전투는 더 이상 이용할 수 없습니다.",
+  "err.rankings_unknown_board": "알 수 없는 순위표입니다.",
+  "err.rankings_busy": "순위 서비스가 혼잡합니다. 다시 시도하세요."
+}

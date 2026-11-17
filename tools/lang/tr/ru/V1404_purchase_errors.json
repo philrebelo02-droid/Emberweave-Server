@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Этот набор приобретается за реальные деньги. Купите его в приложении Play Store.",
+  "err.real_purchases_disabled": "Покупки за реальные деньги пока отключены.",
+  "err.cauldron_brew_capacity": "Котёл пока не вмещает столько зелья.",
+  "err.diamond_pack_capacity": "Освободите место для всех алмазов из набора и повторите покупку.",
+  "err.plan_reward_capacity": "Освободите место для всей награды по плану, прежде чем забрать её.",
+  "err.hero_talents_unavailable": "Таланты этого героя пока недоступны. Ваши очки сохраняются.",
+  "err.hero_no_learned_talents": "Этот герой не изучил ни одного таланта.",
+  "err.compensation_unavailable": "Эта компенсация больше недоступна."
+}

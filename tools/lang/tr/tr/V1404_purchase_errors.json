@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Bu paket gerçek parayla satın alınır. Play Store uygulamasından satın al.",
+  "err.real_purchases_disabled": "Gerçek parayla alışveriş henüz etkin değil.",
+  "err.cauldron_brew_capacity": "Kazan henüz bu kadar karışım alamaz.",
+  "err.diamond_pack_capacity": "Paketteki tüm elmaslara yer aç ve satın almayı yeniden dene.",
+  "err.plan_reward_capacity": "Plan ödülünün tamamına yer açtıktan sonra ödülü al.",
+  "err.hero_talents_unavailable": "Bu kahramanın yetenekleri henüz hazır değil. Puanların korunur.",
+  "err.hero_no_learned_talents": "Bu kahraman henüz hiçbir yetenek öğrenmedi.",
+  "err.compensation_unavailable": "Bu telafi ödülü artık mevcut değil."
+}

@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "この保存済みマッチはもう開いていません。",
+  "err.saved_match_invalid": "保存されたマッチデータが無効です。",
+  "err.saved_match_older": "このセーブデータはマッチの開始前のものです。",
+  "err.match_already_ended": "このマッチはすでに終了しています。",
+  "err.bad_request": "無効なリクエストです。",
+  "err.arena_battle_gone": "そのバトルはもう利用できません。",
+  "err.rankings_unknown_board": "不明なランキングです。",
+  "err.rankings_busy": "ランキングが混み合っています。もう一度お試しください。"
+}

@@ -35,6 +35,22 @@ const H=require('./harness.js');
     const dir=path.join(__dirname,'content'); fs.mkdirSync(dir,{recursive:true});
     const f=path.join(dir,'en.json'); let prev={}; try{ prev=JSON.parse(fs.readFileSync(f,'utf8')); }catch(_){}
     const merged=res.out;   // the whole list is regenerated every run (a template the game no longer makes drops out)
+    // Glyph material reward names come from server data, including bonus-stage reward variants.
+    const glyphs=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/glyph-source.json'),'utf8'));
+    for(const {material} of glyphs){
+      if(!material) continue;
+      merged[material]='glyph_material';
+      merged[material+' Fragment']='glyph_material';
+      merged[material+' Core']='glyph_material';
+    }
+    const materials=new Map(glyphs.map(g=>[g.quality+' '+g.family,g.material]));
+    for(const g of glyphs) for(const ingredient of g.recipeText.split(' + ')){
+      const core=/^(Rare|Superior|Mythic) (.+) Sub-Glyph$/.exec(ingredient);
+      if(core){
+        const material=materials.get(core[2].replace(/^Worldfire /,'Orange '));
+        if(material) merged[core[1]+' '+material+' Core']='glyph_material';
+      }
+    }
     const keys=Object.keys(merged).sort();
     fs.writeFileSync(f,'{\n'+keys.map(k=>JSON.stringify(k)+':'+JSON.stringify(merged[k])).join(',\n')+'\n}\n');
     console.log('collect: '+res.heroes+' heroes, '+Object.keys(res.out).length+' skill templates ('+Object.values(res.out).length+'), '+keys.length+' total, '+keys.join('').length+' chars');

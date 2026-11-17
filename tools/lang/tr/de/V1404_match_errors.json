@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Diese gespeicherte Partie ist nicht mehr offen.",
+  "err.saved_match_invalid": "Ungültige gespeicherte Partie.",
+  "err.saved_match_older": "Dieser Spielstand ist älter als die Partie selbst.",
+  "err.match_already_ended": "Diese Partie ist bereits beendet.",
+  "err.bad_request": "Ungültige Anfrage.",
+  "err.arena_battle_gone": "Dieser Kampf ist nicht mehr verfügbar.",
+  "err.rankings_unknown_board": "Unbekannte Rangliste.",
+  "err.rankings_busy": "Die Ranglisten sind ausgelastet. Versuche es erneut."
+}

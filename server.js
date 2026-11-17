@@ -1751,7 +1751,7 @@ function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:g
 const GLYPH_TREE_MAX_DEPTH=6, GLYPH_TREE_MAX_NODES=900;
 function glyphTreeStub(def, inherited){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
   quality:def.quality, family:def.family, strength:def.strength,
-  stats:def.stats.map(s=>s.stat+' +'+s.val+('')), children:[], truncated:true, inherited:!!inherited }; }
+  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], truncated:true, inherited:!!inherited }; }
 function glyphTreeChildren(g, def, ctx, inherited){ const kids=[];
   for(const ing of def.ing){
     if(ing.kind==='frag'){ ctx.nodes++; kids.push(Object.assign(glyphTreeLeaf(g, ing.key, ing.qty),{inherited:!!inherited})); }
@@ -1766,7 +1766,7 @@ function glyphTreeChildren(g, def, ctx, inherited){ const kids=[];
 function glyphTreeFinished(g, def, ctx, inherited){ ctx=ctx||{depth:0,nodes:0}; ctx.nodes++;
   const node={ kind:'finishedGlyph', blueprintId:def.id, name:def.name,
     quality:def.quality, family:def.family, strength:def.strength,
-    stats:def.stats.map(s=>s.stat+' +'+s.val+('')), children:[], inherited:!!inherited };
+    stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], inherited:!!inherited };
   ctx.depth++; node.children=glyphTreeChildren(g, def, ctx, inherited); ctx.depth--;
   return node; }
 /* v242: can EVERY empty slot on this board be built at once (combined cumulative cost)? */
@@ -7447,7 +7447,7 @@ async function api(req,res,url){
       const win=warPlaceWindow(t);
       if(!win.open) return send(res,400,{error: win.opensAt
         ? ('Towers lock at 18:00 \u2014 they open again '+warWhenET(win.opensAt)+'.')
-        : 'Placement is closed for this week.'});
+        : 'Placement is closed for this week.', errWhenMs:win.opensAt||undefined});
       /* the choice itself, held on the member and read whenever a board is built. It is set even
          with no war running: that is the whole point of a window that starts at sign-up. */
       const had=(me.skyLane==null)?null:(me.skyLane|0);
@@ -7492,11 +7492,11 @@ async function api(req,res,url){
          route could say. */
       if(!m||m.state!=='planning'){
         const nxt=warNextPlacementAt(t);
-        if(m && m.state==='live') return send(res,400,{error:'The fighting has started — lines locked at 18:00 ET. They reopen at '+(nxt?warWhenET(nxt):'the next prep')+'.'});
-        if(t.state==='registration') return send(res,400,{error:'The bracket is not set yet — line placement opens '+(nxt?warWhenET(nxt):'once the rounds begin')+'.'});
-        return send(res,400,{error: nxt?('No round is in planning — placement opens '+warWhenET(nxt)+'.'):'No match in planning.'});
+        if(m && m.state==='live') return send(res,400,{error:'The fighting has started — lines locked at 18:00 ET. They reopen at '+(nxt?warWhenET(nxt):'the next prep')+'.', errWhenMs:nxt||undefined});
+        if(t.state==='registration') return send(res,400,{error:'The bracket is not set yet — line placement opens '+(nxt?warWhenET(nxt):'once the rounds begin')+'.', errWhenMs:nxt||undefined});
+        return send(res,400,{error: nxt?('No round is in planning — placement opens '+warWhenET(nxt)+'.'):'No match in planning.', errWhenMs:nxt||undefined});
       }
-      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.'});
+      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.', errWhenMs:m.revealAt});
       if(!canWarManage) return send(res,403,{error:'Your guild rank does not allow that.'});
       const side=m.sides[myGid]; const memberId=String(b.memberId||''); const lane=parseInt(b.lane,10);
       if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
@@ -7534,11 +7534,11 @@ async function api(req,res,url){
          disagree about how they explain it */
       if(!m||m.state!=='planning'){
         const nxt=warNextPlacementAt(t);
-        if(m && m.state==='live') return send(res,400,{error:'The fighting has started \u2014 lines locked at 18:00 ET. They reopen at '+(nxt?warWhenET(nxt):'the next prep')+'.'});
-        if(t.state==='registration') return send(res,400,{error:'The bracket is not set yet \u2014 line placement opens '+(nxt?warWhenET(nxt):'once the rounds begin')+'.'});
-        return send(res,400,{error: nxt?('No round is in planning \u2014 placement opens '+warWhenET(nxt)+'.'):'No match in planning.'});
+        if(m && m.state==='live') return send(res,400,{error:'The fighting has started \u2014 lines locked at 18:00 ET. They reopen at '+(nxt?warWhenET(nxt):'the next prep')+'.', errWhenMs:nxt||undefined});
+        if(t.state==='registration') return send(res,400,{error:'The bracket is not set yet \u2014 line placement opens '+(nxt?warWhenET(nxt):'once the rounds begin')+'.', errWhenMs:nxt||undefined});
+        return send(res,400,{error: nxt?('No round is in planning \u2014 placement opens '+warWhenET(nxt)+'.'):'No match in planning.', errWhenMs:nxt||undefined});
       }
-      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.'});
+      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.', errWhenMs:m.revealAt});
       if(!canWarManage) return send(res,403,{error:'Your guild rank does not allow that.'});
       const side=m.sides[myGid]; if(!side) return send(res,400,{error:'You are not in this war.'});
       const from=parseInt(b.from,10), to=parseInt(b.to,10);

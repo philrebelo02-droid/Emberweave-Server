@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "Достигнут лимит золота.",
+  "err.diamonds_at_limit": "Достигнут лимит алмазов.",
+  "err.arena_coin_type_at_limit": "Больше монет арены этого типа хранить нельзя.",
+  "err.arena_coins_at_limit": "Достигнут лимит монет арены.",
+  "err.hero_fragments_at_limit": "Достигнут лимит фрагментов героев.",
+  "err.wall_full_strength": "Ваша стена полностью восстановлена."
+}

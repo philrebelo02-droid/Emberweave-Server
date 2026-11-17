@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "此禮包需要用真錢購買。請在 Play 商店應用程式中購買。",
+  "err.real_purchases_disabled": "真錢購買尚未開放。",
+  "err.cauldron_brew_capacity": "坩堝暫時裝不下這麼多藥液。",
+  "err.diamond_pack_capacity": "請騰出空間容納禮包中的所有鑽石，再重試購買。",
+  "err.plan_reward_capacity": "請騰出空間容納全部方案獎勵後再領取。",
+  "err.hero_talents_unavailable": "這名英雄的天賦暫未開放。你的點數會保留。",
+  "err.hero_no_learned_talents": "這名英雄尚未習得任何天賦。",
+  "err.compensation_unavailable": "這份補償已無法領取。"
+}

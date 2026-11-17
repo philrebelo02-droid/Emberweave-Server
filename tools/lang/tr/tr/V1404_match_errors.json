@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Bu kayıtlı maç artık açık değil.",
+  "err.saved_match_invalid": "Geçersiz maç kaydı.",
+  "err.saved_match_older": "Bu kayıt maçın başlangıcından daha eski.",
+  "err.match_already_ended": "Bu maç zaten sona erdi.",
+  "err.bad_request": "Geçersiz istek.",
+  "err.arena_battle_gone": "Bu savaş artık mevcut değil.",
+  "err.rankings_unknown_board": "Bilinmeyen sıralama tablosu.",
+  "err.rankings_busy": "Sıralamaya şu anda erişilemiyor. Yeniden dene."
+}

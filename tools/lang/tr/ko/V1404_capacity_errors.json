@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "골드가 보유 한도에 도달했습니다.",
+  "err.diamonds_at_limit": "다이아몬드가 보유 한도에 도달했습니다.",
+  "err.arena_coin_type_at_limit": "이 종류의 아레나 코인을 더 보유할 수 없습니다.",
+  "err.arena_coins_at_limit": "아레나 코인이 보유 한도에 도달했습니다.",
+  "err.hero_fragments_at_limit": "영웅 조각이 보유 한도에 도달했습니다.",
+  "err.wall_full_strength": "성벽의 내구도가 최대입니다."
+}

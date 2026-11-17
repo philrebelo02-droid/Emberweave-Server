@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Dit pakket kost echt geld. Koop het in de Play Store-app.",
+  "err.real_purchases_disabled": "Aankopen met echt geld zijn nog niet ingeschakeld.",
+  "err.cauldron_brew_capacity": "De ketel kan nog niet zoveel brouwsel bevatten.",
+  "err.diamond_pack_capacity": "Maak ruimte voor alle diamanten in het pakket en probeer de aankoop opnieuw.",
+  "err.plan_reward_capacity": "Maak ruimte voor de volledige planbeloning voordat je die claimt.",
+  "err.hero_talents_unavailable": "De talenten van deze held zijn nog niet beschikbaar. Je behoudt je punten.",
+  "err.hero_no_learned_talents": "Deze held heeft geen talenten geleerd.",
+  "err.compensation_unavailable": "Deze compensatie is niet langer beschikbaar."
+}

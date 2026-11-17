@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "แพ็กนี้ซื้อด้วยเงินจริง โปรดซื้อในแอป Play Store",
+  "err.real_purchases_disabled": "ยังไม่ได้เปิดให้ซื้อด้วยเงินจริง",
+  "err.cauldron_brew_capacity": "หม้อต้มยังใส่น้ำยาได้ไม่มากขนาดนั้น",
+  "err.diamond_pack_capacity": "เพิ่มพื้นที่สำหรับเพชรทั้งหมดในแพ็กแล้วลองซื้ออีกครั้ง",
+  "err.plan_reward_capacity": "เพิ่มพื้นที่สำหรับรางวัลทั้งหมดของแผนก่อนกดรับ",
+  "err.hero_talents_unavailable": "พรสวรรค์ของฮีโร่นี้ยังไม่พร้อม แต้มของคุณจะถูกเก็บไว้",
+  "err.hero_no_learned_talents": "ฮีโร่นี้ยังไม่ได้เรียนพรสวรรค์ใด",
+  "err.compensation_unavailable": "ไม่สามารถรับของชดเชยนี้ได้แล้ว"
+}

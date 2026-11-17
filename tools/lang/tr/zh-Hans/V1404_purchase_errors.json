@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "此礼包需要用真钱购买。请在 Play 商店应用中购买。",
+  "err.real_purchases_disabled": "真钱购买尚未开放。",
+  "err.cauldron_brew_capacity": "坩埚暂时装不下这么多药液。",
+  "err.diamond_pack_capacity": "请腾出空间容纳礼包中的所有钻石，然后重试购买。",
+  "err.plan_reward_capacity": "请腾出空间容纳全部计划奖励后再领取。",
+  "err.hero_talents_unavailable": "这名英雄的天赋暂未开放。你的点数会保留。",
+  "err.hero_no_learned_talents": "这名英雄尚未习得任何天赋。",
+  "err.compensation_unavailable": "这份补偿已无法领取。"
+}

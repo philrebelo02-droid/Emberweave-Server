@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "आप सोने की सीमा तक पहुँच चुके हैं।",
+  "err.diamonds_at_limit": "आप हीरों की सीमा तक पहुँच चुके हैं।",
+  "err.arena_coin_type_at_limit": "आप इस प्रकार के और अरीना सिक्के नहीं रख सकते।",
+  "err.arena_coins_at_limit": "आप अरीना सिक्कों की सीमा तक पहुँच चुके हैं।",
+  "err.hero_fragments_at_limit": "आप हीरो के टुकड़ों की सीमा तक पहुँच चुके हैं।",
+  "err.wall_full_strength": "आपकी दीवार पूरी तरह मज़बूत है।"
+}

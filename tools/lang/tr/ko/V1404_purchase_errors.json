@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "이 팩은 실제 화폐로 구매합니다. Play 스토어 앱에서 구매하세요.",
+  "err.real_purchases_disabled": "실제 화폐 결제가 아직 활성화되지 않았습니다.",
+  "err.cauldron_brew_capacity": "가마솥에 아직 그만큼의 물약을 담을 수 없습니다.",
+  "err.diamond_pack_capacity": "팩의 다이아몬드를 모두 받을 수 있도록 공간을 확보한 뒤 다시 구매하세요.",
+  "err.plan_reward_capacity": "플랜 보상 전체를 받을 수 있도록 공간을 확보한 뒤 수령하세요.",
+  "err.hero_talents_unavailable": "이 영웅의 특성은 아직 이용할 수 없습니다. 포인트는 유지됩니다.",
+  "err.hero_no_learned_talents": "이 영웅은 배운 특성이 없습니다.",
+  "err.compensation_unavailable": "이 보상은 더 이상 받을 수 없습니다."
+}

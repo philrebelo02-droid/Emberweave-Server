@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Questa partita salvata non è più aperta.",
+  "err.saved_match_invalid": "Partita salvata non valida.",
+  "err.saved_match_older": "Questo salvataggio risale a prima dell’inizio della partita.",
+  "err.match_already_ended": "Questa partita è già terminata.",
+  "err.bad_request": "Richiesta non valida.",
+  "err.arena_battle_gone": "Quella battaglia non è più disponibile.",
+  "err.rankings_unknown_board": "Classifica sconosciuta.",
+  "err.rankings_busy": "Le classifiche sono occupate. Riprova."
+}

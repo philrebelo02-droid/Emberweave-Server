@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Dieses Paket kostet echtes Geld. Kaufe es in der Play Store-App.",
+  "err.real_purchases_disabled": "Käufe mit echtem Geld sind noch deaktiviert.",
+  "err.cauldron_brew_capacity": "Der Kessel fasst noch nicht so viel Trank.",
+  "err.diamond_pack_capacity": "Schaffe Platz für alle Diamanten im Paket und versuche den Kauf erneut.",
+  "err.plan_reward_capacity": "Schaffe Platz für die gesamte Planbelohnung, bevor du sie abholst.",
+  "err.hero_talents_unavailable": "Die Talente dieses Helden sind noch nicht verfügbar. Deine Punkte bleiben erhalten.",
+  "err.hero_no_learned_talents": "Dieser Held hat keine Talente erlernt.",
+  "err.compensation_unavailable": "Diese Entschädigung ist nicht mehr verfügbar."
+}

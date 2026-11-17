@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "このパックは実際のお金で購入します。Play ストアアプリで購入してください。",
+  "err.real_purchases_disabled": "実際のお金での購入はまだ有効になっていません。",
+  "err.cauldron_brew_capacity": "大釜にはまだそれだけの薬液を入れられません。",
+  "err.diamond_pack_capacity": "パック内のすべてのダイヤを受け取れるように空きを作ってから、再度購入してください。",
+  "err.plan_reward_capacity": "プラン報酬をすべて受け取れるように空きを作ってから、受け取ってください。",
+  "err.hero_talents_unavailable": "この英雄の才能はまだ利用できません。ポイントは保持されます。",
+  "err.hero_no_learned_talents": "この英雄は才能を習得していません。",
+  "err.compensation_unavailable": "この補償はもう受け取れません。"
+}

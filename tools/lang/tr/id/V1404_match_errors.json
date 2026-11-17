@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Pertandingan tersimpan ini sudah ditutup.",
+  "err.saved_match_invalid": "Simpanan pertandingan tidak valid.",
+  "err.saved_match_older": "Simpanan ini dibuat sebelum pertandingan dimulai.",
+  "err.match_already_ended": "Pertandingan ini sudah berakhir.",
+  "err.bad_request": "Permintaan tidak valid.",
+  "err.arena_battle_gone": "Pertarungan itu sudah tidak tersedia.",
+  "err.rankings_unknown_board": "Papan peringkat tidak dikenal.",
+  "err.rankings_busy": "Layanan peringkat sedang sibuk. Coba lagi."
+}

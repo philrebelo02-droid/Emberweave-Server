@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Cette partie sauvegardée n’est plus ouverte.",
+  "err.saved_match_invalid": "La partie sauvegardée n’est pas valide.",
+  "err.saved_match_older": "Cette sauvegarde est antérieure au début de la partie.",
+  "err.match_already_ended": "Cette partie est déjà terminée.",
+  "err.bad_request": "Requête non valide.",
+  "err.arena_battle_gone": "Ce combat n’est plus disponible.",
+  "err.rankings_unknown_board": "Classement inconnu.",
+  "err.rankings_busy": "Le service de classement est occupé. Réessayez."
+}

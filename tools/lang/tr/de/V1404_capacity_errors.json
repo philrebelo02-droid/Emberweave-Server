@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "Du hast das Goldlimit erreicht.",
+  "err.diamonds_at_limit": "Du hast das Diamantenlimit erreicht.",
+  "err.arena_coin_type_at_limit": "Du kannst keine weiteren Arenamünzen dieses Typs halten.",
+  "err.arena_coins_at_limit": "Du hast das Arenamünzenlimit erreicht.",
+  "err.hero_fragments_at_limit": "Du hast das Limit für Heldenfragmente erreicht.",
+  "err.wall_full_strength": "Deine Mauer hat ihre volle Stärke."
+}

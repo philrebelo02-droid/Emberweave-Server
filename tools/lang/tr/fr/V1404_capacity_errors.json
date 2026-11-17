@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "Vous avez atteint la limite d’or.",
+  "err.diamonds_at_limit": "Vous avez atteint la limite de diamants.",
+  "err.arena_coin_type_at_limit": "Vous ne pouvez pas stocker plus de pièces d’arène de ce type.",
+  "err.arena_coins_at_limit": "Vous avez atteint la limite de pièces d’arène.",
+  "err.hero_fragments_at_limit": "Vous avez atteint la limite de fragments de héros.",
+  "err.wall_full_strength": "Votre muraille est à sa résistance maximale."
+}

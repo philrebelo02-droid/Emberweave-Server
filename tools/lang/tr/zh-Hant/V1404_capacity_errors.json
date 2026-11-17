@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "金幣已達上限。",
+  "err.diamonds_at_limit": "鑽石已達上限。",
+  "err.arena_coin_type_at_limit": "無法持有更多這種競技場代幣。",
+  "err.arena_coins_at_limit": "競技場代幣已達上限。",
+  "err.hero_fragments_at_limit": "英雄碎片已達上限。",
+  "err.wall_full_strength": "城牆耐久度已滿。"
+}

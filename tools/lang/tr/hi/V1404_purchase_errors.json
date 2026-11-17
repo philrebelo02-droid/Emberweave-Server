@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "यह पैक असली पैसे से खरीदा जाता है। इसे Play Store ऐप में खरीदें।",
+  "err.real_purchases_disabled": "असली पैसे से खरीदारी अभी चालू नहीं है।",
+  "err.cauldron_brew_capacity": "कड़ाही में अभी इतना काढ़ा नहीं समा सकता।",
+  "err.diamond_pack_capacity": "पैक के सभी हीरों के लिए जगह बनाएँ, फिर दोबारा खरीदने की कोशिश करें।",
+  "err.plan_reward_capacity": "प्लान का पूरा इनाम लेने से पहले उसके लिए जगह बनाएँ।",
+  "err.hero_talents_unavailable": "इस हीरो की प्रतिभाएँ अभी उपलब्ध नहीं हैं। आपके अंक सुरक्षित हैं।",
+  "err.hero_no_learned_talents": "इस हीरो ने कोई प्रतिभा नहीं सीखी है।",
+  "err.compensation_unavailable": "यह मुआवज़ा अब उपलब्ध नहीं है।"
+}

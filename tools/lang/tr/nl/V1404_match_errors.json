@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Deze opgeslagen wedstrijd is niet meer open.",
+  "err.saved_match_invalid": "Ongeldige opgeslagen wedstrijd.",
+  "err.saved_match_older": "Deze opgeslagen versie is ouder dan de wedstrijd zelf.",
+  "err.match_already_ended": "Deze wedstrijd is al afgelopen.",
+  "err.bad_request": "Ongeldig verzoek.",
+  "err.arena_battle_gone": "Dat gevecht is niet meer beschikbaar.",
+  "err.rankings_unknown_board": "Onbekende ranglijst.",
+  "err.rankings_busy": "De ranglijsten zijn bezet. Probeer het opnieuw."
+}

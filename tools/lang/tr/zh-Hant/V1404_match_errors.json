@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "這場已儲存的對局已關閉。",
+  "err.saved_match_invalid": "無效的對局存檔。",
+  "err.saved_match_older": "這份存檔早於對局開始時間。",
+  "err.match_already_ended": "這場對局已經結束。",
+  "err.bad_request": "請求無效。",
+  "err.arena_battle_gone": "該場戰鬥已無法查看。",
+  "err.rankings_unknown_board": "未知的排行榜。",
+  "err.rankings_busy": "排行榜服務繁忙，請重試。"
+}

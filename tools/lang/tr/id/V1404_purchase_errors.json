@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Paket ini dibeli dengan uang sungguhan. Beli lewat aplikasi Play Store.",
+  "err.real_purchases_disabled": "Pembelian dengan uang sungguhan belum diaktifkan.",
+  "err.cauldron_brew_capacity": "Kuali belum bisa menampung ramuan sebanyak itu.",
+  "err.diamond_pack_capacity": "Sisakan ruang untuk semua berlian dalam paket, lalu coba beli lagi.",
+  "err.plan_reward_capacity": "Sisakan ruang untuk seluruh hadiah paket sebelum mengklaimnya.",
+  "err.hero_talents_unavailable": "Talenta hero ini belum tersedia. Poinmu tetap tersimpan.",
+  "err.hero_no_learned_talents": "Hero ini belum mempelajari talenta apa pun.",
+  "err.compensation_unavailable": "Kompensasi ini sudah tidak tersedia."
+}

@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "ゴールドが上限に達しています。",
+  "err.diamonds_at_limit": "ダイヤが上限に達しています。",
+  "err.arena_coin_type_at_limit": "この種類のアリーナコインはこれ以上所持できません。",
+  "err.arena_coins_at_limit": "アリーナコインが上限に達しています。",
+  "err.hero_fragments_at_limit": "英雄のかけらが上限に達しています。",
+  "err.wall_full_strength": "城壁の耐久力は最大です。"
+}

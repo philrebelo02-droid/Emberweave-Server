@@ -7,6 +7,28 @@
 // Texts left without a code: dev/admin-only replies, internal module errors, and texts holding < > " { } (see the test for counts).
 'use strict';
 const EXACT=[
+  ["saved_match_closed","This saved match is no longer open."],
+  ["saved_match_invalid","Bad saved match."],
+  ["saved_match_older","This saved match is older than the match itself."],
+  ["match_already_ended","This match already ended."],
+  ["bad_request","Bad request."],
+  ["arena_battle_gone","That battle is gone."],
+  ["rankings_unknown_board","Unknown board."],
+  ["rankings_busy","Rankings are busy - try again."],
+  ["pack_requires_play_store","This pack is a real purchase - buy it in the Play Store app."],
+  ["real_purchases_disabled","Real purchases are not switched on yet."],
+  ["cauldron_brew_capacity","The cauldron cannot hold that much brew yet."],
+  ["diamond_pack_capacity","Make room for the full diamond pack and retry the purchase."],
+  ["plan_reward_capacity","Make room for the full plan reward before claiming."],
+  ["hero_talents_unavailable","This hero's talents are not ready yet. Your points are kept."],
+  ["hero_no_learned_talents","This hero has no talents learned."],
+  ["compensation_unavailable","This compensation is no longer available."],
+  ["gold_at_limit","You are at the gold limit."],
+  ["diamonds_at_limit","You are at the diamond limit."],
+  ["arena_coin_type_at_limit","You cannot hold more of those arena coins."],
+  ["arena_coins_at_limit","You are at the Arena Coin limit."],
+  ["hero_fragments_at_limit","You are at the hero fragment limit."],
+  ["wall_full_strength","Your wall is at full strength."],
   ["save_failed_retry_the_same_request","Save failed. Retry the same request."],
   ["wrong_name_or_password","Wrong name or password"],
   ["too_many_wrong_passwords_try_again","Too many wrong passwords — try again in 15 minutes."],
@@ -491,7 +513,7 @@ const EXACT=[
   ["placement_closed_this_week","Placement is closed for this week."],
   ["oases_only_world_tree_event","The oases can only be taken during the World Tree event."],
   ["world_tree_only_world_tree_event","The World Tree can only be taken during the World Tree event."],
-  ["lines_locked_reopen_next_prep","The fighting has started — lines locked at 18:00 EST. They reopen at the next prep."],
+  ["lines_locked_reopen_next_prep","The fighting has started — lines locked at 18:00 ET. They reopen at the next prep."],
   ["bracket_not_set_rounds_begin","The bracket is not set yet — line placement opens once the rounds begin."],
   /* v1372 guild ranks */ ["your_guild_rank_does_not_allow_that","Your guild rank does not allow that."],
   ["you_can_only_remove_members_of","You can only remove members of a lower rank."],
@@ -582,13 +604,14 @@ const PATTERNS=[
   ["not_enough","Not enough {r}.","^Not enough ([\\s\\S]*?)\\.$",["r"]],
   ["need","Need {subFragCost} × {frag}.","^Need ([\\s\\S]*?) × ([\\s\\S]*?)\\.$",["subFragCost","frag"]],
   ["towers_lock_open_again","Towers lock at 18:00 — they open again {when}.","^Towers lock at 18:00 — they open again ([\\s\\S]*?)\\.$",["when"]],
-  ["lines_locked_reopen_at","The fighting has started — lines locked at 18:00 EST. They reopen at {when}.","^The fighting has started — lines locked at 18:00 EST\\. They reopen at ([\\s\\S]*?)\\.$",["when"]],
+  ["lines_locked_reopen_at","The fighting has started — lines locked at 18:00 ET. They reopen at {when}.","^The fighting has started — lines locked at 18:00 E(?:S)?T\\. They reopen at ([\\s\\S]*?)\\.$",["when"]],
   ["bracket_not_set_opens","The bracket is not set yet — line placement opens {when}.","^The bracket is not set yet — line placement opens ([\\s\\S]*?)\\.$",["when"]],
   ["gold_province_stage_gate","Gold Province Stage {stage} opens at account level {level} (you are {lvl}).","^Gold Province Stage ([\\s\\S]*?) opens at account level ([\\s\\S]*?) \\(you are ([\\s\\S]*?)\\)\\.$",["stage","level","lvl"]],
   ["drill_province_stage_gate","Drill Province Stage {stage} opens at account level {level} (you are {lvl}).","^Drill Province Stage ([\\s\\S]*?) opens at account level ([\\s\\S]*?) \\(you are ([\\s\\S]*?)\\)\\.$",["stage","level","lvl"]],
   ["old_raid_assault_retired","The old raid assault is retired - fight the raid boss (Guild → Raid).","^The old raid assault is retired - fight the raid boss \\(Guild (?:->|→) Raid\\)\\.$",[]],
 ];
 const BY_TEXT=new Map(EXACT.map(([code,en])=>[en,code]));
+BY_TEXT.set('The fighting has started — lines locked at 18:00 EST. They reopen at the next prep.','lines_locked_reopen_next_prep');
 const PATS=PATTERNS.map(([code,en,re,vars])=>({code,en,re:new RegExp(re),vars}));
 const CACHE=new Map(); const CACHE_MAX=2000;
 /* errorInfo(text) -> {code} | {code, vars:{name:value}} | null. Exact Map lookup first, the patterns only on a miss; results cached. */

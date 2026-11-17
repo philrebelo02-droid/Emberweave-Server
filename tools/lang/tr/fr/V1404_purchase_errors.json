@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Ce pack s’achète avec de l’argent réel. Achetez-le dans l’application Play Store.",
+  "err.real_purchases_disabled": "Les achats avec de l’argent réel ne sont pas encore activés.",
+  "err.cauldron_brew_capacity": "Le chaudron ne peut pas encore contenir autant de potion.",
+  "err.diamond_pack_capacity": "Faites de la place pour tous les diamants du pack, puis réessayez l’achat.",
+  "err.plan_reward_capacity": "Faites de la place pour toute la récompense du forfait avant de la récupérer.",
+  "err.hero_talents_unavailable": "Les talents de ce héros ne sont pas encore disponibles. Vous conservez vos points.",
+  "err.hero_no_learned_talents": "Ce héros n’a appris aucun talent.",
+  "err.compensation_unavailable": "Cette compensation n’est plus disponible."
+}

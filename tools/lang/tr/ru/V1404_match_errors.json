@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "Этот сохранённый матч больше не открыт.",
+  "err.saved_match_invalid": "Недействительный сохранённый матч.",
+  "err.saved_match_older": "Это сохранение создано до начала матча.",
+  "err.match_already_ended": "Этот матч уже завершён.",
+  "err.bad_request": "Некорректный запрос.",
+  "err.arena_battle_gone": "Этот бой больше недоступен.",
+  "err.rankings_unknown_board": "Неизвестная таблица лидеров.",
+  "err.rankings_busy": "Сервис рейтингов занят. Попробуйте снова."
+}

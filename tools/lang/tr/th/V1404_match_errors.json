@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "แมตช์ที่บันทึกไว้นี้ปิดแล้ว",
+  "err.saved_match_invalid": "ข้อมูลแมตช์ที่บันทึกไว้ไม่ถูกต้อง",
+  "err.saved_match_older": "ข้อมูลที่บันทึกไว้นี้เก่ากว่าเวลาเริ่มแมตช์",
+  "err.match_already_ended": "แมตช์นี้จบแล้ว",
+  "err.bad_request": "คำขอไม่ถูกต้อง",
+  "err.arena_battle_gone": "การต่อสู้นั้นไม่พร้อมให้ดูแล้ว",
+  "err.rankings_unknown_board": "ไม่รู้จักกระดานอันดับนี้",
+  "err.rankings_busy": "ระบบอันดับกำลังยุ่ง โปรดลองอีกครั้ง"
+}

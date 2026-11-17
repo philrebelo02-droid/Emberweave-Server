@@ -1,0 +1,10 @@
+{
+  "err.pack_requires_play_store": "Este pacote é comprado com dinheiro real. Compre-o no app da Play Store.",
+  "err.real_purchases_disabled": "As compras com dinheiro real ainda não estão ativadas.",
+  "err.cauldron_brew_capacity": "O caldeirão ainda não comporta tanta poção.",
+  "err.diamond_pack_capacity": "Abra espaço para todos os diamantes do pacote e tente comprar novamente.",
+  "err.plan_reward_capacity": "Abra espaço para toda a recompensa do plano antes de resgatá-la.",
+  "err.hero_talents_unavailable": "Os talentos deste herói ainda não estão disponíveis. Seus pontos serão mantidos.",
+  "err.hero_no_learned_talents": "Este herói ainda não aprendeu nenhum talento.",
+  "err.compensation_unavailable": "Esta compensação não está mais disponível."
+}

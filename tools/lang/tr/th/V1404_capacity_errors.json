@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "คุณมีทองถึงขีดจำกัดแล้ว",
+  "err.diamonds_at_limit": "คุณมีเพชรถึงขีดจำกัดแล้ว",
+  "err.arena_coin_type_at_limit": "คุณเก็บเหรียญอารีนาชนิดนี้เพิ่มไม่ได้",
+  "err.arena_coins_at_limit": "คุณมีเหรียญอารีนาถึงขีดจำกัดแล้ว",
+  "err.hero_fragments_at_limit": "คุณมีชิ้นส่วนฮีโร่ถึงขีดจำกัดแล้ว",
+  "err.wall_full_strength": "กำแพงของคุณแข็งแรงเต็มที่แล้ว"
+}

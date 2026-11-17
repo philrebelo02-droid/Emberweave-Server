@@ -1,0 +1,10 @@
+{
+  "err.saved_match_closed": "यह सहेजा गया मैच अब खुला नहीं है।",
+  "err.saved_match_invalid": "सहेजा गया मैच अमान्य है।",
+  "err.saved_match_older": "यह सेव मैच शुरू होने से पहले की है।",
+  "err.match_already_ended": "यह मैच पहले ही समाप्त हो चुका है।",
+  "err.bad_request": "अमान्य अनुरोध।",
+  "err.arena_battle_gone": "वह लड़ाई अब उपलब्ध नहीं है।",
+  "err.rankings_unknown_board": "अज्ञात रैंकिंग तालिका।",
+  "err.rankings_busy": "रैंकिंग सेवा व्यस्त है। फिर कोशिश करें।"
+}

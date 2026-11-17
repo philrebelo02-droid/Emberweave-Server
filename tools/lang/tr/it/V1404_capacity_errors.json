@@ -1,0 +1,8 @@
+{
+  "err.gold_at_limit": "Hai raggiunto il limite di oro.",
+  "err.diamonds_at_limit": "Hai raggiunto il limite di diamanti.",
+  "err.arena_coin_type_at_limit": "Non puoi conservare altre monete dell’arena di quel tipo.",
+  "err.arena_coins_at_limit": "Hai raggiunto il limite di monete dell’arena.",
+  "err.hero_fragments_at_limit": "Hai raggiunto il limite di frammenti eroe.",
+  "err.wall_full_strength": "Le tue mura sono alla massima resistenza."
+}
