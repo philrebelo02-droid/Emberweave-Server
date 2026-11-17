@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Diário de conquistas",
+  "bb.close_journal": "Fechar diário",
+  "bb.rankings": "Classificações",
+  "bb.pager_back": "Voltar",
+  "bb.pager_next": "Avançar",
+  "bb.top_title": "{mode} · 100 melhores",
+  "bb.rank": "Posição",
+  "bb.player": "Jogador",
+  "bb.range": "Posições {first}–{last} · {page} de 4",
+  "bb.track_next": "{value} / {next} · Próximo: {reward}",
+  "bb.track_complete": "Série concluída",
+  "bb.history_unavailable": "Histórico de progresso indisponível",
+  "bb.track_progress": "Progresso de {name}",
+  "bb.journal_summary": "{earned} / {total} verificados pelo progresso disponível · Bônus total do Cofre +{percent}% · Prévia das recompensas"
+}

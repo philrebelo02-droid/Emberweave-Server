@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Журнал достижений",
+  "bb.close_journal": "Закрыть журнал",
+  "bb.rankings": "Рейтинги",
+  "bb.pager_back": "Назад",
+  "bb.pager_next": "Далее",
+  "bb.top_title": "{mode} · Топ-100",
+  "bb.rank": "Место",
+  "bb.player": "Игрок",
+  "bb.range": "Места {first}–{last} · {page} из 4",
+  "bb.track_next": "{value} / {next} · Далее: {reward}",
+  "bb.track_complete": "Серия завершена",
+  "bb.history_unavailable": "История прогресса недоступна",
+  "bb.track_progress": "Прогресс: {name}",
+  "bb.journal_summary": "{earned} / {total} подтверждено по доступному прогрессу · Общий бонус Хранилища +{percent}% · Предпросмотр наград"
+}

@@ -1,0 +1,16 @@
+{
+  "bb.journal": "成就日志",
+  "bb.close_journal": "关闭日志",
+  "bb.rankings": "排行榜",
+  "bb.pager_back": "上一页",
+  "bb.pager_next": "下一页",
+  "bb.top_title": "{mode} · 前100名",
+  "bb.rank": "排名",
+  "bb.player": "玩家",
+  "bb.range": "第{first}–{last}名 · 第{page}页，共4页",
+  "bb.track_next": "{value} / {next} · 下一奖励：{reward}",
+  "bb.track_complete": "系列已完成",
+  "bb.history_unavailable": "暂无进度记录",
+  "bb.track_progress": "{name}进度",
+  "bb.journal_summary": "根据现有进度确认{earned} / {total}项 · 宝库解锁总加成 +{percent}% · 奖励预览"
+}

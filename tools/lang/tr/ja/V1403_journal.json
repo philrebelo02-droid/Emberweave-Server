@@ -1,0 +1,16 @@
+{
+  "bb.journal": "実績ジャーナル",
+  "bb.close_journal": "ジャーナルを閉じる",
+  "bb.rankings": "ランキング",
+  "bb.pager_back": "前へ",
+  "bb.pager_next": "次へ",
+  "bb.top_title": "{mode} · 上位100位",
+  "bb.rank": "順位",
+  "bb.player": "プレイヤー",
+  "bb.range": "{first}～{last}位 · {page} / 4ページ",
+  "bb.track_next": "{value} / {next} · 次の報酬：{reward}",
+  "bb.track_complete": "シリーズ達成",
+  "bb.history_unavailable": "進捗履歴を取得できません",
+  "bb.track_progress": "{name}の進捗",
+  "bb.journal_summary": "確認できた進捗：{earned} / {total} · 宝物庫の解放ボーナス合計 +{percent}% · 報酬プレビュー"
+}

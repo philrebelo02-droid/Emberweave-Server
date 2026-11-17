@@ -1,0 +1,16 @@
+{
+  "bb.journal": "업적 일지",
+  "bb.close_journal": "일지 닫기",
+  "bb.rankings": "순위표",
+  "bb.pager_back": "이전",
+  "bb.pager_next": "다음",
+  "bb.top_title": "{mode} · 상위 100명",
+  "bb.rank": "순위",
+  "bb.player": "플레이어",
+  "bb.range": "{first}–{last}위 · {page} / 4페이지",
+  "bb.track_next": "{value} / {next} · 다음 보상: {reward}",
+  "bb.track_complete": "계열 완료",
+  "bb.history_unavailable": "진행 기록을 확인할 수 없습니다",
+  "bb.track_progress": "{name} 진행도",
+  "bb.journal_summary": "확인 가능한 진행 기록 기준 {earned} / {total} · 금고 해금 보너스 합계 +{percent}% · 보상 미리보기"
+}

@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Erfolgsjournal",
+  "bb.close_journal": "Journal schließen",
+  "bb.rankings": "Ranglisten",
+  "bb.pager_back": "Zurück",
+  "bb.pager_next": "Weiter",
+  "bb.top_title": "{mode} · Top 100",
+  "bb.rank": "Rang",
+  "bb.player": "Spieler",
+  "bb.range": "Ränge {first}–{last} · {page} von 4",
+  "bb.track_next": "{value} / {next} · Als Nächstes: {reward}",
+  "bb.track_complete": "Reihe abgeschlossen",
+  "bb.history_unavailable": "Fortschrittsverlauf nicht verfügbar",
+  "bb.track_progress": "Fortschritt: {name}",
+  "bb.journal_summary": "{earned} / {total} anhand des verfügbaren Fortschritts bestätigt · Gesamtbonus des Tresors +{percent}% · Belohnungsvorschau"
+}

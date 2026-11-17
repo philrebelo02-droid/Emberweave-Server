@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Diario dei traguardi",
+  "bb.close_journal": "Chiudi il diario",
+  "bb.rankings": "Classifiche",
+  "bb.pager_back": "Indietro",
+  "bb.pager_next": "Avanti",
+  "bb.top_title": "{mode} · Primi 100",
+  "bb.rank": "Posizione",
+  "bb.player": "Giocatore",
+  "bb.range": "Posizioni {first}–{last} · {page} di 4",
+  "bb.track_next": "{value} / {next} · Prossimo: {reward}",
+  "bb.track_complete": "Serie completata",
+  "bb.history_unavailable": "Cronologia dei progressi non disponibile",
+  "bb.track_progress": "Progressi: {name}",
+  "bb.journal_summary": "{earned} / {total} verificati in base ai progressi disponibili · Bonus totale della Cripta +{percent}% · Anteprima ricompense"
+}

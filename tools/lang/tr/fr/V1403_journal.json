@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Journal des hauts faits",
+  "bb.close_journal": "Fermer le journal",
+  "bb.rankings": "Classements",
+  "bb.pager_back": "Précédent",
+  "bb.pager_next": "Suivant",
+  "bb.top_title": "{mode} · Les 100 premiers",
+  "bb.rank": "Rang",
+  "bb.player": "Joueur",
+  "bb.range": "Rangs {first}–{last} · {page} sur 4",
+  "bb.track_next": "{value} / {next} · Suivant : {reward}",
+  "bb.track_complete": "Série terminée",
+  "bb.history_unavailable": "Historique de progression indisponible",
+  "bb.track_progress": "Progression de {name}",
+  "bb.journal_summary": "{earned} / {total} vérifiés d’après la progression disponible · Bonus total du Coffre +{percent}% · Aperçu des récompenses"
+}

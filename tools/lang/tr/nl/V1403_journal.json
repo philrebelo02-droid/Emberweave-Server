@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Prestatiedagboek",
+  "bb.close_journal": "Dagboek sluiten",
+  "bb.rankings": "Ranglijsten",
+  "bb.pager_back": "Vorige",
+  "bb.pager_next": "Volgende",
+  "bb.top_title": "{mode} · Top 100",
+  "bb.rank": "Plaats",
+  "bb.player": "Speler",
+  "bb.range": "Plaatsen {first}–{last} · {page} van 4",
+  "bb.track_next": "{value} / {next} · Volgende: {reward}",
+  "bb.track_complete": "Reeks voltooid",
+  "bb.history_unavailable": "Voortgangsgeschiedenis niet beschikbaar",
+  "bb.track_progress": "Voortgang: {name}",
+  "bb.journal_summary": "{earned} / {total} bevestigd op basis van beschikbare voortgang · Totale kluisbonus +{percent}% · Beloningsvoorbeeld"
+}

@@ -1,0 +1,16 @@
+{
+  "bb.journal": "उपलब्धि डायरी",
+  "bb.close_journal": "डायरी बंद करें",
+  "bb.rankings": "रैंकिंग",
+  "bb.pager_back": "पिछला",
+  "bb.pager_next": "अगला",
+  "bb.top_title": "{mode} · शीर्ष 100",
+  "bb.rank": "स्थान",
+  "bb.player": "खिलाड़ी",
+  "bb.range": "स्थान {first}–{last} · 4 में से {page}",
+  "bb.track_next": "{value} / {next} · अगला: {reward}",
+  "bb.track_complete": "श्रृंखला पूरी",
+  "bb.history_unavailable": "प्रगति का इतिहास उपलब्ध नहीं है",
+  "bb.track_progress": "{name} की प्रगति",
+  "bb.journal_summary": "उपलब्ध प्रगति के आधार पर {earned} / {total} की पुष्टि हुई · वॉल्ट का कुल बोनस +{percent}% · इनामों की झलक"
+}

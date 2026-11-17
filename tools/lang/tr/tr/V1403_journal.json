@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Başarı Günlüğü",
+  "bb.close_journal": "Günlüğü kapat",
+  "bb.rankings": "Sıralamalar",
+  "bb.pager_back": "Önceki",
+  "bb.pager_next": "Sonraki",
+  "bb.top_title": "{mode} · İlk 100",
+  "bb.rank": "Sıra",
+  "bb.player": "Oyuncu",
+  "bb.range": "{first}–{last}. sıralar · {page} / 4",
+  "bb.track_next": "{value} / {next} · Sıradaki: {reward}",
+  "bb.track_complete": "Seri tamamlandı",
+  "bb.history_unavailable": "İlerleme geçmişi kullanılamıyor",
+  "bb.track_progress": "{name} ilerlemesi",
+  "bb.journal_summary": "Mevcut ilerlemeye göre {earned} / {total} doğrulandı · Toplam Mahzen bonusu +%{percent} · Ödül önizlemesi"
+}

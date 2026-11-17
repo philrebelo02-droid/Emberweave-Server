@@ -1,0 +1,16 @@
+{
+  "bb.journal": "สมุดบันทึกความสำเร็จ",
+  "bb.close_journal": "ปิดสมุดบันทึก",
+  "bb.rankings": "อันดับ",
+  "bb.pager_back": "ก่อนหน้า",
+  "bb.pager_next": "ถัดไป",
+  "bb.top_title": "{mode} · 100 อันดับแรก",
+  "bb.rank": "อันดับ",
+  "bb.player": "ผู้เล่น",
+  "bb.range": "อันดับ {first}–{last} · หน้า {page} จาก 4",
+  "bb.track_next": "{value} / {next} · ถัดไป: {reward}",
+  "bb.track_complete": "ทำครบชุดแล้ว",
+  "bb.history_unavailable": "ไม่มีประวัติความคืบหน้า",
+  "bb.track_progress": "ความคืบหน้าของ {name}",
+  "bb.journal_summary": "ยืนยันได้ {earned} / {total} จากความคืบหน้าที่มี · โบนัสรวมที่ปลดล็อกจากหอสมบัติ +{percent}% · ตัวอย่างรางวัล"
+}

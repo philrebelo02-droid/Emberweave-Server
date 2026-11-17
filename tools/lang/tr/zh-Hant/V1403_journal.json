@@ -1,0 +1,16 @@
+{
+  "bb.journal": "成就日誌",
+  "bb.close_journal": "關閉日誌",
+  "bb.rankings": "排行榜",
+  "bb.pager_back": "上一頁",
+  "bb.pager_next": "下一頁",
+  "bb.top_title": "{mode} · 前100名",
+  "bb.rank": "排名",
+  "bb.player": "玩家",
+  "bb.range": "第{first}–{last}名 · 第{page}頁，共4頁",
+  "bb.track_next": "{value} / {next} · 下一項獎勵：{reward}",
+  "bb.track_complete": "系列已完成",
+  "bb.history_unavailable": "暫無進度紀錄",
+  "bb.track_progress": "{name}進度",
+  "bb.journal_summary": "根據現有進度確認{earned} / {total}項 · 寶庫解鎖總加成 +{percent}% · 獎勵預覽"
+}

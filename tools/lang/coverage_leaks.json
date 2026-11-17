@@ -1,50 +1,6 @@
 [
  {
-  "text": "[aria-label] Rankings",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
-  "text": "Achievement Journal",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
   "text": "Arena",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
-  "text": "Arena · Top 100",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
-  "text": "Back",
   "where": [
    "rankings",
    "rankings tab 0",
@@ -77,13 +33,6 @@
   ]
  },
  {
-  "text": "Bonus Stages · Top 100",
-  "where": [
-   "rankings tab 7",
-   "building 7 tab 7"
-  ]
- },
- {
   "text": "Campaign",
   "where": [
    "rankings",
@@ -99,15 +48,6 @@
   "where": [
    "rankings tab 7",
    "building 7 tab 7"
-  ]
- },
- {
-  "text": "Guild",
-  "where": [
-   "rankings tab 5",
-   "rankings tab 9",
-   "building 7 tab 5",
-   "building 7 tab 9"
   ]
  },
  {
@@ -140,13 +80,6 @@
   ]
  },
  {
-  "text": "Guilds · Top 100",
-  "where": [
-   "rankings tab 9",
-   "building 7 tab 9"
-  ]
- },
- {
   "text": "Journal",
   "where": [
    "rankings",
@@ -155,17 +88,6 @@
    "rankings tab 2",
    "rankings tab 3",
    "rankings tab 4"
-  ]
- },
- {
-  "text": "Journal · Top 100",
-  "where": [
-   "rankings tab 10",
-   "building 7",
-   "building 7 tab 0",
-   "building 7 tab 1",
-   "building 7 tab 2",
-   "building 7 tab 3"
   ]
  },
  {
@@ -187,28 +109,6 @@
   ]
  },
  {
-  "text": "Next",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
-  "text": "Player",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
   "text": "Power",
   "where": [
    "rankings",
@@ -220,42 +120,6 @@
   ]
  },
  {
-  "text": "Power · Top 100",
-  "where": [
-   "rankings tab 8",
-   "building 7 tab 8"
-  ]
- },
- {
-  "text": "Rank",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
-  "text": "Ranks 1–25 · 1 of 4",
-  "where": [
-   "rankings",
-   "rankings tab 0",
-   "rankings tab 1",
-   "rankings tab 2",
-   "rankings tab 3",
-   "rankings tab 4"
-  ]
- },
- {
-  "text": "Skyfall · Top 100",
-  "where": [
-   "rankings tab 5",
-   "building 7 tab 5"
-  ]
- },
- {
   "text": "Spire",
   "where": [
    "rankings",
@@ -264,13 +128,6 @@
    "rankings tab 2",
    "rankings tab 3",
    "rankings tab 4"
-  ]
- },
- {
-  "text": "Spire · Top 100",
-  "where": [
-   "rankings tab 6",
-   "building 7 tab 6"
   ]
  },
  {

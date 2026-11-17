@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Jurnal Pencapaian",
+  "bb.close_journal": "Tutup jurnal",
+  "bb.rankings": "Peringkat",
+  "bb.pager_back": "Sebelumnya",
+  "bb.pager_next": "Berikutnya",
+  "bb.top_title": "{mode} · 100 Teratas",
+  "bb.rank": "Peringkat",
+  "bb.player": "Pemain",
+  "bb.range": "Peringkat {first}–{last} · {page} dari 4",
+  "bb.track_next": "{value} / {next} · Berikutnya: {reward}",
+  "bb.track_complete": "Rangkaian selesai",
+  "bb.history_unavailable": "Riwayat progres tidak tersedia",
+  "bb.track_progress": "Progres {name}",
+  "bb.journal_summary": "{earned} / {total} terverifikasi dari progres yang tersedia · Total bonus Vault +{percent}% · Pratinjau hadiah"
+}

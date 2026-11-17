@@ -1,0 +1,16 @@
+{
+  "bb.journal": "Diario de logros",
+  "bb.close_journal": "Cerrar el diario",
+  "bb.rankings": "Clasificaciones",
+  "bb.pager_back": "Atrás",
+  "bb.pager_next": "Siguiente",
+  "bb.top_title": "{mode} · Los 100 mejores",
+  "bb.rank": "Puesto",
+  "bb.player": "Jugador",
+  "bb.range": "Puestos {first}–{last} · {page} de 4",
+  "bb.track_next": "{value} / {next} · Siguiente: {reward}",
+  "bb.track_complete": "Serie completada",
+  "bb.history_unavailable": "Historial de progreso no disponible",
+  "bb.track_progress": "Progreso de {name}",
+  "bb.journal_summary": "{earned} / {total} verificados según el progreso disponible · Bonificación total de la Cámara +{percent}% · Vista previa de recompensas"
+}
