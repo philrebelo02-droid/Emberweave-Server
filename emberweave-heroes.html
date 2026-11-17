@@ -712,7 +712,8 @@
   #campaign .campPill i{font-style:normal;font-size:10px;color:#bff0a8}
   #campaign .campPill .campPlus{width:22px;height:22px;border:0;padding:0;background:url(/assets/img/ui/hud2/plus-button.webp?v=1) center/contain no-repeat;font-size:0;color:transparent;cursor:pointer;flex:0 0 auto}
   /* v1322 (Phil 9 Nov: "Add the plus sign to add stam and diamonds on campaign currency spots"): the + shows on phones too, the B kit's plus */
-  #campaign #campStamF{left:calc(25% - 67px)}
+  #campaign #campStamF{left:max(calc(25% - 67px), var(--campBackR, 96px))}   /* v1404 (Phil 17 Nov: "base button needs to be in the top left corner not under stam"): food starts after Base */
+  #campaign.active > .btn.backbtn{top:4px!important;left:4px!important}
   #campaign #campGemF{left:calc(75% + 43px)}
   @media (max-width:900px){ #campaign .campPill i{display:none} #campaign .campPill .campPlus{width:20px;height:20px} #campaign .campPill b{font-size:12px} #campaign .campPill img{width:22px;height:22px} #campaign .campPill{padding:0 7px 0 4px} }
   .hd-tab .hupDot{left:auto;bottom:auto;right:3px;top:3px;width:9px;height:9px}
@@ -20000,7 +20001,10 @@ let WELL_HEROVIEW=null, WELL_HEROVIEW_NEXT=null;   /* the Starless Well run open
 function closePopout(){ try{ loreStop(); }catch(e){} if(WELL_HEROVIEW){ WELL_HEROVIEW=null; document.body.classList.remove('wlHeroView'); } try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
   try{ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none'; }catch(e){}
   try{ document.querySelectorAll('.popoutClose').forEach(x=>x.remove()); }catch(e){}
-  if(_popout){ const was=_popout; _popout=null; try{ const el=document.getElementById(was); if(el){ el.classList.remove('popout'); if(was!==state) el.classList.remove('active'); } }catch(e){} }   /* v1198: the screen the player is ON keeps showing */
+  if(_popout){ const was=_popout; _popout=null; try{ const el=document.getElementById(was); if(el){ el.classList.remove('popout'); if(was!==state) el.classList.remove('active'); } }catch(e){}
+    /* v1404 (Phil 17 Nov: "when you are on the talent screen and you click out of the box on to the city art" -> the full hero screen): the hero window is never left
+       showing as a full screen when its pop-out closes - if the screen under it was the hero screen (an older build / a saved screen), go back to Heroes */
+    if(was==='heroDetail'&&state==='heroDetail'){ try{ const el=document.getElementById('heroDetail'); if(el) el.classList.remove('active'); show('heroesPanel'); }catch(e){} } }   /* v1198: the screen the player is ON keeps showing */
   _ensureScreen(); }
 /* v1198: whatever happens on a screen change or a window close (an error included), one screen is always left showing.
    No active screen and no pop-out = the black page the Fold tester hit; put the current screen back (or the town). */
@@ -20011,6 +20015,18 @@ function _ensureScreen(){ try{ if(typeof state==='undefined'||state==='battle'||
     if(el){ el.classList.remove('popout'); el.classList.add('active'); try{ _fitApp(); }catch(e){} try{ muteBtnPlace(true); }catch(e){} }
     else if(!_ensureScreen.busy){ _ensureScreen.busy=true; try{ show('home'); }finally{ _ensureScreen.busy=false; } }
   }catch(e){} }
+/* v1404 (Phil 17 Nov: "base button needs to be in the top left corner not under stam"): the food pill starts 6 px after the Base button, whatever its label's length */
+/* v1404 (Phil 17 Nov: screen recording 13:48 - Heroes guide on, Morvayne -> Equipment -> Talents, then the window became the FULL hero screen; no route found
+   in the code, every show('heroDetail') is already redirected): a last safety net - whenever #heroDetail is shown without the pop-out, turn it into the pop-out
+   over Heroes at once, whatever made it so. */
+function heroDetailGuard(){ try{ const el=document.getElementById('heroDetail'); if(!el||heroDetailGuard._on) return; heroDetailGuard._on=1;
+  new MutationObserver(()=>{ if(heroDetailGuard._busy) return; if(el.classList.contains('active')&&!el.classList.contains('popout')){ heroDetailGuard._busy=1;
+    setTimeout(()=>{ try{ if(el.classList.contains('active')&&!el.classList.contains('popout')){ console.warn('heroDetail shown full screen - turned into the pop-out'); el.classList.remove('active'); if(state==='heroDetail'){ state='heroesPanel'; _showScreen('heroesPanel'); } popoutScreen('heroDetail'); } }catch(e){} heroDetailGuard._busy=0; },0); } }).observe(el,{attributes:true,attributeFilter:['class']});
+  }catch(e){} }
+try{ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',heroDetailGuard); else heroDetailGuard(); }catch(e){}
+function campBackGap(){ const c=document.getElementById('campaign'), bb=c&&c.querySelector(':scope > .backbtn'), f=document.getElementById('campStamF'); if(!c||!bb||!f||!bb.offsetWidth) return;
+  /* the food pill is centred on its 'left' (translateX -50%), so its left edge = left - width/2: put that edge 6 px after Base (layout px, no rotation maths) */
+  c.style.setProperty('--campBackR',Math.ceil(bb.offsetLeft+bb.offsetWidth+6+f.offsetWidth/2)+'px'); }
 function show(name){ try{ ewStep('screen:'+name); }catch(e){} if(name==='heroDetail'&&!show._hd){ show._hd=1; try{ if(state!=='heroesPanel') show('heroesPanel'); popoutScreen('heroDetail'); } finally { show._hd=0; } return; }   /* v1403 (Phil 17 Nov: "if I click around enough it bugs" - 500 random clicks ended on the FULL hero screen): the hero window is always the pop-out (over Heroes); no path opens it as a full screen */ if(name==='home'&&typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN){ CAMP_RETURN=null; try{ campBackLabel(); }catch(e){} } show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
 let vaultScreenEpoch=0;
 function _showScreen(name){
@@ -20059,7 +20075,7 @@ function _showScreen(name){
   if(name==='glossary') renderGlossary();
   _fitApp();
   if(name==='home') renderHome();
-  if(name==='campaign'){ try{ campBonusBtnRefresh(); }catch(e){} try{ setTimeout(affBtnPlace,0); }catch(e){} try{ campBackLabel(); }catch(e){}   // v1298: the bottom-left Bonus Stage claim
+  if(name==='campaign'){ try{ campBonusBtnRefresh(); }catch(e){} try{ setTimeout(affBtnPlace,0); }catch(e){} try{ campBackLabel(); }catch(e){} try{ setTimeout(campBackGap,0); requestAnimationFrame(campBackGap); }catch(e){}   // v1298: the bottom-left Bonus Stage claim
     // 27 Aug (Phil): clearing a stage returns you to THAT stage, not to your furthest one.
     if(G.lastPortal && PORTAL_META[G.lastPortal] && !portalLockMsg(G.lastPortal)) PORTAL=G.lastPortal;
     campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), portalChapters(PORTAL)) : 0; campViewUser=false;
