@@ -163,5 +163,6 @@
 "↺ team health from {0}s ago + revive at {1}%":"↺ 队伍生命值回溯至{0}秒前 + 以{1}%复活",
 "🃏 every {0}th attack draws a suit":"🃏 每第{0}次攻击抽取一种花色",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}米内沉默{0}秒，每{2}秒重唱一次，持续{3}秒 · ✚ 每名被沉默的敌人每秒为离它最近的友军治疗{4} · 无伤害",
-"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 无法被选中{0}秒 → {i:s:attack} {1}"
+"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 无法被选中{0}秒 → {i:s:attack} {1}",
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "格罗斯克对目标打出三记重拳。每拳造成相当于自身护甲{0}%的伤害，强制目标攻击格罗斯克并使其沉默。"
 }

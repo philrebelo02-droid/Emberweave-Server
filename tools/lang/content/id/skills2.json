@@ -163,5 +163,6 @@
 "↺ team health from {0}s ago + revive at {1}%":"↺ HP tim kembali seperti {0} dtk lalu + bangkit dengan {1}%",
 "🃏 every {0}th attack draws a suit":"🃏 setiap serangan ke-{0} menarik satu jenis kartu",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 bisu {0} dtk dalam {1} m, dinyanyikan ulang setiap {2} dtk selama {3} dtk · ✚ setiap musuh yang terbisu menyembuhkan sekutu terdekatnya {4} per detik · tanpa kerusakan",
-"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 tak bisa ditarget {0} dtk → {i:s:attack} {1}"
+"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 tak bisa ditarget {0} dtk → {i:s:attack} {1}",
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk menghantam targetnya dengan tiga pukulan keras. Setiap pukulan menghasilkan kerusakan sebesar {0}% dari Armor-nya, memaksa target menyerangnya, dan membungkam target."
 }

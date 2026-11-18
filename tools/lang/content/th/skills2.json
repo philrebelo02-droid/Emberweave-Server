@@ -163,5 +163,6 @@
 "↺ team health from {0}s ago + revive at {1}%":"↺ ย้อนพลังชีวิตทีมไปเมื่อ {0} วิก่อน + ฟื้นคืนชีพที่ {1}%",
 "🃏 every {0}th attack draws a suit":"🃏 ทุกการโจมตีครั้งที่ {0} จะจั่วชุดไพ่",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 ใบ้ {0} วิ ในระยะ {1} ม. ร้องซ้ำทุก {2} วิ เป็นเวลา {3} วิ · ✚ ศัตรูที่ติดใบ้แต่ละตัวรักษาพันธมิตรที่ใกล้มันที่สุด {4} ต่อวินาที · ไม่สร้างความเสียหาย",
-"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 ไม่สามารถถูกเล็ง {0} วิ → {i:s:attack} {1}"
+"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 ไม่สามารถถูกเล็ง {0} วิ → {i:s:attack} {1}",
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "กรอสก์ต่อยเป้าหมายอย่างหนัก 3 ครั้ง แต่ละครั้งสร้างความเสียหายเท่ากับ {0}% ของเกราะของเขา บังคับให้เป้าหมายโจมตีเขาและทำให้เป้าหมายติดใบ้"
 }

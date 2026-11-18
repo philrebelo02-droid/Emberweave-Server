@@ -163,5 +163,6 @@
 "↺ team health from {0}s ago + revive at {1}%":"↺ takımın canı {0} sn önceki haline döner + %{1} ile diriliş",
 "🃏 every {0}th attack draws a suit":"🃏 her {0}. saldırı bir kart serisi çeker",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1} m içinde {0} sn susturma, {3} sn boyunca her {2} sn'de yeniden söylenir · ✚ susturulan her düşman kendisine en yakın müttefiki saniyede {4} iyileştirir · hasar yok",
-"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0} sn hedef alınamaz → {i:s:attack} {1}"
+"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0} sn hedef alınamaz → {i:s:attack} {1}",
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk hedefine üç ağır yumruk atar. Her yumruk, zırhının %{0}’ı kadar hasar verir, hedefi kendisine saldırmaya zorlar ve susturur."
 }

@@ -163,5 +163,6 @@
 "↺ team health from {0}s ago + revive at {1}%":"↺ {0}से पहले का टीम स्वास्थ्य + {1}% पर पुनर्जीवन",
 "🃏 every {0}th attack draws a suit":"🃏 हर {0}वाँ हमला एक पत्ता खींचता है",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}मी में {0}से मौन, हर {2}से फिर गाया जाता है, {3}से तक · ✚ हर मौन दुश्मन अपने सबसे पास के साथी को हर सेकंड {4} ठीक करता है · कोई क्षति नहीं",
-"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0}से निशाने से बाहर → {i:s:attack} {1}"
+"🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0}से निशाने से बाहर → {i:s:attack} {1}",
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "ग्रोस्क अपने लक्ष्य पर तीन भारी घूँसे मारता है। हर घूँसा उसके कवच के {0}% के बराबर क्षति पहुँचाता है, लक्ष्य को उस पर हमला करने के लिए मजबूर करता है और उसे मौन कर देता है।"
 }

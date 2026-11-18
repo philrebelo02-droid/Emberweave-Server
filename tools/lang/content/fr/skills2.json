@@ -163,5 +163,6 @@
  "↺ team health from {0}s ago + revive at {1}%": "↺ PV de l’équipe d’il y a {0} s + résurrection à {1} %",
  "🃏 every {0}th attack draws a suit": "🃏 toutes les {0} attaques, tire une couleur",
  "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage": "🔇 {0} s de silence sur {1} m, relancé toutes les {2} s pendant {3} s · ✚ chaque ennemi réduit au silence soigne l’allié le plus proche de lui de {4} par seconde · aucun dégât",
- "🕳 untargetable {0}s → {i:s:attack} {1}": "🕳 impossible à cibler {0} s → {i:s:attack} {1}"
+ "🕳 untargetable {0}s → {i:s:attack} {1}": "🕳 impossible à cibler {0} s → {i:s:attack} {1}",
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk assène trois coups de poing puissants à sa cible. Chaque coup inflige des dégâts égaux à {0} % de son armure, oblige la cible à l’attaquer et la réduit au silence."
 }
