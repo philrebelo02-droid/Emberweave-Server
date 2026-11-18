@@ -18,7 +18,7 @@ function checks(src) {
     names: said(gu, /is down right now\./, "t('svr2.is_down',{name:_svN})", 'svr2.is_down', '{name} is down right now.') && said(gu, /'Lost '\+_svN/, "t('svr2.lost_reconnecting',{name:_svN})", 'svr2.lost_reconnecting', 'Lost {name} — reconnecting…'),
     oneCheck: /NETGATE\.serverDown=true; NETGATE\.down=Math\.max\(1,NETGATE\.down\+1\)/.test(gc) && /NETGATE\.serverDown&&NETGATE\.down>=1\) return true/.test(src.slice(src.indexOf('function netGateShown('), src.indexOf('function netGateOk('))),
     list: /data-ngsvr/.test(gu) && /svrGo\(\+b\.dataset\.ngsvr\)/.test(gu),
-    retry: said(gu, /Checking…/, "t('boot.checking')", 'boot.checking', 'Checking…') && said(gu, /Still down — Retry/, "t('svr2.still_down_retry')", 'svr2.still_down_retry', 'Still down — Retry'),
+    retry: said(gu, /Checking…/, "t('boot.checking')", 'boot.checking', 'Checking…') && (said(gu, /Still down — Retry/, "t('svr2.still_down_retry')", 'svr2.still_down_retry', 'Still down — Retry') || (/\bt\([^()]*'svr2\.still_down_retry'/.test(gu) && EN['svr2.still_down_retry'] === 'Still down — Retry')),   /* v1422: the key is chosen inside t(cond?'boot.checking':'svr2.still_down_retry') so a language change redraws the button */
     reconnect: /if\(ok&&_was\)\{ try\{ CHATNET\.tries=0; chatConnect\(\);/.test(gc),
     socketDrop: /CHATNET\.ws\.onclose=\(\)=>\{[^\n]*\n\s*try\{ netGateCheck\(\)/.test(src),
   };
