@@ -103,6 +103,7 @@ let liveAsc = null;
     const snap = host.snapFromSpecs([spec])[0];
     ok(Math.abs(snap.defenseStat - su.defense) < 1e-12, 'client unit from the same spec (glyph + gear in tt, the Temple bonuses) = server: defenseStat ' + snap.defenseStat); }
   /* nothing else moved */
+  const TEXT_FIXED_1420 = ['E10', 'E12'];   // v1420: Null Pulse / Ashen Guard effect TEXT corrected to match castGearSkill - every stat still compared
   const glyphOld = JSON.parse(show('server/glyph-source.json')), gearOld = JSON.parse(show('server/gear-catalog.json'));
   const stockNow=glyphNow.filter(d=>!d.id.startsWith('H61G'));
   ok(glyphOld.length === stockNow.length && glyphOld.every((d, i) => d.family === 'Ironwall' ? stockNow[i].passiveStats.startsWith(d.passiveStats + '; Defense +') && stockNow[i].statFocus === 'Armor / Block / Defense'
@@ -110,7 +111,7 @@ let liveAsc = null;
   const personal=glyphNow.filter(d=>d.id.startsWith('H61G'));
   ok(personal.length===96&&personal.every(d=>d.fragmentFamily&&glyphOld.some(o=>o.quality===d.quality&&o.family===d.fragmentFamily)
     && !/Defense/.test(d.passiveStats)), 'Hero61 adds 96 personal glyphs with existing fragment families and no extra Defense');
-  ok(gearOld.items.every((d, i) => { const n = gearNow.items[i]; if (RESTAT_10NOV.includes(d.id)) return TANK_GEAR.includes(d.id) ? n.stats.defense > 0 : true; if (!TANK_GEAR.includes(d.id)) return JSON.stringify(d) === JSON.stringify(n);
+  ok(gearOld.items.every((d, i) => { const n = gearNow.items[i]; if (RESTAT_10NOV.includes(d.id)) return TANK_GEAR.includes(d.id) ? n.stats.defense > 0 : true; if (!TANK_GEAR.includes(d.id)) return TEXT_FIXED_1420.includes(d.id) ? JSON.stringify(Object.assign({}, d, {effect: n.effect})) === JSON.stringify(n) : JSON.stringify(d) === JSON.stringify(n);
       const s = Object.assign({}, n.stats); delete s.defense; return JSON.stringify(s) === JSON.stringify(d.stats) && n.stats.defense > 0; })
     && gearNow.items.filter(d => d.stats.defense).every(d => TANK_GEAR.includes(d.id) && /^Tank \//.test(d.roles)),
     'equipment: only the Tank helms / armors (' + TANK_GEAR.join(' ') + ') gained Defense, every old stat kept; every other item unchanged');
