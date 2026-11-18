@@ -1,0 +1,10 @@
+{
+  "swarm.aura_war_drum_name": "戦太鼓",
+  "swarm.aura_war_drum_desc": "太鼓が一定の間隔で鳴る。4拍目ごとに強く鳴り、当たったモンスターはしばらく受けるダメージが増える。",
+  "swarm.aura_war_drum_up": "テンポが速くなり、4拍目の威力が増す。",
+  "swarm.aura_war_drum_ten": "雷鳴太鼓：強い拍ごとに雷が落ちる。",
+  "swarm.aura_grudge_mark_name": "怨恨の印",
+  "swarm.aura_grudge_mark_desc": "最後に自分を攻撃した敵に重い斧を投げ、印を付ける。印1つにつき対象の被ダメージが25%増え、最大3つまで重なる。印の付いたモンスターは倒れると爆発する。",
+  "swarm.aura_grudge_mark_up": "投げる速度が上がり、爆発が大きくなる。",
+  "swarm.aura_grudge_mark_ten": "復讐：最大5体の印付きモンスターに同時に斧が飛ぶ。"
+}

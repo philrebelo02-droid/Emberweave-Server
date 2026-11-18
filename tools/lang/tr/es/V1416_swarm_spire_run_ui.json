@@ -1,0 +1,14 @@
+{
+  "swarm.title": "La Aguja del Enjambre",
+  "swarm.story": "Historia",
+  "swarm.survive": "Supervivencia",
+  "swarm.play": "Jugar",
+  "swarm.pause": "Pausa",
+  "swarm.level_up": "Subida de nivel",
+  "swarm.save_quit": "Guardar y salir",
+  "swarm.quit_warning": "¿Salir? Perderás esta partida.",
+  "swarm.quit_run": "Salir de la partida",
+  "swarm.new_warning": "¿Empezar otra partida? Perderás la que guardaste.",
+  "swarm.new_run": "Nueva partida",
+  "swarm.kills": "Bajas: {n}"
+}

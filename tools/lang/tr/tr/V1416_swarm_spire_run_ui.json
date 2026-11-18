@@ -1,0 +1,14 @@
+{
+  "swarm.title": "Sürü Kulesi",
+  "swarm.story": "Hikâye",
+  "swarm.survive": "Hayatta Kalma",
+  "swarm.play": "Oyna",
+  "swarm.pause": "Duraklat",
+  "swarm.level_up": "Seviye atlandı",
+  "swarm.save_quit": "Kaydet ve çık",
+  "swarm.quit_warning": "Bu koşudan çıkılsın mı? İlerleme silinecek.",
+  "swarm.quit_run": "Koşudan çık",
+  "swarm.new_warning": "Yeni koşu başlatılsın mı? Kayıtlı koşun silinecek.",
+  "swarm.new_run": "Yeni koşu",
+  "swarm.kills": "Alt edilen düşman: {n}"
+}

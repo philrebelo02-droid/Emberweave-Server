@@ -1,0 +1,10 @@
+{
+  "swarm.aura_frost_nova_name": "冰霜新星",
+  "swarm.aura_frost_nova_desc": "冰霜爆发击中并冻结附近的怪物。再次击中冻结的怪物会使其碎裂并造成双倍伤害。首领不会被冻结。",
+  "swarm.aura_frost_nova_up": "爆发范围更广、频率更高，冻结更持久。",
+  "swarm.aura_frost_nova_ten": "寒冬之心：暴风雪跟随你，冻结并击碎怪物。",
+  "swarm.aura_chain_lightning_name": "闪电链",
+  "swarm.aura_chain_lightning_desc": "一道闪电在怪物之间跳跃。",
+  "swarm.aura_chain_lightning_up": "跳跃次数更多，闪电更强。",
+  "swarm.aura_chain_lightning_ten": "风暴之冠：头顶的冠冕每次触发时放出三道闪电链。"
+}

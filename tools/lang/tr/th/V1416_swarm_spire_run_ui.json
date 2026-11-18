@@ -1,0 +1,14 @@
+{
+  "swarm.title": "หอคอยฝูงอสูร",
+  "swarm.story": "เนื้อเรื่อง",
+  "swarm.survive": "เอาชีวิตรอด",
+  "swarm.play": "เล่น",
+  "swarm.pause": "หยุดชั่วคราว",
+  "swarm.level_up": "เลเวลเพิ่ม",
+  "swarm.save_quit": "บันทึกและออก",
+  "swarm.quit_warning": "ออกจากรอบนี้หรือไม่? ความคืบหน้าจะหายไป",
+  "swarm.quit_run": "ออกจากรอบ",
+  "swarm.new_warning": "เริ่มรอบใหม่หรือไม่? รอบที่บันทึกไว้จะหายไป",
+  "swarm.new_run": "รอบใหม่",
+  "swarm.kills": "กำจัดศัตรู {n} ตัว"
+}

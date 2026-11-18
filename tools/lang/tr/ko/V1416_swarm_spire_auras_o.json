@@ -1,0 +1,10 @@
+{
+  "swarm.aura_mana_storm_name": "마나 폭풍",
+  "swarm.aura_mana_storm_desc": "폭풍 구름이 머리 위에 떠서 그 아래 지면에 무작위로 번개를 떨어뜨립니다.",
+  "swarm.aura_mana_storm_up": "번개가 더 많이 떨어지고 구름이 더 넓어집니다.",
+  "swarm.aura_mana_storm_ten": "폭풍의 눈: 자신을 중심으로 거센 폭풍이 몰아칩니다.",
+  "swarm.aura_meteor_call_name": "운석 소환",
+  "swarm.aura_meteor_call_desc": "먼저 경고 그림자가 나타난 뒤 진행 방향에 큰 운석 하나가 떨어집니다.",
+  "swarm.aura_meteor_call_up": "더 큰 폭발이 더 자주 일어납니다.",
+  "swarm.aura_meteor_call_ten": "대격변: 운석 여섯 개가 비처럼 쏟아집니다."
+}

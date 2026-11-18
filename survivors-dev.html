@@ -129,25 +129,25 @@
 <div id="stick"><div id="knob"></div></div>
 <button id="ult">ULT</button>
 <div id="skills"></div>
-<div id="pick"><h2>LEVEL UP</h2></div>
-<div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button><button class="leave" hidden>Leave</button></div>
-<button id="quit" hidden>Pause</button>
+<div id="pick"><h2 data-spire-label="swarm.level_up">Level up</h2></div>
+<div id="end"><h2 id="endT"></h2><div id="endS"></div><button data-spire-label="draft.play_again" onclick="location.reload()">Again</button><button class="leave" hidden data-spire-label="hud.leave">Leave</button></div>
+<button id="quit" hidden data-spire-label="swarm.pause">Pause</button>
 <!-- the pause (in the game): Resume, Save and quit (the run is kept on this device; Continue in the lobby brings it back), Quit (the run is lost) -->
-<div id="pause" hidden><div class="pzBox"><div class="pzCol"><div class="pzT">Paused</div><div class="pzS" id="pzInfo"></div>
-  <div class="pzBtns" id="pzBtns"><button id="pzResume" class="pzMain">Resume</button><button id="pzSave">Save and quit</button><button id="pzQuit">Quit</button></div>
+<div id="pause" hidden><div class="pzBox"><div class="pzCol"><div class="pzT" data-spire-label="hud.paused">Paused</div><div class="pzS" id="pzInfo"></div>
+  <div class="pzBtns" id="pzBtns"><button id="pzResume" class="pzMain" data-spire-label="hud.resume">Resume</button><button id="pzSave" data-spire-label="swarm.save_quit">Save and quit</button><button id="pzQuit" data-spire-label="hud.quit">Quit</button></div>
   <div id="pzSnd" class="pzSnd"></div>
-  <div class="pzBtns" id="pzSure" hidden><div class="pzQ">Quit this run? It will be lost.</div><button id="pzQuitYes" class="pzWarn">Quit run</button><button id="pzQuitNo">Back</button></div></div>
+  <div class="pzBtns" id="pzSure" hidden><div class="pzQ" data-spire-label="swarm.quit_warning">Quit this run? It will be lost.</div><button id="pzQuitYes" class="pzWarn" data-spire-label="swarm.quit_run">Quit run</button><button id="pzQuitNo" data-spire-label="common.back">Back</button></div></div>
   <div class="pzBuild" id="pzBuild"></div></div></div>
 <!-- v1220 the lobby (in the game): a hero to pick from 20 (only those with a 3D model can play for now), the mode, the stage, PLAY -->
 <div id="lobby" hidden>
-  <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">The Swarm Spire</div><span class="lbBtn" style="visibility:hidden" aria-hidden="true">Leave</span></div>
+  <div class="lbTop"><button class="lbBtn" id="lbLeave" data-spire-label="hud.leave">Leave</button><div class="lbTitle" id="lbTitle" data-spire-label="swarm.title">The Swarm Spire</div><span class="lbBtn" style="visibility:hidden" aria-hidden="true">Leave</span></div>
   <div class="lbMain">
     <div class="lbHero"><div class="lbCard"><img id="lbArt" alt=""></div>
       <div class="lbInfo"><div class="lbName" id="lbName"></div><div class="lbSub" id="lbSub"></div><div class="lbMeta" id="lbMeta"></div></div></div>
     <div class="lbRight"><div class="lbGrid" id="lbGrid"></div>
-      <div class="lbGo"><div class="lbSeg" id="lbMode"><button data-m="story" class="on">Story</button><button data-m="survive">Survive</button></div>
-        <select id="lbStage"></select><button id="lbCont" hidden>Continue<small id="lbContInfo"></small></button><button id="lbPlay">PLAY</button></div>
-      <div class="lbAsk" id="lbAsk" hidden>Start a new run? Your saved run will be lost.<button id="lbAskYes">New run</button><button id="lbAskNo">Back</button></div></div>
+      <div class="lbGo"><div class="lbSeg" id="lbMode"><button data-m="story" class="on" data-spire-label="swarm.story">Story</button><button data-m="survive" data-spire-label="swarm.survive">Survive</button></div>
+        <select id="lbStage"></select><button id="lbCont" hidden><span data-spire-label="common.continue">Continue</span><small id="lbContInfo"></small></button><button id="lbPlay" data-spire-label="swarm.play">Play</button></div>
+      <div class="lbAsk" id="lbAsk" hidden><span data-spire-label="swarm.new_warning">Start a new run? Your saved run will be lost.</span><button id="lbAskYes" data-spire-label="swarm.new_run">New run</button><button id="lbAskNo" data-spire-label="common.back">Back</button></div></div>
   </div>
 </div>
 <div id="start">
@@ -156,7 +156,7 @@
   <label>Mode <select id="mode"><option value="story">Story (30:00, then the boss)</option><option value="survive">Survive (endless)</option></select></label>
   <label>Stage <select id="stage"></select></label>
   <label class="devonly"><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (1K textures)</label>
-  <button id="go">PLAY</button><button class="leave" hidden>Leave</button>
+  <button id="go">PLAY</button><button class="leave" hidden data-spire-label="hud.leave">Leave</button>
   <div id="mem" class="devonly" style="color:var(--dim)"></div>
   <div class="devonly" style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. Auras fire on their own; your skills are the buttons (or 1-5). ULT (or Space) when the ring is full.</div>
 </div>
@@ -165,9 +165,24 @@
 <script src="/server/survivors-core.js?v=dev38"></script>
 <script>
 (async function () {
-  const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
+  const params = new URLSearchParams(location.search);
+  const supported = ['en','de','es','fr','hi','id','it','ja','ko','nl','pt-BR','ru','th','tr','zh-Hans','zh-Hant'];
+  const requested = params.get('lang'), locale = supported.includes(requested) ? requested : 'en';
+  const [AURAS, strings] = await Promise.all([
+    fetch('/server/survivors-auras.json?v=dev2').then(response => response.json()),
+    locale === 'en' ? {} : fetch('/lang/' + locale + '.json?b=' + encodeURIComponent(params.get('b') || ''))
+      .then(response => response.ok ? response.json() : {}).catch(() => ({})),
+  ]);
+  document.documentElement.lang = locale;
+  const t = (key, fallback, vars = {}) => (strings[key] || fallback)
+    .replace(/\{(\w+)\}/g, (match, key) => String(vars[key] ?? match));
+  document.querySelectorAll('[data-spire-label]').forEach(el => {
+    el.textContent = t(el.dataset.spireLabel, el.textContent);
+  });
+  document.getElementById('ult').setAttribute('aria-label', t('codex.ultimate', 'Ultimate'));
+  const C = window.SurvivorsCore;
   const byKey = {}; AURAS.forEach(a => byKey[a.key] = a);
-  const st = document.getElementById('stage'); for (let i = 1; i <= C.STAGES; i++) st.add(new Option('Stage ' + i, i));
+  const st = document.getElementById('stage'); for (let i = 1; i <= C.STAGES; i++) st.add(new Option(t('stage.title', 'Stage {code}', {code: i}), i));
   const cv = document.getElementById('cv'), G0 = cv.getContext('2d');
   let g = G0;
   /* SPELL FX = ART ONLY (Phil 24 Oct: "there should be no spell fx made by code, only effects adjusted by code"). While the spells
@@ -265,7 +280,7 @@
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
   // in the game: Linnet in 3D, no dev pickers; Leave tells the game to close the frame
-  if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = 'The Swarm Spire';
+  if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = t('swarm.title', 'The Swarm Spire');
     document.querySelectorAll('.leave').forEach(b => { b.hidden = false; b.onclick = () => { try { parent.postMessage('survivors-close', location.origin); } catch (e) {} }; });
     document.getElementById('quit').hidden = true; }
   /* SAVE / CONTINUE (Phil 24 Oct: "save their game and return them to their exact spot on demand"): the whole run (C.snapshot) is kept on this
@@ -296,16 +311,16 @@
   const fmtT = t => { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
   function setPause(on) { if (!S || S.ended) return; paused = on; document.getElementById('pause').hidden = !on;
     document.getElementById('pzBtns').hidden = false; document.getElementById('pzSure').hidden = true;
-    if (on) { document.getElementById('pzInfo').textContent = fmtT(S.t) + '  ·  Lv ' + S.hero.level + '  ·  ' + S.kills + ' kills'; pauseBuild();
+    if (on) { document.getElementById('pzInfo').textContent = fmtT(S.t) + '  ·  ' + t('stage.lv', 'Lv {n}', {n: S.hero.level}) + '  ·  ' + t('swarm.kills', '{n} kills', {n: S.kills.toLocaleString(locale)}); pauseBuild();
       /* v1358 (Phil 10 Nov: "add sound settings to every pause menu in game modes"): the game's own sound panel (the page that hosts this frame owns the audio) */
       try { const G0 = window.parent, h = document.getElementById('pzSnd'); if (h && G0 && G0 !== window && typeof G0.sndPanelHTML === 'function') { h.innerHTML = G0.sndPanelHTML('zsnd'); G0.sndPanelWire(h, 'zsnd'); } } catch (e) {} }
     if (!on) { last = performance.now(); if (H3) H3.clock.getDelta(); } }
   const toGame = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
   document.getElementById('quit').onclick = () => setPause(true);
   document.getElementById('pzResume').onclick = () => setPause(false);
-  document.getElementById('pzSave').onclick = () => { const b = document.getElementById('pzSave'); b.disabled = true; b.textContent = 'Saving...';
-    saveRun().then(ok => { b.disabled = false; b.textContent = 'Save and quit';
-      if (ok) { leaving = true; toGame('survivors-close'); } else document.getElementById('pzInfo').textContent = "Couldn't save on this device"; }); };
+  document.getElementById('pzSave').onclick = () => { const b = document.getElementById('pzSave'); b.disabled = true; b.textContent = t('draft.saving', 'Saving...');
+    saveRun().then(ok => { b.disabled = false; b.textContent = t('swarm.save_quit', 'Save and quit');
+      if (ok) { leaving = true; toGame('survivors-close'); } else document.getElementById('pzInfo').textContent = t('draft.save_failed', "Couldn't save on this device"); }); };
   // Quit asks first (Phil 24 Oct: "make sure there is a confirm prompt incase they hit the wrong quit")
   document.getElementById('pzQuit').onclick = () => { document.getElementById('pzBtns').hidden = true; document.getElementById('pzSure').hidden = false; };
   document.getElementById('pzQuitNo').onclick = () => { document.getElementById('pzBtns').hidden = false; document.getElementById('pzSure').hidden = true; };
@@ -313,18 +328,29 @@
     idbDo('readwrite', st => st.delete('run')).then(() => toGame('survivors-close'), () => { leaving = false; _b.textContent = 'Could not clear the run - tap to retry'; }); };   /* v1355 (audit): a failed delete closed the frame and the run came back */   // the delete lands before the frame goes
   /* the build on the pause (Phil 24 Oct: "show the Current Skills/Spells/Passives you have, their level, and how many empty slots you have left"):
      skills, then spells (their art, Lv n/10), then passives (Lv n/5), each row filled out with its empty slots */
+  function auraText(a, field) {
+    const fallback = (field === 'ten' ? a.ten || a.l10 : a[field]) || '';
+    return a.key ? t('swarm.aura_' + a.key.replace(/-/g, '_') + '_' + field, fallback) : fallback;
+  }
+  function passiveText(key) {
+    const p = C.PASSIVES[key];
+    if (!p) return {name: key, effect: ''};
+    const id = 'swarm.passive_' + key;
+    const percent = new Intl.NumberFormat(locale, {style: 'percent', maximumFractionDigits: 1}).format(p.per);
+    return {name: t(id + '_name', p.name), effect: t(id + '_effect', p.what, {p: percent})};
+  }
   function pauseBuild() { const box = document.getElementById('pzBuild'), h = S.hero, el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
     box.innerHTML = '';
-    const section = (title, items, slots, cap) => { const hd = el('div', 'pzH', title); if (slots) hd.appendChild(el('span', '', items.length + ' / ' + slots + (slots > items.length ? '  ·  ' + (slots - items.length) + ' empty' : '')));
+    const section = (title, items, slots, cap) => { const hd = el('div', 'pzH', title); if (slots) hd.appendChild(el('span', '', items.length + ' / ' + slots + (slots > items.length ? '  ·  ' + t('swarm.empty_slots', '{n} empty', {n: slots - items.length}) : '')));
       box.appendChild(hd); const row = el('div', 'pzRow');
       items.forEach(it => { const c = el('div', 'pzI' + (cap && it.lv >= cap ? ' max' : '')); c.title = it.tip || '';
         if (it.img) { const im = el('img'); im.alt = ''; im.src = it.img; im.onerror = () => im.remove(); c.appendChild(im); }
-        c.appendChild(el('b', '', it.name)); if (it.lv != null) c.appendChild(el('i', '', 'Lv ' + it.lv + (cap ? ' / ' + cap : ''))); row.appendChild(c); });
-      for (let i = items.length; i < (slots || 0); i++) { const c = el('div', 'pzI empty'); c.appendChild(el('b', '', 'Empty')); row.appendChild(c); }
+        c.appendChild(el('b', '', it.name)); if (it.lv != null) c.appendChild(el('i', '', t('stage.lv', 'Lv {n}', {n: it.lv}) + (cap ? ' / ' + cap : ''))); row.appendChild(c); });
+      for (let i = items.length; i < (slots || 0); i++) { const c = el('div', 'pzI empty'); c.appendChild(el('b', '', t('roster.empty', 'Empty'))); row.appendChild(c); }
       box.appendChild(row); };
-    section('Skills', h.kit.map(k => ({ name: k.name, tip: k.kind })), 0, 0);
-    section('Spells', Object.keys(h.auras).map(k => { const a = byKey[k] || { name: k, cls: h.cls }; return { name: a.name, lv: h.auras[k], tip: a.desc || '', img: '/assets/survivors/auras/' + String(a.cls).toLowerCase() + '/' + k + '_unit.webp' }; }), C.SLOTS.aura, C.AURA_MAX);
-    section('Passives', Object.keys(h.passives).map(k => { const q = C.PASSIVES[k] || { name: k, what: '' }; return { name: q.name, lv: h.passives[k], tip: q.what }; }), C.SLOTS.passive, C.PASSIVE_MAX); }
+    section(t('hero.tab_skills', 'Skills'), h.kit.map(k => ({ name: k.name, tip: k.kind })), 0, 0);
+    section(t('swarm.spells', 'Spells'), Object.keys(h.auras).map(k => { const a = byKey[k] || { name: k, cls: h.cls }; return { name: auraText(a, 'name'), lv: h.auras[k], tip: auraText(a, 'desc'), img: '/assets/survivors/auras/' + String(a.cls).toLowerCase() + '/' + k + '_unit.webp' }; }), C.SLOTS.aura, C.AURA_MAX);
+    section(t('swarm.passives', 'Passives'), Object.keys(h.passives).map(k => { const q = passiveText(k); return { name: q.name, lv: h.passives[k], tip: q.effect }; }), C.SLOTS.passive, C.PASSIVE_MAX); }
   addEventListener('keydown', e => { if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && S && !S.ended && document.body.classList.contains('ingame')) setPause(!paused); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.ended && document.body.classList.contains('ingame')) { setPause(true); saveRun(); } });   // (IndexedDB writes finish after the page hides)
   /* v1360 (night smoke, Spire): the IndexedDB write started here never landed while the frame was torn down - a reload mid-run lost the run (or brought back an older save). The same record is also written to localStorage, which is synchronous; saveLoad() takes whichever is newer. */
@@ -336,7 +362,7 @@
     const stS = document.getElementById('stage'), lbS = document.getElementById('lbStage'); lbS.innerHTML = stS.innerHTML;
     const show = () => { const h = heroes.find(x => x.key === pick) || heroes[0]; if (!h) return;
       document.getElementById('lbArt').src = h.img; document.getElementById('lbName').textContent = h.name; document.getElementById('lbSub').textContent = h.sub;
-      document.getElementById('lbMeta').textContent = [h.cls, h.lv ? 'Lv ' + h.lv : '', h.stars ? h.stars + '★' : '', h.power ? 'Power ' + h.power.toLocaleString() : ''].filter(Boolean).join('  ·  ');
+      document.getElementById('lbMeta').textContent = [t('roster.class_' + String(h.cls||'').toLowerCase(), h.cls||''), h.lv ? t('stage.lv', 'Lv {n}', {n: h.lv}) : '', h.stars ? h.stars + '★' : '', h.power ? t('castle.power', 'Power') + ' ' + h.power.toLocaleString(locale) : ''].filter(Boolean).join('  ·  ');
       document.querySelectorAll('.lbT').forEach(t => t.classList.toggle('on', t.dataset.k === h.key)); };
     const build = list => { heroes = list; const g = document.getElementById('lbGrid'); g.innerHTML = '';
       list.forEach(h => { const b = document.createElement('button'); b.className = 'lbT' + (h.playable ? '' : ' off'); b.dataset.k = h.key; b.disabled = !h.playable;
@@ -358,7 +384,7 @@
       document.getElementById('use3d').checked = !!window._heroModel; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
     const cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
     function offerContinue() { const sv = saveRead(); cont.hidden = !sv;
-      if (sv) document.getElementById('lbContInfo').textContent = fmtT(sv.t) + '  ·  Lv ' + sv.level + '  ·  ' + (sv.mode === 'survive' ? 'Survive' : 'Stage ' + sv.stage); }
+      if (sv) document.getElementById('lbContInfo').textContent = fmtT(sv.t) + '  ·  ' + t('stage.lv', 'Lv {n}', {n: sv.level}) + '  ·  ' + (sv.mode === 'survive' ? t('swarm.survive', 'Survive') : t('stage.title', 'Stage {code}', {code: sv.stage})); }
     cont.onclick = () => { const s2 = saveRead(); if (s2) begin(s2); };
     document.getElementById('lbPlay').onclick = () => { if (saveRead()) { ask.hidden = false; return; } begin(null); };
     document.getElementById('lbAskYes').onclick = () => { saveDrop(); ask.hidden = true; begin(null); };
@@ -385,10 +411,10 @@
     if (!H2 && document.getElementById('use3d').checked) load3d(window._heroModel).catch(e => console.error('3D load failed', e));
   };
   function label(o) {
-    if (o.t === 'aura') { const a = byKey[o.key], what = o.to === 1 ? (a.desc || '') : o.to === 10 ? (a.ten || a.l10) : (a.up || '');   // the descriptions (Phil 24 Oct: "do a better job of explaining them")
-      return `<b>${a.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}${o.to === 10 ? ' - FINAL FORM' : ''}<small>${what}</small>`; }
-    if (o.t === 'passive') { const p = C.PASSIVES[o.key]; return `<b>${p.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}<small>${p.what}</small>`; }
-    return '<b>Heal</b><small>restore all health</small>';
+    if (o.t === 'aura') { const a = byKey[o.key], what = auraText(a, o.to === 1 ? 'desc' : o.to === 10 ? 'ten' : 'up');   // the descriptions (Phil 24 Oct: "do a better job of explaining them")
+      return `<b>${auraText(a, 'name')}</b> ${o.to === 1 ? t('stage.new', 'New') : t('stage.lv', 'Lv {n}', {n: o.to})}${o.to === 10 ? ' · ' + t('swarm.final_form', 'Final form') : ''}<small>${what}</small>`; }
+    if (o.t === 'passive') { const p = passiveText(o.key); return `<b>${p.name}</b> ${o.to === 1 ? t('stage.new', 'New') : t('stage.lv', 'Lv {n}', {n: o.to})}<small>${p.effect}</small>`; }
+    return `<b>${t('hut.heal', 'Heal')}</b><small>${t('swarm.restore_health', 'Restore all health')}</small>`;
   }
   function showPick() {
     const box = document.getElementById('pick'); box.querySelectorAll('button').forEach(b => b.remove());
@@ -438,8 +464,8 @@
       C.step(S, { mx: input.mx, my: input.my, ult: ultReq, skill: skillReq == null ? undefined : skillReq }); ultReq = false; skillReq = null;
     }
     draw();
-    if (S.ended) { saveDrop(); document.getElementById('quit').hidden = true; const e = document.getElementById('end'); e.style.display = 'flex'; document.getElementById('endT').textContent = S.won ? 'STAGE CLEARED' : (S.mode === 'survive' ? 'SURVIVED' : 'FALLEN');
-      document.getElementById('endS').textContent = `${fmt(S.t)} · ${S.kills} kills · level ${S.hero.level}`; return; }   /* v1360: the dev counter "N inputs recorded" is off the result line */
+    if (S.ended) { saveDrop(); document.getElementById('quit').hidden = true; const e = document.getElementById('end'); e.style.display = 'flex'; document.getElementById('endT').textContent = S.won ? t('battle.stage_cleared', 'STAGE CLEARED') : (S.mode === 'survive' ? t('swarm.survived', 'Survived') : t('skyfall.fallen', 'FALLEN'));
+      document.getElementById('endS').textContent = [fmt(S.t), t('swarm.kills', '{n} kills', {n: S.kills.toLocaleString(locale)}), t('stage.lv', 'Lv {n}', {n: S.hero.level})].join(' · '); return; }   /* v1360: the dev counter "N inputs recorded" is off the result line */
     requestAnimationFrame(frame);
   }
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
@@ -969,7 +995,7 @@
     document.getElementById('time').textContent = fmt(S.t);
     document.querySelector('#hp i').style.width = (100 * h.hp / h.maxHp) + '%';
     document.querySelector('#xp i').style.width = (100 * h.xp / h.xpNext) + '%';
-    document.getElementById('lvl').textContent = 'Lv ' + h.level; document.getElementById('kills').textContent = S.kills;
+    document.getElementById('lvl').textContent = t('stage.lv', 'Lv {n}', {n: h.level}); document.getElementById('kills').textContent = S.kills.toLocaleString(locale);
     document.getElementById('ult').classList.toggle('ready', h.ult >= h.ultMax);
     h.kit.forEach((k, i) => { const b = document.getElementById('sk' + i); if (!b) return; const f = k.cdLeft / (k.cd || 1);
       b.style.setProperty('--cd', f.toFixed(3)); b.classList.toggle('cool', k.cdLeft > 0); b.querySelector('small').textContent = k.cdLeft > 0 ? Math.ceil(k.cdLeft) : ''; });

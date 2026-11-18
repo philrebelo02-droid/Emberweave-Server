@@ -1,0 +1,10 @@
+{
+  "swarm.aura_frost_nova_name": "서리 폭발",
+  "swarm.aura_frost_nova_desc": "서리 폭발이 주변 몬스터를 타격하고 얼립니다. 얼어붙은 몬스터는 다시 맞으면 산산이 부서지며 두 배의 피해를 받습니다. 보스는 얼지 않습니다.",
+  "swarm.aura_frost_nova_up": "폭발이 더 넓고 자주 일어나며 빙결이 더 오래 지속됩니다.",
+  "swarm.aura_frost_nova_ten": "겨울의 심장: 눈보라가 뒤따르며 몬스터를 얼리고 산산이 부숩니다.",
+  "swarm.aura_chain_lightning_name": "연쇄 번개",
+  "swarm.aura_chain_lightning_desc": "번개가 몬스터 사이를 타고 이동합니다.",
+  "swarm.aura_chain_lightning_up": "더 많이 튕기고 번개가 더 강해집니다.",
+  "swarm.aura_chain_lightning_ten": "폭풍의 왕관: 머리 위 왕관에서 발동할 때마다 연쇄 번개가 세 줄기 나갑니다."
+}

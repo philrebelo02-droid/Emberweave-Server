@@ -1,0 +1,14 @@
+{
+  "swarm.title": "La Guglia dello Sciame",
+  "swarm.story": "Storia",
+  "swarm.survive": "Sopravvivenza",
+  "swarm.play": "Gioca",
+  "swarm.pause": "Pausa",
+  "swarm.level_up": "Aumento di livello",
+  "swarm.save_quit": "Salva ed esci",
+  "swarm.quit_warning": "Vuoi uscire? Perderai questa partita.",
+  "swarm.quit_run": "Esci dalla partita",
+  "swarm.new_warning": "Iniziare una nuova partita? Quella salvata andrà persa.",
+  "swarm.new_run": "Nuova partita",
+  "swarm.kills": "Nemici sconfitti: {n}"
+}

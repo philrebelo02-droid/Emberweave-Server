@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_mana_storm_name": "Mana Storm",
+    "swarm.aura_mana_storm_desc": "A storm cloud floats above you, striking random lightning on the ground beneath it.",
+    "swarm.aura_mana_storm_up": "More strikes, a wider cloud.",
+    "swarm.aura_mana_storm_ten": "Tempest Eye: a full storm centred on you.",
+    "swarm.aura_meteor_call_name": "Meteor Call",
+    "swarm.aura_meteor_call_desc": "One big meteor lands where you are heading, after a warning shadow.",
+    "swarm.aura_meteor_call_up": "A bigger blast, more often.",
+    "swarm.aura_meteor_call_ten": "Cataclysm: a rain of six meteors."
+  },
+  "edits": []
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_rending_gale_name": "Rending Gale",
+    "swarm.aura_rending_gale_desc": "You fling a crescent of wind forward; it widens as it flies, slicing through and throwing monsters aside to split the horde.",
+    "swarm.aura_rending_gale_up": "Wider crescents; two at once from level 6.",
+    "swarm.aura_rending_gale_ten": "Hurricane: a tornado wanders the field, pulling monsters round it.",
+    "swarm.aura_bloodlust_name": "Bloodlust",
+    "swarm.aura_bloodlust_desc": "Monsters you kill spill blood that flies back into you, healing you and speeding you up.",
+    "swarm.aura_bloodlust_up": "More healing and speed.",
+    "swarm.aura_bloodlust_ten": "Crimson Tide: a wave of blood rolls outward from you."
+  },
+  "edits": []
+}

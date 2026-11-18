@@ -1,0 +1,10 @@
+{
+  "swarm.aura_iron_bulwark_name": "鉄の防壁",
+  "swarm.aura_iron_bulwark_desc": "盾板が前方に壁を作る。壁は突進してモンスターをなぎ倒し、敵の弾を防いでから戻る。",
+  "swarm.aura_iron_bulwark_up": "突進がより強く、遠くまで届き、頻度も増す。",
+  "swarm.aura_iron_bulwark_ten": "城塞：四方へ壁が飛び出し、周囲に四角い砦を築く。",
+  "swarm.aura_quake_step_name": "震動の足取り",
+  "swarm.aura_quake_step_desc": "数歩ごとに亀裂が地面を前方へ走って枝分かれし、進路上の敵に当たる。",
+  "swarm.aura_quake_step_up": "亀裂が長くなり、分岐も増える。",
+  "swarm.aura_quake_step_ten": "断層線：一本の裂け目が画面全体を横切る。"
+}

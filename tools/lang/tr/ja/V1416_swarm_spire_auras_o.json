@@ -1,0 +1,10 @@
+{
+  "swarm.aura_mana_storm_name": "マナの嵐",
+  "swarm.aura_mana_storm_desc": "雷雲が頭上に浮かび、その下の地面にランダムで雷を落とす。",
+  "swarm.aura_mana_storm_up": "落雷が増え、雷雲の範囲が広がる。",
+  "swarm.aura_mana_storm_ten": "大嵐の目：自分を中心に激しい嵐が吹き荒れる。",
+  "swarm.aura_meteor_call_name": "隕石召喚",
+  "swarm.aura_meteor_call_desc": "影が予兆として現れた後、進行方向に大きな隕石が落ちる。",
+  "swarm.aura_meteor_call_up": "爆発が大きくなり、発生頻度が増す。",
+  "swarm.aura_meteor_call_ten": "大災厄：6個の隕石が雨のように降る。"
+}

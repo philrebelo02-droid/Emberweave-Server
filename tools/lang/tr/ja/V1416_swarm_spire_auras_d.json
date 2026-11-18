@@ -1,0 +1,10 @@
+{
+  "swarm.aura_boulder_roll_name": "転がる巨岩",
+  "swarm.aura_boulder_roll_desc": "向いている方向へ巨岩が転がる。大きくなりながら進路上のモンスターを押しつぶし、最後に砕ける。",
+  "swarm.aura_boulder_roll_up": "岩がより大きくなり、発生頻度も増す。",
+  "swarm.aura_boulder_roll_ten": "山崩れ：山が画面全体を横切るように転がる。",
+  "swarm.aura_molten_ground_name": "溶ける大地",
+  "swarm.aura_molten_ground_desc": "立ち止まると周囲に溶岩が湧く。その場に留まるほど広がり、離れると冷える。",
+  "swarm.aura_molten_ground_up": "溶岩がより速く、広く広がり、温度も上がる。",
+  "swarm.aura_molten_ground_ten": "マグマの海：立ち止まっている間、2秒ごとに溶岩の波が広がり、燃える溜まりを残す。"
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_iron_bulwark_name": "철벽",
+  "swarm.aura_iron_bulwark_desc": "방패판이 앞에 벽을 만듭니다. 벽이 돌진해 몬스터를 밀어내고 적의 탄환을 막은 뒤 돌아옵니다.",
+  "swarm.aura_iron_bulwark_up": "더 강하게, 더 멀리, 더 자주 돌진합니다.",
+  "swarm.aura_iron_bulwark_ten": "성채: 벽 네 개가 사방으로 뻗어 나가 주변에 사각형 요새를 이룹니다.",
+  "swarm.aura_quake_step_name": "지진 발걸음",
+  "swarm.aura_quake_step_desc": "몇 걸음마다 균열이 지면을 타고 앞으로 뻗어 갈라지며 경로상의 대상을 타격합니다.",
+  "swarm.aura_quake_step_up": "균열이 더 길어지고 더 많이 갈라집니다.",
+  "swarm.aura_quake_step_ten": "단층선: 하나의 균열이 화면 전체를 가릅니다."
+}

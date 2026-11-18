@@ -1,0 +1,14 @@
+{
+  "swarm.title": "蟲群尖塔",
+  "swarm.story": "劇情",
+  "swarm.survive": "生存",
+  "swarm.play": "開始遊戲",
+  "swarm.pause": "暫停",
+  "swarm.level_up": "等級提升",
+  "swarm.save_quit": "儲存並離開",
+  "swarm.quit_warning": "離開本局？目前進度將遺失。",
+  "swarm.quit_run": "離開本局",
+  "swarm.new_warning": "開始新的一局？已儲存的進度將遺失。",
+  "swarm.new_run": "開始新局",
+  "swarm.kills": "擊敗敵人：{n}"
+}

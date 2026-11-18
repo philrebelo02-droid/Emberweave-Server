@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_arcane_orbs_name": "Arcane Orbs",
+    "swarm.aura_arcane_orbs_desc": "Magic orbs spiral outward from you, hitting what they pass.",
+    "swarm.aura_arcane_orbs_up": "More orbs, wider spirals.",
+    "swarm.aura_arcane_orbs_ten": "Astral Orrery: big orbs orbit you and small ones orbit them.",
+    "swarm.aura_fire_halo_name": "Fire Halo",
+    "swarm.aura_fire_halo_desc": "A ring of fire follows a second behind you: its edge burns monsters, its middle is safe.",
+    "swarm.aura_fire_halo_up": "A bigger, hotter ring.",
+    "swarm.aura_fire_halo_ten": "Solar Crown: the crown of fire flares out in pulses."
+  },
+  "edits": []
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_halo_of_light_name": "Halo of Light",
+    "swarm.aura_halo_of_light_desc": "A halo over your head heals you over time, and its light slowly burns monsters standing in it.",
+    "swarm.aura_halo_of_light_up": "More healing, a wider light.",
+    "swarm.aura_halo_of_light_ten": "Divine Aura: the light fills the screen.",
+    "swarm.aura_song_notes_name": "Song Notes",
+    "swarm.aura_song_notes_desc": "Musical notes float out on a wavy line; a monster they hit is charmed and fights the horde for a while. The notes do not affect bosses.",
+    "swarm.aura_song_notes_up": "More notes, longer charm.",
+    "swarm.aura_song_notes_ten": "Symphony: notes spiral out in every direction."
+  },
+  "edits": []
+}

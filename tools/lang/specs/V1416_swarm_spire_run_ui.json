@@ -1,0 +1,17 @@
+{
+  "keys": {
+    "swarm.title": "The Swarm Spire",
+    "swarm.story": "Story",
+    "swarm.survive": "Survive",
+    "swarm.play": "Play",
+    "swarm.pause": "Pause",
+    "swarm.level_up": "Level up",
+    "swarm.save_quit": "Save and quit",
+    "swarm.quit_warning": "Quit this run? It will be lost.",
+    "swarm.quit_run": "Quit run",
+    "swarm.new_warning": "Start a new run? Your saved run will be lost.",
+    "swarm.new_run": "New run",
+    "swarm.kills": "{n} kills"
+  },
+  "edits": []
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_starfall_name": "星降り",
+  "swarm.aura_starfall_desc": "流れ星が画面を斜めに横切り、通り道の敵すべてに当たる。",
+  "swarm.aura_starfall_up": "流れ星が増え、より頻繁に降る。",
+  "swarm.aura_starfall_ten": "彗星：一つの彗星が画面全体を薙ぎ払う。",
+  "swarm.aura_gravity_well_name": "重力井戸",
+  "swarm.aura_gravity_well_desc": "遠く前方にオーブが現れ、モンスターを引き寄せた後に収縮して弾ける。ボスは引き寄せられない。",
+  "swarm.aura_gravity_well_up": "引力が強まり、収縮時の爆発が大きくなる。",
+  "swarm.aura_gravity_well_ten": "事象の地平線：ブラックホールが戦場を漂う。"
+}

@@ -1,0 +1,29 @@
+{
+  "keys": {
+    "swarm.passive_might_name": "Might",
+    "swarm.passive_swift_name": "Swiftness",
+    "swarm.passive_haste_name": "Haste",
+    "swarm.passive_reach_name": "Reach",
+    "swarm.passive_magnet_name": "Magnet",
+    "swarm.passive_keen_name": "Keen Eye",
+    "swarm.passive_leech_name": "Leech",
+    "swarm.passive_plating_name": "Plating",
+    "swarm.passive_vigor_name": "Vigor",
+    "swarm.passive_growth_name": "Growth",
+    "swarm.passive_plenty_name": "Plenty",
+    "swarm.passive_renewal_name": "Renewal",
+    "swarm.passive_might_effect": "+{p} damage",
+    "swarm.passive_swift_effect": "+{p} move speed",
+    "swarm.passive_haste_effect": "−{p} cooldowns",
+    "swarm.passive_reach_effect": "+{p} area",
+    "swarm.passive_magnet_effect": "+{p} pickup range",
+    "swarm.passive_keen_effect": "+{p} crit chance",
+    "swarm.passive_leech_effect": "+{p} lifesteal",
+    "swarm.passive_plating_effect": "−{p} damage taken",
+    "swarm.passive_vigor_effect": "+{p} max health",
+    "swarm.passive_growth_effect": "+{p} XP",
+    "swarm.passive_plenty_effect": "+1 projectile or unit at levels 2 and 4",
+    "swarm.passive_renewal_effect": "Restore {p} of max health per second"
+  },
+  "edits": []
+}

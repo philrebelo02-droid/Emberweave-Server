@@ -1,0 +1,10 @@
+{
+  "swarm.aura_war_drum_name": "전쟁 북",
+  "swarm.aura_war_drum_desc": "북이 일정한 박자로 울립니다. 네 번째 박자마다 더 강하게 울리며 적중한 몬스터는 잠시 받는 피해가 증가합니다.",
+  "swarm.aura_war_drum_up": "박자가 빨라지고 네 번째 박자가 더 강해집니다.",
+  "swarm.aura_war_drum_ten": "천둥 북: 강한 박자마다 번개가 내리칩니다.",
+  "swarm.aura_grudge_mark_name": "원한의 표식",
+  "swarm.aura_grudge_mark_desc": "마지막으로 자신을 공격한 적에게 무거운 도끼를 던져 표식을 남깁니다. 표식 하나당 받는 피해가 25% 증가하며 최대 3개까지 쌓입니다. 표식이 있는 몬스터는 죽을 때 폭발합니다.",
+  "swarm.aura_grudge_mark_up": "투척이 빨라지고 폭발이 커집니다.",
+  "swarm.aura_grudge_mark_ten": "복수: 표식이 있는 몬스터 최대 5마리에게 동시에 도끼를 던집니다."
+}

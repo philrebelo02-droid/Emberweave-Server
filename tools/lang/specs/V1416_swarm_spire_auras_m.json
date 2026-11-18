@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_starfall_name": "Starfall",
+    "swarm.aura_starfall_desc": "Shooting stars streak diagonally across the screen, hitting all they cross.",
+    "swarm.aura_starfall_up": "More stars, more often.",
+    "swarm.aura_starfall_ten": "Comet: one comet sweeps the whole screen.",
+    "swarm.aura_gravity_well_name": "Gravity Well",
+    "swarm.aura_gravity_well_desc": "An orb is placed far ahead: it pulls monsters into it, then implodes. Bosses cannot be pulled.",
+    "swarm.aura_gravity_well_up": "A stronger pull and a bigger implosion.",
+    "swarm.aura_gravity_well_ten": "Event Horizon: a black hole drifts across the field."
+  },
+  "edits": []
+}

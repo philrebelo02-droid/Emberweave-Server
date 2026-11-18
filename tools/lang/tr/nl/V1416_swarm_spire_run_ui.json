@@ -1,0 +1,14 @@
+{
+  "swarm.title": "De Zwermtoren",
+  "swarm.story": "Verhaal",
+  "swarm.survive": "Overleven",
+  "swarm.play": "Spelen",
+  "swarm.pause": "Pauze",
+  "swarm.level_up": "Niveau omhoog",
+  "swarm.save_quit": "Opslaan en afsluiten",
+  "swarm.quit_warning": "Deze run verlaten? Je voortgang gaat verloren.",
+  "swarm.quit_run": "Run verlaten",
+  "swarm.new_warning": "Een nieuwe run starten? Je opgeslagen run gaat verloren.",
+  "swarm.new_run": "Nieuwe run",
+  "swarm.kills": "Verslagen vijanden: {n}"
+}

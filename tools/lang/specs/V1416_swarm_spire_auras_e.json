@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_bastion_dome_name": "Bastion Dome",
+    "swarm.aura_bastion_dome_desc": "A dome drops where you stand and stays there: monsters inside it crawl, and you take less damage inside.",
+    "swarm.aura_bastion_dome_up": "A bigger, stronger dome that lasts longer.",
+    "swarm.aura_bastion_dome_ten": "Aegis: a golden sphere that travels with you.",
+    "swarm.aura_avalanche_fall_name": "Avalanche Fall",
+    "swarm.aura_avalanche_fall_desc": "Rocks fall from above onto the thickest crowd on screen.",
+    "swarm.aura_avalanche_fall_up": "More rocks, more often.",
+    "swarm.aura_avalanche_fall_ten": "Mountain Fall: one colossal rock crushes the biggest crowd."
+  },
+  "edits": []
+}

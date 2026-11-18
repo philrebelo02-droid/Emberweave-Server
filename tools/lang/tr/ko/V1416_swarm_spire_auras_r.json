@@ -1,0 +1,10 @@
+{
+  "swarm.aura_blessed_shield_name": "축복받은 방패",
+  "swarm.aura_blessed_shield_desc": "거품 방패가 피해를 대신 흡수합니다. 깨지면 바깥으로 터진 뒤 다시 생깁니다.",
+  "swarm.aura_blessed_shield_up": "방패가 더 강해지고 더 빨리 재생됩니다.",
+  "swarm.aura_blessed_shield_ten": "천사의 날개: 방패가 터지면 날개가 나타나 깃털이 흩날리고 3초 동안 무적이 됩니다.",
+  "swarm.aura_spirit_lantern_name": "영혼의 등불",
+  "swarm.aura_spirit_lantern_desc": "등불이 떠다니며 경험치 보석을 모으고 지나가는 몬스터를 비춥니다.",
+  "swarm.aura_spirit_lantern_up": "더 빠르고 넓은 범위에서 모읍니다.",
+  "swarm.aura_spirit_lantern_ten": "거대한 등불: 10초마다 화면의 모든 경험치 보석을 끌어당깁니다."
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_rending_gale_name": "切り裂く烈風",
+  "swarm.aura_rending_gale_desc": "三日月形の風を前方へ放つ。飛びながら広がり、モンスターを切り裂いて横へ弾き飛ばし、群れを分断する。",
+  "swarm.aura_rending_gale_up": "風の刃が広がる。レベル6からは二枚同時に放つ。",
+  "swarm.aura_rending_gale_ten": "ハリケーン：竜巻がフィールドを移動し、周囲のモンスターを巻き込む。",
+  "swarm.aura_bloodlust_name": "血への渇望",
+  "swarm.aura_bloodlust_desc": "倒したモンスターの血が飛んで戻り、体力を回復して移動速度を上げる。",
+  "swarm.aura_bloodlust_up": "回復量と移動速度がさらに増す。",
+  "swarm.aura_bloodlust_ten": "深紅の潮：血の波が自分を中心に広がる。"
+}

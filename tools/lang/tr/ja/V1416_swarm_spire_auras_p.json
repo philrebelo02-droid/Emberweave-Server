@@ -1,0 +1,10 @@
+{
+  "swarm.aura_halo_of_light_name": "光の後光",
+  "swarm.aura_halo_of_light_desc": "頭上の光輪が徐々に体力を回復する。光の中にいるモンスターは少しずつ焼かれる。",
+  "swarm.aura_halo_of_light_up": "回復量が増え、光の範囲が広がる。",
+  "swarm.aura_halo_of_light_ten": "神聖なるオーラ：光が画面全体を満たす。",
+  "swarm.aura_song_notes_name": "音符",
+  "swarm.aura_song_notes_desc": "音符が波を描いて飛ぶ。当たったモンスターは魅了され、しばらく群れに敵対する。ボスに音符は効かない。",
+  "swarm.aura_song_notes_up": "音符が増え、魅了が長く続く。",
+  "swarm.aura_song_notes_ten": "交響曲：音符が螺旋を描いて全方向へ広がる。"
+}

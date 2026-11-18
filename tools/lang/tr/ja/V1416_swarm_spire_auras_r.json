@@ -1,0 +1,10 @@
+{
+  "swarm.aura_blessed_shield_name": "祝福の盾",
+  "swarm.aura_blessed_shield_desc": "泡の盾がダメージを肩代わりする。壊れると外側に弾け、その後再生する。",
+  "swarm.aura_blessed_shield_up": "盾が強くなり、再生が速くなる。",
+  "swarm.aura_blessed_shield_ten": "天使の翼：盾が弾けると翼が現れて羽根が飛び散り、3秒間無敵になる。",
+  "swarm.aura_spirit_lantern_name": "精霊の灯籠",
+  "swarm.aura_spirit_lantern_desc": "灯籠が浮かんで経験値の宝石を集め、通り道のモンスターを照らす。",
+  "swarm.aura_spirit_lantern_up": "より速く、より広い範囲から回収する。",
+  "swarm.aura_spirit_lantern_ten": "大灯籠：10秒ごとに画面内の経験値の宝石をすべて引き寄せる。"
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_war_drum_name": "Tambor de guerra",
+  "swarm.aura_war_drum_desc": "El tambor marca el ritmo. Cada cuarto toque es más fuerte y hace que los monstruos alcanzados reciban más daño durante un tiempo.",
+  "swarm.aura_war_drum_up": "Ritmo más rápido y cuarto toque más fuerte.",
+  "swarm.aura_war_drum_ten": "Tambor del trueno: cae un rayo con cada toque fuerte.",
+  "swarm.aura_grudge_mark_name": "Marca del rencor",
+  "swarm.aura_grudge_mark_desc": "Lanzas un hacha pesada al último enemigo que te golpeó y lo marcas. Recibe un 25% más de daño por marca, hasta 3. Los monstruos marcados explotan al morir.",
+  "swarm.aura_grudge_mark_up": "Lanzamientos más rápidos y explosiones más grandes.",
+  "swarm.aura_grudge_mark_ten": "Vendetta: las hachas vuelan hacia hasta 5 monstruos marcados a la vez."
+}

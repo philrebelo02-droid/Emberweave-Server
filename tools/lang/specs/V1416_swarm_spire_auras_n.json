@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_rune_circle_name": "Rune Circle",
+    "swarm.aura_rune_circle_desc": "Runes appear where you stood 2 seconds ago, then explode under whatever followed you.",
+    "swarm.aura_rune_circle_up": "Bigger runes, more often.",
+    "swarm.aura_rune_circle_ten": "Sigil of Ash: a huge sigil burns under the biggest crowd.",
+    "swarm.aura_wisp_familiars_name": "Wisp Familiars",
+    "swarm.aura_wisp_familiars_desc": "Wisps fly off on their own to hunt single monsters, then come back to you.",
+    "swarm.aura_wisp_familiars_up": "More wisps, harder hits.",
+    "swarm.aura_wisp_familiars_ten": "Will-o'-the-Wisp Choir: a choir of 10 wisps."
+  },
+  "edits": []
+}

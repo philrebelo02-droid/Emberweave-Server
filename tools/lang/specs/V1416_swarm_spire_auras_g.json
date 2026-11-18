@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_chain_flail_name": "Chain Flail",
+    "swarm.aura_chain_flail_desc": "A flail on a chain swings behind you like a pendulum and whips out wide whenever you turn.",
+    "swarm.aura_chain_flail_up": "A heavier flail on a longer chain.",
+    "swarm.aura_chain_flail_ten": "Wrecking Star: a giant spiked star on the chain.",
+    "swarm.aura_rage_ember_name": "Rage Ember",
+    "swarm.aura_rage_ember_desc": "Flames build on your body for every monster near you; when they are full they burst out around you.",
+    "swarm.aura_rage_ember_up": "Faster build-up, bigger bursts.",
+    "swarm.aura_rage_ember_ten": "Berserk Flame: you stay ablaze, burning everything close."
+  },
+  "edits": []
+}

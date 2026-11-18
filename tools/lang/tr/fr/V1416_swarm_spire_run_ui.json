@@ -1,0 +1,14 @@
+{
+  "swarm.title": "La Flèche de l’Essaim",
+  "swarm.story": "Histoire",
+  "swarm.survive": "Survie",
+  "swarm.play": "Jouer",
+  "swarm.pause": "Pause",
+  "swarm.level_up": "Niveau supérieur",
+  "swarm.save_quit": "Sauvegarder et quitter",
+  "swarm.quit_warning": "Quitter cette partie ? Elle sera perdue.",
+  "swarm.quit_run": "Quitter la partie",
+  "swarm.new_warning": "Commencer une nouvelle partie ? Ta partie sauvegardée sera perdue.",
+  "swarm.new_run": "Nouvelle partie",
+  "swarm.kills": "Éliminations : {n}"
+}

@@ -1,0 +1,14 @@
+{
+  "swarm.title": "군단의 첨탑",
+  "swarm.story": "스토리",
+  "swarm.survive": "생존",
+  "swarm.play": "플레이",
+  "swarm.pause": "일시 정지",
+  "swarm.level_up": "레벨 상승",
+  "swarm.save_quit": "저장하고 나가기",
+  "swarm.quit_warning": "이번 플레이를 종료할까요? 진행 상황이 사라집니다.",
+  "swarm.quit_run": "플레이 종료",
+  "swarm.new_warning": "새 플레이를 시작할까요? 저장된 플레이가 사라집니다.",
+  "swarm.new_run": "새 플레이",
+  "swarm.kills": "처치 {n}회"
+}

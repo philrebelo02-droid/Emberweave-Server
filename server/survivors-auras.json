@@ -67,9 +67,9 @@
 "fx": "pull",
 "unit": "roar",
 "l10": "WAR CRY OF THE MOUNTAIN",
-"desc": "You roar: nearby monsters are dragged in towards you, then stunned in a heap.",
+"desc": "You roar: nearby monsters are dragged in towards you, then stunned in a heap. Bosses are immune.",
 "up": "A wider, longer stun, more often.",
-"ten": "War Cry of the Mountain: the roar pulls and stuns the whole screen."
+"ten": "War Cry of the Mountain: the roar pulls and stuns the whole screen. Bosses are immune."
 },
 {
 "key": "boulder-roll",
@@ -93,7 +93,7 @@
 "l10": "MAGMA SEA",
 "desc": "Stand still and lava wells up around you, spreading wider the longer you hold; walk off and it cools.",
 "up": "Faster, wider, hotter lava.",
-"ten": "Magma Sea: a thick lava tide wall rolls out from you and leaves burning pools."
+"ten": "Magma Sea: While standing still, you send out a lava wave every 2 seconds, leaving burning pools."
 },
 {
 "key": "bastion-dome",
@@ -271,7 +271,7 @@
 "fx": "freeze",
 "unit": "ice burst",
 "l10": "WINTER'S HEART",
-"desc": "A blast of frost hits and freezes monsters around you; a frozen monster shatters for double damage when hit again.",
+"desc": "A blast of frost hits and freezes monsters around you; a frozen monster shatters for double damage when hit again. Bosses cannot be frozen.",
 "up": "A wider blast and longer freeze, more often.",
 "ten": "Winter's Heart: a blizzard follows you, freezing and shattering."
 },
@@ -285,7 +285,7 @@
 "l10": "STORM CROWN",
 "desc": "A bolt of lightning jumps from monster to monster.",
 "up": "More jumps, harder bolts.",
-"ten": "Storm Crown: a crown over your head throws three chains every second."
+"ten": "Storm Crown: a crown over your head throws three chains each time it triggers."
 },
 {
 "key": "starfall",
@@ -307,7 +307,7 @@
 "fx": "pull",
 "unit": "black orb",
 "l10": "EVENT HORIZON",
-"desc": "An orb is placed far ahead: it pulls monsters into it, then implodes.",
+"desc": "An orb is placed far ahead: it pulls monsters into it, then implodes. Bosses cannot be pulled.",
 "up": "A stronger pull and a bigger implosion.",
 "ten": "Event Horizon: a black hole drifts across the field."
 },
@@ -379,7 +379,7 @@
 "fx": "charm",
 "unit": "note",
 "l10": "SYMPHONY",
-"desc": "Musical notes float out on a wavy line; a monster they hit is charmed and fights the horde for a while.",
+"desc": "Musical notes float out on a wavy line; a monster they hit is charmed and fights the horde for a while. The notes do not affect bosses.",
 "up": "More notes, longer charm.",
 "ten": "Symphony: notes spiral out in every direction."
 },
@@ -404,7 +404,7 @@
 "unit": "light beam",
 "l10": "RAINBOW LIGHTHOUSE",
 "desc": "A beam of light sweeps round you like a lighthouse, burning and blinding what it crosses.",
-"up": "A longer, faster beam.",
+"up": "A longer, faster beam. Two beams sweep from level 6.",
 "ten": "Rainbow Lighthouse: six coloured beams sweep at once."
 },
 {
@@ -417,7 +417,7 @@
 "l10": "ANGEL WINGS",
 "desc": "A bubble shield soaks up damage for you; when it breaks it bursts outward, then grows back.",
 "up": "A stronger shield that regrows faster.",
-"ten": "Angel Wings: the burst flares angel wings - you are untouchable for a moment and feathers fly out."
+"ten": "Angel Wings: when the shield bursts, wings flare, feathers fly out, and you become invulnerable for 3 seconds."
 },
 {
 "key": "spirit-lantern",

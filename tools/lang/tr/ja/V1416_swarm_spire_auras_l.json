@@ -1,0 +1,10 @@
+{
+  "swarm.aura_frost_nova_name": "フロストノヴァ",
+  "swarm.aura_frost_nova_desc": "冷気の爆発が周囲のモンスターに当たり、凍結させる。凍ったモンスターに再び攻撃が当たると砕け、2倍のダメージを受ける。ボスは凍結しない。",
+  "swarm.aura_frost_nova_up": "発生範囲と頻度が増し、凍結が長く続く。",
+  "swarm.aura_frost_nova_ten": "冬の心臓：吹雪がついてきて、モンスターを凍結させて砕く。",
+  "swarm.aura_chain_lightning_name": "連鎖雷撃",
+  "swarm.aura_chain_lightning_desc": "雷撃がモンスターからモンスターへ飛び移る。",
+  "swarm.aura_chain_lightning_up": "連鎖回数と雷撃の威力が増す。",
+  "swarm.aura_chain_lightning_ten": "嵐の冠：頭上の冠から発動ごとに3本の連鎖雷撃が放たれる。"
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_boulder_roll_name": "Boulder Roll",
+    "swarm.aura_boulder_roll_desc": "A boulder rolls forward the way you face, growing bigger and flattening monsters as it goes, then crumbles.",
+    "swarm.aura_boulder_roll_up": "Bigger boulders, more often.",
+    "swarm.aura_boulder_roll_ten": "Landslide: a mountain rolls across the whole screen.",
+    "swarm.aura_molten_ground_name": "Molten Ground",
+    "swarm.aura_molten_ground_desc": "Stand still and lava wells up around you, spreading wider the longer you hold; walk off and it cools.",
+    "swarm.aura_molten_ground_up": "Faster, wider, hotter lava.",
+    "swarm.aura_molten_ground_ten": "Magma Sea: While standing still, you send out a lava wave every 2 seconds, leaving burning pools."
+  },
+  "edits": []
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_blessed_shield_name": "Blessed Shield",
+    "swarm.aura_blessed_shield_desc": "A bubble shield soaks up damage for you; when it breaks it bursts outward, then grows back.",
+    "swarm.aura_blessed_shield_up": "A stronger shield that regrows faster.",
+    "swarm.aura_blessed_shield_ten": "Angel Wings: when the shield bursts, wings flare, feathers fly out, and you become invulnerable for 3 seconds.",
+    "swarm.aura_spirit_lantern_name": "Spirit Lantern",
+    "swarm.aura_spirit_lantern_desc": "A lantern floats out to gather XP gems for you, lighting up monsters as it passes.",
+    "swarm.aura_spirit_lantern_up": "Faster, wider gathering.",
+    "swarm.aura_spirit_lantern_ten": "The Great Lantern: every 10 seconds it pulls in every gem on screen."
+  },
+  "edits": []
+}

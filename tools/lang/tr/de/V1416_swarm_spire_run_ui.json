@@ -1,0 +1,14 @@
+{
+  "swarm.title": "Der Schwarmturm",
+  "swarm.story": "Geschichte",
+  "swarm.survive": "Überleben",
+  "swarm.play": "Spielen",
+  "swarm.pause": "Pause",
+  "swarm.level_up": "Stufenaufstieg",
+  "swarm.save_quit": "Speichern und verlassen",
+  "swarm.quit_warning": "Diesen Lauf verlassen? Er geht verloren.",
+  "swarm.quit_run": "Lauf verlassen",
+  "swarm.new_warning": "Einen neuen Lauf beginnen? Dein gespeicherter Lauf geht verloren.",
+  "swarm.new_run": "Neuer Lauf",
+  "swarm.kills": "Besiegte Gegner: {n}"
+}

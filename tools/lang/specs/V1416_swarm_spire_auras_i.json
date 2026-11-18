@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_war_drum_name": "War Drum",
+    "swarm.aura_war_drum_desc": "A war drum beats in rhythm; every 4th beat is a big one, and monsters it hits take extra damage for a while.",
+    "swarm.aura_war_drum_up": "A faster beat and a bigger 4th beat.",
+    "swarm.aura_war_drum_ten": "Thunder Drum: lightning strikes on every big beat.",
+    "swarm.aura_grudge_mark_name": "Grudge Mark",
+    "swarm.aura_grudge_mark_desc": "You hurl a heavy axe at whoever hit you last; it marks them (+25% damage taken per mark, up to 3). A marked monster that dies explodes.",
+    "swarm.aura_grudge_mark_up": "Faster throws, bigger blasts.",
+    "swarm.aura_grudge_mark_ten": "Vendetta: axes fly at up to 5 marked monsters at once."
+  },
+  "edits": []
+}

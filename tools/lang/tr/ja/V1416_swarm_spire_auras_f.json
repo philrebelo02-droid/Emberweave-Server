@@ -1,0 +1,10 @@
+{
+  "swarm.aura_blade_whirl_name": "刃の旋風",
+  "swarm.aura_blade_whirl_desc": "回転しながら斧で周囲を一周なぎ払い、その後停止する。",
+  "swarm.aura_blade_whirl_up": "回転斬りの範囲、威力、頻度が増す。",
+  "swarm.aura_blade_whirl_ten": "鋼の竜巻：刃の竜巻が周囲を回転し、自分の移動についてくる。",
+  "swarm.aura_shock_stomp_name": "衝撃の踏みつけ",
+  "swarm.aura_shock_stomp_desc": "地面を踏みつけると、衝撃波が地表を前方へ一直線に進む。",
+  "swarm.aura_shock_stomp_up": "衝撃波がより遠くまで届き、威力も増す。",
+  "swarm.aura_shock_stomp_ten": "大地砕き：四つの衝撃波が十字に広がる。"
+}

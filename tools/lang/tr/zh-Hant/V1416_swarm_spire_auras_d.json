@@ -1,0 +1,10 @@
+{
+  "swarm.aura_boulder_roll_name": "滾石",
+  "swarm.aura_boulder_roll_desc": "巨石朝你面對的方向滾動，沿途變大並碾壓怪物，最後碎裂。",
+  "swarm.aura_boulder_roll_up": "巨石更大，出現得更頻繁。",
+  "swarm.aura_boulder_roll_ten": "山崩：一座山滾過整個螢幕。",
+  "swarm.aura_molten_ground_name": "熔融地面",
+  "swarm.aura_molten_ground_desc": "站著不動時，熔岩在你周圍湧出。停留越久，擴散越廣；離開後熔岩冷卻。",
+  "swarm.aura_molten_ground_up": "熔岩擴散更快、範圍更廣、溫度更高。",
+  "swarm.aura_molten_ground_ten": "岩漿之海：站著不動時，每 2 秒向外湧出一道熔岩浪潮，留下燃燒的熔岩池。"
+}

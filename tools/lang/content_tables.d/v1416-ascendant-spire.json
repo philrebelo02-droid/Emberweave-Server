@@ -1,0 +1,8 @@
+{
+  "tables": [
+    {
+      "expr": "ASCENDANT_SPIRE_NAME",
+      "area": "tower_name"
+    }
+  ]
+}

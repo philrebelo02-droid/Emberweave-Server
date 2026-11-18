@@ -1,0 +1,10 @@
+{
+  "keys": {
+    "swarm.spells": "Spells",
+    "swarm.passives": "Passives",
+    "swarm.final_form": "Final form",
+    "swarm.restore_health": "Restore all health",
+    "swarm.empty_slots": "{n} empty"
+  },
+  "edits": []
+}

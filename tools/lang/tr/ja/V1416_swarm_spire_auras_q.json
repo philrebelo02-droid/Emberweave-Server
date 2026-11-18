@@ -1,0 +1,10 @@
+{
+  "swarm.aura_sanctuary_name": "聖域",
+  "swarm.aura_sanctuary_desc": "立っている場所に聖なる円が現れ、その場に残る。中に入ったモンスターは動きが大幅に遅くなる。",
+  "swarm.aura_sanctuary_up": "円が大きくなり、長く残る。",
+  "swarm.aura_sanctuary_ten": "聖別された地：円が自分についてくる。",
+  "swarm.aura_prism_beam_name": "プリズム光線",
+  "swarm.aura_prism_beam_desc": "灯台のように光線が周囲を回り、通り道にいる敵を焼いて盲目にする。",
+  "swarm.aura_prism_beam_up": "光線が長くなり、回転が速くなる。レベル6からは2本の光線が回る。",
+  "swarm.aura_prism_beam_ten": "虹の灯台：色とりどりの光線が6本同時に回る。"
+}

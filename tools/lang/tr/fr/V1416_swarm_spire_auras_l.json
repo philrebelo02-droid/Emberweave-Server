@@ -1,0 +1,10 @@
+{
+  "swarm.aura_frost_nova_name": "Nova de givre",
+  "swarm.aura_frost_nova_desc": "Une explosion de givre frappe et gèle les monstres proches. Un nouveau coup brise un monstre gelé et lui inflige le double de dégâts. Les boss ne gèlent pas.",
+  "swarm.aura_frost_nova_up": "Des explosions plus larges et fréquentes, avec un gel plus long.",
+  "swarm.aura_frost_nova_ten": "Cœur de l’hiver : un blizzard te suit, gèle les monstres et les fait éclater.",
+  "swarm.aura_chain_lightning_name": "Chaîne d’éclairs",
+  "swarm.aura_chain_lightning_desc": "Un éclair passe d’un monstre à l’autre.",
+  "swarm.aura_chain_lightning_up": "Plus de rebonds et des éclairs plus puissants.",
+  "swarm.aura_chain_lightning_ten": "Couronne de tempête : une couronne au-dessus de ta tête lance trois chaînes d’éclairs à chaque déclenchement."
+}

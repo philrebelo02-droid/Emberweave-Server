@@ -1,0 +1,10 @@
+{
+  "swarm.aura_frost_nova_name": "Nova de escarcha",
+  "swarm.aura_frost_nova_desc": "Una ráfaga de escarcha golpea y congela a los monstruos cercanos. Un segundo golpe quiebra a un monstruo congelado e inflige el doble de daño. Los jefes no se congelan.",
+  "swarm.aura_frost_nova_up": "Ráfagas más amplias y frecuentes que congelan durante más tiempo.",
+  "swarm.aura_frost_nova_ten": "Corazón del invierno: una ventisca te sigue, congela a los monstruos y los quiebra.",
+  "swarm.aura_chain_lightning_name": "Relámpago en cadena",
+  "swarm.aura_chain_lightning_desc": "Un rayo salta de un monstruo a otro.",
+  "swarm.aura_chain_lightning_up": "Más saltos y rayos más fuertes.",
+  "swarm.aura_chain_lightning_ten": "Corona de tormenta: una corona sobre tu cabeza lanza tres cadenas de rayos por activación."
+}

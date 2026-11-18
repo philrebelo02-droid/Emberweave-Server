@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_bloom_path_name": "Bloom Path",
+    "swarm.aura_bloom_path_desc": "Flowers bloom where you walk; walk back over one and it bursts in healing pollen.",
+    "swarm.aura_bloom_path_up": "More flowers, bigger heals.",
+    "swarm.aura_bloom_path_ten": "World Garden: the flowers burst on their own.",
+    "swarm.aura_chime_pulse_name": "Chime Pulse",
+    "swarm.aura_chime_pulse_desc": "A chime rings: thin echo rings roll out one after another, and the last one stuns.",
+    "swarm.aura_chime_pulse_up": "More rings, wider.",
+    "swarm.aura_chime_pulse_ten": "Grand Bell: a giant bell drops from the sky and stuns a wide area."
+  },
+  "edits": []
+}

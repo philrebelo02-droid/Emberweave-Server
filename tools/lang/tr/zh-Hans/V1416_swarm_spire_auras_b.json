@@ -1,0 +1,10 @@
+{
+  "swarm.aura_iron_bulwark_name": "铁壁",
+  "swarm.aura_iron_bulwark_desc": "盾板在前方组成一道墙，向前冲撞怪物、挡下敌方弹射物，然后返回。",
+  "swarm.aura_iron_bulwark_up": "冲撞更强、更远、更频繁。",
+  "swarm.aura_iron_bulwark_ten": "堡垒：四道墙向四周猛冲并停留，在你周围组成方形堡垒。",
+  "swarm.aura_quake_step_name": "震地步",
+  "swarm.aura_quake_step_desc": "每走几步，裂缝就沿地面向前延伸并分叉，击中沿途目标。",
+  "swarm.aura_quake_step_up": "裂缝更长，分叉更多。",
+  "swarm.aura_quake_step_ten": "断层线：一道裂隙撕裂整个屏幕。"
+}

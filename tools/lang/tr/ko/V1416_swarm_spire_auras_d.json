@@ -1,0 +1,10 @@
+{
+  "swarm.aura_boulder_roll_name": "구르는 바위",
+  "swarm.aura_boulder_roll_desc": "바위가 바라보는 방향으로 굴러갑니다. 점점 커지며 길목의 몬스터를 짓누른 뒤 부서집니다.",
+  "swarm.aura_boulder_roll_up": "더 큰 바위가 더 자주 굴러갑니다.",
+  "swarm.aura_boulder_roll_ten": "산사태: 산이 화면 전체를 가로질러 굴러갑니다.",
+  "swarm.aura_molten_ground_name": "녹아내린 대지",
+  "swarm.aura_molten_ground_desc": "가만히 서 있으면 주변에서 용암이 솟습니다. 멈춰 있는 동안 퍼지고, 자리를 떠나면 식습니다.",
+  "swarm.aura_molten_ground_up": "용암이 더 빠르고 넓게 퍼지며 더 뜨거워집니다.",
+  "swarm.aura_molten_ground_ten": "마그마 바다: 가만히 서 있는 동안 2초마다 용암 물결이 퍼져나가 타오르는 웅덩이를 남깁니다."
+}

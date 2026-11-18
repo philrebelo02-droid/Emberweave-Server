@@ -1,0 +1,10 @@
+{
+  "swarm.aura_war_drum_name": "Kriegstrommel",
+  "swarm.aura_war_drum_desc": "Die Trommel schlägt im Takt. Jeder vierte Schlag ist stärker. Getroffene Monster erleiden vorübergehend mehr Schaden.",
+  "swarm.aura_war_drum_up": "Schnellerer Takt und stärkerer vierter Schlag.",
+  "swarm.aura_war_drum_ten": "Donnertrommel: Bei jedem starken Schlag fährt ein Blitz nieder.",
+  "swarm.aura_grudge_mark_name": "Mal des Grolls",
+  "swarm.aura_grudge_mark_desc": "Du wirfst eine schwere Axt auf den letzten Gegner, der dich getroffen hat, und markierst ihn. Pro Mal erleidet er 25 % mehr Schaden, bis zu 3 Mal. Markierte Monster explodieren beim Tod.",
+  "swarm.aura_grudge_mark_up": "Schnellere Würfe und größere Explosionen.",
+  "swarm.aura_grudge_mark_ten": "Vendetta: Äxte fliegen gleichzeitig auf bis zu 5 markierte Monster zu."
+}

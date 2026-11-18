@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_iron_bulwark_name": "Iron Bulwark",
+    "swarm.aura_iron_bulwark_desc": "Your shield plates form a wall in front of you, charge out to bulldoze the monsters ahead and block enemy bolts, then swing back.",
+    "swarm.aura_iron_bulwark_up": "Harder, further charges, more often.",
+    "swarm.aura_iron_bulwark_ten": "The Citadel: four walls slam out in every direction and hold as a square fort round you.",
+    "swarm.aura_quake_step_name": "Quake Step",
+    "swarm.aura_quake_step_desc": "Every few steps a crack shoots forward along the ground and forks, hitting what is in its path.",
+    "swarm.aura_quake_step_up": "Longer cracks that fork more.",
+    "swarm.aura_quake_step_ten": "Fault Line: one fissure tears right across the screen."
+  },
+  "edits": []
+}

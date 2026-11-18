@@ -1,0 +1,14 @@
+{
+  "swarm.title": "Menara Kawanan",
+  "swarm.story": "Cerita",
+  "swarm.survive": "Bertahan Hidup",
+  "swarm.play": "Mainkan",
+  "swarm.pause": "Jeda",
+  "swarm.level_up": "Naik level",
+  "swarm.save_quit": "Simpan dan keluar",
+  "swarm.quit_warning": "Keluar dari sesi ini? Progresnya akan hilang.",
+  "swarm.quit_run": "Keluar dari sesi",
+  "swarm.new_warning": "Mulai sesi baru? Sesi yang tersimpan akan hilang.",
+  "swarm.new_run": "Sesi baru",
+  "swarm.kills": "Musuh dikalahkan: {n}"
+}

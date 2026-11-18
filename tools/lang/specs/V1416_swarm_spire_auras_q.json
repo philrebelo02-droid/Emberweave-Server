@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_sanctuary_name": "Sanctuary",
+    "swarm.aura_sanctuary_desc": "A holy circle is laid where you stand and stays there; monsters inside it crawl.",
+    "swarm.aura_sanctuary_up": "A bigger circle that lasts longer.",
+    "swarm.aura_sanctuary_ten": "Hallowed Ground: the circle follows you.",
+    "swarm.aura_prism_beam_name": "Prism Beam",
+    "swarm.aura_prism_beam_desc": "A beam of light sweeps round you like a lighthouse, burning and blinding what it crosses.",
+    "swarm.aura_prism_beam_up": "A longer, faster beam. Two beams sweep from level 6.",
+    "swarm.aura_prism_beam_ten": "Rainbow Lighthouse: six coloured beams sweep at once."
+  },
+  "edits": []
+}

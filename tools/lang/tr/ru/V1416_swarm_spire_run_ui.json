@@ -1,0 +1,14 @@
+{
+  "swarm.title": "Шпиль Роя",
+  "swarm.story": "Сюжет",
+  "swarm.survive": "Выживание",
+  "swarm.play": "Играть",
+  "swarm.pause": "Пауза",
+  "swarm.level_up": "Новый уровень",
+  "swarm.save_quit": "Сохранить и выйти",
+  "swarm.quit_warning": "Выйти из забега? Прогресс будет потерян.",
+  "swarm.quit_run": "Выйти из забега",
+  "swarm.new_warning": "Начать новый забег? Сохранённый забег будет потерян.",
+  "swarm.new_run": "Новый забег",
+  "swarm.kills": "Убито врагов: {n}"
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_iron_fists_name": "Iron Fists",
+    "swarm.aura_iron_fists_desc": "Two spectral fists float at your shoulders and punch one-two: each rockets at the nearest monster, ploughs through the line, knocks back and flies home.",
+    "swarm.aura_iron_fists_up": "Harder punches; from level 5 both fists punch together.",
+    "swarm.aura_iron_fists_ten": "Titan's Hands: two giant stone hands clap together in front of you, crushing and stunning all between.",
+    "swarm.aura_cleaver_rain_name": "Cleaver Rain",
+    "swarm.aura_cleaver_rain_desc": "Cleavers are hurled up in an arc and come crashing down in a line ahead of you.",
+    "swarm.aura_cleaver_rain_up": "More cleavers, landing further.",
+    "swarm.aura_cleaver_rain_ten": "Butcher's Storm: cleavers whirl down all round you."
+  },
+  "edits": []
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_ember_orbit_name": "Ember Orbit",
+    "swarm.aura_ember_orbit_desc": "Embers circle close around you and burn any monster they touch.",
+    "swarm.aura_ember_orbit_up": "More embers, faster and hotter.",
+    "swarm.aura_ember_orbit_ten": "Black Wheel of Fire: one solid ring of fire spins round you and burns all it touches.",
+    "swarm.aura_spike_ring_name": "Spike Ring",
+    "swarm.aura_spike_ring_desc": "Rings of spikes ripple out from you along the ground, hitting each monster once as they pass.",
+    "swarm.aura_spike_ring_up": "Wider, harder ripples.",
+    "swarm.aura_spike_ring_ten": "The Iron Garden: a spiked hedge stays up round you and roots anything that touches it."
+  },
+  "edits": []
+}

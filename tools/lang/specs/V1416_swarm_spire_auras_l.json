@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_frost_nova_name": "Frost Nova",
+    "swarm.aura_frost_nova_desc": "A blast of frost hits and freezes monsters around you; a frozen monster shatters for double damage when hit again. Bosses cannot be frozen.",
+    "swarm.aura_frost_nova_up": "A wider blast and longer freeze, more often.",
+    "swarm.aura_frost_nova_ten": "Winter's Heart: a blizzard follows you, freezing and shattering.",
+    "swarm.aura_chain_lightning_name": "Chain Lightning",
+    "swarm.aura_chain_lightning_desc": "A bolt of lightning jumps from monster to monster.",
+    "swarm.aura_chain_lightning_up": "More jumps, harder bolts.",
+    "swarm.aura_chain_lightning_ten": "Storm Crown: a crown over your head throws three chains each time it triggers."
+  },
+  "edits": []
+}

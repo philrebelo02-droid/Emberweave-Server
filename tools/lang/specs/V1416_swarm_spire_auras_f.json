@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_blade_whirl_name": "Blade Whirl",
+    "swarm.aura_blade_whirl_desc": "You spin: your axe sweeps one full circle round you, then rests.",
+    "swarm.aura_blade_whirl_up": "Wider, harder spins, more often.",
+    "swarm.aura_blade_whirl_ten": "Steel Cyclone: a blade cyclone spins with you as you move.",
+    "swarm.aura_shock_stomp_name": "Shock Stomp",
+    "swarm.aura_shock_stomp_desc": "You stomp and a shockwave rolls along the ground in a straight line ahead of you.",
+    "swarm.aura_shock_stomp_up": "Longer, harder shockwaves.",
+    "swarm.aura_shock_stomp_ten": "Earthbreaker: four shockwaves roll out in a cross."
+  },
+  "edits": []
+}

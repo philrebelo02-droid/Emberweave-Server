@@ -1,0 +1,14 @@
+{
+  "swarm.title": "群れの尖塔",
+  "swarm.story": "ストーリー",
+  "swarm.survive": "サバイバル",
+  "swarm.play": "プレイ",
+  "swarm.pause": "一時停止",
+  "swarm.level_up": "レベルアップ",
+  "swarm.save_quit": "セーブして終了",
+  "swarm.quit_warning": "このランを終了しますか？ 進行状況は失われます。",
+  "swarm.quit_run": "ランを終了",
+  "swarm.new_warning": "新しいランを始めますか？ セーブ済みのランは失われます。",
+  "swarm.new_run": "新しいラン",
+  "swarm.kills": "討伐数：{n}"
+}

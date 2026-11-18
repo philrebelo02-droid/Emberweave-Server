@@ -1,0 +1,10 @@
+{
+  "swarm.aura_war_drum_name": "Tambour de guerre",
+  "swarm.aura_war_drum_desc": "Le tambour bat en cadence. Un coup sur quatre est plus fort et augmente temporairement les dégâts subis par les monstres touchés.",
+  "swarm.aura_war_drum_up": "Un rythme plus rapide et un quatrième coup plus fort.",
+  "swarm.aura_war_drum_ten": "Tambour du tonnerre : la foudre tombe à chaque coup fort.",
+  "swarm.aura_grudge_mark_name": "Marque de rancune",
+  "swarm.aura_grudge_mark_desc": "Tu lances une lourde hache au dernier ennemi qui t’a frappé et le marques. Chaque marque augmente de 25 % les dégâts qu’il subit, jusqu’à 3 marques. Les monstres marqués explosent en mourant.",
+  "swarm.aura_grudge_mark_up": "Des lancers plus rapides et des explosions plus grandes.",
+  "swarm.aura_grudge_mark_ten": "Vendetta : les haches sont lancées sur un maximum de 5 monstres marqués à la fois."
+}

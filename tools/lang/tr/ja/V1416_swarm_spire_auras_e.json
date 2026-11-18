@@ -1,0 +1,10 @@
+{
+  "swarm.aura_bastion_dome_name": "砦のドーム",
+  "swarm.aura_bastion_dome_desc": "足元にドームが落ち、その場に留まる。内部のモンスターは動きが遅くなり、自分が受けるダメージも減る。",
+  "swarm.aura_bastion_dome_up": "より大きく強いドームが長く残る。",
+  "swarm.aura_bastion_dome_ten": "イージス：金色の球体が自分についてくる。",
+  "swarm.aura_avalanche_fall_name": "岩なだれ",
+  "swarm.aura_avalanche_fall_desc": "画面内で最も密集したモンスターの群れに岩が降り注ぐ。",
+  "swarm.aura_avalanche_fall_up": "岩の数と落下頻度が増える。",
+  "swarm.aura_avalanche_fall_ten": "落山：巨大な岩が最大の群れを押しつぶす。"
+}

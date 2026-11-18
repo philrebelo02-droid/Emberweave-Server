@@ -1,0 +1,10 @@
+{
+  "swarm.aura_war_drum_name": "戰鼓",
+  "swarm.aura_war_drum_desc": "戰鼓有節奏地敲響，每第 4 拍格外有力。被擊中的怪物會在一段時間內受到更多傷害。",
+  "swarm.aura_war_drum_up": "節奏更快，第 4 拍更強。",
+  "swarm.aura_war_drum_ten": "雷鼓：每次重拍都會落下閃電。",
+  "swarm.aura_grudge_mark_name": "怨恨印記",
+  "swarm.aura_grudge_mark_desc": "向最後一個擊中你的敵人擲出重斧並施加印記。每層印記使其受到的傷害增加 25%，最多 3 層。帶印記的怪物死亡時會爆炸。",
+  "swarm.aura_grudge_mark_up": "投擲更快，爆炸範圍更大。",
+  "swarm.aura_grudge_mark_ten": "復仇：斧頭同時飛向最多 5 個帶印記的怪物。"
+}

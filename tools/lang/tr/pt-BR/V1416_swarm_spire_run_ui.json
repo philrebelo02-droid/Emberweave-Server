@@ -1,0 +1,14 @@
+{
+  "swarm.title": "A Agulha do Enxame",
+  "swarm.story": "História",
+  "swarm.survive": "Sobrevivência",
+  "swarm.play": "Jogar",
+  "swarm.pause": "Pausa",
+  "swarm.level_up": "Subiu de nível",
+  "swarm.save_quit": "Salvar e sair",
+  "swarm.quit_warning": "Sair desta partida? Ela será perdida.",
+  "swarm.quit_run": "Sair da partida",
+  "swarm.new_warning": "Começar outra partida? Sua partida salva será perdida.",
+  "swarm.new_run": "Nova partida",
+  "swarm.kills": "Abates: {n}"
+}

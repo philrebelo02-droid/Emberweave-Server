@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_thorn_hide_name": "Thorn Hide",
+    "swarm.aura_thorn_hide_desc": "When a monster hits you, a thorny vine lashes back at it.",
+    "swarm.aura_thorn_hide_up": "Harder lashes that also hit the monsters next to it.",
+    "swarm.aura_thorn_hide_ten": "Briar King: a thicket grows out from you in 8 directions.",
+    "swarm.aura_taunting_roar_name": "Taunting Roar",
+    "swarm.aura_taunting_roar_desc": "You roar: nearby monsters are dragged in towards you, then stunned in a heap. Bosses are immune.",
+    "swarm.aura_taunting_roar_up": "A wider, longer stun, more often.",
+    "swarm.aura_taunting_roar_ten": "War Cry of the Mountain: the roar pulls and stuns the whole screen. Bosses are immune."
+  },
+  "edits": []
+}
