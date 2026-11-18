@@ -1,0 +1,10 @@
+{
+  "Armor Breaker": "鎧砕き",
+  "Your next shot reduces target armor for {0} seconds.": "次の射撃で対象の防御力を{0}秒間下げる。",
+  "Mana Surge": "マナ奔流",
+  "Restore {0} energy, then briefly reduce your armor.": "エネルギーを{0}回復した後、短時間だけ自身の防御力が下がる。",
+  "Aether Draw": "エーテル吸引",
+  "Restore energy equal to {0}% of max energy.": "最大エネルギーの{0}%に相当するエネルギーを回復する。",
+  "Emergency Tonic": "緊急の強壮薬",
+  "Restore {0}% health to the lowest-health ally.": "HPが最も低い味方のHPを{0}%回復する。"
+}

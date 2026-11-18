@@ -1,0 +1,10 @@
+{
+  "Armor Breaker": "ทำลายเกราะ",
+  "Your next shot reduces target armor for {0} seconds.": "การยิงครั้งถัดไปลดเกราะของเป้าหมายเป็นเวลา {0} วินาที",
+  "Mana Surge": "มานาหลั่งไหล",
+  "Restore {0} energy, then briefly reduce your armor.": "ฟื้นฟูพลังงาน {0} หน่วย จากนั้นลดเกราะของคุณชั่วครู่",
+  "Aether Draw": "ดึงอีเธอร์",
+  "Restore energy equal to {0}% of max energy.": "ฟื้นฟูพลังงานเท่ากับ {0}% ของพลังงานสูงสุด",
+  "Emergency Tonic": "ยาบำรุงฉุกเฉิน",
+  "Restore {0}% health to the lowest-health ally.": "ฟื้นฟูพลังชีวิต {0}% ให้พันธมิตรที่มีพลังชีวิตต่ำที่สุด"
+}

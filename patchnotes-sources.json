@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.8.3", "releases": "v1413", "items": [{"text": "ChatGPT 17 Nov 19:18-19:38 v1411-gear-actives e-u; Claude: release notes 1.8.1-1.8.3 translated in all 15 languages + tests/test_patchnotes_translated.js. Phil: \"please make sure patch notes also translate\" (SHIPPED-v1413)"}]},
     {"ver": "1.8.2", "releases": "v1412", "items": [{"text": "ChatGPT 17 Nov 19:02-19:17 v1411-remaining-glyph + hero-titles-complete + gear-actives a-d + world-tree-display patches (base a936fc670, applied clean); Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1412)"}]},
     {"ver": "1.8.1", "releases": "v1411", "items": [{"text": "ChatGPT 17 Nov 18:33-18:40 v1410-hero-skill-localization-pending + release-notes + glyph-names grey/green/green-plus patches (base bcd4f3628, applied clean); Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1411)"}]},
     {"ver": "1.8.0", "releases": "v1410", "items": [{"text": "ChatGPT 17 Nov 18:04-18:07 v1409-skill-display + v1409-ultimate-names-a + -b localization patches (base 1d1fdbd02, applied clean); Phil: \"Push all the fixes and translations once you can\" (SHIPPED-v1410)"}]},
