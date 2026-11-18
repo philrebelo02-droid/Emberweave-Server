@@ -1,0 +1,8 @@
+{
+  "tables": [
+    {
+      "expr": "HERO_SUBNAME",
+      "area": "hero_title"
+    }
+  ]
+}

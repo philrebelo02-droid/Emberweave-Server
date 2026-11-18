@@ -35,6 +35,13 @@ const H=require('./harness.js');
     const dir=path.join(__dirname,'content'); fs.mkdirSync(dir,{recursive:true});
     const f=path.join(dir,'en.json'); let prev={}; try{ prev=JSON.parse(fs.readFileSync(f,'utf8')); }catch(_){}
     const merged=res.out;   // the whole list is regenerated every run (a template the game no longer makes drops out)
+    const gear=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/gear-catalog.json'),'utf8'));
+    for(const item of gear.items) for(const label of [item.active,item.effect]){
+      if(!label) continue;
+      let n=0;
+      const key=label.replace(/\d+(?:\.\d+)?/g,()=>'{'+n+++'}');
+      if(!(key in merged)) merged[key]='gear_active';
+    }
     // Glyph material reward names come from server data, including bonus-stage reward variants.
     const glyphs=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/glyph-source.json'),'utf8'));
     for(const {material,name} of glyphs){
