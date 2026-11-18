@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.8.4", "date": "17 November 2026", "time": "21:00 EST", "title": "Campaign balance", "items": ["Campaign stages are rebalanced for the longer battles: a team at the stage's level can now clear every chapter. No stage got harder.", "Game updates now wait until you have claimed your rewards and are back on the main screen."]},
     {"ver": "1.8.3", "date": "17 November 2026", "time": "20:15 EST", "title": "Translations", "items": ["All 84 gear active skills and their effects are translated into all 15 languages.", "Patch notes now always arrive in your language as soon as they are released."]},
     {"ver": "1.8.2", "date": "17 November 2026", "time": "19:45 EST", "title": "Translations", "items": ["All glyph names, all 61 hero titles, the World Tree, and the first 16 gear active skills are translated into all 15 languages."]},
     {"ver": "1.8.1", "date": "17 November 2026", "time": "19:00 EST", "title": "Translations", "items": ["Every hero skill name (all 244) is translated in battle, the Skills tab, Damage Done and tooltips.", "Grey and Green glyph names are translated."]},
