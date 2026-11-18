@@ -104,10 +104,15 @@ const ROOT=path.join(__dirname,'..');
     for(const screen of ['market','shadymarket']){
       await page.evaluate(screen=>show(screen),screen);
       await page.locator('#'+screen+'.active .merc-wallet').waitFor({state:'visible',timeout:10000});
+      if(screen==='shadymarket') await page.evaluate(()=>{
+        ftutEnd(false);
+        ftutStart(FTUT_GUIDES.find(guide=>guide.k==='shadymarket'));
+      });
       for(const locale of realLocales){
         const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
         if(!await page.evaluate(code=>langLoad(code,true),locale)) throw new Error('Could not switch '+screen+' to '+locale);
-        const expected={screen,locale,diamondsOnly:ui['shady.diamonds_only'],warChest:ui['shady.war_chest']};
+        const expected={screen,locale,diamondsOnly:ui['shady.diamonds_only'],warChest:ui['shady.war_chest'],
+          guide:ui['ftut.shadymarket.1'],next:ui['ftut.next'],skip:ui['ftut.skip']};
         await page.waitForFunction(x=>{
           const root=document.querySelector('#'+x.screen+'.active');
           const wallet=root?.querySelector('.merc-wallet');
@@ -116,11 +121,14 @@ const ROOT=path.join(__dirname,'..');
           if(!walletText.includes((G.gems||0).toLocaleString(x.locale))) return false;
           if(x.screen==='market') return walletText.includes((G.gold||0).toLocaleString(x.locale));
           const chest=x.warChest.replace('{n}',(80000).toLocaleString(x.locale));
-          return walletText.includes(x.diamondsOnly)&&root.querySelector('.merc-offer b')?.textContent===chest;
+          return walletText.includes(x.diamondsOnly)&&root.querySelector('.merc-offer b')?.textContent===chest&&
+            document.querySelector('#ftutBar .ftut-text')?.textContent===x.guide&&
+            document.querySelector('#ftutBar .ftut-next')?.textContent===x.next&&
+            document.querySelector('#ftutBar .ftut-skip')?.textContent===x.skip;
         },expected,{timeout:15000});
       }
     }
-    await page.evaluate(()=>show('home'));
+    await page.evaluate(()=>{ ftutEnd(false); show('home'); });
     await page.evaluate(async()=>{ await langLoad('en',true); return langLoad('qps',true); });
     await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
     // the names the game never translates, from its own tables (+ the player's own name)

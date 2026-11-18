@@ -4518,6 +4518,7 @@ function langApply(root){ root=root||document;
 function langRefresh(rerender){ if(document.readyState==='loading') return; langApply(document);
   try{ paintSplashStatus(); }catch(e){}
   try{ refreshChatClock(); }catch(e){}
+  try{ ftutRefreshText(); }catch(e){}
   try{ bonusZoomSync(); }catch(e){}
   try{ if(document.getElementById('netGate')?.style.display==='flex') netGateUpdate(); }catch(e){}
   try{ refreshGlossaryLanguage(); }catch(e){}
@@ -20365,18 +20366,24 @@ function ftutStart(g){ FTUT.cur=g; FTUT.i=0; FTUT.retryN=0;
   let bar=document.getElementById('ftutBar'); if(!bar){ bar=document.createElement('div'); bar.id='ftutBar'; document.body.appendChild(bar); }
   bar.innerHTML=`<div class="ftut-row" role="dialog" aria-live="polite"><div class="ftut-por"><img class="ftut-img" alt=""></div>
     <div class="ftut-box ewFrame"><div class="ftut-head"><span class="ftut-name"></span><span class="ftut-step"></span></div><div class="ftut-text"></div>
-    <div class="ftut-foot"><button type="button" class="btn xs secondary ftut-skip">${escapeHTML(t('ftut.skip'))}</button><button type="button" class="btn xs ftut-next"></button></div></div></div>`;
+    <div class="ftut-foot"><button type="button" class="btn xs secondary ftut-skip"></button><button type="button" class="btn xs ftut-next"></button></div></div></div>`;
   bar.querySelector('.ftut-skip').onclick=e=>{ e.stopPropagation(); ftutEnd(true); };
   bar.querySelector('.ftut-next').onclick=e=>{ e.stopPropagation(); ftutAdvance(); };   /* v1376: the bar lets taps through - Next advances */
   ftutRender(); clearInterval(FTUT.tick); FTUT.tick=setInterval(ftutWatch,600); }
 function ftutSpeakers(g){ return String(FTUT_LINES[g.k]||'').split(','); }
+function ftutRefreshText(){
+  const g=FTUT.cur, bar=document.getElementById('ftutBar'); if(!g||!bar) return;
+  const n=FTUT.i+1, last=n>=ftutSpeakers(g).length;
+  bar.querySelector('.ftut-text').textContent=t('ftut.'+g.k+'.'+n);
+  bar.querySelector('.ftut-skip').textContent=t('ftut.skip');
+  bar.querySelector('.ftut-next').textContent=t(last?'ftut.done':'ftut.next');
+}
 function ftutRender(){ const g=FTUT.cur, bar=document.getElementById('ftutBar'); if(!g||!bar) return;
-  const sp=ftutSpeakers(g), who=sp[FTUT.i], n=FTUT.i+1, last=n>=sp.length;
+  const sp=ftutSpeakers(g), who=sp[FTUT.i], n=FTUT.i+1;
   bar.dataset.guide=g.k; bar.dataset.line=String(n); bar.dataset.speaker=who;
   bar.querySelector('.ftut-name').textContent=(HERO_TYPES[who]&&HERO_TYPES[who].name)||who;
-  bar.querySelector('.ftut-text').textContent=t('ftut.'+g.k+'.'+n);
   bar.querySelector('.ftut-step').textContent=n+'/'+sp.length;
-  bar.querySelector('.ftut-next').textContent=t(last?'ftut.done':'ftut.next');
+  ftutRefreshText();
   const por=bar.querySelector('.ftut-por'), img=bar.querySelector('.ftut-img');
   const fb=()=>{ por.classList.add('ftut-fb'); img.onerror=null; img.src=(typeof HERO_PORTRAITS!=='undefined'&&HERO_PORTRAITS[who])||''; };
   por.classList.remove('ftut-fb'); por.dataset.hero=who;
