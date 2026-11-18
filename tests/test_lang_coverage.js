@@ -209,6 +209,24 @@ const ROOT=path.join(__dirname,'..');
       }
     }
     await page.evaluate(()=>{ ftutEnd(false); show('home'); });
+    await page.evaluate(()=>show('rankings'));
+    await page.locator('#bbOpen').click({timeout:10000});
+    const journal=page.locator('#bbJournal[open]');
+    const tracks=await page.evaluate(()=>BB_TRACKS.map(([name,steps,key,amounts,label,banner])=>({name,key,label,banner})));
+    for(const locale of realLocales){
+      const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+      if(!await page.evaluate(code=>langLoad(code,true),locale)) throw new Error('Could not switch journal to '+locale);
+      const headings=tracks.map(({name,label})=>label?ui[label]:name);
+      const rewards=tracks.map(({name,key,banner})=>ui[key].replace('{name}',banner?ui[banner]:name));
+      const aria=ui['bb.track_progress'].replace('{name}',headings[0]);
+      if(tracks.length!==21||JSON.stringify(await journal.locator('.bb-track h3').allTextContents())!==JSON.stringify(headings)||
+         JSON.stringify(await journal.locator('.bb-track p:first-of-type').allTextContents())!==JSON.stringify(rewards)||
+         await journal.locator('progress').first().getAttribute('aria-label')!==aria){
+        throw new Error('Achievement Journal did not refresh its translated tracks in '+locale);
+      }
+    }
+    await journal.locator('header button').click({timeout:10000});
+    await page.evaluate(()=>show('home'));
     await page.evaluate(async()=>{ await langLoad('en',true); return langLoad('qps',true); });
     await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
     // the names the game never translates, from its own tables (+ the player's own name)

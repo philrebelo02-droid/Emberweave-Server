@@ -4531,6 +4531,7 @@ function langRefresh(rerender){ if(document.readyState==='loading') return; lang
   try{ _worldTreeActionsUI?.render(); }catch(e){}
   try{ const hots=document.getElementById('townHots'); if(typeof renderHome==='function'&&hots&&hots.childElementCount) renderHome(); }catch(e){}
   try{ if(document.getElementById('mail')?.classList.contains('active')) renderMail(); }catch(e){}
+  try{ if(document.getElementById('bbJournal')?.open) bbOpenJournal(); }catch(e){}
   try{ if(document.getElementById('market')?.classList.contains('active')) renderMarket(false); }catch(e){}
   try{ if(document.getElementById('shadymarket')?.classList.contains('active')) renderShadyMarket(); }catch(e){}
   try{ const s=document.getElementById('settings'); if(s&&s.classList.contains('active')&&typeof renderSettings==='function') renderSettings(); }catch(e){} }
@@ -24670,8 +24671,7 @@ function bbOpenJournal(){
   document.getElementById('bbTracks').innerHTML=content;
   document.getElementById('bbJournalSummary').textContent=t('bb.journal_summary',{earned:number.format(earned),total:number.format(total),percent:fixed.format(percent)});
   const journal=document.getElementById('bbJournal');
-  if(!journal.open)journal.showModal();
-  journal.querySelector('.bb-tracks').scrollTop=0;
+  if(!journal.open){ journal.showModal(); journal.querySelector('.bb-tracks').scrollTop=0; }
 }
 
 function bbDraw(){
