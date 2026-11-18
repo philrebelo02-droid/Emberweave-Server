@@ -8806,7 +8806,13 @@ function resultLater(fn,ms){ if(_resultTimer)clearTimeout(_resultTimer); var ep=
     else { _resultBusy=false; }
   }, ms); return _resultTimer; }
 function cancelResult(){ _resultEpoch++; if(_resultTimer){ clearTimeout(_resultTimer); _resultTimer=null; } _resultBusy=false; }
-function updateUnsafe(){ return state==='battle' || state==='result' || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil) || !!(window.ED && ED.active); }   /* v646: never reload under an Emberdraft match (incl. its start loader, after /start spent the attempt) */   // a final blow sets `ended` before resolve/result is safely banked; defer through the result screen and update only after Continue
+/* v1413 (Phil 17 Nov: "the reload should wait for the player to completely claim rewards and go to main screen"): after the splash a
+   new build waits until the player is on the main screen with nothing open over it - no result screen, reward pop-up, chest, mail,
+   hero window or dialog. The centre of the screen must belong to #home itself. */
+function updateHomeIdle(){ try{ if(state!=='home') return false; if(document.querySelector('dialog[open]')) return false;
+  const h=document.getElementById('home'); if(!h) return false; const el=document.elementFromPoint(innerWidth/2,innerHeight/2); return !!el && h.contains(el); }catch(e){ return false; } }
+function updateUnsafe(){ if(state==='battle' || state==='result' || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil) || !!(window.ED && ED.active)) return true;
+  let entered=false; try{ entered=!!_splashEntered; }catch(e){} return entered ? !updateHomeIdle() : false; }   /* v646: never reload under an Emberdraft match (incl. its start loader, after /start spent the attempt) */   // a final blow sets `ended` before resolve/result is safely banked; defer through the result screen and update only after Continue
 /* v269 — YOUR TIMING IS THE INPUT.
    The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
    wall-clock instant. Every player action is therefore QUEUED and applied at a tick boundary, and
@@ -33478,7 +33484,7 @@ async function provLaunch(ctx){ const P=CUR.prov||{};
   /* same stale-build rule as the campaign (v334): never start a server-replayed fight on an outdated engine */
   if(online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const tm=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
       fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(tm); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(tm); if(!d){d=true;res(true);} }); });
-    if(!_fresh){ bannerMsg(ewT('battle.game_updated')); applyUpdate(); return; } }
+    if(!_fresh){ bannerMsg(ewT('battle.game_updated')); applyUpdate(true); return; } }
   const r=await api('/api/province/start','POST',{type:P.t, stage:P.stage, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
   if(!r||!r.ok||!Array.isArray(r.waves)||!r.waves.length){ bannerMsg(langMsg(r&&r.error)||ewT('isle.no_realm')); return; }
   if(state!=='menu' || ctx!==_startCtx()) return;   // backed out of the squad screen during the round-trip
@@ -33618,7 +33624,7 @@ async function wellLaunch(ctx){ const Wl=CUR.well||{};
   if(!ACC.token){ bannerMsg(ewT('isle.well_battle_connect')); return; }
   if(online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const tm=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
       fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(tm); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(tm); if(!d){d=true;res(true);} }); });
-    if(!_fresh){ bannerMsg(ewT('battle.game_updated')); applyUpdate(); return; } }
+    if(!_fresh){ bannerMsg(ewT('battle.game_updated')); applyUpdate(true); return; } }
   await wellResendPending(); if(wellPendingHeld()){ bannerMsg(ewT('isle.well_pending')); return; }   /* a new start would replace the open attempt */
   const r=await api('/api/well/start','POST',{col:Wl.col, row:Wl.row, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
   if(!r||!r.ok||!Array.isArray(r.waves)||!r.waves.length){ bannerMsg(langMsg(r&&r.error)||ewT('isle.no_realm')); return; }
@@ -36826,7 +36832,7 @@ async function _startBtnGo(_ctx){
        update reloads the page here (no stamina spent yet) instead of the replay diverging later. */
     if(ACC.token && online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const t=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
         fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(t); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(t); if(!d){d=true;res(true);} }); });
-      if(!_fresh){ bannerMsg(ewT('battle.game_updated')); applyUpdate(); return; } }
+      if(!_fresh){ bannerMsg(ewT('battle.game_updated')); applyUpdate(true); return; } }
     if(ACC.token){ const r=await api('/api/campaign/start','POST',{mode:(CUR.portal||'normal'), node:CUR.node, heroIds:G.team.filter(Boolean).slice(0,5), requestId:uid8()});
       if(!r||r.error||!r.ok){ bannerMsg((r&&r.error)||ewT('battle.realm_unreachable')); return; }
       CUR.attemptId=r.attemptId; CUR.cwaves=(r.stage&&r.stage.waves)||null;
@@ -37109,8 +37115,8 @@ function doUpdateReload(){ if(_updating)return; _updating=true; updLoopMark();
 // on the boot splash (not entered yet): just reload straight to the newest build.
 // mid-battle: give a short grace countdown so progress isn't lost.
 // anywhere else (menus / map / home): apply right away with a brief 3s heads-up.
-function applyUpdate(){ if(_updating)return;
-  if(updateUnsafe()){ _pendingUpdate=true; return; }   // NEVER interrupt a live fight — hold the update until the battle ends
+function applyUpdate(force){ if(_updating)return;
+  if(!force && updateUnsafe()){ _pendingUpdate=true; return; }   // NEVER interrupt a live fight — hold the update until the battle ends
   doUpdateReload();   // apply SILENTLY — no popup (popups bug). Just a quick reload to the newest build when you're not mid-fight.
 }
 function showUpdateCountdown(secs){ if(_updateNoticeShown)return; _updateNoticeShown=true;
