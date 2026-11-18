@@ -8811,8 +8811,10 @@ function cancelResult(){ _resultEpoch++; if(_resultTimer){ clearTimeout(_resultT
    hero window or dialog. The centre of the screen must belong to #home itself. */
 function updateHomeIdle(){ try{ if(state!=='home') return false; if(document.querySelector('dialog[open]')) return false;
   const h=document.getElementById('home'); if(!h) return false; const el=document.elementFromPoint(innerWidth/2,innerHeight/2); return !!el && h.contains(el); }catch(e){ return false; } }
-function updateUnsafe(){ if(state==='battle' || state==='result' || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil) || !!(window.ED && ED.active)) return true;
-  let entered=false; try{ entered=!!_splashEntered; }catch(e){} return entered ? !updateHomeIdle() : false; }   /* v646: never reload under an Emberdraft match (incl. its start loader, after /start spent the attempt) */   // a final blow sets `ended` before resolve/result is safely banked; defer through the result screen and update only after Continue
+function updateUnsafe(){ return state==='battle' || state==='result' || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil) || !!(window.ED && ED.active); }   /* v646: never reload under an Emberdraft match (incl. its start loader, after /start spent the attempt) */   // a final blow sets `ended` before resolve/result is safely banked; defer through the result screen and update only after Continue
+/* updateWait(): the auto-update path only (applyUpdate, the 10 s poll, the foreground check). updateUnsafe() stays the fight rule because
+   netGateShown() uses it to keep the server-down screen off a fight - it must not widen to every menu. */
+function updateWait(){ if(updateUnsafe()) return true; let entered=false; try{ entered=!!_splashEntered; }catch(e){} return entered ? !updateHomeIdle() : false; }
 /* v269 — YOUR TIMING IS THE INPUT.
    The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
    wall-clock instant. Every player action is therefore QUEUED and applied at a tick boundary, and
@@ -37116,7 +37118,7 @@ function doUpdateReload(){ if(_updating)return; _updating=true; updLoopMark();
 // mid-battle: give a short grace countdown so progress isn't lost.
 // anywhere else (menus / map / home): apply right away with a brief 3s heads-up.
 function applyUpdate(force){ if(_updating)return;
-  if(!force && updateUnsafe()){ _pendingUpdate=true; return; }   // NEVER interrupt a live fight — hold the update until the battle ends
+  if(!force && updateWait()){ _pendingUpdate=true; return; }   // NEVER interrupt a live fight — hold the update until the battle ends
   doUpdateReload();   // apply SILENTLY — no popup (popups bug). Just a quick reload to the newest build when you're not mid-fight.
 }
 function showUpdateCountdown(secs){ if(_updateNoticeShown)return; _updateNoticeShown=true;
@@ -37502,7 +37504,7 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
     /* else: offline / transient error → stay signed in with local progress */ }).catch(()=>{}); return _profileBoot; };
   if(ACC.token && online() && !window._svrHandoff) window.bootSignedIn();
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;
-    if(_pendingUpdate){ if(!updateUnsafe()) doUpdateReload(); return; }   // a real update was deferred during a fight → apply it silently now the fight is over
+    if(_pendingUpdate){ if(!updateWait()) doUpdateReload(); return; }   // a real update was deferred during a fight → apply it silently now the fight is over
     checkForUpdate(); }, 10000);   // poll version.json every 10s (served no-store, so it's always fresh); false updates are impossible now that BUILD_ID is stamped == version.json on deploy
   /* v515 — WHY UPDATES REACHED DESKTOP BUT NEVER THE PHONE (Phil: "somehow these updates arent
      being pushed through mobile, only desktop"). The updater above is a setInterval, and a
@@ -37516,7 +37518,7 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
      The fix is to check the moment the app comes back to the foreground, on every path a mobile
      app actually takes: tab/app visible again, bfcache restore, and network returning. */
   const _fgCheck=()=>{ try{ if(!online()||_updating||_updateNoticeShown) return;
-    if(_pendingUpdate){ if(!updateUnsafe()) doUpdateReload(); return; }
+    if(_pendingUpdate){ if(!updateWait()) doUpdateReload(); return; }
     checkForUpdate(); }catch(e){} };
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(_fgCheck,300); });
   window.addEventListener('pageshow',(e)=>{ setTimeout(_fgCheck, e && e.persisted ? 0 : 1200); });   // e.persisted === restored from bfcache
