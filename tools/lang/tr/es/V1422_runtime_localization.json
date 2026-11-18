@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Se ha cambiado el estandarte del gremio.",
+  "gnotice.joined": "{name} se ha unido al gremio.",
+  "gnotice.leader": "{name} ahora está al frente del gremio.",
+  "gnotice.left": "{name} ha abandonado el gremio.",
+  "gnotice.raid_kill": "¡{name} asestó el golpe final a {boss} (nivel {tier})!",
+  "gnotice.removed": "{name} ha sido expulsado del gremio.",
+  "online.join_missing_room": "no se encontró la sala",
+  "online.join_room_full": "la sala está llena"
+}

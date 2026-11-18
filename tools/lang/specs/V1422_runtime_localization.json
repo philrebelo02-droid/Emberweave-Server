@@ -1,0 +1,12 @@
+{
+  "keys": {
+    "gnotice.banner": "The guild banner was changed.",
+    "gnotice.joined": "{name} joined the guild.",
+    "gnotice.leader": "{name} is now the guild leader.",
+    "gnotice.left": "{name} left the guild.",
+    "gnotice.raid_kill": "{name} landed the killing blow on {boss} (Tier {tier})!",
+    "gnotice.removed": "{name} was removed from the guild.",
+    "online.join_missing_room": "no such room",
+    "online.join_room_full": "room full"
+  }
+}

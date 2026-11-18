@@ -67,6 +67,29 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (isOwnAsset && req.headers.has('range')) return;
+  if (isOwnAsset && /^\/lang\/[a-z]{2}(?:-[A-Za-z]{2,4})?\.talents\.json$/.test(url.pathname)) {
+    e.respondWith(caches.open(ASSET_CACHE).then(async cache => {
+      const current = await cache.match(req);
+      if (current) return current;
+      try {
+        const response = await fetch(req);
+        if (response.ok) {
+          await cache.put(req, response.clone()).catch(()=>{});
+          return response;
+        }
+        if (response.status < 500) return response;
+      } catch (_) {}
+      const versions = await cache.keys(req, {ignoreSearch:true});
+      const previous = versions.length ? await cache.match(versions[versions.length-1]) : null;
+      if (!previous) return Response.error();
+      return new Response(previous.body, {headers:{
+        'Content-Type':'application/json; charset=utf-8',
+        'Cache-Control':'no-store',
+        'X-Emberweave-Lang-Stale':'1',
+      }});
+    }));
+    return;
+  }
   if (isOwnAsset) {
     // v576 (Phil: "it should only allow me to download new content"). A ?v= URL is IMMUTABLE by
     // protocol - SHIPPING RULE 2.5 forbids reusing a version number, so a bumped asset is a new

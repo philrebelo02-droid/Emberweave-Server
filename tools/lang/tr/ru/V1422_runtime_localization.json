@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Знамя гильдии изменено.",
+  "gnotice.joined": "Игрок {name} вступил в гильдию.",
+  "gnotice.leader": "Теперь гильдию возглавляет {name}.",
+  "gnotice.left": "Игрок {name} покинул гильдию.",
+  "gnotice.raid_kill": "Игрок {name} нанёс добивающий удар по боссу {boss} (ранг {tier})!",
+  "gnotice.removed": "Игрок {name} исключён из гильдии.",
+  "online.join_missing_room": "комната не найдена",
+  "online.join_room_full": "комната заполнена"
+}

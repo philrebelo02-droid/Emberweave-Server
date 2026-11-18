@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Het gildevaandel is gewijzigd.",
+  "gnotice.joined": "{name} is lid geworden van het gilde.",
+  "gnotice.leader": "{name} leidt nu het gilde.",
+  "gnotice.left": "{name} heeft het gilde verlaten.",
+  "gnotice.raid_kill": "{name} gaf {boss} de genadeslag (rang {tier})!",
+  "gnotice.removed": "{name} is uit het gilde verwijderd.",
+  "online.join_missing_room": "kamer niet gevonden",
+  "online.join_room_full": "de kamer is vol"
+}

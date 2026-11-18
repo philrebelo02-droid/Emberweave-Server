@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Lonca sancağı değiştirildi.",
+  "gnotice.joined": "{name} loncaya katıldı.",
+  "gnotice.leader": "{name} artık loncanın lideri.",
+  "gnotice.left": "{name} loncadan ayrıldı.",
+  "gnotice.raid_kill": "{name}, {boss} adlı bossa son darbeyi vurdu (Kademe {tier})!",
+  "gnotice.removed": "{name} loncadan çıkarıldı.",
+  "online.join_missing_room": "oda bulunamadı",
+  "online.join_room_full": "oda dolu"
+}

@@ -583,6 +583,11 @@ function chatChipOk(bt){ if(!bt||typeof bt!=='object'||Array.isArray(bt)) return
   for(const f of ['mine','mineSnap','foe']) for(const u of (bt[f]||[])){ let s=''; try{ s=JSON.stringify(u); }catch(e){ return null; } if(s.length>2000) return null; }
   /* v1088 (scan 9 #3): only the fields watchBattle reads are kept - a padded chip (8 KB each) was stored and served to every member on every poll */
   const out={}; if(bt.v!=null) out.v=bt.v|0; if(bt.seed!=null) out.seed=(+bt.seed)>>>0; if(typeof bt.oppName==='string') out.oppName=bt.oppName.slice(0,16); if(bt.won!=null) out.won=!!bt.won; if(typeof bt.engine==='string') out.engine=bt.engine.slice(0,40);   /* v1391: the build that fought it */
+  const label=bt.replayLabel;
+  if(label?.kind==='mine'&&['iron','crystal','silver','coal'].includes(label.res)&&Number.isSafeInteger(label.level)&&label.level>0)
+    out.replayLabel={kind:'mine',res:label.res,level:label.level};
+  if(label?.kind==='site'&&typeof label.id==='string'&&(label.id==='tree'||/^oasis-(nw|ne|sw|se)$/.test(label.id)))
+    out.replayLabel={kind:'site',id:label.id};
   for(const f of ['mine','mineSnap','foe']) if(Array.isArray(bt[f])) out[f]=bt[f]; return out; }
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
   let d='', len=0, done=false;

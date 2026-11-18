@@ -1,0 +1,8 @@
+{
+  "burn": "เผาไหม้",
+  "Every burn tick builds Heat until the enemy Flares and the fire jumps to its neighbours. Nebula holds enemies in the Haze, where all her burns tick faster. Stardust can stack or spread; the signature makes every enemy her ult drags in Flare at once.": "ความเสียหายจากการเผาไหม้แต่ละครั้งสะสมความร้อนจนศัตรูปะทุและไฟลามไปยังตัวใกล้เคียง เนบิวลา กักศัตรูไว้ในหมอก ทำให้การเผาไหม้ทุกชนิดของแอสตราสร้างความเสียหายถี่ขึ้น ฝุ่นดาว สะสมหรือแพร่กระจายได้ พรสวรรค์ประจำสายทำให้ศัตรูที่อัลติดึงเข้ามาปะทุพร้อมกัน",
+  "burst": "ระเบิดความเสียหาย",
+  "Astra fills the star she holds with Light, and Starfire spends it all in one blast. Starfire marks Points, and three Points on the field turn one Starfire into four. Collapsing Star can widen or implode; the signature lets the Held Star fall on the centre of her ult.": "แอสตราสะสมแสงในดาวที่ถือไว้ แล้ว เพลิงดาว ใช้แสงทั้งหมดระเบิดครั้งเดียว เพลิงดาว ทำเครื่องหมายจุด เมื่อมีสามจุดในสนาม การยิงหนึ่งครั้งจะแตกเป็นสี่ ดาวยุบตัว ขยายวงหรือยุบเข้าด้านในได้ พรสวรรค์ประจำสายปล่อยดาวในมือตกลงกลางพื้นที่อัลติ",
+  "control": "ควบคุม",
+  "Astra records where enemies stand, and any that move Out of Place are punished. Starfire catches enemies in Orbit, drawing them back toward where it burst. Nebula can trap or follow; the signature records the whole field and drags back anything that strays.": "แอสตราบันทึกตำแหน่งของศัตรูและลงโทษตัวที่เคลื่อนออกไป เพลิงดาว จับศัตรูไว้ในวงโคจรและดึงกลับไปทางจุดระเบิด เนบิวลา กักหรือตามศัตรูได้ พรสวรรค์ประจำสายบันทึกตำแหน่งทั่วสนามและดึงตัวที่ออกนอกตำแหน่งกลับมา"
+}

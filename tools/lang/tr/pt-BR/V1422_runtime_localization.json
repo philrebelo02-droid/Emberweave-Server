@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "O estandarte da guilda foi alterado.",
+  "gnotice.joined": "{name} entrou na guilda.",
+  "gnotice.leader": "{name} agora lidera a guilda.",
+  "gnotice.left": "{name} saiu da guilda.",
+  "gnotice.raid_kill": "{name} deu o golpe final em {boss} (nível {tier})!",
+  "gnotice.removed": "{name} foi removido da guilda.",
+  "online.join_missing_room": "sala não encontrada",
+  "online.join_room_full": "a sala está cheia"
+}

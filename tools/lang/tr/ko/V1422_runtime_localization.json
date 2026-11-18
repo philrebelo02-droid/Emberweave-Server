@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "길드 깃발이 변경되었습니다.",
+  "gnotice.joined": "{name} 님이 길드에 가입했습니다.",
+  "gnotice.leader": "{name} 님이 새 길드장이 되었습니다.",
+  "gnotice.left": "{name} 님이 길드를 떠났습니다.",
+  "gnotice.raid_kill": "{name} 님이 {boss}(티어 {tier})에게 결정타를 날렸습니다!",
+  "gnotice.removed": "{name} 님이 길드에서 추방되었습니다.",
+  "online.join_missing_room": "방을 찾을 수 없습니다",
+  "online.join_room_full": "방이 가득 찼습니다"
+}

@@ -1,0 +1,8 @@
+{
+  "bell-tower": "鐘楼",
+  "Every ring of Sacred Bells strikes the next Peal, and the {0}th rings the great bell. Each ring deals Clangour to the enemies close by, and the dying hear the Knell. The signature rings every bell at once and starts the Peals again.": "聖なる鐘が鳴るたびに鐘の回数が進み、{0}回目に大鐘が鳴る。一打ごとに近くの敵に轟音を浴びせ、瀕死の敵には弔鐘が響く。固有タレントはすべての鐘を一斉に鳴らし、回数を数え直す。",
+  "sanctuary healer": "聖域の癒やし手",
+  "Incense of Penance turns the allies it heals into Pilgrims and lights a Candle for each one it cleanses. Enemies in the smoke make Atonement: their hits heal the allies they strike. The signature opens the nave: no ally near it can fall.": "贖罪の香で回復した味方は巡礼者となり、浄化した味方一人につきろうそくが一本ともる。煙の中の敵は償いを受け、攻撃を当てた味方を回復させる。固有タレントは身廊を開き、近くの味方が倒れるのを防げる。",
+  "door-slam judge": "門を閉ざす裁き手",
+  "Cathedral Gates leaves its victims Barred and lays Masonry on Ambrel. Every enemy that hurts an ally earns Sin, and Divine Mass judges it. The signature closes the gates on a Barred enemy with {0} Sin and judges all Sin within {1} m of that enemy.": "大聖堂の門は当たった敵を閉門状態にし、アンブレルを石積みで守る。味方を傷つけた敵には罪がたまり、聖なるミサが裁く。固有タレントは罪を{0}つ抱えた閉門状態の敵に門を閉ざし、その敵から{1} m以内にあるすべての罪を裁く。"
+}

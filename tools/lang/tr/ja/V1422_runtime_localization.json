@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "ギルドの旗が変更されました。",
+  "gnotice.joined": "{name}がギルドに加入しました。",
+  "gnotice.leader": "{name}がギルドリーダーに就任しました。",
+  "gnotice.left": "{name}がギルドを脱退しました。",
+  "gnotice.raid_kill": "{name}が{boss}（ティア{tier}）にとどめを刺しました！",
+  "gnotice.removed": "{name}がギルドから除名されました。",
+  "online.join_missing_room": "ルームが見つかりません",
+  "online.join_room_full": "ルームに空きがありません"
+}

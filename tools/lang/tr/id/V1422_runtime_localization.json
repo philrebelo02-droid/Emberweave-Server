@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Panji guild telah diubah.",
+  "gnotice.joined": "{name} bergabung dengan guild.",
+  "gnotice.leader": "{name} kini memimpin guild.",
+  "gnotice.left": "{name} keluar dari guild.",
+  "gnotice.raid_kill": "{name} memberikan pukulan terakhir kepada {boss} (Tingkat {tier})!",
+  "gnotice.removed": "{name} dikeluarkan dari guild.",
+  "online.join_missing_room": "ruangan tidak ditemukan",
+  "online.join_room_full": "ruangan penuh"
+}

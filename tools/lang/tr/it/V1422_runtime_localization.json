@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Lo stendardo della gilda è stato cambiato.",
+  "gnotice.joined": "{name} si è unito alla gilda.",
+  "gnotice.leader": "{name} ora guida la gilda.",
+  "gnotice.left": "{name} ha lasciato la gilda.",
+  "gnotice.raid_kill": "{name} ha inferto il colpo di grazia a {boss} (grado {tier})!",
+  "gnotice.removed": "{name} è stato rimosso dalla gilda.",
+  "online.join_missing_room": "stanza non trovata",
+  "online.join_room_full": "la stanza è piena"
+}

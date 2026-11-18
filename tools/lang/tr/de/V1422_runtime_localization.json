@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "Das Gildenbanner wurde geändert.",
+  "gnotice.joined": "{name} ist der Gilde beigetreten.",
+  "gnotice.leader": "{name} leitet jetzt die Gilde.",
+  "gnotice.left": "{name} hat die Gilde verlassen.",
+  "gnotice.raid_kill": "{name} hat {boss} den Todesstoß versetzt (Stufe {tier})!",
+  "gnotice.removed": "{name} wurde aus der Gilde entfernt.",
+  "online.join_missing_room": "Raum nicht gefunden",
+  "online.join_room_full": "der Raum ist voll"
+}

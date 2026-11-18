@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "เปลี่ยนธงกิลด์แล้ว",
+  "gnotice.joined": "{name} เข้าร่วมกิลด์แล้ว",
+  "gnotice.leader": "{name} เป็นหัวหน้ากิลด์คนใหม่",
+  "gnotice.left": "{name} ออกจากกิลด์แล้ว",
+  "gnotice.raid_kill": "{name} โจมตีปิดฉาก {boss} (ระดับ {tier})!",
+  "gnotice.removed": "{name} ถูกนำออกจากกิลด์แล้ว",
+  "online.join_missing_room": "ไม่พบห้อง",
+  "online.join_room_full": "ห้องเต็ม"
+}

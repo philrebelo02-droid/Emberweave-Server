@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "公會旗幟已更換。",
+  "gnotice.joined": "{name}加入了公會。",
+  "gnotice.leader": "{name}現已成為公會會長。",
+  "gnotice.left": "{name}離開了公會。",
+  "gnotice.raid_kill": "{name}對{boss}（第{tier}階）打出了致命一擊！",
+  "gnotice.removed": "{name}已被移出公會。",
+  "online.join_missing_room": "找不到房間",
+  "online.join_room_full": "房間已滿"
+}

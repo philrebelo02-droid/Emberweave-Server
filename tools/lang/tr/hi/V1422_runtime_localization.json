@@ -1,0 +1,10 @@
+{
+  "gnotice.banner": "गिल्ड का ध्वज बदल दिया गया।",
+  "gnotice.joined": "{name} गिल्ड में शामिल हो गए।",
+  "gnotice.leader": "{name} अब गिल्ड के नेता हैं।",
+  "gnotice.left": "{name} ने गिल्ड छोड़ दी।",
+  "gnotice.raid_kill": "{name} ने {boss} (श्रेणी {tier}) पर अंतिम वार किया!",
+  "gnotice.removed": "{name} को गिल्ड से हटा दिया गया।",
+  "online.join_missing_room": "कमरा नहीं मिला",
+  "online.join_room_full": "कमरा भरा हुआ है"
+}

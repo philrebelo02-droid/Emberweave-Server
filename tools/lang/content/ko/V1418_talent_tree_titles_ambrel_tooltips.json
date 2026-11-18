@@ -1,0 +1,8 @@
+{
+  "bell-tower": "종탑",
+  "Every ring of Sacred Bells strikes the next Peal, and the {0}th rings the great bell. Each ring deals Clangour to the enemies close by, and the dying hear the Knell. The signature rings every bell at once and starts the Peals again.": "신성한 종이 울릴 때마다 타종 횟수가 늘고, {0}번째에는 큰 종이 울린다. 종이 울릴 때마다 가까운 적에게 굉음을 가하고, 죽어 가는 적은 조종을 듣는다. 대표 특성은 모든 종을 한꺼번에 울린 뒤 횟수를 다시 센다.",
+  "sanctuary healer": "성소의 치유사",
+  "Incense of Penance turns the allies it heals into Pilgrims and lights a Candle for each one it cleanses. Enemies in the smoke make Atonement: their hits heal the allies they strike. The signature opens the nave: no ally near it can fall.": "속죄의 향로 치유한 아군은 순례자가 되고, 정화한 아군마다 촛불이 하나 켜진다. 연기 속 적은 속죄하며, 공격으로 맞힌 아군을 치유한다. 대표 특성은 본당을 열어 가까운 아군이 쓰러지는 것을 막을 수 있다.",
+  "door-slam judge": "문을 닫는 심판관",
+  "Cathedral Gates leaves its victims Barred and lays Masonry on Ambrel. Every enemy that hurts an ally earns Sin, and Divine Mass judges it. The signature closes the gates on a Barred enemy with {0} Sin and judges all Sin within {1} m of that enemy.": "대성당의 문에 맞은 적은 봉쇄되고 앰브렐은 석벽으로 보호받는다. 아군에게 피해를 준 적에게 죄가 쌓이고, 신성한 미사가 이를 심판한다. 대표 특성은 죄가 {0}개 쌓인 봉쇄된 적에게 문을 닫고, 그 적 주변 {1}m 안의 모든 죄를 심판한다."
+}

@@ -1,0 +1,8 @@
+{
+  "bell-tower": "หอระฆัง",
+  "Every ring of Sacred Bells strikes the next Peal, and the {0}th rings the great bell. Each ring deals Clangour to the enemies close by, and the dying hear the Knell. The signature rings every bell at once and starts the Peals again.": "ทุกครั้งที่ ระฆังศักดิ์สิทธิ์ ดังจะนับเป็นเสียงระฆังครั้งถัดไป และครั้งที่ {0} จะตีระฆังใหญ่ แต่ละครั้งส่งเสียงกึกก้องใส่ศัตรูใกล้เคียง ส่วนศัตรูใกล้ตายจะได้ยินระฆังมรณะ พรสวรรค์ประจำสายตีระฆังทั้งหมดพร้อมกันแล้วเริ่มนับใหม่",
+  "sanctuary healer": "ผู้รักษาแห่งวิหาร",
+  "Incense of Penance turns the allies it heals into Pilgrims and lights a Candle for each one it cleanses. Enemies in the smoke make Atonement: their hits heal the allies they strike. The signature opens the nave: no ally near it can fall.": "ธูปแห่งการไถ่บาป ทำให้พันธมิตรที่ได้รับการรักษากลายเป็นผู้แสวงบุญ และจุดเทียนหนึ่งเล่มต่อพันธมิตรที่ถูกชำระล้าง ศัตรูในควันต้องชดใช้บาป การโจมตีของพวกมันจะรักษาพันธมิตรที่โดนโจมตี พรสวรรค์ประจำสายเปิดโถงวิหารและช่วยให้พันธมิตรใกล้เคียงไม่ล้มลง",
+  "door-slam judge": "ผู้พิพากษาแห่งประตู",
+  "Cathedral Gates leaves its victims Barred and lays Masonry on Ambrel. Every enemy that hurts an ally earns Sin, and Divine Mass judges it. The signature closes the gates on a Barred enemy with {0} Sin and judges all Sin within {1} m of that enemy.": "ประตูมหาวิหาร กักศัตรูที่ถูกโจมตีและคุ้มครองแอมเบรลด้วยกำแพงหิน ศัตรูที่ทำร้ายพันธมิตรจะสะสมบาปและถูก พิธีศักดิ์สิทธิ์ พิพากษา พรสวรรค์ประจำสายปิดประตูใส่ศัตรูที่ถูกกักซึ่งมีบาป {0} ชั้น และพิพากษาบาปทั้งหมดในรัศมี {1} ม. รอบศัตรูตัวนั้น"
+}
