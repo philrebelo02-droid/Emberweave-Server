@@ -1,0 +1,10 @@
+{
+  "swarm.aura_arrow_volley_name": "화살 일제사격",
+  "swarm.aura_arrow_volley_desc": "바라보는 방향으로 화살을 부채꼴로 발사합니다.",
+  "swarm.aura_arrow_volley_up": "화살이 늘고 더 넓게 퍼집니다.",
+  "swarm.aura_arrow_volley_ten": "하늘 일제사격: 하늘로 쏜 화살 30개가 전방의 넓은 부채꼴 범위에 떨어집니다.",
+  "swarm.aura_hunter_s_turret_name": "사냥꾼의 포탑",
+  "swarm.aura_hunter_s_turret_desc": "석궁 포탑을 설치합니다. 자리를 떠난 뒤에도 포탑은 가장 가까운 몬스터에게 발사합니다.",
+  "swarm.aura_hunter_s_turret_up": "포탑이 늘고 더 자주 발사합니다.",
+  "swarm.aura_hunter_s_turret_ten": "공성 발리스타: 발리스타 하나가 가까이에 머뭅니다. 화살은 몬스터를 관통합니다."
+}

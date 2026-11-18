@@ -1,0 +1,10 @@
+{
+  "swarm.aura_swift_strikes_name": "疾速斩击",
+  "swarm.aura_swift_strikes_desc": "技能就绪时，急转会触发冲刺，斩过沿途目标，并在终点打出一道 X 形斩击。",
+  "swarm.aura_swift_strikes_up": "冲刺更远、冷却更短。等级 5 起追加一次斩击。",
+  "swarm.aura_swift_strikes_ten": "残影：留下的残影继续斩击。",
+  "swarm.aura_night_sickles_name": "夜镰",
+  "swarm.aura_night_sickles_desc": "镰刀扎进怪物体内持续切割。怪物死亡或经过 3 秒后，镰刀跃向下一个最近的目标。",
+  "swarm.aura_night_sickles_up": "镰刀更多，切割更深。",
+  "swarm.aura_night_sickles_ten": "收获之月：每次跃击都会划出一道新月形斩击，切过沿路的所有目标。"
+}

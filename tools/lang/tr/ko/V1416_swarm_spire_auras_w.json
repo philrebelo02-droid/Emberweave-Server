@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "죽음의 표식",
+  "swarm.aura_death_mark_desc": "가까이 있는 몬스터 중 현재 체력이 가장 높은 대상에게 표식을 남깁니다. 받는 피해가 두 배가 되며, 보스가 아니면 체력이 20% 미만일 때 처형됩니다.",
+  "swarm.aura_death_mark_up": "표식을 더 자주 남기며, 처형 기준이 최대 35%까지 올라갑니다.",
+  "swarm.aura_death_mark_ten": "사신의 명단: 표식이 있는 대상 최대 다섯에게 낫이 동시에 떨어집니다.",
+  "swarm.aura_shuriken_storm_name": "수리검 폭풍",
+  "swarm.aura_shuriken_storm_desc": "앞으로 던진 수리검이 땅에 박혀 돌아가는 톱날 함정이 됩니다.",
+  "swarm.aura_shuriken_storm_up": "함정이 늘고 더 오래 지속됩니다.",
+  "swarm.aura_shuriken_storm_ten": "별 폭풍: 회전하는 별 8개가 깔린 구역을 만듭니다."
+}

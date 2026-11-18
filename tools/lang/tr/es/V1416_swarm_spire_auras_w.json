@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Marca de muerte",
+  "swarm.aura_death_mark_desc": "Marcas al monstruo cercano con más salud actual. Recibe el doble de daño y, salvo si es un jefe, se ejecuta cuando baja del 20% de salud.",
+  "swarm.aura_death_mark_up": "Marcas más frecuentes y un umbral de ejecución que sube hasta el 35%.",
+  "swarm.aura_death_mark_ten": "Lista del segador: una guadaña cae sobre hasta cinco objetivos marcados a la vez.",
+  "swarm.aura_shuriken_storm_name": "Tormenta de shuriken",
+  "swarm.aura_shuriken_storm_desc": "Lanzas shuriken hacia delante. Se clavan en el suelo y giran como trampas de sierra.",
+  "swarm.aura_shuriken_storm_up": "Más trampas que duran más.",
+  "swarm.aura_shuriken_storm_ten": "Tormenta de estrellas: un campo de 8 estrellas giratorias."
+}

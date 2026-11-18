@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "死亡标记",
+  "swarm.aura_death_mark_desc": "标记附近当前生命值最高的怪物。它受到双倍伤害，且如果不是首领，生命值低于 20% 时会被处决。",
+  "swarm.aura_death_mark_up": "标记更频繁，处决阈值最高升至 35%。",
+  "swarm.aura_death_mark_ten": "收割者名单：一把镰刀同时落向最多五个带标记的目标。",
+  "swarm.aura_shuriken_storm_name": "手里剑风暴",
+  "swarm.aura_shuriken_storm_desc": "手里剑向前飞出，扎入地面后旋转，成为锯刃陷阱。",
+  "swarm.aura_shuriken_storm_up": "陷阱更多，持续更久。",
+  "swarm.aura_shuriken_storm_ten": "星刃风暴：形成一片由 8 枚旋转星刃构成的区域。"
+}

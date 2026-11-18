@@ -1,0 +1,10 @@
+{
+  "swarm.aura_wind_shot_name": "Disparo de vento",
+  "swarm.aura_wind_shot_desc": "Uma rajada abre uma passagem à sua frente e empurra monstros para os lados. Ela não afeta chefes.",
+  "swarm.aura_wind_shot_up": "Uma rajada mais ampla que empurra mais longe.",
+  "swarm.aura_wind_shot_ten": "Flecha ciclônica: uma flecha carrega um tornado que arrasta monstros.",
+  "swarm.aura_flare_trail_name": "Rastro de sinalizadores",
+  "swarm.aura_flare_trail_desc": "Um sinalizador desliza pelo chão na direção em que você olha e deixa uma fileira de sinalizadores acesos. Quem atravessa a fileira é queimado e cegado.",
+  "swarm.aura_flare_trail_up": "Uma fileira mais longa e duradoura, que aparece com mais frequência.",
+  "swarm.aura_flare_trail_ten": "Fogo de sinal: uma coluna de fogo na sua posição faz cair uma barragem sobre a tela."
+}

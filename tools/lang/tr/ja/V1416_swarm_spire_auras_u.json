@@ -1,0 +1,10 @@
+{
+  "swarm.aura_shadow_knives_name": "影の短剣",
+  "swarm.aura_shadow_knives_desc": "背後から追ってくる敵に向けて短剣を投げる。",
+  "swarm.aura_shadow_knives_up": "短剣が増え、投げる頻度も増す。",
+  "swarm.aura_shadow_knives_ten": "千の切り傷：短剣が全方向へ飛ぶ。",
+  "swarm.aura_poison_cloud_name": "毒雲",
+  "swarm.aura_poison_cloud_desc": "近くで最も密集した群れに毒の小瓶を投げる。瓶が割れると毒雲が広がり、敵を毒にして動きを遅くする。毒になったモンスターは倒れると新たな毒雲を放つ。",
+  "swarm.aura_poison_cloud_up": "毒雲が大きく長く残り、小瓶も増える。",
+  "swarm.aura_poison_cloud_ten": "疫病の霧：疫病がはるか遠くまで広がる。"
+}

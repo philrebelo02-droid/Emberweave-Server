@@ -1,0 +1,10 @@
+{
+  "swarm.aura_venom_trail_name": "Giftspur",
+  "swarm.aura_venom_trail_desc": "Eine Giftschlange jagt die nächsten Monster. Ihr Biss verursacht Schaden. Ihr Körper fügt Monstern beim Überqueren Schaden zu und verlangsamt sie.",
+  "swarm.aura_venom_trail_up": "Eine längere, schnellere Schlange.",
+  "swarm.aura_venom_trail_ten": "Schlangenpfad: Eine Riesenkobra.",
+  "swarm.aura_shadow_clone_name": "Schattenklon",
+  "swarm.aura_shadow_clone_desc": "Du lässt einen Schatten an deiner Position zurück. Er wiederholt Standardangriffe, deine ultimative Fähigkeit sowie Nova- und Projektilfähigkeiten mit 20 % Schaden. Wenn du springst, springt er zum Gegner, der ihm am nächsten ist.",
+  "swarm.aura_shadow_clone_up": "Mehr Klone gleichzeitig, die länger bestehen bleiben, bis zu 3.",
+  "swarm.aura_shadow_clone_ten": "Schattenlegion: Bis zu 6 Klone, die nach Ablauf ihrer Dauer explodieren."
+}

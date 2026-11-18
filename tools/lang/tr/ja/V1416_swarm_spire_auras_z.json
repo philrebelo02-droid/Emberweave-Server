@@ -1,0 +1,10 @@
+{
+  "swarm.aura_arrow_volley_name": "矢の斉射",
+  "swarm.aura_arrow_volley_desc": "向いている方向へ矢を扇状に放つ。",
+  "swarm.aura_arrow_volley_up": "矢の本数が増え、扇が広がる。",
+  "swarm.aura_arrow_volley_ten": "天空斉射：空へ放った矢のうち30本が前方の広い扇状範囲に降り注ぐ。",
+  "swarm.aura_hunter_s_turret_name": "狩人の砲塔",
+  "swarm.aura_hunter_s_turret_desc": "クロスボウ砲塔を設置する。離れた後も砲塔は最も近いモンスターを撃つ。",
+  "swarm.aura_hunter_s_turret_up": "砲塔が増え、射撃頻度が上がる。",
+  "swarm.aura_hunter_s_turret_ten": "攻城バリスタ：バリスタ1基が自分の近くに留まる。その矢はモンスターを貫通する。"
+}

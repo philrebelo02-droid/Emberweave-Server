@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Doodsmerk",
+  "swarm.aura_death_mark_desc": "Je merkt het monster in de buurt met de meeste huidige gezondheid. Het krijgt dubbele schade en wordt onder 20% gezondheid geëxecuteerd, behalve als het een baas is.",
+  "swarm.aura_death_mark_up": "Vaker een merk en een executiedrempel die stijgt tot 35%.",
+  "swarm.aura_death_mark_ten": "Lijst van de maaier: een zeis valt tegelijk op maximaal vijf gemerkte doelen.",
+  "swarm.aura_shuriken_storm_name": "Shurikenstorm",
+  "swarm.aura_shuriken_storm_desc": "Shurikens vliegen naar voren, blijven in de grond steken en draaien daar als zaagvallen.",
+  "swarm.aura_shuriken_storm_up": "Meer vallen die langer blijven liggen.",
+  "swarm.aura_shuriken_storm_ten": "Sterrenstorm: een veld met 8 draaiende sterren."
+}

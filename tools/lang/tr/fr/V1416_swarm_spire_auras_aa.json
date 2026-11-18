@@ -1,0 +1,10 @@
+{
+  "swarm.aura_piercing_bolt_name": "Carreau perforant",
+  "swarm.aura_piercing_bolt_desc": "Un carreau se charge, puis traverse une longue ligne de monstres.",
+  "swarm.aura_piercing_bolt_up": "Charge plus rapide et plus grande portée.",
+  "swarm.aura_piercing_bolt_ten": "Tir sur rail : un rayon traverse tout l’écran.",
+  "swarm.aura_falcon_companion_name": "Faucon compagnon",
+  "swarm.aura_falcon_companion_desc": "Un faucon tourne au-dessus de toi, plonge sur les monstres et reprend de l’altitude.",
+  "swarm.aura_falcon_companion_up": "Des piqués plus fréquents et plus puissants.",
+  "swarm.aura_falcon_companion_ten": "Faucon de la tempête : chaque piqué projette des éclairs sur un maximum de 3 autres monstres."
+}

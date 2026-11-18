@@ -1,0 +1,12 @@
+{
+  "keys": {
+    "swarm.skill_kind_heal": "Healing",
+    "swarm.skill_kind_ward": "Protection",
+    "swarm.skill_kind_dash": "Dash",
+    "swarm.skill_kind_bolt": "Projectile",
+    "swarm.skill_kind_nova": "Area attack",
+    "swarm.skill_kind_chain": "Chain attack",
+    "swarm.skill_kind_summon": "Summon"
+  },
+  "edits": []
+}

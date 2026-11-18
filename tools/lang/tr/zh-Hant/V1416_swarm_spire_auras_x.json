@@ -1,0 +1,10 @@
+{
+  "swarm.aura_venom_trail_name": "毒蛇之徑",
+  "swarm.aura_venom_trail_desc": "毒蛇蜿蜒追趕最近的怪物。撕咬造成傷害，蛇身也會對經過的怪物造成傷害並使其減速。",
+  "swarm.aura_venom_trail_up": "毒蛇更長、速度更快。",
+  "swarm.aura_venom_trail_ten": "巨蛇之路：一條巨型眼鏡蛇。",
+  "swarm.aura_shadow_clone_name": "暗影分身",
+  "swarm.aura_shadow_clone_desc": "在目前位置留下一個影子。它以 20% 的傷害複製你的普攻、終極技、新星技能與投射物技能。你躍起時，影子會躍向離它最近的敵人。",
+  "swarm.aura_shadow_clone_up": "分身同時存在的數量增加，持續更久，最多 3 個。",
+  "swarm.aura_shadow_clone_ten": "暗影軍團：最多 6 個分身，每個分身在持續時間結束時爆炸。"
+}

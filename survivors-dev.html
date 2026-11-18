@@ -18,10 +18,12 @@
   #lvl,#kills { font-variant-numeric:tabular-nums; color:var(--dim); }
   #ult { position:fixed; right:22px; bottom:calc(22px + env(safe-area-inset-bottom,0)); width:84px; height:84px; border-radius:50%;
          border:3px solid var(--gold); background:radial-gradient(#3a2414,#1a100a); color:var(--gold); font-weight:800; font-size:16px; }
+  #ult { overflow-wrap:anywhere; }
   #ult.ready { box-shadow:0 0 22px var(--ember); background:radial-gradient(#ff8a3a,#7a2a10); color:#fff; }
   /* the hero's own skills: buttons in an arc round the ULT, bottom right (Phil 24 Oct) */
   .sk { position:fixed; width:62px; height:62px; border-radius:50%; border:2px solid var(--gold); color:var(--ink); font-size:11px; font-weight:700; line-height:1.05;
         background:conic-gradient(#000b calc(var(--cd,0) * 1turn), #3a2414 0); padding:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .sk .skillName { max-width:100%; overflow-wrap:anywhere; }
   .sk.cool { border-color:#ffffff33; color:var(--dim); } .sk small { font-size:13px; font-variant-numeric:tabular-nums; color:#fff; }
   .sk .k { position:absolute; top:-6px; right:-4px; font-size:10px; background:var(--panel); border-radius:6px; padding:1px 4px; color:var(--dim); }
   #stick { position:fixed; left:30px; bottom:calc(30px + env(safe-area-inset-bottom,0)); width:120px; height:120px; border-radius:50%; background:#ffffff10; border:2px solid #ffffff22; }
@@ -179,7 +181,10 @@
   document.querySelectorAll('[data-spire-label]').forEach(el => {
     el.textContent = t(el.dataset.spireLabel, el.textContent);
   });
-  document.getElementById('ult').setAttribute('aria-label', t('codex.ultimate', 'Ultimate'));
+  const ultimateButton = document.getElementById('ult');
+  const ultimateLabel = t('codex.ultimate', 'Ultimate');
+  ultimateButton.textContent = locale === 'en' ? 'ULT' : ultimateLabel;
+  ultimateButton.setAttribute('aria-label', ultimateLabel);
   const C = window.SurvivorsCore;
   const byKey = {}; AURAS.forEach(a => byKey[a.key] = a);
   const st = document.getElementById('stage'); for (let i = 1; i <= C.STAGES; i++) st.add(new Option(t('stage.title', 'Stage {code}', {code: i}), i));
@@ -196,8 +201,8 @@
   /* hero kits: the hero's OWN skills as buttons. Linnet = her real kit (Mending Stitch heals, Reinforced Seam = can't drop below
      1 HP; Golden Thread is her passive). Numbers are first-pass dev values. anim = the cast clip on her 3D model. */
   const KITS = {
-    linnet: [{ key: 'mending_stitch', name: 'Mending Stitch', kind: 'heal', cd: 12, power: 0.3, anim: 'mage_soell_cast' },
-             { key: 'reinforced_seam', name: 'Reinforced Seam', kind: 'ward', cd: 20, dur: 4, anim: 'Charged_Spell_Cast' }],
+    linnet: [{ key: 'mending_stitch', name: 'Mending Stitch', displayName: t('swarm.linnet_mending_stitch', 'Mending Stitch'), kind: 'heal', cd: 12, power: 0.3, anim: 'mage_soell_cast' },
+             { key: 'reinforced_seam', name: 'Reinforced Seam', displayName: t('swarm.linnet_reinforced_seam', 'Reinforced Seam'), kind: 'ward', cd: 20, dur: 4, anim: 'Charged_Spell_Cast' }],
     Tank: [{ key: 't_ward', name: 'Bulwark', kind: 'ward', cd: 18, dur: 3 }, { key: 't_nova', name: 'Slam', kind: 'nova', cd: 7, power: 2.5 }],
     Bruiser: [{ key: 'b_dash', name: 'Charge', kind: 'dash', cd: 6, power: 4 }, { key: 'b_nova', name: 'Cleave', kind: 'nova', cd: 6, power: 3 }],
     Mage: [{ key: 'm_bolt', name: 'Bolt', kind: 'bolt', cd: 4, power: 4 }, { key: 'm_nova', name: 'Flare', kind: 'nova', cd: 9, power: 4 }],
@@ -211,11 +216,19 @@
   let SKPOS = short() ? SKPOS_SHORT : SKPOS_TALL;
   addEventListener('resize', () => { const n = short() ? SKPOS_SHORT : SKPOS_TALL; if (n !== SKPOS) { SKPOS = n; if (KIT.length) buildSkillButtons(); } });
   let KIT = [];
+  function skillName(k) {
+    const current = KIT.find(skill => skill.key === k.key) || KIT.find(skill => skill.name === k.name);
+    return current?.displayName || k.name;
+  }
+  const skillKinds = {heal: 'Healing', ward: 'Protection', dash: 'Dash', bolt: 'Projectile',
+    nova: 'Area attack', chain: 'Chain attack', summon: 'Summon'};
   function buildSkillButtons() {
     const box = document.getElementById('skills'); box.innerHTML = '';
     KIT.forEach((k, i) => { const b = document.createElement('button'); b.className = 'sk'; b.id = 'sk' + i;
       b.style.right = SKPOS[i][0] + 'px'; b.style.bottom = 'calc(' + SKPOS[i][1] + 'px + env(safe-area-inset-bottom,0px))';
-      b.innerHTML = '<span class="k">' + (i + 1) + '</span><span>' + k.name.replace(' ', '<br>') + '</span><small></small>';
+      b.innerHTML = '<span class="k"></span><span class="skillName"></span><small></small>';
+      b.querySelector('.k').textContent = i + 1;
+      b.querySelector('.skillName').textContent = skillName(k);
       b.addEventListener('pointerdown', e => { e.preventDefault(); if (e.button === 0) skillReq = i; }); box.appendChild(b); });
   }
   function resize() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
@@ -325,7 +338,7 @@
   document.getElementById('pzQuit').onclick = () => { document.getElementById('pzBtns').hidden = true; document.getElementById('pzSure').hidden = false; };
   document.getElementById('pzQuitNo').onclick = () => { document.getElementById('pzBtns').hidden = false; document.getElementById('pzSure').hidden = true; };
   document.getElementById('pzQuitYes').onclick = () => { leaving = true; const _b = document.getElementById('pzQuitYes'); SAVE = null; try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-    idbDo('readwrite', st => st.delete('run')).then(() => toGame('survivors-close'), () => { leaving = false; _b.textContent = 'Could not clear the run - tap to retry'; }); };   /* v1355 (audit): a failed delete closed the frame and the run came back */   // the delete lands before the frame goes
+    idbDo('readwrite', st => st.delete('run')).then(() => toGame('survivors-close'), () => { leaving = false; _b.textContent = t('swarm.clear_run_retry', 'Could not clear the run. Tap to retry.'); }); };   /* v1355 (audit): a failed delete closed the frame and the run came back */   // the delete lands before the frame goes
   /* the build on the pause (Phil 24 Oct: "show the Current Skills/Spells/Passives you have, their level, and how many empty slots you have left"):
      skills, then spells (their art, Lv n/10), then passives (Lv n/5), each row filled out with its empty slots */
   function auraText(a, field) {
@@ -348,7 +361,7 @@
         c.appendChild(el('b', '', it.name)); if (it.lv != null) c.appendChild(el('i', '', t('stage.lv', 'Lv {n}', {n: it.lv}) + (cap ? ' / ' + cap : ''))); row.appendChild(c); });
       for (let i = items.length; i < (slots || 0); i++) { const c = el('div', 'pzI empty'); c.appendChild(el('b', '', t('roster.empty', 'Empty'))); row.appendChild(c); }
       box.appendChild(row); };
-    section(t('hero.tab_skills', 'Skills'), h.kit.map(k => ({ name: k.name, tip: k.kind })), 0, 0);
+    section(t('hero.tab_skills', 'Skills'), h.kit.map(k => ({ name: skillName(k), tip: t('swarm.skill_kind_' + k.kind, skillKinds[k.kind] || '') })), 0, 0);
     section(t('swarm.spells', 'Spells'), Object.keys(h.auras).map(k => { const a = byKey[k] || { name: k, cls: h.cls }; return { name: auraText(a, 'name'), lv: h.auras[k], tip: auraText(a, 'desc'), img: '/assets/survivors/auras/' + String(a.cls).toLowerCase() + '/' + k + '_unit.webp' }; }), C.SLOTS.aura, C.AURA_MAX);
     section(t('swarm.passives', 'Passives'), Object.keys(h.passives).map(k => { const q = passiveText(k); return { name: q.name, lv: h.passives[k], tip: q.effect }; }), C.SLOTS.passive, C.PASSIVE_MAX); }
   addEventListener('keydown', e => { if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && S && !S.ended && document.body.classList.contains('ingame')) setPause(!paused); });
@@ -360,6 +373,7 @@
   function lobby() {
     const L = document.getElementById('lobby'); L.hidden = false; let heroes = [], pick = 'linnet', mode = 'story';
     const stS = document.getElementById('stage'), lbS = document.getElementById('lbStage'); lbS.innerHTML = stS.innerHTML;
+    lbS.setAttribute('aria-label', t('skyfall.stage', 'Stage'));
     const show = () => { const h = heroes.find(x => x.key === pick) || heroes[0]; if (!h) return;
       document.getElementById('lbArt').src = h.img; document.getElementById('lbName').textContent = h.name; document.getElementById('lbSub').textContent = h.sub;
       document.getElementById('lbMeta').textContent = [t('roster.class_' + String(h.cls||'').toLowerCase(), h.cls||''), h.lv ? t('stage.lv', 'Lv {n}', {n: h.lv}) : '', h.stars ? h.stars + '★' : '', h.power ? t('castle.power', 'Power') + ' ' + h.power.toLocaleString(locale) : ''].filter(Boolean).join('  ·  ');
@@ -371,7 +385,7 @@
     L.classList.add('wait'); let got = false;
     const ready = list => { got = true; saveLoaded.then(() => { build(list); offerContinue(); L.classList.remove('wait'); }); };
     addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.type === 'survivors-roster' && Array.isArray(e.data.heroes)) ready(e.data.heroes); });
-    setTimeout(() => { if (!got) ready([{ key: 'linnet', name: 'Linnet', sub: 'The Threadseer', cls: 'Support', img: '/assets/img/hero-cards/card-linnet.webp', playable: true }]); }, 1500);   // no game around it (or no answer)
+    setTimeout(() => { if (!got) ready([{ key: 'linnet', name: 'Linnet', sub: t('swarm.linnet_subtitle', 'The Threadseer'), cls: 'Support', img: '/assets/img/hero-cards/card-linnet.webp', playable: true }]); }, 1500);   // no game around it (or no answer)
     try { parent.postMessage('survivors-ready', location.origin); } catch (e) {}
     document.querySelectorAll('#lbMode button').forEach(b => b.onclick = () => { mode = b.dataset.m; document.querySelectorAll('#lbMode button').forEach(x => x.classList.toggle('on', x === b)); lbS.disabled = mode === 'survive'; });
     const post = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
@@ -397,6 +411,9 @@
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls];
     if (window._heroKit) { const own = HERO_PICK === 'linnet';   // other heroes' models share one Cast clip for both skills
       KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: own ? (KITS.linnet[i] || {}).anim : 'Cast', anim2d: i === 0 ? 'green' : 'blue' }, k)); preloadSheets(window._heroKit); }
+    const ultimateName = window._heroKit?.ult?.name || ultimateLabel;
+    ultimateButton.setAttribute('aria-label', ultimateName);
+    ultimateButton.title = ultimateName;
     buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left

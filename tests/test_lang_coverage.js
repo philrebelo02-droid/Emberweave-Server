@@ -59,8 +59,13 @@ const ROOT=path.join(__dirname,'..');
     const collect=async where=>{ stops++;
       const found=await page.evaluate(()=>{ const out=new Set();
         const strip=s=>{ let o='',d=0; for(const ch of s){ if(ch==='⟦'){ d++; continue; } if(ch==='⟧'){ if(d) d--; continue; } if(!d) o+=ch; } return o; };
-        const names=window.__langNames||[];
-        const clean=s=>{ for(const n of names) if(n&&s.includes(n)) s=s.split(n).join(' '); return s; };
+        // Ranking rows contain player, guild, and seeded opponent names from the server.
+        const rankingNames=Array.from(document.querySelectorAll('#bbRows .bb-row > span:nth-child(2)'))
+          .filter(el=>el.getClientRects().length).map(el=>el.innerText.trim()).filter(Boolean);
+        const names=[...new Set([...(window.__langNames||[]),...rankingNames])].sort((a,b)=>b.length-a.length);
+        const escaped=names.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+        const fullName=escaped.length?new RegExp('(?<![\\p{L}])(?:'+escaped.join('|')+')(?![\\p{L}])','gu'):null;
+        const clean=s=>fullName?s.replace(fullName,' '):s;
         const consider=(s,tag)=>{ s=strip(String(s||'')); for(let line of s.split(/\n+/)){ line=clean(line).replace(/\s+/g,' ').trim(); if(/\p{L}{2,}/u.test(line.replace(/\b(?:HP|ATK|AP|EGP|PvP|DPS|XP|EXP|Lv|VIP|ID|OK|x\d+|v\d+)\b/g,''))) out.add((tag||'')+line.slice(0,140)); } };
         consider(document.body.innerText);
         for(const el of document.querySelectorAll('[title],[placeholder],[aria-label]')){ if(!el.getClientRects().length) continue;

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_piercing_bolt_name": "Piercing Bolt",
+    "swarm.aura_piercing_bolt_desc": "A bolt charges up, then fires through a long line of monsters.",
+    "swarm.aura_piercing_bolt_up": "Faster charge, longer reach.",
+    "swarm.aura_piercing_bolt_ten": "Railshot: a beam across the whole screen.",
+    "swarm.aura_falcon_companion_name": "Falcon Companion",
+    "swarm.aura_falcon_companion_desc": "A falcon circles above and dives on monsters, then climbs again.",
+    "swarm.aura_falcon_companion_up": "More dives, harder.",
+    "swarm.aura_falcon_companion_ten": "The Stormhawk: each dive throws lightning to up to 3 additional monsters."
+  },
+  "edits": []
+}

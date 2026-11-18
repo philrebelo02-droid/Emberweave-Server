@@ -1,0 +1,10 @@
+{
+  "swarm.aura_spark_mines_name": "火花地雷",
+  "swarm.aura_spark_mines_desc": "移动时在身后布下地雷，怪物踩上就会引爆。",
+  "swarm.aura_spark_mines_up": "地雷更多，爆炸范围更大。",
+  "swarm.aura_spark_mines_ten": "雷区：可同时布下最多 30 枚地雷。",
+  "swarm.aura_eagle_eye_name": "鹰眼",
+  "swarm.aura_eagle_eye_desc": "准星锁定远处的怪物，随后一次狙击必定暴击。",
+  "swarm.aura_eagle_eye_up": "瞄准更快，伤害更高。",
+  "swarm.aura_eagle_eye_ten": "神枪手：标记并射击可见范围内最远的怪物，最多 6 个。"
+}

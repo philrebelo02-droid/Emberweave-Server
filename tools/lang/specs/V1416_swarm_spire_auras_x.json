@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_venom_trail_name": "Venom Trail",
+    "swarm.aura_venom_trail_desc": "A venom snake slithers after the nearest monsters. Its bite hurts, and its body damages and slows monsters it crosses.",
+    "swarm.aura_venom_trail_up": "A longer, faster snake.",
+    "swarm.aura_venom_trail_ten": "Serpent Path: a giant cobra.",
+    "swarm.aura_shadow_clone_name": "Shadow Clone",
+    "swarm.aura_shadow_clone_desc": "You leave a shadow at your position. It echoes basic attacks, your ultimate, and nova and projectile skills at 20% damage. When you leap, it leaps at the enemy nearest to it.",
+    "swarm.aura_shadow_clone_up": "More clones at once, lasting longer (up to 3).",
+    "swarm.aura_shadow_clone_ten": "Shadow Legion: up to 6 clones, each bursting when its duration ends."
+  },
+  "edits": []
+}

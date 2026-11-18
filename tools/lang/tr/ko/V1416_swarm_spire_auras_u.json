@@ -1,0 +1,10 @@
+{
+  "swarm.aura_shadow_knives_name": "그림자 단검",
+  "swarm.aura_shadow_knives_desc": "자신을 쫓는 대상을 향해 뒤로 단검을 던집니다.",
+  "swarm.aura_shadow_knives_up": "더 많은 단검을 더 자주 던집니다.",
+  "swarm.aura_shadow_knives_ten": "천 번의 베기: 단검이 사방으로 날아갑니다.",
+  "swarm.aura_poison_cloud_name": "독구름",
+  "swarm.aura_poison_cloud_desc": "가장 빽빽한 근처 무리에 독병을 던집니다. 병이 터지면 독구름이 생겨 중독시키고 느리게 만듭니다. 중독된 몬스터는 죽을 때 새 독구름을 남깁니다.",
+  "swarm.aura_poison_cloud_up": "독구름이 더 크고 오래 지속되며 독병이 늘어납니다.",
+  "swarm.aura_poison_cloud_ten": "역병 안개: 역병이 훨씬 더 멀리 퍼집니다."
+}

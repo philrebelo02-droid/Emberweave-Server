@@ -1,0 +1,10 @@
+{
+  "swarm.aura_ricochet_shots_name": "도탄 사격",
+  "swarm.aura_ricochet_shots_desc": "탄환이 핀볼처럼 화면 가장자리에서 튕겨 경로상의 대상을 타격합니다.",
+  "swarm.aura_ricochet_shots_up": "탄환이 늘고 더 많이 튕깁니다.",
+  "swarm.aura_ricochet_shots_ten": "핀볼: 탄환 네 발이 플레이가 끝날 때까지 계속 튕깁니다.",
+  "swarm.aura_rain_of_arrows_name": "화살비",
+  "swarm.aura_rain_of_arrows_desc": "화살이 주변에 고리 모양으로 떨어져 가까이 오는 대상을 타격합니다.",
+  "swarm.aura_rain_of_arrows_up": "화살비가 더 촘촘해지고 고리가 넓어집니다.",
+  "swarm.aura_rain_of_arrows_ten": "화살 폭풍: 화살비가 화면 전체를 뒤덮습니다."
+}

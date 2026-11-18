@@ -1,0 +1,10 @@
+{
+  "swarm.aura_piercing_bolt_name": "Пронзающий болт",
+  "swarm.aura_piercing_bolt_desc": "Болт заряжается, а затем пронзает длинную цепочку монстров.",
+  "swarm.aura_piercing_bolt_up": "Заряжается быстрее и летит дальше.",
+  "swarm.aura_piercing_bolt_ten": "Рельсовый выстрел: луч пересекает весь экран.",
+  "swarm.aura_falcon_companion_name": "Сокол-спутник",
+  "swarm.aura_falcon_companion_desc": "Сокол кружит вверху, пикирует на монстров, затем снова набирает высоту.",
+  "swarm.aura_falcon_companion_up": "Пикирует чаще и бьёт сильнее.",
+  "swarm.aura_falcon_companion_ten": "Грозовой сокол: при каждом пикировании молнии поражают до 3 дополнительных монстров."
+}

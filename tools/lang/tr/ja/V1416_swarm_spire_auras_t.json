@@ -1,0 +1,10 @@
+{
+  "swarm.aura_guardian_spirits_name": "守護霊",
+  "swarm.aura_guardian_spirits_desc": "霊が周囲をゆっくり回って守る。出会ったモンスターを攻撃して押し戻し、ぶつかった敵の弾を消す。",
+  "swarm.aura_guardian_spirits_up": "守護霊が増え（レベル4で3体、レベル7で4体）、より強く押し戻す。",
+  "swarm.aura_guardian_spirits_ten": "祖霊の輪：8体の祖霊が完全な輪を作って守る。",
+  "swarm.aura_sunburst_name": "陽光の爆発",
+  "swarm.aura_sunburst_desc": "太陽光の輪が自分から弾け、通り道のモンスターを焼いて盲目にする。",
+  "swarm.aura_sunburst_up": "光線が増え、さらに遠くに、より頻繁に放たれる。",
+  "swarm.aura_sunburst_ten": "夜明け：頭上に太陽が浮かび、12本の光線を回転する輪として放ち、近くの敵を焼く。"
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_wind_shot_name": "바람 사격",
+  "swarm.aura_wind_shot_desc": "돌풍이 전방의 길을 열고 몬스터를 밀어냅니다. 보스에게는 효과가 없습니다.",
+  "swarm.aura_wind_shot_up": "돌풍이 더 넓고 더 멀리 밀어냅니다.",
+  "swarm.aura_wind_shot_ten": "회오리 화살: 화살에 실린 회오리가 몬스터를 끌고 갑니다.",
+  "swarm.aura_flare_trail_name": "신호탄 흔적",
+  "swarm.aura_flare_trail_desc": "신호탄이 바라보는 방향으로 지면을 미끄러지며 불타는 신호탄 줄을 남깁니다. 줄을 가로지르면 불타고 실명합니다.",
+  "swarm.aura_flare_trail_up": "줄이 더 길고 오래가며 더 자주 생깁니다.",
+  "swarm.aura_flare_trail_ten": "봉화: 현재 위치의 불기둥이 화면 전역에 포격을 불러옵니다."
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_wind_shot_name": "風の一射",
+  "swarm.aura_wind_shot_desc": "突風を放って前方の道を開き、モンスターを押しのける。ボスには効かない。",
+  "swarm.aura_wind_shot_up": "風が広がり、より遠くまで押し飛ばす。",
+  "swarm.aura_wind_shot_ten": "竜巻の矢：矢が竜巻を伴い、モンスターを引きずっていく。",
+  "swarm.aura_flare_trail_name": "火炎信号の軌跡",
+  "swarm.aura_flare_trail_desc": "信号弾が向いている方向へ地面を滑り、燃える火の列を残す。列を横切った敵は燃え、盲目になる。",
+  "swarm.aura_flare_trail_up": "列が長く、長持ちし、より頻繁にできる。",
+  "swarm.aura_flare_trail_ten": "のろし：自分の位置の火柱が画面全体に一斉攻撃を呼ぶ。"
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_shadow_knives_name": "Shadow Knives",
+    "swarm.aura_shadow_knives_desc": "Knives are thrown behind you at whatever is chasing you.",
+    "swarm.aura_shadow_knives_up": "More knives, faster.",
+    "swarm.aura_shadow_knives_ten": "Thousand Cuts: knives fly in every direction.",
+    "swarm.aura_poison_cloud_name": "Poison Cloud",
+    "swarm.aura_poison_cloud_desc": "You lob a poison flask into the thickest pack near you; it bursts into a toxic cloud that poisons and slows. Poisoned monsters that die burst into new clouds.",
+    "swarm.aura_poison_cloud_up": "Bigger, longer clouds; more flasks.",
+    "swarm.aura_poison_cloud_ten": "Plague Fog: the plague spreads much further."
+  },
+  "edits": []
+}

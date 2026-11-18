@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Tanda Kematian",
+  "swarm.aura_death_mark_desc": "Kamu menandai monster di sekitar dengan HP saat ini tertinggi. Ia menerima kerusakan ganda dan langsung tewas saat HP-nya di bawah 20%, kecuali jika ia bos.",
+  "swarm.aura_death_mark_up": "Tanda lebih sering dan ambang eksekusi meningkat hingga 35%.",
+  "swarm.aura_death_mark_ten": "Daftar Sang Penuai: sabit jatuh ke hingga lima sasaran bertanda sekaligus.",
+  "swarm.aura_shuriken_storm_name": "Badai Shuriken",
+  "swarm.aura_shuriken_storm_desc": "Shuriken dilempar ke depan, menancap di tanah, lalu berputar seperti perangkap gergaji.",
+  "swarm.aura_shuriken_storm_up": "Lebih banyak perangkap yang bertahan lebih lama.",
+  "swarm.aura_shuriken_storm_ten": "Badai Bintang: satu area berisi 8 bintang berputar."
+}

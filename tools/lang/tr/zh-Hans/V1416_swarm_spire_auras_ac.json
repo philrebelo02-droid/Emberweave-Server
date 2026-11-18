@@ -1,0 +1,10 @@
+{
+  "swarm.aura_ricochet_shots_name": "弹射射击",
+  "swarm.aura_ricochet_shots_desc": "弹丸像弹球一样在屏幕边缘反弹，击中沿途目标。",
+  "swarm.aura_ricochet_shots_up": "弹丸更多，反弹次数更多。",
+  "swarm.aura_ricochet_shots_ten": "弹球：4 发弹丸会持续反弹，直到本局结束。",
+  "swarm.aura_rain_of_arrows_name": "箭雨",
+  "swarm.aura_rain_of_arrows_desc": "箭矢在你周围成环落下，击中靠近的目标。",
+  "swarm.aura_rain_of_arrows_up": "箭雨更密，环形范围更广。",
+  "swarm.aura_rain_of_arrows_ten": "箭矢风暴：箭雨覆盖整个屏幕。"
+}

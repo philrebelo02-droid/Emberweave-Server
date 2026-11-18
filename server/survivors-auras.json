@@ -525,7 +525,7 @@
 "l10": "NIGHTWALKER",
 "desc": "A puff of smoke and you vanish: the horde runs to where you were.",
 "up": "Longer vanish, more often.",
-"ten": "Nightwalker: you walk unseen."
+"ten": "Nightwalker: you stay unseen while moving."
 },
 {
 "key": "death-mark",
@@ -535,9 +535,9 @@
 "fx": "execute",
 "unit": "the strongest nearby monster is marked to take double damage",
 "l10": "REAPER'S LIST",
-"desc": "The strongest monster near you is marked to take double damage; once it drops under 20% health it is executed.",
-"up": "Faster marks.",
-"ten": "Reaper's List: a scythe falls on five marks at once."
+"desc": "You mark the nearby monster with the most current health. It takes double damage. Unless it is a boss, it is executed below 20% health.",
+"up": "More frequent marks and an execution threshold that rises to 35%.",
+"ten": "Reaper's List: a scythe falls on up to five marked targets at once."
 },
 {
 "key": "shuriken-storm",
@@ -559,7 +559,7 @@
 "fx": "a slow",
 "unit": "venom trail",
 "l10": "SERPENT PATH",
-"desc": "A venom snake slithers after the nearest monsters; its bite hurts and its body poisons and slows what it crosses.",
+"desc": "A venom snake slithers after the nearest monsters. Its bite hurts, and its body damages and slows monsters it crosses.",
 "up": "A longer, faster snake.",
 "ten": "Serpent Path: a giant cobra."
 },
@@ -571,9 +571,9 @@
 "fx": "bleed",
 "unit": "shadow clone",
 "l10": "SHADOW LEGION",
-"desc": "A shadow of you is left where you stand. It copies every skill, ult and basic attack you use at 20% damage, and leaps onto the nearest enemy when you leap.",
+"desc": "You leave a shadow at your position. It echoes basic attacks, your ultimate, and nova and projectile skills at 20% damage. When you leap, it leaps at the enemy nearest to it.",
 "up": "More clones at once, lasting longer (up to 3).",
-"ten": "Shadow Legion: up to 6 clones, each bursting when it fades."
+"ten": "Shadow Legion: up to 6 clones, each bursting when its duration ends."
 },
 {
 "key": "swift-strikes",
@@ -583,7 +583,7 @@
 "fx": "bleed",
 "unit": "after you change direction your next hit cuts twice",
 "l10": "BLUR",
-"desc": "Every time you change direction you dash-slash through what is in the way and land with an X-cut.",
+"desc": "When the skill is ready, a sharp turn makes you dash through and slash what is in the way, ending with an X-cut.",
 "up": "Longer dashes, faster reset; a second cut from level 5.",
 "ten": "Blur: after-images stay behind and keep slashing."
 },
@@ -609,7 +609,7 @@
 "l10": "SKY VOLLEY",
 "desc": "A fan of arrows shoots forward the way you face.",
 "up": "More arrows, a wider fan.",
-"ten": "Sky Volley: you loose arrows into the sky and about 30 slam down across a wide cone ahead."
+"ten": "Sky Volley: you loose arrows into the sky and 30 slam down across a wide cone ahead."
 },
 {
 "key": "hunter-s-turret",
@@ -621,7 +621,7 @@
 "l10": "SIEGE BALLISTA",
 "desc": "A crossbow turret is planted and shoots the nearest monster, even after you walk away.",
 "up": "More turrets, faster shots.",
-"ten": "Siege Ballista: one ballista that keeps up with you; its bolts pierce everything."
+"ten": "Siege Ballista: one ballista stays near you. Its bolts pierce monsters."
 },
 {
 "key": "piercing-bolt",
@@ -645,7 +645,7 @@
 "l10": "THE STORMHAWK",
 "desc": "A falcon circles above and dives on monsters, then climbs again.",
 "up": "More dives, harder.",
-"ten": "The Stormhawk: each dive throws lightning to 3 more monsters."
+"ten": "The Stormhawk: each dive throws lightning to up to 3 additional monsters."
 },
 {
 "key": "spark-mines",
@@ -669,7 +669,7 @@
 "l10": "DEADEYE",
 "desc": "A crosshair settles on a far monster, then a sniper shot hits it for a guaranteed critical.",
 "up": "Faster aim, more damage.",
-"ten": "Deadeye: every far monster is marked and shot."
+"ten": "Deadeye: you mark and shoot up to 6 of the farthest visible monsters."
 },
 {
 "key": "ricochet-shots",
@@ -681,7 +681,7 @@
 "l10": "PINBALL",
 "desc": "Shots bounce off the edges of the screen like pinballs, hitting what they cross.",
 "up": "More bounces, more shots.",
-"ten": "Pinball: shots that never stop."
+"ten": "Pinball: four shots keep bouncing for the rest of the run."
 },
 {
 "key": "rain-of-arrows",
@@ -703,7 +703,7 @@
 "fx": "knockback",
 "unit": "gust shot",
 "l10": "CYCLONE ARROW",
-"desc": "A gust shot blows a corridor clear ahead of you, pushing monsters aside.",
+"desc": "A gust shot blows a corridor clear ahead of you, pushing monsters aside. Bosses are unaffected.",
 "up": "A wider gust, a further push.",
 "ten": "Cyclone Arrow: an arrow carrying a tornado that drags monsters along."
 },

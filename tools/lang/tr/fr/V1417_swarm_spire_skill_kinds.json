@@ -1,0 +1,9 @@
+{
+  "swarm.skill_kind_heal": "Soins",
+  "swarm.skill_kind_ward": "Protection",
+  "swarm.skill_kind_dash": "Ruée",
+  "swarm.skill_kind_bolt": "Projectile",
+  "swarm.skill_kind_nova": "Attaque de zone",
+  "swarm.skill_kind_chain": "Attaque en chaîne",
+  "swarm.skill_kind_summon": "Invocation"
+}

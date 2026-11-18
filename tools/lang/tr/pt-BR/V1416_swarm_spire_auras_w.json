@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Marca da morte",
+  "swarm.aura_death_mark_desc": "Você marca o monstro próximo com mais vida no momento. Ele recebe o dobro de dano e, se não for chefe, é executado ao ficar abaixo de 20% de vida.",
+  "swarm.aura_death_mark_up": "Marcas mais frequentes e um limiar de execução que sobe até 35%.",
+  "swarm.aura_death_mark_ten": "Lista do ceifador: uma foice cai sobre até cinco alvos marcados de uma vez.",
+  "swarm.aura_shuriken_storm_name": "Tempestade de shurikens",
+  "swarm.aura_shuriken_storm_desc": "Shurikens são lançados para a frente, fincam no chão e giram como armadilhas de serra.",
+  "swarm.aura_shuriken_storm_up": "Mais armadilhas, que duram mais.",
+  "swarm.aura_shuriken_storm_ten": "Tempestade de estrelas: um campo com 8 estrelas giratórias."
+}

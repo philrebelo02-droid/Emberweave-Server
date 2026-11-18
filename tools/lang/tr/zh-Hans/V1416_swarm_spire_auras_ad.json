@@ -1,0 +1,10 @@
+{
+  "swarm.aura_wind_shot_name": "风射",
+  "swarm.aura_wind_shot_desc": "一阵强风扫开前方的通道并推开怪物。对首领无效。",
+  "swarm.aura_wind_shot_up": "阵风更宽，推得更远。",
+  "swarm.aura_wind_shot_ten": "旋风箭：箭矢携带龙卷风，拖着怪物前进。",
+  "swarm.aura_flare_trail_name": "信号焰轨迹",
+  "swarm.aura_flare_trail_desc": "一枚信号焰沿地面朝你面对的方向滑行，留下一排燃烧的信号焰。穿过火线的目标会被灼烧并致盲。",
+  "swarm.aura_flare_trail_up": "火线更长、持续更久，触发更频繁。",
+  "swarm.aura_flare_trail_ten": "烽火：你所在位置升起火柱，召来覆盖屏幕的轰击。"
+}

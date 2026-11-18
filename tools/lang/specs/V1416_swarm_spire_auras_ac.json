@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_ricochet_shots_name": "Ricochet Shots",
+    "swarm.aura_ricochet_shots_desc": "Shots bounce off the edges of the screen like pinballs, hitting what they cross.",
+    "swarm.aura_ricochet_shots_up": "More bounces, more shots.",
+    "swarm.aura_ricochet_shots_ten": "Pinball: four shots keep bouncing for the rest of the run.",
+    "swarm.aura_rain_of_arrows_name": "Rain of Arrows",
+    "swarm.aura_rain_of_arrows_desc": "Arrows rain down in a ring around you, hitting what comes close.",
+    "swarm.aura_rain_of_arrows_up": "Thicker rain, a wider ring.",
+    "swarm.aura_rain_of_arrows_ten": "Arrowstorm: rain over the whole screen."
+  },
+  "edits": []
+}

@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Todesmal",
+  "swarm.aura_death_mark_desc": "Du markierst das nahe Monster mit der höchsten aktuellen Gesundheit. Es erleidet doppelten Schaden. Unter 20 % Gesundheit wird es hingerichtet, sofern es kein Boss ist.",
+  "swarm.aura_death_mark_up": "Häufigere Male und eine Hinrichtungsschwelle, die bis auf 35 % steigt.",
+  "swarm.aura_death_mark_ten": "Liste des Schnitters: Eine Sense fällt gleichzeitig auf bis zu fünf markierte Ziele herab.",
+  "swarm.aura_shuriken_storm_name": "Shurikensturm",
+  "swarm.aura_shuriken_storm_desc": "Shuriken fliegen nach vorn, bleiben im Boden stecken und drehen sich als Sägefallen.",
+  "swarm.aura_shuriken_storm_up": "Mehr Fallen, die länger bestehen bleiben.",
+  "swarm.aura_shuriken_storm_ten": "Sternensturm: Ein Feld aus 8 rotierenden Sternen."
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_death_mark_name": "Death Mark",
+    "swarm.aura_death_mark_desc": "You mark the nearby monster with the most current health. It takes double damage. Unless it is a boss, it is executed below 20% health.",
+    "swarm.aura_death_mark_up": "More frequent marks and an execution threshold that rises to 35%.",
+    "swarm.aura_death_mark_ten": "Reaper's List: a scythe falls on up to five marked targets at once.",
+    "swarm.aura_shuriken_storm_name": "Shuriken Storm",
+    "swarm.aura_shuriken_storm_desc": "Shurikens are thrown ahead and stick in the ground, spinning there as saw traps.",
+    "swarm.aura_shuriken_storm_up": "More traps that last longer.",
+    "swarm.aura_shuriken_storm_ten": "Star Storm: a field of 8 spinning stars."
+  },
+  "edits": []
+}

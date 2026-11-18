@@ -1,0 +1,10 @@
+{
+  "swarm.aura_swift_strikes_name": "신속한 일격",
+  "swarm.aura_swift_strikes_desc": "스킬이 준비됐을 때 급히 방향을 틀면 경로의 대상을 베면서 돌진하고, 끝에서 X자로 베어 마무리합니다.",
+  "swarm.aura_swift_strikes_up": "더 멀리 돌진하고 더 빨리 다시 쓸 수 있습니다. 레벨 5부터 한 번 더 벱니다.",
+  "swarm.aura_swift_strikes_ten": "잔상: 뒤에 남은 잔상이 계속 벱니다.",
+  "swarm.aura_night_sickles_name": "밤의 낫",
+  "swarm.aura_night_sickles_desc": "낫이 몬스터에게 박혀 계속 벱니다. 몬스터가 죽거나 3초가 지나면 다음으로 가까운 대상에게 튑니다.",
+  "swarm.aura_night_sickles_up": "낫이 늘고 더 깊게 벱니다.",
+  "swarm.aura_night_sickles_ten": "수확의 달: 낫이 튈 때마다 초승달 모양으로 경로의 모든 대상을 벱니다."
+}

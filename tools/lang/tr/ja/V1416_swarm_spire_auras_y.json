@@ -1,0 +1,10 @@
+{
+  "swarm.aura_swift_strikes_name": "疾風斬り",
+  "swarm.aura_swift_strikes_desc": "スキルが使用可能なときに急に方向を変えると、進路の敵を斬り抜け、終点でX字に斬る。",
+  "swarm.aura_swift_strikes_up": "突進が長くなり、再使用が速くなる。レベル5から斬撃が一回増える。",
+  "swarm.aura_swift_strikes_ten": "残像：残像がその場に残り、斬り続ける。",
+  "swarm.aura_night_sickles_name": "夜の鎌",
+  "swarm.aura_night_sickles_desc": "鎌がモンスターに突き刺さり、斬り続ける。敵が倒れるか3秒経つと、次に近い敵へ飛び移る。",
+  "swarm.aura_night_sickles_up": "鎌が増え、斬撃が深くなる。",
+  "swarm.aura_night_sickles_ten": "収穫月：飛び移るたびに三日月形の斬撃で進路上の敵すべてを斬る。"
+}

@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_wind_shot_name": "Wind Shot",
+    "swarm.aura_wind_shot_desc": "A gust shot blows a corridor clear ahead of you, pushing monsters aside. Bosses are unaffected.",
+    "swarm.aura_wind_shot_up": "A wider gust, a further push.",
+    "swarm.aura_wind_shot_ten": "Cyclone Arrow: an arrow carrying a tornado that drags monsters along.",
+    "swarm.aura_flare_trail_name": "Flare Trail",
+    "swarm.aura_flare_trail_desc": "A flare skids along the ground the way you face, leaving a line of burning flares; anything that crosses it burns and is blinded.",
+    "swarm.aura_flare_trail_up": "A longer line that lasts longer, more often.",
+    "swarm.aura_flare_trail_ten": "Signal Fire: a column of fire on you calls down a barrage across the screen."
+  },
+  "edits": []
+}

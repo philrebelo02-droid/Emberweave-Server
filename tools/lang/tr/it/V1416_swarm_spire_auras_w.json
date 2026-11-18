@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Marchio della morte",
+  "swarm.aura_death_mark_desc": "Marchi il mostro vicino con più salute attuale. Subisce danni doppi e, se non è un boss, viene giustiziato sotto il 20% di salute.",
+  "swarm.aura_death_mark_up": "Marchi più frequenti e soglia di esecuzione che sale fino al 35%.",
+  "swarm.aura_death_mark_ten": "Lista del mietitore: una falce cala su un massimo di cinque bersagli marchiati alla volta.",
+  "swarm.aura_shuriken_storm_name": "Tempesta di shuriken",
+  "swarm.aura_shuriken_storm_desc": "Gli shuriken vengono lanciati in avanti, si conficcano nel terreno e ruotano come trappole a sega.",
+  "swarm.aura_shuriken_storm_up": "Più trappole che durano più a lungo.",
+  "swarm.aura_shuriken_storm_ten": "Tempesta di stelle: un campo di 8 stelle rotanti."
+}

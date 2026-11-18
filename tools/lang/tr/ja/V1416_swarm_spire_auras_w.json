@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "死の印",
+  "swarm.aura_death_mark_desc": "近くで現在HPが最も高いモンスターに印を付ける。対象の被ダメージが2倍になり、ボス以外はHPが20%未満になると処刑される。",
+  "swarm.aura_death_mark_up": "印を付ける頻度が上がり、処刑のしきい値が最大35%まで上がる。",
+  "swarm.aura_death_mark_ten": "死神の名簿：印の付いた最大5体に大鎌が同時に振り下ろされる。",
+  "swarm.aura_shuriken_storm_name": "手裏剣の嵐",
+  "swarm.aura_shuriken_storm_desc": "前方に投げた手裏剣が地面に刺さり、回転するのこぎりの罠になる。",
+  "swarm.aura_shuriken_storm_up": "罠が増え、持続時間も延びる。",
+  "swarm.aura_shuriken_storm_ten": "星の嵐：8枚の星形手裏剣が回転する地帯を作る。"
+}

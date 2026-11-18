@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Ölüm İşareti",
+  "swarm.aura_death_mark_desc": "Yakında o anda en çok canı olan canavarı işaretlersin. İki kat hasar alır ve boss değilse canı %20’nin altına düşünce infaz edilir.",
+  "swarm.aura_death_mark_up": "Daha sık işaret ve %35’e kadar çıkan infaz eşiği.",
+  "swarm.aura_death_mark_ten": "Azrail’in Listesi: Bir tırpan aynı anda en fazla beş işaretli hedefe iner.",
+  "swarm.aura_shuriken_storm_name": "Şuriken Fırtınası",
+  "swarm.aura_shuriken_storm_desc": "Şurikenler ileri fırlatılır, yere saplanır ve testere tuzakları gibi döner.",
+  "swarm.aura_shuriken_storm_up": "Daha çok ve daha uzun süre kalan tuzak.",
+  "swarm.aura_shuriken_storm_ten": "Yıldız Fırtınası: 8 dönen yıldızla dolu bir alan."
+}

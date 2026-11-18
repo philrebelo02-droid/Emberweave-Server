@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_guardian_spirits_name": "Guardian Spirits",
+    "swarm.aura_guardian_spirits_desc": "Spirits stand guard around you, circling slowly. They strike and shove back the monsters they meet, and destroy enemy bolts that fly into them.",
+    "swarm.aura_guardian_spirits_up": "More spirits (3 at level 4, 4 at level 7), harder shoves.",
+    "swarm.aura_guardian_spirits_ten": "Ancestors' Ring: a full ring of 8 ancestor spirits guards you.",
+    "swarm.aura_sunburst_name": "Sunburst",
+    "swarm.aura_sunburst_desc": "A ring of sun rays bursts out from you, burning and blinding each monster they pass.",
+    "swarm.aura_sunburst_up": "More rays reaching further, more often.",
+    "swarm.aura_sunburst_ten": "Dawnbreak: a sun hangs over you, firing a turning wheel of 12 rays and scorching what is near."
+  },
+  "edits": []
+}

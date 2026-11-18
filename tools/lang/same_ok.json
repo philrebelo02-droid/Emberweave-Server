@@ -181,7 +181,9 @@
   "bb.mode_journal",
   "bb.mode_skyfall",
   "aff.bruiser_t",
-  "aff.chart_classes"
+  "aff.chart_classes",
+  "swarm.skill_kind_bolt",
+  "swarm.skill_kind_ward"
  ],
  "de": [
   "arena.league_bronze",

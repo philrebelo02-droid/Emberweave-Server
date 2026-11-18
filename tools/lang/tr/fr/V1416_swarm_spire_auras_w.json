@@ -1,0 +1,10 @@
+{
+  "swarm.aura_death_mark_name": "Marque de mort",
+  "swarm.aura_death_mark_desc": "Tu marques le monstre proche qui a le plus de santé actuelle. Il subit le double de dégâts et, sauf si c’est un boss, est exécuté sous 20 % de santé.",
+  "swarm.aura_death_mark_up": "Des marques plus fréquentes et un seuil d’exécution qui monte jusqu’à 35 %.",
+  "swarm.aura_death_mark_ten": "Liste du faucheur : une faux s’abat sur un maximum de cinq cibles marquées à la fois.",
+  "swarm.aura_shuriken_storm_name": "Tempête de shurikens",
+  "swarm.aura_shuriken_storm_desc": "Les shurikens sont lancés devant toi, se plantent dans le sol et tournent comme des scies piégées.",
+  "swarm.aura_shuriken_storm_up": "Plus de pièges, qui durent plus longtemps.",
+  "swarm.aura_shuriken_storm_ten": "Tempête d’étoiles : un champ de 8 étoiles tournoyantes."
+}

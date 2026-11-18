@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_arrow_volley_name": "Arrow Volley",
+    "swarm.aura_arrow_volley_desc": "A fan of arrows shoots forward the way you face.",
+    "swarm.aura_arrow_volley_up": "More arrows, a wider fan.",
+    "swarm.aura_arrow_volley_ten": "Sky Volley: you loose arrows into the sky and 30 slam down across a wide cone ahead.",
+    "swarm.aura_hunter_s_turret_name": "Hunter's Turret",
+    "swarm.aura_hunter_s_turret_desc": "A crossbow turret is planted and shoots the nearest monster, even after you walk away.",
+    "swarm.aura_hunter_s_turret_up": "More turrets, faster shots.",
+    "swarm.aura_hunter_s_turret_ten": "Siege Ballista: one ballista stays near you. Its bolts pierce monsters."
+  },
+  "edits": []
+}

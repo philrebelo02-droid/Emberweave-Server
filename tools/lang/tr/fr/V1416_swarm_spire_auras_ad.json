@@ -1,0 +1,10 @@
+{
+  "swarm.aura_wind_shot_name": "Tir du vent",
+  "swarm.aura_wind_shot_desc": "Une rafale dégage un passage devant toi et repousse les monstres. Elle n’affecte pas les boss.",
+  "swarm.aura_wind_shot_up": "Une rafale plus large qui repousse plus loin.",
+  "swarm.aura_wind_shot_ten": "Flèche du cyclone : une flèche porte une tornade qui entraîne les monstres.",
+  "swarm.aura_flare_trail_name": "Traînée de fusées",
+  "swarm.aura_flare_trail_desc": "Une fusée glisse au sol dans la direction de ton regard, laissant une ligne de fusées allumées. Tout ce qui la traverse brûle et se retrouve aveuglé.",
+  "swarm.aura_flare_trail_up": "Une ligne plus longue et durable, qui apparaît plus souvent.",
+  "swarm.aura_flare_trail_ten": "Feu de signal : une colonne de feu à ta position fait tomber un barrage sur l’écran."
+}

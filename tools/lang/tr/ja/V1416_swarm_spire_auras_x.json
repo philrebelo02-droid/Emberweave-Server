@@ -1,0 +1,10 @@
+{
+  "swarm.aura_venom_trail_name": "毒蛇の軌跡",
+  "swarm.aura_venom_trail_desc": "毒蛇が最も近いモンスターを追う。噛みつきでダメージを与え、胴体が通ったモンスターにもダメージを与えて動きを遅くする。",
+  "swarm.aura_venom_trail_up": "蛇が長く、速くなる。",
+  "swarm.aura_venom_trail_ten": "蛇の道：巨大なコブラ。",
+  "swarm.aura_shadow_clone_name": "影の分身",
+  "swarm.aura_shadow_clone_desc": "その場に影を残す。影は通常攻撃、必殺技、ノヴァ系・飛び道具系スキルを20%のダメージで再現する。自分が跳ぶと、影は自身に最も近い敵へ跳ぶ。",
+  "swarm.aura_shadow_clone_up": "同時に出せる分身が最大3体に増え、持続時間も延びる。",
+  "swarm.aura_shadow_clone_ten": "影の軍団：最大6体の分身が、持続時間の終了時に爆発する。"
+}

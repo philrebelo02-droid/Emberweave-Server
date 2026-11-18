@@ -1,0 +1,10 @@
+{
+  "swarm.aura_venom_trail_name": "독의 흔적",
+  "swarm.aura_venom_trail_desc": "독사가 가장 가까운 몬스터를 쫓습니다. 물어 피해를 주고, 몸통이 지나는 몬스터에게도 피해를 주며 느리게 만듭니다.",
+  "swarm.aura_venom_trail_up": "뱀이 더 길고 빨라집니다.",
+  "swarm.aura_venom_trail_ten": "뱀의 길: 거대한 코브라.",
+  "swarm.aura_shadow_clone_name": "그림자 분신",
+  "swarm.aura_shadow_clone_desc": "현재 위치에 그림자를 남깁니다. 그림자는 기본 공격, 궁극기, 노바와 투사체 스킬을 피해량 20%로 따라 합니다. 자신이 도약하면 그림자도 자신에게 가장 가까운 적에게 뛰어듭니다.",
+  "swarm.aura_shadow_clone_up": "동시에 더 많은 분신이 더 오래 유지되며, 최대 3개입니다.",
+  "swarm.aura_shadow_clone_ten": "그림자 군단: 최대 6개의 분신이 지속 시간이 끝날 때 폭발합니다."
+}

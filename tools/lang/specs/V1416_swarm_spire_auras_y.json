@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "swarm.aura_swift_strikes_name": "Swift Strikes",
+    "swarm.aura_swift_strikes_desc": "When the skill is ready, a sharp turn makes you dash through and slash what is in the way, ending with an X-cut.",
+    "swarm.aura_swift_strikes_up": "Longer dashes, faster reset; a second cut from level 5.",
+    "swarm.aura_swift_strikes_ten": "Blur: after-images stay behind and keep slashing.",
+    "swarm.aura_night_sickles_name": "Night Sickles",
+    "swarm.aura_night_sickles_desc": "A sickle buries itself in a monster and keeps cutting it; when that monster dies (or after 3 seconds) it springs to the next nearest one.",
+    "swarm.aura_night_sickles_up": "More sickles, deeper cuts.",
+    "swarm.aura_night_sickles_ten": "Harvest Moon: each spring cuts a crescent through everything on its path."
+  },
+  "edits": []
+}

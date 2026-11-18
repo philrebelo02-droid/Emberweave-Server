@@ -1,0 +1,10 @@
+{
+  "swarm.aura_piercing_bolt_name": "貫通ボルト",
+  "swarm.aura_piercing_bolt_desc": "矢に力を溜めて放ち、長い列に並ぶモンスターを貫く。",
+  "swarm.aura_piercing_bolt_up": "溜めが速くなり、射程が伸びる。",
+  "swarm.aura_piercing_bolt_ten": "レールショット：光線が画面全体を横切る。",
+  "swarm.aura_falcon_companion_name": "相棒のハヤブサ",
+  "swarm.aura_falcon_companion_desc": "ハヤブサが上空を旋回し、モンスターに急降下してから再び上昇する。",
+  "swarm.aura_falcon_companion_up": "急降下の頻度と威力が増す。",
+  "swarm.aura_falcon_companion_ten": "嵐のタカ：急降下するたび、他のモンスター最大3体に雷が飛ぶ。"
+}

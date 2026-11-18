@@ -1,0 +1,10 @@
+{
+  "swarm.aura_ricochet_shots_name": "跳弾",
+  "swarm.aura_ricochet_shots_desc": "弾がピンボールのように画面端で跳ね返り、通り道の敵に当たる。",
+  "swarm.aura_ricochet_shots_up": "跳ね返る回数と弾数が増える。",
+  "swarm.aura_ricochet_shots_ten": "ピンボール：4発の弾がラン終了まで跳ね返り続ける。",
+  "swarm.aura_rain_of_arrows_name": "矢の雨",
+  "swarm.aura_rain_of_arrows_desc": "自分の周りに輪を描くように矢が降り、近づく敵に当たる。",
+  "swarm.aura_rain_of_arrows_up": "矢の雨が密になり、輪が広がる。",
+  "swarm.aura_rain_of_arrows_ten": "矢嵐：画面全体に矢が降り注ぐ。"
+}
