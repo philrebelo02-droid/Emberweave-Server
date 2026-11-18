@@ -145,6 +145,22 @@ const ROOT=path.join(__dirname,'..');
         from!==ui['mail.team_sender']||subj!==teamSubjects[i]||text!=='<Retain the message verbatim>')){
         throw new Error('Team mail translation mismatch in '+locale+' '+JSON.stringify(teamMail));
       }
+      const rewardKeys=await page.evaluate(()=>{
+        const original=COMP.list;
+        const rewards=Object.fromEntries(COMP_R.map(([key],i)=>[key,12345+i]));
+        COMP.list=[{id:'loc-comp',rewards,t:Date.now(),until:Date.now()+70*3600000}];
+        renderMail();
+        return COMP_R.map(([, ,key])=>key);
+      });
+      const comp=page.locator('#mailBody [data-comp=loc-comp]');
+      const rewardLabels=await comp.locator('.comp-r').allTextContents();
+      const expectedRewards=rewardKeys.map((key,i)=>(12345+i).toLocaleString(locale)+' '+ui[key]);
+      if(JSON.stringify(rewardLabels)!==JSON.stringify(expectedRewards)||
+         (await comp.locator('[data-compclaim]').textContent()).trim()!==ui['common.claim']||
+         await comp.locator('.comp-exp').textContent()!==ui['mail.comp_exp_d'].replace('{n}','2')){
+        throw new Error('Compensation labels or amounts did not match locale '+locale+' '+JSON.stringify(rewardLabels));
+      }
+      await page.evaluate(()=>{ COMP.list=COMP.list.filter(item=>item.id!=='loc-comp'); renderMail(); });
       const mailText=(key,vars={})=>ui[key].replace(/\{(\w+)\}/g,(_,name)=>String(vars[name]??''));
       const tidy=text=>text.replace(/\s+/g,' ').trim();
       const mailChecks=[
