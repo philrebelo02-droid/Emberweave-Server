@@ -126,6 +126,25 @@ const ROOT=path.join(__dirname,'..');
       }
       await page.evaluate(()=>closePopout());
       await seedMail();
+      const teamMail=await page.evaluate(()=>{
+        const original=G.mail.inbox.slice(), seen=G.amSeen?.slice();
+        try{
+          const from='Emberweave Team', subj='News from the team', text='<Retain the message verbatim>';
+          adminMailAdopt([
+            {id:'AM-loc-legacy',from,subj,text},
+            {id:'AM-loc-default',from,subj:'A message from the team',text,teamSubject:'message'},
+            {id:'AM-loc-custom',from,subj,text,teamSubject:false},
+          ]);
+          mailTab='inbox'; renderMail();
+          return [...document.querySelectorAll('#mailBody .mailrow')].slice(0,3).map(row=>
+            ['.mfrom','.msub','.mbody'].map(selector=>row.querySelector(selector).textContent));
+        }finally{ G.mail.inbox=original; G.amSeen=seen; renderMail(); }
+      });
+      const teamSubjects=['News from the team',ui['mail.team_message'],ui['mail.team_news']];
+      if(teamMail.length!==3||teamMail.some(([from,subj,text],i)=>
+        from!==ui['mail.team_sender']||subj!==teamSubjects[i]||text!=='<Retain the message verbatim>')){
+        throw new Error('Team mail translation mismatch in '+locale+' '+JSON.stringify(teamMail));
+      }
       const mailText=(key,vars={})=>ui[key].replace(/\{(\w+)\}/g,(_,name)=>String(vars[name]??''));
       const tidy=text=>text.replace(/\s+/g,' ').trim();
       const mailChecks=[

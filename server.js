@@ -975,7 +975,7 @@ function noticeView(){ const n=DB.notice; if(!n||!n.text) return null; if(n.unti
 const ADMIN_MAIL_DAYS=14, ADMIN_MAIL_KEEP=10;
 function adminMailView(u){ const cut=Date.now()-ADMIN_MAIL_DAYS*86400000;
   const L=(Array.isArray(u&&u.adminMail)?u.adminMail:[]).concat(Array.isArray(DB.mailAll)?DB.mailAll:[]);   /* v1379: + Live Ops "Mail every player" */
-  const v=L.filter(m=>m&&m.t>=cut).map(m=>({ id:m.id, t:m.t, from:m.from, subj:m.subj, text:m.text })); return v.length?v:undefined; }
+  const v=L.filter(m=>m&&m.t>=cut).map(m=>({ id:m.id, t:m.t, from:m.from, subj:m.subj, text:m.text, teamSubject:m.teamSubject })); return v.length?v:undefined; }
 // AUDIT (26 Aug, high): session tokens are no longer stored in plaintext. DB.tokens is keyed by
 // sha256(rawToken) with {id, iat, exp} metadata; the raw value exists only in the client. Tokens
 // expire after TOKEN_TTL_MS (default 90 days) with sliding renewal at half-life. Legacy plaintext
@@ -6809,10 +6809,10 @@ async function api(req,res,url){
       return send(res,200,{ ok:true, mails:(Array.isArray(DB.mailAll)?DB.mailAll:[]).filter(m=>m.t>=cut).slice().reverse(), days:ADMIN_MAIL_DAYS }); }
     if(req.method!=='POST') return send(res,405,{error:'POST only'});
     const b=await body(req);
-    if(p==='/api/admin/mail-all'){ const text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500), subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60)||'News from the team';
+    if(p==='/api/admin/mail-all'){ const text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500), subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60);
       if(!text) return send(res,400,{error:'Type the message first.'}); if(rateLimited(req,'admall:'+me.id,5,600000)) return send(res,429,{error:'Five mails to everyone in ten minutes - wait a little.'});
-      const m={ id:'AM-'+uid(), t:Date.now(), from:'Emberweave Team', subj, text, by:me.name||me.id };
-      DB.mailAll=(Array.isArray(DB.mailAll)?DB.mailAll:[]).concat([m]).slice(-ADMIN_MAIL_KEEP); _dp('mailAll'); adminLog(me,'mail:all',null,subj+': '+text); writeDB();
+      const m={ id:'AM-'+uid(), t:Date.now(), from:'Emberweave Team', subj:subj||'News from the team', teamSubject:subj?false:'news', text, by:me.name||me.id };
+      DB.mailAll=(Array.isArray(DB.mailAll)?DB.mailAll:[]).concat([m]).slice(-ADMIN_MAIL_KEEP); _dp('mailAll'); adminLog(me,'mail:all',null,m.subj+': '+text); writeDB();
       return send(res,200,{ ok:true, mail:m }); }
     if(p==='/api/admin/feedback'){ const it=(Array.isArray(DB.feedback)?DB.feedback:[]).find(x=>x&&x.id===String(b.id||'')); if(!it) return send(res,404,{error:'not found'});
       if(b.done) it.adminDone=Date.now(); else delete it.adminDone; _dp('feedback'); adminLog(me, b.done?'feedback:done':'feedback:reopen', DB.users[it.userId]||{id:it.userId,name:it.name}, it.id); writeDB([],['feedback']);
@@ -6826,10 +6826,10 @@ async function api(req,res,url){
       if(typeof _DB_LOAD_FAILED!=='undefined'&&_DB_LOAD_FAILED) return send(res,503,{error:'The world did not load - no backup made.'});
       backupDB(); adminLog(me,'backup:now',null,''); return send(res,200,{ ok:true }); }
     const u=testerFind(b); if(!u||u.isNpc) return send(res,404,{error:'account not found'});
-    if(p==='/api/admin/message'){ const text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500), subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60)||'A message from the team';
+    if(p==='/api/admin/message'){ const text=String(b.text||'').replace(/[<>]/g,'').trim().slice(0,500), subj=String(b.subj||'').replace(/[<>]/g,'').trim().slice(0,60);
       if(!text) return send(res,400,{error:'Type the message first.'});
-      u.adminMail=(Array.isArray(u.adminMail)?u.adminMail:[]).concat([{ id:'AM-'+uid(), t:Date.now(), from:'Emberweave Team', subj, text, by:me.name||me.id }]).slice(-ADMIN_MAIL_KEEP);
-      adminLog(me,'message',u,subj+': '+text); writeDB([u.id]); return send(res,200,{ ok:true, name:u.name }); }
+      u.adminMail=(Array.isArray(u.adminMail)?u.adminMail:[]).concat([{ id:'AM-'+uid(), t:Date.now(), from:'Emberweave Team', subj:subj||'A message from the team', teamSubject:subj?false:'message', text, by:me.name||me.id }]).slice(-ADMIN_MAIL_KEEP);
+      adminLog(me,'message',u,(subj||'A message from the team')+': '+text); writeDB([u.id]); return send(res,200,{ ok:true, name:u.name }); }
     if(p==='/api/admin/reset-progress'){ if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
       if(b.undo){ if(!u.preReset) return send(res,400,{error:'There is no reset to undo for this player.'});
         if(!preResetUndo(u)) return send(res,500,{error:'The saved copy could not be read.'}); adminLog(me,'reset:undo',u,''); writeDB(); return send(res,200,{ ok:true, name:u.name, undone:true }); }
