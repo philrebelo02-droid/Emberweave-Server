@@ -8469,7 +8469,7 @@ async function api(req,res,url){
        its countdown and label, so a wish tapped at "0" was charged. The server now says how long until the next New York day. */
     const _sh=now-GAME_DAY_START_MS, nyOff=etOffsetMs(_sh), nyWall=_sh-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff+GAME_DAY_START_MS-now);   // v1065: next 09:00 ET
     writeDB([me.id]);
-    return send(res,200,{ mythOdds:MYTH_ODDS, mythCost:WISH_MYTH_COST, mythUnlockEgp:MYTH_UNLOCK_EGP, odds:Object.assign({},GEM_ODDS,{goldHero:0.05,goldFrag:0.15}), stamItem:{name:STAM_ITEM_NAME,stamina:STAM_ITEM_STAMINA},   /* v1142: Phil's Diamond table */
+    return send(res,200,{ goldHeroes:POOL_GOLD_HEROES, mythOdds:MYTH_ODDS, mythCost:WISH_MYTH_COST, mythUnlockEgp:MYTH_UNLOCK_EGP, odds:Object.assign({},GEM_ODDS,{goldHero:0.05,goldFrag:0.15}), stamItem:{name:STAM_ITEM_NAME,stamina:STAM_ITEM_STAMINA},   /* v1142: Phil's Diamond table */
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
       gemFree:{ready:gemFreeReady,unlocked:gemUnlocked,clearsNeeded:Math.max(0,WISH_FIRST_GEM_CLEAR_NODE-((led.camp&&led.camp.cleared)|0)),nextMs:gemFreeReady?0:gemFreeNextMs}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }

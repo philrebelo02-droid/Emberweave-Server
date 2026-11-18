@@ -42,7 +42,9 @@ const t0=D.heroes.vael.trees[0].talents[0], t1=D.heroes.vael.trees[0].talents[1]
 ctx.a={id:t0[0],name:t0[3],text:t0[5]}; ctx.b={id:t1[0],name:t1[3],text:t1[5]};
 ok(vm.runInContext("talentName('vael',a)",ctx)===t0[3],'before the file arrives: English');
 vm.runInContext('talentLangLoad(); talentLangLoad();',ctx);
-setImmediate(()=>setImmediate(()=>{
+(async()=>{
+  const settle=()=>new Promise(setImmediate);
+  await settle();
   ok(ctx.urls.length===1&&ctx.urls[0]==='/lang/de.talents.json?v=h1','one fetch, at ?v=: '+ctx.urls.join(','));
   ok(ctx.redraws===1,'the open Talents tab is drawn again when the file arrives');
   ok(vm.runInContext("talentName('vael',a)",ctx)==='NAME-DE','a translated name is shown');
@@ -54,4 +56,22 @@ setImmediate(()=>setImmediate(()=>{
   ok(!/talents\.json|talentLangLoad/.test(langLoad),'the language switch itself never fetches the talents file');
   ok(/function talentsTabHTML\(key\)\{ talentIconsLoad\(\); talentLangLoad\(\);/.test(page),'the Talents tab asks for it when drawn');
   ok(/escapeHTML\(talentName\(key,tl\)\)/.test(page)&&/escapeHTML\(talentText\(key,tl\)\)/.test(page)&&/talentTr\(key,id,0,x\[3\]\)/.test(page),'the talent card and the grid use the lookup');
-  console.log('\n'+pass+' passed, '+fail+' failed'); process.exit(fail?1:0); }));
+  const pending=[];
+  ctx.fetch=()=>new Promise(resolve=>pending.push(resolve));
+  const load=code=>{ ctx.LANG.cur=code; ctx.talentLangLoad(); };
+  const pack=name=>({ok:true,json:async()=>({vael:{[t0[0]]:[name,null]}})});
+  const redraws=ctx.redraws;
+  load('de');
+  ctx.LANG.cur='en';
+  pending[0](pack('RETAINED')); await settle();
+  ok(ctx.redraws===redraws,'a background pack does not redraw English');
+  load('de');
+  ok(pending.length===1&&ctx.talentName('vael',ctx.a)==='RETAINED','returning to the locale uses its completed pack');
+  ctx.EW_LANG_TALV.fr='h2';
+  load('fr'); load('de'); load('fr');
+  pending[3](pack('NEWEST')); await settle();
+  pending[1](pack('SUPERSEDED')); pending[2](pack('OTHER')); await settle();
+  ok(ctx.talentName('vael',ctx.a)==='NEWEST','an older response for the same language cannot overwrite the newest one');
+  console.log('\n'+pass+' passed, '+fail+' failed');
+  process.exitCode=fail?1:0;
+})().catch(error=>{ console.error(error); process.exitCode=1; });

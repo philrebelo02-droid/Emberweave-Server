@@ -19,6 +19,11 @@ const ROOT=path.join(__dirname,'..');
     const bases=require('../server/sim.js').HERO_BASE; u.led=u.led||{}; u.led.unlocked=u.led.unlocked||{};
     for(const k of Object.keys(bases).slice(0,30)) u.led.unlocked[k]=true;
     u.led.px=99000000; u.led.gold=(u.led.gold|0)+5e6; u.led.gems=(u.led.gems|0)+50000;
+    u.led.pool={goldUsedDay:'',goldFree:0,goldLast:0,gemFreeDay:'',gemFirstDone:false,pity:0,history:[
+      {t:Date.now(),pool:'gold',n:1,cost:0,results:['gold']},
+      {t:Date.now(),pool:'gem',n:1,cost:0,results:['frags:vael']},
+      {t:Date.now(),pool:'myth',n:1,cost:0,results:['prayer']}
+    ]};
     fs.writeFileSync(dbFile,JSON.stringify(db)); }
   const h=await (async()=>{ // restart on the same DB, then the page
     const cp=require('child_process'); const port=+S.base.split(':').pop(); const log=fs.openSync(path.join(S.tmp,'srv2.log'),'a');
@@ -39,6 +44,84 @@ const ROOT=path.join(__dirname,'..');
     await settle(2500);
     await page.evaluate(()=>{ const p=document.querySelector('.splashPlay'); if(p) p.click(); }); await settle(900);
     await page.evaluate(()=>{ const s=document.getElementById('tutSkip'); if(s&&s.offsetParent) s.click(); });
+    await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
+    // Exercise actual packs and DOM updates before the pseudo-language screen crawl.
+    const realLocales=await page.evaluate(()=>EW_LANGS.map(([code])=>code).filter(code=>code!=='en'));
+    const latestNote=JSON.parse(fs.readFileSync(path.join(ROOT,'patchnotes.json'),'utf8')).patches[0];
+    for(const locale of realLocales){
+      const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+      const content=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.content.json'),'utf8'));
+      const talents=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.talents.json'),'utf8'));
+      const contentKey='Broadside';
+      const [talentId,[talentName,talentText]]=Object.entries(talents.vael)[0];
+      const loaded=await page.evaluate(code=>langLoad(code,true),locale);
+      if(!loaded) throw new Error('Could not load UI translation pack '+locale);
+      await page.evaluate(()=>talentLangLoad());
+      const expected={locale,contentKey,contentText:content[contentKey],back:ui['common.back'],resume:ui['hud.resume'],talentId,talentName,talentText};
+      await page.waitForFunction(x=>
+        document.documentElement.lang===x.locale &&
+        document.getElementById('menuBack')?.getAttribute('aria-label')===x.back &&
+        document.querySelector('#resumeBtn [data-i18n="hud.resume"]')?.textContent===x.resume &&
+        !!x.contentText && langDesc(x.contentKey)===x.contentText &&
+        TAL_LANG.code===x.locale &&
+        talentTr('vael',x.talentId,0,'')===x.talentName &&
+        talentTr('vael',x.talentId,1,'')===x.talentText,
+      expected,{timeout:15000});
+      await page.evaluate(()=>show('settings'));
+      await page.locator('#settings [data-settab="general"]').click({timeout:10000});
+      const graphicsKeys=await page.evaluate(()=>GRAPHICS_ORDER.map(preset=>'set.graphics_'+preset));
+      const slider=page.locator('#setGraphicsSel');
+      await slider.waitFor({state:'visible',timeout:10000});
+      const presetLabel=ui[graphicsKeys[Number(await slider.inputValue())]];
+      if(!presetLabel || await slider.getAttribute('aria-valuetext')!==presetLabel){
+        throw new Error('Graphics setting did not expose its translated value in '+locale);
+      }
+      await page.locator('#settings [data-settab="support"]').click({timeout:10000});
+      await page.locator('#setPatchNotes').click({timeout:10000});
+      const note=page.locator('#patchNotesOv ul').first();
+      await note.waitFor({state:'visible',timeout:10000});
+      const paragraphs=await note.locator('li').allTextContents();
+      const translated=await page.evaluate(items=>items.map(item=>langDesc(item)),latestNote.items);
+      if(translated.some((item,i)=>!item||item===latestNote.items[i]) ||
+         JSON.stringify(paragraphs)!==JSON.stringify(translated)){
+        throw new Error('Latest patch note '+latestNote.ver+' did not render fully translated in '+locale);
+      }
+      await page.locator('#_pnOk').click({timeout:10000});
+      await page.evaluate(()=>show('wishing'));
+      await page.locator('#wishing.active .wpsHelp').click({timeout:10000});
+      await page.locator('#wishInfoHist').click({timeout:10000});
+      const history=page.locator('#wishHistRows');
+      await history.waitFor({state:'visible',timeout:10000});
+      const historyText=await history.textContent();
+      for(const key of ['wish.gold_pool','wish.diamond_pool','wish.mythical_pool','wish.prayer']){
+        if(!ui[key]||!historyText.includes(ui[key])) throw new Error('Missing wish history label '+key+' in '+locale);
+      }
+      await page.locator('#wishInfoX').click({timeout:10000});
+      await page.evaluate(()=>show('home'));
+      console.log('locale smoke: '+locale+' UI, content, talents and patch notes loaded');
+    }
+    // Switch languages with each market already open to exercise its live redraw path.
+    for(const screen of ['market','shadymarket']){
+      await page.evaluate(screen=>show(screen),screen);
+      await page.locator('#'+screen+'.active .merc-wallet').waitFor({state:'visible',timeout:10000});
+      for(const locale of realLocales){
+        const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+        if(!await page.evaluate(code=>langLoad(code,true),locale)) throw new Error('Could not switch '+screen+' to '+locale);
+        const expected={screen,locale,diamondsOnly:ui['shady.diamonds_only'],warChest:ui['shady.war_chest']};
+        await page.waitForFunction(x=>{
+          const root=document.querySelector('#'+x.screen+'.active');
+          const wallet=root?.querySelector('.merc-wallet');
+          if(!wallet||document.documentElement.lang!==x.locale) return false;
+          const walletText=wallet.textContent;
+          if(!walletText.includes((G.gems||0).toLocaleString(x.locale))) return false;
+          if(x.screen==='market') return walletText.includes((G.gold||0).toLocaleString(x.locale));
+          const chest=x.warChest.replace('{n}',(80000).toLocaleString(x.locale));
+          return walletText.includes(x.diamondsOnly)&&root.querySelector('.merc-offer b')?.textContent===chest;
+        },expected,{timeout:15000});
+      }
+    }
+    await page.evaluate(()=>show('home'));
+    await page.evaluate(async()=>{ await langLoad('en',true); return langLoad('qps',true); });
     await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
     // the names the game never translates, from its own tables (+ the player's own name)
     await page.evaluate((gname)=>{ const N=new Set([gname,'Emberweave','Emberweave Heroes','Xanthyr Games','Google','Facebook','Discord']);
@@ -68,9 +151,9 @@ const ROOT=path.join(__dirname,'..');
         const clean=s=>fullName?s.replace(fullName,' '):s;
         const consider=(s,tag)=>{ s=strip(String(s||'')); for(let line of s.split(/\n+/)){ line=clean(line).replace(/\s+/g,' ').trim(); if(/\p{L}{2,}/u.test(line.replace(/\b(?:HP|ATK|AP|EGP|PvP|DPS|XP|EXP|Lv|VIP|ID|OK|x\d+|v\d+)\b/g,''))) out.add((tag||'')+line.slice(0,140)); } };
         consider(document.body.innerText);
-        for(const el of document.querySelectorAll('[title],[placeholder],[aria-label],[aria-description],img[alt]')){
+        for(const el of document.querySelectorAll('[title],[placeholder],[aria-label],[aria-description],[aria-valuetext],img[alt]')){
           if(!el.getClientRects().length||getComputedStyle(el).visibility==='hidden'||el.closest('[aria-hidden="true"]')) continue;
-          for(const a of ['title','placeholder','aria-label','aria-description','alt']) if(el.hasAttribute(a)) consider(el.getAttribute(a),'['+a+'] ');
+          for(const a of ['title','placeholder','aria-label','aria-description','aria-valuetext','alt']) if(el.hasAttribute(a)) consider(el.getAttribute(a),'['+a+'] ');
         }
         // where each leak sits (the innermost element showing exactly that line): id / class path for the next pass
         const where=s=>{ const t0=s.replace(/^\[[a-z-]+\] /,''); let best=null; for(const el of document.querySelectorAll('body *')){ if(!el.getClientRects().length) continue; const tx=strip(el.innerText||'').replace(/\s+/g,' ').trim(); if(tx===t0) best=el; }
@@ -78,16 +161,35 @@ const ROOT=path.join(__dirname,'..');
           return p.join(' > '); };
         return [...out].map(s=>s+(window.__langWhere?'   @@ '+where(s):'')); });
       for(const f of found)(leaks[f]=leaks[f]||new Set()).add(where); };
-    const tabsHere=()=>page.evaluate(()=>{ const scr=[...document.querySelectorAll('.screen.active, .modal:not([hidden]), .overlay:not([hidden])')].filter(e=>e.getClientRects().length);
-      const root=scr[scr.length-1]||document.body; const c=[...root.querySelectorAll('[data-tab],[data-settab],.tab,.tabBtn,.subtab,[class*="Tab"]:not([class*="Table"]),[role=tab]')].filter(e=>e.getClientRects().length&&!e.closest('[data-lang-skip]'));
-      c.forEach((e,i)=>e.setAttribute('data-lang-cov-tab',String(i))); return c.length; });
-    const clickTab=i=>page.evaluate(i=>{ const e=document.querySelector('[data-lang-cov-tab="'+i+'"]'); if(e) e.click(); },i);
+    const clickNextTab=seen=>page.evaluate(seen=>{
+      const visible=e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden';
+      const roots=[...document.querySelectorAll('.screen.active, .modal:not([hidden]), .overlay:not([hidden])')].filter(visible);
+      const root=roots.at(-1)||document.body;
+      const selectors='[role=tab],[data-tab],[data-settab],.tab,.tabBtn,.subtab,button[class*="Tab"],.fgTabs button,.skyHubTabs button,.arTabs button';
+      const used=new Set(seen);
+      for(const el of root.querySelectorAll(selectors)){
+        if(!visible(el)||el.matches(':disabled')||el.closest('[aria-hidden="true"],[data-lang-skip]')) continue;
+        const identity=[...el.attributes].filter(a=>a.name.startsWith('data-')).map(a=>[a.name,a.value]);
+        const key=JSON.stringify([root.id,el.id|| (identity.length?identity:el.getAttribute('onclick')||el.textContent.trim())]);
+        if(used.has(key)) continue;
+        el.click();
+        return {key,label:el.textContent.trim()};
+      }
+      return null;
+    },seen);
     const visit=async(name,fn,screenId)=>{ try{
         await page.evaluate(fn);
         if(screenId) await page.locator('#'+screenId+'.active').waitFor({state:'visible',timeout:5000});
       }catch(e){ (leaks['(could not open '+name+': '+String(e.message).slice(0,80)+')']=new Set()).add(name); return; }
       await settle(); await collect(name);
-      const n=Math.min(await tabsHere(),24); for(let i=0;i<n;i++){ await clickTab(i); await settle(300); await collect(name+' tab '+i); await tabsHere(); } };
+      const seen=[];
+      for(let tab=await clickNextTab(seen);tab;tab=await clickNextTab(seen)){
+        seen.push(tab.key);
+        if(seen.length>100) throw new Error('Tab traversal did not converge on '+name);
+        await settle(300);
+        await collect(name+' tab '+tab.label);
+      }
+    };
     if(process.env.LANG_COV_WHERE) await page.evaluate(()=>{ window.__langWhere=1; });
     await collect('home');
     const SCREENS=['campaign','glossary','tech','wall','world','account','arena','arenaShop','dungeon','forge','elite','skyfall','guild','temple','market','shadymarket','watchtower','rankings','wishing','online','heroesPanel','bag','settings','quest','signin','tutorial','skyisland','mail'];
@@ -123,12 +225,17 @@ const ROOT=path.join(__dirname,'..');
     await collect('result');
     if(process.argv.includes('--keep')) await settle(1e9);
   } finally {
-    const AL=(JSON.parse(fs.readFileSync(path.join(ROOT,'tools','lang','coverage_allow.json'),'utf8')).patterns||[]).map(p=>new RegExp(p.re));
-    const list=Object.entries(leaks).filter(([t])=>!AL.some(r=>r.test(t.replace(/   @@ .*$/,'').replace(/^\[[a-z-]+\] /,'')))).map(([t,w])=>({text:t,where:[...w].slice(0,6)})).sort((a,b)=>a.text.localeCompare(b.text));
-    fs.writeFileSync(path.join(ROOT,'tools','lang','coverage_leaks.json'),JSON.stringify(list,null,1));
-    console.log('coverage: '+stops+' views, '+list.length+' untranslated visible lines'+(h.errors.length?' ; page errors: '+h.errors.slice(0,3).join(' | '):''));
-    for(const l of list.slice(0,60)) console.log('  '+l.text+'   <- '+l.where.join(', '));
-    await h.close(); try{ S.srv.kill(); }catch(_){}
-    if(list.length) process.exitCode=1;
+    try{
+      const AL=(JSON.parse(fs.readFileSync(path.join(ROOT,'tools','lang','coverage_allow.json'),'utf8')).patterns||[]).map(p=>new RegExp(p.re));
+      const list=Object.entries(leaks).filter(([t])=>!AL.some(r=>r.test(t.replace(/   @@ .*$/,'').replace(/^\[[a-z-]+\] /,'')))).map(([t,w])=>({text:t,where:[...w].slice(0,6)})).sort((a,b)=>a.text.localeCompare(b.text));
+      fs.writeFileSync(path.join(ROOT,'tools','lang','coverage_leaks.json'),JSON.stringify(list,null,1));
+      const errors=[...new Set(h.errors)];
+      console.log('coverage: '+stops+' views, '+list.length+' untranslated visible lines, '+errors.length+' distinct page errors');
+      for(const l of list.slice(0,60)) console.log('  '+l.text+'   <- '+l.where.join(', '));
+      for(const error of errors) console.error('  page error: '+error);
+      if(list.length||errors.length) process.exitCode=1;
+    }finally{
+      await h.close();
+    }
   }
 })().catch(e=>{ console.error(e); process.exit(2); });

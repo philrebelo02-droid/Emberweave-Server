@@ -65,10 +65,11 @@
       render(inner,board);await load();if(!inner.isConnected||!board.isConnected||mounted.inner!==inner)return;render(inner,board);poll();
     }
     function poll(){if(!hooks.schedule||timer!==null)return;timer=hooks.schedule(async()=>{timer=null;const m=mounted;if(!m?.inner.isConnected||!m.board.isConnected){mounted=null;return;}await load(true);if(mounted===m&&m.inner.isConnected){render(m.inner,m.board);poll();}},5000);}
+    function refreshLanguage(){const m=mounted;if(m?.inner.isConnected&&m.board.isConnected)render(m.inner,m.board);}
     function zoom(inner){if(!inner)return;if(mounted?.inner===inner){render(inner,mounted.board);return;}inner.querySelectorAll('.worldTreeHolder').forEach(el=>{el.style.zoom=1/hooks.zoom();});}
     function heroes(){current();const now=hooks.now();return new Set(knownMarches.filter(m=>m.phase!=='home'&&(m.phase!=='returning'||m.homeAt>now)).flatMap(m=>m.heroIds));}
     function adopt(receipt){current();if(!identity||!Array.isArray(receipt?.marches))return;epoch++;pending=null;loadedAt=0;knownMarches=receipt.marches.filter(m=>typeof m.id==='string'&&IDS.includes(m.siteId)&&Array.isArray(m.heroIds)&&m.heroIds.every(k=>typeof k==='string')&&Number.isSafeInteger(m.homeAt)&&['outbound','queued','fighting','garrison','returning','home'].includes(m.phase)).map(m=>({id:m.id,siteId:m.siteId,heroIds:m.heroIds.slice(0,5),phase:m.phase,homeAt:m.homeAt}));}
-    return {load,state,mount,zoom,reset,heroes,adopt};
+    return {load,state,mount,zoom,reset,heroes,adopt,refreshLanguage};
   }
   const api={create,read,colour};if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveWorldTreeControlUI=api;
 })(typeof globalThis==='object'?globalThis:this);
