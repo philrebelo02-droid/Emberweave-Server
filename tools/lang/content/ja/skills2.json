@@ -165,5 +165,21 @@
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}m内に{0}秒沈黙、{2}秒ごとに{3}秒間歌い直す · ✚ 沈黙した敵1体ごとに最も近い味方を毎秒{4}回復 · ダメージなし",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0}秒ターゲット不可 → {i:s:attack} {1}",
   "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "グロスクは対象に強烈なパンチを3発放つ。各パンチは自身のアーマーの{0}%に相当するダメージを与え、対象にグロスクを攻撃させて沈黙させる。",
-  "{0}% of Armor": "アーマーの{0}%"
+  "{0}% of Armor": "アーマーの{0}%",
+  "+{0}% less damage taken every {1}s in combat (up to {2}%)": "戦闘中は{1}秒ごとに被ダメージがさらに{0}%減少する（最大{2}%）。",
+  "A heal on the worst-off ally, then half as much again over the next seconds": "最も弱っている味方を回復し、その後数秒かけて最初の半分の量を追加で回復する。",
+  "A ring of flame erupts around her target, damaging every enemy caught in it and repelling those around the target.": "対象の周囲に炎の輪が噴き上がり、巻き込まれた敵すべてにダメージを与え、対象の周囲の敵を押しのける。",
+  "A wave crashes down on his target, shoving the enemies around it away and leaving them slowed.": "対象に波が打ちつけ、周囲の敵を押しのけて減速させる。",
+  "cannot be pulled, knocked, or displaced by enemy abilities, and his Ability Power is {0}% higher ({1}% +{2}% per passive level; next level {3}%)": "敵のスキルで引き寄せ・吹き飛ばし・移動させられない。アビリティパワーが{0}%上昇する（{1}%＋パッシブのレベルごとに{2}%、次のレベルでは{3}%）。",
+  "cannot be pulled, knocked, or displaced by enemy abilities, and his Ability Power is {0}% higher ({1}% +{2}% per passive level)": "敵のスキルで引き寄せ・吹き飛ばし・移動させられない。アビリティパワーが{0}%上昇する（{1}%＋パッシブのレベルごとに{2}%）。",
+  "every fourth attack, melee or ranged, also deals {0}% of its damage as true damage that ignores Defense": "近接・遠距離を問わず、4回目の攻撃は防御を無視する確定ダメージを、その攻撃のダメージの{0}%分追加で与える。",
+  "Player-aimed ultimate — calls a thunderstorm down on the chosen area, striking every foe in it repeatedly (Fritz cannot act while channeling).": "手動で狙う必殺技。選んだ範囲に雷雨を呼び、範囲内の敵すべてを繰り返し攻撃する。詠唱中はフリッツは行動できない。",
+  "Rhukk plants his horn and roars: every enemy is forced to attack him for {0} seconds while his hide takes {1}% less damage, and every enemy basic attack that hits him heals him for {2}% of his max health.": "ルークは角を突き立てて咆哮する。敵全員は{0}秒間ルークを強制的に攻撃し、ルークの被ダメージは{1}%減少する。敵の通常攻撃が当たるたびに最大HPの{2}%を回復する。",
+  "Rivet fires a scrap-metal blast that bursts around his target; the enemies closest to the target take the full charge.": "リベットは金属くずの弾を放ち、対象の周囲で炸裂させる。対象に最も近い敵が最大の威力を受ける。",
+  "Slams the ledger down around his target: the enemies there are yanked toward him and silenced.": "対象の周囲に帳簿を叩きつけ、そこにいる敵を自身に引き寄せて沈黙させる。",
+  "The enemies around her target are pulled together toward it and slowed.": "対象の周囲の敵をその対象へ引き寄せ、減速させる。",
+  "The sting slows their attacks and their spells. Sting an already-stung foe and they fall asleep until struck": "刺されると攻撃と呪文の発動が遅くなる。すでに刺された敵を再び刺すと、次に攻撃を受けるまで眠る。",
+  "Ultimate — the whole team is healed for {0}% of their max health, floods with energy so every ultimate charges sooner, and attacks and casts faster for a few seconds.": "必殺技。チーム全員の最大HPの{0}%を回復し、エネルギーを与えて必殺技を早く使えるようにする。数秒間、攻撃と詠唱も速くなる。",
+  "Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by {0}% and draining life back with every blow for a few brutal seconds, and heals up to {1}% of his max health: the lower his health, the bigger the heal (the full amount at {2}% health or less).": "必殺技。ヴェイルは踏ん張って倒れることを拒む。数秒間、被ダメージが{0}%減少し、攻撃が当たるたびにライフを奪う。最大HPの{1}%まで回復する。残りHPが少ないほど多く回復し、HPが{2}%以下なら最大量を回復する。",
+  "when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive less healing ({0}% + {1}% a skill level) for the {2} seconds the sting lasts; the spread lasts {3}s": "刺された敵が倒れると、蜂が最も近い敵に移って刺す。その敵が受ける回復量は、刺された効果が続く{2}秒間低下する（{0}%＋スキルレベルごとに{1}%）。伝播は{3}秒続く。"
 }

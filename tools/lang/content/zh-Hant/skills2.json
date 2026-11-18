@@ -165,5 +165,21 @@
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}米內沉默{0}秒，每{2}秒重唱一次，持續{3}秒 · ✚ 每名被沉默的敵人每秒為離它最近的友軍治療{4} · 無傷害",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 無法被選取{0}秒 → {i:s:attack} {1}",
   "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "格羅斯克對目標打出三記重拳。每拳造成相當於自身護甲{0}%的傷害，強制目標攻擊格羅斯克並使其沉默。",
-  "{0}% of Armor": "護甲的{0}%"
+  "{0}% of Armor": "護甲的{0}%",
+  "+{0}% less damage taken every {1}s in combat (up to {2}%)": "戰鬥中每過{1}秒，受到的傷害再降低{0}%，最多降低{2}%。",
+  "A heal on the worst-off ally, then half as much again over the next seconds": "治療狀況最差的友方，隨後在接下來數秒內額外恢復初次治療量的一半。",
+  "A ring of flame erupts around her target, damaging every enemy caught in it and repelling those around the target.": "目標周圍爆發一道火環，對捲入其中的所有敵人造成傷害，並擊退目標周圍的敵人。",
+  "A wave crashes down on his target, shoving the enemies around it away and leaving them slowed.": "一道巨浪拍向目標，將其周圍的敵人推開並使其減速。",
+  "cannot be pulled, knocked, or displaced by enemy abilities, and his Ability Power is {0}% higher ({1}% +{2}% per passive level; next level {3}%)": "無法被敵方技能拉動、擊退或位移。其技能強度提高{0}%（基礎{1}%，被動每升一級增加{2}%；下一級為{3}%）。",
+  "cannot be pulled, knocked, or displaced by enemy abilities, and his Ability Power is {0}% higher ({1}% +{2}% per passive level)": "無法被敵方技能拉動、擊退或位移。其技能強度提高{0}%（基礎{1}%，被動每升一級增加{2}%）。",
+  "every fourth attack, melee or ranged, also deals {0}% of its damage as true damage that ignores Defense": "無論近戰還是遠程，每第四次攻擊都會額外造成該次攻擊傷害{0}%的真實傷害，無視防禦。",
+  "Player-aimed ultimate — calls a thunderstorm down on the chosen area, striking every foe in it repeatedly (Fritz cannot act while channeling).": "手動瞄準的終極技能。在選定區域召喚雷暴，反覆打擊區域內所有敵人。弗里茨在引導期間無法行動。",
+  "Rhukk plants his horn and roars: every enemy is forced to attack him for {0} seconds while his hide takes {1}% less damage, and every enemy basic attack that hits him heals him for {2}% of his max health.": "魯克將角抵入地面並怒吼，迫使所有敵人在{0}秒內攻擊他。他受到的傷害降低{1}%，且每次被敵方普攻命中時恢復{2}%的最大生命值。",
+  "Rivet fires a scrap-metal blast that bursts around his target; the enemies closest to the target take the full charge.": "里維特發射一團廢金屬，在目標周圍爆開。離目標最近的敵人承受爆炸的全部威力。",
+  "Slams the ledger down around his target: the enemies there are yanked toward him and silenced.": "在目標周圍砸下帳本，將區域內的敵人拉向自己並使其沉默。",
+  "The enemies around her target are pulled together toward it and slowed.": "將目標周圍的敵人拉向目標並使其減速。",
+  "The sting slows their attacks and their spells. Sting an already-stung foe and they fall asleep until struck": "螫刺會減慢敵人的攻擊和施法。再次螫刺已被螫過的敵人會使其睡眠，直到受到攻擊。",
+  "Ultimate — the whole team is healed for {0}% of their max health, floods with energy so every ultimate charges sooner, and attacks and casts faster for a few seconds.": "終極技能為全隊恢復{0}%的最大生命值，注入能量以加快終極技能充能，並在數秒內提高攻擊和施法速度。",
+  "Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by {0}% and draining life back with every blow for a few brutal seconds, and heals up to {1}% of his max health: the lower his health, the bigger the heal (the full amount at {2}% health or less).": "終極技能：維爾站穩腳跟，拒絕倒下。他在數秒內受到的傷害降低{0}%，且每次命中都會汲取生命。他最多恢復{1}%的最大生命值，生命值越低，治療量越高，生命值為{2}%或更低時獲得全額治療。",
+  "when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive less healing ({0}% + {1}% a skill level) for the {2} seconds the sting lasts; the spread lasts {3}s": "被螫刺的敵人死亡時，她的蜜蜂會飛向最近的敵人並螫刺牠們。被螫刺的敵人在螫刺持續的{2}秒內受到的治療減少（{0}%＋技能每級{1}%）。擴散持續{3}秒。"
 }

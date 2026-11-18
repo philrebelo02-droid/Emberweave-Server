@@ -165,5 +165,21 @@
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}m 안에 {0}초 침묵, {3}초 동안 {2}초마다 다시 노래 · ✚ 침묵한 적 하나당 가장 가까운 아군을 초당 {4} 치유 · 피해 없음",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0}초 대상 지정 불가 → {i:s:attack} {1}",
   "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "그로스크가 대상에게 강력한 주먹을 세 번 날립니다. 타격마다 자신의 방어력의 {0}%만큼 피해를 주며, 대상이 그로스크를 공격하도록 강제하고 침묵시킵니다.",
-  "{0}% of Armor": "방어력의 {0}%"
+  "{0}% of Armor": "방어력의 {0}%",
+  "+{0}% less damage taken every {1}s in combat (up to {2}%)": "전투 중 {1}초마다 받는 피해가 {0}%씩 감소합니다(최대 {2}%).",
+  "A heal on the worst-off ally, then half as much again over the next seconds": "상태가 가장 나쁜 아군을 치유한 뒤, 몇 초 동안 그 절반만큼 추가로 치유합니다.",
+  "A ring of flame erupts around her target, damaging every enemy caught in it and repelling those around the target.": "대상 주변에서 불꽃 고리가 솟아올라 휘말린 모든 적에게 피해를 주고 대상 주변의 적을 밀쳐냅니다.",
+  "A wave crashes down on his target, shoving the enemies around it away and leaving them slowed.": "대상에게 파도가 덮쳐 주변 적을 밀어내고 느려지게 합니다.",
+  "cannot be pulled, knocked, or displaced by enemy abilities, and his Ability Power is {0}% higher ({1}% +{2}% per passive level; next level {3}%)": "적 스킬에 끌려오거나 밀려나거나 위치가 바뀌지 않음. 스킬 위력이 {0}% 증가합니다({1}% + 패시브 레벨당 {2}%, 다음 레벨 {3}%).",
+  "cannot be pulled, knocked, or displaced by enemy abilities, and his Ability Power is {0}% higher ({1}% +{2}% per passive level)": "적 스킬에 끌려오거나 밀려나거나 위치가 바뀌지 않음. 스킬 위력이 {0}% 증가합니다({1}% + 패시브 레벨당 {2}%).",
+  "every fourth attack, melee or ranged, also deals {0}% of its damage as true damage that ignores Defense": "근접이든 원거리든 네 번째 공격마다 해당 공격 피해의 {0}%를 방어를 무시하는 고정 피해로 추가로 입힙니다.",
+  "Player-aimed ultimate — calls a thunderstorm down on the chosen area, striking every foe in it repeatedly (Fritz cannot act while channeling).": "직접 조준하는 궁극기입니다. 지정한 범위에 뇌우를 일으켜 안에 있는 모든 적을 반복 타격합니다. 정신을 집중하는 동안 프리츠는 행동할 수 없습니다.",
+  "Rhukk plants his horn and roars: every enemy is forced to attack him for {0} seconds while his hide takes {1}% less damage, and every enemy basic attack that hits him heals him for {2}% of his max health.": "루크가 뿔을 박고 포효합니다. 모든 적이 {0}초 동안 루크를 강제로 공격하며, 루크가 받는 피해는 {1}% 감소합니다. 적의 기본 공격에 맞을 때마다 최대 체력의 {2}%를 회복합니다.",
+  "Rivet fires a scrap-metal blast that bursts around his target; the enemies closest to the target take the full charge.": "리벳이 고철 탄을 발사해 대상 주변에서 폭발시킵니다. 대상에 가장 가까운 적이 폭발의 위력을 온전히 받습니다.",
+  "Slams the ledger down around his target: the enemies there are yanked toward him and silenced.": "대상 주변에 장부를 내리쳐 그곳의 적을 자신 쪽으로 끌어당기고 침묵시킵니다.",
+  "The enemies around her target are pulled together toward it and slowed.": "대상 주변의 적을 대상 쪽으로 모아 끌어당기고 느려지게 합니다.",
+  "The sting slows their attacks and their spells. Sting an already-stung foe and they fall asleep until struck": "침에 쏘인 적은 공격과 주문 시전이 느려집니다. 이미 쏘인 적이 다시 쏘이면 다음 공격을 맞을 때까지 잠듭니다.",
+  "Ultimate — the whole team is healed for {0}% of their max health, floods with energy so every ultimate charges sooner, and attacks and casts faster for a few seconds.": "궁극기입니다. 팀 전체가 최대 체력의 {0}%를 회복하고 에너지를 얻어 궁극기를 더 빨리 충전합니다. 몇 초 동안 공격과 시전도 빨라집니다.",
+  "Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by {0}% and draining life back with every blow for a few brutal seconds, and heals up to {1}% of his max health: the lower his health, the bigger the heal (the full amount at {2}% health or less).": "궁극기입니다. 베일이 자리를 굳게 지키며 쓰러지지 않습니다. 몇 초 동안 받는 피해를 {0}% 줄이고 타격할 때마다 생명력을 흡수합니다. 최대 체력의 {1}%까지 회복하며, 체력이 낮을수록 더 많이 회복합니다. 체력이 {2}% 이하일 때 최대량을 회복합니다.",
+  "when a stung foe dies, her bees move to the nearest enemies and sting them too, and those enemies receive less healing ({0}% + {1}% a skill level) for the {2} seconds the sting lasts; the spread lasts {3}s": "쏘인 적이 죽으면 벌이 가장 가까운 적에게 옮겨가 다시 쏩니다. 그 적은 쏘임이 지속되는 {2}초 동안 받는 치유가 감소합니다({0}% + 스킬 레벨당 {1}%). 전파는 {3}초 동안 지속됩니다."
 }
