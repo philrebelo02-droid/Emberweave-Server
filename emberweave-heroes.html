@@ -29687,7 +29687,7 @@ function mineSearchRows(f){ const out=[];
     if(f.res&&m.res!==f.res) continue; if(f.lv&&(m.level|0)!==f.lv) continue; if(Number.isFinite(m.left)&&m.left<=0) continue;
     const ms=marchOutMs('mine',m.x,m.y); if(ms>MINE_SEARCH_MAX_MS) continue; out.push({m,ms}); }
   return out.sort((a,b)=>a.ms-b.ms).slice(0,40); }
-function openMineSearch(){ closeCityMenu();
+function openMineSearch(){ closeCityMenu(); const locale=LANG.cur==='qps'?'en':LANG.cur;
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   const sel='padding:6px;border-radius:8px;border:1px solid #33405e;background:#0e1420;color:#e6edf3;font-size:13px';
   const lvMax=Math.max(1,...(worldMines()||[]).map(m=>(m&&m.level)|0));
@@ -29709,7 +29709,7 @@ function openMineSearch(){ closeCityMenu();
     list.innerHTML=rows.length?rows.map(({m,ms},i)=>{ const c=coordOf(m.x,m.y);
       return `<div data-mi="${i}" style="display:flex;align-items:center;gap:8px;background:#0f1420;border-radius:8px;padding:7px 9px;margin-bottom:5px;cursor:pointer">${resIconHtml(m.res,20)}
         <div style="flex:1;min-width:0"><b style="color:${mnResColor(m.res)}">${ewT('mine.lv_res_mine',{n:m.level,res:escapeHTML(mnResName(m.res))})}</b>
-        <div style="font-size:10.5px;color:#8b98a9">X${c.cx} Y${c.cy}${Number.isFinite(m.left)?' · '+m.left.toLocaleString():''}</div></div>
+        <div style="font-size:10.5px;color:#8b98a9">X${c.cx} Y${c.cy}${Number.isFinite(m.left)?' · '+m.left.toLocaleString(locale):''}</div></div>
         <div style="font-size:11.5px;color:#ffd45e;white-space:nowrap">${ewT('mine.row_march',{t:fmtDur(ms)})}</div></div>`; }).join('')
       :`<div style="font-size:12px;color:#8b98a9;text-align:center;padding:12px">${ewT('mine.none_near',{m:30})}</div>`;
     list.querySelectorAll('[data-mi]').forEach(el=>el.onclick=()=>{ const r=rows[+el.dataset.mi]; if(!r) return; close();
@@ -30870,16 +30870,16 @@ function drawMines(inner){ if(!inner)return;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); openMineInfo(m); };   /* v1249 (Phil: "When I click a mine i should be able to see how much resources are left"): always the mine's info (with what is left and your miners' state) */
     inner.appendChild(el); }); }
 // mine info popup
-function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
+function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return; const locale=LANG.cur==='qps'?'en':LANG.cur;
   const reqP=mineReqPower(m.level), reqL=mineReqLevel(m.level), y=mineYieldShown(m.res,m.level,m), gm=mineGatherMs(m.level), travel=marchOutMs('mine',m.x,m.y);
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left=m.x+'%'; pop.style.top=m.y+'%'; pop.style.transform='translate(-50%,-135%)'; pop.style.zoom=(1/worldZoom);
   pop.innerHTML=`<div class="cm-t">${resIconHtml(m.res,18)} ${ewT('mine.lv_res_mine',{n:m.level,res:escapeHTML(mnResName(m.res))})}</div>
     <div style="font-size:10px;color:#cdd6e4;padding:3px 6px 5px;line-height:1.6">
-      ${ewT('mine.yield',{v:'<b style="color:#ffd45e">'+resIconHtml(m.res,16)+' '+y+'</b>'})}${mineSignedIn()?' <span style="color:#8b98a9">'+ewT('mine.per_haul')+'</span>':''}<br>
-      ${Number.isFinite(m.left)?`${ewT('mine.left',{v:'<b style="color:#5ee89b">'+resIconHtml(m.res,16)+' '+m.left.toLocaleString()+'</b>'})}${Number.isFinite(m.total)?` <span style="color:#8b98a9">${ewT('mine.of_total',{n:m.total.toLocaleString()})}</span>`:''}<br>`:''}
+      ${ewT('mine.yield',{v:'<b style="color:#ffd45e">'+resIconHtml(m.res,16)+' '+y.toLocaleString(locale)+'</b>'})}${mineSignedIn()?' <span style="color:#8b98a9">'+ewT('mine.per_haul')+'</span>':''}<br>
+      ${Number.isFinite(m.left)?`${ewT('mine.left',{v:'<b style="color:#5ee89b">'+resIconHtml(m.res,16)+' '+m.left.toLocaleString(locale)+'</b>'})}${Number.isFinite(m.total)?` <span style="color:#8b98a9">${ewT('mine.of_total',{n:m.total.toLocaleString(locale)})}</span>`:''}<br>`:''}
       ${mineIsActive(m.id)?`${uiIcon('mode-mine')} <b style="color:#ffd45e">${ewT('mine.working')}</b><br>`:''}
       ${statusIcon('shield')} ${ewT('mine.guarded',{b:'<b style="color:#ff9a6b">',eb:'</b>'})}<br>
-      ${ewT('mine.needs',{p:statusIcon('attack')+' <b style="color:#ff9a6b">'+reqP+'</b>',lv:'<b style="color:#ff9a6b">'+reqL+'+</b>'})}<br>
+      ${ewT('mine.needs',{p:statusIcon('attack')+' <b style="color:#ff9a6b">'+reqP.toLocaleString(locale)+'</b>',lv:'<b style="color:#ff9a6b">'+reqL+'+</b>'})}<br>
       ${uiIcon('mode-mine')} ${ewT('mine.mine_time',{t:fmtDur(gm)})} · ${uiIcon('rally-flag')} ${ewT('mine.travel_each',{t:fmtDur(travel)})}<br>
       <span style="color:#8b98a9">${ewT('mine.round_trip',{t:fmtDur(travel*2+gm)})}</span></div>
     <button class="cm-b" data-a="mine">${uiIcon('mode-mine')} ${ewT('mine.send_miners')}</button>`;

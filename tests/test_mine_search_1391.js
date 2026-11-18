@@ -26,4 +26,25 @@ ok(ctx.mnResName('iron')==='Hierro'&&ctx.mnResName('coal')==='Cinderwood'&&ctx.m
 ok(/data-resk="iron"/.test(ctx.resIconHtml('iron',15)),'resIconHtml marks the icon for the tap');
 ok(/id="mapMineFind"/.test(page)&&/#mapMineFind'\)\.onclick=openMineSearch/.test(page),'the map bar has the mine search button');
 ok(/closest\('\.pill'\)/.test(page)&&/data-resk/.test(page),'a tap on a resource pill names the mineral');
+// Render the actual populated mine popup with locale-specific stock and requirement values.
+let popup;
+const inner={appendChild(el){ popup=el; }};
+Object.assign(ctx,{
+  document:{getElementById:()=>inner,createElement:()=>({style:{},addEventListener(){},querySelector:()=>({})})},
+  LANG:{cur:'en'}, closeCityMenu(){}, worldZoom:1, mineReqPower:()=>23000, mineReqLevel:()=>20,
+  embassyMineMul:()=>1.25, mineIsActive:()=>false, mineSignedIn:()=>true, mineGatherMs:()=>60000,
+  statusIcon:()=>'', uiIcon:()=>'', escapeHTML:value=>value, fmtDur:ms=>String(ms),
+});
+vm.runInContext(['openMineInfo','mineYieldShown','mineYield'].map(grab).join('\n')+';this.openMineInfo=openMineInfo;',ctx);
+const versions=JSON.parse(page.match(/const EW_LANG_V=([^;]+);/)[1]);
+for(const locale of Object.keys(versions).filter(code=>code!=='en')){
+  const pack=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang',locale+'.json'),'utf8'));
+  ctx.LANG.cur=locale;
+  ctx.ewT=(key,vars={})=>pack[key].replace(/\{(\w+)\}/g,(_,name)=>String(vars[name]??''));
+  ctx.openMineInfo({...M('stock','iron',3,60,50,15000),total:60000});
+  const rendered=popup.innerHTML;
+  const formatted=[18750,15000,60000,23000].map(value=>value.toLocaleString(locale));
+  ok(formatted.every(value=>rendered.includes(value))&&rendered.includes(pack['mine.send_miners'])&&
+     rendered.includes(pack['res.iron']), locale+': localized mine popup labels and exact stock, yield and requirement amounts');
+}
 console.log('PASS test_mine_search_1391: '+pass+' checks');
