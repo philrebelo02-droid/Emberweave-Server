@@ -1,0 +1,18 @@
+{
+  "Momentum": "勢い",
+  "Momentum — A critical hit makes your next attack a critical too.": "勢い — クリティカルが出ると、次の攻撃もクリティカルになる。",
+  "Pyre": "火葬",
+  "Pyre — Enemies you kill explode for {0} to everything near them.": "火葬 — 倒した敵が爆発し、周囲のすべてに{0}ダメージを与える。",
+  "Opening Gambit": "開幕の一手",
+  "Opening Gambit — The first cast of every wave costs nothing.": "開幕の一手 — 各ウェーブで最初に使うスキルのコストがなくなる。",
+  "Defiant": "不屈",
+  "Defiant — Below a quarter health you cannot be stunned, frozen or feared.": "不屈 — HPが4分の1未満になると、スタン・凍結・恐怖を受けなくなる。",
+  "Aegis": "アイギス",
+  "Aegis — Healing above full health becomes a shield instead of being wasted.": "アイギス — 最大HPを超えた分の回復はシールドに変わる。",
+  "Vengeance": "復讐",
+  "Vengeance — When a hero on your road falls, everyone left gets a free ultimate.": "復讐 — 同じレーンのヒーローが倒れると、生き残った全員が必殺技を一度コストなしで使える。",
+  "Withering": "枯渇",
+  "Withering — Enemies on this road cannot be healed at all.": "枯渇 — このレーンの敵は一切回復を受けられない。",
+  "Fluent": "流麗",
+  "Fluent — Every cast makes your next cast {0}% faster. Resets when you auto attack.": "流麗 — スキルを使うたびに、次のスキルの発動が{0}%速くなる。通常攻撃でリセットされる。"
+}

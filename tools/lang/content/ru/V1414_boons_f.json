@@ -1,0 +1,21 @@
+{
+  "Relentless": "Неумолимость",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Неумолимость — Скорость атаки повышается на {0}% за каждого врага, убитого в этой волне. Эффект сбрасывается с каждой волной.",
+  "Drumbeat": "Барабанный бой",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Барабанный бой — Урон повышается на {0}% за каждую попавшую атаку в этой волне, максимум за десять атак.",
+  "Slow Burn": "Тление",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Тление — Урон повышается на {0}% за каждые {1} сек. с начала волны.",
+  "Grudge": "Злопамятство",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Злопамятство — Урон повышается на {0}% за каждые {1}% недостающего здоровья.",
+  "Rhythm": "Ритм",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Ритм — Каждое умение, применённое подряд без обычной атаки, добавляет {0}% силы умений. Обычная атака сбрасывает эффект.",
+  "Veteran": "Ветеран",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Ветеран — Бонус {0}% ко всему за каждую волну, уже пройденную на этом пути.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Последний рубеж — Бонус {0}% ко всему за каждого павшего союзника на этом пути.",
+  "Warband": "Боевой отряд",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Боевой отряд — Бонус {0}% ко всему за каждого союзника, который ещё сражается рядом с вами.",
+  "Accreting": "Накопление",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Накопление — Каждый убитый враг оставляет щит прочностью {0} без ограничения по времени.",
+  "Sharpening": "Заточка",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Заточка — Каждое некритическое попадание повышает шанс критического удара на {0}%. Критическое попадание сбрасывает эффект."
+}

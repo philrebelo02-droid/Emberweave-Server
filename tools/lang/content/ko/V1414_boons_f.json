@@ -1,0 +1,21 @@
+{
+  "Relentless": "끈질김",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "끈질김 — 이번 웨이브에서 처치된 적 하나당 공격 속도가 {0}% 증가합니다. 웨이브마다 초기화됩니다.",
+  "Drumbeat": "북소리",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "북소리 — 이번 웨이브에서 적중한 공격마다 피해가 {0}% 증가합니다. 최대 열 번까지 적용됩니다.",
+  "Slow Burn": "잉걸불",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "잉걸불 — 웨이브가 시작되고 {1}초가 지날 때마다 피해가 {0}% 증가합니다.",
+  "Grudge": "원한",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "원한 — 잃은 체력 {1}%마다 피해가 {0}% 증가합니다.",
+  "Rhythm": "리듬",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "리듬 — 기본 공격 없이 연속해서 스킬을 사용할 때마다 스킬 위력이 {0}% 증가합니다. 기본 공격 시 초기화됩니다.",
+  "Veteran": "노련함",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "노련함 — 이 길에서 이미 완료한 웨이브마다 모든 능력이 {0}% 증가합니다.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "최후의 저항 — 이 길에서 쓰러진 아군 하나당 모든 능력이 {0}% 증가합니다.",
+  "Warband": "전투단",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "전투단 — 곁에 살아 있는 아군 하나당 모든 능력이 {0}% 증가합니다.",
+  "Accreting": "축적",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "축적 — 처치된 적 하나마다 만료되지 않는 내구도 {0}의 보호막을 남깁니다.",
+  "Sharpening": "연마",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "연마 — 치명타가 아닌 공격이 적중할 때마다 치명타 확률이 {0}% 증가합니다. 치명타가 발생하면 초기화됩니다."
+}

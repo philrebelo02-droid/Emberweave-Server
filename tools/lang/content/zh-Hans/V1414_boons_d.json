@@ -1,0 +1,18 @@
+{
+  "Momentum": "势头",
+  "Momentum — A critical hit makes your next attack a critical too.": "势头 — 打出暴击后，你的下一次攻击也会暴击。",
+  "Pyre": "柴堆",
+  "Pyre — Enemies you kill explode for {0} to everything near them.": "柴堆 — 你击杀的敌人会爆炸，对附近所有目标造成{0}点伤害。",
+  "Opening Gambit": "开局妙手",
+  "Opening Gambit — The first cast of every wave costs nothing.": "开局妙手 — 每波首次施放技能不消耗资源。",
+  "Defiant": "不屈",
+  "Defiant — Below a quarter health you cannot be stunned, frozen or feared.": "不屈 — 生命值低于四分之一时，免疫眩晕、冻结和恐惧。",
+  "Aegis": "神盾",
+  "Aegis — Healing above full health becomes a shield instead of being wasted.": "神盾 — 超出生命值上限的治疗会转化为护盾。",
+  "Vengeance": "复仇",
+  "Vengeance — When a hero on your road falls, everyone left gets a free ultimate.": "复仇 — 同路英雄倒下时，所有存活英雄都可免费施放一次终极技能。",
+  "Withering": "枯萎",
+  "Withering — Enemies on this road cannot be healed at all.": "枯萎 — 这条路线上的敌人完全无法受到治疗。",
+  "Fluent": "流畅",
+  "Fluent — Every cast makes your next cast {0}% faster. Resets when you auto attack.": "流畅 — 每次施放技能都会使下次施放加快{0}%。进行普通攻击时重置。"
+}

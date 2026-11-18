@@ -1,0 +1,12 @@
+{
+  "stoneguard_barrier": "Begins with a large shield; bring sustained damage",
+  "bloodfire_enrage": "At 40% HP, attack speed and damage rise sharply",
+  "broodcall": "Summons weak adds that distract the frontline",
+  "riftblade_leap": "Periodically jumps to the backline",
+  "blight_aura": "Reduces healing received by all enemies hit",
+  "storm_chain": "Lightning bounces between clustered heroes",
+  "ironwall_challenge": "Taunts the frontline and gains defence while taunting",
+  "voidstep": "Teleports behind the team, attacks the weakest backliner",
+  "cinderbrand": "Stacking burn; cleansing and healing matter",
+  "vault_warden": "Three phases: shield, add wave, enrage"
+}

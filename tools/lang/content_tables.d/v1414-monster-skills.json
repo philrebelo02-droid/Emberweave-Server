@@ -1,0 +1,11 @@
+{
+  "tables": [
+    {
+      "expr": "MONSTER_KITS",
+      "fields": [
+        "name"
+      ],
+      "area": "monster_skill_name"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Tocco della tomba",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Tocco della tomba — Gli attacchi base hanno il {0}% di probabilità di impedire al bersaglio di ricevere cure per {1} s.",
+  "Impatient": "Impazienza",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Impazienza — Ogni uccisione ha il {0}% di probabilità di azzerare la ricarica della tua abilità verde.",
+  "Unspent": "Riserva di energia",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Riserva di energia — Le supreme hanno il {0}% di probabilità di restituire metà dell’energia consumata.",
+  "Twinned": "Colpo gemello",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "Colpo gemello — Gli attacchi base hanno il {0}% di probabilità di colpire due volte.",
+  "Fateful": "Destino",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Destino — Ogni attacco ha il {0}% di probabilità di diventare un colpo critico garantito.",
+  "Slipstream": "Scia",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Scia — Quando subisci danni, hai il {0}% di probabilità di evitarli con un breve teletrasporto.",
+  "Called": "Chiamata alle armi",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Chiamata alle armi — Ogni uccisione ha il {0}% di probabilità di evocare un guerriero alleato per l’ondata.",
+  "Miring": "Pantano",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Pantano — Gli attacchi base hanno il {0}% di probabilità di dimezzare la velocità del bersaglio per {1} s."
+}

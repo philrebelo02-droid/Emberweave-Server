@@ -1,0 +1,21 @@
+{
+  "Relentless": "Inlassable",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Inlassable — Vous gagnez {0} % de vitesse d’attaque par ennemi éliminé dans cette vague. Réinitialisation à chaque vague.",
+  "Drumbeat": "Roulement de tambour",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Roulement de tambour — Vous gagnez {0} % de dégâts par attaque qui touche pendant cette vague, jusqu’à dix attaques.",
+  "Slow Burn": "Feu couvant",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Feu couvant — Vous gagnez {0} % de dégâts par tranche de {1} s écoulées depuis le début de la vague.",
+  "Grudge": "Rancune",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Rancune — Vous gagnez {0} % de dégâts par tranche de {1} % de PV manquants.",
+  "Rhythm": "Rythme",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Rythme — Chaque compétence utilisée à la suite sans attaque de base ajoute {0} % de puissance de compétence. Une attaque de base réinitialise l’effet.",
+  "Veteran": "Vétéran",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Vétéran — Vous gagnez {0} % à tout pour chaque vague déjà terminée sur cette voie.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Dernier rempart — Vous gagnez {0} % à tout par allié tombé sur cette voie.",
+  "Warband": "Troupe de guerre",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Troupe de guerre — Vous gagnez {0} % à tout par allié encore debout à vos côtés.",
+  "Accreting": "Accumulation",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Accumulation — Chaque ennemi éliminé laisse un bouclier de {0} points qui n’expire pas.",
+  "Sharpening": "Affûtage",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Affûtage — Chaque attaque non critique augmente vos chances de coup critique de {0} %. Un coup critique réinitialise l’effet."
+}

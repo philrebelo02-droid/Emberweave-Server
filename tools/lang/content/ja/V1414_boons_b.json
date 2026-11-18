@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "墓の手",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "墓の手 — 通常攻撃は{0}%の確率で対象が{1}秒間回復を受けられないようにする。",
+  "Impatient": "性急",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "性急 — 敵を倒すたびに{0}%の確率で緑スキルのクールダウンをリセットする。",
+  "Unspent": "温存",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "温存 — 必殺技は{0}%の確率で消費したエネルギーの半分を取り戻す。",
+  "Twinned": "双撃",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "双撃 — 通常攻撃は{0}%の確率で二度命中する。",
+  "Fateful": "宿命",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "宿命 — 攻撃するたびに{0}%の確率で確定クリティカルになる。",
+  "Slipstream": "滑空",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "滑空 — ダメージを受ける際、{0}%の確率で瞬間移動して回避する。",
+  "Called": "戦の召集",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "戦の召集 — 敵を倒すと{0}%の確率でそのウェーブが終わるまで味方の戦士を召喚する。",
+  "Miring": "泥沼",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "泥沼 — 通常攻撃は{0}%の確率で対象の速度を{1}秒間半分にする。"
+}

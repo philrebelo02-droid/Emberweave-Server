@@ -1,0 +1,8 @@
+{
+  "tables": [
+    {
+      "expr": "COMBAT_FLOAT_LABELS",
+      "area": "combat_float"
+    }
+  ]
+}

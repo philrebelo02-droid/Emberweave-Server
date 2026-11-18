@@ -1,0 +1,15 @@
+{
+  "Ironhide — +{0} maximum health, and you heal that much now.": "Peau de fer — Vos PV maximum augmentent de {0} et vous récupérez immédiatement autant de PV.",
+  "Mending": "Régénération",
+  "Mending — +{0} health a second, forever.": "Régénération — Vous récupérez {0} PV par seconde en permanence.",
+  "Focus": "Concentration",
+  "Focus — +{0} energy a second, forever.": "Concentration — Vous récupérez {0} points d’énergie par seconde en permanence.",
+  "Siphoning": "Drain",
+  "Siphoning — {0}% of all damage you deal comes back as health.": "Drain — Vous récupérez en PV {0} % de tous les dégâts que vous infligez.",
+  "Quickened": "Vivacité",
+  "Quickened — +{0}% attack speed, and it never stops.": "Vivacité — Votre vitesse d’attaque augmente de {0} % en permanence.",
+  "Warded": "Protection",
+  "Warded — {0}% of incoming damage turned aside.": "Protection — Vous annulez {0} % des dégâts subis.",
+  "Practised": "Pratique",
+  "Practised — +{0} to every ability level.": "Pratique — Le niveau de toutes vos compétences augmente de {0}."
+}

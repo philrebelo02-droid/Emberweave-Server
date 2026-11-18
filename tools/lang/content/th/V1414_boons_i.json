@@ -1,0 +1,15 @@
+{
+  "Ironhide — +{0} maximum health, and you heal that much now.": "หนังเหล็ก — พลังชีวิตสูงสุดเพิ่ม {0} และฟื้นพลังชีวิตเท่ากันทันที",
+  "Mending": "ฟื้นฟู",
+  "Mending — +{0} health a second, forever.": "ฟื้นฟู — ฟื้นพลังชีวิต {0} หน่วยต่อวินาทีอย่างต่อเนื่อง",
+  "Focus": "สมาธิ",
+  "Focus — +{0} energy a second, forever.": "สมาธิ — ฟื้นพลังงาน {0} หน่วยต่อวินาทีอย่างต่อเนื่อง",
+  "Siphoning": "ดูดพลังชีวิต",
+  "Siphoning — {0}% of all damage you deal comes back as health.": "ดูดพลังชีวิต — ความเสียหายทั้งหมดที่คุณสร้างจะคืนเป็นพลังชีวิต {0}%",
+  "Quickened": "เร่งจังหวะ",
+  "Quickened — +{0}% attack speed, and it never stops.": "เร่งจังหวะ — ความเร็วโจมตีเพิ่ม {0}% ตลอดเวลา",
+  "Warded": "คุ้มกัน",
+  "Warded — {0}% of incoming damage turned aside.": "คุ้มกัน — ป้องกันความเสียหายที่ได้รับ {0}%",
+  "Practised": "ชำนาญ",
+  "Practised — +{0} to every ability level.": "ชำนาญ — สกิลทุกสกิลเพิ่มขึ้น {0} ระดับ"
+}

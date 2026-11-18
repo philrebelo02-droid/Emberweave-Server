@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Mezar Dokunuşu",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Mezar Dokunuşu — Normal saldırılar %{0} ihtimalle hedefin {1} sn. boyunca iyileştirilmesini önler.",
+  "Impatient": "Sabırsızlık",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Sabırsızlık — Her öldürme %{0} ihtimalle yeşil yeteneğinin bekleme süresini sıfırlar.",
+  "Unspent": "Saklı Enerji",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Saklı Enerji — Ulti yetenekleri %{0} ihtimalle harcanan enerjinin yarısını iade eder.",
+  "Twinned": "İkiz Darbe",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "İkiz Darbe — Normal saldırılar %{0} ihtimalle iki kez vurur.",
+  "Fateful": "Kader",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Kader — Her saldırı %{0} ihtimalle kesin kritik vuruş yapar.",
+  "Slipstream": "Rüzgâr İzi",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Rüzgâr İzi — Hasar alırken %{0} ihtimalle kısa bir ışınlanmayla hasardan kaçarsın.",
+  "Called": "Silah Başına",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Silah Başına — Öldürmeler %{0} ihtimalle dalga boyunca yanına bir savaşçı çağırır.",
+  "Miring": "Bataklık",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Bataklık — Normal saldırılar %{0} ihtimalle hedefin hızını {1} sn. boyunca yarıya indirir."
+}

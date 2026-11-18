@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Toucher funèbre",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Toucher funèbre — Les attaques de base ont {0} % de chances d’empêcher la cible de recevoir des soins pendant {1} s.",
+  "Impatient": "Impatience",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Impatience — Chaque élimination a {0} % de chances de réinitialiser le temps de recharge de votre compétence verte.",
+  "Unspent": "Énergie préservée",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Énergie préservée — Les ultimes ont {0} % de chances de rendre la moitié de l’énergie dépensée.",
+  "Twinned": "Frappe jumelle",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "Frappe jumelle — Les attaques de base ont {0} % de chances de frapper deux fois.",
+  "Fateful": "Destin",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Destin — Chaque attaque a {0} % de chances d’être un coup critique garanti.",
+  "Slipstream": "Sillage",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Sillage — En subissant des dégâts, vous avez {0} % de chances de les esquiver par une brève téléportation.",
+  "Called": "Appel aux armes",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Appel aux armes — Chaque élimination a {0} % de chances d’invoquer un guerrier allié pour la vague.",
+  "Miring": "Bourbier",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Bourbier — Les attaques de base ont {0} % de chances de diviser par deux la vitesse de la cible pendant {1} s."
+}

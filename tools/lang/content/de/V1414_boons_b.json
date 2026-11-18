@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Grabesberührung",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Grabesberührung — Normale Angriffe verhindern mit {0} % Wahrscheinlichkeit für {1} Sek., dass das Ziel geheilt wird.",
+  "Impatient": "Ungeduld",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Ungeduld — Jede Eliminierung setzt mit {0} % Wahrscheinlichkeit die Abklingzeit deiner grünen Fähigkeit zurück.",
+  "Unspent": "Energiereserve",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Energiereserve — Ultimative Fähigkeiten erstatten mit {0} % Wahrscheinlichkeit die Hälfte ihrer Energiekosten.",
+  "Twinned": "Doppelschlag",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "Doppelschlag — Normale Angriffe treffen mit {0} % Wahrscheinlichkeit zweimal.",
+  "Fateful": "Schicksal",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Schicksal — Jeder Angriff wird mit {0} % Wahrscheinlichkeit zu einem garantierten kritischen Treffer.",
+  "Slipstream": "Windschatten",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Windschatten — Bei erlittenem Schaden weichst du ihm mit {0} % Wahrscheinlichkeit durch einen kurzen Teleport aus.",
+  "Called": "Waffenruf",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Waffenruf — Jede Eliminierung beschwört mit {0} % Wahrscheinlichkeit für diese Welle einen verbündeten Krieger.",
+  "Miring": "Morast",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Morast — Normale Angriffe halbieren mit {0} % Wahrscheinlichkeit für {1} Sek. das Tempo des Ziels."
+}

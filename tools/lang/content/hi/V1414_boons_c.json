@@ -1,0 +1,17 @@
+{
+  "Kindling": "चिंगारी",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "चिंगारी — सामान्य हमलों से {0}% संभावना पर लक्ष्य जलने लगता है।",
+  "Bulwarked": "गढ़",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "गढ़ — वार रोकने या झेलने पर {0}% संभावना से {1} शक्ति की ढाल बनती है।",
+  "Merciful": "दया",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "दया — हर वध पर {0}% संभावना से आपकी राह में सबसे कम स्वास्थ्य वाले नायक को {1} स्वास्थ्य मिलता है।",
+  "Goading": "उकसावा",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "उकसावा — सामान्य हमलों से {0}% संभावना पर लक्ष्य {1} सेकंड तक आप पर हमला करने के लिए मजबूर होता है।",
+  "Lulling": "लोरी",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "लोरी — सामान्य हमलों से {0}% संभावना पर लक्ष्य अगला वार लगने तक सो जाता है।",
+  "Rising": "उभार",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "उभार — हर वध पर {0}% संभावना से {1} ऊर्जा मिलती है।",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "रक्तपिपासा — हर वध आपकी सभी प्रतीक्षा अवधियाँ {0} सेकंड घटाता है।",
+  "Unburdened": "भारमुक्त",
+  "Unburdened — Ultimates cost {0}% less energy.": "भारमुक्त — परम क्षमताओं में {0}% कम ऊर्जा लगती है।"
+}

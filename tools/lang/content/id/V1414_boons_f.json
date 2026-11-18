@@ -1,0 +1,21 @@
+{
+  "Relentless": "Tanpa Henti",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Tanpa Henti — Kecepatan serangan bertambah {0}% untuk setiap musuh yang terbunuh pada gelombang ini. Direset setiap gelombang.",
+  "Drumbeat": "Tabuh Genderang",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Tabuh Genderang — Kerusakan bertambah {0}% untuk setiap serangan yang mengenai target pada gelombang ini, hingga sepuluh serangan.",
+  "Slow Burn": "Bara Lambat",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Bara Lambat — Kerusakan bertambah {0}% setiap {1} detik sejak gelombang dimulai.",
+  "Grudge": "Dendam",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Dendam — Kerusakan bertambah {0}% untuk setiap {1}% HP yang hilang.",
+  "Rhythm": "Irama",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Irama — Setiap penggunaan kemampuan berturut-turut tanpa serangan dasar menambah daya kemampuan {0}%. Serangan dasar mereset efeknya.",
+  "Veteran": "Veteran",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Veteran — Bonus {0}% untuk semuanya per gelombang yang sudah diselesaikan jalur ini.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Pertahanan Terakhir — Bonus {0}% untuk semuanya per sekutu yang gugur di jalur ini.",
+  "Warband": "Pasukan Perang",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Pasukan Perang — Bonus {0}% untuk semuanya per sekutu yang masih bertahan di sisimu.",
+  "Accreting": "Penumpukan",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Penumpukan — Setiap musuh yang terbunuh meninggalkan perisai senilai {0} yang tidak kedaluwarsa.",
+  "Sharpening": "Pengasahan",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Pengasahan — Setiap serangan yang tidak kritis menaikkan peluang kritis {0}%. Serangan kritis mereset efeknya."
+}

@@ -1,0 +1,15 @@
+{
+  "Ironhide — +{0} maximum health, and you heal that much now.": "铁皮 — 生命值上限提高{0}点，并立即恢复等量生命值。",
+  "Mending": "再生",
+  "Mending — +{0} health a second, forever.": "再生 — 持续每秒恢复{0}点生命值。",
+  "Focus": "专注",
+  "Focus — +{0} energy a second, forever.": "专注 — 持续每秒恢复{0}点能量。",
+  "Siphoning": "虹吸",
+  "Siphoning — {0}% of all damage you deal comes back as health.": "虹吸 — 将造成的全部伤害的{0}%转化为自身生命值。",
+  "Quickened": "迅捷",
+  "Quickened — +{0}% attack speed, and it never stops.": "迅捷 — 攻击速度持续提高{0}%。",
+  "Warded": "庇护",
+  "Warded — {0}% of incoming damage turned aside.": "庇护 — 抵消受到的伤害的{0}%。",
+  "Practised": "熟练",
+  "Practised — +{0} to every ability level.": "熟练 — 所有技能的等级提高{0}级。"
+}

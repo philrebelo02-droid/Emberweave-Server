@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.8.6", "date": "17 November 2026", "time": "22:30 EST", "title": "Translations", "items": ["More translations: Bonus Stages boons and results, monster skills and passives in the Glossary, Vault boss rules, battle labels and error messages."]},
     {"ver": "1.8.5", "date": "17 November 2026", "time": "21:30 EST", "title": "Translations", "items": ["The Forge is fully translated: item names, materials, components, labels and messages, plus more World Map and menu text."]},
     {"ver": "1.8.4", "date": "17 November 2026", "time": "21:00 EST", "title": "Campaign balance", "items": ["Campaign stages are rebalanced for the longer battles: a team at the stage's level can now clear every chapter. No stage got harder.", "Game updates now wait until you have claimed your rewards and are back on the main screen."]},
     {"ver": "1.8.3", "date": "17 November 2026", "time": "20:15 EST", "title": "Translations", "items": ["All 84 gear active skills and their effects are translated into all 15 languages.", "Patch notes now always arrive in your language as soon as they are released."]},

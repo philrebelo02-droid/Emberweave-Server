@@ -1,0 +1,16 @@
+{
+  "Rested": "休息",
+  "Rested — Everyone on this road starts each wave at full health.": "休息 — このレーンの全員は各ウェーブをHP満タンで開始する。",
+  "Foresight": "先見",
+  "Foresight — You see every remaining wave on this road, not just the next.": "先見 — このレーンでは、次のウェーブを含む残りの全ウェーブが見える。",
+  "First Blood": "先制の一撃",
+  "First Blood — The first hit of every wave is a guaranteed critical for everyone on this road.": "先制の一撃 — このレーンの全員は、各ウェーブの最初の命中が確定クリティカルになる。",
+  "Everlasting": "永続",
+  "Everlasting — Your summons never die — not to the timer, not with their summoner, not at the end of a wave. They fight at {0}% power, forever.": "永続 — 召喚されたユニットは時間切れ、召喚者の死亡、ウェーブ終了でも消えない。以後ずっと{0}%の力で戦う。",
+  "Crowned": "戴冠",
+  "Crowned — Every hero starts every wave with a full ultimate, free.": "戴冠 — 全ヒーローは各ウェーブを必殺技が完全にチャージされた状態で開始し、コストなしで使える。",
+  "Headlong": "全速前進",
+  "Headlong — This road fights at double speed. So does everything on it.": "全速前進 — このレーンの戦闘は、そこにいるすべてのユニットに対して倍速で進む。",
+  "Inheritance": "継承",
+  "Inheritance — When a hero falls, every boon it was carrying passes to whoever is nearest.": "継承 — ヒーローが倒れると、そのヒーローの加護すべてが最も近くにいる者へ引き継がれる。"
+}

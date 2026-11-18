@@ -1,0 +1,17 @@
+{
+  "Kindling": "Scintilla",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "Scintilla — Gli attacchi base hanno il {0}% di probabilità di incendiare il bersaglio.",
+  "Bulwarked": "Baluardo",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "Baluardo — Quando blocchi o subisci un colpo, hai il {0}% di probabilità di generare uno scudo da {1} punti.",
+  "Merciful": "Misericordia",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "Misericordia — Ogni uccisione ha il {0}% di probabilità di curare di {1} punti l’eroe con meno salute nella tua corsia.",
+  "Goading": "Provocazione",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "Provocazione — Gli attacchi base hanno il {0}% di probabilità di costringere il bersaglio ad attaccarti per {1} s.",
+  "Lulling": "Ninnananna",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "Ninnananna — Gli attacchi base hanno il {0}% di probabilità di addormentare il bersaglio finché non viene colpito di nuovo.",
+  "Rising": "Ascesa",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "Ascesa — Ogni uccisione ha il {0}% di probabilità di conferire {1} energia.",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "Sete di sangue — Ogni uccisione riduce tutti i tuoi tempi di ricarica di {0} s.",
+  "Unburdened": "Senza fardello",
+  "Unburdened — Ultimates cost {0}% less energy.": "Senza fardello — Le supreme consumano il {0}% di energia in meno."
+}

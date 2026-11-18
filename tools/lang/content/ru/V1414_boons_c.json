@@ -1,0 +1,17 @@
+{
+  "Kindling": "Розжиг",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "Розжиг — Обычные атаки с вероятностью {0}% поджигают цель.",
+  "Bulwarked": "Бастион",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "Бастион — При блокировании или получении удара с вероятностью {0}% появляется щит прочностью {1}.",
+  "Merciful": "Милосердие",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "Милосердие — Каждое убийство с вероятностью {0}% восстанавливает {1} ед. здоровья герою на вашем пути с наименьшим запасом здоровья.",
+  "Goading": "Провокация",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "Провокация — Обычные атаки с вероятностью {0}% вынуждают цель атаковать вас в течение {1} сек.",
+  "Lulling": "Колыбельная",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "Колыбельная — Обычные атаки с вероятностью {0}% усыпляют цель до следующего попадания по ней.",
+  "Rising": "Подъём",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "Подъём — Каждое убийство с вероятностью {0}% даёт {1} ед. энергии.",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "Жажда крови — Каждое убийство сокращает время перезарядки всех ваших умений на {0} сек.",
+  "Unburdened": "Без груза",
+  "Unburdened — Ultimates cost {0}% less energy.": "Без груза — Суперумения тратят на {0}% меньше энергии."
+}

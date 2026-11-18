@@ -1,0 +1,12 @@
+{
+  "tables": [
+    {
+      "expr": "MONSTER_PASSIVE_NAMES",
+      "area": "monster_passive"
+    },
+    {
+      "expr": "MONSTER_BROADSIDE_DESC",
+      "area": "monster_passive"
+    }
+  ]
+}

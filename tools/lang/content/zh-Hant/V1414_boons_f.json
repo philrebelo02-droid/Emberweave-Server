@@ -1,0 +1,21 @@
+{
+  "Relentless": "不懈",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "不懈 — 本波每擊殺一名敵人，攻擊速度提高{0}%。每波重置。",
+  "Drumbeat": "鼓點",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "鼓點 — 本波每次攻擊命中使傷害提高{0}%，最多累計十次。",
+  "Slow Burn": "慢燃",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "慢燃 — 本波每經過{1}秒，傷害提高{0}%。",
+  "Grudge": "怨恨",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "怨恨 — 每損失{1}%生命值，傷害提高{0}%。",
+  "Rhythm": "節奏",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "節奏 — 不穿插普通攻擊而連續施放技能時，每次施放使技能強度提高{0}%。普通攻擊會重置效果。",
+  "Veteran": "老兵",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "老兵 — 這條路線每已通過一波，所有能力提高{0}%。",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "背水一戰 — 這條路線每有一名友軍倒下，所有能力提高{0}%。",
+  "Warband": "戰團",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "戰團 — 身邊每有一名存活的友軍，所有能力提高{0}%。",
+  "Accreting": "積聚",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "積聚 — 每擊殺一名敵人都會留下一面可吸收{0}點傷害且不會到期的護盾。",
+  "Sharpening": "磨礪",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "磨礪 — 每次攻擊未暴擊時，暴擊率提高{0}%。暴擊時重置。"
+}

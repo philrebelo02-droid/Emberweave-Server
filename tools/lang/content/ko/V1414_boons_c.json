@@ -1,0 +1,17 @@
+{
+  "Kindling": "불씨",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "불씨 — 기본 공격이 {0}% 확률로 대상에게 화상을 입힙니다.",
+  "Bulwarked": "보루",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "보루 — 공격을 막거나 맞으면 {0}% 확률로 내구도 {1}의 보호막을 얻습니다.",
+  "Merciful": "자비",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "자비 — 적을 처치할 때마다 {0}% 확률로 같은 길에 있는 영웅 중 체력이 가장 낮은 영웅의 체력을 {1} 회복합니다.",
+  "Goading": "도발",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "도발 — 기본 공격이 {0}% 확률로 대상이 {1}초 동안 자신을 공격하게 합니다.",
+  "Lulling": "자장가",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "자장가 — 기본 공격이 {0}% 확률로 대상을 다음 공격에 맞을 때까지 잠들게 합니다.",
+  "Rising": "상승",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "상승 — 적을 처치할 때마다 {0}% 확률로 에너지 {1}을 얻습니다.",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "피의 갈증 — 적을 처치할 때마다 자신의 모든 재사용 대기시간이 {0}초 줄어듭니다.",
+  "Unburdened": "가벼운 짐",
+  "Unburdened — Ultimates cost {0}% less energy.": "가벼운 짐 — 궁극기의 에너지 소모량이 {0}% 줄어듭니다."
+}

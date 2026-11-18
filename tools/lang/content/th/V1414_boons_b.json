@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "สัมผัสแห่งสุสาน",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "สัมผัสแห่งสุสาน — การโจมตีปกติมีโอกาส {0}% ทำให้เป้าหมายรับการรักษาไม่ได้ {1} วินาที",
+  "Impatient": "ใจร้อน",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "ใจร้อน — ทุกการสังหารมีโอกาส {0}% รีเซ็ตคูลดาวน์สกิลสีเขียวของคุณ",
+  "Unspent": "พลังที่เก็บไว้",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "พลังที่เก็บไว้ — ท่าไม้ตายมีโอกาส {0}% คืนพลังงานที่ใช้ไปครึ่งหนึ่ง",
+  "Twinned": "จู่โจมคู่",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "จู่โจมคู่ — การโจมตีปกติมีโอกาส {0}% โจมตีสองครั้ง",
+  "Fateful": "ลิขิต",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "ลิขิต — การโจมตีแต่ละครั้งมีโอกาส {0}% กลายเป็นคริติคอลที่รับประกัน",
+  "Slipstream": "กระแสลม",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "กระแสลม — เมื่อได้รับความเสียหาย มีโอกาส {0}% เคลื่อนย้ายฉับพลันเพื่อหลบความเสียหายนั้น",
+  "Called": "เสียงเรียกสู่ศึก",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "เสียงเรียกสู่ศึก — การสังหารมีโอกาส {0}% อัญเชิญนักรบฝ่ายคุณมาช่วยตลอดระลอกนั้น",
+  "Miring": "ตมหนืด",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "ตมหนืด — การโจมตีปกติมีโอกาส {0}% ลดความเร็วของเป้าหมายลงครึ่งหนึ่งเป็นเวลา {1} วินาที"
+}

@@ -1,0 +1,17 @@
+{
+  "Kindling": "引火",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "引火 — 普通攻擊有{0}%機率使目標燃燒。",
+  "Bulwarked": "壁壘",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "壁壘 — 格擋或受到攻擊時，有{0}%機率獲得可吸收{1}點傷害的護盾。",
+  "Merciful": "仁慈",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "仁慈 — 每次擊殺有{0}%機率為你所在路線上生命值最低的英雄恢復{1}點生命值。",
+  "Goading": "挑釁",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "挑釁 — 普通攻擊有{0}%機率迫使目標攻擊你，持續{1}秒。",
+  "Lulling": "安眠",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "安眠 — 普通攻擊有{0}%機率使目標沉睡，直至再次受到攻擊。",
+  "Rising": "上升",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "上升 — 每次擊殺有{0}%機率獲得{1}點能量。",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "嗜血 — 每次擊殺使你的所有冷卻時間縮短{0}秒。",
+  "Unburdened": "輕裝",
+  "Unburdened — Ultimates cost {0}% less energy.": "輕裝 — 終極技能的能量消耗降低{0}%。"
+}

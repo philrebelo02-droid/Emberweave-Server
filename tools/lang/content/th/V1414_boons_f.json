@@ -1,0 +1,21 @@
+{
+  "Relentless": "ไม่หยุดยั้ง",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "ไม่หยุดยั้ง — ความเร็วโจมตีเพิ่ม {0}% ต่อศัตรูที่ถูกสังหารในระลอกนี้ รีเซ็ตทุกระลอก",
+  "Drumbeat": "เสียงกลองศึก",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "เสียงกลองศึก — ความเสียหายเพิ่ม {0}% ต่อการโจมตีที่โดนในระลอกนี้ สูงสุดสิบครั้ง",
+  "Slow Burn": "ไฟคุกรุ่น",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "ไฟคุกรุ่น — ความเสียหายเพิ่ม {0}% ทุก {1} วินาทีที่ผ่านไปตั้งแต่เริ่มระลอก",
+  "Grudge": "ความแค้น",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "ความแค้น — ความเสียหายเพิ่ม {0}% ต่อพลังชีวิตที่หายไปทุก {1}%",
+  "Rhythm": "จังหวะ",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "จังหวะ — การใช้สกิลต่อเนื่องแต่ละครั้งโดยไม่โจมตีปกติจะเพิ่มพลังสกิล {0}% ผลจะรีเซ็ตเมื่อโจมตีปกติ",
+  "Veteran": "ทหารผ่านศึก",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "ทหารผ่านศึก — ได้โบนัส {0}% ทุกด้านต่อระลอกที่เส้นทางนี้ผ่านแล้ว",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "ยืนหยัดครั้งสุดท้าย — ได้โบนัส {0}% ทุกด้านต่อพันธมิตรที่ล้มลงในเส้นทางนี้",
+  "Warband": "กองรบ",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "กองรบ — ได้โบนัส {0}% ทุกด้านต่อพันธมิตรที่ยังยืนหยัดเคียงข้างคุณ",
+  "Accreting": "สะสม",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "สะสม — ศัตรูแต่ละตัวที่ถูกสังหารจะทิ้งโล่ค่า {0} ที่ไม่มีวันหมดอายุ",
+  "Sharpening": "ลับคม",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "ลับคม — ทุกครั้งที่ไม่ติดคริติคอล โอกาสคริติคอลจะเพิ่ม {0}% ผลจะรีเซ็ตเมื่อติดคริติคอล"
+}

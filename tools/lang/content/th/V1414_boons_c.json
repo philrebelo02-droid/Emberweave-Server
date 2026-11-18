@@ -1,0 +1,17 @@
+{
+  "Kindling": "เชื้อไฟ",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "เชื้อไฟ — การโจมตีปกติมีโอกาส {0}% ทำให้เป้าหมายติดไฟ",
+  "Bulwarked": "ปราการ",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "ปราการ — เมื่อบล็อกหรือถูกโจมตี มีโอกาส {0}% สร้างโล่ที่รับความเสียหายได้ {1}",
+  "Merciful": "เมตตา",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "เมตตา — ทุกการสังหารมีโอกาส {0}% ฟื้นพลังชีวิต {1} หน่วยให้ฮีโร่ที่มีพลังชีวิตต่ำสุดในเส้นทางของคุณ",
+  "Goading": "ยั่วยุ",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "ยั่วยุ — การโจมตีปกติมีโอกาส {0}% บังคับให้เป้าหมายโจมตีคุณเป็นเวลา {1} วินาที",
+  "Lulling": "เพลงกล่อม",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "เพลงกล่อม — การโจมตีปกติมีโอกาส {0}% ทำให้เป้าหมายหลับจนกว่าจะถูกโจมตีอีกครั้ง",
+  "Rising": "ผงาด",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "ผงาด — ทุกการสังหารมีโอกาส {0}% ได้รับพลังงาน {1} หน่วย",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "กระหายเลือด — ทุกการสังหารลดคูลดาวน์ทั้งหมดของคุณลง {0} วินาที",
+  "Unburdened": "ไร้ภาระ",
+  "Unburdened — Ultimates cost {0}% less energy.": "ไร้ภาระ — ท่าไม้ตายใช้พลังงานน้อยลง {0}%"
+}

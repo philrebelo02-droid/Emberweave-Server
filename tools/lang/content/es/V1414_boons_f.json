@@ -1,0 +1,21 @@
+{
+  "Relentless": "Implacable",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Implacable — Ganas un {0} % de velocidad de ataque por cada enemigo abatido en esta oleada. Se reinicia en cada oleada.",
+  "Drumbeat": "Redoble",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Redoble — Ganas un {0} % de daño por cada ataque que aciertes en esta oleada, hasta diez aciertos.",
+  "Slow Burn": "Fuego lento",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Fuego lento — Ganas un {0} % de daño por cada {1} s transcurridos de la oleada.",
+  "Grudge": "Rencor",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Rencor — Ganas un {0} % de daño por cada {1} % de salud que te falte.",
+  "Rhythm": "Ritmo",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Ritmo — Cada habilidad consecutiva sin ataques básicos añade un {0} % de poder de habilidad. Un ataque básico reinicia el efecto.",
+  "Veteran": "Veterano",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Veterano — Ganas un {0} % en todo por cada oleada que este carril ya haya superado.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Última resistencia — Ganas un {0} % en todo por cada aliado caído en este carril.",
+  "Warband": "Banda de guerra",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Banda de guerra — Ganas un {0} % en todo por cada aliado que siga en pie a tu lado.",
+  "Accreting": "Acumulación",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Acumulación — Cada enemigo abatido deja un escudo de {0} puntos que no caduca.",
+  "Sharpening": "Afilado",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Afilado — Ganas un {0} % de probabilidad de crítico con cada golpe que no sea crítico. Se reinicia al lograr uno."
+}

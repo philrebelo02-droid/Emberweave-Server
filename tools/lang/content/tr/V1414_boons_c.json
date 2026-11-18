@@ -1,0 +1,17 @@
+{
+  "Kindling": "Kıvılcım",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "Kıvılcım — Normal saldırılar %{0} ihtimalle hedefi ateşe verir.",
+  "Bulwarked": "Siper",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "Siper — Bir darbeyi engellediğinde veya darbe aldığında %{0} ihtimalle {1} değerinde kalkan kazanırsın.",
+  "Merciful": "Merhamet",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "Merhamet — Her öldürme %{0} ihtimalle koridorundaki canı en düşük kahramanı {1} can iyileştirir.",
+  "Goading": "Kışkırtma",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "Kışkırtma — Normal saldırılar %{0} ihtimalle hedefi {1} sn. boyunca sana saldırmaya zorlar.",
+  "Lulling": "Ninni",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "Ninni — Normal saldırılar %{0} ihtimalle hedefi tekrar darbe alana kadar uyutur.",
+  "Rising": "Yükseliş",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "Yükseliş — Her öldürme %{0} ihtimalle {1} enerji verir.",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "Kana Susamışlık — Her öldürme tüm bekleme sürelerini {0} sn. kısaltır.",
+  "Unburdened": "Yüksüz",
+  "Unburdened — Ultimates cost {0}% less energy.": "Yüksüz — Ulti yetenekleri %{0} daha az enerji harcar."
+}

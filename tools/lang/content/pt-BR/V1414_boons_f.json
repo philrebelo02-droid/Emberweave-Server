@@ -1,0 +1,21 @@
+{
+  "Relentless": "Implacável",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Implacável — Ganhe {0}% de velocidade de ataque por inimigo abatido nesta onda. Reinicia a cada onda.",
+  "Drumbeat": "Rufar dos tambores",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Rufar dos tambores — Ganhe {0}% de dano por ataque que acertar nesta onda, até dez acertos.",
+  "Slow Burn": "Fogo lento",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Fogo lento — Ganhe {0}% de dano a cada {1} s desde o início da onda.",
+  "Grudge": "Rancor",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Rancor — Ganhe {0}% de dano para cada {1}% de vida que estiver faltando.",
+  "Rhythm": "Ritmo",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Ritmo — Cada habilidade usada em sequência sem ataques básicos concede {0}% de poder de habilidade. Um ataque básico reinicia o efeito.",
+  "Veteran": "Veterano",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Veterano — Ganhe {0}% em tudo por onda que esta rota já concluiu.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Última Resistência — Ganhe {0}% em tudo por aliado abatido nesta rota.",
+  "Warband": "Bando de guerra",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Bando de guerra — Ganhe {0}% em tudo por aliado que ainda estiver de pé ao seu lado.",
+  "Accreting": "Acúmulo",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Acúmulo — Cada inimigo abatido deixa um escudo de {0} pontos que não expira.",
+  "Sharpening": "Afiação",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Afiação — Cada acerto que não for crítico aumenta a chance de crítico em {0}%. Um crítico reinicia o efeito."
+}

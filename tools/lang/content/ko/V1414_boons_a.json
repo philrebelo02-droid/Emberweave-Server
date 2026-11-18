@@ -1,0 +1,10 @@
+{
+  "Concussive": "충격",
+  "Concussive — Auto attacks have a {0}% chance to stun for {1} second.": "충격 — 기본 공격이 {0}% 확률로 대상을 {1}초 동안 기절시킵니다.",
+  "Hoarfrost": "서리",
+  "Hoarfrost — Auto attacks have a {0}% chance to freeze for {1} seconds.": "서리 — 기본 공격이 {0}% 확률로 대상을 {1}초 동안 빙결시킵니다.",
+  "Harrowing": "공포",
+  "Harrowing — Auto attacks have a {0}% chance to send the target fleeing.": "공포 — 기본 공격이 {0}% 확률로 대상을 도망치게 합니다.",
+  "Hushing": "침묵",
+  "Hushing — Casts have a {0}% chance to silence what they hit for {1} seconds.": "침묵 — 스킬이 적중한 대상을 {0}% 확률로 {1}초 동안 침묵시킵니다."
+}

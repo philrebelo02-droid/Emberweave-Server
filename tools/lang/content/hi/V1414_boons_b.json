@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "कब्र का स्पर्श",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "कब्र का स्पर्श — सामान्य हमलों से {0}% संभावना पर लक्ष्य {1} सेकंड तक उपचार नहीं पा सकता।",
+  "Impatient": "अधीरता",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "अधीरता — हर वध पर आपकी हरी क्षमता की प्रतीक्षा अवधि रीसेट होने की {0}% संभावना है।",
+  "Unspent": "बची हुई ऊर्जा",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "बची हुई ऊर्जा — परम क्षमताओं से खर्च हुई आधी ऊर्जा वापस मिलने की {0}% संभावना है।",
+  "Twinned": "जुड़वाँ वार",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "जुड़वाँ वार — सामान्य हमलों के दो बार लगने की {0}% संभावना है।",
+  "Fateful": "नियति",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "नियति — हर हमले के निश्चित क्रिटिकल प्रहार बनने की {0}% संभावना है।",
+  "Slipstream": "वेगधारा",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "वेगधारा — क्षति मिलने पर तुरंत जगह बदलकर उससे बचने की {0}% संभावना है।",
+  "Called": "युद्ध का आह्वान",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "युद्ध का आह्वान — हर वध पर उस लहर के लिए एक सहयोगी योद्धा बुलाने की {0}% संभावना है।",
+  "Miring": "दलदल",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "दलदल — सामान्य हमलों से {0}% संभावना पर लक्ष्य की गति {1} सेकंड के लिए आधी हो जाती है।"
+}

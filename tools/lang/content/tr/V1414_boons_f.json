@@ -1,0 +1,21 @@
+{
+  "Relentless": "Amansız",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Amansız — Bu dalgada öldürülen her düşman için saldırı hızın %{0} artar. Her dalgada sıfırlanır.",
+  "Drumbeat": "Davul Sesi",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Davul Sesi — Bu dalgada isabet eden her saldırı için hasarın %{0} artar. En fazla on isabet sayılır.",
+  "Slow Burn": "İçin İçin",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "İçin İçin — Dalganın başından beri geçen her {1} sn. için hasarın %{0} artar.",
+  "Grudge": "Kin",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Kin — Eksik canının her %{1}’i için hasarın %{0} artar.",
+  "Rhythm": "Ritim",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Ritim — Arada normal saldırı yapmadan art arda kullandığın her yetenek, yetenek gücünü %{0} artırır. Normal saldırı etkiyi sıfırlar.",
+  "Veteran": "Kıdemli",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Kıdemli — Bu koridorun tamamladığı her dalga için her şeye %{0} bonus alırsın.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Son Direniş — Bu koridorda düşen her müttefik için her şeye %{0} bonus alırsın.",
+  "Warband": "Savaş Birliği",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Savaş Birliği — Yanında hâlâ ayakta olan her müttefik için her şeye %{0} bonus alırsın.",
+  "Accreting": "Birikim",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Birikim — Öldürülen her düşman, süresi dolmayan {0} değerinde bir kalkan bırakır.",
+  "Sharpening": "Bileme",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Bileme — Kritik olmayan her vuruş kritik şansını %{0} artırır. Kritik vuruş etkiyi sıfırlar."
+}

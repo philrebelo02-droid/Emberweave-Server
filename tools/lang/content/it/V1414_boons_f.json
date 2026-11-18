@@ -1,0 +1,21 @@
+{
+  "Relentless": "Inesorabile",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Inesorabile — Ottieni il {0}% di velocità d’attacco per ogni nemico ucciso in questa ondata. Si azzera a ogni ondata.",
+  "Drumbeat": "Rullo di tamburi",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Rullo di tamburi — Ottieni il {0}% di danni per ogni attacco a segno in questa ondata, fino a dieci attacchi.",
+  "Slow Burn": "Fuoco lento",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Fuoco lento — Ottieni il {0}% di danni ogni {1} s trascorsi dall’inizio dell’ondata.",
+  "Grudge": "Rancore",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Rancore — Ottieni il {0}% di danni per ogni {1}% di salute mancante.",
+  "Rhythm": "Ritmo",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Ritmo — Ogni abilità consecutiva senza attacchi base aggiunge il {0}% di potenza abilità. Un attacco base azzera l’effetto.",
+  "Veteran": "Veterano",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Veterano — Ottieni un bonus del {0}% a tutto per ogni ondata già superata in questa corsia.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Ultima resistenza — Ottieni un bonus del {0}% a tutto per ogni alleato caduto in questa corsia.",
+  "Warband": "Banda da guerra",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Banda da guerra — Ottieni un bonus del {0}% a tutto per ogni alleato ancora in piedi accanto a te.",
+  "Accreting": "Accumulo",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Accumulo — Ogni nemico ucciso lascia uno scudo da {0} punti che non scade.",
+  "Sharpening": "Affilatura",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Affilatura — Ogni attacco non critico aumenta la probabilità di critico del {0}%. Un colpo critico azzera l’effetto."
+}

@@ -1,0 +1,21 @@
+{
+  "Relentless": "Meedogenloos",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Meedogenloos — Je krijgt {0}% aanvalssnelheid per vijand die deze golf wordt uitgeschakeld. Het effect reset elke golf.",
+  "Drumbeat": "Trommelslag",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Trommelslag — Je krijgt {0}% schade per aanval die deze golf raakt, tot tien treffers.",
+  "Slow Burn": "Smeulend vuur",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Smeulend vuur — Je krijgt {0}% schade per {1} sec. sinds het begin van de golf.",
+  "Grudge": "Wrok",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Wrok — Je krijgt {0}% schade per {1}% ontbrekende gezondheid.",
+  "Rhythm": "Ritme",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Ritme — Elke opeenvolgende vaardigheid zonder gewone aanval verhoogt de vaardigheidskracht met {0}%. Een gewone aanval reset het effect.",
+  "Veteran": "Veteraan",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Veteraan — Je krijgt {0}% op alles per golf die deze baan al heeft voltooid.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Laatste verzet — Je krijgt {0}% op alles per gevallen bondgenoot op deze baan.",
+  "Warband": "Krijgsbende",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Krijgsbende — Je krijgt {0}% op alles per bondgenoot die nog naast je overeind staat.",
+  "Accreting": "Ophoping",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Ophoping — Elke uitgeschakelde vijand laat een schild van {0} punten achter dat niet verloopt.",
+  "Sharpening": "Aanscherping",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Aanscherping — Elke niet-kritieke treffer verhoogt de kritieke kans met {0}%. Een kritieke treffer reset het effect."
+}

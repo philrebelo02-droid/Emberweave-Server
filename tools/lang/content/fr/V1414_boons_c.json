@@ -1,0 +1,17 @@
+{
+  "Kindling": "Braise",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "Braise — Les attaques de base ont {0} % de chances d’enflammer la cible.",
+  "Bulwarked": "Rempart",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "Rempart — En bloquant ou en subissant un coup, vous avez {0} % de chances de créer un bouclier de {1} points.",
+  "Merciful": "Clémence",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "Clémence — Chaque élimination a {0} % de chances de rendre {1} points de vie au héros de votre voie qui en a le moins.",
+  "Goading": "Provocation",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "Provocation — Les attaques de base ont {0} % de chances de forcer la cible à vous attaquer pendant {1} s.",
+  "Lulling": "Berceuse",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "Berceuse — Les attaques de base ont {0} % de chances d’endormir la cible jusqu’au prochain coup qu’elle reçoit.",
+  "Rising": "Élan",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "Élan — Chaque élimination a {0} % de chances d’octroyer {1} points d’énergie.",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "Soif de sang — Chaque élimination réduit tous vos temps de recharge de {0} s.",
+  "Unburdened": "Sans entrave",
+  "Unburdened — Ultimates cost {0}% less energy.": "Sans entrave — Les ultimes coûtent {0} % d’énergie en moins."
+}

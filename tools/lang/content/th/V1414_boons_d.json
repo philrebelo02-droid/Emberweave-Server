@@ -1,0 +1,18 @@
+{
+  "Momentum": "แรงส่ง",
+  "Momentum — A critical hit makes your next attack a critical too.": "แรงส่ง — หลังโจมตีติดคริติคอล การโจมตีครั้งถัดไปจะติดคริติคอลด้วย",
+  "Pyre": "กองเพลิง",
+  "Pyre — Enemies you kill explode for {0} to everything near them.": "กองเพลิง — ศัตรูที่คุณสังหารจะระเบิด สร้างความเสียหาย {0} แก่ทุกสิ่งที่อยู่ใกล้",
+  "Opening Gambit": "กลเปิดศึก",
+  "Opening Gambit — The first cast of every wave costs nothing.": "กลเปิดศึก — การใช้สกิลครั้งแรกในแต่ละระลอกไม่มีค่าใช้จ่าย",
+  "Defiant": "ไม่ยอมจำนน",
+  "Defiant — Below a quarter health you cannot be stunned, frozen or feared.": "ไม่ยอมจำนน — เมื่อพลังชีวิตต่ำกว่าหนึ่งในสี่ คุณจะต้านทานอาการมึนงง แช่แข็ง และหวาดกลัวได้ทั้งหมด",
+  "Aegis": "โล่พิทักษ์",
+  "Aegis — Healing above full health becomes a shield instead of being wasted.": "โล่พิทักษ์ — การรักษาที่เกินพลังชีวิตสูงสุดจะเปลี่ยนเป็นโล่",
+  "Vengeance": "ล้างแค้น",
+  "Vengeance — When a hero on your road falls, everyone left gets a free ultimate.": "ล้างแค้น — เมื่อฮีโร่ในเส้นทางของคุณล้มลง ผู้รอดชีวิตทุกคนจะได้ใช้ท่าไม้ตายโดยไม่เสียค่าใช้จ่าย",
+  "Withering": "เหี่ยวเฉา",
+  "Withering — Enemies on this road cannot be healed at all.": "เหี่ยวเฉา — ศัตรูในเส้นทางนี้รับการรักษาไม่ได้เลย",
+  "Fluent": "คล่องแคล่ว",
+  "Fluent — Every cast makes your next cast {0}% faster. Resets when you auto attack.": "คล่องแคล่ว — การใช้สกิลแต่ละครั้งทำให้ใช้สกิลครั้งถัดไปได้เร็วขึ้น {0}% ผลจะรีเซ็ตเมื่อโจมตีปกติ"
+}

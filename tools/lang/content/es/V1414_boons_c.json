@@ -1,0 +1,17 @@
+{
+  "Kindling": "Yesca",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "Yesca — Los ataques básicos tienen un {0} % de probabilidad de prender fuego al objetivo.",
+  "Bulwarked": "Baluarte",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "Baluarte — Al bloquear o recibir un golpe, tienes un {0} % de probabilidad de generar un escudo de {1} puntos.",
+  "Merciful": "Clemencia",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "Clemencia — Cada baja tiene un {0} % de probabilidad de curar {1} puntos al héroe con menos salud de tu carril.",
+  "Goading": "Provocación",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "Provocación — Los ataques básicos tienen un {0} % de probabilidad de obligar al objetivo a atacarte durante {1} s.",
+  "Lulling": "Arrullo",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "Arrullo — Los ataques básicos tienen un {0} % de probabilidad de dormir al objetivo hasta que vuelva a recibir un golpe.",
+  "Rising": "Ímpetu",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "Ímpetu — Cada baja tiene un {0} % de probabilidad de otorgar {1} de energía.",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "Sed de sangre — Cada baja reduce todos tus tiempos de recarga en {0} s.",
+  "Unburdened": "Sin lastre",
+  "Unburdened — Ultimates cost {0}% less energy.": "Sin lastre — Las definitivas cuestan un {0} % menos de energía."
+}

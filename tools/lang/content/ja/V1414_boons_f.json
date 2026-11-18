@@ -1,0 +1,21 @@
+{
+  "Relentless": "執拗",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "執拗 — このウェーブで倒された敵一体につき、攻撃速度が{0}%上がる。ウェーブごとにリセットされる。",
+  "Drumbeat": "陣太鼓",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "陣太鼓 — このウェーブで攻撃が命中するたびに、与ダメージが{0}%上がる。最大十回まで。",
+  "Slow Burn": "燻る火",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "燻る火 — ウェーブ開始から{1}秒ごとに、与ダメージが{0}%上がる。",
+  "Grudge": "怨念",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "怨念 — 失ったHPの{1}%ごとに、与ダメージが{0}%上がる。",
+  "Rhythm": "律動",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "律動 — 通常攻撃を挟まずにスキルを使うたびに、スキル威力が{0}%上がる。通常攻撃でリセットされる。",
+  "Veteran": "歴戦",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "歴戦 — このレーンですでに突破したウェーブ一つにつき、すべてが{0}%上がる。",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "最後の抵抗 — このレーンで倒れた味方一人につき、すべてが{0}%上がる。",
+  "Warband": "戦団",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "戦団 — そばで生き残っている味方一人につき、すべてが{0}%上がる。",
+  "Accreting": "蓄積",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "蓄積 — 倒された敵は耐久値{0}の時間制限のないシールドを残す。",
+  "Sharpening": "研磨",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "研磨 — クリティカルが出なかった攻撃ごとに、クリティカル率が{0}%上がる。クリティカルが出るとリセットされる。"
+}

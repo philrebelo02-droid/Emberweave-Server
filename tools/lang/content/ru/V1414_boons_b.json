@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Могильное касание",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Могильное касание — Обычные атаки с вероятностью {0}% лишают цель возможности получать лечение на {1} сек.",
+  "Impatient": "Нетерпение",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Нетерпение — Каждое убийство с вероятностью {0}% сбрасывает перезарядку вашего зелёного умения.",
+  "Unspent": "Запас энергии",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Запас энергии — Суперумения с вероятностью {0}% возвращают половину потраченной энергии.",
+  "Twinned": "Двойной удар",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "Двойной удар — Обычные атаки с вероятностью {0}% наносят два удара.",
+  "Fateful": "Предначертание",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Предначертание — Каждая атака с вероятностью {0}% становится гарантированно критической.",
+  "Slipstream": "Скользящий поток",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Скользящий поток — При получении урона есть {0}% шанс избежать его коротким телепортом.",
+  "Called": "Боевой зов",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Боевой зов — Убийства с вероятностью {0}% призывают союзного воина до конца волны.",
+  "Miring": "Трясина",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Трясина — Обычные атаки с вероятностью {0}% снижают скорость цели вдвое на {1} сек."
+}

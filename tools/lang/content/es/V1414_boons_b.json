@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Toque sepulcral",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Toque sepulcral — Los ataques básicos tienen un {0} % de probabilidad de impedir que el objetivo reciba curación durante {1} s.",
+  "Impatient": "Impaciencia",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Impaciencia — Cada baja tiene un {0} % de probabilidad de reiniciar la recarga de tu habilidad verde.",
+  "Unspent": "Energía sobrante",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Energía sobrante — Las definitivas tienen un {0} % de probabilidad de devolver la mitad de la energía consumida.",
+  "Twinned": "Golpe gemelo",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "Golpe gemelo — Los ataques básicos tienen un {0} % de probabilidad de golpear dos veces.",
+  "Fateful": "Destino",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Destino — Cada ataque tiene un {0} % de probabilidad de ser un crítico asegurado.",
+  "Slipstream": "Estela",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Estela — Al recibir daño, tienes un {0} % de probabilidad de esquivarlo con una teletransportación breve.",
+  "Called": "Llamamiento",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Llamamiento — Cada baja tiene un {0} % de probabilidad de invocar a un guerrero aliado durante la oleada.",
+  "Miring": "Ciénaga",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Ciénaga — Los ataques básicos tienen un {0} % de probabilidad de reducir a la mitad la velocidad del objetivo durante {1} s."
+}

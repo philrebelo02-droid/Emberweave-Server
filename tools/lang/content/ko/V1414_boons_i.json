@@ -1,0 +1,15 @@
+{
+  "Ironhide — +{0} maximum health, and you heal that much now.": "철가죽 — 최대 체력이 {0} 증가하고, 즉시 그만큼 체력을 회복합니다.",
+  "Mending": "회복",
+  "Mending — +{0} health a second, forever.": "회복 — 초당 체력을 {0}씩 계속 회복합니다.",
+  "Focus": "집중",
+  "Focus — +{0} energy a second, forever.": "집중 — 초당 에너지를 {0}씩 계속 회복합니다.",
+  "Siphoning": "흡수",
+  "Siphoning — {0}% of all damage you deal comes back as health.": "흡수 — 가한 모든 피해의 {0}%만큼 체력을 회복합니다.",
+  "Quickened": "가속",
+  "Quickened — +{0}% attack speed, and it never stops.": "가속 — 공격 속도가 지속적으로 {0}% 증가합니다.",
+  "Warded": "보호",
+  "Warded — {0}% of incoming damage turned aside.": "보호 — 받는 피해의 {0}%를 막습니다.",
+  "Practised": "숙련",
+  "Practised — +{0} to every ability level.": "숙련 — 모든 스킬 레벨이 {0} 상승합니다."
+}

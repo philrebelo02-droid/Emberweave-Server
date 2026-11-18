@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "Toque sepulcral",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "Toque sepulcral — Ataques básicos têm {0}% de chance de impedir que o alvo receba cura por {1} s.",
+  "Impatient": "Impaciência",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "Impaciência — Cada abate tem {0}% de chance de zerar a recarga da sua habilidade verde.",
+  "Unspent": "Energia poupada",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "Energia poupada — Habilidades supremas têm {0}% de chance de devolver metade da energia gasta.",
+  "Twinned": "Golpe gêmeo",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "Golpe gêmeo — Ataques básicos têm {0}% de chance de acertar duas vezes.",
+  "Fateful": "Destino",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "Destino — Cada ataque tem {0}% de chance de ser um acerto crítico garantido.",
+  "Slipstream": "Esteira",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "Esteira — Ao sofrer dano, você tem {0}% de chance de evitá-lo com um teleporte curto.",
+  "Called": "Convocação",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "Convocação — Cada abate tem {0}% de chance de invocar um guerreiro aliado pela duração da onda.",
+  "Miring": "Atolamento",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "Atolamento — Ataques básicos têm {0}% de chance de reduzir à metade a velocidade do alvo por {1} s."
+}

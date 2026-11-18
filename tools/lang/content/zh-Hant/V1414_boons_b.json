@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "墓地之觸",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "墓地之觸 — 普通攻擊有{0}%機率使目標在{1}秒內無法受到治療。",
+  "Impatient": "急切",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "急切 — 每次擊殺有{0}%機率重置綠色技能的冷卻時間。",
+  "Unspent": "留存",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "留存 — 終極技能有{0}%機率返還一半已消耗的能量。",
+  "Twinned": "雙擊",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "雙擊 — 普通攻擊有{0}%機率命中兩次。",
+  "Fateful": "宿命",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "宿命 — 每次攻擊有{0}%機率必定暴擊。",
+  "Slipstream": "滑流",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "滑流 — 受到傷害時有{0}%機率閃現並避開此次傷害。",
+  "Called": "戰鬥召喚",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "戰鬥召喚 — 擊殺有{0}%機率召喚一名友方戰士，持續至目前波次結束。",
+  "Miring": "泥沼",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "泥沼 — 普通攻擊有{0}%機率使目標速度減半，持續{1}秒。"
+}

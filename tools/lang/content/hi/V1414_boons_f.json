@@ -1,0 +1,21 @@
+{
+  "Relentless": "अथक",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "अथक — इस लहर में मारे गए हर शत्रु पर हमले की गति {0}% बढ़ती है। हर लहर पर रीसेट होता है।",
+  "Drumbeat": "रणभेरी",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "रणभेरी — इस लहर में लगने वाले हर हमले पर क्षति {0}% बढ़ती है, अधिकतम दस हमलों तक।",
+  "Slow Burn": "सुलगती आग",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "सुलगती आग — लहर शुरू होने से बीते हर {1} सेकंड पर क्षति {0}% बढ़ती है।",
+  "Grudge": "वैर",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "वैर — हर {1}% कम स्वास्थ्य पर क्षति {0}% बढ़ती है।",
+  "Rhythm": "लय",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "लय — बिना सामान्य हमला किए लगातार इस्तेमाल की गई हर क्षमता, क्षमता शक्ति {0}% बढ़ाती है। सामान्य हमले पर असर रीसेट होता है।",
+  "Veteran": "अनुभवी",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "अनुभवी — इस राह पर पूरी हो चुकी हर लहर के लिए सभी पर {0}% बोनस मिलता है।",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "अंतिम प्रतिरोध — इस राह में गिरे हर सहयोगी के लिए सभी पर {0}% बोनस मिलता है।",
+  "Warband": "युद्धदल",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "युद्धदल — साथ डटे हर सहयोगी के लिए सभी पर {0}% बोनस मिलता है।",
+  "Accreting": "संचय",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "संचय — मारा गया हर शत्रु {0} शक्ति की ढाल छोड़ता है जिसकी अवधि खत्म नहीं होती।",
+  "Sharpening": "धार",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "धार — हर गैर-क्रिटिकल प्रहार से क्रिटिकल की संभावना {0}% बढ़ती है। क्रिटिकल प्रहार पर असर रीसेट होता है।"
+}

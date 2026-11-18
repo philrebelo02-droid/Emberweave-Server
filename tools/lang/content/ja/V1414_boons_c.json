@@ -1,0 +1,17 @@
+{
+  "Kindling": "火種",
+  "Kindling — Auto attacks have a {0}% chance to set the target burning.": "火種 — 通常攻撃は{0}%の確率で対象を燃焼させる。",
+  "Bulwarked": "堅塁",
+  "Bulwarked — Blocking or taking a hit has a {0}% chance to raise a shield worth {1}.": "堅塁 — 攻撃をブロックするか受けると、{0}%の確率で耐久値{1}のシールドを得る。",
+  "Merciful": "慈悲",
+  "Merciful — Kills have a {0}% chance to heal the lowest hero on your road for {1}.": "慈悲 — 敵を倒すたびに、{0}%の確率で同じレーンのHPが最も低いヒーローのHPを{1}回復する。",
+  "Goading": "挑発",
+  "Goading — Auto attacks have a {0}% chance to force the target onto you for {1} seconds.": "挑発 — 通常攻撃は{0}%の確率で対象に{1}秒間自分を攻撃させる。",
+  "Lulling": "子守歌",
+  "Lulling — Auto attacks have a {0}% chance to put the target to sleep until it is struck again.": "子守歌 — 通常攻撃は{0}%の確率で対象を次に攻撃を受けるまで眠らせる。",
+  "Rising": "上昇",
+  "Rising — Every kill has a {0}% chance to grant {1} energy.": "上昇 — 敵を倒すたびに、{0}%の確率でエネルギーを{1}得る。",
+  "Bloodthirst — Every kill takes {0} seconds off all your cooldowns.": "血の渇き — 敵を倒すたびに、すべてのクールダウンを{0}秒短縮する。",
+  "Unburdened": "身軽",
+  "Unburdened — Ultimates cost {0}% less energy.": "身軽 — 必殺技の消費エネルギーが{0}%減る。"
+}

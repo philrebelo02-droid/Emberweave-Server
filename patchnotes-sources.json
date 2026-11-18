@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.8.6", "releases": "v1416", "items": [{"text": "ChatGPT 17 Nov 20:50-21:5x v1414 bonus-boons a-i, gauntlet-results, player-error-displays, monster-skills a-l, monster-passives, vault-boss-rules a-b, combat-floats a-d (3-way merged onto v1415) (SHIPPED-v1416)"}]},
     {"ver": "1.8.5", "releases": "v1415", "items": [{"text": "ChatGPT 17 Nov 20:31-20:48 v1414 forge-world-and-player-ui + gear components/materials a-d/dynamic labels/error variables/errors patches (base abb6e3866); fixes: gear_dust_cost pattern, gear.component_ via ewT, C_server keys (SHIPPED-v1415)"}]},
     {"ver": "1.8.4", "releases": "v1414", "items": [{"text": "Kimi REBALANCE 17NOV2026 PvE retune (05 - PVE RETUNE PROPOSAL.md), d capped at 1; Phil: \"Clear at level, retune\" / \"if it wont make the game broken do it\". Update timing: Phil \"the reload should wait for the player to completely claim rewards and go to main screen\" (SHIPPED-v1414)"}]},
     {"ver": "1.8.3", "releases": "v1413", "items": [{"text": "ChatGPT 17 Nov 19:18-19:38 v1411-gear-actives e-u; Claude: release notes 1.8.1-1.8.3 translated in all 15 languages + tests/test_patchnotes_translated.js. Phil: \"please make sure patch notes also translate\" (SHIPPED-v1413)"}]},

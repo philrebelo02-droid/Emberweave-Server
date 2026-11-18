@@ -1,0 +1,21 @@
+{
+  "Relentless": "Unerbittlich",
+  "Relentless — +{0}% attack speed for every enemy killed this wave. Resets each wave.": "Unerbittlich — Pro in dieser Welle besiegtem Gegner erhältst du {0} % Angriffstempo. Wird mit jeder Welle zurückgesetzt.",
+  "Drumbeat": "Trommelschlag",
+  "Drumbeat — +{0}% damage for every attack you land this wave, up to ten.": "Trommelschlag — Pro Treffer in dieser Welle erhältst du {0} % Schaden, bis zu zehn Treffer.",
+  "Slow Burn": "Schwelbrand",
+  "Slow Burn — +{0}% damage for every {1} seconds the wave has lasted.": "Schwelbrand — Pro {1} Sek. seit Wellenbeginn erhältst du {0} % Schaden.",
+  "Grudge": "Groll",
+  "Grudge — +{0}% damage for every {1}% health you are missing.": "Groll — Pro {1} % fehlender Gesundheit erhältst du {0} % Schaden.",
+  "Rhythm": "Rhythmus",
+  "Rhythm — Each cast in a row without auto attacking adds {0}% ability power. Resets on an auto.": "Rhythmus — Jede aufeinanderfolgende Fähigkeit ohne normalen Angriff erhöht die Fähigkeitsstärke um {0} %. Ein normaler Angriff setzt den Effekt zurück.",
+  "Veteran": "Veteran",
+  "Veteran — +{0}% to everything for every wave this road has already cleared.": "Veteran — Für jede bereits auf dieser Spur abgeschlossene Welle erhältst du {0} % auf alles.",
+  "Last Stand — +{0}% to everything for each ally on this road who has fallen.": "Letztes Aufgebot — Für jeden gefallenen Verbündeten auf dieser Spur erhältst du {0} % auf alles.",
+  "Warband": "Kriegerschar",
+  "Warband — +{0}% to everything for each ally still standing beside you.": "Kriegerschar — Für jeden Verbündeten, der noch an deiner Seite steht, erhältst du {0} % auf alles.",
+  "Accreting": "Anhäufung",
+  "Accreting — Every enemy killed leaves a {0} shield that does not expire.": "Anhäufung — Jeder besiegte Gegner hinterlässt einen Schild im Wert von {0}, der nicht abläuft.",
+  "Sharpening": "Schärfen",
+  "Sharpening — +{0}% critical chance every time you fail to crit. Resets when you do.": "Schärfen — Jeder nichtkritische Treffer erhöht die kritische Trefferchance um {0} %. Ein kritischer Treffer setzt den Effekt zurück."
+}

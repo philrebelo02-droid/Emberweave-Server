@@ -1,0 +1,18 @@
+{
+  "Grave-touched": "묘지의 손길",
+  "Grave-touched — Auto attacks have a {0}% chance to stop the target being healed for {1} seconds.": "묘지의 손길 — 기본 공격이 {0}% 확률로 대상이 {1}초 동안 치유를 받지 못하게 합니다.",
+  "Impatient": "조급함",
+  "Impatient — Every kill has a {0}% chance to refresh your green cooldown.": "조급함 — 적을 처치할 때마다 {0}% 확률로 녹색 스킬의 재사용 대기시간이 초기화됩니다.",
+  "Unspent": "남겨 둔 힘",
+  "Unspent — Ultimates have a {0}% chance to refund half their energy.": "남겨 둔 힘 — 궁극기 사용 시 {0}% 확률로 소모한 에너지의 절반을 돌려받습니다.",
+  "Twinned": "쌍격",
+  "Twinned — Auto attacks have a {0}% chance to strike twice.": "쌍격 — 기본 공격이 {0}% 확률로 두 번 적중합니다.",
+  "Fateful": "숙명",
+  "Fateful — Every attack has a {0}% chance to be a guaranteed critical.": "숙명 — 공격할 때마다 {0}% 확률로 반드시 치명타가 발생합니다.",
+  "Slipstream": "기류",
+  "Slipstream — Taking damage has a {0}% chance to blink you clear of it.": "기류 — 피해를 받을 때 {0}% 확률로 순간이동해 해당 피해를 피합니다.",
+  "Called": "전장의 부름",
+  "Called — Kills have a {0}% chance to call a warrior to your side for the wave.": "전장의 부름 — 적을 처치하면 {0}% 확률로 해당 웨이브 동안 아군 전사를 소환합니다.",
+  "Miring": "수렁",
+  "Miring — Auto attacks have a {0}% chance to halve the target’s speed for {1} seconds.": "수렁 — 기본 공격이 {0}% 확률로 대상의 속도를 {1}초 동안 절반으로 줄입니다."
+}
