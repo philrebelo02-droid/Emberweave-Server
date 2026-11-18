@@ -60,14 +60,14 @@
       const data=hooks.control().state().data;overlay.replaceChildren();
       if(data&&!data.active&&!operation){close();return;}
       const card=el('section');card.style.cssText='background:#141b2b;color:#eee;border:1px solid #33405e;border-radius:14px;padding:14px;width:92%;max-width:420px;max-height:84vh;overflow:auto';overlay.appendChild(card);
-      const head=el('div');head.style.cssText='display:flex;justify-content:space-between;align-items:center';head.append(el('b',title(siteId)),button('✕',close));card.appendChild(head);
+      const head=el('div');head.style.cssText='display:flex;justify-content:space-between;align-items:center';const dismiss=button('✕',close);dismiss.setAttribute('aria-label',_t('common.close','Close'));head.append(el('b',title(siteId)),dismiss);card.appendChild(head);
       if(error)card.appendChild(el('div',error));
       if(operation){card.appendChild(button(inflight?_t('common.in_progress','Pending'):_t('common.retry','Retry'),()=>submit(operation.kind,operation.payload),inflight));return;}
       if(!data?.active){card.appendChild(el('div',_t('err.world_tree_control_unavailable','Unavailable')));return;}
-      const site=data.sites.find(s=>s.id===siteId);card.appendChild(el('div',site?.holderGuildId?site.holderName:_t('world2.unclaimed','Unclaimed')));
+      const site=data.sites.find(s=>s.id===siteId);card.appendChild(el('div',site?.holderGuildId?(site.holderName||_t('nav.guild','Guild')):_t('world2.unclaimed','Unclaimed')));
       if(selected){
         const grid=el('div');grid.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin:10px 0';card.appendChild(grid);const busy=hooks.cachedBusy();
-        for(const h of hooks.heroes()){const away=busy.has(h.key)||hooks.control().heroes().has(h.key);if(away)selected.delete(h.key);const b=button(h.name+' · '+h.level+(away?' · '+_t('world2.hero_away','Away'):''),()=>{if(selected.has(h.key))selected.delete(h.key);else if(selected.size<5)selected.add(h.key);render();},away);b.dataset.hero=h.key;b.setAttribute('aria-pressed',String(selected.has(h.key)));grid.appendChild(b);}
+        for(const h of hooks.heroes()){const away=busy.has(h.key)||hooks.control().heroes().has(h.key);if(away)selected.delete(h.key);const b=button(h.name+' · '+_t('stage.lv','Lv '+h.level,{n:h.level})+(away?' · '+_t('world2.hero_away','Away'):''),()=>{if(selected.has(h.key))selected.delete(h.key);else if(selected.size<5)selected.add(h.key);render();},away);b.dataset.hero=h.key;b.setAttribute('aria-pressed',String(selected.has(h.key)));grid.appendChild(b);}
         card.append(el('div',selected.size+'/5 · '+hooks.power([...selected])),button(_t('castle.attack','Launch'),()=>submit('start',{siteId,heroIds:[...selected]}),!selected.size));return;
       }
       card.appendChild(button(_t('castle.attack','Launch'),async()=>{const d=await fresh();if(!d?.active||!current())return;await hooks.busy();if(!current())return;selected=new Set();render();},!data.guildId));

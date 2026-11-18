@@ -8049,7 +8049,7 @@ async function api(req,res,url){
     if(p==='/api/glyphs/catalog'){ if(!glyphsEnabledFor(me)) return send(res,404,{error:'disabled'});
       return send(res,200,{ version:GLYPHS.version, ladder:GLYPH_LADDER, ladderMinLevel:GLYPH_MIN_LEVEL, slots:GLYPH_SLOTS, slotFamilies:GLYPH_SLOT_FAMILIES,
         defs:GLYPHS.raw.map(d=>({id:d.id,quality:d.quality,qi:d.qi,strength:d.strength,name:d.name,family:d.family,statFocus:d.statFocus,stats:d.stats,ing:d.ing,recipeText:d.recipeText})),
-        subs:Object.values(GLYPHS.subs) }); }
+        subs:Object.values(GLYPHS.subs), fragmentNames:GLYPHS.fragName }); }
     if(p==='/api/glyphs/state'){
       if(!glyphsEnabledFor(me)) return send(res,200,{enabled:false});
       if(rateLimited(req,'glyphState:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1): the limiter below never covered this read */
@@ -10651,18 +10651,22 @@ async function api(req,res,url){
       const outcomes=march.snaps.map(s=>{ const row=d.u.find(u=>Array.isArray(u)&&u[0]===s.key&&u[1]==='ally');
         return {key:s.key,hp:row&&row[2]?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp}; });
       const injuries=WITCH.applyBattle(w.state,outcomes,march.heroIds);
-      let seized=false, note='', garrisoned=false, sentHome=0;
+      let seized=false, note='', garrisoned=false, sentHome=0; const noteReasons=[];
       const holder=WORLD_SIEGE.holderOf(sieges,site.id), g=me.guildId&&DB.guilds?.[me.guildId];
       // v1237: the line that stays - the squad as the fight left it (a hero the fight killed does not defend)
       const station=()=>{ const rec=sieges.sites[site.id], lines=Array.isArray(rec.garrison)?rec.garrison:[];
-        if(lines.length>=WORLD_SIEGE.garrisonCap(site)){ note=(note?note+' ':'')+'The garrison of '+site.name+' is full - your army marches home.'; return; }
+        if(lines.length>=WORLD_SIEGE.garrisonCap(site)){ note=(note?note+' ':'')+'The garrison of '+site.name+' is full - your army marches home.'; noteReasons.push({kind:'garrison-full'}); return; }
         const snaps=march.snaps.map(s=>{ const o=outcomes.find(x=>x.key===s.key); const hp=o?o.hp:0; return {...s,hp,worldEntryHpCap:hp}; }).filter(s=>s.hp>0);
         rec.garrison=lines.concat([{marchId:march.id,uid:me.id,name:String(me.name||'Player').slice(0,40),heroIds:march.heroIds.slice(),snaps,power:siegeLinePower(me,march.heroIds),arriveAt:march.arriveAt,since:now}]);
         sieges.rev=(sieges.rev|0)+1; march.station=site.id; march.homeAt=now+WORLD_DEFEND_STATION_MS; garrisoned=true; };
       if(won){
-        if(holder&&WORLD_SIEGE.ownedBy(holder,me)){ note=(holder.type==='guild'?'Your guild':'You')+' already held '+site.name+'.'; station(); }
-        else if(holder&&holder.protectedUntil>now) note=site.name+' was taken by '+holder.name+' first - it is protected for '+Math.ceil((holder.protectedUntil-now)/60000)+' more min.';
-        else if(!g) note='Join a guild to take '+site.name+'.';   // v1237: only a guild takes a site (left the guild while marching)
+        if(holder&&WORLD_SIEGE.ownedBy(holder,me)){ note=(holder.type==='guild'?'Your guild':'You')+' already held '+site.name+'.'; noteReasons.push({kind:holder.type==='guild'?'held-guild':'held-own'}); station(); }
+        else if(holder&&holder.protectedUntil>now){
+          const minutes=Math.ceil((holder.protectedUntil-now)/60000);
+          note=site.name+' was taken by '+holder.name+' first - it is protected for '+minutes+' more min.';
+          noteReasons.push({kind:'protected',minutes,holder:holder.name});
+        }
+        else if(!g){ note='Join a guild to take '+site.name+'.'; noteReasons.push({kind:'join-guild'}); }   // v1237: only a guild takes a site (left the guild while marching)
         else {
           /* v1237: the old garrison goes home - each line's march (its owner's account, committed in this same save) turns for home */
           for(const l of (holder&&Array.isArray(holder.garrison)?holder.garrison:[])){ const owner=l.uid===me.id?me:other(l.uid); if(!owner) continue;
@@ -10676,7 +10680,7 @@ async function api(req,res,url){
           owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:true,t:now}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
       march.resolved=true; march.resolvedAt=now;
       const hr=sieges.sites[site.id];
-      march.receipt={ok:true,won,seized,garrisoned,sentHome,note,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),
+      march.receipt={ok:true,won,seized,garrisoned,sentHome,note,noteReasons,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),
         lines:WORLD_SIEGE.garrisonCount(hr),cap:WORLD_SIEGE.garrisonCap(site),homeAt:march.homeAt,defenders:march.defenders||'guards',injuries,
         digestMatch:match,replayIncident:!match&&!otherBuild,otherBuild,playerTruth:true,replay:{seed:march.seed>>>0,snaps:march.snaps,foe:march.foe,engine:march.engine||null},witch:witchView(me,now)};
       delete march.snaps;

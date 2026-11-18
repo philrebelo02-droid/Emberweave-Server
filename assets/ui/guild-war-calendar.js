@@ -34,6 +34,6 @@
     const n=((d-FIRST)/DAY%14+14)%14;
     return n<2?'registration':n>=3&&n<=6?'war':null;
   }
-  const api={anchor,key,schedule,nextRegistration,dayType,timeZone:'America/New_York',cycleDays:14};
+  const api={anchor,key,schedule,nextRegistration,dayType,localDate,timeZone:'America/New_York',cycleDays:14};
   if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveGuildWarCalendar=api;
 })(typeof globalThis==='object'?globalThis:this);

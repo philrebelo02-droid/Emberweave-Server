@@ -95,6 +95,6 @@ function refusal(o,translate){ const {site,castle,holder,me,now,freeMarch}=o||{}
   if(freeMarch===false) return translate ? translate('siege.armies_out') : 'All your armies are out.';
   return null; }
 const api={RANGE_SQUARES,CELLS_PER_GUARD_LV,PROTECT_MS,MAX_GUARD_LV,GARRISON_CAP,CAPITAL_CAP,CAPITALS,sites,byId,atCell,atPoint,distance,inRange,guardNode,
-  ATTACK_SPEED,holderOf,ownedBy,refusal,slug,isCapital,garrisonCap,garrisonCount,garrisonLabel,garrisonRefusal};
+  ATTACK_SPEED,holderOf,ownedBy,refusal,slug,isCapital,garrisonCap,garrisonCount,garrisonLabel,garrisonRefusal,siegeSiteName};
 if(typeof module==='object'&&module.exports) module.exports=api; else root.EmberweaveWorldSiege=api;
 })(typeof globalThis==='object'?globalThis:this);
