@@ -57,6 +57,29 @@ function tableSpecProblems(table, keys) {
     ck(!mismatches.length, locale+': every registered error is translated and preserves its placeholders', mismatches.join(', '));
   }
 
+  // Auto-Pray may stop after several successful rolls. Its stop reason is in a success reply.
+  const server=fs.readFileSync(path.join(ROOT,'server.js'),'utf8');
+  const auto=server.slice(server.indexOf('let gold=0,gems=0,saved=0,cancelled=0,power=0,stopped=null'),
+    server.indexOf("const tx=ledTx(me,'temple:auto'"));
+  const stops=[...auto.matchAll(/stopped='([^']+)'/g)].map(match=>match[1]);
+  ck(stops.length===3&&stops.every(reason=>EC.errorInfo(reason)), 'Auto-Pray server branches have registered stop reasons');
+  const render=html.slice(html.indexOf('function tp2AutoHtml()'),html.indexOf('function tp2AutoWire('));
+  const result={ran:2,saved:1,cancelled:1,power:12,cost:{gold:15000,gems:12000}};
+  for(const locale of locales){
+    const pack=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+    const translate=(key,vars={})=>pack[key].replace(/\{(\w+)\}/g,(_,name)=>String(vars[name]??''));
+    const context={LANG:{cur:locale},templeAuto:{tiers:['gold'],i:0,result},templePrayerTiers:()=>[],
+      tp2Box:()=>'',ewT:translate,langMsg:text=>text,escapeHTML:text=>text};
+    require('vm').runInNewContext(render,context);
+    const mismatches=stops.filter(reason=>{
+      result.stopped=reason;
+      const body=context.tp2AutoHtml(), label=translate('err.'+EC.errorInfo(reason).code);
+      return !body.includes(translate('temple.stopped',{why:label}))||
+        !Object.values(result.cost).every(cost=>body.includes(cost.toLocaleString(locale)));
+    });
+    ck(!mismatches.length, locale+': partial Auto-Pray displays its translated reason and exact spending', mismatches.join(', '));
+  }
+
   /* (2) */
   ck(JSON.stringify(EC.errorInfo('Not enough gold.')) === '{"code":"not_enough_gold"}', 'exact: Not enough gold. -> not_enough_gold');
   ck(JSON.stringify(EC.errorInfo('Slow down.')) === '{"code":"slow_down"}', 'exact: Slow down. -> slow_down');
