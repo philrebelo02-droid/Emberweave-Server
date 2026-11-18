@@ -97,6 +97,16 @@ const ROOT=path.join(__dirname,'..');
         if(!ui[key]||!historyText.includes(ui[key])) throw new Error('Missing wish history label '+key+' in '+locale);
       }
       await page.locator('#wishInfoX').click({timeout:10000});
+      const morvayneSource=await page.evaluate(()=>langTpl(HERO_LORE.hero61.text).k);
+      const morvayne=content[morvayneSource];
+      if(!morvayne||morvayne===morvayneSource) throw new Error('Missing Morvayne lore in '+locale);
+      await page.evaluate(()=>{ detailHero='hero61'; popoutScreen('heroDetail'); heroTab='lore'; renderHeroDetail(); });
+      const paragraphsInLore=page.locator('#heroDetail.active .hd-tabcontent p');
+      await paragraphsInLore.first().waitFor({state:'visible',timeout:10000});
+      if(JSON.stringify(await paragraphsInLore.allTextContents())!==JSON.stringify(morvayne.split('\n\n'))){
+        throw new Error('Morvayne did not render the complete story in '+locale);
+      }
+      await page.evaluate(()=>closePopout());
       await page.evaluate(()=>show('home'));
       console.log('locale smoke: '+locale+' UI, content, talents and patch notes loaded');
     }
