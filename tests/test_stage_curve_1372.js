@@ -11,7 +11,7 @@ const ROOT = path.join(__dirname, '..'), BASE = 'c8d8f962';
 let P = 0, F = 0;
 const ck = (n, c, x) => { if (c) { P++; console.log('  ok   ' + n); } else { F++; console.log('  FAIL ' + n + (x !== undefined ? ' - ' + JSON.stringify(x) : '')); } };
 const FILES = { normal: 'campaign-encounters.json', elite: 'elite-campaign-encounters.json', veteran: 'veteran-campaign-encounters.json' };
-const cur = f => JSON.parse(fs.readFileSync(path.join(process.env.EW_STAGE_ENC_DIR || path.join(ROOT, 'server'), f), 'utf8'));
+const cur = f => process.env.EW_STAGE_ENC_DIR ? JSON.parse(fs.readFileSync(path.join(process.env.EW_STAGE_ENC_DIR, f), 'utf8')) : JSON.parse(cp.execSync('git show 9e209bd0:server/' + f, { cwd: ROOT, maxBuffer: 64 << 20 }).toString());   // v1414: pins the data before Kimi's PvE retune (test_campaign_retune_1414.js pins the current data)
 const old = f => JSON.parse(cp.execSync('git show ' + BASE + ':server/' + f, { cwd: ROOT, maxBuffer: 64 << 20 }).toString());
 const K = { '1-7': { h: 0.117, d: 0.8, rp: 2012 }, '1-8': { h: 0.188, d: 0.8, rp: 2071 }, '1-9': { h: 0.225, d: 0.8, rp: 2103 }, '1-10': { h: 0.386, d: 0.9, rp: 2103 } };
 const near = (a, b) => Math.abs(a - b) <= 6e-5 + 1e-4 * Math.abs(b);

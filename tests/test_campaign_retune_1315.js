@@ -9,7 +9,7 @@ let P = 0, F = 0;
 const ck = (n, c, x) => { if (c) { P++; console.log('  ok   ' + n); } else { F++; console.log('  FAIL ' + n + (x !== undefined ? ' - ' + JSON.stringify(x) : '')); } };
 const V1372 = { '1-7': [0.117, 0.8], '1-8': [0.188, 0.8], '1-9': [0.225, 0.8], '1-10': [0.386, 0.9] };   // v1372 (Phil 11 Nov: "nerf the stages that are clearly imbalanced"): Normal/Elite 1-7..1-10 HP x / damage x on top, recommended power re-measured (tests/test_stage_curve_1372.js)
 const K = { 7: 1.49, 8: 1.28, 9: 1.13, 10: 1.38, 11: 1.24, 12: 1.53, 13: 1.07, 14: 1.35, 15: 1.13, 16: 1.03 };
-const cur = f => JSON.parse(fs.readFileSync(path.join(ROOT, 'server', f), 'utf8'));
+const cur = f => JSON.parse(cp.execSync('git show 9e209bd0:server/' + f, { cwd: ROOT, maxBuffer: 64 << 20 }).toString());   // v1414: the v1315-era pins describe the data before Kimi's PvE retune (test_campaign_retune_1414.js pins the current data)
 const old = f => JSON.parse(cp.execSync('git show 37ec5870:server/' + f, { cwd: ROOT, maxBuffer: 64 << 20 }).toString());
 for (const f of ['campaign-encounters.json', 'elite-campaign-encounters.json']) {
   const N = cur(f), O = old(f), om = Object.fromEntries(O.map(s => [s.id, s]));
