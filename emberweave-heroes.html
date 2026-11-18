@@ -24472,9 +24472,14 @@ function renderTemple(){
   tp2AutoWire(b,act,key);
 }
 function tp2AutoHtml(){ const a=templeAuto, tiers=templePrayerTiers(), id=a.tiers[a.i]||'gold', t=tiers.find(x=>x.id===id)||{};
-  if(a.result){ const r=a.result; return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>${ewT('temple.auto_pray')}</h3>
+  if(a.result){ const r=a.result;
+    const locale=LANG.cur==='qps'?'en':LANG.cur;
+    const reasonKey={'That tier reached its daily limit.':'err.that_tier_reached_its_daily_limit',
+      'Not enough currency.':'err.not_enough_currency','The prayer failed.':'err.the_prayer_failed'}[r.stopped];
+    const reason=reasonKey?ewT(reasonKey):langMsg(r.stopped);
+    return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>${ewT('temple.auto_pray')}</h3>
     <p>${ewT('temple.auto_result',{ran:r.ran,saved:r.saved,cancelled:r.cancelled})}</p><p class="${r.power>0?'up':r.power<0?'down':''}">${ewT('temple.power',{n:(r.power>0?'+':'')+r.power})}</p>
-    <p><small>${r.cost&&r.cost.gold?ewT('temple.n_gold',{n:r.cost.gold.toLocaleString()})+' ':''}${r.cost&&r.cost.gems?ewT('temple.n_diamonds',{n:r.cost.gems}):''}${r.stopped?' · '+ewT('temple.stopped',{why:escapeHTML(String(r.stopped))}):''}</small></p>
+    <p><small>${r.cost&&r.cost.gold?ewT('temple.n_gold',{n:r.cost.gold.toLocaleString(locale)})+' ':''}${r.cost&&r.cost.gems?ewT('temple.n_diamonds',{n:r.cost.gems.toLocaleString(locale)}):''}${r.stopped?' · '+ewT('temple.stopped',{why:escapeHTML(String(reason))}):''}</small></p>
     <button type="button" class="tp2Btn gold" id="tp2AutoOk">${ewT('common.ok')}</button></div>`; }
   return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>${ewT('temple.auto_pray')}</h3><p>${ewT('temple.auto_save')}</p>
     <div class="tp2AutoRow"><button type="button" id="tp2AutoPrev" aria-label="${ewT('temple.prev_tier')}"><img src="${TP2}ctl-arrow-left-v1.webp" alt=""></button><span><img src="${TP2}${TP2_TIER_ART[id]}-v1.webp" alt="">${escapeHTML(t.name||id)}</span><button type="button" id="tp2AutoNext" aria-label="${ewT('temple.next_tier')}"><img src="${TP2}ctl-arrow-right-v1.webp" alt=""></button></div>
