@@ -153,7 +153,7 @@ function sweep(steps, lit) {
 { const page = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
   ok(/<script src="\/server\/temple-of-ash\.js\?v=r1353"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1123"><\/script>/.test(page), 'the changed Temple module uses r1353 (v1353 success by Temple level and completion); unchanged temple-effects remains r1123');
   const fn = page.slice(page.indexOf('function renderTemple(){'), page.indexOf('function startDungeon(){'));
-  ok(/hs\.bars\.map\(/.test(fn) && /\$\{B\.icon\}-v1\.webp/.test(fn) && /escapeHTML\(B\.name\)/.test(fn) && /T\.barText\(bar,val\)/.test(fn) && !/TP2_BARS|tp2BarLabel/.test(fn),
+  ok(/hs\.bars\.map\(/.test(fn) && /\$\{B\.icon\}-v1\.webp/.test(fn) && /escapeHTML\((templeBarLabel\(bar,B\.name\)|B\.name)\)/.test(fn) && /T\.barText\(bar,val\)/.test(fn) && !/TP2_BARS|tp2BarLabel/.test(fn),
     'renderTemple draws the hero\'s own bars: name, icon, value as number or %');
   ok(/x\.barName\|\|T\.barName\(x\.bar\)/.test(fn), 'blessing rows say "(<bar name> n/need to unlock)" with the bar\'s real name');
   ok(/TempleOfAsh\.heroBonuses\(h,t\.role,t\.damageProfile,key\)/.test(page), 'the client passes the hero key, as the server does'); }
