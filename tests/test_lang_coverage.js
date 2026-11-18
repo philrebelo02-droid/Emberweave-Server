@@ -227,6 +227,23 @@ const ROOT=path.join(__dirname,'..');
     }
     await journal.locator('header button').click({timeout:10000});
     await page.evaluate(()=>show('home'));
+    await page.evaluate(()=>show('wishing'));
+    await page.locator('#wishing.active .wpsHelp').click({timeout:10000});
+    await page.locator('#wishInfoHist').click({timeout:10000});
+    const historyRows=page.locator('#wishHistRows');
+    await historyRows.waitFor({state:'visible',timeout:10000});
+    await page.locator('#wishInfoX').focus();
+    for(const locale of realLocales){
+      const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+      if(!await page.evaluate(code=>langLoad(code,true),locale)) throw new Error('Could not switch open Wish History to '+locale);
+      const text=await historyRows.textContent();
+      if(!['wish.gold_pool','wish.diamond_pool','wish.mythical_pool','wish.prayer'].every(key=>text.includes(ui[key]))||
+         await page.locator('#wishInfoX:focus').getAttribute('aria-label')!==ui['common.close']){
+        throw new Error('Open Wish History did not refresh its localized rows and close label in '+locale);
+      }
+    }
+    await page.locator('#wishInfoX').click({timeout:10000});
+    await page.evaluate(()=>show('home'));
     await page.evaluate(async()=>{ await langLoad('en',true); return langLoad('qps',true); });
     await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
     // the names the game never translates, from its own tables (+ the player's own name)

@@ -4524,7 +4524,7 @@ function langRefresh(rerender){ if(document.readyState==='loading') return; lang
   try{ refreshGlossaryLanguage(); }catch(e){}
   try{ document.querySelectorAll('[data-tos-body]').forEach(el=>{ el.innerHTML=tosBodyHTML(); }); }catch(e){}
   try{ document.getElementById('siegePanel')?._refreshLanguage?.(); }catch(e){}
-  for(const id of ['patchNotesOv','whatsNewOv']){
+  for(const id of ['patchNotesOv','whatsNewOv','wishInfo']){
     try{ document.getElementById(id)?._refreshLanguage?.(); }catch(e){}
   }
   try{ _worldTreeControlUI?.refreshLanguage?.(); }catch(e){}
@@ -33480,23 +33480,26 @@ function wishResultLabel(code){ const p=String(code||'').split(':'), t=p[0], k=p
   if(t==='gold') return ewT('econ.gold'); if(t==='gems') return ewT('econ.diamonds'); if(t==='glyphFull') return ewT('hero.glyph'); if(t==='stamItem') return escapeHTML(langDesc(STAM_ITEM_NAME)); if(t==='prayer') return ewT('wish.prayer');
   return escapeHTML(t+(nm?' '+nm:'')); }
 async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg(t('wish.no_history')); return; }
-  const locale=LANG.cur==='qps'?'en':LANG.cur;
-  const clock=new Intl.DateTimeFormat(locale,{hour:'numeric',minute:'2-digit'});
-  const count=new Intl.NumberFormat(locale);
-  const pools={gold:'wish.gold_pool',gem:'wish.diamond_pool',myth:'wish.mythical_pool'};
-  const rows=h.history.slice(0,12).map(e=>{
-    const date=new Date(e.t);
-    const time=Number.isFinite(date.getTime())?clock.format(date):'';
-    const icon=e.pool==='gold'?hudIcon('gold'):e.pool==='myth'?uiIcon('mythical-star'):'🔮';
-    const pool=pools[e.pool]?escapeHTML(t(pools[e.pool]))+' ':'', rewards=(e.results||[]).map(wishResultLabel).join(', ');
-    return (time?escapeHTML(time)+' · ':'')+icon+' '+pool+'×'+count.format(e.n)+' → '+rewards;
-  }).join('<br>');
-  /* v1364 (night smoke, shops + Grok EYES 01:32 "wishing roll history is broken on phone"): the list went out as a banner - a block of text up to 675 px tall
-     over the pool that vanished in 2 s. It opens in the Wishing info card (same card as the ? button), scrolls, and stays until closed. */
   const old=document.getElementById('wishInfo'); if(old) old.remove();
   const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
-  ov.innerHTML='<div class="wishInfoCard"><div class="wishInfoHead"><b>'+uiIcon('quest-scroll')+' '+t('wish.last_wishes')+'</b><button class="btn sm secondary" id="wishInfoX" aria-label="'+escapeHTML(ewT('common.close'))+'">'+uiIcon('close')+'</button></div><div id="wishHistRows" style="line-height:1.7;overflow-wrap:anywhere">'+rows+'</div></div>';
-  document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); }
+  ov._refreshLanguage=()=>{
+    const focused=ov.contains(document.activeElement);
+    const locale=LANG.cur==='qps'?'en':LANG.cur;
+    const clock=new Intl.DateTimeFormat(locale,{hour:'numeric',minute:'2-digit'});
+    const count=new Intl.NumberFormat(locale);
+    const pools={gold:'wish.gold_pool',gem:'wish.diamond_pool',myth:'wish.mythical_pool'};
+    const rows=h.history.slice(0,12).map(e=>{
+      const date=new Date(e.t);
+      const time=Number.isFinite(date.getTime())?clock.format(date):'';
+      const icon=e.pool==='gold'?hudIcon('gold'):e.pool==='myth'?uiIcon('mythical-star'):'🔮';
+      const pool=pools[e.pool]?escapeHTML(t(pools[e.pool]))+' ':'', rewards=(e.results||[]).map(wishResultLabel).join(', ');
+      return (time?escapeHTML(time)+' · ':'')+icon+' '+pool+'×'+count.format(e.n)+' → '+rewards;
+    }).join('<br>');
+    ov.innerHTML='<div class="wishInfoCard"><div class="wishInfoHead"><b>'+uiIcon('quest-scroll')+' '+t('wish.last_wishes')+'</b><button class="btn sm secondary" id="wishInfoX" aria-label="'+escapeHTML(ewT('common.close'))+'">'+uiIcon('close')+'</button></div><div id="wishHistRows" style="line-height:1.7;overflow-wrap:anywhere">'+rows+'</div></div>';
+    const close=ov.querySelector('#wishInfoX'); close.onclick=()=>ov.remove();
+    if(focused) close.focus({preventScroll:true});
+  };
+  ov._refreshLanguage(); document.body.appendChild(ov); }
 function renderWishing(){ if(ewHoldRender('wishing',()=>{ if(state==='wishing') renderWishing(); })) return; applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   // first paint of a visit asks the server what is actually free, then repaints with the truth
   /* Refetch when the cache is missing OR stale. The gold pool's free wish returns on a timer
