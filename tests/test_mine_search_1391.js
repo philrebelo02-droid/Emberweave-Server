@@ -36,6 +36,15 @@ Object.assign(ctx,{
   statusIcon:()=>'', uiIcon:()=>'', escapeHTML:value=>value, fmtDur:ms=>String(ms),
 });
 vm.runInContext(['openMineInfo','mineYieldShown','mineYield'].map(grab).join('\n')+';this.openMineInfo=openMineInfo;',ctx);
+let search, results;
+ctx.document.body={appendChild(el){ search=el; }};
+ctx.document.createElement=()=>{
+  results={querySelectorAll:()=>[]};
+  const fields={'#msRes':{},'#msLv':{},'#msClose':{},'#msList':results};
+  return {style:{},addEventListener(){},querySelector:key=>fields[key]||{}};
+};
+Object.assign(ctx,{mnResColor:()=>'',coordOf:(x,y)=>({cx:x,cy:y}),worldMineFieldState:()=>({status:'ready'})});
+vm.runInContext("let _mineSearchF={res:'iron',lv:3};"+grab('openMineSearch')+';this.openMineSearch=openMineSearch;',ctx);
 const versions=JSON.parse(page.match(/const EW_LANG_V=([^;]+);/)[1]);
 for(const locale of Object.keys(versions).filter(code=>code!=='en')){
   const pack=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang',locale+'.json'),'utf8'));
@@ -46,5 +55,10 @@ for(const locale of Object.keys(versions).filter(code=>code!=='en')){
   const formatted=[18750,15000,60000,23000].map(value=>value.toLocaleString(locale));
   ok(formatted.every(value=>rendered.includes(value))&&rendered.includes(pack['mine.send_miners'])&&
      rendered.includes(pack['res.iron']), locale+': localized mine popup labels and exact stock, yield and requirement amounts');
+  ctx.MINES=[M('stock','iron',3,60,50,15000),M('far','iron',3,90,50,98765)];
+  ctx.openMineSearch();
+  ok(search.innerHTML.includes(pack['mine.search'])&&results.innerHTML.includes(pack['res.iron'])&&
+     results.innerHTML.includes((15000).toLocaleString(locale))&&!results.innerHTML.includes((98765).toLocaleString(locale)),
+     locale+': populated search displays translated mine and stock within the 30-minute limit');
 }
 console.log('PASS test_mine_search_1391: '+pass+' checks');
