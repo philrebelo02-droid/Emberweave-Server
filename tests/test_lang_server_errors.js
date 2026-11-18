@@ -42,6 +42,21 @@ function tableSpecProblems(table, keys) {
       const i = EC.errorInfo(txt); if (!i || (i.code !== e.code && !table.find(x => x.code === i.code && !x.re && x.en === txt))) bad.push(e.code + '->' + (i && i.code)); }
     ck(bad.length === 0, 'every pattern recognises its own filled-in English', bad.slice(0, 8).join(', ')); }
 
+  // Use the locale versions shipped by the client and compare placeholder multisets.
+  const html=fs.readFileSync(path.join(ROOT,'emberweave-heroes.html'),'utf8');
+  const versions=JSON.parse(html.match(/const EW_LANG_V=([^;]+);/)[1]);
+  const locales=Object.keys(versions).filter(code=>code!=='en');
+  const placeholders=text=>[...text.matchAll(/\{(\w+)\}/g)].map(match=>match[1]).sort().join(' ');
+  ck(locales.length===15, 'all 15 translation locales are registered');
+  for(const locale of locales){
+    const pack=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+    const mismatches=Object.entries(SPEC.keys).filter(([key,en])=>{
+      const translated=pack[key];
+      return typeof translated!=='string'||!translated.trim()||placeholders(translated)!==placeholders(en);
+    }).map(([key])=>key);
+    ck(!mismatches.length, locale+': every registered error is translated and preserves its placeholders', mismatches.join(', '));
+  }
+
   /* (2) */
   ck(JSON.stringify(EC.errorInfo('Not enough gold.')) === '{"code":"not_enough_gold"}', 'exact: Not enough gold. -> not_enough_gold');
   ck(JSON.stringify(EC.errorInfo('Slow down.')) === '{"code":"slow_down"}', 'exact: Slow down. -> slow_down');
