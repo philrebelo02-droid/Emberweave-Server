@@ -229,6 +229,19 @@ const ROOT=path.join(__dirname,'..');
     await page.evaluate(()=>show('home'));
     await page.evaluate(()=>show('wishing'));
     await page.locator('#wishing.active .wpsHelp').click({timeout:10000});
+    const oddsHistoryButton=page.locator('#wishInfoHist');
+    await oddsHistoryButton.focus({timeout:10000});
+    for(const locale of realLocales){
+      const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'lang',locale+'.json'),'utf8'));
+      if(!await page.evaluate(code=>langLoad(code,true),locale)) throw new Error('Could not switch open Wish Odds to '+locale);
+      const names=await page.locator('#wishInfo .wishInfoSec').allTextContents();
+      const pools=['wish.gold_pool','wish.diamond_pool','wish.mythical_pool'];
+      if(names.length!==pools.length||!names.every((name,i)=>name.includes(ui[pools[i]]))||
+         (await page.locator('#wishInfoHist:focus').textContent()).trim()!==ui['wish.roll_history']||
+         await page.locator('#wishInfoX').getAttribute('aria-label')!==ui['common.close']){
+        throw new Error('Open Wish Odds did not refresh its labels in '+locale);
+      }
+    }
     await page.locator('#wishInfoHist').click({timeout:10000});
     const historyRows=page.locator('#wishHistRows');
     await historyRows.waitFor({state:'visible',timeout:10000});

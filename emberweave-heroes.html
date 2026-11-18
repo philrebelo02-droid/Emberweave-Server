@@ -33462,12 +33462,19 @@ function wishGoldHeroList(serverKeys){
 async function wishShowInfo(){ const old=document.getElementById('wishInfo'); if(old) old.remove(); const st=(ACC&&ACC.token)?await api('/api/pool/state'):null;
   const o=(st&&st.odds)||{}, mo=(st&&st.mythOdds)||null, pct=wishOddsPercent;
   const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
-  ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>${t('bld.wishing_pool')}</b><button class="btn sm secondary" id="wishInfoX" aria-label="${escapeHTML(ewT('common.close'))}">${uiIcon('close')}</button></div>
-    <div class="wishInfoSec">${iconImg('a','wish-gold')} ${t('wish.gold_pool')} · ${hudIcon('gold')}${WISH_GOLD_COST}</div><div>${t('wish.info_gold',{star:uiIcon('star-filled'),heroes:wishGoldHeroList(st?.goldHeroes),hero:pct(o.goldHero),frag:pct(o.goldFrag)})}</div>
-    <div class="wishInfoSec">🔮 ${t('wish.diamond_pool')} · ${hudIcon('gem')}${WISH_GEM_COST}</div><div>${t('wish.info_diamond',{star:uiIcon('star-filled'),full3:pct(o.full3),full2:pct(o.full2),frag3:pct(o.frag3),frag2:pct(o.frag2),gf:pct(o.glyphFull),gn:pct(o.glyphNext),item:langDesc(STAM_ITEM_NAME),stam:STAM_ITEM_STAMINA,si:pct(o.stamItem),pity:st&&st.pity?st.pity.at:40})}</div>
-    <div class="wishInfoSec">${uiIcon('mythical-star')} ${t('wish.mythical_pool')} · ${hudIcon('gem')}${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?t('wish.info_myth',{a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}):t('wish.only_mythical')}</div>
-    <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">${uiIcon('quest-scroll')} ${t('wish.roll_history')}</button></div></div>`;
-  document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); ov.querySelector('#wishInfoHist').onclick=()=>{ ov.remove(); wishShowHistory(); }; }
+  ov._refreshLanguage=()=>{
+    const focusWithin=ov.contains(document.activeElement), focused=document.activeElement?.id;
+    ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>${t('bld.wishing_pool')}</b><button class="btn sm secondary" id="wishInfoX" aria-label="${escapeHTML(ewT('common.close'))}">${uiIcon('close')}</button></div>
+      <div class="wishInfoSec">${iconImg('a','wish-gold')} ${t('wish.gold_pool')} · ${hudIcon('gold')}${WISH_GOLD_COST}</div><div>${t('wish.info_gold',{star:uiIcon('star-filled'),heroes:wishGoldHeroList(st?.goldHeroes),hero:pct(o.goldHero),frag:pct(o.goldFrag)})}</div>
+      <div class="wishInfoSec">🔮 ${t('wish.diamond_pool')} · ${hudIcon('gem')}${WISH_GEM_COST}</div><div>${t('wish.info_diamond',{star:uiIcon('star-filled'),full3:pct(o.full3),full2:pct(o.full2),frag3:pct(o.frag3),frag2:pct(o.frag2),gf:pct(o.glyphFull),gn:pct(o.glyphNext),item:langDesc(STAM_ITEM_NAME),stam:STAM_ITEM_STAMINA,si:pct(o.stamItem),pity:st&&st.pity?st.pity.at:40})}</div>
+      <div class="wishInfoSec">${uiIcon('mythical-star')} ${t('wish.mythical_pool')} · ${hudIcon('gem')}${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?t('wish.info_myth',{a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}):t('wish.only_mythical')}</div>
+      <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">${uiIcon('quest-scroll')} ${t('wish.roll_history')}</button></div></div>`;
+    const close=ov.querySelector('#wishInfoX'), history=ov.querySelector('#wishInfoHist');
+    close.onclick=()=>ov.remove();
+    history.onclick=()=>{ ov.remove(); wishShowHistory(); };
+    if(focusWithin) (focused==='wishInfoHist'?history:close).focus({preventScroll:true});
+  };
+  ov._refreshLanguage(); document.body.appendChild(ov); }
 /* v251 (audit): the pool publishes its odds/pity, and every roll is server-recorded and reviewable */
 async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg(t('wish.sign_in_rules')); return; }
   const o=st.odds||{}, pct=wishOddsPercent;
