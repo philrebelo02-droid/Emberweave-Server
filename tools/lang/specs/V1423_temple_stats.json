@@ -1,0 +1,10 @@
+{
+  "keys": {
+    "temple.stat_pen": "Penetration",
+    "temple.stat_healing_power": "Healing power",
+    "temple.stat_cooldown": "Cooldown reduction",
+    "temple.stat_crit_damage": "Critical damage",
+    "temple.stat_control_resistance": "Control resistance"
+  },
+  "edits": []
+}
