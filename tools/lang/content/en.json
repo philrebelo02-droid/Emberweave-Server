@@ -2931,5 +2931,9 @@
 "🃏 every {0}th attack draws a suit":"skill",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"skill",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"skill",
-"More translations: the Shop and Patron benefits, the World Map and sieges, the World Tree, Skyfall, talent tree titles and glyph fragments in the Bag.":"patch_notes"
+"More translations: the Shop and Patron benefits, the World Map and sieges, the World Tree, Skyfall, talent tree titles and glyph fragments in the Bag.":"patch_notes",
+"Remove stun, fear, slow and silence from yourself and all allies.":"gear_active",
+"Take {0}% less damage for {1} seconds.":"gear_active",
+"Fixes":"patch_notes",
+"Two gear skill descriptions now say what the skills really do: Null Pulse removes stun, fear, slow and silence from you and all allies, and Ashen Guard reduces all damage you take.":"patch_notes"
 }

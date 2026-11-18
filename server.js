@@ -3864,7 +3864,11 @@ function resourceGain(u, res, amount, reason, opts){
   if(u.gainLog.length>RESOURCE_LOG_KEEP) u.gainLog=u.gainLog.slice(-RESOURCE_LOG_KEEP);
   const dk=nyDayKey(now);
   u.gainDay=u.gainDay&&u.gainDay.k===dk?u.gainDay:{k:dk};
-  u.gainDay[res]=(u.gainDay[res]||0)+amount;
+  /* v1420 (CHT-0011 false alarm, Phil 18 Nov "fix all of these"): a verified paid purchase ('purchase:<offer>' - only the server's
+     /api/shop/purchase path credits that reason; no client earn rule can name it) is logged for the audits but never counts toward the
+     diamond spike window or the day alarm - buying a big pack is not a cheat signal. */
+  const paid=(res==='gems'&&/^purchase:/.test(source));
+  if(!paid) u.gainDay[res]=(u.gainDay[res]||0)+amount;
   if(res==='gems'){
     u.gemLog=Array.isArray(u.gemLog)?u.gemLog:[];
     u.gemLog.push({t:now,n:amount,r:source});
@@ -3875,8 +3879,10 @@ function resourceGain(u, res, amount, reason, opts){
   for(let i=u.gainLog.length-1;i>=0;i--){
     const g=u.gainLog[i]; if(g.res!==res) continue;
     if(winExempt&&winExempt.has(g.r)) continue;   // v1391 CHT-0017: a paid Market meal or an eaten Ember Roast is not a spike
+    if(res==='gems'&&/^purchase:/.test(String(g.r||''))) continue;   // v1420 CHT-0011: a verified paid purchase is not a spike
     if(now-g.t<=SPIKE_MS) win+=g.n;
   }
+  if(paid) return amount;   // v1420: logged above (gainLog / gemLog), no alarm
   const alarms=[['window',win,rule.window],['day',day,rule.day]];
   for(const [scope,total,limit] of alarms){
     const dev=!!(opts&&opts.devPanel);

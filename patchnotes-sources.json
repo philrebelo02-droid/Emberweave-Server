@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.9.0", "releases": "v1420", "items": [{"text": "Phil 18 Nov 02:3x \"fix all of these fixes\": gear E10/E12 text matched to castGearSkill (ChatGPT found it); CHT-0011 verified purchases exempt from the diamond spike alarm (SHIPPED-v1420)"}]},
     {"ver": "1.8.9", "releases": "v1419", "items": [{"text": "ChatGPT 18 Nov 01:31-02:08 v1418-localization-followups (shop, Patron, World Map, sieges, World Tree, Skyfall calendar) + Skyfall round/citadel/report/placement + talent tree titles (5 batches) + bag fragment names, all on 600de8cf8 (SHIPPED-v1419)"}]},
     {"ver": "1.8.8", "releases": "v1418", "items": [{"text": "ChatGPT 18 Nov 00:06-00:48 v1417-localization-stacked (includes the completion rollup, remaining Swarm Spire spells, legacy saves, rankings audit, Emberdraft, PvP report, Settings, roster filters, Ember Roast) on 46627a8aa (SHIPPED-v1418)"}]},
     {"ver": "1.8.7", "releases": "v1417", "items": [{"text": "ChatGPT 17 Nov 23:06-23:4x v1416 rollup (through Starless Well) + starless-well accessibility + ascendant-spire + swarm-spire shared/run/results/upgrade/passives/auras a-s (base 0e6d6bbb8, applied clean; survivors-auras.json text-only) (SHIPPED-v1417)"}]},
