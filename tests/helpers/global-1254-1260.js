@@ -16,6 +16,9 @@ const HP1397_SWAPS = [
   //   heroes and monsters, +1000 by Lv 100 for every class but Tank - put back to x1 / +0 for the older BASE fights (tests/test_tank_hp.js and
   //   tests/test_parity_harness.js check v1397 itself). The same line is in server/sim.js, so undoText also undoes it on the server source.
   ['const HP_MULT=2, HP_BONUS_L100=1000;', 'const HP_MULT=1, HP_BONUS_L100=0;', /const HP_MULT=\d+(\.\d+)?, HP_BONUS_L100=\d+;/],
+  // v1421 (Phil 18 Nov: "Reduce grosks ultimate damage"): Croc Drop's share of his own max HP halved with the HP x2 above (0.10/0.20 -> 0.05/0.10),
+  //   so its damage stays the pre-v1400 damage. With HP put back to x1 for the older BASE fights, the share goes back too.
+  ['hipposlam:{hpMul:0.05,hpMul100:0.10,', 'hipposlam:{hpMul:0.10,hpMul100:0.20,', /hipposlam:\{hpMul:0\.05,hpMul100:0\.10,/],
   // v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every single battle mode"; ships WITH the HP rule): every wave
   //   times out at 180 s - put back to 90 for the older BASE fights, which were written against a 90 s time-out (tests/test_battle_limit_1399.js checks v1399 itself)
   ['const BATTLE_TIME_LIMIT=180;', 'const BATTLE_TIME_LIMIT=90;', /const BATTLE_TIME_LIMIT=\d+;/],
