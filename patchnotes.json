@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.9.2", "date": "18 November 2026", "time": "10:00 EST", "title": "Talents and translations", "items": ["Every hero's talent trees now have full tooltips, their own colours, and a new Learn talent button.", "More of the game is translated: error messages, older mail reports, the pause menu, sharing and screen-reader labels.", "With Device language selected, the game now switches language as soon as your device language changes."]},
     {"ver": "1.9.1", "date": "18 November 2026", "time": "08:30 EST", "title": "Balance", "items": ["Grosk's Croc Drop now deals 5% to 10% of his max HP, rising with level (was 10% to 20%) - the same damage it did before hero HP was doubled."]},
     {"ver": "1.9.0", "date": "18 November 2026", "time": "03:30 EST", "title": "Fixes", "items": ["Two gear skill descriptions now say what the skills really do: Null Pulse removes stun, fear, slow and silence from you and all allies, and Ashen Guard reduces all damage you take."]},
     {"ver": "1.8.9", "date": "18 November 2026", "time": "02:45 EST", "title": "Translations", "items": ["More translations: the Shop and Patron benefits, the World Map and sieges, the World Tree, Skyfall, talent tree titles and glyph fragments in the Bag."]},

@@ -3362,5 +3362,9 @@
 "↺ team health from {0}s ago + revive at {1}%":"skill",
 "🃏 every {0}th attack draws a suit":"skill",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"skill",
-"🕳 untargetable {0}s → {i:s:attack} {1}":"skill"
+"🕳 untargetable {0}s → {i:s:attack} {1}":"skill",
+"Talents and translations":"patch_notes",
+"Every hero's talent trees now have full tooltips, their own colours, and a new Learn talent button.":"patch_notes",
+"More of the game is translated: error messages, older mail reports, the pause menu, sharing and screen-reader labels.":"patch_notes",
+"With Device language selected, the game now switches language as soon as your device language changes.":"patch_notes"
 }
