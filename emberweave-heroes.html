@@ -33011,7 +33011,7 @@ function renderHeroDetail(){ try{ setTimeout(()=>ftutCheck('heroDetail'),350); }
   } else if(heroTab==='lore'){
     const L0=HERO_LORE[key], L=(L0&&typeof L0==='object'&&typeof L0.text==='string')?L0:{title:'',text:(typeof L0==='string'&&L0)?L0.replace(/<\/p>\s*<p>/g,'\n\n').replace(/<[^>]+>/g,''):ewT('hero.lore_soon')};   /* v1401: a story in any shape never stops the Lore tab (or a locked hero's panel) opening */
     const narrationKey=key==='vael'?'hero.lore_vael_narration':key==='konwu'?'hero.lore_konwu_narration':null;
-    const loreBody=LANG.cur==='en'&&narrationKey?ewT(narrationKey):langDesc(L.text);
+    const loreBody=(narrationKey&&ewT(narrationKey))||langDesc(L.text);
     const paras=loreBody.split('\n\n').map(p=>`<p style="margin:0 0 10px">${escapeHTML(p)}</p>`).join('');
     tab=`<div class="panel" style="line-height:1.62">
         <div class="loreBn">${rarityBannerHtml(key)}</div>   <!-- v656 (Phil: "remove this mythical word ... Instead make their name with the banner of their quality"): the name on its rarity banner -->
@@ -35698,7 +35698,7 @@ function devNoticeShow(n){ let el=document.getElementById('ewNotice'); let gone=
   el.style.cssText='position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:15000;display:flex;align-items:center;gap:8px;max-width:min(620px,calc(var(--ew-game-width,100vw) - 32px));'+
     'box-sizing:border-box;padding:7px 10px 7px 14px;background:linear-gradient(180deg,#3a2510f2,#1c1208f2);border:1px solid #c99a4a;border-radius:10px;box-shadow:0 6px 20px #000c;color:#ffe9b8;font:700 13px/1.35 Georgia,serif;pointer-events:auto';
   el.innerHTML=`<img class="stIc" src="${ICON_SRC.u('notification-bell')}" alt="" style="width:20px;height:20px;flex:0 0 auto"><span style="min-width:0;overflow-wrap:anywhere">${escapeHTML(n.text)}</span>`+
-    `<button aria-label="Close" style="flex:0 0 auto;border:0;background:none;padding:4px;cursor:pointer;display:flex"><img class="stIc" src="${ICON_SRC.u('close')}" alt="" style="width:18px;height:18px;margin:0"></button>`;
+    `<button aria-label="${escAttr(ewT('common.close'))}" data-i18n-aria="common.close" style="flex:0 0 auto;border:0;background:none;padding:4px;cursor:pointer;display:flex"><img class="stIc" src="${ICON_SRC.u('close')}" alt="" style="width:18px;height:18px;margin:0"></button>`;
   el.querySelector('button').onclick=()=>{ try{ sessionStorage.setItem('ew_notice_x',n.id); }catch(e){} el.remove(); }; }
 function adminMailAdopt(L){ if(!Array.isArray(L)||!L.length) return; G.amSeen=Array.isArray(G.amSeen)?G.amSeen:[]; let added=0;
   for(const m of L){ if(!m||!m.id||G.amSeen.includes(m.id)) continue; G.amSeen.push(m.id);
