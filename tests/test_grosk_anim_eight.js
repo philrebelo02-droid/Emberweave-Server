@@ -71,7 +71,7 @@ try {
   ck('Hammer Fists hitTimes = the measured full-extension cells 13/24/34 at 12 fps', JSON.stringify(kit.hitTimes) === '[1.083,2,2.833]');
   // v1308 (Phil 7 Nov 2026: "croc drop needs a nerf, turn the team damage reduction for 3 seconds and maxes out at 35%, level 1 is 20%"): wall 20% -> 35% for 3 s (was 30% + 0.15 pt a level, 5 s)
   ck('Croc Drop numbers (40% own max HP, 3 m, stun 0.6, wall 20% -> 35% for 3 s), leap = the 2 s clip airtime in fight seconds',
-    run('JSON.stringify(ULT_DEF.hipposlam)') === '{"hpMul":0.1,"hpMul100":0.2,"aimRange":' + run('6*METER') + ',"radius":' + run('3*METER') + ',"stun":0.6,"allyDr":0.2,"allyDrDur":3,"perLv":' + run('0.15/99') + ',"leap":1.345}');   // perLv: v1112 skill levels (team wall 30% -> 44.9% at level 100)
+    run('JSON.stringify(ULT_DEF.hipposlam)') === '{"hpMul":0.05,"hpMul100":0.1,"aimRange":' + run('6*METER') + ',"radius":' + run('3*METER') + ',"stun":0.6,"allyDr":0.2,"allyDrDur":3,"perLv":' + run('0.15/99') + ',"leap":1.345}');   // perLv: v1112 skill levels (team wall 30% -> 44.9% at level 100)
   ck('cast times (fight s): ult 0.56 (launch cell 10 = 0.833 s of clip), green 0.308 (pull cell 11 = 0.458 s of clip), blue 0.6', run('JSON.stringify(ABILITY_CAST.grosk)') === '{"ult":0.56,"green":0.308,"blue":0.6}');
   const others = run(`(()=>{ const out=[]; const scan=(src,K)=>Object.keys(K).forEach(k=>{ if(k==='grosk')return; ['green','blue'].forEach(sl=>{ const a=K[k]&&K[k][sl]; if(a&&a.type==='punchflurry') out.push([src+':'+k, !!a.hitTimes]); }); });
     scan('hero',KITS); if(typeof MON_KITS!=='undefined') scan('mon',MON_KITS); return out; })()`);
@@ -92,7 +92,7 @@ try {
   const U = cast('ult', false);
   ck('Croc Drop: one slam on the dummy', U.hits.length === 1, JSON.stringify(U.hits));
   ck('the slam lands when his feet hit the ground (ult cell 34 = 2.833 s of clip = ' + (2.833 * PACE).toFixed(3) + ' fight s)', U.hits.length === 1 && Math.abs(U.hits[0].t - 2.833 * PACE) <= tol + 1e-3, JSON.stringify(U.hits));
-  ck('slam damage unchanged: 40% of his own max HP', U.hits.length === 1 && U.hits[0].amt > 0 && U.hits[0].amt / U.maxHp >= 0.095 && U.hits[0].amt / U.maxHp <= 0.205   /* v1116: 10% (L1) -> 20% (L100); control: the old 40% is outside */, U.hits.length ? (U.hits[0].amt / U.maxHp) : '');
+  ck('slam damage unchanged: 40% of his own max HP', U.hits.length === 1 && U.hits[0].amt > 0 && U.hits[0].amt / U.maxHp >= 0.045 && U.hits[0].amt / U.maxHp <= 0.105   /* v1116: 10% (L1) -> 20% (L100); v1421 (Phil 18 Nov, HP x2): 5% -> 10%; control: the old 40% and the v1420 10-20% band above 10.5% are outside */, U.hits.length ? (U.hits[0].amt / U.maxHp) : '');
   ck('he no longer sets _airT on himself (it is never counted down and cut his own clip)', U.airMax === 0, 'airT ' + U.airMax);
   ck('his ult clip still holds him in the air at 1.6 fight s (the ult root, ultClipDur 4.0 s, still running; the old self-_airT cleared it at launch)', U.ultClipAt25 && U.ultClipAt25.root > 1, JSON.stringify(U.ultClipAt25));
 

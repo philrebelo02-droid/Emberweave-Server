@@ -2935,5 +2935,7 @@
 "Remove stun, fear, slow and silence from yourself and all allies.":"gear_active",
 "Take {0}% less damage for {1} seconds.":"gear_active",
 "Fixes":"patch_notes",
-"Two gear skill descriptions now say what the skills really do: Null Pulse removes stun, fear, slow and silence from you and all allies, and Ashen Guard reduces all damage you take.":"patch_notes"
+"Two gear skill descriptions now say what the skills really do: Null Pulse removes stun, fear, slow and silence from you and all allies, and Ashen Guard reduces all damage you take.":"patch_notes",
+"Balance":"patch_notes",
+"Grosk's Croc Drop now deals {0}% to {1}% of his max HP, rising with level (was {2}% to {3}%) - the same damage it did before hero HP was doubled.":"patch_notes"
 }
