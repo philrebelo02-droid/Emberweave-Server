@@ -9,7 +9,9 @@ let fail = 0, n = 0;
 const check = (ok, what) => { n++; if (!ok) { fail++; console.log('FAIL: ' + what); } };
 const i = html.indexOf('function pollPvpReports(){');
 let d = 0, j = html.indexOf('{', i); for (; j < html.length; j++) { if (html[j] === '{') d++; else if (html[j] === '}' && --d === 0) break; }
-const src = html.slice(i, j + 1);
+const grab = name => { const a = html.indexOf('function ' + name + '('); if (a < 0) return ''; let dd = 0, b = html.indexOf('{', a); for (; b < html.length; b++) { if (html[b] === '{') dd++; else if (html[b] === '}' && --dd === 0) break; } return html.slice(a, b + 1) + ';'; };
+// v1418: the report-to-mail formatting moved into pvpReportMail / pvpReportTextSource (translated war reports) - the sandbox gets them too
+const src = grab('pvpReportMail') + grab('pvpReportTextSource') + html.slice(i, j + 1);
 check(i > 0 && src.length > 200, 'pollPvpReports not found');
 // v1265 languages: the page routes its words through t/ewT (English from lang/en.json) - the sandbox gets the same English lookup
 const EN = JSON.parse(fs.readFileSync(path.join(root, 'lang', 'en.json'), 'utf8'));
@@ -19,7 +21,7 @@ async function run(saveOk, G, reports) {
   const log = [], mail = [];
   const env = {
     ACC: { token: 't' }, online: () => true, G,
-    t: tEn, ewT: tEn, langMsg: s => s, langDesc: s => s, langMeta: s => s,
+    t: tEn, ewT: tEn, LANG: { cur: 'en' }, langMsg: s => s, langDesc: s => s, langMeta: s => s,
     api: (route, method, body) => { log.push('api ' + route); if (route === '/api/pvp/reports') return Promise.resolve({ reports }); if (route === '/api/pvp/reports-ack') { log.push('ACK ' + JSON.stringify(body.ids)); return Promise.resolve({ ok: true }); } return Promise.resolve({}); },
     addMail: (box, m) => { mail.push(m.subj); log.push('addMail'); }, hasWarMail: () => false,
     updateMailBadges: () => {}, bannerMsg: () => {}, statusIcon: () => '',
