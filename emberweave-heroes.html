@@ -7484,7 +7484,7 @@ if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ bloomJu
 /* 14 Nov 2026 (Iver's talents): Static Charge's own chain run again on the enemies a talent names (Hold It In's discharge into Skybreak, Let It Go's basic attack,
    Forked Pike's chains): the same lines as the chain in castKit, real hits of his passive. Only a learned talent row calls it. */
 function talentStaticChain(u,foes){ const pm=(u.passMul||1); let n=0; foes.forEach(e=>{ if(!e||!e.alive) return; n++; try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
-  if(n){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('chain'),t:.9,color:'#8fd0ff',vy:1,sz:12}); } return n; }
+  if(n){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } return n; }
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ scChain:(u,foes)=>talentStaticChain(u,foes), elemMul:(s,t)=>elemMul(s,t) });
 /* 14 Nov 2026 (Hurne's talents): his ultimate cast at once by a talent (He Does It Anyway: Feed Them at no energy cost), at his ultimate's level, with the ultimate's own options. Only a learned talent row calls it. */
 if(typeof TalentFx!=='undefined'&&TalentFx.bindMore) TalentFx.bindMore({ castUltFree:u=>{ const ab=u.abilityOverride||u.t.ability; if(!ab) return; const k=[u._castSM,u._castLv,u._castSlot], lv=(u.skillLv&&u.skillLv[0])||1;
@@ -8778,6 +8778,7 @@ function ftShow(f){ const s=f.txt; if(typeof s!=='string') return s; if(f.label)
   else if((m=/^OVERDUE x(\d+)$/.exec(s))) o=ewT('fx2.overdue_x',{n:m[1]})||s;
   else if((m=/^([+−])(\d+) energy$/.exec(s))) o=ewT('fx2.energy_delta',{sign:m[1],n:m[2]})||s;
   else if((m=/^\+(\d+)% DR$/.exec(s))) o=ewT('fx2.damage_reduction_pct',{n:m[1]})||s;
+  else if(LANG.cur!=='en'){ const d=langDesc(s); if(d&&d!==s) o=d; }   /* v1416: any other callout (COMBAT_FLOAT_LABELS) - translated at draw time from the content packs; the engine keeps its English text */
   f._txE=s; f._txL=LANG.cur; f._tx=o; return o; }
 function statusTextStack(dt,k){ k=k||1;
   const st=floatTexts.filter(f=>ftIsStatus(f)||ftIsDebuff(f)); if(!st.length) return;
@@ -9064,7 +9065,7 @@ function noxSpendKeys(u){ if(!(u&&u.pass&&u.pass.skeletonkey)) return false;
   u._keys=0; u._masterT=0;
   firePassiveFx(u);
   try{ ringBurst(u.x,u.y,0xc9a6ff,20); }catch(e){}
-  floatTexts.push({x:u.x,y:u.y-20,txt:combatFloatLabel('master_unlocked'),t:1.3,color:'#c9a6ff',vy:1,sz:13});
+  floatTexts.push({x:u.x,y:u.y-20,txt:'MASTER-UNLOCKED',t:1.3,color:'#c9a6ff',vy:1,sz:13});
   return true; }
 /* v1131 PASSIVE HOLD (render only). v1127 made a swing wait for a green/blue clip's contact cell; a timed passive could still take the
    screen early. firePassiveClip queues only while the LOCK reads skill/ult (_lockPri >= 4), but a swing rolled in think() during a held
@@ -12564,7 +12565,7 @@ const SUMMON_SCALE={'boar warrior':{hp:0.55,dmg:0.50,armor:120,mr:60},
 // Packmaster: every beast that goes down sends its soul back to Hurne. Play his passive clip.
 function _soulHome(p){ const o=p&&p._summonOwner; if(!o||!o.alive)return;
   firePassiveClip(o, o.anim&&o.anim.passive?(o.anim.passive.n/(o.anim.passive.fps||12)):0);
-  try{ burstAt(o.x,o.y,0x8fd08f,12); floatTexts.push({x:o.x,y:o.y-18,txt:combatFloatLabel('returned'),t:1.0,color:'#8fd08f',vy:1,sz:11}); }catch(e){} }
+  try{ burstAt(o.x,o.y,0x8fd08f,12); floatTexts.push({x:o.x,y:o.y-18,txt:'RETURNED',t:1.0,color:'#8fd08f',vy:1,sz:11}); }catch(e){} }
 function killSummon(p){ if(!p||!p.alive)return; p.hp=0; p.alive=false; p.deathT=0;
   try{ _soulHome(p); }catch(e){}
   p._summon=false; p._summonOwner=null;   // stop it being counted or healed on the way out
@@ -12611,11 +12612,11 @@ function summonUnit(owner,key,dur,off){
   units.push(u); try{ buildFigure(u); }catch(e){}
   if(u._mirage){ // v532: a seed of light, not a hole in the floor
     ringBurst(px,py,0xffd08a,14); burstAt(px,py,0xffe6b0,10);
-    floatTexts.push({x:px,y:py-10,txt:combatFloatLabel('mirage'),t:.9,color:'#ffd08a',vy:1,sz:11}); }
+    floatTexts.push({x:px,y:py-10,txt:'MIRAGE',t:.9,color:'#ffd08a',vy:1,sz:11}); }
   else {
   // they claw their way up out of the floor
   ringBurst(px,py,0x6b5230,16); burstAt(px,py,0x4a3a22,14);
-  floatTexts.push({x:px,y:py-10,txt:combatFloatLabel('risen'),t:.9,color:'#c9a227',vy:1,sz:11}); }
+  floatTexts.push({x:px,y:py-10,txt:'RISEN',t:.9,color:'#c9a227',vy:1,sz:11}); }
   return u;
 }
 /* v270 (PLAYER-TRUTH): spawn the squad from the snapshots the SERVER froze when Battle was pressed.
@@ -12850,7 +12851,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
   if(u.pass&&u.pass.digger&&u._tal&&u._tal.on.pass) TalentFx.pass(u,u,'digger');   /* TALENT HOOK pass: Relentless Digger has just wound him up (Deepcleft's talents: Tallies, Weight, the digger made stronger) */
   if(u.pass&&u.pass.pridemomentum&&u.shield>0){ if(typeof SFX!=='undefined'&&SFX.loop&&!(u.dmgBuffT>0)) sfxPassive(u,'pridemomentum',4);   /* v1138 sound: the buff starts */ u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1+0.22*(u.passMul||1)); u.dmgBuffT=Math.max(u.dmgBuffT||0,4); }
   if(u._tal&&u._tal.on.absorb&&u.shield>0&&a>0) TalentFx.absorb(u,a);   /* TALENT HOOK absorb: a hit reaches a talented unit's shield (what it takes off the shield, and whether it breaks it) */
-  if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:combatFloatLabel('absorb'),t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
+  if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
   a=Math.max(0,a); HERO61.recordDamage(u,Math.min(Math.max(0,u.hp),a),battleTime); if(DD.on) ddTake(u,Math.min(Math.max(0,u.hp),a)); u.hp-=a; u.flash=.14;
   if(a>0&&u.templeDamageEnergy)u.energy=Math.min(100,u.energy+100*a/Math.max(1,u.maxHp)*u.templeDamageEnergy);
   /* v669 — THE RAID METER. A guild raid credits CUMULATIVE damage dealt, not the boss's missing HP.
@@ -12868,7 +12869,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
     floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?_crit:((c&&c!=='#fff'&&c!=='#ffd9a8')?c:_base),vy:crit?1.5:1,crit:!!crit,sz:crit?16:11}); }   // don't render 0-damage popups (fully-mitigated hits)
   const _talHd=!!(u._talW&&u.hp<=0&&u.alive&&(u._wardT||0)>0);   /* TALENT HOOK held (1 of 2): the Dawnward hold is about to keep a watched unit at 1 HP */
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
-    floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('held'),t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
+    floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
   if(_talHd&&u.alive&&u.hp>0) TalentFx.held(u);   /* TALENT HOOK held (2 of 2): it held (Joss's Kept Word: his Sanctuary Guard kept an ally from falling) */
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
@@ -12881,7 +12882,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
       units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<3*METER){
         dealDamage(owner,e,blast,'#8a7a3a'); pushDot(e,(u._debtDps||6),3,1,'#8a7a3a',owner); } });
       ringBurst(u.x,u.y,0x8a7a3a,16);
-      floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('debt_called_in'),t:1.3,color:'#8a7a3a',vy:1,sz:13}); }
+      floatTexts.push({x:u.x,y:u.y-14,txt:'DEBT CALLED IN',t:1.3,color:'#8a7a3a',vy:1,sz:13}); }
     if(u._contagion && u.dots && u.dots.some(d=>d.color===u._plagueColor)){   // only the carrier's own plague/curse spreads — a stray bleed or burn does not // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
       const _cgDur=(u._plagueColor==='#f2d84a')?5:SKLV.contagionDur(contagionLv(u.team));   /* v1376 (Phil 12 Nov: "Swarm move on make it 5 seconds") - Dandra's bees */   /* v1112: the spread lasts 4 s + 0.02 s a level of the strongest Contagion on the other side */
       const _cgO=(u.dots.find(d=>d.color===u._plagueColor)||{}).src, _cgT=!!(_cgO&&_cgO._tal&&_cgO._tal.on.spread), _cgR=_cgT?TalentFx.spreadR(_cgO,u,2.6*METER):2.6*METER;   /* TALENT HOOK spreadR: the reach of a talented hero's Contagion (Bloatus); every poison queued until the spread hook below is a spread */
@@ -12889,7 +12890,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
       if(_cgT) TalentFx.spread(_cgO,u);   /* TALENT HOOK spread: his Contagion has spread (to whom) */
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
       if(typeof SFX!=='undefined'&&SFX.loop) sfxSpread(u);   /* v1138 sound: the plague's owner's passive */
-      if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('poison_spreads'),t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
+      if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
     }
   }
 }
@@ -13723,7 +13724,7 @@ function edgeTauntPlus(taunter,victim){ return AFFINITIES_LIVE&&(unitClass(taunt
 function dealDamage(src,tgt,amt,color,kind,silent){ if(!DD.on) return _dealDamageCore(src,tgt,amt,color,kind,silent);   /* v1388 Damage Done: who hit, with what (bookkeeping only) */
   const _p=DD.hit; DD.hit={src,l:ddLbl(src)}; DD.depth++; try{ return _dealDamageCore(src,tgt,amt,color,kind,silent); } finally{ DD.depth--; DD.hit=_p; } }
 function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
-  if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('block'),t:.6,color:'#9fb7d8',vy:1,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'wall');   /* TALENT HOOK foiled: a hit of a talented unit was stopped by the shield wall (Meridian's Windage) */ return; }   /* Shield wall: the Tank is the one being shot */
+  if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'wall');   /* TALENT HOOK foiled: a hit of a talented unit was stopped by the shield wall (Meridian's Windage) */ return; }   /* Shield wall: the Tank is the one being shot */
  if(typeof SFX!=='undefined'&&SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
@@ -13735,12 +13736,12 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(src&&(src._debtT||0)>0&&src._debtTo&&src._debtTo.alive&&src._debtTo!==tgt&&tgt&&tgt.team===src._debtTo.team){
     const cut=amt*(src._debtPct||0.35); amt-=cut; const g=src._debtTo;
     if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,cut*.5),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,cut*.5))); g.hp=Math.max(1,g.hp-cut*0.5);} healUnit(g,(g._tal&&g._tal.on.num)?TalentFx.num(g,'collect',cut*0.5):cut*0.5);   /* TALENT HOOK num: each COLLECTED (Gruel's Fee, Profit, Licked Clean); the heal it gives */
-    floatTexts.push({x:g.x,y:g.y-10,txt:combatFloatLabel('collected'),t:.7,color:'#b9a06a',vy:1,sz:10}); }
+    floatTexts.push({x:g.x,y:g.y-10,txt:'COLLECTED',t:.7,color:'#b9a06a',vy:1,sz:10}); }
   // The Mirewall (Grosk): his lowest-health ally takes 20% less, and 35% of what they avoid lands on HIM instead - he heals back half of it.
   if(tgt&&tgt._mwBy&&tgt._mwBy.alive&&tgt._mwBy!==tgt&&src&&src.team!==tgt.team){
     const g=tgt._mwBy, _mwN=!!(g._tal&&g._tal.on.num), _mwC=_mwN?TalentFx.num(g,'mwCut',SKLV.mirewall(passLv(g)),tgt,src):SKLV.mirewall(passLv(g)), cut=amt*_mwC; amt-=cut; _drF*=1-_mwC;   /* v1112: cap 35% + 0.1 pt a level */   /* TALENT HOOK num: the ward's cut (the 95% ceiling counts it as the ally's reduction: _drF) (Grosk's Mirewall talents; ctx unit = the ward, src = the attacker) */
     const take=cut*(_mwN?TalentFx.num(g,'mwTake',0.35,tgt,src):0.35); if(!HERO61.immune(g,battleTime)){HERO61.recordDamage(g,Math.min(g.hp-1,take),battleTime); if(DD.on) ddTake(g,Math.max(0,Math.min(g.hp-1,take))); g.hp=Math.max(1,g.hp-take);} healUnit(g,take*(_mwN?TalentFx.num(g,'mwHeal',0.5,tgt,src):0.5));   /* TALENT HOOK num: the share moved onto him (each move), and the share he heals back */
-    if((g._mwFxT||0)<=0){ g._mwFxT=0.7; floatTexts.push({x:g.x,y:g.y-10,txt:combatFloatLabel('mirewall'),t:.6,color:'#9ad07a',vy:1,sz:10}); } }
+    if((g._mwFxT||0)<=0){ g._mwFxT=0.7; floatTexts.push({x:g.x,y:g.y-10,txt:'MIREWALL',t:.6,color:'#9ad07a',vy:1,sz:10}); } }
   // Croc Drop's plant: while Grosk lives, the whole team eats 20% -> 35% less (by skill level) for 3s (v1308).
   if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team){ amt*=1-(tgt._mwDrPct||0.20); _drF*=1-(tgt._mwDrPct||0.20); }
   // Drowsy (Dandra): sleep breaks the moment they're hit.
@@ -13751,7 +13752,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // arrives while it is banked never lands, which is the one thing his story says twice.
   if(tgt._tal&&tgt._tal.on.bankPre&&tgt.pass&&(tgt.pass.notthere||tgt.pass.weightless)&&src&&src.team!==tgt.team&&TalentFx.bankPre(tgt,src,amt,kind,_isAuto)){ if(tgt.pass.notthere) tgt._ntReady=true; else tgt._vyBankMiss=1; }   /* TALENT HOOK bankPre: Hollow's talents may make this blow miss as his passive does (a stored Interval, Knife Screen; only a talented Hollow has bankPre rows). v1395 (Veyr): his Weightless Predator passive gates the lane too - It Never Let Go / Head in the Clouds (only his mech sets _vyBankMiss) */
   if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=SKLV.notthere(passLv(tgt));   /* v1112: 4 s - 0.01 s a level */
-    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('not_there'),t:.7,color:'#c9a6ff',vy:1.3,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'notthere');
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'notthere');
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
     firePassiveClip(tgt, tgt.anim&&tgt.anim.passive?(tgt.anim.passive.n/(tgt.anim.passive.fps||12)):0);
     if(tgt._tal&&tgt._tal.on.bank) TalentFx.bank(tgt,src,amt,kind,_isAuto);   /* TALENT HOOK bank: his passive has just made this blow miss (Hollow's talents: Misdirect, Forgotten, Intervals) */
@@ -13781,7 +13782,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   if(tgt&&(tgt._evadeT||0)>0&&src&&src.team!==tgt.team&&!tgt._ctring){
     if(!((tgt._vyHm||0)>0)&&!((tgt._vyNlg||0)>0)) tgt._evadeT=0;   /* TALENT HOOK (Veyr): Hungry Mantle / Never Lets Go hold the window through its 2.4 s (only his mech sets _vyHm / _vyNlg) */ tgt._untouched=0;
     if(tgt._tal&&tgt._tal.on.evade) TalentFx.evade(tgt,src);   /* TALENT HOOK evade: the evade window was spent on src's hit (Calypsa's dodges) */
-    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('evade'),t:.6,color:'#bfe8ff',vy:1.3,sz:13});
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'EVADE',t:.6,color:'#bfe8ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x9fd8ff,10); }catch(e){}
     if(tgt.alive&&src.alive&&(tgt._evadeMul||0)>0&&!((tgt._vyNlg||0)>0)&&!((tgt._vyNoCtr||0)>0)){ tgt._ctring=1; if(typeof SFX!=='undefined'&&SFX.loop) sfxMoment(tgt,'blue');   /* v1138 sound: the counter strike */   /* TALENT HOOK (Veyr): with Never Lets Go the counter falls at the window's end (his mech fires it); with Hungry Mantle it falls once (his mech clears _vyNoCtr when the window ends) */
       if(tgt._bloomOn){ tgt._bloomOn=0; bloomstepJump(tgt,src); }   /* v1186 Bloomstep: he appears behind the one that hit him, then the counter lands */
@@ -13797,14 +13798,14 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
       tgt.hasteMul=Math.min(1.6,Math.max(tgt.hasteMul||1,1)+0.08*pm*(tgt._vyWlH||1)); tgt.hasteT=Math.max(tgt.hasteT||0,5);
       { const _c0=tgt.glyphCrit||0; tgt.glyphCrit=Math.min(0.6,_c0+0.05*pm*(tgt._vyWlC||1)); tgt._wlCrit=(tgt._wlCrit||0)+(tgt.glyphCrit-_c0); }   /* v1311 (Phil 8 Nov: "no reset it per wave"): the dodge crit is counted apart and cleared every wave */   /* TALENT HOOK (Veyr): Predator's Ease / Giddy Height strengthen the two payments (only his mech sets _vyWlH / _vyWlC, 1 without them) */
       firePassiveFx(tgt);
-      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:combatFloatLabel('weightless'),t:.8,color:'#3a5fa8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'weightless',1.5); }
+      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'WEIGHTLESS',t:.8,color:'#3a5fa8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'weightless',1.5); }
     if(tgt.pass&&tgt.pass.prismscales&&src.alive&&!tgt._ctring){ tgt._ctring=1;
       if(tgt._tal) TalentFx.landPre(tgt,src,'blade');   /* TALENT HOOK landPre: the hit that follows is a Prismatic Scales blade */
       try{ dealDamage(tgt,src,(tgt.apow||tgt.dmg)*0.55*(tgt.passMul||1),'#3aa0d8','magic'); }catch(e){}
       if(tgt._tal) TalentFx.land(tgt,src,'blade');   /* TALENT HOOK land: the blade was fired */
       tgt._ctring=0;
       firePassiveFx(tgt,src);
-      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:combatFloatLabel('prism'),t:.8,color:'#3aa0d8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'prismscales'); }
+      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'PRISM',t:.8,color:'#3aa0d8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(tgt,'prismscales'); }
     return; }
   if(tgt) tgt._untouched=0;   // v527: "untouched" passives (Perfect Camouflage, Silent Altitude) read this
   /* v646: Steady Hands (next hits) / Hawk Eye (timed) can't miss; Astral Drift / Evasive Roll add timed dodge. With no gear
@@ -13824,12 +13825,12 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
        30% magic (MR vs Magic Pen). One hit: one evasion roll, one crit, one number (the total), one lifesteal off the HP removed. */
     const _sp=(src&&src.t&&src.t.autoSplit)||{phys:1,mag:0};
     let _ph=amt*_sp.phys*defMul(src,tgt,'phys'); const _mg=amt*_sp.mag*defMul(src,tgt,'magic');
-    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('block'),t:.5,color:'#8fb7ff',vy:1.1,sz:11}); }
+    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); }
     if(amt>0) _drF*=(_ph+_mg)/amt; amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }
   else if(kind!=='true'){ const _dm=defMul(src,tgt,'phys'); amt*=_dm; _drF*=_dm; // Armor vs Armor Pen
-    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; _drF*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('block'),t:.5,color:'#8fb7ff',vy:1.1,sz:11}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'block');   /* TALENT HOOK foiled: a hit of a talented unit was halved by Block (Meridian's Windage) */ } }
+    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; _drF*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'block');   /* TALENT HOOK foiled: a hit of a talented unit was halved by Block (Meridian's Windage) */ } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
-  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:combatFloatLabel('stun'),t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
+  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0)+((src&&src._wpnCrit)||0);   /* v1137: + Rivet's revolver (15% on that hit; 0 on every other unit) */   // Crit passive + Crit / Crit tech
   let _crit=false;
@@ -13850,7 +13851,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
  const _hpLost=Math.max(0,_hpBefore-tgt.hp); if(_isAuto&&(tgt._digHealT||0)>0&&tgt.alive&&src&&src.team!==tgt.team) healUnit(tgt,tgt.maxHp*(tgt._digHealPct||0));   /* v1308 Dig In: 1% max HP per enemy basic attack that lands */ 
   /* v1367 Riposte - after this hit's HP loss is counted (safety sweep 11 Nov) */
   if(AFFINITIES_LIVE&&src&&tgt&&src.team!==tgt.team&&tgt.alive&&src.alive&&unitClass(src)==='Assassin'&&unitClass(tgt)==='Bruiser'&&(tgt._ripReady||0)<=battleTime&&!tgt.stunned){   /* v1367 Riposte */
-    tgt._ripReady=battleTime+EDGE.riposteCd; try{ floatTexts.push({x:tgt.x,y:tgt.y-10,txt:combatFloatLabel('riposte'),t:.7,color:'#ffb347',vy:1,sz:12}); }catch(_e){}
+    tgt._ripReady=battleTime+EDGE.riposteCd; try{ floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'RIPOSTE',t:.7,color:'#ffb347',vy:1,sz:12}); }catch(_e){}
     dealDamage(tgt,src,(tgt.dmg||0)*(tgt.dmgBuffT>0?tgt.dmgBuffMul:1)*rageMul,'#ffb347'); }
   if(tgt.pass&&tgt.pass.bloodrage&&src&&src.team!==tgt.team&&_hpLost>0) tgt._brTaken=(tgt._brTaken||0)+_hpLost;   /* v1024 Blood Rage: what an enemy took off him this fight */   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   /* v527 Thunder Guard (Stormwarden): the brace answers whatever struck it. */
@@ -13879,7 +13880,7 @@ function addBleedStack(src,tgt,o){ if(!tgt||!tgt.alive)return; o=o||{};
     dealDamage(src,tgt,src.dmg*(o.ruptMul||1.9),'#ff5b6b');
     if(src&&src._tal) TalentFx.part(src,tgt,'rupture');   /* TALENT HOOK part: after the rupture (All the Others) */
     burstAt(tgt.x,tgt.y,0xff5b6b,20); ringBurst(tgt.x,tgt.y,0x8f8fa8,14);
-    floatTexts.push({x:tgt.x,y:tgt.y-14,txt:combatFloatLabel('rupture'),t:1.2,color:'#ff5b6b',vy:1,sz:14}); }
+    floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'RUPTURE',t:1.2,color:'#ff5b6b',vy:1,sz:14}); }
   else floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'bleed x'+tgt._blStk,t:.7,color:'#8f8fa8',vy:1,sz:10});
 }
 /* v1309 (Phil 8 Nov 2026, "Make DoTs respect armor and magic resist, like every other hit" - Yes): the damage multiplier a hit of
@@ -13950,7 +13951,7 @@ function hollowStrike(u){ const o=u._vpO||{}; if(!u.alive){ u._vpO=null; u._noTa
   if(u._tal) TalentFx.landPre(u,tg,'vanishpoint');   /* TALENT HOOK landPre: the strike is Vanishing Point's ('casting') */
   if(tg.hp-amt<=thresh){   // anything left under a fifth is finished where it stands
     dealDamage(u,tg,tg.hp+9999,'#c9a6ff');
-    try{ floatTexts.push({x:tg.x,y:tg.y-16,txt:combatFloatLabel('terminated'),t:1.2,color:'#c9a6ff',vy:1,sz:15}); }catch(e){} }
+    try{ floatTexts.push({x:tg.x,y:tg.y-16,txt:'TERMINATED',t:1.2,color:'#c9a6ff',vy:1,sz:15}); }catch(e){} }
   else dealDamage(u,tg,dB*(o.mul||2.0)*rm*fall,'#c9a6ff');   // v538: not executable -> FLAT damage (no wound bonus), and no vanish after it
   try{ addBleedStack(u,tg,KITS.hollow?KITS.hollow.blue:{}); }catch(e){}
   if(u._tal) TalentFx.land(u,tg,'vanishpoint');   /* TALENT HOOK land: after the strike and its bleed stack */
@@ -14358,7 +14359,7 @@ function ccApply(u, t, field, dur){
   if(field==='slow'){ const m=slowMulFor((u&&u._castLv)||(u&&u.level)||1);
     t.slowMul=Math.min(t.slowMul==null?1:t.slowMul, m); }
   if(brnd() >= ccChanceFor(u, t)){   /* v823: the SEEDED battle roll - Math.random made the server replay disagree with the fight */
-    try{ floatTexts.push({x:t.x, y:t.y-10, txt:combatFloatLabel('resist'), t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
+    try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
     return false;
   }
   t[field] = Math.max(t[field] || 0, dur);
@@ -14470,7 +14471,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(_dl<=0) _fire(); else groundHazards.push({arrival:true,delay:_dl,run:_fire}); });
       if(o.mark&&_list.length){ const m=_list[0]; groundHazards.push({arrival:true,delay:(_reps-1)*0.15+_pd,run:function(){ if(!m.alive)return;
         m._markT=Math.max(m._markT||0,o.markDur||6); m._markMul=Math.max(m._markMul||1,o.mark);
-        floatTexts.push({x:m.x,y:m.y-8,txt:combatFloatLabel('marked'),t:.9,color:'#ffd45e',vy:1.2,sz:11}); }}); }
+        floatTexts.push({x:m.x,y:m.y-8,txt:'MARKED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }}); }
       break;}
     case 'nova':{ if(o.detonate){ enemiesOf(u).forEach(m=>{ if(!m.alive||!((m._waxCoatT||0)>0)||m._waxCoatBy!==u)return;   /* v920 Mourning Bell shatters her Sealing Wax */
         const _bx=m.x,_by=m.y; if(u._tal) TalentFx.partPre(u,m,'bellBurst');   /* TALENT HOOK partPre: this coat's burst (its hits are the burst's) */ enemiesOf(u).forEach(e=>{ if(e.alive&&Math.hypot(e.x-_bx,e.y-_by)<(o.detR||2.6*METER)) dealDamage(u,e,apB*o.detonate*rm,'#e8d8b0','magic'); });
@@ -14511,7 +14512,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
       if(o.evadeEva){ const _add=Math.max(0,Math.min(o.evadeEva,0.75-(u.evaStat||0))); u.evaStat=(u.evaStat||0)+_add; u._miragEva=(u._miragEva||0)+_add;
-        u._miragT=Math.max(u._miragT||0,o.evadeDur||3); floatTexts.push({x:u.x,y:u.y-18,txt:combatFloatLabel('evading'),t:1.0,color:'#ffe08a',vy:1,sz:11}); }   /* v935 Corsair: evades while the barrage runs */
+        u._miragT=Math.max(u._miragT||0,o.evadeDur||3); floatTexts.push({x:u.x,y:u.y-18,txt:'EVADING',t:1.0,color:'#ffe08a',vy:1,sz:11}); }   /* v935 Corsair: evades while the barrage runs */
       if(o.ricochet){ const _marked=enemiesOf(u).filter(e=>e.alive&&((e._markT||0)>0||(u._tal&&e._yeRic===u)));   /* TALENT HOOK (Yenna): an enemy her talents count as marked for the ricochet (only her mech sets _yeRic) */   /* v935 Cacklefang: the boomerang ricochets between every MARKED enemy */
         const _ring=_marked.length?_marked:enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,3);
         if(_ring.length){ const _H=Math.min(8,Math.max(4,2*_ring.length)), _per=dB*(o.mul||1.6)*rm*(o.n||4)/_H;   /* the same total as before, split over the hops */
@@ -14540,13 +14541,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         owner:u, channel:true,
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
       if(u._tal&&u._tal.on.at) TalentFx.at(u,type,C,groundHazards[groundHazards.length-1],0);   /* TALENT HOOK at: where the Choir rises (Nerisse's Current, Ring the Bell); o = the choir itself */
-      floatTexts.push({x:C.x,y:C.y-14,txt:combatFloatLabel('choir_of_the_deep_sky'),t:1.2,color:'#8fd8ff',vy:1,sz:13});
+      floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
       ringBurst(C.x,C.y,0x4aa8d8,22); break; }
     case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||1.2)*rm);   /* TALENT HOOK at: where the slam lands (Ambrel's Doors Slam Twice) */ enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
       /* v529 - an aoeStun may also SILENCE. The Magistrant's "Gag Order" was a plain stun: the name
          promised a silencing and the panel just said "slams an area". */
       if(o.silence){ ccApply(u,e,'silencedT',o.silence); e._castT=0; e.castAnim=0; }}});
-      if(o.silence)floatTexts.push({x:ctr.x,y:ctr.y-16,txt:combatFloatLabel('order'),t:1.0,color:'#8fd0ff',vy:1,sz:12});
+      if(o.silence)floatTexts.push({x:ctr.x,y:ctr.y-16,txt:'ORDER',t:1.0,color:'#8fd0ff',vy:1,sz:12});
       /* v1134 Hourglass (s11): the hourglass shatters on this tick over the stun circle and its sand hangs for the longest stun this cast left
          inside it (read after ccApply, so it is the real, ccDur-shortened stun), in place of the blue burst. Display only - reads, never writes. */
       if(o.ownFx==='hourglass'){ try{ const _R=o.radius||110; let _st=0; enemiesOf(u).forEach(e=>{ if(e.alive&&dist(ctr,e)<_R) _st=Math.max(_st,e.stunned||0); }); tessitHourglassFx(ctr.x,ctr.y,_R*_fx22Area(),_st); }catch(_e){} }
@@ -14579,7 +14580,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       u._vpO=o; u._vpSM=sm; u._vpStep=0; u._vpT=(o.gone||0.9);
       u._noTarget=true; u.target=null;
       try{ for(let i=0;i<2;i++)ringBurst(u.x,u.y,0x1a1a22,16); burstAt(u.x,u.y,0x7a3fa0,20);
-        floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('gone'),t:.9,color:'#c9a6ff',vy:1,sz:14}); }catch(e){}
+        floatTexts.push({x:u.x,y:u.y-14,txt:'GONE',t:.9,color:'#c9a6ff',vy:1,sz:14}); }catch(e){}
       break; }
     case 'execute':{if(!tgt)break;const bonus=1+(1-tgt.hp/tgt.maxHp)*2;dealDamage(u,tgt,dB*(o.mul||2.2)*rm*bonus,'#ff5b6b');burstAt(tgt.x,tgt.y,0xff5b6b,14);break;}
     case 'creeprot': case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8');
@@ -14614,13 +14615,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         e.mortalT=Math.max(e.mortalT||0,md); pushDot(e,bd,bdur,1,'#c0392b',u); });
       u._lifestealPct=Math.max(u._lifestealPct||0,o.steal||0.35); u._lifestealT=o.buffDur||3;
       pushHot(u,u.maxHp*(o.regen||0.03),o.buffDur||3,1);
-      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('final_expedition'),t:1.2,color:'#d9b26a',vy:1,sz:14});
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'FINAL EXPEDITION',t:1.2,color:'#d9b26a',vy:1,sz:14});
       ringBurst(u.x,u.y,0xd9b26a,18); break; }
     case 'riftpuncture':{ const fz=o.freeze||1, si=o.silence||1;
       enemiesOf(u).forEach(e=>{ if(!e.alive)return; ccApply(u,e,'stunned',fz);
         ccApply(u,e,'silencedT',fz+si); burstAt(e.x,e.y,0xc9a227,12); });
       if(o.ownFx==='puncture'){ try{ vesperPunctureLandFx(u,enemiesOf(u).reduce((m,e)=>e.alive?Math.max(m,e.silencedT||0):m,0)); }catch(_e){} }   /* v1128: the tear closes as the Puncture ends - the longest freeze + silence it just left on an enemy (read only; display only) */
-      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('puncture'),t:1.2,color:'#c9a227',vy:1,sz:15});
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PUNCTURE',t:1.2,color:'#c9a227',vy:1,sz:15});
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xc9a227,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'triplecleave':{ const hits=o.hits||3, R=o.radius||3*METER, mul=o.mul||1.2;
       const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI));
@@ -14633,7 +14634,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(Math.abs(a)<=half){ for(let h=0;h<hits;h++) dealDamage(u,e,dB*mul*rm,'#c9a6ff');
           pushDot(e,_sD*0.12*sm,3,1,'#c0392b',u); } });
       for(let h=0;h<hits;h++) setTimeout(()=>ringBurst(u.x+Math.cos(dir)*R*.4,u.y+Math.sin(dir)*R*.4,0x7a3fa0,10), h*160);
-      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('razor_tempest'),t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'RAZOR TEMPEST',t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
     case 'mendburst':{ let l=lowestAlly(u);
       if(l&&u._tal&&u._tal.on.skillTgt) l=TalentFx.skillTgt(u,'mendburst',l,o)||l;   /* TALENT HOOK skillTgt: Mending Stitch's ally (Linnet's The Thread She Can See) */
       if(!l)break;
@@ -14643,7 +14644,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         const _H=dandraHealAmt(u,l,lvRange(o.pctLo,o.pctHi,_sl)), _d=o.dur||6; healUnit(l,_H); pushHot(l,_H*0.5/_d,_d,1); }
       else { healFrom(u,l,l.maxHp*(o.mul||0.45)*sm); pushHot(l,l.maxHp*(o.hot||0.06)*sm,o.dur||6,1); }
       burstAt(l.x,l.y,0xffe08a,16); ringBurst(l.x,l.y,0x8a5fd0,12);
-      floatTexts.push({x:l.x,y:l.y-14,txt:combatFloatLabel('seedlight'),t:1.0,color:'#ffe08a',vy:1,sz:12}); break; }
+      floatTexts.push({x:l.x,y:l.y-14,txt:'SEEDLIGHT',t:1.0,color:'#ffe08a',vy:1,sz:12}); break; }
     case 'spdsteal':{ const pct=skLvNum('spdsteal',o,_kLv), dur=o.dur||5;
       let victim=(o._tgtU&&o._tgtU.alive)?o._tgtU:null,vs=-1; if(!victim) enemiesOf(u).forEach(e=>{ if(e.alive){ const s=(e.atkSpeed||1)*(e.hasteMul||1); if(s>vs){vs=s;victim=e;} } });   /* v935: the enemy the shot reached */
       let ally=null,as=-1; alliesOf(u).forEach(a=>{ if(a.alive){ const s=(a.atkSpeed||1)*(a.hasteMul||1); if(s>as){as=s;ally=a;} } });
@@ -14667,7 +14668,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(big&&u._tal&&u._tal.on.skillTgt) big=TalentFx.skillTgt(u,type,big,o)||big;   /* TALENT HOOK skillTgt: whom Weigh the Debt marks (Gruel's The Heaviest Pays may pick another; Two Ledgers keeps the next one) */
       if(!big)break; dealDamage(u,big,dB*(o.mul||1.0)*rm,'#b9a06a');
       big._debtTo=u; big._debtT=o.dur||6; big._debtPct=o.pct||0.35;
-      floatTexts.push({x:big.x,y:big.y-12,txt:combatFloatLabel('in_debt'),t:1.2,color:'#b9a06a',vy:1,sz:13});
+      floatTexts.push({x:big.x,y:big.y-12,txt:'IN DEBT',t:1.2,color:'#b9a06a',vy:1,sz:13});
       ringBurst(big.x,big.y,0xb9a06a,14); break; }
 
     // ---- Old Maren: a wave that physically SHOVES the enemy line backwards. ----
@@ -14680,12 +14681,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
           e._ax=e.x; e._ay=e.y; if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'tsPush'); } });   /* TALENT HOOK pass: the wave has just shoved this enemy (Maren's Fouled, Keel, Hull Wake) */
       ringBurst(_tsC.x,_tsC.y,0x9fe0ff,22); burstAt(_tsC.x,_tsC.y,0x6fb6d0,14);
-      floatTexts.push({x:_tsC.x,y:_tsC.y-12,txt:combatFloatLabel('tsunami'),t:1.0,color:'#9fe0ff',vy:1,sz:13}); break; }
+      floatTexts.push({x:_tsC.x,y:_tsC.y-12,txt:'TSUNAMI',t:1.0,color:'#9fe0ff',vy:1,sz:13}); break; }
 
     // ---- Lumi: the ally nearest death simply cannot fall for a few seconds. ----
     case 'dawnward':{ const l=lowestAlly(u); if(!l)break; l._wardT=skLvNum('dawnward',o,_kLv);
       burstAt(l.x,l.y,0xffe89a,18); ringBurst(l.x,l.y,0xf2e2a0,14);
-      floatTexts.push({x:l.x,y:l.y-14,txt:combatFloatLabel('will_not_fall'),t:1.3,color:'#ffe89a',vy:1,sz:13}); break; }
+      floatTexts.push({x:l.x,y:l.y-14,txt:'WILL NOT FALL',t:1.3,color:'#ffe89a',vy:1,sz:13}); break; }
 
     // ---- Hollow: a cone of thrown daggers, every one of them adding a bleed stack. ----
     case 'bladefan':{ const R=o.radius||3*METER, half=((o.angle||75)*Math.PI/180)/2;
@@ -14729,7 +14730,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.2)*sm,team:u.team,src:u,
         interval:0.5,acc:0,life:o.dur||5,color:'#c9a227',slow:0,silence:o.silence||0.6});
       burstAt(px,py,0xc9a227,18); ringBurst(px,py,0xc9a227,14);
-      floatTexts.push({x:px,y:py-12,txt:combatFloatLabel('errata'),t:1.1,color:'#c9a227',vy:1,sz:12}); break; }
+      floatTexts.push({x:px,y:py-12,txt:'ERRATA',t:1.1,color:'#c9a227',vy:1,sz:12}); break; }
 
     // ---- Vesper "The Annotator": pages out, pages back — the lane is cut twice. ----
     case 'pagestorm':{ const foes=enemiesOf(u).filter(e=>e.alive); if(!foes.length)break;
@@ -14779,7 +14780,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         u._noTarget=true; u._noTargetT=_ev;   // evasive beat after the behind-target strike
         if(u._tal) TalentFx.land(u,_mark,'hookline');   /* TALENT HOOK land: she has landed behind the mark */
         burstAt(u.x,u.y,0x7a3fa0,18); try{ hookSlashFx(_mark); }catch(_e){}
-        floatTexts.push({x:_mark.x,y:_mark.y-12,txt:combatFloatLabel('behind_you'),t:1.0,color:'#c9a6ff',vy:1,sz:12}); }};
+        floatTexts.push({x:_mark.x,y:_mark.y-12,txt:'BEHIND YOU',t:1.0,color:'#c9a6ff',vy:1,sz:12}); }};
       break; }
 
     // ---- Grimsby: a debt that GROWS, and detonates onto the room if it outlives its holder. ----
@@ -14787,12 +14788,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       tgt._debtStk=Math.min(o.maxStk||6,(tgt._debtStk||0)+1);
       tgt._debtDps=_sD*(o.dps||0.35)*sm; tgt._debtDur=o.dur||6; tgt._debtOwner=u;
       pushDot(tgt,tgt._debtDps*tgt._debtStk,o.dur||6,1,'#8a7a3a',u);
-      floatTexts.push({x:tgt.x,y:tgt.y-10,txt:combatFloatLabel('overdue',tgt._debtStk),t:1.0,color:'#8a7a3a',vy:1,sz:12}); break; }
+      floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'OVERDUE x'+tgt._debtStk,t:1.0,color:'#8a7a3a',vy:1,sz:12}); break; }
 
     // ---- Dandra: the sting slows their hands. Sting an already-stung foe and they SLEEP. ----
     case 'drowsy':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||0.5)*rm,'#f2d84a','magic');
       if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; ccApply(u,tgt,'stunned',sl); tgt._sleepT=sl; tgt._stungT=0;
-        burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:combatFloatLabel('asleep'),t:1.2,color:'#f2d84a',vy:1,sz:13}); }
+        burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'ASLEEP',t:1.2,color:'#f2d84a',vy:1,sz:13}); }
       else { tgt._stungT=o.stung||6;
         /* v1376 (Phil 12 Nov: "Drowsy string should also slow their attack or cast speed 20% level 1 going to 35% at 100") */
         const _slow=(o.slowLo!=null)?lvRange(o.slowLo,o.slowHi,(u.skillLv&&u.skillLv[2])||_kLv):(o.slowPct||0.3);
@@ -14803,7 +14804,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
            and the spread machinery needs the stung foe marked as a carrier with the dot's colour
            (see the umbralcata path). Drowsy Sting set neither, so the bees never moved on. */
         if(u.pass&&u.pass.contagion){ tgt._contagion=true; tgt._plagueDps=_sA*(o.dps||0.25)*sm; tgt._plagueColor='#f2d84a'; tgt._plagueHex=0xf2d84a; }
-        floatTexts.push({x:tgt.x,y:tgt.y-10,txt:combatFloatLabel('stung'),t:.9,color:'#f2d84a',vy:1,sz:12}); } break; }
+        floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'STUNG',t:.9,color:'#f2d84a',vy:1,sz:12}); } break; }
     // ---- Hurne: three undead boar warriors haul themselves up out of the floor ----
     case 'summonwarriors':{ const n=o.n||3, dur=o.dur||18, _sh=skLvNum('summonwarriors',o,_kLv);   /* v1112: share x(1 + 0.005 a level) */
       /* v542 (Phil): "make sure the boar warriors for hurne are not summoned until the part of his ability animation where he
@@ -14814,7 +14815,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         for(let i=0;i<n;i++){ const a=(-0.6+1.2*(i/(n-1||1))) + (u.team==='ally'?0:Math.PI);
           summonUnit(u,o.key||'boar warrior',dur,{a:a,r:(o.radius||1.7*METER),share:_sh}); }
         ringBurst(u.x,u.y,0x6b5230,22);
-        if(!o.key) floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('up_the_lot_of_you'),t:1.2,color:'#c9a227',vy:1,sz:13}); };
+        if(!o.key) floatTexts.push({x:u.x,y:u.y-14,txt:'UP, THE LOT OF YOU',t:1.2,color:'#c9a227',vy:1,sz:13}); };
       if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
       break; }
     // ---- Hurne: one boar shaman — mends the pack, and burns whatever stands near it ----
@@ -14824,7 +14825,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          summon at once as before. */
       const _bc=(u.key==='hurne')?(u.anim&&u.anim.blue):null, _at=(_bc&&_bc.n>1)?((o.handFrame!=null?o.handFrame:15)/(_bc.fps||24))*BATTLE_PACE:0;
       const _go=()=>{ if(!u.alive) return; const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER),backRow:true,share:skLvNum('summonshaman',o,_kLv)});   // v548: rises in the back row
-        if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:combatFloatLabel('bone_chant'),t:1.1,color:'#8fbf3f',vy:1,sz:12}); } };
+        if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:'BONE CHANT',t:1.1,color:'#8fbf3f',vy:1,sz:12}); } };
       if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
       break; }
     // ---- Hurne ULT: he tears the whole pack apart and takes it into himself ----
@@ -14836,7 +14837,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         u.dmgBuffMul=Math.max(u.dmgBuffT>0?u.dmgBuffMul:1,1+_fp); u.dmgBuffT=Math.max(u.dmgBuffT||0,_fd);
         u.hasteMul=Math.max(u.hasteT>0?u.hasteMul:1,1+_fp); u.hasteT=Math.max(u.hasteT||0,_fd);
         u.drMul=Math.min(u.drT>0?u.drMul:1,1-_fp); u.drT=Math.max(u.drT||0,_fd);
-        floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('fed',Math.round(_fp*100)),t:1.2,color:'#ff6a6a',vy:1,sz:12}); }
+        floatTexts.push({x:u.x,y:u.y-12,txt:'FED +'+Math.round(_fp*100)+'%',t:1.2,color:'#ff6a6a',vy:1,sz:12}); }
       if(!pack.length){ for(let i=0;i<2;i++)ringBurst(u.x,u.y,0xb03a3a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
       let hp=0, pw=0;
       pack.forEach(p=>{ hp+=p.hp; pw+=p.dmg; burstAt(p.x,p.y,0xb03a3a,16); spawnShot(p,u,'#b03a3a'); killSummon(p); });
@@ -14845,7 +14846,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       u._devourT=o.dur||8; u._devourBonus=pw*(o.dmgPct||0.9);
       enemiesOf(u).forEach(e=>{ if(dist(u,e)-bodyR(e)<=(o.radius||3*METER)) dealDamage(u,e,dB*(o.mul||1.2)*rm,'#b03a3a'); });   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xb03a3a,20); burstAt(u.x,u.y,0x6b1a1a,24);
-      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('feed_them'),t:1.4,color:'#ff6a6a',vy:1,sz:15});
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-16,txt:'FEED THEM',t:1.4,color:'#ff6a6a',vy:1,sz:15});
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'selfheal':{healFrom(u,u,u.maxHp*(o.mul||0.25)*sm);burstAt(u.x,u.y,0x5ee89b,14);break;}   // Ooznik: Divide — regenerate own HP
     case 'hot':{const l=lowestAlly(u); if(l){pushHot(l,l.maxHp*(o.hps||.05)*sm,o.dur||6,1); if(u.key==='oakmir')spawnGroundFx('mendbloom',l.x,l.y,0.9*METER,1.4);} break;}
@@ -14864,7 +14865,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       /* Phil: "only after the circle is complete the 4 seconds starts" - o.lead is the snake's lap round the circle; no tick
          lands during it, then dur seconds of ticks. life = lead + dur so the hazard outlives its own lead-in. */
       groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35),heal:apB*(o.hps||0.6),team:u.team,src:u,   /* v1114: apB already carries the level (sm) - it was applied twice */interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
-      floatTexts.push({x:C.x,y:C.y-12,txt:combatFloatLabel('bone_chant'),t:1.0,color:'#8fe08f',vy:1,sz:13}); ringBurst(C.x,C.y,0x5fbf5f,16); break; }
+      floatTexts.push({x:C.x,y:C.y-12,txt:'BONE CHANT',t:1.0,color:'#8fe08f',vy:1,sz:13}); ringBurst(C.x,C.y,0x5fbf5f,16); break; }
     case 'ashfall':{ if(o.deliver==='travel'){   /* v888 Spiral Current: the whirlpool moves through the formation */
         const _tC=aimCtr||((tgt&&tgt.alive)?tgt:u), _dx=_tC.x-u.x, _dy=_tC.y-u.y, _L=Math.hypot(_dx,_dy)||1, _ux=_dx/_L, _uy=_dy/_L, _spd=o.speed||6*METER, _tt=(_L+3*METER)/_spd;
         const _h={x:u.x+_ux*METER,y:u.y+_uy*METER,vx:_ux*_spd,vy:_uy*_spd,travelLeft:_tt,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,src:u,interval:0.5,acc:0,life:_tt+0.6,color:o.color||'#2f8fa8',slow:o.slow||0,nrgSlow:o.nrgSlow||0,nrgDur:o.dur||4};
@@ -14925,7 +14926,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       u._abilHold=Math.max(u._abilHold||0,u._stampT+0.3);   // the ult clip rides the whole run
       if(typeof spawnStampTrail==='function') spawnStampTrail(u);   /* v1072: display only */
       ringBurst(u.x,u.y,0xffcf40,14); burstAt(u.x,u.y,0xff8844,12);
-      floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('stampede'),t:1.0,color:'#ffcf40',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-16,txt:'STAMPEDE',t:1.0,color:'#ffcf40',vy:1,sz:12}); break; }
     case 'piercethrow':{ const foes=enemiesOf(u); if(!foes.length)break;   // Granith: hurls a pickaxe at the FARTHEST hero, hitting everyone in the line's path
       let tg2=foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       if(u._tal&&u._tal.on.skillTgt) tg2=TalentFx.skillTgt(u,type,tg2,o)||tg2;   /* TALENT HOOK skillTgt: the enemy the line runs toward (Calypsa's Straight Line may turn it) */
@@ -14939,8 +14940,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(Math.abs(rx*uy-ry*ux)<=W) (o.frost?dealFrostDamage:dealDamage)(u,e,dB*(o.mul||1.6)*rm,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); });
       abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
     case 'warcry':{ u.dmgBuffMul=(o.mul||1.4)+(o.mulPerLv||0)*vaelSteps(u._castLv); u.dmgBuffT=o.dur||6;   /* v1024 (Phil): Vael +10% +0.2% per skill level */   // self attack buff + a brief fear (short stun) on nearby heroes
-      floatTexts.push({x:u.x,y:u.y-10,txt:combatFloatLabel('roar'),t:1.1,color:'#ffb46a',vy:1.0,sz:15});
-      const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ ccApply(u,e,'fearT',o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:combatFloatLabel('fear'),t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
+      floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
+      const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ ccApply(u,e,'fearT',o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=skLvNum('defensive',o,_kLv);u.drT=o.dur||4;break;}   /* v1112: the reduction grows by the kit's perLv */
     case 'laststand':{ u.drMul=lastStandTaken(o,_kLv); u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; if(o.heal) healFrom(u,u,u.maxHp*((u._campaignHero&&o.enemyHeal!=null)?skLvNum('laststand',Object.assign({},o,{heal:o.enemyHeal,perLv:(o.enemyPerLv!=null?o.enemyPerLv:o.perLv)}),_kLv):lastStandHeal(o,_kLv,u.hp/Math.max(1,u.maxHp))));   /* v1308: 50% -> 70% reduction; heal by missing health, cap 20% -> 30%; a campaign wave Vael keeps its flat 10% + 0.1 pt a level */   /* v1232: enemyHeal for a campaign wave hero */   /* v1112: 15% + 0.1 pt a level */   /* v538 (Phil): +15% self heal */ ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
@@ -14983,14 +14984,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'evadecounter':{                                           // "evades the next attack and counters"
       u._evadeT=o.dur||2.2; u._evadeMul=(o.mul||1.8)*sm; u._evadeFrost=!!o.frost; u._bloomOn=o.bloom?1:0;   /* v1186 Bloomstep's jump + strike at the counter or the window's end */ u.drMul=Math.min(u.drMul||1,skLvNum('evadecounter',o,_kLv));   /* v1112 BUG FIX: the counter carries the skill curve (the card always said so), and the reduction GROWS 0.1 pt a level - SKILL_SCALE_FRAC used to multiply this damage-taken multiplier, so it shrank to 15% */ u.drT=Math.max(u.drT||0,o.dur||2.2);
       ringBurst(u.x,u.y,0x9fd8ff,14);
-      floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('ready'),t:.8,color:'#bfe8ff',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-14,txt:'READY',t:.8,color:'#bfe8ff',vy:1,sz:12}); break; }
 
     case 'interruptslam':{                                          // "damaging enemies and interrupting their casts"
       const R=o.radius||3*METER; let n=0;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)-bodyR(e)>R)return; n++;   /* v1391 (skill reach audit 14 Nov): reach to the enemy's body edge (dist - bodyR), as v1389's cleave - a melee enemy's centre stands 3.3-4.5 m from his, so the written radius reached nobody */
         dealDamage(u,e,dB*(o.mul||1.2)*rm,o.color||'#c8a45a');
         e._castT=0; e.castAnim=0; ccApply(u,e,'silencedT',o.silence||1.2); });
-      burstAt(u.x,u.y,0xc8a45a,16); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('interrupt'),t:.9,color:'#c8a45a',vy:1,sz:12}); break; }
+      burstAt(u.x,u.y,0xc8a45a,16); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'INTERRUPT',t:.9,color:'#c8a45a',vy:1,sz:12}); break; }
 
     case 'banner':{                                                 // "grant nearby allies armor, attack speed, and control resistance"
       const R=o.radius||6*METER, D=o.dur||6;
@@ -14998,7 +14999,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         a.drMul=Math.min(a.drMul||1,skLvNum('banner',o,_kLv));   /* v1112 BUG FIX: 18% + 0.1 pt a level (it fell to 15% from level 4) */ a.drT=Math.max(a.drT||0,D);
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,D);
         ctrlBonusSet(a,(o.ctrl||0.25),D,0.85);
-        floatTexts.push({x:a.x,y:a.y-16,txt:combatFloatLabel('rallied'),t:.9,color:'#e8c87a',vy:1,sz:11}); });
+        floatTexts.push({x:a.x,y:a.y-16,txt:'RALLIED',t:.9,color:'#e8c87a',vy:1,sz:11}); });
       try{ window._fxPreScaled=!!o._areaScaled; spawnGroundFx('rallyroots',u.x,u.y,R*0.5,1.0); }catch(e){} finally{ window._fxPreScaled=false; }
       burstAt(u.x,u.y,0xe8c87a,16); break; }
 
@@ -15045,7 +15046,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(_mu){ ctrlBonusSet(best,0.6,o.dur||6,0.95);
         best.stunned=0; best.fearT=0; best.silencedT=0;
         ringBurst(best.x,best.y,0xf4c35f,22);
-        floatTexts.push({x:best.x,y:best.y-24,txt:combatFloatLabel('uninterruptible'),t:1.3,color:'#f4c35f',vy:1,sz:12}); }
+        floatTexts.push({x:best.x,y:best.y-24,txt:'UNINTERRUPTIBLE',t:1.3,color:'#f4c35f',vy:1,sz:12}); }
       else u._keys=Math.min(o.maxKeys||5,(u._keys||0)+1);
       floatTexts.push({x:best.x,y:best.y-16,txt:'+'+Math.round(_mu?100:give)+' energy',t:1.0,color:'#f4c35f',vy:1,sz:12});
       burstAt(best.x,best.y,0xf4c35f,14); break; }
@@ -15056,7 +15057,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       floatTexts.push({x:u.x,y:u.y-16,txt:String(o.name||'RESONANT STAR').toUpperCase(),t:1.0,color:'#8fd8ff',vy:1,sz:11});
       dealDamage(u,tgt,apB*(o.mul||1.3)*rm,o.color||'#8fd8ff','magic');
       ccApply(u,tgt,'silencedT',o.silence||2.2); tgt._castT=0; tgt.castAnim=0;
-      floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('silenced'),t:.9,color:'#8fd8ff',vy:1.2,sz:12});
+      floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'SILENCED',t:.9,color:'#8fd8ff',vy:1.2,sz:12});
       if(u.range>60)spawnShot(u,tgt,u.t.color); break; }
 
     case 'orbheal':{                                                // "sends her orb between allies, healing each one"
@@ -15068,7 +15069,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
          launched per hop with the same duration and only draws it. */
       const _left=alliesOf(u).filter(a=>a.alive);
       if(_left.length){ const _orb={orb:true,owner:u,team:u.team,x:u.x,y:u.y,left:_left,hs,hot:o.hot||0,hotDur:o.dur||4,gfx:o.gfx,pscale:o.pscale||3.2,tgt:null,hopT:0,hopDur:0,done:false};
-        orbNextHop(_orb); groundHazards.push(_orb); floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('constellation'),t:1.0,color:'#8fd8ff',vy:1,sz:11}); }
+        orbNextHop(_orb); groundHazards.push(_orb); floatTexts.push({x:u.x,y:u.y-16,txt:'CONSTELLATION',t:1.0,color:'#8fd8ff',vy:1,sz:11}); }
       break; }
 
     case 'sleepbouquet':{                                           // "puts the highest-energy enemy to sleep"
@@ -15076,7 +15077,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(!best)break;
       best._sleepT=o.sleep||2.0; ccApply(u,best,'stunned',(o.sleep||2.0)*(1-(best.ctrlRes||0)));
       ccApply(u,best,'slow',o.slow||2);
-      floatTexts.push({x:best.x,y:best.y-10,txt:combatFloatLabel('asleep'),t:1.1,color:'#c9b6ff',vy:1,sz:13});
+      floatTexts.push({x:best.x,y:best.y-10,txt:'ASLEEP',t:1.1,color:'#c9b6ff',vy:1,sz:13});
       ringBurst(best.x,best.y,0x9b7fd0,12); break; }
 
     case 'healbuff':{                                               // "heals the weakest ally and increases their Attack"
@@ -15086,7 +15087,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       best.dmgBuffMul=Math.max(best.dmgBuffMul||1,o.atk||1.25); best.dmgBuffT=Math.max(best.dmgBuffT||0,o.dur||6);
       best._buffedT=0.5;   // v527: Trail of Splendor watches for this
       burstAt(best.x,best.y,0x8fe8b0,14);
-      floatTexts.push({x:best.x,y:best.y-16,txt:combatFloatLabel('courage'),t:1.0,color:'#8fe8b0',vy:1,sz:12}); break; }
+      floatTexts.push({x:best.x,y:best.y-16,txt:'COURAGE',t:1.0,color:'#8fe8b0',vy:1,sz:12}); break; }
 
     case 'linkheal':{                                               // "links two allies so healing and shields are shared"
       const al=alliesOf(u).filter(a=>a.alive).sort((a,b)=>(a.hp/a.maxHp)-(b.hp/b.maxHp));
@@ -15095,7 +15096,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const h=(u.apow||0)*(o.mul||0.5)*sm; healFrom(u,a1,h); healFrom(u,a2,h);
       pushHot(a1,a1.maxHp*(o.hot||0.02),o.dur||8,1); pushHot(a2,a2.maxHp*(o.hot||0.02),o.dur||8,1);
       burstAt(a1.x,a1.y,0xd8c8ff,10); burstAt(a2.x,a2.y,0xd8c8ff,10);
-      floatTexts.push({x:a1.x,y:a1.y-16,txt:combatFloatLabel('linked'),t:1.0,color:'#d8c8ff',vy:1,sz:11}); break; }
+      floatTexts.push({x:a1.x,y:a1.y-16,txt:'LINKED',t:1.0,color:'#d8c8ff',vy:1,sz:11}); break; }
 
     case 'lastbreath':{                                             // "shields the weakest ally and prevents their health falling below 1"
       let best=null,bv=2; alliesOf(u).forEach(a=>{ if(!a.alive)return; const f=a.hp/a.maxHp; if(f<bv){bv=f;best=a;} });
@@ -15105,7 +15106,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       best._wardT=Math.max(best._wardT||0,o.dur||5);   // the Dawnward hold: they will not fall while it lasts
       best._buffedT=0.5;
       ringBurst(best.x,best.y,0xf0c86a,16);
-      floatTexts.push({x:best.x,y:best.y-16,txt:combatFloatLabel('reinforced'),t:1.1,color:'#f0c86a',vy:1,sz:12}); break; }
+      floatTexts.push({x:best.x,y:best.y-16,txt:'REINFORCED',t:1.1,color:'#f0c86a',vy:1,sz:12}); break; }
 
     case 'boomerang':{                                              // "throws it through the line; greater damage returning"
       const foes=enemiesOf(u).filter(e=>e.alive).slice(0,o.n||3);
@@ -15118,13 +15119,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       let best=null,bv=2; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const f=e.hp/e.maxHp; if(f<bv){bv=f;best=e;} });
       if(!best)break;
       best._markT=o.dur||8; best._markMul=skLvNum('markreveal',o,_kLv); best._markBy=u;
-      floatTexts.push({x:best.x,y:best.y-10,txt:combatFloatLabel('marked'),t:1.1,color:'#ffd45e',vy:1,sz:13});
+      floatTexts.push({x:best.x,y:best.y-10,txt:'MARKED',t:1.1,color:'#ffd45e',vy:1,sz:13});
       ringBurst(best.x,best.y,0xffd45e,14); break; }
 
     /* v532 Mirage Herd (Zahri) is now a SUMMON, "just like librarian and hurne" (Phil): the moment she uses her blue,
        one mirage copy of her builds out of a seed of light beside her - 1/10 of her stats, auto-attacks only, on a leash. */
     case 'summonmirage':{ const m=summonUnit(u,o.key||'zahri mirage',(o.dur==null?0:o.dur),   /* v546 (Phil): "mirage should last until dead" - dur 0 = no timer */{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.2*METER),share:skLvNum('summonmirage',o,_kLv)/(o.stat||0.30)});   /* v1112: 30% + 0.1 pt a level */
-      if(!m){ floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('mirage_holds'),t:.8,color:'#ffd08a',vy:1,sz:11}); }
+      if(!m){ floatTexts.push({x:u.x,y:u.y-16,txt:'MIRAGE HOLDS',t:.8,color:'#ffd08a',vy:1,sz:11}); }
       break; }
 
     case 'mirage':{                                                 // "creates mirage copies that absorb attacks"
@@ -15132,7 +15133,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       u._evadeT=o.dur||3.0; u._evadeMul=o.counter||0;   // the copies eat a blow; there is no counter-swing
       u.evaStat=Math.min(0.5,(u.evaStat||0)+(o.eva||0.15)); u._miragEva=(o.eva||0.15); u._miragT=o.dur||3.0;
       for(let i=0;i<3;i++) burstAt(u.x+(i-1)*22,u.y,0xffd08a,8);
-      floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('mirage'),t:1.0,color:'#ffd08a',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-16,txt:'MIRAGE',t:1.0,color:'#ffd08a',vy:1,sz:12}); break; }
 
     case 'sealwax':{                                                // v920 'Sealing Wax' (replaced Waxen Effigy, which could not be drawn)
       let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const v=e.dmg||0; if(v>bv){bv=v;best=e;} });
@@ -15141,7 +15142,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       dealDamage(u,best,apB*(o.mul||1.0)*rm,o.color||'#e8d8b0','magic');
       ccApply(u,best,'slow',o.harden||2.0);
       best._sealT=o.harden||2.0; best._sealBy=u; best._sealStun=o.stun||1.1; best._waxCoatT=o.coat||6; best._waxCoatBy=u;
-      floatTexts.push({x:best.x,y:best.y-10,txt:combatFloatLabel('sealing_wax'),t:1.1,color:'#e8d8b0',vy:1,sz:12});
+      floatTexts.push({x:best.x,y:best.y-10,txt:'SEALING WAX',t:1.1,color:'#e8d8b0',vy:1,sz:12});
       ringBurst(best.x,best.y,0xe8d8b0,14); break; }
 
     case 'rewind':{                                                 // "restores every ally to the health they had several seconds earlier"
@@ -15153,14 +15154,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*skLvNum('rewind',o,_kLv))); if(DD.on) ddHeal(a,a.hp,u);   /* v1112: 40% + 0.15 pt a level */
           a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0;
           ringBurst(a.x,a.y,0xf0c86a,20);
-          floatTexts.push({x:a.x,y:a.y-18,txt:combatFloatLabel('rewoven'),t:1.4,color:'#f0c86a',vy:1,sz:14}); } });
+          floatTexts.push({x:a.x,y:a.y-18,txt:'REWOVEN',t:1.4,color:'#f0c86a',vy:1,sz:14}); } });
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.25);
       if(typeof spawnGroundFx==='function'&&typeof FX2_DEF!=='undefined'&&FX2_DEF.linnet_rewind) _rw.forEach(a=>{ if(!a.alive) return;   /* display only - the heal and revive above are already done */
         try{ window._fxTgtH=a.sprH||null; window._fxTgtU=a._sprRef?a:null; window._fxAboveBar=!!a._sprRef; _fxAllow=true;
           const fo=spawnGroundFx('linnet_rewind',a.x,a.y,1.2*METER,6.04);
           if(fo&&fo.m&&a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); fo.followAbove=a; fo.aboveOff=fo.m.position.clone().sub(p); }
         }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; } });
-      floatTexts.push({x:u.x,y:u.y-18,txt:combatFloatLabel('rewrite_the_pattern'),t:1.4,color:'#f0c86a',vy:1,sz:13}); break; }
+      floatTexts.push({x:u.x,y:u.y-18,txt:'REWRITE THE PATTERN',t:1.4,color:'#f0c86a',vy:1,sz:13}); break; }
 
     case 'plumage':{                                                 // ULT: "cleansing allies while charming enemies into lowering their defenses"
       alliesOf(u).forEach(a=>{ if(!a.alive)return;
@@ -15175,7 +15176,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         e._atkDnPct=Math.max(e._atkDnPct||0,o.atkDn||0.20); e._atkDnT=Math.max(e._atkDnT||0,o.dur||6);
         burstAt(e.x,e.y,0x7fe0d0,10); });
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
-      floatTexts.push({x:u.x,y:u.y-18,txt:combatFloatLabel('imperial_plumage'),t:1.4,color:'#7fe0d0',vy:1,sz:13}); break; }
+      floatTexts.push({x:u.x,y:u.y-18,txt:'IMPERIAL PLUMAGE',t:1.4,color:'#7fe0d0',vy:1,sz:13}); break; }
 
     case 'quietwings':{                                             // ULT: "putting enemies to sleep while empowering allies"
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
@@ -15187,7 +15188,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,o.dur||8);
         a._buffedT=0.5; burstAt(a.x,a.y,0xb9a6e0,10); });
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
-      floatTexts.push({x:u.x,y:u.y-18,txt:combatFloatLabel('queen_of_quiet_wings'),t:1.4,color:'#b9a6e0',vy:1,sz:13}); break; }
+      floatTexts.push({x:u.x,y:u.y-18,txt:'QUEEN OF QUIET WINGS',t:1.4,color:'#b9a6e0',vy:1,sz:13}); break; }
 
     case 'openeverydoor':{                                          // ULT: "locks and suspends every enemy, steals Energy, then shatters the locks"
       const _mu=noxSpendKeys(u);   // v529: "when Master-Unlocked, the locks cannot be resisted and allied Ultimates are empowered"
@@ -15202,7 +15203,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(_mu){ a.dmgBuffMul=Math.max(a.dmgBuffMul||1,1.35); a.dmgBuffT=Math.max(a.dmgBuffT||0,8); a._buffedT=0.5; burstAt(a.x,a.y,0xf4c35f,10); } });
       u._keys=Math.min(5,(u._keys||0)+3);
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.25);
-      floatTexts.push({x:u.x,y:u.y-18,txt:combatFloatLabel('open_every_door'),t:1.4,color:'#c9a6ff',vy:1,sz:13}); break; }
+      floatTexts.push({x:u.x,y:u.y-18,txt:'OPEN EVERY DOOR',t:1.4,color:'#c9a6ff',vy:1,sz:13}); break; }
 
     case 'gravknot':{                                               // "nearby enemies are pulled together and slowed"
       const R=o.radius||4*METER; let n=0;
@@ -15215,13 +15216,13 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         ccApply(u,e,'slow',o.slow||3);
         if(o.mul) dealDamage(u,e,apB*(o.mul||0.6)*rm,o.color||'#9b5cff','magic'); });
-      ringBurst(_kc.x,_kc.y,0x6a3fb0,18); if(n)floatTexts.push({x:_kc.x,y:_kc.y-16,txt:combatFloatLabel('knot'),t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
+      ringBurst(_kc.x,_kc.y,0x6a3fb0,18); if(n)floatTexts.push({x:_kc.x,y:_kc.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
 
     case 'thornguard':{                                             // "a defensive brace shields him and retaliates against direct attacks"
       u.shield=Math.max(u.shield||0,u.maxHp*(o.pct||0.16)*sm); u.shieldT=Math.max(u.shieldT||0,o.dur||5);   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): Thunder Guard shield had no timer and stacked */
       u._thornT=o.dur||5; u._thornMul=o.thorn||0.55;
       ringBurst(u.x,u.y,0x5aa8ff,16);
-      floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('guard'),t:1.0,color:'#8fd0ff',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-14,txt:'GUARD',t:1.0,color:'#8fd0ff',vy:1,sz:12}); break; }
 
     case 'incense':{                                                // "reduces enemy damage and cleanses nearby allies"
       const R=o.radius||5*METER;
@@ -15232,7 +15233,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(a.dots&&a.dots.length)a.dots.length=0;
         a.stunned=0; a.fearT=0; a.silencedT=0; a.slow=0; a.mortalT=0;
         healFrom(u,a,(u.apow||0)*(o.mul||0.35)*sm); burstAt(a.x,a.y,0xffe8b0,8); });
-      floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('penance'),t:1.1,color:'#ffe8b0',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-16,txt:'PENANCE',t:1.1,color:'#ffe8b0',vy:1,sz:12}); break; }
 
     case 'chainquench':{                                            // "molten chains, pulling enemies together and burning them"
       const R=o.radius||4.5*METER; const bd=_sD*(o.dps||0.35)*sm;
@@ -15244,7 +15245,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         dealDamage(u,e,dB*(o.mul||0.8)*rm,'#ff8a3a');
         pushDot(e,bd,o.dur||4,1,'#ff6a2a',u); });
       ringBurst(u.x,u.y,0xff8a3a,18); try{ tolleyQuenchSettle(u); }catch(_e){}
-      floatTexts.push({x:u.x,y:u.y-16,txt:combatFloatLabel('quench'),t:1.0,color:'#ff8a3a',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-16,txt:'QUENCH',t:1.0,color:'#ff8a3a',vy:1,sz:12}); break; }
 
     case 'chapterrewrite':{ if(!tgt)break;                          // "reducing its stats and reversing beneficial effects"
       dealDamage(u,tgt,apB*(o.mul||1.0)*rm,o.color||'#c8b9e8','magic');
@@ -15255,14 +15256,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       tgt.dmgBuffT=0; tgt.hasteT=0; tgt.hasteMul=1; tgt.drT=0; tgt.drMul=1; tgt._digHealT=0; tgt._critBuffT=0; tgt._ocT=0;   /* v1024: Bloodthirst's crit buff and the Overclock marker reverse with the haste they came with */
       if(tgt.hots&&tgt.hots.length)tgt.hots.length=0;
       if(tgt.shield>0){ dealDamage(u,tgt,tgt.shield*(o.shieldBurn||1),'#c8b9e8','true'); tgt.shield=0; }
-      floatTexts.push({x:tgt.x,y:tgt.y-10,txt:combatFloatLabel('rewritten'),t:1.1,color:'#c8b9e8',vy:1,sz:12});
+      floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'REWRITTEN',t:1.1,color:'#c8b9e8',vy:1,sz:12});
       ringBurst(tgt.x,tgt.y,0x8a6bb0,14); break; }
 
     case 'burrowguard':{                                            // "becoming untargetable briefly before emerging beneath the nearest attacker"
       u.drMul=Math.min(u.drMul||1,0.25); u.drT=Math.max(u.drT||0,o.dur||1.4);
       u._noTarget=true; u.target=null; u._bgT=o.dur||1.4; u._bgMul=o.mul||1.6; u._bgSM=sm;
       try{ ringBurst(u.x,u.y,0xc9a227,16); burstAt(u.x,u.y,0x8a6b3f,18); }catch(e){}
-      floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('burrowed'),t:.9,color:'#c9a227',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-14,txt:'BURROWED',t:.9,color:'#c9a227',vy:1,sz:12}); break; }
 
     case 'grapple':{ if(!tgt)break;                                 // "launch a hook that pulls an enemy inward and stuns it"
       dealDamage(u,tgt,dB*(o.mul||1.2)*rm,o.color||'#d8b06a');
@@ -15271,7 +15272,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         tgt.x+=dx/L*pull; tgt.y+=dy/L*pull; tgt._ax=tgt.x; tgt._ay=tgt.y; tgt.pullT=Math.max(tgt.pullT||0,0.35); }
       ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
       if(u.range>60)spawnShot(u,tgt,u.t.color);
-      floatTexts.push({x:tgt.x,y:tgt.y-8,txt:combatFloatLabel('hooked'),t:.9,color:'#d8b06a',vy:1.2,sz:12}); break; }
+      floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'HOOKED',t:.9,color:'#d8b06a',vy:1.2,sz:12}); break; }
 
     // ---- Grosk ----
     case 'hipposlam':{ const foes=enemiesOf(u); if(!foes.length)break;   // ULT: leap onto the densest 3m cluster; damage = % of his OWN max HP
@@ -15351,7 +15352,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'worldweight':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER, L=o.lift||2.0;   /* v920 Weight of the World (Phil): lift 2 s, slam, stun 1 s - not a pull */
       if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||2.0)*rm);   /* TALENT HOOK at: the ultimate's centre and radius (Vulmar's The Pressed District, Avalanche Field, What Cannot Be Lifted) */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(ctr,e)>=R) return; const amt=dB*(o.mul||2.0)*rm;
-        if(brnd()>=ccChanceFor(u,e)){ dealDamage(u,e,amt,'#b06bff'); floatTexts.push({x:e.x,y:e.y-10,txt:combatFloatLabel('resist'),t:.7,color:'#9fb4cc',vy:1.1,sz:10}); return; }
+        if(brnd()>=ccChanceFor(u,e)){ dealDamage(u,e,amt,'#b06bff'); floatTexts.push({x:e.x,y:e.y-10,txt:'RESIST',t:.7,color:'#9fb4cc',vy:1.1,sz:10}); return; }
         e._liftT=L; e._liftL=L; e._liftBy=u; e._liftDmg=amt; e._liftStun=o.slamStun||1.0;   /* not 'stun': the control table would rewrite it (Phil set 1 s) */
         e._castT=0; e.castAnim=0; e._animLockT=0; e._lockPri=0; e._abilHold=0; e._atkHold=0; e._ultRootT=0; });   /* the lift itself holds them (think) - no stun under it, so the total is lift + slam stun */
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
@@ -15421,7 +15422,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const dd=Math.max(1,Math.hypot(tx-u.x,ty-u.y)), ux=(tx-u.x)/dd, uy=(ty-u.y)/dd, half=(u._tal&&u._tal.on.num)?TalentFx.num(u,'breathW',1.4*METER):1.4*METER;   /* TALENT HOOK num: the plume's half-width */
       enemiesOf(u).forEach(e=>{ let pr=(e.x-u.x)*ux+(e.y-u.y)*uy; if(pr<0)pr=0; if(pr>dd)pr=dd; const cx=u.x+ux*pr, cy=u.y+uy*pr;
         if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f',u,'magic'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: without the colour the spread test never matched and Contagion never fired
-      floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('toxic_breath'),t:.9,color:'#a6e05a',vy:1,sz:12}); break; }
+      floatTexts.push({x:u.x,y:u.y-12,txt:'TOXIC BREATH',t:.9,color:'#a6e05a',vy:1,sz:12}); break; }
     case 'finalcandle':{   /* v896 Waxen Duchess: flood (slow) -> statues (stun) -> shatter (damage), each stage when it happens */
       const _c=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u, _R=o.radius||7*METER, _sh=apB*(o.mul||2.0)*rm;
       const _caught=enemiesOf(u).filter(e=>e.alive&&dist(_c,e)<_R);
@@ -15469,7 +15470,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'crescendo':{
       u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
       alliesOf(u).forEach(a=>{ healFrom(u,a,heal); pushHot(a, apB*0.4*ramp, o.dur||5, 1); if(pp){ a.shield=Math.max(a.shield,heal*SKLV.pitch(passLv(u))); a.shieldT=5; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate over each ally it shields (Phil: "finish them all") */
-      floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('crescendo'),t:1.0,color:'#e0b6ff',vy:1,sz:13}); ringBurst(u.x,u.y,0xc07fe0,16); burstAt(u.x,u.y,0xe0b6ff,12); break; }
+      floatTexts.push({x:u.x,y:u.y-12,txt:'CRESCENDO',t:1.0,color:'#e0b6ff',vy:1,sz:13}); ringBurst(u.x,u.y,0xc07fe0,16); burstAt(u.x,u.y,0xe0b6ff,12); break; }
     /* v558 (Phil, on Vireo's Harmony): 'this is used on the lowest health ally, any ally within 7 meters of the center
        of the dome is shielded also. which means the total dome should be 14 meters. 7 meter radius from the intended target.'
        The centre is the WORST-OFF ally, not the caster -- which is also what Lysara's Moon Cocoon has always claimed to do
@@ -15477,7 +15478,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'harmonyshield':{ const R=o.radius||3*METER, sh=apB*(o.mul||2.4);
       const C=((typeof lowestAlly==='function')?lowestAlly(u):null)||u;
       alliesOf(u).forEach(a=>{ if(dist(C,a)<R){ a.shield=Math.max(a.shield,sh); a.shieldT=o.dur||6; burstAt(a.x,a.y,0x8fd0ff,8); } });
-      floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('harmony'),t:1.0,color:'#b6e0ff',vy:1,sz:13}); ringBurst(u.x,u.y,0x9fbfff,16); break; }
+      floatTexts.push({x:u.x,y:u.y-12,txt:'HARMONY',t:1.0,color:'#b6e0ff',vy:1,sz:13}); ringBurst(u.x,u.y,0x9fbfff,16); break; }
     /* v483 (Phil): Hive Mind — 30 bees gather as a hive above his raised arms, then split EVENLY between every living ally and enemy
        on the field (infinite range). Enemy bees sting for ability damage, ally bees heal. 1 enemy + Beekeeper alone = 15 stings / 15 heals. */
     /* v483 (Phil): Hornet Cloud — 30 bees fly to the most congested enemy group, spread over the radius and sting every enemy there
@@ -15507,7 +15508,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       for(let i=0;i<n && foes.length;i++){ let k=Math.floor(brnd()*foes.length); if(u._tal&&u._tal.on.skillTgt){ const _bt=TalentFx.skillTgt(u,'stormsurge',foes[k],{list:foes,i,n,sb:_sb,o}), _bk=foes.indexOf(_bt); if(_bk>=0) k=_bk; }   /* TALENT HOOK skillTgt: which enemy this bolt goes to (the seeded draw is made as before) */ const e=foes.splice(k,1)[0];
         if(o.ownFx==='fstrike'){ try{ fritzStrikeFx(e,0.3+i*0.12); }catch(_e){} }   /* v1217: this bolt's strike, timed so it meets the ground on the damage tick below (display only) */
         groundHazards.push({arrival:true,delay:(u._tal&&u._tal.on.num)?TalentFx.num(u,'boltDelay',0.3+i*0.12):0.3+i*0.12   /* TALENT HOOK num: when this bolt lands */,run:function(){ if(u._tal) TalentFx.landPre(u,e,'stormsurge');   /* TALENT HOOK landPre: this bolt's hit is Storm Surge's (also when its target is already dead) */ if(!e.alive){ if(u._tal) TalentFx.land(u,e,'stormsurge'); return; } dealDamage(u,e,_sb,'#f2e07a','magic'); if(u._tal) TalentFx.land(u,e,'stormsurge');   /* TALENT HOOK land: the bolt has struck */ burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); if(o.ownFx!=='fstrike') try{ if(typeof spawnGroundFx==='function'&&e.sprH){ _fxAllow=true; window._fxTgtH=e.sprH; window._fxTgtU=e._sprRef?e:null; spawnGroundFx('fritz_green',e.x,e.y,3*METER,STORM_STRIKE_LIFE); } }catch(_){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; } }});   /* v958: each bolt brings its own cloud+strike on the foe it hits, as it lands */ }
-      floatTexts.push({x:u.x,y:u.y-12,txt:combatFloatLabel('storm_surge'),t:.9,color:'#f2e07a',vy:1,sz:12}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); break; }
+      floatTexts.push({x:u.x,y:u.y-12,txt:'STORM SURGE',t:.9,color:'#f2e07a',vy:1,sz:12}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); break; }
     case 'chainlight':{ let cur=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!cur)break; floatTexts.push({x:u.x,y:u.y-12,txt:'CHAIN LIGHTNING',t:.9,color:'#bfe6ff',vy:1,sz:12});   /* v960 (Phil: "Fritz never casts his blue at all" - it did cast, but unlike Storm Surge it showed no name, so it was invisible in a fight) */ const hit=new Set(); let dmg=apB*(o.mul||1.1)*rm; const jumps=o.jumps||4, dec=o.decay||0.8; let prev=u;
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev){ if(!(o.ownFx==='fchain'&&fritzChainFx(prev,cur))&&!spawnBoltFx(prev,cur,'#cfe8ff')) spawnShot(prev,cur,'#bfe6ff'); } prev=cur;   /* v958: a glowing bolt per jump */ dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<(o.jumpRange||4*METER)){nd=d;nxt=e;} } }); cur=nxt; }   /* v961 (Phil 3 Oct: "jump range of chain lightning should be 15 meters to next target"): per-kit jumpRange, default 4 m */
@@ -15693,10 +15694,10 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       const foes=enemiesOf(u).filter(e=>e.alive).slice(0,_scN);
       foes.forEach(e=>{ try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
       if(u._tal) TalentFx.land(u,null,'staticcharge');   /* TALENT HOOK land: the chain has run (Iver's Strikes and discharge talents) */
-      if(foes.length){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('chain'),t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
+      if(foes.length){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
     if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*(1+SKLV.abyssres(passLv(u)));   /* v1112: +45% + 0.2 pt a level */           // a full pressure gauge empowers this spell
       firePassiveFx(u);
-      floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('pressure_released'),t:1.0,color:'#2f8fa8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'abyssres'); } }
+      floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'abyssres'); } }
   /* v797 - the clip starts NOW, with the cast clock. `_castSlot` is set first because the picker
      prefers the hero's own green/blue sheet over the shared clip for the type. */
   u._castSlot=slot; startAbilityClip(u,ab.type); u._clipStarted=true; u._castSlot=null;
@@ -15845,7 +15846,7 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
     c.stunned=Math.max(c.stunned||0,ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
     if(_wxO._tal&&_wxO._tal.on.wax) TalentFx.encase(_wxO,c,ccDur(dur));   /* TALENT HOOK encase: the encase as it landed (her rows may lengthen it, then act on it) */
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
-    floatTexts.push({x:c.x,y:c.y-10,txt:combatFloatLabel('encased'),t:1.2,color:'#e8d8b0',vy:1,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(foes[0],'tallow'); }
+    floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(foes[0],'tallow'); }
   else floatTexts.push({x:c.x,y:c.y-8,txt:'wax x'+c._wax,t:.7,color:'#e8d8b0',vy:1,sz:10}); }
 /* v542 — how long the hero's ULT CLIP runs, read from BATTLE_ANIM DATA and never from u.anim: only the renderer
    attaches u.anim (buildFigure), and the server's verdict replays this same code with no meshes, so a root read off
@@ -17452,7 +17453,7 @@ function updateStaffFx(dt){ if(!staffFx.length)return;
     if(!f.spawned){ f.spawned=true; try{ spawnFxPlate('konwu_staff', f.fx, f.fy); }catch(_){} }
     if(t>=HIT&&!f.done){ f.done=true;
       ringBurst(f.fx,f.fy,0xffcf40,22); burstAt(f.fx,f.fy,0xffffff,16);
-      floatTexts.push({x:f.fx,y:f.fy-8,txt:combatFloatLabel('stun'),t:1.0,color:'#ffe08a',vy:1.1});
+      floatTexts.push({x:f.fx,y:f.fy-8,txt:'STUN',t:1.0,color:'#ffe08a',vy:1.1});
       if(f.unit&&f.unit.alive) f.unit.flash=Math.max(f.unit.flash,.30);
       try{ if(typeof screenFlash!=='undefined') screenFlash=Math.max(screenFlash,0.20); }catch(_){}
     }
@@ -17527,7 +17528,7 @@ function think(u,dt){
     else return; }
   if((u._sealT||0)>0){ u._sealT-=dt;   /* v920 Sealing Wax: the wax sets */
     if(u._sealT<=0){ u._sealT=0; if(u.alive&&u._sealBy){ const _sb=u._sealBy; if(_sb._tal) TalentFx.partPre(_sb,u,'sealset');   /* TALENT HOOK partPre: the seal's stun is Sealing Wax's */ ccApply(_sb,u,'stunned',u._sealStun||1.1); if(_sb._tal) TalentFx.part(_sb,u,'sealset');   /* TALENT HOOK part */
-      try{ ringBurst(u.x,u.y,0xe8d8b0,14); floatTexts.push({x:u.x,y:u.y-10,txt:combatFloatLabel('sealed'),t:1.0,color:'#e8d8b0',vy:1,sz:12}); }catch(_e){} } } }
+      try{ ringBurst(u.x,u.y,0xe8d8b0,14); floatTexts.push({x:u.x,y:u.y-10,txt:'SEALED',t:1.0,color:'#e8d8b0',vy:1,sz:12}); }catch(_e){} } } }
   if((u._stampT||0)>0){ u.attackAnim=0; return; }   // v534: mid-stampede - the tick moves her, nothing else does
 
   // Umbris seamless throw: the shadow ball is PART of his attack sheet until the release frame; only then
@@ -17647,7 +17648,7 @@ function think(u,dt){
         if(u._tal) TalentFx.landPre(u,n2,'burrowguard');   /* TALENT HOOK landPre: the strike that follows is Burrow Guard's emerge */
         try{ dealDamage(u,n2,u.dmg*(u._bgMul||1.7)*(u._bgSM||1),'#c9a227'); ringBurst(n2.x,n2.y,0xc9a227,18); }catch(e){}
         if(u._tal) TalentFx.land(u,n2,'burrowguard');   /* TALENT HOOK land: he has come up and struck */
-        floatTexts.push({x:u.x,y:u.y-14,txt:combatFloatLabel('underneath'),t:1.0,color:'#c9a227',vy:1,sz:12});
+        floatTexts.push({x:u.x,y:u.y-14,txt:'UNDERNEATH',t:1.0,color:'#c9a227',vy:1,sz:12});
         try{ if(((KITS[u.key]||{}).blue||{}).ownFx==='dburrow') deepcleftEmergeFx(u); }catch(_e){} } } }   /* v1171: Burrow Guard's burst again where he pops up (display only) */
   /* v527 - the bookkeeping the new pack behaviours need, all in one place. */
   if((u._miragT||0)>0){ u._miragT-=dt; if(u._miragT<=0&&u._miragEva){ u.evaStat=Math.max(0,(u.evaStat||0)-u._miragEva); u._miragEva=0; } }
@@ -17684,7 +17685,7 @@ function think(u,dt){
       const _b=Math.atan2(e.y-u.y,e.x-u.x), _n=Math.floor((_a1-_b)/_TP)-Math.floor((_a0-_b)/_TP);
       for(let _k=0;_k<_n&&e.alive;_k++){ if(u._tal) TalentFx.partPre(u,e,'sdPass');   /* TALENT HOOK partPre: a pass of the star ('casting' is 'sdPass': Seyla's dance talents) */
         dealDamage(u,e,u._danceHit,'#5ee89b'); if(u._tal) TalentFx.part(u,e,'sdPass');   /* TALENT HOOK part: after the pass's hit, before the execute */ burstAt(e.x,e.y,0x5ee89b,8);
-        if(e.alive&&e.hp<e.maxHp*u._danceExec){ dealDamage(u,e,e.hp+9999,'#ff5b6b'); floatTexts.push({x:e.x,y:e.y-14,txt:combatFloatLabel('executed'),t:1.0,color:'#ff5b6b',vy:1.2,sz:13}); } } });
+        if(e.alive&&e.hp<e.maxHp*u._danceExec){ dealDamage(u,e,e.hp+9999,'#ff5b6b'); floatTexts.push({x:e.x,y:e.y-14,txt:'EXECUTED',t:1.0,color:'#ff5b6b',vy:1.2,sz:13}); } } });
     if(u._danceT<=0) u._danceT=0;
     return; }
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
@@ -19016,7 +19017,7 @@ function _updateBattleCore(dt){
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
         firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0,e,{aboveBar:true});
-        burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:combatFloatLabel('silenced'),t:.9,color:'#f2e2a0',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'hush'); } } }
+        burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'hush'); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; const _uwI=SKLV.unwind(passLv(u))-(u._talUwOff||0); if(u._uwT>=_uwI){ u._uwT-=_uwI;   /* v1112: every 5 s - 0.015 s a level */   /* TALENT HOOK (a field only Tessit's rows set): Unwind comes sooner (Quick Unwind, Clean Books, Clear Sight, Glass Heart) */
       const hurt=alliesOf(u).filter(a=>a.alive&&((a.dots&&a.dots.length)||a.stunned>0||a.slow>0||a.silencedT>0||a.mortalT>0));
