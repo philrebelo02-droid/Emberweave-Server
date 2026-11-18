@@ -164,5 +164,6 @@
 "🃏 every {0}th attack draws a suit":"🃏 {0}번째 공격마다 문양을 뽑음",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}m 안에 {0}초 침묵, {3}초 동안 {2}초마다 다시 노래 · ✚ 침묵한 적 하나당 가장 가까운 아군을 초당 {4} 치유 · 피해 없음",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 {0}초 대상 지정 불가 → {i:s:attack} {1}",
-  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "그로스크가 대상에게 강력한 주먹을 세 번 날립니다. 타격마다 자신의 방어력의 {0}%만큼 피해를 주며, 대상이 그로스크를 공격하도록 강제하고 침묵시킵니다."
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "그로스크가 대상에게 강력한 주먹을 세 번 날립니다. 타격마다 자신의 방어력의 {0}%만큼 피해를 주며, 대상이 그로스크를 공격하도록 강제하고 침묵시킵니다.",
+  "{0}% of Armor": "방어력의 {0}%"
 }

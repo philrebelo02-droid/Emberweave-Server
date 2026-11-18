@@ -164,5 +164,6 @@
 "🃏 every {0}th attack draws a suit":"🃏 ogni {0}° attacco pesca un seme",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {0}s silenzio entro {1}m, ricantato ogni {2}s per {3}s · ✚ ogni nemico silenziato cura l’alleato più vicino di {4} al secondo · nessun danno",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 non bersagliabile {0}s → {i:s:attack} {1}",
-  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk sferra tre pugni pesanti al bersaglio. Ogni pugno infligge danni pari al {0}% della sua armatura, costringe il bersaglio ad attaccarlo e lo silenzia."
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk sferra tre pugni pesanti al bersaglio. Ogni pugno infligge danni pari al {0}% della sua armatura, costringe il bersaglio ad attaccarlo e lo silenzia.",
+  "{0}% of Armor": "{0}% dell’armatura"
 }

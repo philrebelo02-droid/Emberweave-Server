@@ -164,5 +164,6 @@
 "🃏 every {0}th attack draws a suit":"🃏 elke {0}e aanval trekt een kleur",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {0}s stilte binnen {1}m, elke {2}s opnieuw gezongen gedurende {3}s · ✚ elke verstomde vijand geneest de dichtstbijzijnde bondgenoot voor {4} per seconde · geen schade",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 onaantastbaar {0}s → {i:s:attack} {1}",
-  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk geeft zijn doelwit drie harde vuistslagen. Elke slag richt schade aan ter waarde van {0}% van zijn pantser, dwingt het doelwit hem aan te vallen en legt het het zwijgen op."
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk geeft zijn doelwit drie harde vuistslagen. Elke slag richt schade aan ter waarde van {0}% van zijn pantser, dwingt het doelwit hem aan te vallen en legt het het zwijgen op.",
+  "{0}% of Armor": "{0}% van pantser"
 }

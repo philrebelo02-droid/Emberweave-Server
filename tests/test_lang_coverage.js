@@ -124,7 +124,7 @@ const ROOT=path.join(__dirname,'..');
     await page.evaluate(async()=>{ await langLoad('en',true); return langLoad('qps',true); });
     await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
     // the names the game never translates, from its own tables (+ the player's own name)
-    await page.evaluate((gname)=>{ const N=new Set([gname,'Emberweave','Emberweave Heroes','Xanthyr Games','Google','Facebook','Discord']);
+    const seedProperNames=()=>page.evaluate((gname)=>{ const N=new Set([gname,'Emberweave','Emberweave Heroes','Xanthyr Games','Google','Facebook','Discord']);
       const add=v=>{ if(typeof v==='string'&&v.trim()) N.add(v.trim()); };
       try{ for(const t of Object.values(HERO_TYPES)){ add(t.name); add(t.abilityName); } }catch(e){}
       try{ for(const k of Object.values(KITS)) for(const s of ['green','blue','purple']) if(k[s]) add(k[s].name); }catch(e){}
@@ -138,7 +138,8 @@ const ROOT=path.join(__dirname,'..');
       try{ Object.values(WAR_LANE_NAMES).forEach(v=>typeof v==='string'?add(v):Object.values(v||{}).forEach(add)); }catch(e){}
       try{ EW_LANGS.forEach(([c,n])=>add(n)); }catch(e){}   // each language's own name (written in that language, on purpose)
       try{ JSON.stringify(ED_FINISHED,(k,v)=>{ if(k==='name') add(v); return v; }); JSON.stringify(ED_PURPLE,(k,v)=>{ if(k==='name') add(v); return v; }); }catch(e){}
-      window.__langNames=[...N].sort((a,b)=>b.length-a.length); },(await page.evaluate(()=>{ try{ return JSON.parse(localStorage.getItem('ew_acc')).name; }catch(e){ return ''; } })));
+      window.__langNames=[...N].sort((a,b)=>b.length-a.length); },guest.profile.name);
+    await seedProperNames();
     const collect=async where=>{ stops++;
       const found=await page.evaluate(()=>{ const out=new Set();
         const strip=s=>{ let o='',d=0; for(const ch of s){ if(ch==='⟦'){ d++; continue; } if(ch==='⟧'){ if(d) d--; continue; } if(!d) o+=ch; } return o; };
@@ -205,6 +206,7 @@ const ROOT=path.join(__dirname,'..');
     await page.evaluate(()=>document.querySelector('.splashPlay')?.click());
     await settle(900);
     await page.evaluate(()=>{ const skip=document.getElementById('tutSkip'); if(skip?.offsetParent) skip.click(); });
+    await seedProperNames();
     // a campaign stage: its card, the squad screen, the battle HUD and the result
     await visit('stage card',()=>{ show('campaign'); openStageModal(1,'normal'); });
     await page.locator('#smBattle').click({timeout:15000});
@@ -226,7 +228,15 @@ const ROOT=path.join(__dirname,'..');
     await page.locator('#pauseModal.active').waitFor({state:'visible',timeout:10000});
     await collect('battle pause');
     await page.locator('#resumeBtn').click({timeout:10000});
-    await page.evaluate(()=>{ G.speed=3; });
+    // Use the same fixed-step browser driver as the live campaign parity test.
+    await page.evaluate(async()=>{
+      paused=true;
+      for(let tick=0;tick<14400&&!ended&&state==='battle';tick++){
+        updateBattle(SIM_STEP);
+        if(tick%8===0) await new Promise(resolve=>setTimeout(resolve,4));
+      }
+      if(!ended&&state==='battle') throw new Error('Campaign did not finish in 14400 simulation steps');
+    });
     await page.locator('#result.active').waitFor({state:'visible',timeout:120000});
     await collect('result');
     if(process.argv.includes('--keep')) await settle(1e9);

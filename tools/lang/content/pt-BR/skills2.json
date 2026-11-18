@@ -164,5 +164,6 @@
  "🃏 every {0}th attack draws a suit": "🃏 a cada {0}º ataque, tira um naipe",
  "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage": "🔇 {0}s de silêncio em {1}m, cantado de novo a cada {2}s por {3}s · ✚ cada inimigo silenciado cura o aliado mais próximo dele em {4} por segundo · sem dano",
  "🕳 untargetable {0}s → {i:s:attack} {1}": "🕳 impossível de mirar {0}s → {i:s:attack} {1}",
-  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk desfere três socos pesados no alvo. Cada soco causa dano equivalente a {0}% de sua armadura, força o alvo a atacá-lo e o silencia."
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "Grosk desfere três socos pesados no alvo. Cada soco causa dano equivalente a {0}% de sua armadura, força o alvo a atacá-lo e o silencia.",
+  "{0}% of Armor": "{0}% da armadura"
 }

@@ -164,5 +164,6 @@
 "🃏 every {0}th attack draws a suit":"🃏 每第{0}次攻擊抽取一種花色",
 "🔇 {0}s silence in {1}m, re-sung every {2}s for {3}s · ✚ each silenced enemy heals the ally nearest it for {4} per second · no damage":"🔇 {1}米內沉默{0}秒，每{2}秒重唱一次，持續{3}秒 · ✚ 每名被沉默的敵人每秒為離它最近的友軍治療{4} · 無傷害",
 "🕳 untargetable {0}s → {i:s:attack} {1}":"🕳 無法被選取{0}秒 → {i:s:attack} {1}",
-  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "格羅斯克對目標打出三記重拳。每拳造成相當於自身護甲{0}%的傷害，強制目標攻擊格羅斯克並使其沉默。"
+  "Grosk throws three heavy punches at his target, each dealing {0}% of his Armor as damage; every punch forces it to attack him and silences it.": "格羅斯克對目標打出三記重拳。每拳造成相當於自身護甲{0}%的傷害，強制目標攻擊格羅斯克並使其沉默。",
+  "{0}% of Armor": "護甲的{0}%"
 }
