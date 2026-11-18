@@ -58,7 +58,7 @@
   "signin2.n_gold": "{n} Gold",
   "signin2.week_label": "{n}× {hero} frags",
   "wish2.key_fragment": "{name} Fragment",
-  "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mythical hero {a} · mythical frags {b} · glyph frags {c} · full glyph {d} · attack card {e} · shield {f} · teleport {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+  "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mythical hero {a} · mythical frags {b} · glyph frags {c} · full glyph {d} · attack card {e} · shield {f} · teleport {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
   "wish2.diamond_odds_title": "Diamond Pool odds",
   "wish2.diamond_odds": "{pool} — full 3{star} {a} · full 2{star} {b} · 3{star} frags {c} · 2{star} frags {d} · full glyph (your level) {e} · full glyph (next level) {f} · {item} ({stam} stamina) {g}",
   "wish2.gold_odds": "{pool} — full hero {a} · fragments {b}",
@@ -469,7 +469,7 @@
   {
    "line": 28247,
    "find": "bannerMsg(uiIcon('mythical-star')+' <b>Mythical Pool</b> (EGP '+(st.mythUnlockEgp||11)+', '+hudIcon('gem')+(st.mythCost||400)+') — mythical hero '+pct(mo.mythHero)+' · mythical frags '+pct(mo.mythFrag)+' · glyph frags '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno))",
-   "replace": "bannerMsg(uiIcon('mythical-star')+' '+t('wish2.myth_odds',{pool:'<b>'+t('wish.mythical_pool')+'</b>',egp:(st.mythUnlockEgp||11),cost:hudIcon('gem')+(st.mythCost||400),a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}))"
+   "replace": "bannerMsg(uiIcon('mythical-star')+' '+t('wish2.myth_odds',{pool:'<b>'+t('wish.mythical_pool')+'</b>',egp:(st.mythUnlockEgp||11),cost:hudIcon('gem')+(st.mythCost||400),a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),kindled:t('temple.prayer_kindled'),stoked:t('temple.prayer_stoked'),blazing:t('temple.prayer_blazing'),inferno:t('temple.prayer_inferno'),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}))"
   },
   {
    "line": 28248,

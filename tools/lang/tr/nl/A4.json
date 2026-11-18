@@ -342,7 +342,7 @@
 "wish.mythical_pool":"Mythische put",
 "wish.info_gold":"elke 1{star}-held ({heroes}) · volledige held {hero} · fragmenten {frag} · gliefragmenten van het niveau onder je hoogste 36,8% (2-4) · van je hoogste niveau 20,8% (1-2) · goud 17,6% · diamanten 4,8% · 3 gratis wensen per dag, 1 per uur",
 "wish.info_diamond":"De 2{star}- en 3{star}-ladders · volledige 3{star}-held {full3} · volledige 2{star}-held {full2} · 3{star}-fragmenten {frag3} · 2{star}-fragmenten {frag2} · volledige glief van jouw niveau {gf} · volledige glief van het volgende niveau {gn} · {item} ({stam} uithoudingsvermogen) {si} · 1 gratis wens per dag · een held binnen {pity} wensen · eerste wens: een 2{star}-held",
-"wish.info_myth":"Mythische held {a} · mythische fragmenten {b} · gliefragmenten {c} · volledige glief {d} · aanvalskaart {e} · schild {f} · teleportkaart {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"Mythische held {a} · mythische fragmenten {b} · gliefragmenten {c} · volledige glief {d} · aanvalskaart {e} · schild {f} · teleportkaart {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"Alleen mythische helden",
 "wish.roll_history":"Mijn wensgeschiedenis",
 "wish.sign_in_rules":"Log in om de regels van de put te zien.",

@@ -343,7 +343,7 @@
 "wish.mythical_pool":"神話池",
 "wish.info_gold":"所有 1{star} 英雄（{heroes}）· 完整英雄 {hero} · 碎片 {frag} · 比你最高等級低一級的符文碎片 36.8%（2-4）· 你最高等級的符文碎片 20.8%（1-2）· 金幣 17.6% · 鑽石 4.8% · 每日 3 次免費許願，每小時 1 次",
 "wish.info_diamond":"2{star} 與 3{star} 階梯 · 完整 3{star} 英雄 {full3} · 完整 2{star} 英雄 {full2} · 3{star} 碎片 {frag3} · 2{star} 碎片 {frag2} · 你等級的完整符文 {gf} · 下一等級的完整符文 {gn} · {item}（{stam} 體力）{si} · 每日 1 次免費許願 · {pity} 次許願內必得英雄 · 首次許願：一位 2{star} 英雄",
-"wish.info_myth":"神話英雄 {a} · 神話碎片 {b} · 符文碎片 {c} · 完整符文 {d} · 進攻卡 {e} · 護盾 {f} · 傳送卡 {g} · 燃起 {h} · 添火 {i} · 烈焰 {j} · 煉獄 {k}",
+"wish.info_myth":"神話英雄 {a} · 神話碎片 {b} · 符文碎片 {c} · 完整符文 {d} · 進攻卡 {e} · 護盾 {f} · 傳送卡 {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"僅限神話英雄",
 "wish.roll_history":"我的抽取紀錄",
 "wish.sign_in_rules":"登入以查看許願池規則。",

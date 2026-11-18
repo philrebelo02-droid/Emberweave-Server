@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} de Ouro",
  "signin2.week_label": "{n}× frag. de {hero}",
  "wish2.key_fragment": "Fragmento de {name}",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — herói mítico {a} · frag. míticos {b} · frag. de glifo {c} · glifo completo {d} · carta de ataque {e} · escudo {f} · teleporte {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — herói mítico {a} · frag. míticos {b} · frag. de glifo {c} · glifo completo {d} · carta de ataque {e} · escudo {f} · teleporte {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "Chances do Poço de diamante",
  "wish2.diamond_odds": "{pool} — 3{star} completo {a} · 2{star} completo {b} · frag. 3{star} {c} · frag. 2{star} {d} · glifo completo (seu nível) {e} · glifo completo (próximo nível) {f} · {item} ({stam} de vigor) {g}",
  "wish2.gold_odds": "{pool} — herói completo {a} · fragmentos {b}",

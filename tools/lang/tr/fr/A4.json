@@ -343,7 +343,7 @@
 "wish.mythical_pool":"Puits mythique",
 "wish.info_gold":"chaque héros 1{star} ({heroes}) · héros complet {hero} · fragments {frag} · fragments de glyphe du niveau sous votre plus haut 36,8% (2-4) · de votre plus haut niveau 20,8% (1-2) · or 17,6% · diamants 4,8% · 3 vœux gratuits par jour, 1 par heure",
 "wish.info_diamond":"Les paliers 2{star} et 3{star} · héros 3{star} complet {full3} · héros 2{star} complet {full2} · fragments 3{star} {frag3} · fragments 2{star} {frag2} · glyphe complet de votre niveau {gf} · glyphe complet du niveau suivant {gn} · {item} ({stam} endurance) {si} · 1 vœu gratuit par jour · un héros en {pity} vœux max · premier vœu : un héros 2{star}",
-"wish.info_myth":"Héros mythique {a} · fragments mythiques {b} · fragments de glyphe {c} · glyphe complet {d} · carte d’attaque {e} · bouclier {f} · carte de téléportation {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"Héros mythique {a} · fragments mythiques {b} · fragments de glyphe {c} · glyphe complet {d} · carte d’attaque {e} · bouclier {f} · carte de téléportation {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"Héros mythiques uniquement",
 "wish.roll_history":"Mon historique de tirages",
 "wish.sign_in_rules":"Connectez-vous pour voir les règles du puits.",

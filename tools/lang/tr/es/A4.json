@@ -343,7 +343,7 @@
 "wish.mythical_pool":"Pozo mítico",
 "wish.info_gold":"todos los héroes de 1{star} ({heroes}) · héroe completo {hero} · fragmentos {frag} · fragmentos de glifo del nivel inferior a tu máximo 36,8% (2-4) · de tu nivel máximo 20,8% (1-2) · oro 17,6% · diamantes 4,8% · 3 deseos gratis al día, 1 por hora",
 "wish.info_diamond":"Las escalas de 2{star} y 3{star} · héroe completo de 3{star} {full3} · héroe completo de 2{star} {full2} · fragmentos de 3{star} {frag3} · fragmentos de 2{star} {frag2} · glifo completo de tu nivel {gf} · glifo completo del siguiente nivel {gn} · {item} ({stam} de energía) {si} · 1 deseo gratis al día · un héroe en {pity} deseos · primer deseo: un héroe de 2{star}",
-"wish.info_myth":"Héroe mítico {a} · fragmentos míticos {b} · fragmentos de glifo {c} · glifo completo {d} · carta de ataque {e} · escudo {f} · carta de teletransporte {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"Héroe mítico {a} · fragmentos míticos {b} · fragmentos de glifo {c} · glifo completo {d} · carta de ataque {e} · escudo {f} · carta de teletransporte {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"Solo héroes míticos",
 "wish.roll_history":"Mi historial de tiradas",
 "wish.sign_in_rules":"Inicia sesión para ver las reglas del pozo.",

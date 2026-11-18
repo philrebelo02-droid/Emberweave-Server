@@ -343,7 +343,7 @@
 "wish.mythical_pool":"신화 샘",
 "wish.info_gold":"모든 1{star} 영웅({heroes}) · 완성 영웅 {hero} · 조각 {frag} · 최고 레벨 바로 아래 레벨의 문양 조각 36.8%(2-4) · 최고 레벨의 문양 조각 20.8%(1-2) · 골드 17.6% · 다이아 4.8% · 하루 무료 소원 3회, 1시간에 1회",
 "wish.info_diamond":"2{star} 및 3{star} 단계 · 완성 3{star} 영웅 {full3} · 완성 2{star} 영웅 {full2} · 3{star} 조각 {frag3} · 2{star} 조각 {frag2} · 내 레벨 완성 문양 {gf} · 다음 레벨 완성 문양 {gn} · {item}(스태미나 {stam}) {si} · 하루 무료 소원 1회 · {pity}회 안에 영웅 확정 · 첫 소원: 2{star} 영웅",
-"wish.info_myth":"신화 영웅 {a} · 신화 조각 {b} · 문양 조각 {c} · 완성 문양 {d} · 공격 카드 {e} · 보호막 {f} · 순간이동 카드 {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"신화 영웅 {a} · 신화 조각 {b} · 문양 조각 {c} · 완성 문양 {d} · 공격 카드 {e} · 보호막 {f} · 순간이동 카드 {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"신화 영웅 전용",
 "wish.roll_history":"내 뽑기 기록",
 "wish.sign_in_rules":"샘의 규칙을 보려면 로그인하세요.",

@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} Emas",
  "signin2.week_label": "{n}× fragmen {hero}",
  "wish2.key_fragment": "Fragmen {name}",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — pahlawan mitis {a} · fragmen mitis {b} · fragmen glif {c} · glif lengkap {d} · kartu serangan {e} · perisai {f} · teleportasi {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — pahlawan mitis {a} · fragmen mitis {b} · fragmen glif {c} · glif lengkap {d} · kartu serangan {e} · perisai {f} · teleportasi {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "Peluang Kolam Berlian",
  "wish2.diamond_odds": "{pool} — 3{star} utuh {a} · 2{star} utuh {b} · fragmen 3{star} {c} · fragmen 2{star} {d} · glif lengkap (levelmu) {e} · glif lengkap (level berikutnya) {f} · {item} ({stam} stamina) {g}",
  "wish2.gold_odds": "{pool} — pahlawan utuh {a} · fragmen {b}",

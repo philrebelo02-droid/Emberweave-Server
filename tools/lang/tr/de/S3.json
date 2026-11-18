@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} Gold",
  "signin2.week_label": "{n}× {hero}-Fragm.",
  "wish2.key_fragment": "{name}-Fragment",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) – mythischer Held {a} · mythische Fragmente {b} · Glyphenfragmente {c} · ganze Glyphe {d} · Angriffskarte {e} · Schild {f} · Teleportkarte {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) – mythischer Held {a} · mythische Fragmente {b} · Glyphenfragmente {c} · ganze Glyphe {d} · Angriffskarte {e} · Schild {f} · Teleportkarte {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "Chancen im Diamantenbrunnen",
  "wish2.diamond_odds": "{pool} – ganzer 3{star}-Held {a} · ganzer 2{star}-Held {b} · 3{star}-Fragmente {c} · 2{star}-Fragmente {d} · ganze Glyphe (deine Stufe) {e} · ganze Glyphe (nächste Stufe) {f} · {item} ({stam} Ausdauer) {g}",
  "wish2.gold_odds": "{pool} – ganzer Held {a} · Fragmente {b}",

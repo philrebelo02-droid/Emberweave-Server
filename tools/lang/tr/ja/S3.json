@@ -319,7 +319,7 @@
  "signin2.n_gold": "ゴールド{n}",
  "signin2.week_label": "{hero}の欠片 {n}×",
  "wish2.key_fragment": "{name}の欠片",
- "wish2.myth_odds": "{pool}（EGP {egp}、{cost}）— 神話ヒーロー {a} · 神話の欠片 {b} · グリフの欠片 {c} · 完成グリフ {d} · 攻撃カード {e} · シールド {f} · テレポート {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool}（EGP {egp}、{cost}）— 神話ヒーロー {a} · 神話の欠片 {b} · グリフの欠片 {c} · 完成グリフ {d} · 攻撃カード {e} · シールド {f} · テレポート {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "ダイヤの泉の確率",
  "wish2.diamond_odds": "{pool} — 3{star}本体 {a} · 2{star}本体 {b} · 3{star}の欠片 {c} · 2{star}の欠片 {d} · 完成グリフ（現在のレベル） {e} · 完成グリフ（次のレベル） {f} · {item}（スタミナ{stam}） {g}",
  "wish2.gold_odds": "{pool} — ヒーロー本体 {a} · 欠片 {b}",

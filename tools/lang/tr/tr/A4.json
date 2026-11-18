@@ -342,7 +342,7 @@
 "wish.mythical_pool":"Mitik Havuz",
 "wish.info_gold":"her 1{star} kahraman ({heroes}) · tam kahraman {hero} · parçalar {frag} · en yüksek seviyenin bir altındaki glif parçaları %36,8 (2-4) · en yüksek seviyendeki %20,8 (1-2) · altın %17,6 · elmas %4,8 · günde 3 ücretsiz dilek, saatte 1",
 "wish.info_diamond":"2{star} ve 3{star} basamakları · tam 3{star} kahraman {full3} · tam 2{star} kahraman {full2} · 3{star} parçalar {frag3} · 2{star} parçalar {frag2} · kendi seviyende tam glif {gf} · sonraki seviyede tam glif {gn} · {item} ({stam} dayanıklılık) {si} · günde 1 ücretsiz dilek · {pity} dilek içinde bir kahraman · ilk dilek: bir 2{star} kahraman",
-"wish.info_myth":"Mitik kahraman {a} · mitik parçalar {b} · glif parçaları {c} · tam glif {d} · saldırı kartı {e} · kalkan {f} · ışınlanma kartı {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"Mitik kahraman {a} · mitik parçalar {b} · glif parçaları {c} · tam glif {d} · saldırı kartı {e} · kalkan {f} · ışınlanma kartı {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"Yalnızca mitik kahramanlar",
 "wish.roll_history":"Dilek geçmişim",
 "wish.sign_in_rules":"Havuz kurallarını görmek için giriş yap.",

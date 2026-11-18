@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} सोना",
  "signin2.week_label": "{n}× {hero} टुकड़े",
  "wish2.key_fragment": "{name} टुकड़ा",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — पौराणिक नायक {a} · पौराणिक टुकड़े {b} · शक्तिचिह्न टुकड़े {c} · पूरा शक्तिचिह्न {d} · हमला कार्ड {e} · ढाल {f} · टेलीपोर्ट {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — पौराणिक नायक {a} · पौराणिक टुकड़े {b} · शक्तिचिह्न टुकड़े {c} · पूरा शक्तिचिह्न {d} · हमला कार्ड {e} · ढाल {f} · टेलीपोर्ट {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "हीरा कुंड संभावनाएँ",
  "wish2.diamond_odds": "{pool} — पूरा 3{star} {a} · पूरा 2{star} {b} · 3{star} टुकड़े {c} · 2{star} टुकड़े {d} · पूरा शक्तिचिह्न (आपका स्तर) {e} · पूरा शक्तिचिह्न (अगला स्तर) {f} · {item} ({stam} सहनशक्ति) {g}",
  "wish2.gold_odds": "{pool} — पूरा नायक {a} · टुकड़े {b}",

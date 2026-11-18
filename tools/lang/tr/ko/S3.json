@@ -319,7 +319,7 @@
  "signin2.n_gold": "골드 {n}",
  "signin2.week_label": "{hero} 조각 {n}×",
  "wish2.key_fragment": "{name} 조각",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — 신화 영웅 {a} · 신화 조각 {b} · 문양 조각 {c} · 완성 문양 {d} · 공격 카드 {e} · 보호막 {f} · 순간이동 {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — 신화 영웅 {a} · 신화 조각 {b} · 문양 조각 {c} · 완성 문양 {d} · 공격 카드 {e} · 보호막 {f} · 순간이동 {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "다이아 샘 확률",
  "wish2.diamond_odds": "{pool} — 3{star} 영웅 {a} · 2{star} 영웅 {b} · 3{star} 조각 {c} · 2{star} 조각 {d} · 완성 문양(현재 레벨) {e} · 완성 문양(다음 레벨) {f} · {item}(스태미나 {stam}) {g}",
  "wish2.gold_odds": "{pool} — 영웅 {a} · 조각 {b}",

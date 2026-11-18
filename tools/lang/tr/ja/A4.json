@@ -343,7 +343,7 @@
 "wish.mythical_pool":"神話の泉",
 "wish.info_gold":"すべての1{star}ヒーロー（{heroes}）· ヒーロー本体 {hero} · 欠片 {frag} · 最高レベルの1つ下のグリフの欠片 36.8%（2〜4）· 最高レベルのグリフの欠片 20.8%（1〜2）· ゴールド 17.6% · ダイヤ 4.8% · 1日3回無料、1時間に1回",
 "wish.info_diamond":"2{star}と3{star}のラインナップ · 3{star}ヒーロー本体 {full3} · 2{star}ヒーロー本体 {full2} · 3{star}の欠片 {frag3} · 2{star}の欠片 {frag2} · 現在レベルの完成グリフ {gf} · 次のレベルの完成グリフ {gn} · {item}（スタミナ{stam}）{si} · 1日1回無料 · {pity}回以内にヒーロー確定 · 初回: 2{star}ヒーロー",
-"wish.info_myth":"神話ヒーロー {a} · 神話の欠片 {b} · グリフの欠片 {c} · 完成グリフ {d} · 攻撃カード {e} · シールド {f} · テレポートカード {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"神話ヒーロー {a} · 神話の欠片 {b} · グリフの欠片 {c} · 完成グリフ {d} · 攻撃カード {e} · シールド {f} · テレポートカード {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"神話ヒーローのみ",
 "wish.roll_history":"自分の願い履歴",
 "wish.sign_in_rules":"サインインすると泉のルールを確認できます。",

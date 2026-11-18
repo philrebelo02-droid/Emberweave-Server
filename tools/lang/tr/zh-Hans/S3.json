@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} 金币",
  "signin2.week_label": "{n}× {hero}碎片",
  "wish2.key_fragment": "{name}碎片",
- "wish2.myth_odds": "{pool}（EGP {egp}，{cost}）—— 神话英雄 {a} · 神话碎片 {b} · 符文碎片 {c} · 完整符文 {d} · 进攻卡 {e} · 护盾 {f} · 传送卡 {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool}（EGP {egp}，{cost}）—— 神话英雄 {a} · 神话碎片 {b} · 符文碎片 {c} · 完整符文 {d} · 进攻卡 {e} · 护盾 {f} · 传送卡 {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "钻石池概率",
  "wish2.diamond_odds": "{pool} —— 完整3{star} {a} · 完整2{star} {b} · 3{star}碎片 {c} · 2{star}碎片 {d} · 完整符文（你的等级）{e} · 完整符文（下一等级）{f} · {item}（{stam} 体力）{g}",
  "wish2.gold_odds": "{pool} —— 完整英雄 {a} · 碎片 {b}",

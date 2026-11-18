@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} ทอง",
  "signin2.week_label": "ชิ้นส่วน {hero} {n}×",
  "wish2.key_fragment": "ชิ้นส่วน {name}",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — ฮีโร่เทพปกรณัม {a} · ชิ้นส่วนเทพปกรณัม {b} · ชิ้นส่วนอักขระ {c} · อักขระสมบูรณ์ {d} · การ์ดโจมตี {e} · โล่ {f} · เทเลพอร์ต {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — ฮีโร่เทพปกรณัม {a} · ชิ้นส่วนเทพปกรณัม {b} · ชิ้นส่วนอักขระ {c} · อักขระสมบูรณ์ {d} · การ์ดโจมตี {e} · โล่ {f} · เทเลพอร์ต {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "อัตราบ่อเพชร",
  "wish2.diamond_odds": "{pool} — ฮีโร่ 3{star} เต็มตัว {a} · ฮีโร่ 2{star} เต็มตัว {b} · ชิ้นส่วน 3{star} {c} · ชิ้นส่วน 2{star} {d} · อักขระสมบูรณ์ (เลเวลของคุณ) {e} · อักขระสมบูรณ์ (เลเวลถัดไป) {f} · {item} ({stam} สตามินา) {g}",
  "wish2.gold_odds": "{pool} — ฮีโร่เต็มตัว {a} · ชิ้นส่วน {b}",

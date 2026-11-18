@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} золота",
  "signin2.week_label": "{n}× фрагм. {hero}",
  "wish2.key_fragment": "Фрагмент: {name}",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — мифический герой {a} · мифические фрагменты {b} · фрагменты глифов {c} · полный глиф {d} · карта атаки {e} · щит {f} · телепорт {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — мифический герой {a} · мифические фрагменты {b} · фрагменты глифов {c} · полный глиф {d} · карта атаки {e} · щит {f} · телепорт {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "Шансы Алмазного колодца",
  "wish2.diamond_odds": "{pool} — целый 3{star} {a} · целый 2{star} {b} · фрагменты 3{star} {c} · фрагменты 2{star} {d} · полный глиф (ваш уровень) {e} · полный глиф (след. уровень) {f} · {item} ({stam} выносливости) {g}",
  "wish2.gold_odds": "{pool} — целый герой {a} · фрагменты {b}",

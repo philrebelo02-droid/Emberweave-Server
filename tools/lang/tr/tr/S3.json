@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} Altın",
  "signin2.week_label": "{n}× {hero} parçası",
  "wish2.key_fragment": "{name} Parçası",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mitik kahraman {a} · mitik parçalar {b} · glif parçaları {c} · tam glif {d} · saldırı kartı {e} · kalkan {f} · ışınlanma {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mitik kahraman {a} · mitik parçalar {b} · glif parçaları {c} · tam glif {d} · saldırı kartı {e} · kalkan {f} · ışınlanma {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "Elmas Havuzu olasılıkları",
  "wish2.diamond_odds": "{pool} — tam 3{star} {a} · tam 2{star} {b} · 3{star} parçalar {c} · 2{star} parçalar {d} · tam glif (senin seviyen) {e} · tam glif (sonraki seviye) {f} · {item} ({stam} dayanıklılık) {g}",
  "wish2.gold_odds": "{pool} — tam kahraman {a} · parçalar {b}",

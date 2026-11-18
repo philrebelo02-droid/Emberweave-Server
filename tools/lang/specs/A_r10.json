@@ -269,7 +269,7 @@
   "wish.mythical_pool": "Mythical Pool",
   "wish.info_gold": "every 1{star} hero ({heroes}) · full hero {hero} · fragments {frag} · glyph fragments of the level below your highest 36.8% (2-4) · of your highest level 20.8% (1-2) · gold 17.6% · diamonds 4.8% · 3 free wishes a day, 1 an hour",
   "wish.info_diamond": "The 2{star} and 3{star} ladders · full 3{star} hero {full3} · full 2{star} hero {full2} · 3{star} fragments {frag3} · 2{star} fragments {frag2} · full glyph of your level {gf} · full glyph of the next level {gn} · {item} ({stam} stamina) {si} · 1 free wish a day · a hero within {pity} wishes · first wish: a 2{star} hero",
-  "wish.info_myth": "Mythical hero {a} · mythical fragments {b} · glyph fragments {c} · full glyph {d} · attack card {e} · shield {f} · teleport card {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+  "wish.info_myth": "Mythical hero {a} · mythical fragments {b} · glyph fragments {c} · full glyph {d} · attack card {e} · shield {f} · teleport card {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
   "wish.only_mythical": "Only mythical heroes",
   "wish.roll_history": "My roll history",
   "wish.sign_in_rules": "Sign in to see the pool rules.",
@@ -1519,7 +1519,7 @@
   {
    "line": 28241,
    "find": "mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'",
-   "replace": "mo?t('wish.info_myth',{a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}):t('wish.only_mythical')"
+   "replace": "mo?t('wish.info_myth',{a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),kindled:t('temple.prayer_kindled'),stoked:t('temple.prayer_stoked'),blazing:t('temple.prayer_blazing'),inferno:t('temple.prayer_inferno'),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}):t('wish.only_mythical')"
   },
   {
    "line": 28242,

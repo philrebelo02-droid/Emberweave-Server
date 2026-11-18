@@ -343,7 +343,7 @@
 "wish.mythical_pool":"Pozzo mitico",
 "wish.info_gold":"ogni eroe 1{star} ({heroes}) · eroe completo {hero} · frammenti {frag} · frammenti di glifo del livello sotto il tuo massimo 36,8% (2-4) · del tuo livello massimo 20,8% (1-2) · oro 17,6% · diamanti 4,8% · 3 desideri gratuiti al giorno, 1 all’ora",
 "wish.info_diamond":"Le scale 2{star} e 3{star} · eroe 3{star} completo {full3} · eroe 2{star} completo {full2} · frammenti 3{star} {frag3} · frammenti 2{star} {frag2} · glifo completo del tuo livello {gf} · glifo completo del livello successivo {gn} · {item} ({stam} vigore) {si} · 1 desiderio gratuito al giorno · un eroe entro {pity} desideri · primo desiderio: un eroe 2{star}",
-"wish.info_myth":"Eroe mitico {a} · frammenti mitici {b} · frammenti di glifo {c} · glifo completo {d} · carta attacco {e} · scudo {f} · carta teletrasporto {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"Eroe mitico {a} · frammenti mitici {b} · frammenti di glifo {c} · glifo completo {d} · carta attacco {e} · scudo {f} · carta teletrasporto {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"Solo eroi mitici",
 "wish.roll_history":"Cronologia dei miei desideri",
 "wish.sign_in_rules":"Accedi per vedere le regole del pozzo.",

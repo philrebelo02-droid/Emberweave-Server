@@ -319,7 +319,7 @@
  "signin2.n_gold": "{n} Goud",
  "signin2.week_label": "{n}× {hero}-fragm.",
  "wish2.key_fragment": "{name}-fragment",
- "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mythische held {a} · mythische fragmenten {b} · gliefragmenten {c} · volledige glief {d} · aanvalskaart {e} · schild {f} · teleportkaart {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+ "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mythische held {a} · mythische fragmenten {b} · gliefragmenten {c} · volledige glief {d} · aanvalskaart {e} · schild {f} · teleportkaart {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
  "wish2.diamond_odds_title": "Kansen Diamantput",
  "wish2.diamond_odds": "{pool} — volledige 3{star}-held {a} · volledige 2{star}-held {b} · 3{star}-fragmenten {c} · 2{star}-fragmenten {d} · volledige glief (jouw niveau) {e} · volledige glief (volgend niveau) {f} · {item} ({stam} uithoudingsvermogen) {g}",
  "wish2.gold_odds": "{pool} — volledige held {a} · fragmenten {b}",

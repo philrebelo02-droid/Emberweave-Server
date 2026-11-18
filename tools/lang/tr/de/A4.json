@@ -343,7 +343,7 @@
 "wish.mythical_pool":"Mythischer Brunnen",
 "wish.info_gold":"jeder 1{star}-Held ({heroes}) · ganzer Held {hero} · Fragmente {frag} · Glyphenfragmente der Stufe unter deiner höchsten 36,8% (2-4) · deiner höchsten Stufe 20,8% (1-2) · Gold 17,6% · Diamanten 4,8% · 3 Gratis-Wünsche pro Tag, 1 pro Stunde",
 "wish.info_diamond":"Die 2{star}- und 3{star}-Leitern · ganzer 3{star}-Held {full3} · ganzer 2{star}-Held {full2} · 3{star}-Fragmente {frag3} · 2{star}-Fragmente {frag2} · ganze Glyphe deiner Stufe {gf} · ganze Glyphe der nächsten Stufe {gn} · {item} ({stam} Ausdauer) {si} · 1 Gratis-Wunsch pro Tag · ein Held innerhalb von {pity} Wünschen · erster Wunsch: ein 2{star}-Held",
-"wish.info_myth":"Mythischer Held {a} · mythische Fragmente {b} · Glyphenfragmente {c} · ganze Glyphe {d} · Angriffskarte {e} · Schild {f} · Teleportkarte {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+"wish.info_myth":"Mythischer Held {a} · mythische Fragmente {b} · Glyphenfragmente {c} · ganze Glyphe {d} · Angriffskarte {e} · Schild {f} · Teleportkarte {g} · {kindled} {h} · {stoked} {i} · {blazing} {j} · {inferno} {k}",
 "wish.only_mythical":"Nur mythische Helden",
 "wish.roll_history":"Mein Wunschverlauf",
 "wish.sign_in_rules":"Melde dich an, um die Brunnenregeln zu sehen.",
