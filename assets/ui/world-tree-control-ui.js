@@ -1,9 +1,13 @@
 (function(root){
   'use strict';
   const IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];
-  const _t=(k,en)=>(typeof t==='function'&&t(k))||en;   /* v1271 LANGUAGES step 2: names through the page's t() */
+  const _t=(k,en,vars)=>(typeof t==='function'&&t(k,vars))||en;   /* v1271 LANGUAGES step 2: names through the page's t() */
   const NAMES={get tree(){return _t('world2.world_tree','World Tree');},get 'oasis-nw'(){return _t('world2.oasis_nw','North-west Oasis');},get 'oasis-ne'(){return _t('world2.oasis_ne','North-east Oasis');},get 'oasis-sw'(){return _t('world2.oasis_sw','South-west Oasis');},get 'oasis-se'(){return _t('world2.oasis_se','South-east Oasis');}};   // v1228: the 4 painted ponds
   const title=id=>NAMES[id]||_t('world2.oasis','Oasis');
+  function benefitLabel({damagePercent:damage,regenPercent:regen,regenEveryMs}){
+    const s=regenEveryMs/1000;
+    return _t('world2.site_benefit','+'+damage+'% damage · '+regen+'% HP every '+s+'s',{damage,regen,s});
+  }
   function colour(id){if(!id)return '#97a3b5';let hash=0;for(const c of id)hash=(Math.imul(hash,31)+c.charCodeAt(0))>>>0;return 'hsl('+(hash%360)+',75%,72%)';}
   function read(control,score,layout){
     if(!control?.ok||!score?.ok||typeof control.enabled!=='boolean'||control.enabled!==score.enabled||!Array.isArray(control.sites)||!Array.isArray(score.scores)||layout?.coordinateSpace!=='world-percent'||!Number.isInteger(layout.gridColumns)||layout.gridColumns<220||!Array.isArray(layout.sites))throw Error('Unavailable');
@@ -12,7 +16,7 @@
       const b=rows[0].bounds;if(!b||!['left','top','right','bottom'].every(k=>Number.isFinite(b[k])&&b[k]>=0&&b[k]<=100)||b.left>=b.right||b.top>=b.bottom)throw Error('Invalid bounds');
       const gid=held[0]?.holderGuildId??null;if(gid!==null&&(typeof gid!=='string'||gid.length>200))throw Error('Invalid holder');
       const benefit=held[0]?.benefit;
-      return {id,bounds:{...b},holderGuildId:gid,holderName:typeof held[0]?.holderGuildName==='string'?held[0].holderGuildName:'Guild',holderTag:typeof held[0]?.holderGuildTag==='string'?held[0].holderGuildTag:'',colour:colour(gid),benefit:benefit?.damagePercent===10&&benefit?.regenPercent===1&&benefit?.regenEveryMs===30000};
+      return {id,bounds:{...b},holderGuildId:gid,holderName:typeof held[0]?.holderGuildName==='string'?held[0].holderGuildName:'Guild',holderTag:typeof held[0]?.holderGuildTag==='string'?held[0].holderGuildTag:'',colour:colour(gid),benefit:benefit?.damagePercent===10&&benefit?.regenPercent===1&&benefit?.regenEveryMs===30000?benefit:null};
     });
     const scores=score.scores.map(x=>{if(typeof x.guildId!=='string'||x.guildId.length>200||!Number.isSafeInteger(x.points)||x.points<0)throw Error('Invalid score');return {guildId:x.guildId,guildName:typeof x.guildName==='string'?x.guildName:'Guild',guildTag:typeof x.guildTag==='string'?x.guildTag:'',points:x.points};});
     const active=control.enabled&&control.eventActive===true&&Number.isSafeInteger(control.startsAt)&&Number.isSafeInteger(control.endsAt)&&Number.isSafeInteger(control.serverNow)&&control.serverNow>=control.startsAt&&control.serverNow<control.endsAt;
@@ -42,14 +46,14 @@
       const z=hooks.zoom(),physicalWidth=inner.clientWidth*z;
       const compact=st.data.sites.some(s=>(s.bounds.right-s.bounds.left)*physicalWidth/100<44);
       board.dataset.compact=String(compact);
-      const heading=node(doc,'b','World Tree');board.appendChild(heading);
-      if(!st.data){board.appendChild(node(doc,'div',!st.signedIn?'Sign in':st.failed?'Unavailable':'Loading…'));return;}
-      board.appendChild(node(doc,'span',st.data.enabled?' · Active':' · Disabled'));
+      const heading=node(doc,'b',title('tree'));board.appendChild(heading);
+      if(!st.data){board.appendChild(node(doc,'div',!st.signedIn?_t('auth2.sign_in','Sign in'):st.failed?_t('err.world_tree_control_unavailable','Unavailable'):_t('common.loading','Loading…')));return;}
+      board.appendChild(node(doc,'span',' · '+(st.data.enabled?_t('draft.active','Active'):_t('world2.disabled','Disabled'))));
       const list=node(doc,'div');list.style.cssText='display:flex;gap:10px;flex-wrap:nowrap;max-height:44px;overflow:auto;flex:0 0 auto;white-space:nowrap';board.appendChild(list);
-      if(!st.data.scores.length)list.appendChild(node(doc,'span','No scores'));
+      if(!st.data.scores.length)list.appendChild(node(doc,'span',_t('world2.no_scores','No scores')));
       for(const row of st.data.scores){const el=node(doc,'span',(row.guildTag?'['+row.guildTag+'] ':'')+row.guildName+' · '+row.points);el.style.color=colour(row.guildId);list.appendChild(el);}
       const controls=node(doc,'div');controls.className='worldTreeCompactSites';controls.style.cssText='display:flex;flex-wrap:nowrap;gap:4px;margin-left:4px;flex:0 0 auto';if(compact)board.appendChild(controls);
-      for(const s of st.data.sites){const label=(s.holderGuildId?(s.holderTag?'['+s.holderTag+'] ':'')+s.holderName:'Unclaimed')+(s.benefit?' · +10% DMG · 1% HP/30s':'');const el=node(doc,'div',label),b=s.bounds;el.className='worldTreeHolder';el.dataset.siteId=s.id;el.title=title(s.id)+' · '+label;
+      for(const s of st.data.sites){const label=(s.holderGuildId?(s.holderTag?'['+s.holderTag+'] ':'')+s.holderName:_t('world2.unclaimed','Unclaimed'))+(s.benefit?' · '+benefitLabel(s.benefit):'');const el=node(doc,'div',label),b=s.bounds;el.className='worldTreeHolder';el.dataset.siteId=s.id;el.title=title(s.id)+' · '+label;
         el.style.cssText='position:absolute;left:'+((b.left+b.right)/2)+'%;top:'+b.bottom+'%;transform:translate(-50%,4px);color:'+s.colour+';font-size:10px;font-weight:800;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;pointer-events:none;z-index:7;zoom:'+1/hooks.zoom();inner.appendChild(el);if(compact)el.style.display='none';
         if(compact&&hooks.openSite){const pick=node(doc,'button');pick.type='button';pick.className='worldTreeCompactSite';pick.dataset.siteId=s.id;pick.setAttribute('aria-label',title(s.id));pick.style.cssText='flex:0 0 145px;min-width:145px;min-height:44px;padding:6px;border:1px solid #596778;border-radius:5px;background:#26354c;color:'+s.colour+';font-size:11px;text-align:left;overflow:hidden';const name=node(doc,'b',title(s.id)),holder=node(doc,'div',label);holder.style.cssText='white-space:nowrap;overflow:hidden;text-overflow:ellipsis';pick.appendChild(name);pick.appendChild(holder);pick.onclick=e=>{if(hooks.canOpen&&!hooks.canOpen())return;e.stopPropagation();hooks.openSite(s.id);};controls.appendChild(pick);}
         if(hooks.openSite){const hit=node(doc,'button');hit.className='worldTreeSiteHit';hit.dataset.siteId=s.id;hit.setAttribute('aria-label',title(s.id));hit.style.cssText='position:absolute;left:'+b.left+'%;top:'+b.top+'%;width:'+(b.right-b.left)+'%;height:'+(b.bottom-b.top)+'%;background:transparent;border:0;padding:0;z-index:8;cursor:pointer';hit.onclick=e=>{if(hooks.canOpen&&!hooks.canOpen())return;e.stopPropagation();hooks.openSite(s.id);};inner.appendChild(hit);if(compact)hit.style.display='none';}

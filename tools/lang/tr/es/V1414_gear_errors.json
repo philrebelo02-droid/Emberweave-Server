@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "No hay nada que fabricar.",
+  "err.gear_nothing_built": "No se ha fabricado nada.",
+  "err.gear_temper_max": "Ya está en el nivel de temple 30.",
+  "err.gear_dust_cost": "No hay suficiente polvo de forja (siguiente uso: {dust} de polvo).",
+  "err.gear_bound_hero": "Ese objeto está vinculado a {hero}.",
+  "err.gear_stale": "El estado de la forja ha cambiado. Inténtalo de nuevo."
+}

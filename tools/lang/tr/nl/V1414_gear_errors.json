@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Er is niets om te maken.",
+  "err.gear_nothing_built": "Er is niets gemaakt.",
+  "err.gear_temper_max": "Hardingsniveau 30 is al bereikt.",
+  "err.gear_dust_cost": "Niet genoeg smeedstof (volgend gebruik: {dust} stof).",
+  "err.gear_bound_hero": "Dat voorwerp is aan {hero} gebonden.",
+  "err.gear_stale": "De staat van de smidse is veranderd. Probeer het opnieuw."
+}

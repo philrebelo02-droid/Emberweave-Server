@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "Bergabunglah dengan gilda untuk menyerang {name}.",
+  "siege.join_to_garrison": "Bergabunglah dengan gilda untuk menempatkan garnisun di {name}.",
+  "siege.only_holding_guild": "Hanya gilda yang menguasai {name} yang dapat menempatkan garnisun di sana.",
+  "siege.garrison_full_at": "Garnisun {name} sudah penuh ({n}/{cap})."
+}

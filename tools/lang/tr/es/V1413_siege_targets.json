@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} está a {n} casillas. Marcha desde una distancia de {range} casillas o menos.",
+  "siege.target_held_you": "Ya controlas {name}.",
+  "siege.target_held_guild": "Tu gremio ya controla {name}.",
+  "siege.target_protected": "Acaban de tomar {name}. Tiene protección durante {m} min más."
+}

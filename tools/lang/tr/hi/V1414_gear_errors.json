@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "बनाने के लिए कुछ नहीं है।",
+  "err.gear_nothing_built": "कुछ भी नहीं बना।",
+  "err.gear_temper_max": "टेम्पर पहले से स्तर 30 पर है।",
+  "err.gear_dust_cost": "पर्याप्त भट्ठी धूल नहीं है (अगले उपयोग की लागत: {dust} धूल)।",
+  "err.gear_bound_hero": "यह सामान {hero} से बँधा है।",
+  "err.gear_stale": "भट्ठी की स्थिति बदल गई है। फिर से कोशिश करें।"
+}

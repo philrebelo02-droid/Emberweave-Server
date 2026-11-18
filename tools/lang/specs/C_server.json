@@ -599,7 +599,12 @@
   "err.hero_fragments_at_limit": "You are at the hero fragment limit.",
   "err.wall_full_strength": "Your wall is at full strength.",
   "err.sold_out_for_this_week": "Sold out for this week. It restocks on Monday.",
-  "err.you_bought_this_recently_it": "You bought this recently. It is on cooldown."
+  "err.you_bought_this_recently_it": "You bought this recently. It is on cooldown.",
+  "err.gear_nothing_to_build": "Nothing to build.",
+  "err.gear_nothing_built": "Nothing built.",
+  "err.gear_temper_max": "Already at Temper 30.",
+  "err.gear_dust_cost": "Not enough Forge Dust (next use: {dust} dust).",
+  "err.gear_bound_hero": "That item is bound to {hero}."
  },
  "edits": []
 }

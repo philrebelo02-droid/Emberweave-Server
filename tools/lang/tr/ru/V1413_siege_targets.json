@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} находится в {n} кл. Начните марш с расстояния не более {range} кл.",
+  "siege.target_held_you": "Вы уже контролируете {name}.",
+  "siege.target_held_guild": "Ваша гильдия уже контролирует {name}.",
+  "siege.target_protected": "Объект «{name}» только что захвачен. Защита действует ещё {m} мин."
+}

@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "{name}を攻撃するにはギルドに加入してください。",
+  "siege.join_to_garrison": "{name}に部隊を駐屯させるにはギルドに加入してください。",
+  "siege.only_holding_guild": "{name}を占領しているギルドだけが部隊を駐屯させられます。",
+  "siege.garrison_full_at": "{name}の駐屯枠がいっぱいです（{n}/{cap}）。"
+}

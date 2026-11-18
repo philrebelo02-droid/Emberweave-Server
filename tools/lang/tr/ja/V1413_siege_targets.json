@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name}まで{n}マスあります。{range}マス以内から進軍してください。",
+  "siege.target_held_you": "すでに{name}を占領しています。",
+  "siege.target_held_guild": "所属ギルドはすでに{name}を占領しています。",
+  "siege.target_protected": "{name}は占領されたばかりです。あと{m}分間保護されます。"
+}

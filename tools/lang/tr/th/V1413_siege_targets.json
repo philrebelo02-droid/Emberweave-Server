@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} อยู่ห่าง {n} ช่อง เริ่มเดินทัพจากระยะไม่เกิน {range} ช่อง",
+  "siege.target_held_you": "คุณครอง {name} อยู่แล้ว",
+  "siege.target_held_guild": "กิลด์ของคุณครอง {name} อยู่แล้ว",
+  "siege.target_protected": "{name} เพิ่งถูกยึดและยังได้รับการคุ้มครองอีก {m} นาที"
+}

@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "Entre em uma guilda para atacar {name}.",
+  "siege.join_to_garrison": "Entre em uma guilda para enviar uma guarnição a {name}.",
+  "siege.only_holding_guild": "Só a guilda que controla {name} pode guarnecer o local.",
+  "siege.garrison_full_at": "A guarnição de {name} está cheia ({n}/{cap})."
+}

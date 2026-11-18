@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "{name} पर हमला करने के लिए किसी गिल्ड में शामिल हों।",
+  "siege.join_to_garrison": "{name} में रक्षक दल तैनात करने के लिए किसी गिल्ड में शामिल हों।",
+  "siege.only_holding_guild": "केवल {name} को नियंत्रित करने वाला गिल्ड वहाँ रक्षक दल तैनात कर सकता है।",
+  "siege.garrison_full_at": "{name} का रक्षक दल भर चुका है ({n}/{cap})।"
+}

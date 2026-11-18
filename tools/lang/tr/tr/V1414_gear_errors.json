@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Üretilecek bir şey yok.",
+  "err.gear_nothing_built": "Hiçbir şey üretilmedi.",
+  "err.gear_temper_max": "Temper düzeyi zaten 30.",
+  "err.gear_dust_cost": "Yeterli Demirhane Tozu yok (sonraki işlem: {dust} toz).",
+  "err.gear_bound_hero": "Bu eşya {hero} adlı kahramana bağlı.",
+  "err.gear_stale": "Dökümhanenin durumu değişti. Tekrar dene."
+}

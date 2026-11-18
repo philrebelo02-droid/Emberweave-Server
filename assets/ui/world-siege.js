@@ -66,24 +66,33 @@ function garrisonCount(h){ return h&&Array.isArray(h.garrison)?h.garrison.length
 function garrisonLabel(site,h){ return garrisonCount(h)+'/'+garrisonCap(site); }
 function guildWord(site){ return site.kind==='city'?'a city':site.kind==='oasis'?'an oasis':'the World Tree'; }
 /* the Defense (add a garrison line) rule in one place: why this player may not send a line to this site now (null = may) */
-function garrisonRefusal(o){ const {site,holder,me,freeMarch}=o||{};
-  if(!site) return 'No such site.';
-  if(!me||!me.guildId) return 'Join a guild to garrison '+guildWord(site)+'.';
-  if(!holder||!ownedBy(holder,me)) return 'Only the guild holding '+site.name+' can garrison it.';
+function garrisonRefusal(o,translate){ const {site,holder,me,freeMarch}=o||{};
+  if(!site) return translate ? translate('err.no_such_site') : 'No such site.';
+  if(!me||!me.guildId) return translate ? translate('siege.join_to_garrison',{name:siegeSiteName(site,translate)}) : 'Join a guild to garrison '+guildWord(site)+'.';
+  if(!holder||!ownedBy(holder,me)) return translate ? translate('siege.only_holding_guild',{name:siegeSiteName(site,translate)}) : 'Only the guild holding '+site.name+' can garrison it.';
   const n=garrisonCount(holder), cap=garrisonCap(site);
-  if(n>=cap) return 'The garrison of '+site.name+' is full ('+n+'/'+cap+').';
-  if(freeMarch===false) return 'All your armies are out.';
+  if(n>=cap) return translate ? translate('siege.garrison_full_at',{name:siegeSiteName(site,translate),n,cap}) : 'The garrison of '+site.name+' is full ('+n+'/'+cap+').';
+  if(freeMarch===false) return translate ? translate('siege.armies_out') : 'All your armies are out.';
   return null; }
 /* the panel / route rule in one place: why this castle may not attack this site now (null = it may) */
-function refusal(o){ const {site,castle,holder,me,now,freeMarch}=o||{};
-  if(!site) return 'No such site.';
-  if(!castle) return 'Your castle is not on the World Map yet.';
-  if(!me||!me.guildId) return 'Join a guild to attack '+guildWord(site)+'.';   // v1237 (Phil 31 Oct: "only guild players can attack a city")
+function siegeSiteName(site,translate){
+  if(site.kind==='tree') return translate('world2.world_tree');
+  if(site.kind==='oasis'&&/^oasis-(nw|ne|sw|se)$/.test(site.id)) return translate('world2.'+site.id.replace('-','_'));
+  return site.name;
+}
+function refusal(o,translate){ const {site,castle,holder,me,now,freeMarch}=o||{};
+  if(!site) return translate ? translate('err.no_such_site') : 'No such site.';
+  if(!castle) return translate ? translate('siege.castle_not_placed') : 'Your castle is not on the World Map yet.';
+  if(!me||!me.guildId) return translate ? translate('siege.join_to_attack',{name:siegeSiteName(site,translate)}) : 'Join a guild to attack '+guildWord(site)+'.';   // v1237 (Phil 31 Oct: "only guild players can attack a city")
+  const name=translate ? siegeSiteName(site,translate) : site.name;
   const d=distance(castle,site);
-  if(d>RANGE_SQUARES) return site.name+' is '+d+' squares away - march from within '+RANGE_SQUARES+' squares.';
-  if(holder&&ownedBy(holder,me)) return (holder.type==='guild'?'Your guild':'You')+' already hold'+(holder.type==='guild'?'s ':' ')+site.name+'.';
-  if(holder&&Number.isFinite(holder.protectedUntil)&&holder.protectedUntil>now) return site.name+' was just taken - it is protected for '+Math.ceil((holder.protectedUntil-now)/60000)+' more min.';
-  if(freeMarch===false) return 'All your armies are out.';
+  if(d>RANGE_SQUARES) return translate ? translate('siege.target_distance',{name,n:d,range:RANGE_SQUARES}) : site.name+' is '+d+' squares away - march from within '+RANGE_SQUARES+' squares.';
+  if(holder&&ownedBy(holder,me)) return translate ? translate(holder.type==='guild'?'siege.target_held_guild':'siege.target_held_you',{name}) : (holder.type==='guild'?'Your guild':'You')+' already hold'+(holder.type==='guild'?'s ':' ')+site.name+'.';
+  if(holder&&Number.isFinite(holder.protectedUntil)&&holder.protectedUntil>now) {
+    const m=Math.ceil((holder.protectedUntil-now)/60000);
+    return translate ? translate('siege.target_protected',{name,m}) : site.name+' was just taken - it is protected for '+m+' more min.';
+  }
+  if(freeMarch===false) return translate ? translate('siege.armies_out') : 'All your armies are out.';
   return null; }
 const api={RANGE_SQUARES,CELLS_PER_GUARD_LV,PROTECT_MS,MAX_GUARD_LV,GARRISON_CAP,CAPITAL_CAP,CAPITALS,sites,byId,atCell,atPoint,distance,inRange,guardNode,
   ATTACK_SPEED,holderOf,ownedBy,refusal,slug,isCapital,garrisonCap,garrisonCount,garrisonLabel,garrisonRefusal};

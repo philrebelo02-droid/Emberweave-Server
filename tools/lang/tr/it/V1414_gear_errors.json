@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Non c’è nulla da fabbricare.",
+  "err.gear_nothing_built": "Non è stato fabbricato nulla.",
+  "err.gear_temper_max": "Il livello di tempra 30 è già stato raggiunto.",
+  "err.gear_dust_cost": "Polvere della Fucina insufficiente (prossimo utilizzo: {dust} unità di polvere).",
+  "err.gear_bound_hero": "Questo oggetto è vincolato a {hero}.",
+  "err.gear_stale": "Lo stato della forgia è cambiato. Riprova."
+}

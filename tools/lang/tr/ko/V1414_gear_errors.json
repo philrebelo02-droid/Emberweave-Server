@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "제작할 항목이 없습니다.",
+  "err.gear_nothing_built": "제작된 항목이 없습니다.",
+  "err.gear_temper_max": "이미 단련 30단계입니다.",
+  "err.gear_dust_cost": "대장간 가루가 부족합니다. (다음 사용 비용: 가루 {dust}개)",
+  "err.gear_bound_hero": "해당 아이템은 {hero}에게 귀속되어 있습니다.",
+  "err.gear_stale": "대장간 상태가 바뀌었습니다. 다시 시도하세요."
+}

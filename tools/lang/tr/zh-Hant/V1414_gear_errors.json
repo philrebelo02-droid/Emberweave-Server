@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "沒有可打造的物品。",
+  "err.gear_nothing_built": "未能打造任何物品。",
+  "err.gear_temper_max": "淬鍊已達到30級。",
+  "err.gear_dust_cost": "鍛造粉塵不足（下次消耗：{dust} 粉塵）。",
+  "err.gear_bound_hero": "該物品已綁定至{hero}。",
+  "err.gear_stale": "鍛造狀態已變更，請重試。"
+}

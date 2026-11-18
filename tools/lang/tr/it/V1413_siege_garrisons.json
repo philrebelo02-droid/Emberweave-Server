@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "Unisciti a una gilda per attaccare {name}.",
+  "siege.join_to_garrison": "Unisciti a una gilda per inviare una guarnigione a {name}.",
+  "siege.only_holding_guild": "Solo la gilda che controlla {name} può schierarvi una guarnigione.",
+  "siege.garrison_full_at": "La guarnigione di {name} è al completo ({n}/{cap})."
+}

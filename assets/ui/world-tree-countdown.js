@@ -1,6 +1,7 @@
 (function(root){
   'use strict';
   let current=null;
+  const labelText=(key,english)=>(typeof t==='function'&&t(key))||english;
   // v1228 (Phil 30 Oct 2026: "also the timer is gone"): the timer sits just under the drawn tree's root tips - the frame (side sideCells,
   // centred on META.tree cx,cy) ends its roots at y ~845/1254 of its height (v899) - in world-percent, so it moves with the tree
   const ROOT_TIPS=845/1254, GAP_CELLS=0.6;
@@ -14,7 +15,7 @@
     const box=document.createElement('div');box.className='wlab';
     box.style.cssText='position:relative;left:auto;top:auto;transform:none;transform-origin:center top;background:none;border:0;padding:0;box-shadow:none;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px #000c';   /* v899 (Phil): no box, just the text */
     const label=document.createElement('div');label.className='nl';label.textContent=((typeof t==='function'&&t('world2.world_tree'))||'World Tree');
-    const time=document.createElement('div');time.className='nl';time.style.cssText='color:#ffd45e;font-variant-numeric:tabular-nums;font-size:12px';time.textContent='Syncing event timer…';
+    const time=document.createElement('div');time.className='nl';time.style.cssText='color:#ffd45e;font-variant-numeric:tabular-nums;font-size:12px';time.textContent=labelText('world2.timer_syncing','Syncing event timer…');
     time.setAttribute('role','timer'); // Not an every-second screen-reader announcement.
     box.appendChild(label);box.appendChild(time);node.appendChild(box);inner.appendChild(node);
     let stopped=false,pending=false,receivedAt=0,data=null,interval,request=null,timeout;
@@ -24,8 +25,8 @@
       if(!data?.configured)return;
       const now=Math.floor(data.serverNow+performance.now()-receivedAt);
       const phase=root.EmberweaveWorldTreeCycle.phase(data.firstEventAt,now);
-      label.textContent=phase.phase==='event'?'Event ends in':'Next event in';
-      time.textContent=root.EmberweaveWorldTreeCycle.format(phase.remainingMs);
+      label.textContent=phase.phase==='event'?labelText('world2.event_ends_in','Event ends in'):labelText('world2.next_event_in','Next event in');
+      time.textContent=root.EmberweaveWorldTreeCycle.format(phase.remainingMs,typeof LANG==="object"?LANG.cur:undefined);
       node.dataset.phase=phase.phase;node.dataset.lifeFraction=String(phase.lifeFraction);
       // Future approved decay/regrowth art consumes the SAME clock, not a second timer.
       node.dispatchEvent(new CustomEvent('world-tree-phase',{detail:phase,bubbles:true}));
@@ -44,7 +45,7 @@
         data=next;receivedAt=(started+performance.now())/2;
         if(!next.configured){label.textContent=((typeof t==='function'&&t('world2.world_tree'))||'World Tree');time.textContent=((typeof t==='function'&&t('world2.event_pending'))||'Event schedule pending');delete node.dataset.phase;delete node.dataset.lifeFraction;}
         draw();
-      }catch(error){if(!stopped&&!data?.configured)time.textContent='Timer unavailable — reconnecting';}
+      }catch(error){if(!stopped&&!data?.configured)time.textContent=labelText('world2.timer_reconnecting','Timer unavailable — reconnecting');}
       finally{clearTimeout(timeout);pending=false;}
     }
     function visible(){if(!document.hidden){draw();sync();}}

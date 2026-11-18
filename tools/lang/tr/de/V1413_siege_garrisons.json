@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "Tritt einer Gilde bei, um {name} anzugreifen.",
+  "siege.join_to_garrison": "Tritt einer Gilde bei, um Truppen in {name} zu stationieren.",
+  "siege.only_holding_guild": "Nur die Gilde, die {name} hält, darf dort Truppen stationieren.",
+  "siege.garrison_full_at": "Die Garnison von {name} ist voll ({n}/{cap})."
+}

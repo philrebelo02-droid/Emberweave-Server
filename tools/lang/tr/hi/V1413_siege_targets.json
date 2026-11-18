@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} {n} खाने दूर है। अधिकतम {range} खाने की दूरी से प्रस्थान करें।",
+  "siege.target_held_you": "{name} पहले से आपके नियंत्रण में है।",
+  "siege.target_held_guild": "{name} पहले से आपके गिल्ड के नियंत्रण में है।",
+  "siege.target_protected": "{name} पर अभी कब्ज़ा किया गया है। यह {m} मिनट और सुरक्षित रहेगा।"
+}

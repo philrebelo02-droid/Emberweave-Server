@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "Sluit je aan bij een gilde om {name} aan te vallen.",
+  "siege.join_to_garrison": "Sluit je aan bij een gilde om troepen in {name} te stationeren.",
+  "siege.only_holding_guild": "Alleen het gilde dat {name} beheerst, mag er troepen stationeren.",
+  "siege.garrison_full_at": "Het garnizoen van {name} is vol ({n}/{cap})."
+}

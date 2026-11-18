@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Não há nada para fabricar.",
+  "err.gear_nothing_built": "Nada foi fabricado.",
+  "err.gear_temper_max": "O nível 30 de têmpera já foi atingido.",
+  "err.gear_dust_cost": "Pó da Forja insuficiente (próximo uso: {dust} de pó).",
+  "err.gear_bound_hero": "Esse item está vinculado a {hero}.",
+  "err.gear_stale": "O estado da forja mudou. Tente de novo."
+}

@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} está a {n} casas. Marche de uma distância de até {range} casas.",
+  "siege.target_held_you": "Você já controla {name}.",
+  "siege.target_held_guild": "Sua guilda já controla {name}.",
+  "siege.target_protected": "{name} acabou de ser tomado e ficará protegido por mais {m} min."
+}

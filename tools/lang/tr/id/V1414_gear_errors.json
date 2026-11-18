@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Tidak ada yang bisa dibuat.",
+  "err.gear_nothing_built": "Tidak ada yang berhasil dibuat.",
+  "err.gear_temper_max": "Tempaan sudah mencapai level 30.",
+  "err.gear_dust_cost": "Debu Tempa tidak cukup (penggunaan berikutnya: {dust} debu).",
+  "err.gear_bound_hero": "Item itu terikat pada {hero}.",
+  "err.gear_stale": "Status tempat tempa berubah. Coba lagi."
+}

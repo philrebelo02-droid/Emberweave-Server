@@ -36,7 +36,7 @@ const H=require('./harness.js');
     const f=path.join(dir,'en.json'); let prev={}; try{ prev=JSON.parse(fs.readFileSync(f,'utf8')); }catch(_){}
     const merged=res.out;   // the whole list is regenerated every run (a template the game no longer makes drops out)
     const gear=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/gear-catalog.json'),'utf8'));
-    for(const item of gear.items) for(const label of [item.active,item.effect]){
+    for(const item of gear.items) for(const label of [item.active,item.effect,item.name,item.frag]){
       if(!label) continue;
       let n=0;
       const key=label.replace(/\d+(?:\.\d+)?/g,()=>'{'+n+++'}');

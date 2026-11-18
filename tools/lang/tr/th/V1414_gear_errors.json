@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "ไม่มีของให้สร้าง",
+  "err.gear_nothing_built": "ไม่ได้สร้างของชิ้นใด",
+  "err.gear_temper_max": "ชุบแข็งถึงระดับ 30 แล้ว",
+  "err.gear_dust_cost": "ผงตีเหล็กไม่พอ (ใช้ครั้งถัดไปต้องใช้ {dust} หน่วย)",
+  "err.gear_bound_hero": "ไอเทมนี้ผูกกับ {hero} แล้ว",
+  "err.gear_stale": "สถานะโรงตีเหล็กเปลี่ยนไป โปรดลองอีกครั้ง"
+}

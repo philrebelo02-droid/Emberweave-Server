@@ -442,6 +442,9 @@ const EXACT=[
   ["the_server_is_busy_try_again","The server is busy - try again in a moment."],
   ["request_too_large","Request too large."],
   ["server_error","server error"],
+  ["gear_nothing_to_build","Nothing to build."],
+  ["gear_nothing_built","Nothing built."],
+  ["gear_temper_max","Already at Temper 30."],
   ["unknown_gear","Unknown gear."],
   ["grey_gear_needs_no_sub_component","Grey gear needs no sub-component."],
   ["choose_a_hero_you_own","Choose a hero you own."],
@@ -529,6 +532,8 @@ const EXACT=[
 const PATTERNS=[
   ["names_cannot_use_letters_numbers_spaces","Names cannot use {bad} - letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.","^Names cannot use ([\\s\\S]*?) - letters, numbers, spaces and _ - \\. ! \\? # @ \\$ % \\* \\+ = ~ \\( \\) \\[ \\] : , \\^ only\\.$",["bad"]],
   ["your_troops_are_out_recall_them","Your troops are out ({out}) - recall them or wait until they are home to teleport.","^Your troops are out \\(([\\s\\S]*?)\\) - recall them or wait until they are home to teleport\\.$",["out"]],
+  ["gear_dust_cost","Not enough Forge Dust (next use: {dust} dust).","^Not enough Forge Dust \\(next use: ([\\s\\S]*?) dust\\)\\.$",["dust"]],
+  ["gear_bound_hero","That item is bound to {hero}.","^That item is bound to (.+)\\.$",["hero"]],
   ["need_2_fresh_unbound_items_bound","Need 2 fresh unbound {prevQ} items (bound gear can never be an ingredient).","^Need 2 fresh unbound ([\\s\\S]*?) items \\(bound gear can never be an ingredient\\)\\.$",["prevQ"]],
   ["no_more_elite_stage_resets_today","No more Elite stage resets today ({v} a day at your level).","^No more Elite stage resets today \\(([\\s\\S]*?) a day at your level\\)\\.$",["v"]],
   ["the_starless_well_opens_at_account","The Starless Well opens at account level {normal} (you are {lvl}).","^The Starless Well opens at account level ([\\s\\S]*?) \\(you are ([\\s\\S]*?)\\)\\.$",["normal","lvl"]],

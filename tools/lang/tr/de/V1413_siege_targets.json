@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} ist {n} Felder entfernt. Marschiere aus höchstens {range} Feldern Entfernung.",
+  "siege.target_held_you": "Du hältst {name} bereits.",
+  "siege.target_held_guild": "Deine Gilde hält {name} bereits.",
+  "siege.target_protected": "{name} wurde gerade eingenommen und ist noch {m} Min. geschützt."
+}

@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} dista {n} caselle. Parti da una distanza massima di {range} caselle.",
+  "siege.target_held_you": "Controlli già {name}.",
+  "siege.target_held_guild": "La tua gilda controlla già {name}.",
+  "siege.target_protected": "Il sito {name} è appena stato conquistato. Resta protetto per altri {m} min."
+}

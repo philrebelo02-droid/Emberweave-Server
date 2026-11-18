@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} se trouve à {n} cases. Partez à {range} cases ou moins.",
+  "siege.target_held_you": "Vous contrôlez déjà {name}.",
+  "siege.target_held_guild": "Votre guilde contrôle déjà {name}.",
+  "siege.target_protected": "Le site {name} vient d’être pris. Il reste protégé pendant {m} min."
+}

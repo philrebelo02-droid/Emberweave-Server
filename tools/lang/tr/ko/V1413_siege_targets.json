@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name}까지 {n}칸 남았습니다. {range}칸 이내에서 진군하세요.",
+  "siege.target_held_you": "이미 {name}을 점령하고 있습니다.",
+  "siege.target_held_guild": "소속 길드가 이미 {name}을 점령하고 있습니다.",
+  "siege.target_protected": "{name}이 방금 점령되었습니다. 앞으로 {m}분간 보호됩니다."
+}

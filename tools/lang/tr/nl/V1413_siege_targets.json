@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} ligt {n} vakjes verderop. Vertrek vanaf maximaal {range} vakjes afstand.",
+  "siege.target_held_you": "Je beheerst {name} al.",
+  "siege.target_held_guild": "Je gilde beheerst {name} al.",
+  "siege.target_protected": "{name} is net ingenomen en blijft nog {m} min. beschermd."
+}

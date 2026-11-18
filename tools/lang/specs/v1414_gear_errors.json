@@ -1,0 +1,11 @@
+{
+  "keys": {
+    "err.gear_nothing_to_build": "Nothing to build.",
+    "err.gear_nothing_built": "Nothing built.",
+    "err.gear_temper_max": "Already at Temper 30.",
+    "err.gear_dust_cost": "Not enough Forge Dust (next use: {dust} dust).",
+    "err.gear_bound_hero": "That item is bound to {hero}.",
+    "err.gear_stale": "The Forge state changed. Try again."
+  },
+  "edits": []
+}

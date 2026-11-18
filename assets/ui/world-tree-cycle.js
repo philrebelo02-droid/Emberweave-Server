@@ -35,9 +35,14 @@
   }
   // the frame (1..28) for a phase snapshot; the one rule client and server share
   function frameOf(p){ return p&&Number.isInteger(p.framePosition)?p.framePosition+1:null; }
-  function format(ms){
+  function format(ms,locale){
     const seconds=Math.max(0,Math.ceil(ms/1000)),days=Math.floor(seconds/86400);
     const h=Math.floor(seconds%86400/3600),m=Math.floor(seconds%3600/60),s=seconds%60;
+    if(locale&&locale!=='en'&&locale!=='qps'){
+      const digits=new Intl.NumberFormat(locale,{minimumIntegerDigits:2,useGrouping:false});
+      const dayLabel=days?new Intl.NumberFormat(locale,{style:'unit',unit:'day',unitDisplay:'short'}).format(days)+' ':'';
+      return dayLabel+[h,m,s].map(n=>digits.format(n)).join(':');
+    }
     const pad=n=>String(n).padStart(2,'0');
     return (days?days+'d ':'')+pad(h)+':'+pad(m)+':'+pad(s);
   }

@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "Únete a un gremio para atacar {name}.",
+  "siege.join_to_garrison": "Únete a un gremio para enviar una guarnición a {name}.",
+  "siege.only_holding_guild": "Solo el gremio que controla {name} puede enviarle una guarnición.",
+  "siege.garrison_full_at": "La guarnición de {name} está completa ({n}/{cap})."
+}

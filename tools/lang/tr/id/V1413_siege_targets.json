@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} berjarak {n} petak. Mulai bergerak dari jarak paling jauh {range} petak.",
+  "siege.target_held_you": "Kamu sudah menguasai {name}.",
+  "siege.target_held_guild": "Gildemu sudah menguasai {name}.",
+  "siege.target_protected": "{name} baru saja direbut dan masih dilindungi selama {m} mnt."
+}

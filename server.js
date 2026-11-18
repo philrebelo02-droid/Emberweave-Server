@@ -7183,7 +7183,7 @@ async function api(req,res,url){
     const out=durableCommit(me,key,(me)=>{
     const g=ensureGear(me);
     const er=parseInt(b.expectedRevision,10);
-    if(er!==g.revision){status=409;return {error:'STALE', revision:g.revision};}
+    if(er!==g.revision){status=409;return {error:'STALE', errCode:'gear_stale', revision:g.revision};}
     const ok=(extra)=>{ g.revision++; writeDB(); return Object.assign({ok:true, revision:g.revision, dust:me.dust||0},extra||{}); };
     const bad=(msg)=>{status=400;return {error:msg, revision:g.revision};};
 

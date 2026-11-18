@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name}距此{n}格。请在{range}格以内出征。",
+  "siege.target_held_you": "你已占领{name}。",
+  "siege.target_held_guild": "你的公会已占领{name}。",
+  "siege.target_protected": "{name}刚被占领，还将受保护{m}分钟。"
+}

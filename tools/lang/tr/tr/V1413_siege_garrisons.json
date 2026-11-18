@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "{name} hedefine saldırmak için bir loncaya katıl.",
+  "siege.join_to_garrison": "{name} konumuna garnizon göndermek için bir loncaya katıl.",
+  "siege.only_holding_guild": "{name} konumuna yalnızca orayı elinde tutan lonca garnizon gönderebilir.",
+  "siege.garrison_full_at": "{name} garnizonu dolu ({n}/{cap})."
+}

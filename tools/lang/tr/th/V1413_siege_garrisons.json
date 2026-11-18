@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "เข้าร่วมกิลด์เพื่อโจมตี {name}",
+  "siege.join_to_garrison": "เข้าร่วมกิลด์เพื่อส่งกองกำลังไปประจำการที่ {name}",
+  "siege.only_holding_guild": "เฉพาะกิลด์ที่ครอง {name} เท่านั้นที่ส่งกองกำลังไปประจำการได้",
+  "siege.garrison_full_at": "กองกำลังประจำการที่ {name} เต็มแล้ว ({n}/{cap})"
+}

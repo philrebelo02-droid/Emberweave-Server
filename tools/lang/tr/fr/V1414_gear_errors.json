@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Rien à fabriquer.",
+  "err.gear_nothing_built": "Aucun objet n’a été fabriqué.",
+  "err.gear_temper_max": "Le niveau de trempe 30 est déjà atteint.",
+  "err.gear_dust_cost": "Poussière de forge insuffisante (prochaine utilisation : {dust} poussières).",
+  "err.gear_bound_hero": "Cet objet est lié à {hero}.",
+  "err.gear_stale": "L’état de la forge a changé. Réessayez."
+}

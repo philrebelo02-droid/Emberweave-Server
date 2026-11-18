@@ -1,0 +1,6 @@
+{
+  "siege.target_distance": "{name} {n} kare uzakta. En fazla {range} kare mesafeden yürüyüşe çıkın.",
+  "siege.target_held_you": "{name} zaten senin kontrolünde.",
+  "siege.target_held_guild": "{name} zaten loncanın kontrolünde.",
+  "siege.target_protected": "{name} az önce ele geçirildi. {m} dk. daha koruma altında."
+}

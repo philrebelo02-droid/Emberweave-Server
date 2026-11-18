@@ -1,0 +1,8 @@
+{
+  "err.gear_nothing_to_build": "Nichts herzustellen.",
+  "err.gear_nothing_built": "Es wurde nichts hergestellt.",
+  "err.gear_temper_max": "Härtungsstufe 30 ist bereits erreicht.",
+  "err.gear_dust_cost": "Nicht genug Schmiedestaub (nächster Einsatz: {dust} Staub).",
+  "err.gear_bound_hero": "Dieser Gegenstand ist an {hero} gebunden.",
+  "err.gear_stale": "Der Zustand der Schmiede hat sich geändert. Versuche es erneut."
+}

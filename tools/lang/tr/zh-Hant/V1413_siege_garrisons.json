@@ -1,0 +1,6 @@
+{
+  "siege.join_to_attack": "加入公會後才能攻擊{name}。",
+  "siege.join_to_garrison": "加入公會後才能派部隊駐守{name}。",
+  "siege.only_holding_guild": "只有控制{name}的公會才能派部隊駐守。",
+  "siege.garrison_full_at": "{name}的駐守名額已滿（{n}/{cap}）。"
+}
