@@ -211,6 +211,36 @@ const ROOT=path.join(__dirname,'..');
     };
     if(process.env.LANG_COV_WHERE) await page.evaluate(()=>{ window.__langWhere=1; });
     await collect('home');
+    await page.evaluate(()=>{
+      show('mail');
+      const now=Date.now(), savedLanguage=LANG.cur;
+      const row=data=>({read:true,t:now,...data});
+      let legacyMine;
+      try{
+        LANG.cur='en';
+        legacyMine=mineMailText({res:'iron',kind:'cleared',amount:37});
+      }finally{ LANG.cur=savedLanguage; }
+      G.mail.war=[
+        row({pvpText:{kind:'attack-report',to:'Vael',won:true,t:now,loot:{gold:230,guildCoins:12}}}),
+        row({pvpText:{from:'Vex',won:true,wallFell:true,newLoc:{x:0,y:0},t:now}}),
+        row({siegeText:{siteName:'World Tree',siteId:'tree',won:false,defenders:'garrison'}}),
+        row({warText:{kind:'reinforced',name:'Vael'}})
+      ];
+      G.mail.mines=[row(legacyMine),row({mineText:{kind:'held',res:'silver'}})];
+      G.mail.scouts=[row({scoutText:{kind:'scouted',name:'Vex',rank:6,power:12500,allyDefenders:1,shieldUp:true,team:[{key:'vael',level:30,stars:3,hp:64}]}})];
+    });
+    for(const [tab,count] of [['war',4],['mines',2],['scouts',1]]){
+      await page.locator('#mailTabs [data-t='+tab+']').click({timeout:10000});
+      const rows=page.locator('#mailBody .mailrow');
+      if(await rows.count()!==count||!(await rows.locator('.mbody').allTextContents()).every(text=>text.includes('⟦'))){
+        throw new Error('Incomplete localized mail fixtures in '+tab);
+      }
+      if(tab==='war'){
+        const coordinates=await rows.nth(1).locator('.mbody').textContent();
+        if(!coordinates.includes('X0 Y0')) throw new Error('Zero coordinates missing from rebuilt castle report');
+      }
+      await collect('populated '+tab+' mail');
+    }
     const roster=await page.evaluate(()=>{
       const missing={}, samples=[1,50,100];
       const originalLevel=skillLevel, originalCollector=LANG.collect;
