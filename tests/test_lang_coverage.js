@@ -288,6 +288,42 @@ const ROOT=path.join(__dirname,'..');
     console.log('skill roster audit: '+roster.heroes+' heroes, '+roster.descriptions+' descriptions, '+Object.keys(roster.missing).length+' missing templates');
     const SCREENS=['campaign','glossary','tech','wall','world','account','arena','arenaShop','dungeon','forge','elite','skyfall','guild','temple','market','shadymarket','watchtower','rankings','wishing','online','heroesPanel','bag','settings','quest','signin','tutorial','skyisland','mail'];
     for(const s of SCREENS) await visit(s,new Function('try{ show('+JSON.stringify(s)+'); }catch(e){ popoutScreen('+JSON.stringify(s)+'); }'),s);
+    const glossary=await page.evaluate(()=>{
+      show('glossary');
+      glFill();
+      const counts={}, missing=new Map();
+      const previous={collector:LANG.collect,paint:glPaintCard};
+      const names=new Set(window.__langNames||[]);
+      try{
+        // The text audit does not need to decode card art for every entry at once.
+        glPaintCard=()=>Promise.resolve();
+        for(const category of ['heroes','monsters','summons','bosses']){
+          counts[category]=0;
+          for(const {id} of GLOSSARY_DATA[category]){
+            LANG.collect=new Set();
+            openGlossaryCard(category,id);
+            const card=document.querySelector('#glModal.open #glCardBig');
+            if(!card?.querySelector('h2')?.textContent.trim()||card.querySelectorAll('.glSec').length<2){
+              throw new Error('Glossary card failed to render: '+category+' '+id);
+            }
+            for(const template of LANG.collect){
+              if(LANG.content[template]||names.has(template)) continue;
+              if(!missing.has(template)) missing.set(template,[]);
+              missing.get(template).push(category+' '+id);
+            }
+            counts[category]++;
+          }
+        }
+      }finally{
+        LANG.collect=previous.collector; glPaintCard=previous.paint; closeGlossaryCard();
+      }
+      return {counts,missing:[...missing]};
+    });
+    if(Object.values(glossary.counts).some(count=>count<1)) throw new Error('Incomplete Glossary audit');
+    for(const [i,[template,where]] of glossary.missing.entries()){
+      leaks['[Glossary template '+(i+1)+'] '+template.slice(0,160).replace(/\s+/g,' ')]=new Set(where);
+    }
+    console.log('Glossary audit: '+Object.entries(glossary.counts).map(([k,n])=>n+' '+k).join(', ')+', '+glossary.missing.length+' missing templates');
     // every hub building (the town's hot spots), each opened from the hub - the player's level raised on this page so none is locked
     const hots=await page.evaluate(()=>{ G.playerXP=Number.MAX_SAFE_INTEGER; show('home'); try{ renderHome(); }catch(e){} return document.querySelectorAll('#townHots .hot .hit').length; });
     for(let i=0;i<hots;i++) await visit('building '+i,new Function('show("home"); const e=document.querySelectorAll("#townHots .hot .hit")['+i+']; if(e) e.click();'));
