@@ -201,6 +201,33 @@ const ROOT=path.join(__dirname,'..');
     };
     if(process.env.LANG_COV_WHERE) await page.evaluate(()=>{ window.__langWhere=1; });
     await collect('home');
+    const roster=await page.evaluate(()=>{
+      const missing={}, samples=[1,50,100];
+      const originalLevel=skillLevel, originalCollector=LANG.collect;
+      let descriptions=0;
+      try{
+        for(const hero of HERO_KEYS){
+          for(let slot=0;slot<4;slot++){
+            for(const level of samples){
+              skillLevel=()=>level;
+              LANG.collect=new Set();
+              if(!skillDesc(hero,slot)) throw new Error('Empty skill description for '+hero+' slot '+slot);
+              descriptions++;
+              for(const key of LANG.collect){
+                if(!LANG.content[key]) (missing[key]||=[]).push(hero+' slot '+slot+' lv '+level);
+              }
+            }
+          }
+        }
+      }finally{
+        skillLevel=originalLevel;
+        LANG.collect=originalCollector;
+      }
+      return {heroes:HERO_KEYS.length,descriptions,missing};
+    });
+    if(roster.heroes<61||roster.descriptions!==roster.heroes*12) throw new Error('Incomplete skill roster audit');
+    for(const [template,where] of Object.entries(roster.missing)) leaks['[skill template] '+template]=new Set(where);
+    console.log('skill roster audit: '+roster.heroes+' heroes, '+roster.descriptions+' descriptions, '+Object.keys(roster.missing).length+' missing templates');
     const SCREENS=['campaign','glossary','tech','wall','world','account','arena','arenaShop','dungeon','forge','elite','skyfall','guild','temple','market','shadymarket','watchtower','rankings','wishing','online','heroesPanel','bag','settings','quest','signin','tutorial','skyisland','mail'];
     for(const s of SCREENS) await visit(s,new Function('try{ show('+JSON.stringify(s)+'); }catch(e){ popoutScreen('+JSON.stringify(s)+'); }'),s);
     // every hub building (the town's hot spots), each opened from the hub - the player's level raised on this page so none is locked
