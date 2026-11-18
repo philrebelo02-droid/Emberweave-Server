@@ -235,6 +235,31 @@ const ROOT=path.join(__dirname,'..');
     for(let i=0;i<hots;i++) await visit('building '+i,new Function('show("home"); const e=document.querySelectorAll("#townHots .hot .hit")['+i+']; if(e) e.click();'));
     // a hero's detail (every tab), the second hero too
     for(const n of [0,1]) await visit('heroDetail '+n,new Function('detailHero=HERO_KEYS.filter(k=>G.unlocked[k])['+n+']; popoutScreen("heroDetail");'),'heroDetail');
+    const lore=await page.evaluate(()=>{
+      const previous={hero:detailHero,tab:heroTab,collector:LANG.collect};
+      const misses=[];
+      let owned=0,locked=0;
+      try{
+        for(const key of HERO_KEYS){
+          detailHero=key;
+          heroTab='lore';
+          if(G.unlocked[key]) owned++; else locked++;
+          LANG.collect=new Set();
+          renderHeroDetail();
+          const body=[...document.querySelectorAll('#heroDetail .hd-tabcontent p')].map(p=>p.textContent).join('\n\n');
+          if(!body||!body.startsWith('⟦')||!body.endsWith('⟧')) misses.push({key,label:'lore body'});
+          for(const template of LANG.collect){
+            if(!LANG.content[template]) misses.push({key,label:'lore template '+template.slice(0,110)});
+          }
+        }
+      }finally{
+        detailHero=previous.hero; heroTab=previous.tab; LANG.collect=previous.collector;
+      }
+      return {owned,locked,misses};
+    });
+    if(!lore.owned||!lore.locked||lore.owned+lore.locked!==roster.heroes) throw new Error('Incomplete hero lore audit');
+    for(const {key,label} of lore.misses) leaks['['+label+'] '+key]=new Set(['hero lore']);
+    console.log('hero lore audit: '+lore.owned+' owned, '+lore.locked+' locked, '+lore.misses.length+' missing entries');
     // Campaign starts in a fresh document so hub overlays cannot cover its battle button.
     await page.reload({waitUntil:'domcontentloaded',timeout:120000});
     await page.waitForFunction(()=>typeof show==='function'&&LANG.cur==='qps'&&LANG.content,null,{timeout:120000});
