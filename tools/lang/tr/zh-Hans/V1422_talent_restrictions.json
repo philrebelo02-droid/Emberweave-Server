@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "已达到最高阶。",
+  "talent.no_points": "没有剩余天赋点。",
+  "talent.spend_one": "在此天赋树中再投入 {n} 点即可解锁此层。",
+  "talent.spend_more": "在此天赋树中再投入 {n} 点即可解锁此层。",
+  "talent.prerequisite": "需要将「{name}」提升至最高阶。",
+  "talent.choice_locked": "已锁定：已选择「{name}」。",
+  "talent.unavailable": "该英雄尚无天赋。",
+  "talent.unknown": "未知天赋。"
+}

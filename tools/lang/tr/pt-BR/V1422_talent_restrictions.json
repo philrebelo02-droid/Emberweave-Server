@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Já está no nível máximo.",
+  "talent.no_points": "Não há pontos de talento restantes.",
+  "talent.spend_one": "Gaste mais {n} ponto nesta árvore para desbloquear este nível.",
+  "talent.spend_more": "Gaste mais {n} pontos nesta árvore para desbloquear este nível.",
+  "talent.prerequisite": "Requer {name} no nível máximo.",
+  "talent.choice_locked": "Bloqueado: {name} foi escolhido.",
+  "talent.unavailable": "Este herói ainda não tem talentos.",
+  "talent.unknown": "Talento desconhecido."
+}

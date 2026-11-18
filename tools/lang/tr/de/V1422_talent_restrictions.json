@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Höchstrang bereits erreicht.",
+  "talent.no_points": "Keine Talentpunkte übrig.",
+  "talent.spend_one": "Gib noch {n} Punkt in diesem Baum aus, um diese Stufe freizuschalten.",
+  "talent.spend_more": "Gib noch {n} Punkte in diesem Baum aus, um diese Stufe freizuschalten.",
+  "talent.prerequisite": "Erfordert {name} auf Höchstrang.",
+  "talent.choice_locked": "Gesperrt: {name} wurde gewählt.",
+  "talent.unavailable": "Dieser Held hat noch keine Talente.",
+  "talent.unknown": "Unbekanntes Talent."
+}

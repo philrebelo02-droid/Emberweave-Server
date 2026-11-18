@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Sudah mencapai peringkat maksimum.",
+  "talent.no_points": "Poin talenta sudah habis.",
+  "talent.spend_one": "Gunakan {n} poin lagi di pohon ini untuk membuka tingkat ini.",
+  "talent.spend_more": "Gunakan {n} poin lagi di pohon ini untuk membuka tingkat ini.",
+  "talent.prerequisite": "{name} harus mencapai peringkat maksimum.",
+  "talent.choice_locked": "Terkunci: {name} sudah dipilih.",
+  "talent.unavailable": "Hero ini belum memiliki talenta.",
+  "talent.unknown": "Talenta tidak dikenal."
+}

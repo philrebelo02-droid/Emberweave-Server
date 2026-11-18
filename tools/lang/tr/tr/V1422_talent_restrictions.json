@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Zaten en yüksek rütbede.",
+  "talent.no_points": "Yetenek puanı kalmadı.",
+  "talent.spend_one": "Bu kademeyi açmak için bu ağaçta {n} puan daha harca.",
+  "talent.spend_more": "Bu kademeyi açmak için bu ağaçta {n} puan daha harca.",
+  "talent.prerequisite": "{name} en yüksek rütbede olmalı.",
+  "talent.choice_locked": "Kilitli: {name} seçildi.",
+  "talent.unavailable": "Bu kahramanın henüz yeteneği yok.",
+  "talent.unknown": "Bilinmeyen yetenek."
+}

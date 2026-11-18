@@ -39,7 +39,7 @@ const ROOT=path.join(__dirname,'..');
     await settle(2500);
     await page.evaluate(()=>{ const p=document.querySelector('.splashPlay'); if(p) p.click(); }); await settle(900);
     await page.evaluate(()=>{ const s=document.getElementById('tutSkip'); if(s&&s.offsetParent) s.click(); });
-    await page.waitForFunction(()=>LANG.content,null,{timeout:30000}).catch(()=>{});
+    await page.waitForFunction(()=>LANG.cur==='qps'&&LANG.content&&Object.keys(LANG.content).length>0,null,{timeout:30000});
     // the names the game never translates, from its own tables (+ the player's own name)
     await page.evaluate((gname)=>{ const N=new Set([gname,'Emberweave','Emberweave Heroes','Xanthyr Games','Google','Facebook','Discord']);
       const add=v=>{ if(typeof v==='string'&&v.trim()) N.add(v.trim()); };
@@ -68,8 +68,10 @@ const ROOT=path.join(__dirname,'..');
         const clean=s=>fullName?s.replace(fullName,' '):s;
         const consider=(s,tag)=>{ s=strip(String(s||'')); for(let line of s.split(/\n+/)){ line=clean(line).replace(/\s+/g,' ').trim(); if(/\p{L}{2,}/u.test(line.replace(/\b(?:HP|ATK|AP|EGP|PvP|DPS|XP|EXP|Lv|VIP|ID|OK|x\d+|v\d+)\b/g,''))) out.add((tag||'')+line.slice(0,140)); } };
         consider(document.body.innerText);
-        for(const el of document.querySelectorAll('[title],[placeholder],[aria-label]')){ if(!el.getClientRects().length) continue;
-          for(const a of ['title','placeholder','aria-label']) if(el.hasAttribute(a)) consider(el.getAttribute(a),'['+a+'] '); }
+        for(const el of document.querySelectorAll('[title],[placeholder],[aria-label],[aria-description],img[alt]')){
+          if(!el.getClientRects().length||getComputedStyle(el).visibility==='hidden'||el.closest('[aria-hidden="true"]')) continue;
+          for(const a of ['title','placeholder','aria-label','aria-description','alt']) if(el.hasAttribute(a)) consider(el.getAttribute(a),'['+a+'] ');
+        }
         // where each leak sits (the innermost element showing exactly that line): id / class path for the next pass
         const where=s=>{ const t0=s.replace(/^\[[a-z-]+\] /,''); let best=null; for(const el of document.querySelectorAll('body *')){ if(!el.getClientRects().length) continue; const tx=strip(el.innerText||'').replace(/\s+/g,' ').trim(); if(tx===t0) best=el; }
           if(!best) return ''; const p=[]; for(let e=best;e&&e!==document.body&&p.length<5;e=e.parentElement) p.unshift(e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.trim().split(/\s+/).slice(0,2).join('.'):''));
@@ -80,26 +82,45 @@ const ROOT=path.join(__dirname,'..');
       const root=scr[scr.length-1]||document.body; const c=[...root.querySelectorAll('[data-tab],[data-settab],.tab,.tabBtn,.subtab,[class*="Tab"]:not([class*="Table"]),[role=tab]')].filter(e=>e.getClientRects().length&&!e.closest('[data-lang-skip]'));
       c.forEach((e,i)=>e.setAttribute('data-lang-cov-tab',String(i))); return c.length; });
     const clickTab=i=>page.evaluate(i=>{ const e=document.querySelector('[data-lang-cov-tab="'+i+'"]'); if(e) e.click(); },i);
-    const visit=async(name,fn)=>{ try{ await page.evaluate(fn); }catch(e){ (leaks['(could not open '+name+': '+String(e.message).slice(0,80)+')']=new Set()).add(name); return; }
+    const visit=async(name,fn,screenId)=>{ try{
+        await page.evaluate(fn);
+        if(screenId) await page.locator('#'+screenId+'.active').waitFor({state:'visible',timeout:5000});
+      }catch(e){ (leaks['(could not open '+name+': '+String(e.message).slice(0,80)+')']=new Set()).add(name); return; }
       await settle(); await collect(name);
       const n=Math.min(await tabsHere(),24); for(let i=0;i<n;i++){ await clickTab(i); await settle(300); await collect(name+' tab '+i); await tabsHere(); } };
     if(process.env.LANG_COV_WHERE) await page.evaluate(()=>{ window.__langWhere=1; });
     await collect('home');
     const SCREENS=['campaign','glossary','tech','wall','world','account','arena','arenaShop','dungeon','forge','elite','skyfall','guild','temple','market','shadymarket','watchtower','rankings','wishing','online','heroesPanel','bag','settings','quest','signin','tutorial','skyisland','mail'];
-    for(const s of SCREENS) await visit(s,new Function('try{ show('+JSON.stringify(s)+'); }catch(e){ popoutScreen('+JSON.stringify(s)+'); }'));
+    for(const s of SCREENS) await visit(s,new Function('try{ show('+JSON.stringify(s)+'); }catch(e){ popoutScreen('+JSON.stringify(s)+'); }'),s);
     // every hub building (the town's hot spots), each opened from the hub - the player's level raised on this page so none is locked
     const hots=await page.evaluate(()=>{ G.playerXP=Number.MAX_SAFE_INTEGER; show('home'); try{ renderHome(); }catch(e){} return document.querySelectorAll('#townHots .hot .hit').length; });
     for(let i=0;i<hots;i++) await visit('building '+i,new Function('show("home"); const e=document.querySelectorAll("#townHots .hot .hit")['+i+']; if(e) e.click();'));
     // a hero's detail (every tab), the second hero too
-    for(const n of [0,1]) await visit('heroDetail '+n,new Function('detailHero=HERO_KEYS.filter(k=>G.unlocked[k])['+n+']; popoutScreen("heroDetail");'));
+    for(const n of [0,1]) await visit('heroDetail '+n,new Function('detailHero=HERO_KEYS.filter(k=>G.unlocked[k])['+n+']; popoutScreen("heroDetail");'),'heroDetail');
     // a campaign stage: its card, the squad screen, the battle HUD and the result
     await visit('stage card',()=>{ show('campaign'); openStageModal(1,'normal'); });
-    await page.evaluate(()=>{ const b=document.getElementById('smBattle'); if(b&&!b.disabled) b.click(); }); await settle(900); await collect('squad');
-    await page.evaluate(()=>{ const b=document.getElementById('startBtn'); if(b) b.click(); });
-    for(const s of [3,8,15]){ await settle(s*1000-(s===3?0:(s===8?3000:8000))); await collect('battle '+s+'s'); }
-    await page.evaluate(()=>{ try{ G.speed=3; }catch(e){} });
-    for(let i=0;i<60;i++){ const done=await page.evaluate(()=>{ const r=document.getElementById('result'); return !!(r&&r.classList.contains('active')); }); if(done) break; await settle(2000); }
-    await settle(1500); await collect('result');
+    await page.locator('#smBattle').click({timeout:15000});
+    await page.locator('#menu.active').waitFor({state:'visible',timeout:15000});
+    await page.evaluate(()=>{
+      const squad=squadFor('campaign');
+      if(!squad.length){
+        const hero=HERO_KEYS.find(k=>G.unlocked[k]);
+        if(!hero) throw new Error('Localization fixture has no unlocked hero for the campaign squad');
+        squad.push(hero);
+        renderRoster();
+      }
+    });
+    await collect('squad');
+    await page.locator('#startBtn').click({timeout:15000});
+    await page.waitForFunction(()=>state==='battle',null,{timeout:30000});
+    await collect('battle');
+    await page.locator('#pauseBtn').click({timeout:10000});
+    await page.locator('#pauseModal.active').waitFor({state:'visible',timeout:10000});
+    await collect('battle pause');
+    await page.locator('#resumeBtn').click({timeout:10000});
+    await page.evaluate(()=>{ G.speed=3; });
+    await page.locator('#result.active').waitFor({state:'visible',timeout:120000});
+    await collect('result');
     if(process.argv.includes('--keep')) await settle(1e9);
   } finally {
     const AL=(JSON.parse(fs.readFileSync(path.join(ROOT,'tools','lang','coverage_allow.json'),'utf8')).patterns||[]).map(p=>new RegExp(p.re));

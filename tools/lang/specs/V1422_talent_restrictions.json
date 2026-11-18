@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "talent.max_rank": "Already at max rank.",
+    "talent.no_points": "No talent points left.",
+    "talent.spend_one": "Spend {n} more point in this tree to open this tier.",
+    "talent.spend_more": "Spend {n} more points in this tree to open this tier.",
+    "talent.prerequisite": "Needs {name} at max rank.",
+    "talent.choice_locked": "Locked: {name} was chosen.",
+    "talent.unavailable": "This hero has no talents yet.",
+    "talent.unknown": "Unknown talent."
+  },
+  "edits": []
+}

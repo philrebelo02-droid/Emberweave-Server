@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "이미 최대 랭크입니다.",
+  "talent.no_points": "남은 특성 포인트가 없습니다.",
+  "talent.spend_one": "이 단계를 해금하려면 이 트리에 포인트를 {n}개 더 사용하세요.",
+  "talent.spend_more": "이 단계를 해금하려면 이 트리에 포인트를 {n}개 더 사용하세요.",
+  "talent.prerequisite": "{name} 특성이 최대 랭크여야 합니다.",
+  "talent.choice_locked": "잠김: {name} 특성을 선택했습니다.",
+  "talent.unavailable": "이 영웅에게는 아직 특성이 없습니다.",
+  "talent.unknown": "알 수 없는 특성입니다."
+}

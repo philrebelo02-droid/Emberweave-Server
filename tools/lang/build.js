@@ -51,7 +51,7 @@ if(problems.length) die(problems.length+' problem(s):\n  '+problems.slice(0,80).
 let page=''; let pos=0; for(const e of edits){ page+=base.slice(pos,e.at)+e.rep; pos=e.end; } page+=base.slice(pos);
 
 // ---- 3. every key the page uses exists ----
-const used=new Set([...page.matchAll(/(?<![\w$.])(?:t|ewT)\('([a-z][a-z0-9]*\.[a-z0-9_]+)'/g)].map(m=>m[1]).concat([...page.matchAll(/data-i18n(?:-ph|-title)?="([^"]+)"/g)].map(m=>m[1])));
+const used=new Set([...page.matchAll(/(?<![\w$.])(?:t|ewT)\('([a-z][a-z0-9]*\.[a-z0-9_]+)'/g)].map(m=>m[1]).concat([...page.matchAll(/data-i18n(?:-ph|-title)?="([^"]+)"/g)].map(m=>m[1]).filter(key=>!key.includes('${'))));
 const unknown=[...used].filter(k=>!(k in EN)&&!/^err\./.test(k)); if(unknown.length) die('the page uses keys English lacks: '+unknown.slice(0,40).join(', '));
 
 // ---- 4. language files ----

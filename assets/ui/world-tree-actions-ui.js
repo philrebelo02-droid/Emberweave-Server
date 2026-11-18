@@ -20,9 +20,9 @@
     return status+' · '+health+' '+_t('gloss.hp','HP');
   }
   function create(hooks){
-    let overlay=null,identity=null,siteId=null,selected=null,error='',operation=null,inflight=false,checking=false,generation=0;
+    let overlay=null,identity=null,siteId=null,selected=null,error=null,operation=null,inflight=false,checking=false,generation=0;
     const doc=hooks.document;
-    function reset(){generation++;identity=hooks.identity();overlay?.remove();overlay=null;siteId=null;selected=null;error='';operation=null;inflight=false;checking=false;}
+    function reset(){generation++;identity=hooks.identity();overlay?.remove();overlay=null;siteId=null;selected=null;error=null;operation=null;inflight=false;checking=false;}
     function current(){if(identity!==hooks.identity())reset();return !!identity;}
     function el(tag,text){const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;return n;}
     function button(text,fn,disabled=false){const n=el('button',text);n.className='btn';n.disabled=disabled;n.onclick=fn;return n;}
@@ -33,26 +33,26 @@
       if(operation&&(operation.kind!==kind||JSON.stringify(operation.payload)!==JSON.stringify(payload)))return;
       const key=identity,epoch=generation;checking=true;
       try{if(!operation){
-        const data=await fresh();if(!data?.active){error=_t('err.world_tree_control_unavailable','Unavailable');render();return;}
+        const data=await fresh();if(!data?.active){error=()=>_t('err.world_tree_control_unavailable','Unavailable');render();return;}
         if(kind==='start'){
           const busy=await hooks.busy();if(key!==hooks.identity()||epoch!==generation){reset();return;}
-          if(!data.guildId){error=_t('siege.join_to_attack','Guild required',{name:title(siteId)});render();return;}
+          if(!data.guildId){error=()=>_t('siege.join_to_attack','Guild required',{name:title(siteId)});render();return;}
           const owned=new Set(hooks.heroes().map(h=>h.key));
-          if(!payload.heroIds.length||payload.heroIds.length>5||payload.heroIds.some(k=>!owned.has(k)||busy.has(k)||hooks.control().heroes().has(k))){error=_t('world2.hero_unavailable','Hero unavailable');render();return;}
-        }else if(!data.marches.some(m=>m.id===payload.marchId&&m.canRetreat)){error=_t('world2.retreat_unavailable','Retreat unavailable');render();return;}
-      }}catch(_e){error=_t('err.world_tree_control_unavailable','Unavailable');render();return;}finally{if(epoch===generation)checking=false;}
+          if(!payload.heroIds.length||payload.heroIds.length>5||payload.heroIds.some(k=>!owned.has(k)||busy.has(k)||hooks.control().heroes().has(k))){error=()=>_t('world2.hero_unavailable','Hero unavailable');render();return;}
+        }else if(!data.marches.some(m=>m.id===payload.marchId&&m.canRetreat)){error=()=>_t('world2.retreat_unavailable','Retreat unavailable');render();return;}
+      }}catch(_e){error=()=>_t('err.world_tree_control_unavailable','Unavailable');render();return;}finally{if(epoch===generation)checking=false;}
       if(key!==hooks.identity()||epoch!==generation){reset();return;}
       if(!operation)operation={kind,payload:JSON.parse(JSON.stringify(payload)),requestId:hooks.requestId()};
-      const op=operation;inflight=true;error='';render();
+      const op=operation;inflight=true;error=null;render();
       // v1129: busy battle servers (a World Tree peak) answer retryAfterMs - the same requestId again, waits growing ~1, 2, 4, 8 s, jittered
       let result;for(let t=0;;t++){try{result=await hooks.post('/api/world-tree/march/'+kind,{...op.payload,requestId:op.requestId});}catch(_e){result={error:'offline'};}
         if(!(result?.busy&&result.retryAfterMs)||t>=5||epoch!==generation)break;
         await new Promise(z=>setTimeout(z,Math.min(10000,Math.max(+result.retryAfterMs||1000,1000*2**t))*(0.75+Math.random()*0.5)));}
       if(epoch!==generation||key!==hooks.identity()){reset();return;}
       inflight=false;
-      if(result?.ok){operation=null;selected=null;hooks.control().adopt(result.control);await fresh();error='';}
-      else if(!result||['offline','timeout'].includes(result.error)||result.busy){error=_t('world2.action_unconfirmed','The action could not be confirmed.');}
-      else{operation=null;error=hooks.message?.(result.error)||result.error||_t('err.world_tree_control_unavailable','Unavailable');}
+      if(result?.ok){operation=null;selected=null;hooks.control().adopt(result.control);await fresh();error=null;}
+      else if(!result||['offline','timeout'].includes(result.error)||result.busy){error=()=>_t('world2.action_unconfirmed','The action could not be confirmed.');}
+      else{operation=null;error=()=>hooks.message?.(result.error)||result.error||_t('err.world_tree_control_unavailable','Unavailable');}
       render();
     }
     function render(){
@@ -61,7 +61,7 @@
       if(data&&!data.active&&!operation){close();return;}
       const card=el('section');card.style.cssText='background:#141b2b;color:#eee;border:1px solid #33405e;border-radius:14px;padding:14px;width:92%;max-width:420px;max-height:84vh;overflow:auto';overlay.appendChild(card);
       const head=el('div');head.style.cssText='display:flex;justify-content:space-between;align-items:center';const dismiss=button('✕',close);dismiss.setAttribute('aria-label',_t('common.close','Close'));head.append(el('b',title(siteId)),dismiss);card.appendChild(head);
-      if(error)card.appendChild(el('div',error));
+      if(error)card.appendChild(el('div',error()));
       if(operation){card.appendChild(button(inflight?_t('common.in_progress','Pending'):_t('common.retry','Retry'),()=>submit(operation.kind,operation.payload),inflight));return;}
       if(!data?.active){card.appendChild(el('div',_t('err.world_tree_control_unavailable','Unavailable')));return;}
       const site=data.sites.find(s=>s.id===siteId);card.appendChild(el('div',site?.holderGuildId?(site.holderName||_t('nav.guild','Guild')):_t('world2.unclaimed','Unclaimed')));
@@ -73,7 +73,7 @@
       card.appendChild(button(_t('castle.attack','Launch'),async()=>{const d=await fresh();if(!d?.active||!current())return;await hooks.busy();if(!current())return;selected=new Set();render();},!data.guildId));
       for(const m of data.marches.filter(m=>m.siteId===siteId)){const row=el('div',marchLabel(m));row.style.cssText='margin-top:10px';if(m.canRetreat)row.appendChild(button(_t('march.retreat','Retreat'),()=>submit('retreat',{marchId:m.id})));card.appendChild(row);}
     }
-    async function open(id){if(!IDS.includes(id)||!current())return;const data=await fresh();if(!data?.active||!current())return;close();siteId=id;error='';overlay=el('div');overlay.className='worldTreeActions';overlay.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';overlay.onclick=e=>{if(e.target===overlay)close();};doc.body.appendChild(overlay);render();}
+    async function open(id){if(!IDS.includes(id)||!current())return;const data=await fresh();if(!data?.active||!current())return;close();siteId=id;error=null;overlay=el('div');overlay.className='worldTreeActions';overlay.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';overlay.onclick=e=>{if(e.target===overlay)close();};doc.body.appendChild(overlay);render();}
     return {open,reset,render,submit};
   }
   const api={create};if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveWorldTreeActionsUI=api;

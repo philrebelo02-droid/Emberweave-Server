@@ -56,7 +56,7 @@ ok(/if\(\/\^\\\/lang\\\/\[a-z\]\{2\}/.test(fs.readFileSync(path.join(ROOT,'serve
 ok(/url\.pathname\.startsWith\('\/lang\/'\)/.test(fs.readFileSync(path.join(ROOT,'sw.js'),'utf8')),'sw.js caches a versioned /lang/ file like art');
 
 // ---- 3. keys used by the page exist; converted strings are gone ----
-const used=new Set([...html.matchAll(/(?<![\w$.])t\('([a-z]+\.[a-z_]+)'/g)].map(m=>m[1]).concat([...html.matchAll(/data-i18n="([^"]+)"/g)].map(m=>m[1]))
+const used=new Set([...html.matchAll(/(?<![\w$.])t\('([a-z]+\.[a-z_]+)'/g)].map(m=>m[1]).concat([...html.matchAll(/data-i18n="([^"]+)"/g)].map(m=>m[1]).filter(key=>!key.includes('${')))
   .concat(['bld.campaign','nav.vault','bld.arena','nav.wall','menu.heroes','common.back','set.lang_auto']));
 for(const k of used) ok(k in EN,'the page uses '+k+' and English has it');
 ok(used.size>=90,'the page uses '+used.size+' keys');

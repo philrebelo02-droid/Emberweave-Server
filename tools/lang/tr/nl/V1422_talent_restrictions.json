@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Maximumrang al bereikt.",
+  "talent.no_points": "Geen talentpunten over.",
+  "talent.spend_one": "Besteed nog {n} punt in deze boom om dit niveau vrij te spelen.",
+  "talent.spend_more": "Besteed nog {n} punten in deze boom om dit niveau vrij te spelen.",
+  "talent.prerequisite": "Vereist {name} op de maximumrang.",
+  "talent.choice_locked": "Vergrendeld: {name} is gekozen.",
+  "talent.unavailable": "Deze held heeft nog geen talenten.",
+  "talent.unknown": "Onbekend talent."
+}

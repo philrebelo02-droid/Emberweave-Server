@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Grado massimo già raggiunto.",
+  "talent.no_points": "Non rimangono punti talento.",
+  "talent.spend_one": "Spendi ancora {n} punto in questo albero per sbloccare questa fascia.",
+  "talent.spend_more": "Spendi ancora {n} punti in questo albero per sbloccare questa fascia.",
+  "talent.prerequisite": "Richiede {name} al grado massimo.",
+  "talent.choice_locked": "Bloccato: hai scelto {name}.",
+  "talent.unavailable": "Questo eroe non ha ancora talenti.",
+  "talent.unknown": "Talento sconosciuto."
+}

@@ -9080,8 +9080,11 @@ async function api(req,res,url){
         delete led.talents[key]; led.rev++; ledTx(me,'talentreset:'+key,{points:had,gems:-cost}); writeDB();
         return {ok:true, key, build:{r:{}}, spent:0, points:TALENTS.pointsTotal(lv), refunded:had, cost, ledger:ledgerView(me)}; }
       const id=String(b.id||'').slice(0,40);
-      const r=TALENTS.learn(key,build,id,lv);
-      if(!r.ok){ if(cleared){ delete led.talents[key]; led.rev++; writeDB(); } return {ok:false,error:r.error,cleared:cleared||undefined}; }
+      let talentReason;
+      const r=TALENTS.learn(key,build,id,lv,(code,text,vars,relatedId)=>{
+        talentReason={code,vars,relatedId}; return text;
+      });
+      if(!r.ok){ if(cleared){ delete led.talents[key]; led.rev++; writeDB(); } return {ok:false,error:r.error,talentReason,cleared:cleared||undefined}; }
       led.talents[key]=r.build; led.rev++; ledTx(me,'talent:'+key+':'+id,{rank:TALENTS.rankOf(r.build,id)}); writeDB();
       return {ok:true, key, id, rank:TALENTS.rankOf(r.build,id), build:r.build, spent:TALENTS.spent(key,r.build).total, points:TALENTS.pointsTotal(lv), ledger:ledgerView(me)};
     });

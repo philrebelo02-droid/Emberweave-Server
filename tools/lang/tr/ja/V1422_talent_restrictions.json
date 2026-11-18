@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "すでに最大ランクです。",
+  "talent.no_points": "タレントポイントが残っていません。",
+  "talent.spend_one": "この段階を解放するには、このツリーであと{n}ポイント使ってください。",
+  "talent.spend_more": "この段階を解放するには、このツリーであと{n}ポイント使ってください。",
+  "talent.prerequisite": "「{name}」を最大ランクにする必要があります。",
+  "talent.choice_locked": "ロック中：「{name}」が選択されています。",
+  "talent.unavailable": "この英雄にはまだタレントがありません。",
+  "talent.unknown": "不明なタレントです。"
+}

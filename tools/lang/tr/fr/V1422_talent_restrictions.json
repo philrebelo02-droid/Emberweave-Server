@@ -1,0 +1,10 @@
+{
+  "talent.max_rank": "Rang maximal déjà atteint.",
+  "talent.no_points": "Il ne reste aucun point de talent.",
+  "talent.spend_one": "Dépensez encore {n} point dans cet arbre pour débloquer ce palier.",
+  "talent.spend_more": "Dépensez encore {n} points dans cet arbre pour débloquer ce palier.",
+  "talent.prerequisite": "Nécessite {name} au rang maximal.",
+  "talent.choice_locked": "Verrouillé : {name} a été choisi.",
+  "talent.unavailable": "Ce héros n’a pas encore de talents.",
+  "talent.unknown": "Talent inconnu."
+}
