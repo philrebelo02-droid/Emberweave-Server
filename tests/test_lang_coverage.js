@@ -199,6 +199,10 @@ const ROOT=path.join(__dirname,'..');
     for(let i=0;i<hots;i++) await visit('building '+i,new Function('show("home"); const e=document.querySelectorAll("#townHots .hot .hit")['+i+']; if(e) e.click();'));
     // a hero's detail (every tab), the second hero too
     for(const n of [0,1]) await visit('heroDetail '+n,new Function('detailHero=HERO_KEYS.filter(k=>G.unlocked[k])['+n+']; popoutScreen("heroDetail");'),'heroDetail');
+    // The Well is a separate overlay and survives show('campaign'). Close it using its Back button.
+    const wellBack=page.locator('#wlMap .wlBackB');
+    if(await wellBack.isVisible()) await wellBack.click({timeout:10000});
+    await page.locator('#wlMap').waitFor({state:'hidden',timeout:10000});
     // a campaign stage: its card, the squad screen, the battle HUD and the result
     await visit('stage card',()=>{ show('campaign'); openStageModal(1,'normal'); });
     await page.locator('#smBattle').click({timeout:15000});
@@ -231,7 +235,7 @@ const ROOT=path.join(__dirname,'..');
       fs.writeFileSync(path.join(ROOT,'tools','lang','coverage_leaks.json'),JSON.stringify(list,null,1));
       const errors=[...new Set(h.errors)];
       console.log('coverage: '+stops+' views, '+list.length+' untranslated visible lines, '+errors.length+' distinct page errors');
-      for(const l of list.slice(0,60)) console.log('  '+l.text+'   <- '+l.where.join(', '));
+      for(const l of list.slice(0,200)) console.log('  '+l.text+'   <- '+l.where.join(', '));
       for(const error of errors) console.error('  page error: '+error);
       if(list.length||errors.length) process.exitCode=1;
     }finally{

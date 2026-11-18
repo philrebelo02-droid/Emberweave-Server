@@ -473,6 +473,7 @@
   .hd-rarb{width:100%;max-width:190px;margin:-12px auto -16px;line-height:0;pointer-events:none}
   .hd-rarb img{width:100%;height:auto;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.55))}
   .hd-rarb.rb-mythical{margin-top:-6px}
+  .hd-rarb-label{display:grid;place-items:center;aspect-ratio:5/2;text-align:center;line-height:1.15;font-weight:800;color:#f4deab}
   .hd-mythbanner span{font-size:11px;font-weight:800;letter-spacing:2px;color:#ffcf40;padding:3px 0;}
   .hero-card.mythic{border:1px solid #ffcf40 !important;box-shadow:0 0 12px #ffcf4030;background:linear-gradient(160deg,#231b08,#161a26);}
   .hd-starrow{margin:4px 0 2px;}
@@ -29600,8 +29601,9 @@ function renderWorldMap(keepView){
   const myImg=playerCastleImg();
   const _myWall=(typeof LED!=='undefined'&&LED&&LED.st&&LED.st.wall)||null;
   const meIc = (myImg ? `<img class="castle-spr" src="${myImg}" alt="" draggable="false">` : `<div class="ic">🏰</div>`)+((_myWall&&(+_myWall.pct)<100)?CASTLE_FIRE_HTML:'');   /* v1392: your own damaged castle burns too */
-  meEl.innerHTML=`${meIc}<div class="wlab"><div class="nl">${wmNameLines(G.playerName||ewT('wmap.you'))} · ${ewT('wmap.you_tag')}</div><div class="nl" style="color:#ffd45e;font-size:9px">${ewT('wmap.lv',{n:playerLevel()})}</div></div>`;
-  worldMapTarget(meEl,(G.playerName||ewT('wmap.you'))+' · '+ewT('wmap.you_tag')+' · '+ewT('wmap.lv',{n:playerLevel()}));
+  const mapPlayerName=!G.nameChanged&&G.playerName==='Commander'?ewT('profile.commander'):(G.playerName||ewT('wmap.you'));
+  meEl.innerHTML=`${meIc}<div class="wlab"><div class="nl">${wmNameLines(mapPlayerName)} · ${ewT('wmap.you_tag')}</div><div class="nl" style="color:#ffd45e;font-size:9px">${ewT('wmap.lv',{n:playerLevel()})}</div></div>`;
+  worldMapTarget(meEl,mapPlayerName+' · '+ewT('wmap.you_tag')+' · '+ewT('wmap.lv',{n:playerLevel()}));
   meEl.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); show('home'); }; inner.appendChild(meEl);   // tap your own castle → back to your city
   // A transparent four-cell hit target retains the Tree menu without a floating sprite.
   const wt=document.createElement('div'); wt.className='wnode'; wt.id='worldTreeTarget';
@@ -32726,7 +32728,7 @@ function talentLangLoad(){
     }).catch(retry);
   }catch(e){ retry(); }
 }
-function talentTr(key,id,i,en){ const c=(typeof LANG!=='undefined'&&LANG.cur)||'en'; const d=(TAL_LANG.code===c)?TAL_LANG.d:null, e=d&&d[key]&&d[key][id]; return (e&&typeof e[i]==='string'&&e[i])?e[i]:en; }
+function talentTr(key,id,i,en){ const c=(typeof LANG!=='undefined'&&LANG.cur)||'en'; if(c==='qps'&&en) return '\u27e6'+en+'\u27e7'; const d=(TAL_LANG.code===c)?TAL_LANG.d:null, e=d&&d[key]&&d[key][id]; return (e&&typeof e[i]==='string'&&e[i])?e[i]:en; }
 function talentName(key,tl){ return talentTr(key,tl.id,0,tl.name); }
 function talentText(key,tl){ return talentTr(key,tl.id,1,tl.text); }
 /* The Talents tab's red dot (Phil 14 Nov: "Yes red dot on any tab with available upgrades"): the hero is wired, has an unspent point AND at least one
@@ -33000,7 +33002,8 @@ function renderHeroDetail(){ try{ setTimeout(()=>ftutCheck('heroDetail'),350); }
   /* 15 Nov 2026: width/height = the art's own 1000 x 400, so the banner's box (76 px at 190 wide) is there before the image arrives. Without them the
      hero column was 76 px shorter until the banner loaded and grew under the player's eyes (on every open, and on a redraw while not cached) - the
      intermittent "Stats after Talents = Stats before" failure of the landscape UI test (221 px measured before the banner, 297 px after). */
-  const rarBanner = RARITY_READY ? `<div class="hd-rarb rb-${_rar}"><img src="/assets/img/banners/${_rar}-word.webp?v=${RARITY_V}" width="1000" height="400" alt="${_rar[0].toUpperCase()+_rar.slice(1)}"></div>` : mythBanner;
+  const rarityLabel=escapeHTML(ewT('herolist.rarity_'+_rar));
+  const rarBanner = LANG.cur!=='en' ? `<div class="hd-rarb rb-${_rar}"><span class="hd-rarb-label">${rarityLabel}</span></div>` : RARITY_READY ? `<div class="hd-rarb rb-${_rar}"><img src="/assets/img/banners/${_rar}-word.webp?v=${RARITY_V}" width="1000" height="400" alt="${rarityLabel}"></div>` : mythBanner;
   // ---- LEFT: portrait, stars + star-up, equipment slots, level ----
   // (27 Aug, Phil: the equipment slot grid lives ONLY in the Equipment tab — not on the hero card)
   const st=stars;
