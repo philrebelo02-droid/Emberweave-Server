@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Akademieschriftrolle",
+  "gshop.d_academy_scroll": "Verkürzt die Akademieforschung um 1 Stunde",
+  "gshop.left_today": "Heute noch {n}",
+  "gshop.sold_out_today": "Heute gekauft · morgen wieder da",
+  "tech.speed_scroll": "Schriftrolle −1 Std. ({n})",
+  "tech.speed_hour": "−1 Std.",
+  "tech.finish_now": "Sofort fertig",
+  "tech.finish_q": "Diese Forschung jetzt abschließen?",
+  "tech.finish_cost": "{n} Diamanten für {h} Stunden.",
+  "err.academy_no_research_in_progress": "Es läuft keine Forschung.",
+  "err.academy_not_enough_scrolls": "Du hast nicht genug Akademieschriftrollen.",
+  "err.gshop_bought_today": "Heute schon gekauft. Morgen wieder verfügbar."
+}

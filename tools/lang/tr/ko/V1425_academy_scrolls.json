@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "아카데미 주문서",
+  "gshop.d_academy_scroll": "아카데미 연구 시간을 1시간 단축",
+  "gshop.left_today": "오늘 {n}개 남음",
+  "gshop.sold_out_today": "오늘 구매함 · 내일 재입고",
+  "tech.speed_scroll": "주문서 −1시간 ({n})",
+  "tech.speed_hour": "−1시간",
+  "tech.finish_now": "즉시 완료",
+  "tech.finish_q": "이 연구를 지금 완료할까요?",
+  "tech.finish_cost": "{h}시간에 다이아 {n}개.",
+  "err.academy_no_research_in_progress": "진행 중인 연구가 없습니다.",
+  "err.academy_not_enough_scrolls": "아카데미 주문서가 부족합니다.",
+  "err.gshop_bought_today": "오늘 이미 구매했습니다. 내일 재입고됩니다."
+}

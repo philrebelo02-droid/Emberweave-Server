@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Pergamino de Academia",
+  "gshop.d_academy_scroll": "Quita 1 hora a la investigación de la Academia",
+  "gshop.left_today": "Quedan {n} hoy",
+  "gshop.sold_out_today": "Comprado hoy · vuelve mañana",
+  "tech.speed_scroll": "Pergamino −1 h ({n})",
+  "tech.speed_hour": "−1 h",
+  "tech.finish_now": "Terminar ya",
+  "tech.finish_q": "¿Terminar esta investigación ahora?",
+  "tech.finish_cost": "{n} diamantes por {h} horas.",
+  "err.academy_no_research_in_progress": "No hay ninguna investigación en curso.",
+  "err.academy_not_enough_scrolls": "No tienes suficientes Pergaminos de Academia.",
+  "err.gshop_bought_today": "Ya lo compraste hoy. Vuelve mañana."
+}

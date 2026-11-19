@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Akademi Parşömeni",
+  "gshop.d_academy_scroll": "Akademi araştırmasından 1 saat düşer",
+  "gshop.left_today": "Bugün {n} kaldı",
+  "gshop.sold_out_today": "Bugün alındı · yarın yenilenir",
+  "tech.speed_scroll": "Parşömen −1 sa ({n})",
+  "tech.speed_hour": "−1 sa",
+  "tech.finish_now": "Hemen bitir",
+  "tech.finish_q": "Bu araştırma şimdi bitirilsin mi?",
+  "tech.finish_cost": "{h} saat için {n} elmas.",
+  "err.academy_no_research_in_progress": "Devam eden araştırma yok.",
+  "err.academy_not_enough_scrolls": "Yeterli Akademi Parşömenin yok.",
+  "err.gshop_bought_today": "Bunu bugün aldın. Yarın yenilenir."
+}

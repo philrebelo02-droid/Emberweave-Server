@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "คัมภีร์สถาบัน",
+  "gshop.d_academy_scroll": "ลดเวลาวิจัยของสถาบัน 1 ชั่วโมง",
+  "gshop.left_today": "วันนี้เหลือ {n}",
+  "gshop.sold_out_today": "ซื้อแล้ววันนี้ · พรุ่งนี้มีใหม่",
+  "tech.speed_scroll": "คัมภีร์ −1 ชม. ({n})",
+  "tech.speed_hour": "−1 ชม.",
+  "tech.finish_now": "เสร็จทันที",
+  "tech.finish_q": "ทำการวิจัยนี้ให้เสร็จเลยไหม?",
+  "tech.finish_cost": "{n} เพชรสำหรับ {h} ชั่วโมง",
+  "err.academy_no_research_in_progress": "ไม่มีการวิจัยที่กำลังดำเนินอยู่",
+  "err.academy_not_enough_scrolls": "คัมภีร์สถาบันไม่พอ",
+  "err.gshop_bought_today": "วันนี้ซื้อไปแล้ว พรุ่งนี้มีใหม่"
+}

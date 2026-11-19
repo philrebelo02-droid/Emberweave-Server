@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Parchemin d'Académie",
+  "gshop.d_academy_scroll": "Retire 1 heure à la recherche de l'Académie",
+  "gshop.left_today": "Il en reste {n} aujourd'hui",
+  "gshop.sold_out_today": "Acheté aujourd'hui · de retour demain",
+  "tech.speed_scroll": "Parchemin −1 h ({n})",
+  "tech.speed_hour": "−1 h",
+  "tech.finish_now": "Terminer",
+  "tech.finish_q": "Terminer cette recherche maintenant ?",
+  "tech.finish_cost": "{n} diamants pour {h} heures.",
+  "err.academy_no_research_in_progress": "Aucune recherche en cours.",
+  "err.academy_not_enough_scrolls": "Vous n'avez pas assez de Parchemins d'Académie.",
+  "err.gshop_bought_today": "Vous l'avez acheté aujourd'hui. De retour demain."
+}

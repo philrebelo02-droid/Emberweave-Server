@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "学院卷轴",
+  "gshop.d_academy_scroll": "学院研究时间减少1小时",
+  "gshop.left_today": "今日剩余 {n}",
+  "gshop.sold_out_today": "今日已购 · 明日补货",
+  "tech.speed_scroll": "卷轴 −1小时（{n}）",
+  "tech.speed_hour": "−1小时",
+  "tech.finish_now": "立即完成",
+  "tech.finish_q": "现在完成这项研究吗？",
+  "tech.finish_cost": "{h}小时需 {n} 钻石。",
+  "err.academy_no_research_in_progress": "没有正在进行的研究。",
+  "err.academy_not_enough_scrolls": "学院卷轴不足。",
+  "err.gshop_bought_today": "今天已购买，明日补货。"
+}

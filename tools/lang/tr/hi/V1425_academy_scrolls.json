@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "अकादमी स्क्रॉल",
+  "gshop.d_academy_scroll": "अकादमी शोध से 1 घंटा घटाता है",
+  "gshop.left_today": "आज {n} बचे",
+  "gshop.sold_out_today": "आज खरीदा · कल फिर मिलेगा",
+  "tech.speed_scroll": "स्क्रॉल −1 घं. ({n})",
+  "tech.speed_hour": "−1 घं.",
+  "tech.finish_now": "अभी पूरा करें",
+  "tech.finish_q": "यह शोध अभी पूरा करें?",
+  "tech.finish_cost": "{h} घंटे के लिए {n} हीरे।",
+  "err.academy_no_research_in_progress": "कोई शोध चल नहीं रहा।",
+  "err.academy_not_enough_scrolls": "पर्याप्त अकादमी स्क्रॉल नहीं हैं।",
+  "err.gshop_bought_today": "आज खरीद लिया। कल फिर मिलेगा।"
+}

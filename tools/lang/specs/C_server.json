@@ -1,5 +1,8 @@
 {
  "keys": {
+  "err.academy_no_research_in_progress": "No research is in progress.",
+  "err.academy_not_enough_scrolls": "You do not have enough Academy Scrolls.",
+  "err.gshop_bought_today": "You bought this today. It restocks tomorrow.",
   "err.save_failed_retry_the_same_request": "Save failed. Retry the same request.",
   "err.wrong_name_or_password": "Wrong name or password",
   "err.too_many_wrong_passwords_try_again": "Too many wrong passwords — try again in 15 minutes.",

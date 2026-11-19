@@ -2137,15 +2137,24 @@ const GSHOP_WEEK_LIMIT={1:7,2:3,3:7,4:5,5:5,6:5,7:7,8:2,9:1,10:3,11:2,14:1};
    weekly cap; new slots 12 Teleport Scroll (72 h), 13 Wild Teleport Scroll (24 h), 14 Attack Card (once a week). The cooldown counts from
    the player's own last purchase of that item. */
 const GSHOP_COOLDOWN_MS={0:24*3600000,12:72*3600000,13:24*3600000};
+/* v1425 (Phil 19 Nov 2026: "Add little scrolls that reduce 1 hour time off academy cooldowns they can be earned by buying 1 every day from guild
+   shop or in future events. Otherwise its 30 diamonds per hours reduced academy times if you dont have a scroll"): slot 15 Academy Scroll -
+   ONE per game day (resets with nyDayKey) and open in every guild, whatever its level. */
+const GSHOP_DAY_LIMIT={15:1}, GSHOP_OPEN_ALL={15:true};
+function gshopDay(led){ const k=nyDayKey(); if(!led.gshopDay||led.gshopDay.k!==k) led.gshopDay={k,n:{}}; return led.gshopDay; }
 function gshopCdLeft(led,idx,now){ const cd=GSHOP_COOLDOWN_MS[idx]; if(!cd) return 0; const t=(led.gshopCd&&+led.gshopCd[idx])||0; return Math.max(0,t+cd-(now||Date.now())); }
 function gshopCdMark(led,idx){ if(!GSHOP_COOLDOWN_MS[idx]) return; led.gshopCd=(led.gshopCd&&typeof led.gshopCd==='object')?led.gshopCd:{}; led.gshopCd[idx]=Date.now(); }
 function gshopCdView(led){ const o={}, now=Date.now(); for(const k in GSHOP_COOLDOWN_MS) o[k]=gshopCdLeft(led,+k,now); return o; }
 function gshopWeekKey(){ const d=new Date(nyDayKey()+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7)); return d.toISOString().slice(0,10); }
 function gshopWk(led){ const w=gshopWeekKey(); if(!led.gshopWk||led.gshopWk.wk!==w) led.gshopWk={wk:w,n:{}}; return led.gshopWk; }
-function gshopLeft(led,idx){ if(GSHOP_WEEK_LIMIT[idx]==null) return Infinity; return Math.max(0,(GSHOP_WEEK_LIMIT[idx]|0)-(gshopWk(led).n[idx]|0)); }
-function gshopCount(led,idx){ gshopCdMark(led,idx); if(GSHOP_WEEK_LIMIT[idx]==null) return; const W=gshopWk(led); W.n[idx]=(W.n[idx]|0)+1; }
-function gshopLeftView(led){ const o={}; for(const k in GSHOP_WEEK_LIMIT) o[k]=gshopLeft(led,+k); return o; }
-const GUILD_SHOP_SRV={12:{cost:1200,tele:1},13:{cost:600,wild:1},14:{cost:1000,attackCard:1},0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
+function gshopLeft(led,idx){ if(GSHOP_DAY_LIMIT[idx]!=null) return Math.max(0,(GSHOP_DAY_LIMIT[idx]|0)-(gshopDay(led).n[idx]|0));
+  if(GSHOP_WEEK_LIMIT[idx]==null) return Infinity; return Math.max(0,(GSHOP_WEEK_LIMIT[idx]|0)-(gshopWk(led).n[idx]|0)); }
+function gshopCount(led,idx){ gshopCdMark(led,idx); if(GSHOP_DAY_LIMIT[idx]!=null){ const D=gshopDay(led); D.n[idx]=(D.n[idx]|0)+1; return; } if(GSHOP_WEEK_LIMIT[idx]==null) return; const W=gshopWk(led); W.n[idx]=(W.n[idx]|0)+1; }
+function gshopLeftView(led){ const o={}; for(const k in GSHOP_WEEK_LIMIT) o[k]=gshopLeft(led,+k); for(const k in GSHOP_DAY_LIMIT) o[k]=gshopLeft(led,+k); return o; }
+/* v1425: Academy Scrolls and the diamond speed-up - each takes ONE HOUR off the research in progress */
+const ACAD_SPEED_HOUR_MS=3600000, ACAD_SPEED_GEMS_PER_HOUR=30;
+function acadGrantScrolls(u,n){ const A=ensureAcad(u); A.scrolls=Math.max(0,(A.scrolls|0)+Math.max(0,n|0)); return A.scrolls; }   // event rewards call this
+const GUILD_SHOP_SRV={15:{cost:300,acadScroll:1},12:{cost:1200,tele:1},13:{cost:600,wild:1},14:{cost:1000,attackCard:1},0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
@@ -8817,7 +8826,8 @@ async function api(req,res,url){
         if(!it) return {ok:false,error:'Unknown item.'};
         const gg=me.guildId&&(DB.guilds||{})[me.guildId];
         if(!gg||!(gg.members||[]).includes(me.id)) return {ok:false,error:'Join a guild to use the Guild Shop.'};
-        if(idx>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'};
+        if(!GSHOP_OPEN_ALL[idx]&&idx>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'};
+        if(GSHOP_DAY_LIMIT[idx]!=null&&gshopLeft(led,idx)<=0) return {ok:false,error:'You bought this today. It restocks tomorrow.'};
         if(gshopLeft(led,idx)<=0) return {ok:false,error:'Sold out for this week. It restocks on Monday.'};
         if(gshopCdLeft(led,idx)>0) return {ok:false,error:'You bought this recently. It is on cooldown.'};
         if((led.guildCoins|0)<it.cost) return {ok:false,error:'Not enough guild coins.'};
@@ -8826,6 +8836,7 @@ async function api(req,res,url){
           led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
         else if(it.res){ const A=ensureAcad(me); led.guildCoins=(led.guildCoins|0)-it.cost; got.res={};
           for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
+        else if(it.acadScroll){ led.guildCoins=(led.guildCoins|0)-it.cost; got.acadScrolls=it.acadScroll; got.acadScrollsHeld=acadGrantScrolls(me,it.acadScroll); }   /* v1425 */
         else if(it.tele||it.wild){ const tr=worldTravelState(me); led.guildCoins=(led.guildCoins|0)-it.cost;   /* v1391: teleport scrolls (Phil 16 Nov) */
           if(it.tele){ tr.teleScrolls=(tr.teleScrolls|0)+it.tele; got.teleScrolls=it.tele; } else { tr.wildScrolls=(tr.wildScrolls|0)+it.wild; got.wildScrolls=it.wild; } }
         else if(it.attackCard){ led.guildCoins=(led.guildCoins|0)-it.cost; led.cards=(led.cards&&typeof led.cards==='object')?led.cards:{};   /* v1391: Phil 16 Nov "you can buy an attack card once a week" */
@@ -10128,13 +10139,13 @@ async function api(req,res,url){
      through the shared combat core, and the verified result is what both mailboxes receive. */
   if(p==='/api/world/mine' && process.env.ALLOW_LEGACY_MINE_GRANTS!=='1')   /* v1002 note: the switch stays - tests/mine-no-daily-cap.test.js uses it to keep the legacy clamp/replay/restart coverage; it is off in production */
     return send(res,410,{ok:false,error:'Old mine claims are retired. Send a verified mine march.'});
-  if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
+  if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/speed' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
     let led=p==='/api/pvp/attack'?null:ensureLedger(me); let A=p==='/api/pvp/attack'?null:ensureAcad(me);
     if(p==='/api/academy'){   // a read that pays income commits it durably before answering (3 Oct release review)
       if(rateLimited(req,'acadread',60,60000)) return send(res,429,{error:'Slow down.'});   /* v991 (Temple+Academy audit #6): each read can be a full save */
       const r=durableReadCommit(me,'academy-read',d=>{ const DA=ensureAcad(d); acadCollect(DA);
-        return { lv:DA.lv, learn:DA.learn, res:DA.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(DA.lv.academy|0) }; });
+        return { lv:DA.lv, learn:DA.learn, res:DA.res, scrolls:DA.scrolls|0, speedGemsPerHour:ACAD_SPEED_GEMS_PER_HOUR, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(DA.lv.academy|0) }; });
       return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error}); }
     if(req.method!=='POST') return send(res,404,{error:'academy'});   /* v991 (audit #14): checked BEFORE the income pass, which changed the account on a 404 */
     if(A&&p!=='/api/academy/collect')acadCollect(A);   // finished research and hourly income apply on every touch (the POST routes save through idem); v1356: collect applies it inside its own durable commit
@@ -10153,6 +10164,20 @@ async function api(req,res,url){
         A.learn[track]=Date.now()+learnDurSrv(lvl,A.lv.academy|0);
         ledTx(me,'academy:'+track,{gold:-goldCost});
         writeDB(); return {ok:true, track, completesAt:A.learn[track], lv:A.lv, res:A.res, ledger:{gold:led.gold}};
+      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
+    /* v1425 (Phil 19 Nov): speed up the research in progress - {use:'scroll'|'gems', hours:n}. Each hour = one Academy Scroll, or 30 diamonds
+       without one. Never more hours than the research has left (rounded up), so the last part-hour costs a whole one and nothing is wasted beyond it. */
+    if(p==='/api/academy/speed'){ const out=idem(me.id+':acadspd:'+reqId,()=>{
+        const now=Date.now(); let track=null; for(const k in A.learn){ if((+A.learn[k]||0)>now){ track=k; break; } }
+        if(!track) return {ok:false,error:'No research is in progress.'};
+        const use=b.use==='gems'?'gems':'scroll', need=Math.ceil((A.learn[track]-now)/ACAD_SPEED_HOUR_MS);
+        const hours=Math.max(1,Math.min(need,Math.floor(+b.hours||1)));
+        let gems=0;
+        if(use==='scroll'){ if((A.scrolls|0)<hours) return {ok:false,error:'You do not have enough Academy Scrolls.'}; A.scrolls=(A.scrolls|0)-hours; }
+        else { gems=hours*ACAD_SPEED_GEMS_PER_HOUR; if((led.gems|0)<gems) return {ok:false,error:'Not enough diamonds.'}; led.gems-=gems; ledTx(me,'academy:speed:'+track,{gems:-gems}); }
+        A.learn[track]-=hours*ACAD_SPEED_HOUR_MS;
+        acadCollect(A);   // finished now? the level lands in this same commit
+        writeDB(); return {ok:true, track, hours, use, gems, done:!(A.learn[track]>Date.now()), learn:A.learn, lv:A.lv, res:A.res, scrolls:A.scrolls|0, ledger:{gems:led.gems,gold:led.gold}};
       }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     if(p==='/api/academy/collect'){   /* v991 (audit #13): saved before it answers, like the GET */
       const r=durableReadCommit(me,'academy-read',d=>{ const DA=ensureAcad(d); const changed=acadCollect(DA,true); return { ok:true, changed, lv:DA.lv, learn:DA.learn }; });

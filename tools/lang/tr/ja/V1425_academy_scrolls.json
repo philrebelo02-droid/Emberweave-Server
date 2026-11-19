@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "アカデミーの巻物",
+  "gshop.d_academy_scroll": "アカデミーの研究時間を1時間短縮",
+  "gshop.left_today": "本日の残り：{n}",
+  "gshop.sold_out_today": "本日購入済み・明日再入荷",
+  "tech.speed_scroll": "巻物 −1時間（{n}）",
+  "tech.speed_hour": "−1時間",
+  "tech.finish_now": "今すぐ完了",
+  "tech.finish_q": "この研究を今すぐ完了しますか？",
+  "tech.finish_cost": "{h}時間分でダイヤ{n}個。",
+  "err.academy_no_research_in_progress": "進行中の研究はありません。",
+  "err.academy_not_enough_scrolls": "アカデミーの巻物が足りません。",
+  "err.gshop_bought_today": "本日は購入済みです。明日再入荷します。"
+}

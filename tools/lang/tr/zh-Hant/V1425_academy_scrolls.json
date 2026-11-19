@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "學院卷軸",
+  "gshop.d_academy_scroll": "學院研究時間減少1小時",
+  "gshop.left_today": "今日剩餘 {n}",
+  "gshop.sold_out_today": "今日已購 · 明日補貨",
+  "tech.speed_scroll": "卷軸 −1小時（{n}）",
+  "tech.speed_hour": "−1小時",
+  "tech.finish_now": "立即完成",
+  "tech.finish_q": "現在完成這項研究嗎？",
+  "tech.finish_cost": "{h}小時需 {n} 鑽石。",
+  "err.academy_no_research_in_progress": "沒有正在進行的研究。",
+  "err.academy_not_enough_scrolls": "學院卷軸不足。",
+  "err.gshop_bought_today": "今天已購買，明日補貨。"
+}

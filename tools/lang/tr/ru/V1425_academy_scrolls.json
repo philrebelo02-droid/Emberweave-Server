@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Свиток Академии",
+  "gshop.d_academy_scroll": "Сокращает исследование в Академии на 1 час",
+  "gshop.left_today": "Сегодня осталось: {n}",
+  "gshop.sold_out_today": "Куплено сегодня · завтра снова",
+  "tech.speed_scroll": "Свиток −1 ч ({n})",
+  "tech.speed_hour": "−1 ч",
+  "tech.finish_now": "Завершить",
+  "tech.finish_q": "Завершить это исследование сейчас?",
+  "tech.finish_cost": "{n} алмазов за {h} ч.",
+  "err.academy_no_research_in_progress": "Нет текущего исследования.",
+  "err.academy_not_enough_scrolls": "Недостаточно Свитков Академии.",
+  "err.gshop_bought_today": "Вы уже купили это сегодня. Завтра снова в продаже."
+}

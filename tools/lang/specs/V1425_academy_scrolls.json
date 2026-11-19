@@ -1,0 +1,14 @@
+{
+  "keys": {
+    "gshop.academy_scroll": "Academy Scroll",
+    "gshop.d_academy_scroll": "Takes 1 hour off Academy research",
+    "gshop.left_today": "{n} left today",
+    "gshop.sold_out_today": "Bought today · restocks tomorrow",
+    "tech.speed_scroll": "Scroll −1h ({n})",
+    "tech.speed_hour": "−1h",
+    "tech.finish_now": "Finish now",
+    "tech.finish_q": "Finish this research now?",
+    "tech.finish_cost": "{n} diamonds for {h} hours."
+  },
+  "edits": []
+}

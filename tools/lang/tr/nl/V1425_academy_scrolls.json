@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Academierol",
+  "gshop.d_academy_scroll": "Haalt 1 uur van het Academie-onderzoek",
+  "gshop.left_today": "Vandaag nog {n}",
+  "gshop.sold_out_today": "Vandaag gekocht · morgen weer",
+  "tech.speed_scroll": "Rol −1 u ({n})",
+  "tech.speed_hour": "−1 u",
+  "tech.finish_now": "Nu voltooien",
+  "tech.finish_q": "Dit onderzoek nu voltooien?",
+  "tech.finish_cost": "{n} diamanten voor {h} uur.",
+  "err.academy_no_research_in_progress": "Er loopt geen onderzoek.",
+  "err.academy_not_enough_scrolls": "Je hebt niet genoeg Academierollen.",
+  "err.gshop_bought_today": "Vandaag al gekocht. Morgen weer beschikbaar."
+}

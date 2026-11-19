@@ -1,0 +1,14 @@
+{
+  "gshop.academy_scroll": "Gulungan Akademi",
+  "gshop.d_academy_scroll": "Memotong 1 jam dari riset Akademi",
+  "gshop.left_today": "Sisa {n} hari ini",
+  "gshop.sold_out_today": "Dibeli hari ini · ada lagi besok",
+  "tech.speed_scroll": "Gulungan −1 jam ({n})",
+  "tech.speed_hour": "−1 jam",
+  "tech.finish_now": "Selesaikan",
+  "tech.finish_q": "Selesaikan riset ini sekarang?",
+  "tech.finish_cost": "{n} berlian untuk {h} jam.",
+  "err.academy_no_research_in_progress": "Tidak ada riset yang berjalan.",
+  "err.academy_not_enough_scrolls": "Gulungan Akademi tidak cukup.",
+  "err.gshop_bought_today": "Sudah dibeli hari ini. Ada lagi besok."
+}
