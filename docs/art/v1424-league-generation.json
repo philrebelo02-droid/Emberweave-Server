@@ -1,0 +1,217 @@
+[
+  {
+    "id": "champion",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-fcd82db0-6ed7-4621-8ebb-2c134921e49d.png",
+    "prompt": "Edit this Emberweave Heroes Arena rank icon. Keep the current flaming gold crown, overall silhouette and large centered numeral 1. Change the entire numeral 1 from red ruby to brilliant DIAMOND-WHITE gemstones: transparent icy white facets with bright prismatic rainbow glints, predominantly luminous white/silver, unmistakably different from a red ruby. Surround it with a thick polished gold mount, retain the small diamond accents, and keep the orange-red flame halo behind the gold crown. This is the richest highest rank. The main gem numeral must never be red, orange, ruby or amber. Bold legible 1 at 40 pixels. Preserve the hand-painted beveled fantasy UI material style. One complete standalone emblem, centered front-facing, genuinely transparent background with safe padding. No rectangle/background painting. The ONLY text is the single numeral 1. No other words, numbers, watermarks or scenery.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/champion.webp",
+    "asset_sha256": "89f6b68be54711826209bc9b4586d4e0675d96f053f60bdffd3d3b5ad8abba99",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\champion-source-v3.png",
+    "rank_range": "1",
+    "size": [
+      256,
+      256
+    ],
+    "history": [
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-f17f9d67-452d-4086-ad80-c476378395fa.png",
+        "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\champion-source.png",
+        "asset_sha256": "9f42f6153d3868913eb767821fe71593ee90ddcccca5b16f6d311ac60f1ca3bc",
+        "prompt": "Champion: original gold crown, ruby ember gem and flame halo; individual hand-painted fantasy UI emblem, transparent, no text."
+      },
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-1584b2f6-569a-4697-94e4-e38816946fe9.png",
+        "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\champion-source-v2.png",
+        "asset_sha256": "2a6ffbee1f585e4cdcc9182ff52fe72627c6c34ccde7f1c030d76c3c60e83f77",
+        "prompt": "Edit this existing Emberweave Heroes Arena league icon. Highest rank and the richest, flashiest emblem in the entire set. Keep the flaming crown silhouette. Replace the central ruby detail with a very large highly legible numeral 1 made from closely set brilliant ruby gemstones in thick lustrous gold bezels. Add restrained small diamond accents around that central gold mount. The jeweled 1 occupies the exact visual center, large enough to read at a 40-pixel UI size; flames and crown points remain visible around it. Lavish luminous gold, ruby fire halo, strongest prestige. Preserve the original hand-painted fantasy metal style, centered front-facing composition and genuinely transparent background. Produce one complete standalone emblem with safe transparent padding, no square backdrop. The ONLY text is the single numeral 1. Make the numeral's outline bold and readable, with large gem facets rather than microscopic stones. This belongs to a set that gets progressively richer from plain dark iron at the bottom to this jeweled gold top tier. No words, other numbers, watermarks, characters or scenery."
+      }
+    ],
+    "revision": 3
+  },
+  {
+    "id": "warlord",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-3a4dcb5a-8870-4617-b508-f7357fad0f78.png",
+    "prompt": "Edit target: the ruby numeral2 crossed gold axes Arena emblem. Preserve the exact ruby-red jeweled numeral2 centered, the two crossed axes, the hand-painted fantasy UI style. Make this second-place crest heavier and more opulent than a gold lion shield with purple3: add a broad ornate gold shield backing behind the crossed axes and restrained side laurels, larger gilded axe heads, and tiny red ruby accents. Ruby2 stays very large, cleanly readable and fully enclosed inside the crest without overflowing. Compact cohesive silhouette, rich sculpted gold, front-facing symmetrical trophy, no crown or flame (those belong to first-place diamond1). No lettering, background, borderframe, sheet or watermarks. Actual transparent background with safe padding.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/warlord.webp",
+    "asset_sha256": "597e930e846be9e7362f45b82fcca8ebc7da555c7755255d2f298dba43fca247",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\warlord-source-v3.png",
+    "rank_range": "2",
+    "size": [
+      256,
+      256
+    ],
+    "history": [
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-16853717-be2c-4607-acb7-f0bc2264a7db.png",
+        "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\warlord-source.png",
+        "asset_sha256": "425092cc093f0bb7529db34ebdbccf256434bc76a2991342ed3aeaa5402b17e2",
+        "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Warlord, rank 2. Two broad crossed dark-gold battle axes framing one large ruby-red faceted gem. Short gold side wings, powerful angular military silhouette. Elaborate but less regal than a flaming crown. No crown or flame halo. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon."
+      },
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-cd6e4287-1859-470a-9613-b3b3db978b36.png",
+        "prompt": "Edit this existing Emberweave Heroes Arena league icon. Second-highest rank: very rich and flashy but visibly below the flaming Champion crown. Keep the crossed battle-axe silhouette. Replace the central ruby gemstone with a very large highly legible numeral 2 encrusted in deep red cut gemstones with a thick gold bezel. The jeweled 2 occupies the exact visual center, immediately readable at 40 pixels. Add a small number of bright gold decorative accents on the axes, no flame halo and no crown; fewer gems and effects than the Champion rank. Preserve the original hand-painted fantasy metal style, centered front-facing composition and genuinely transparent background. Produce one complete standalone emblem with safe transparent padding, no square backdrop. The ONLY text is the single numeral 2. Make the numeral's outline bold and readable, with large gem facets rather than microscopic stones. This belongs to a set that gets progressively richer from plain dark iron at the bottom to this jeweled gold top tier. No words, other numbers, watermarks, characters or scenery.",
+        "revision": 2
+      }
+    ],
+    "revision": 3
+  },
+  {
+    "id": "conqueror",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-089416d4-18ef-4d18-ab8f-d76984ed57af.png",
+    "prompt": "Edit this Emberweave Heroes Arena rank icon. Correct the fit of the central numeral 3. Keep the gold lion-shield identity and purple amethyst theme, but rebuild the center as a clean recessed shield medallion. Fit a bold amethyst-encrusted numeral 3 COMPLETELY INSIDE the shield's inner gold border, centered on the whole emblem with generous equal clearance around all sides. The numeral and its gold bezel must not overhang, cover the outer shield rim, protrude below the lion's chin, or collide with the forehead gem. Resize and reposition the 3 as needed; its height should be about 40 percent of the whole shield, still clearly readable at 40 pixels. Keep the lion eyes above and mane to the sides as framing relief, with the jewel numeral integrated into the center, not a giant sticker pasted over the lion. Clean balanced contours, modest rich gold/amethyst tier below the ruby-axe rank2 and flaming diamond-crown rank1. Preserve the hand-painted beveled fantasy UI material style. One complete standalone emblem, centered front-facing, genuinely transparent background with safe padding. No rectangle/background painting. The ONLY text is the single numeral 3. No other words, numbers, watermarks or scenery.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/conqueror.webp",
+    "asset_sha256": "5d602f7b60c31600315a76c18af84139c3420bd346432abf3912a9b74a28b659",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\conqueror-source-v3.png",
+    "rank_range": "3",
+    "size": [
+      256,
+      256
+    ],
+    "history": [
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-76960306-6bd6-4022-8edd-2e4792324302.png",
+        "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\conqueror-source.png",
+        "asset_sha256": "365ea85c125f61458586b708a2045718f90ae44eca301dd89f4a19e7b50bc2c5",
+        "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Conqueror, rank 3. One proud stylized lion head in antique gold with a large amethyst accent at its brow, resting on a compact dark bronze shield. A few broad geometric mane shapes, heroic and restrained. No crown or wings. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon."
+      },
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-6b18f899-15bf-4ce0-84cb-1cd5df9254e5.png",
+        "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\conqueror-source-v2.png",
+        "asset_sha256": "67cacd7de7707a55da20f082ddf3bc025d5376e720c638af0bbddc9e8a76a24b",
+        "prompt": "Edit this existing Emberweave Heroes Arena league icon. Third-highest rank: rich gold and amethyst, restrained compared with the ruby battle axes and flaming crown above it. Keep the lion shield silhouette and broad mane. Integrate a very large highly legible numeral 3 made of amethyst gemstones set in a thick antique-gold bezel, placed at the exact visual center over the lion's central face/medallion; keep enough surrounding lion mane and shield visible to recognize the original emblem. The jeweled 3 must be immediately readable at 40 pixels. No extra diamonds, wings, flames or crown; fewer ornaments and effects than ranks 1 and 2. Preserve the original hand-painted fantasy metal style, centered front-facing composition and genuinely transparent background. Produce one complete standalone emblem with safe transparent padding, no square backdrop. The ONLY text is the single numeral 3. Make the numeral's outline bold and readable, with large gem facets rather than microscopic stones. This belongs to a set that gets progressively richer from plain dark iron at the bottom to this jeweled gold top tier. No words, other numbers, watermarks, characters or scenery."
+      }
+    ],
+    "revision": 3
+  },
+  {
+    "id": "master",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-f324323f-23a3-4903-a9dd-8f7a792421c8.png",
+    "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Master, ranks 4–10. A large emerald-green four-point faceted star held in a small antique-gold ring with two short upward sword-point accents. Clean elite medal silhouette. No crown or ornate wings. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/master.webp",
+    "asset_sha256": "91dba50f933ef9db5e4b517557e376270499917f37276becd96c36bf6ca74096",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\master-source.png",
+    "rank_range": "4–10",
+    "size": [
+      256,
+      256
+    ]
+  },
+  {
+    "id": "diamond",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-5cb03391-3e7e-4679-8b7c-24f62b55c8f6.png",
+    "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Diamond, ranks 11–25. One large icy cyan faceted diamond gemstone mounted in a compact dark-gold metal bezel, with two short pale-silver geometric side prongs. Simple diamond silhouette. No crown, weapons or wings. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/diamond.webp",
+    "asset_sha256": "ec78b3e8b40d67a374c799287fffa7cba03f8ed177b30599c4e2c0058e85a930",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\diamond-source.png",
+    "rank_range": "11–25",
+    "size": [
+      256,
+      256
+    ]
+  },
+  {
+    "id": "platinum",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-8899c8d6-e361-467c-8c51-d64016cc5c9c.png",
+    "prompt": "Edit target: the platinum six-point star with cyan center. Upgrade this rank26–50 emblem so it looks distinctly richer and flashier than a simple gold sun medal at51–100. Preserve platinum six-point star identity and icy-blue gem. Make the central faceted icy-blue gemstone substantially larger, add a second layered polished platinum star backing with small elegant gold inlay details, crisp white brilliant beveled highlights and a restrained crystalline blue aura tight to the edges. A precious crafted jewelry crest with substantial layered depth. Keep simpler than the huge blue Diamond league gemstone above it. No numeral, crown, lettering, ribbons, weapons or scenery. Painted Emberweave fantasy UI art, broad readable40px silhouette, centered full icon, transparent background with safe padding.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/platinum.webp",
+    "asset_sha256": "7554ef95c414b7b7352af96bcbd52a1b43b0438e335fc702125a2fe9117dfcc1",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\platinum-source-v2.png",
+    "rank_range": "26–50",
+    "size": [
+      256,
+      256
+    ],
+    "history": [
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-181ba89f-b2db-4b73-9e93-e13bbdebff4e.png",
+        "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Platinum, ranks 26–50. A broad pale platinum-silver six-point star medal with an ice-blue central inset and dark steel backing. Cool lustrous pale metal, clean medium-complexity silhouette. No crown, weapons or wings. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon."
+      }
+    ],
+    "revision": 2
+  },
+  {
+    "id": "gold",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-6cf4ecf7-25d6-4084-97ab-49f727b78992.png",
+    "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Gold, ranks 51–100. A warm gold circular sun medal, eight broad short rays and a single rounded amber center. Compact clean silhouette, deliberately simpler than the gem leagues. No crown, weapons, wings or ribbon. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/gold.webp",
+    "asset_sha256": "436218035b2a2a0e0600fd93f6068692a9fb6c10af672bda4df1b4e785f86c4d",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\gold-source.png",
+    "rank_range": "51–100",
+    "size": [
+      256,
+      256
+    ]
+  },
+  {
+    "id": "silver",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-508d9dc7-045c-43cb-93af-6d5bb204067b.png",
+    "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Silver, ranks 101–500. A polished silver compact shield medal with a broad raised crescent and one tiny central blue-steel inset. Simple sturdy clean silhouette. No gold trim, crown, weapons, wings or ribbon. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/silver.webp",
+    "asset_sha256": "2a64ebbaee4e4fcbf1ab5361b0f81edb25a31b54c5054424957093cb8f463656",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\silver-source.png",
+    "rank_range": "101–500",
+    "size": [
+      256,
+      256
+    ]
+  },
+  {
+    "id": "iron",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-3f4aaaee-abc5-4555-8ae6-8fa3242de829.png",
+    "prompt": "Background extraction / precise object edit. Preserve this exact dark iron hexagonal chevron shield and its four rivets, all metal colors and painted bevels. Remove EVERY trace of the gray cloudy mist, smoke, glow, gray background, outer shadow and blue haze outside the hard hexagonal metal silhouette. Outside the actual shield edge must be 100% transparent alpha, absolutely no aura, particles or visible backdrop. Fully isolated clean cutout production inventory icon. Preserve the entire shield without cropping and leave transparent safe padding. No other change.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/iron.webp",
+    "asset_sha256": "6b9ad0cdc5beaf93eb368a308ecd0ba58047149e447f964f87758e0145c29cee",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\iron-source-v2.png",
+    "rank_range": "501–1000",
+    "size": [
+      256,
+      256
+    ],
+    "history": [
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-2b1780c6-7f3b-4726-8d77-799b16b3bd7f.png",
+        "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Iron, ranks 1001 and lower. A simple dark iron six-sided shield token with one raised vertical chevron engraved in weathered gunmetal. Few broad readable shapes, subdued matte gray with soft edge highlights, lowest-tier unadorned medal. No gems, gold, crown, weapons, wings, flames or ribbon. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon."
+      }
+    ],
+    "revision": 2
+  },
+  {
+    "id": "bronze",
+    "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-e42c43a5-d393-43de-ac4e-68ba3ded4b12.png",
+    "prompt": "Edit target: the bronze anvil medal. Make Bronze the LOWEST Arena league (rank1001+). Keep the round bronze token and clear anvil, but simplify to a small weathered matte copper-bronze disk, narrow plain rim, shallow dark anvil embossing, muted restrained edge highlights. Remove the chunky raised golden-looking rim blocks and bright orange polished glow. Still attractive painted Emberweave fantasy game art, not flat vector. No gems, numbers, text, gold, shine halo or extra decorations. Front-facing complete isolated icon, actual transparent background and safe padding. Broad shapes readable40px.",
+    "generator": "built-in image_gen",
+    "transparent_background_requested": true,
+    "asset": "assets/img/ui/arena-leagues/bronze.webp",
+    "asset_sha256": "9e1092581dd1e3238d46f3700e3c65c403b706390c50697c9c4ecfd24ef11f93",
+    "original_copy": "E:\\Emberweave Archive\\4 Projects\\Open Projects\\ART SAME IN EVERY LANGUAGE 19NOV2026\\generated-leagues\\bronze-source-v2.png",
+    "rank_range": "1001+",
+    "size": [
+      256,
+      256
+    ],
+    "history": [
+      {
+        "source": "C:\\Users\\Home\\.codex\\generated_images\\01a1dabf-9754-7773-b211-603f6c49344d\\exec-dd2be830-98ce-488e-b07d-4435e73abd69.png",
+        "prompt": "Use case: logo-brand. Create ONE original painted fantasy RPG Arena league emblem for Emberweave Heroes. Subject: Bronze, ranks 501–1000. A warm aged bronze round medal with a broad raised anvil silhouette and three large shallow bevels around its rim. Simple modest clean silhouette. No gems, gold, crown, weapons, wings or ribbon. Match a cohesive hand-painted dark fantasy game UI set: beveled metal, rich but restrained color, crisp warm highlights and deep clean shadows. Readable at 40 pixels: strong silhouette, a few large shapes, no tiny filigree. Front-facing, centered, complete isolated silhouette with transparent safe padding. Transparent background. No square backdrop, lettering, numbers, rank labels, watermark, characters, scenery or presentation sheet. Production individual game UI icon."
+      }
+    ],
+    "revision": 2
+  }
+]

@@ -1,0 +1,11 @@
+'use strict';
+// Local-only guest fixture. Never reads or edits a live game database.
+const fs=require('fs'),path=require('path'),cp=require('child_process'),{once}=require('events');
+const H=require('../lang/harness.js'),ROOT=path.join(__dirname,'..','..');
+const OUT=process.argv[2];fs.mkdirSync(OUT,{recursive:true});
+(async()=>{let state=await H.startServer();const guest=await(await fetch(state.base+'/api/guest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:'art1424-'+Date.now()})})).json();if(!guest.token)throw Error('Guest creation failed');await fetch(state.base+'/api/ledger',{headers:{'x-token':guest.token}});const exited=once(state.srv,'exit');state.srv.kill();await exited;
+const file=path.join(state.tmp,'db.json'),db=JSON.parse(fs.readFileSync(file,'utf8')),user=db.users[guest.profile.id];if(!user)throw Error('Missing isolated fixture user');user.led=user.led||{};user.led.px=99000000;user.led.gold=5000000;user.led.gems=50000;user.led.campaignCleared=100;user.led.tutDone=true;user.led.tutSkipped=true;fs.writeFileSync(file,JSON.stringify(db));
+const log=fs.openSync(path.join(state.tmp,'qa-server.log'),'a'),port=state.base.split(':').pop();const srv=cp.spawn(process.execPath,['server.js'],{cwd:ROOT,env:{...process.env,DATABASE_URL:'',DB_STORE:'',PORT:port,DB_FILE:file,RL_MUL:'1000',SIM_WORKERS:'0',ALLOW_NEW_GUESTS:'1'},stdio:['ignore',log,log],windowsHide:true});for(let i=0;i<600;i++){try{if((await fetch(state.base+'/api/health')).ok)break;}catch(_){}if(srv.exitCode!==null)throw Error('Fixture server exited');await H.delay(100);}
+const meta={base:state.base,tmp:state.tmp,serverPid:srv.pid,launcherPid:process.pid,account:{token:guest.token,id:guest.profile.id,name:guest.profile.name,guest:true}};fs.writeFileSync(path.join(OUT,'fixture.json'),JSON.stringify(meta,null,2));console.log(JSON.stringify({ready:true,base:meta.base,serverPid:srv.pid,tmp:meta.tmp}));
+let stopping=false;async function stop(){if(stopping)return;stopping=true;const end=once(srv,'exit');srv.kill();await end;process.exit(0);}process.stdin.setEncoding('utf8');process.stdin.on('data',text=>{if(text.trim()==='stop')stop().catch(e=>{console.error(e);process.exit(1);});});srv.on('exit',()=>{if(!stopping)process.exit(1);});
+})().catch(e=>{console.error(e);process.exit(1);});
