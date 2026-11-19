@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.9.7", "date": "19 November 2026", "title": "Clearer world map buttons", "items": ["The world map's top and bottom buttons now use the game's own frames and painted icons, and each one says what it does: Marches, Teleport, Shield, Grid, Find mines and the coordinate search.", "Big resource counts on the map are shortened; tap one to see the exact amount."]},
     {"ver": "1.9.6", "date": "19 November 2026", "title": "Academy Scrolls", "items": ["New in the Guild Shop: the Academy Scroll, one a day for 300 guild coins in every guild. Each scroll takes 1 hour off the Academy research in progress.", "No scroll? Take an hour off for 30 diamonds, or finish the research at once."]},
     {"ver": "1.9.5", "date": "19 November 2026", "title": "Consistent art and Arena leagues", "items": ["Building title artwork is now the same in every language. Hero rarity banners keep their artwork and translate the label.", "The Arena now has ten league symbols and translated names, covering rank 1 through rank 1001+."]},
     {"ver": "1.9.4", "date": "18 November 2026", "time": "17:00 EST", "title": "Translations", "items": ["More of the game is translated: hero skills, the Glossary, Morvayne's story, mail, the Temple and Auto-Pray, the Wishing Pool and World Map mines.", "Open windows now switch language straight away when you change it."]},

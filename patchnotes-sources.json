@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.9.7", "releases": "v1426", "items": [{"text": "Phil 19 Nov 2026: \"we can redesign the buttons up there so its more obvious what they are\" / \"It should match the games ui\" / \"And icon style\" / \"bottom right needs to match\" / \"put grid right of shield\" - ChatGPT 42b52cf28 + 39a4de93c", "notes": [0, 1]}]},
     {"ver": "1.9.6", "releases": "v1425", "items": [{"text": "Phil 19 Nov 2026 (Soul Eater asked for academy speed-ups): \"Add little scrolls that reduce 1 hour time off academy cooldowns they can be earned by buying 1 every day from guild shop or in future events. Otherwise its 30 diamonds per hours reduced academy times if you dont have a scroll\"", "notes": [0, 1]}]},
     {"ver": "1.9.5", "releases": "v1424", "items": [{"text": "Phil / ART SAME IN EVERY LANGUAGE 19NOV2026 corrected brief: identical English building logos, existing blank translated rarity banners, ten Arena league symbols and translated names. Draft for Claude review; not deployed."}]},
     {"ver": "1.9.4", "releases": "v1423", "items": [{"text": "ChatGPT codex/localization-v1423 @a0318c74b (25 commits, 10:00-12:16 18 Nov): skill templates, Glossary, Morvayne lore, mail, Temple/Auto-Pray, Wishing Pool, mines, live language refresh of open windows; v1421b fix re-applied (the branch had dropped it) (SHIPPED-v1423)"}]},
