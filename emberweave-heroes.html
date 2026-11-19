@@ -902,13 +902,12 @@
   .marchShip{width:100%;height:100%;background-repeat:no-repeat;background-position:0% center;background-size:1600% 100%;
     transform-origin:center;animation:marchFly 1.15s steps(16,jump-none) infinite;}
   @keyframes marchFly{from{background-position-x:0%}to{background-position-x:100%}}
-  /* single-file control bar fixed to the screen bottom-right (mirrors the chat bar at bottom-left) */
-  #mapCtl{max-width:calc(calc(var(--ew-game-width,100vw) * 1) - 20px);box-sizing:border-box;overflow-x:auto;position:fixed;right:10px;bottom:10px;z-index:8000;display:flex;flex-direction:row;align-items:center;gap:6px;
-    background:rgba(10,14,22,.85);padding:5px 9px;border-radius:12px;border:1px solid #2a3550;box-shadow:0 3px 12px rgba(0,0,0,.5);white-space:nowrap;}
-  #mapCtl .pill{white-space:nowrap;flex:0 0 auto;}
-  #mapCtl .coordRead{font-size:12px;font-weight:800;color:#9fc0d6;font-variant-numeric:tabular-nums;padding:0 4px;letter-spacing:.5px;white-space:nowrap;}
-  #mapCtl .btn{padding:5px 10px;min-width:44px;min-height:44px;flex:0 0 auto;}
-  #mapCtl{transition:transform .22s ease,opacity .22s ease;}
+  #mapCtl{position:fixed;z-index:8000;right:max(4px,env(safe-area-inset-right,0px));
+    bottom:max(0px,calc(env(safe-area-inset-bottom,0px) - 7px));
+    max-width:calc(var(--ew-game-width,100vw) - max(8px,env(safe-area-inset-right,0px)) - max(8px,env(safe-area-inset-left,0px)));
+    box-sizing:border-box;display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;
+    transition:transform .22s ease,opacity .22s ease;}
+  #mapCtl::-webkit-scrollbar{display:none;}
   /* v1227 (Phil 30 Oct 2026: "the map doesn't fit to the entire screen" / "make the ui more presentable so it doesnt take up so much
      space"): the world map is full-bleed - the screen escapes the 16:9 game frame and the map fills it edge to edge; the HUD floats over
      it, slim and translucent (top row ~26 px, bottom strip ~30 px), safe-area insets only for the controls */
@@ -919,43 +918,36 @@
     --wm-edge-left:max(4px,env(safe-area-inset-left,0px));--wm-edge-right:max(4px,env(safe-area-inset-right,0px));
     left:var(--wm-edge-left);right:var(--wm-edge-right);width:max-content;max-width:calc(100% - var(--wm-edge-left) - var(--wm-edge-right));
     margin:0 auto;display:flex;align-items:center;gap:4px;white-space:nowrap;pointer-events:none;}
-  .wmhud-top .btn.wmhud-button,.wmhud-zone{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;
+  #worldBody .btn.wmhud-button,.wmhud-chip{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;
     gap:3px;padding:0 7px;background:none;border:0;box-shadow:none;text-shadow:0 1px 2px #000;
     color:#ffe6a8;font:700 12px/1.2 Georgia,'Times New Roman',serif;}
-  .wmhud-top .btn.wmhud-button{flex:0 0 auto;min-width:40px;height:40px;min-height:40px;pointer-events:auto;}
-  .wmhud-button::before,.wmhud-zone::before{content:'';position:absolute;inset:7px 0;z-index:-1;pointer-events:none;
+  #worldBody .btn.wmhud-button{flex:0 0 auto;min-width:40px;height:40px;min-height:40px;pointer-events:auto;}
+  .wmhud-button::before,.wmhud-chip::before{content:'';position:absolute;inset:7px 0;z-index:-1;pointer-events:none;
     border:solid transparent 1px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 7px stretch;
     filter:drop-shadow(0 1px 2px #000b);}
-  .wmhud-top .btn.wmhud-button:hover{color:#fff2cd;box-shadow:none;}
-  .wmhud-top .btn.wmhud-button:focus-visible{outline:2px solid #fff0b9;outline-offset:-5px;}
+  #worldBody .btn.wmhud-button:hover{color:#fff2cd;box-shadow:none;}
+  #worldBody .btn.wmhud-button:focus-visible{outline:2px solid #fff0b9;outline-offset:-5px;}
   .wmhud-button[aria-pressed="true"]::before,.wmhud-button[data-active="true"]::before{
     box-shadow:inset 0 0 0 1px #6ca591,inset 0 -8px 10px #398b7740;border-radius:6px;}
-  .wmhud-top .btn.wmhud-button[data-active="true"]{color:#a5f5cf;}
-  .wmhud-button .stIc{width:17px;height:17px;object-fit:contain;margin:0;flex:none;}
+  #worldBody .btn.wmhud-button[data-active="true"]{color:#a5f5cf;}
+  .wmhud-button .stIc,.wmhud-chip .stIc{width:17px;height:17px;object-fit:contain;margin:0;flex:none;}
   .wmhud-count{color:#fff0c9;font-variant-numeric:tabular-nums;border-left:1px solid #b8913f80;padding-left:4px;}
-  .wmhud-zone{height:40px;min-width:0;color:#e6d9c2;}
+  .wmhud-chip{height:40px;color:#e6d9c2;}
+  .wmhud-zone{min-width:0;}
+  .wmhud-coords{flex:0 0 auto;font-variant-numeric:tabular-nums;}
+  .wmhud-resource b{font-variant-numeric:tabular-nums;}
   .wmhud-zone-copy{display:flex;flex-direction:column;align-items:center;min-width:0;max-width:100%;line-height:1.1;}
   .wmhud-zone-copy>*{max-width:100%;overflow:hidden;text-overflow:ellipsis;}
   .wmhud-zone-copy small{font-size:9px;color:#e4c593;}
-  /* v1358: no mute button (its World-map rule is gone with it) */
-  body:has(#world.active) #mapCtl{bottom:max(6px,env(safe-area-inset-bottom,0px));right:max(6px,env(safe-area-inset-right,0px));padding:2px 6px;gap:4px;border-radius:9px;
-    background:rgba(8,12,22,.55);border:1px solid rgba(201,162,78,.45);box-shadow:none;}
-  body:has(#world.active) #mapCtl .btn{min-width:30px;min-height:26px;height:26px;padding:0 7px;position:relative;font-size:13px;}
-  body:has(#world.active) #mapCtl .btn::after{content:'';position:absolute;left:0;right:0;top:-7px;bottom:-7px;}
-  body:has(#world.active) #mapCtl .pill{padding:1px 6px;font-size:11px;font-variant-numeric:tabular-nums;background:rgba(0,0,0,.35);}
-  body:has(#world.active) #mapCtl .coordRead{font-size:11px;}
-  body:has(#world.active) .wmctl-handle{right:max(14px,env(safe-area-inset-right,0px));width:34px;height:16px;bottom:max(6px,env(safe-area-inset-bottom,0px));}
-  body:has(#world.active) .wmctl-handle:not(.wmctl-up){bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + var(--wmctl-h,30px));}
-  body:has(#world.active) .wmctl-handle::before{width:7px;height:7px;}
   body:has(#world.active) #chatWidget{bottom:max(6px,env(safe-area-inset-bottom,0px));left:max(6px,env(safe-area-inset-left,0px));width:min(250px,calc(var(--ew-game-width,100vw) - var(--wmctl-w,480px) - 30px));}
   body:has(#world.active) #chatWidget .cw-head{min-height:26px;padding-top:0;padding-bottom:0;font-size:11px;}
   body:has(#world.active) #chatWidget .cwIc{width:26px;height:26px;left:-10px;}
-  #mapCtl.wmctl-hidden{transform:translateY(calc(100% + 14px));opacity:0;pointer-events:none;}
-  .wmctl-handle{position:fixed;right:18px;bottom:10px;z-index:8001;width:44px;height:26px;border-radius:10px 10px 0 0;cursor:pointer;
-    background:linear-gradient(#1a2440,#0c1224);border:1.5px solid #c9a24e;border-bottom:none;box-shadow:0 -2px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
-  .wmctl-handle::before{content:'';width:9px;height:9px;border-right:2.5px solid #e9c66c;border-bottom:2.5px solid #e9c66c;transform:translateY(-2px) rotate(45deg);}
-  .wmctl-handle.wmctl-up::before{transform:translateY(3px) rotate(-135deg);}
-  .wmctl-handle:not(.wmctl-up){bottom:calc(10px + var(--wmctl-h,54px));}
+  #mapCtl.wmctl-hidden{transform:translateY(calc(100% + max(8px,env(safe-area-inset-bottom,0px))));opacity:0;}
+  #worldBody .wmhud-button.wmctl-handle{position:fixed;right:max(4px,env(safe-area-inset-right,0px));
+    bottom:max(0px,calc(env(safe-area-inset-bottom,0px) - 7px));z-index:8001;touch-action:manipulation;}
+  #worldBody .wmctl-handle:not(.wmctl-up){bottom:calc(max(0px,calc(env(safe-area-inset-bottom,0px) - 7px)) + var(--wmctl-h,40px));}
+  .wmctl-handle .stIc{transform:rotate(-90deg);}
+  .wmctl-handle.wmctl-up .stIc{transform:rotate(90deg);}
   #wzone:active{cursor:grabbing;}
   #wzoneInner{position:relative;overflow:hidden;
          background:radial-gradient(circle at 20% 15%,#356048,#183025 55%),radial-gradient(circle at 75% 70%,#2a4a5a,#16261f 60%),linear-gradient(160deg,#1e3e2e,#122019);}
@@ -29641,21 +29633,21 @@ function renderWorldMap(keepView){
   const teleCount=_teleMode?null:teleportTotal()+'('+teleportsLeft()+')';
   const protectedNow=shieldActive();
   const shieldCount=protectedNow?fmtDur(shieldLeft()):(G.shieldItems||0);
-  const mapButton=(id,icon,label,{count=null,active=false,pressed=null,title=label}={})=>{
-    const display=escapeHTML(label);
+  const mapButton=(id,icon,label,{count=null,active=false,pressed=null,title=label,caption=label}={})=>{
+    const display=escapeHTML(caption);
     const status=count===null?'':' · '+count;
     return `<button type="button" class="btn sm secondary wmhud-button" id="${id}"
       title="${escapeHTML(title+status)}" aria-label="${escapeHTML(label+status)}"${active?' data-active="true"':''}${pressed===null?'':` aria-pressed="${pressed}"`}>
-      ${uiIcon(icon)}<span class="wmhud-label">${display}</span>${count===null?'':`<span class="wmhud-count">${escapeHTML(String(count))}</span>`}</button>`;
+      ${uiIcon(icon)}${caption?`<span class="wmhud-label">${display}</span>`:''}${count===null?'':`<span class="wmhud-count">${escapeHTML(String(count))}</span>`}</button>`;
   };
   head.innerHTML=mapButton('wmCity','home',ewT('wover.city'))
     +mapButton('wmBack','map-pin',ewT('nav.base'))
-    +`<span class="wmhud-zone" title="${escapeHTML(zoneLabel+(zoneNote?' · '+zoneNote:''))}"><span class="wmhud-zone-copy">
+    +`<span class="wmhud-chip wmhud-zone" title="${escapeHTML(zoneLabel+(zoneNote?' · '+zoneNote:''))}"><span class="wmhud-zone-copy">
       <span>${escapeHTML(zoneLabel)}</span>${zoneNote?`<small>${escapeHTML(zoneNote)}</small>`:''}</span></span>`
     +mapButton('wbInfo','rally-flag',ewT('march.marches'))
     +mapButton('wbTele',_teleMode?'close':'mode-portal-veteran',_teleMode?ewT('common.cancel'):ewT('wover.teleport'),{count:teleCount,active:_teleMode})
-    +mapButton('wbGrid','map',ewT('wover.grid'),{pressed:G.showGrid!==false})
-    +mapButton('wbShield','peace-shield',ewT('wover.shield'),{count:shieldCount,active:protectedNow,title:ewT('gshop.protection_shield')});
+    +mapButton('wbShield','peace-shield',ewT('wover.shield'),{count:shieldCount,active:protectedNow,title:ewT('gshop.protection_shield')})
+    +mapButton('wbGrid','map',ewT('wover.grid'),{pressed:G.showGrid!==false});
   body.appendChild(head);
   head.querySelector('#wmCity').onclick=()=>{ closeCityMenu(); show('home'); };        // return to your city (town)
   head.querySelector('#wmBack').onclick=()=>{ closeCityMenu(); centerOnCastle(); };   // snap the view back to your castle
@@ -29732,23 +29724,43 @@ function renderWorldMap(keepView){
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.ewGameX; _wsy=e.ewGameY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   { if(_keep) worldZoom=_keep.z; const bounds=worldZoomBounds(zone); worldZoom=Math.max(bounds.min,Math.min(bounds.max,worldZoom)); applyWorldZoom(); }
-  // ---- bottom-right control cluster: resources · coordinate readout · search · zoom ----
+  // Bottom-right map controls use the same painted plates as the top bar.
   const ctl=document.createElement('div'); ctl.id='mapCtl';
-  ctl.innerHTML=RES.map(([k,ic])=>`<span class="pill">${resIconHtml(k,15)} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')
-    +`<span id="coordRead" class="coordRead">X0 Y0</span>`
-    +`<button class="btn sm secondary" id="mapSearch" aria-label="${escapeHTML(ewT('wmap.go_to_coord'))}" title="${ewT('wmap.go_to_coord')}">${uiIcon('search')}</button>`
-    +`<button class="btn sm secondary" id="mapMineFind" aria-label="${escapeHTML(ewT('mine.search'))}" title="${ewT('mine.search')}">${uiIcon('mode-mine')}</button>`
-    +`<button class="btn sm secondary" id="wzOut" aria-label="${escapeHTML(langDesc('Zoom out'))}">－</button><button class="btn sm secondary" id="wzIn" aria-label="${escapeHTML(langDesc('Zoom in'))}">＋</button>`;
+  const locale=LANG.cur==='qps'?'en':LANG.cur;
+  const compactRes=new Intl.NumberFormat(locale,{notation:'compact',maximumFractionDigits:1});
+  ctl.innerHTML=RES.map(([k])=>{
+    const quantity=Number(G.res[k])||0;
+    const exact=escapeHTML(mnResName(k)+': '+quantity.toLocaleString(locale));
+    return `<button type="button" class="btn sm secondary wmhud-button wmhud-resource" title="${exact}" aria-label="${exact}">
+      ${resIconHtml(k,17)}<b id="wm_${k}">${quantity>=10000?compactRes.format(quantity):quantity.toLocaleString(locale)}</b></button>`;
+  }).join('')
+    +`<span class="wmhud-chip wmhud-coords">${uiIcon('map-pin')}<span id="coordRead"></span></span>`
+    +mapButton('mapSearch','search',ewT('wmap.go_to_coord'),{caption:'X/Y'})
+    +mapButton('mapMineFind','mode-mine',ewT('mine.search'))
+    +mapButton('wzOut','minus',langDesc('Zoom out'),{caption:''})
+    +mapButton('wzIn','plus',langDesc('Zoom in'),{caption:''});
   mapWrap.appendChild(ctl);
-  { /* v1227 (Phil 30 Oct 2026): the bar slides down out of view and back; the handle stays. Remembered per viewer (localStorage). */
+  { /* Keep the disclosure reachable when the remembered bar is collapsed. */
     let hid=false; try{ hid=localStorage.getItem('ew.wmCtlHidden')==='1'; }catch(e){}
-    const hd=document.createElement('button'); hd.className='wmctl-handle'; hd.id='wmCtlHandle'; hd.type='button';
-    const set=(h)=>{ hid=h; ctl.classList.toggle('wmctl-hidden',h);
-      document.documentElement.style.setProperty('--wmctl-w',h?'40px':(ctl.offsetWidth+10)+'px');   // the chat bar never runs under the strip
-      if(typeof worldZoomTo==='function') worldZoomTo(worldZoom); hd.classList.toggle('wmctl-up',h); hd.setAttribute('aria-label',h?ewT('wmap.show_ctl'):ewT('wmap.hide_ctl'));
-      hd.style.setProperty('--wmctl-h',(ctl.offsetHeight||54)+'px'); try{ localStorage.setItem('ew.wmCtlHidden',h?'1':'0'); }catch(e){} };
+    const hd=document.createElement('button');
+    hd.className='btn sm secondary wmhud-button wmctl-handle'; hd.id='wmCtlHandle'; hd.type='button';
+    hd.innerHTML=uiIcon('back');
+    hd.setAttribute('aria-controls',ctl.id);
+    const set=(h)=>{
+      hid=h; ctl.classList.toggle('wmctl-hidden',h); ctl.inert=h;
+      document.documentElement.style.setProperty('--wmctl-w',h?'50px':(ctl.offsetWidth+10)+'px');
+      hd.classList.toggle('wmctl-up',h);
+      hd.setAttribute('aria-expanded',String(!h));
+      hd.title=h?ewT('wmap.show_ctl'):ewT('wmap.hide_ctl');
+      hd.setAttribute('aria-label',hd.title);
+      hd.style.setProperty('--wmctl-h',(ctl.offsetHeight||40)+'px');
+      worldZoomTo(worldZoom);
+      try{ localStorage.setItem('ew.wmCtlHidden',h?'1':'0'); }catch(e){}
+    };
     hd.onclick=(e)=>{ e.stopPropagation(); set(!hid); };
-    mapWrap.appendChild(hd); requestAnimationFrame(()=>set(hid)); }
+    mapWrap.appendChild(hd);
+    set(hid);
+  }
   ctl.querySelector('#wzIn').onclick=()=>{ worldZoomTo(worldZoom+0.15); closeCityMenu(); };
   ctl.querySelector('#wzOut').onclick=()=>{ worldZoomTo(worldZoom-0.15); closeCityMenu(); };
   ctl.querySelector('#mapSearch').onclick=openCoordSearch;
@@ -29868,7 +29880,7 @@ function viewCenterCoord(){ const zone=document.getElementById('wzone'); if(!zon
   const fx=(wzLeft(zone)+zone.clientWidth/2/worldZoom)/WORLD_W, fy=(wzTop(zone)+zone.clientHeight/2/worldZoom)/WORLD_H;
   return coordOf(fx*100, fy*100); }
 // the bottom bar shows the PLAYER'S OWN coordinates (you can't click your own castle to read them)
-function updateCoordReadout(){ const el=document.getElementById('coordRead'); if(!el)return; const p=castleCoord(myCastlePos().x,myCastlePos().y); el.textContent='🏰 X'+p.cx+' Y'+p.cy; }
+function updateCoordReadout(){ const el=document.getElementById('coordRead'); if(!el)return; const p=castleCoord(myCastlePos().x,myCastlePos().y); el.textContent='X'+p.cx+' Y'+p.cy; }
 // distance shown to the player, in grid squares; the march TIME uses 220-grid squares (GEO.marchSquares, as the server) so it never changed
 function gridDist(tx,ty){ const c=myCastlePos(); return Math.max(1, Math.round(Math.hypot(tx-c.x,ty-c.y)/GRID_CELL)); }
 function marchOutMs(ctype,tx,ty){ const per=(ctype==='defend')?MARCH_MS_PER_SQUARE/2:(ctype==='siege')?MARCH_MS_PER_SQUARE/((window.EmberweaveWorldSiege&&window.EmberweaveWorldSiege.ATTACK_SPEED)||2):MARCH_MS_PER_SQUARE;   /* v1248: a siege (city, oasis, World Tree) marches at 2x speed */
@@ -30936,9 +30948,9 @@ function resIconHtml(k,px){ px=px||16; const img=MINE_ICONS[k]||MINE_IMGS[k];
   return img ? `<img src="${img}" data-resk="${k}" alt="" style="width:${px}px;height:${px}px;object-fit:contain;vertical-align:middle;display:inline-block">` : mnResIcon(k); }
 /* v1391 (Soul Eater 15 Nov: "When you tap these icons, it would be good if it gave the name of the type of mineral it is"): a tap on a
    resource counter pill (the city wallet, the map's bottom bar) names the mineral. One delegated listener; those pills had no tap action. */
-document.addEventListener('click',e=>{ try{ const pill=e.target&&e.target.closest&&e.target.closest('.pill'); if(!pill) return;
+document.addEventListener('click',e=>{ try{ const pill=e.target&&e.target.closest&&e.target.closest('.pill,.wmhud-resource'); if(!pill) return;
   const ims=pill.querySelectorAll('[data-resk]'); if(ims.length!==1) return;
-  const k=ims[0].getAttribute('data-resk'); bannerMsg(mnResName(k)+': '+(((G.res||{})[k]|0).toLocaleString())); }catch(_){} });
+  const k=ims[0].getAttribute('data-resk'); bannerMsg(mnResName(k)+': '+(Number((G.res||{})[k])||0).toLocaleString(LANG.cur==='qps'?'en':LANG.cur)); }catch(_){} });
 function mineClaimedSet(){ if(G.mineEpoch!==mineEpoch()){ G.mineEpoch=mineEpoch(); G.mineClaimed=[]; } if(!Array.isArray(G.mineClaimed))G.mineClaimed=[]; return G.mineClaimed; }
 function mineIsActive(id){ const now=Date.now(); return activeMarches().some(m=>m.ctype==='mine'&&m.mineId===id&&now<m.home); }
 function mineAvailable(m){ return !mineIsActive(m.id) && !(Number.isFinite(m.left)&&m.left<=0); }   /* v1249: a mine stays while its stock lasts (no once-a-cycle claim); hidden only while your own squad is on it or when it is empty */

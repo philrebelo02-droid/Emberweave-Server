@@ -51,7 +51,7 @@ async function checkRow(page, dictionary, active, tag) {
   const { teleport, shielded } = active;
   const keys = {
     wmCity: 'wover.city', wmBack: 'nav.base', wbInfo: 'march.marches',
-    wbTele: teleport ? 'common.cancel' : 'wover.teleport', wbGrid: 'wover.grid', wbShield: 'wover.shield',
+    wbTele: teleport ? 'common.cancel' : 'wover.teleport', wbShield: 'wover.shield', wbGrid: 'wover.grid',
   };
   assert.deepEqual(actual.controls.map(button => button.id), Object.keys(keys), tag);
   assert.ok(actual.left >= 0 && actual.right <= actual.viewport && actual.zoneFits, JSON.stringify({ tag, actual }));
@@ -67,7 +67,59 @@ async function checkRow(page, dictionary, active, tag) {
   assert.equal(tele.count, teleport ? undefined : '108(0)');
   if (shielded) assert.match(shield.count, /^\d{2,}:\d{2}:\d{2}$/);
   else assert.equal(shield.count, '12');
-  console.log(tag + ' passed · ' + Math.ceil(actual.right - actual.left) + 'px');
+  return Math.ceil(actual.right - actual.left);
+}
+
+async function checkBottom(page, locale, dictionary, tag) {
+  const messages = locale === 'en' ? {} : JSON.parse(fs.readFileSync(path.join(root, 'lang', locale + '.content.json'), 'utf8'));
+  const result = await page.locator('#mapCtl').evaluate(bar => {
+    const rect = element => {
+      const { left, top, bottom, right, width, height } = element.getBoundingClientRect();
+      return { left, top, bottom, right, width, height };
+    };
+    const record = element => {
+      const box = rect(element);
+      const icon = element.querySelector('img');
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.bottom - 2);
+      return {
+        ...box, id: element.id, name: element.getAttribute('aria-label'), text: element.textContent.trim(),
+        resource: icon?.dataset.resk, icon: icon?.complete && icon.naturalWidth > 0,
+        frame: getComputedStyle(element, '::before').borderImageSource,
+        hit: hit?.closest('button') === element,
+      };
+    };
+    return {
+      box: rect(bar), viewport: [innerWidth, innerHeight], scrollWidth: bar.scrollWidth, clientWidth: bar.clientWidth,
+      controls: [...bar.children].map(record), handle: record(document.getElementById('wmCtlHandle')),
+      coordinates: document.getElementById('coordRead').textContent,
+    };
+  });
+  const { box, viewport, scrollWidth, clientWidth, controls, handle, coordinates } = result;
+  assert.ok(box.left >= 0 && box.right <= viewport[0] && box.bottom <= viewport[1] && scrollWidth <= clientWidth,
+    JSON.stringify({ tag, result }));
+  assert.deepEqual(controls.map(control => control.resource || control.id),
+    ['iron', 'crystal', 'silver', 'coal', '', 'mapSearch', 'mapMineFind', 'wzOut', 'wzIn'], tag);
+  assert.match(coordinates, /^X\d+ Y\d+$/, tag);
+  for (const [index, entry] of controls.entries()) {
+    assert.ok(entry.icon && entry.top === box.top, JSON.stringify({ tag, entry }));
+    assert.match(entry.frame, /hud-panel\.webp/, tag);
+    if (entry.id || entry.resource) assert.ok(entry.width >= 40 && entry.height >= 40 && entry.hit, JSON.stringify({ tag, entry }));
+    if (index) assert.ok(entry.left >= controls[index - 1].right, tag + ' bottom controls overlap');
+  }
+  for (const entry of controls.slice(0, 4)) {
+    assert.ok(entry.name.startsWith(dictionary['res.' + entry.resource] + ': '), JSON.stringify({ tag, entry }));
+    assert.ok(entry.text.length > 0, tag);
+  }
+  assert.equal(controls[5].name, dictionary['wmap.go_to_coord'], tag);
+  assert.equal(controls[5].text, 'X/Y', tag);
+  assert.equal(controls[6].text, dictionary['mine.search'], tag);
+  assert.equal(controls[7].name, messages['Zoom out'] || 'Zoom out', tag);
+  assert.equal(controls[8].name, messages['Zoom in'] || 'Zoom in', tag);
+  assert.equal(handle.name, dictionary['wmap.hide_ctl'], tag);
+  assert.match(handle.frame, /hud-panel\.webp/, tag);
+  assert.ok(handle.hit && handle.icon && handle.width >= 40 && handle.height >= 40 && handle.bottom <= box.top + 0.5,
+    JSON.stringify({ tag, handle, box }));
+  return Math.ceil(box.width);
 }
 
 async function main() {
@@ -96,25 +148,33 @@ async function main() {
       G.beginnerBroken = true;
       G.shieldItems = 12;
       G.teleScrolls = 108;
+      G.res = { iron: 1234567890, crystal: 23456, silver: 9876, coal: 0 };
       G.showGrid = true;
       teleportsLeft = () => 0;
       show('world');
     });
     const render = async (locale, options) => {
-      await page.evaluate(async ({ locale, options }) => {
-        if (LANG.cur !== locale) await langLoad(locale, false);
+      const differentLocale = await page.evaluate(locale => LANG.cur !== locale, locale);
+      if (differentLocale) {
+        await page.evaluate(locale => langLoad(locale, false), locale);
+        await page.waitForFunction(locale => locale === 'en' || LANG.contentVersion === EW_LANG_CV[locale], locale);
+      }
+      await page.evaluate(async ({ options }) => {
         _teleMode = options.teleport;
         G.shieldUntil = options.shielded ? Date.now() + 23.5 * 3600000 : 0;
         if (options.tree) myCastleZone = () => 'worldtree';
         else myCastleZone = () => zoneOfPos(myCastlePos().x, myCastlePos().y);
         renderWorldMap(true);
         await document.fonts.ready;
-        await Promise.all([...document.querySelectorAll('.wmhud-top img')].map(image => image.decode()));
-      }, { locale, options });
+        await Promise.all([...document.querySelectorAll('.wmhud-top img,#mapCtl img,#wmCtlHandle img')].map(image => image.decode()));
+      }, { options });
       const dictionary = JSON.parse(fs.readFileSync(path.join(root, 'lang', locale + '.json'), 'utf8'));
       const tag = locale + ' · ' + options.label;
-      await checkRow(page, dictionary, options, tag);
-      if (process.env.EW_MAP_SHOTS && ['en', 'de', 'hi'].includes(locale) && options.teleport === options.shielded) {
+      const topWidth = await checkRow(page, dictionary, options, tag);
+      const bottomWidth = await checkBottom(page, locale, dictionary, tag);
+      console.log(tag + ' passed · top ' + topWidth + 'px · bottom ' + bottomWidth + 'px');
+      if (process.env.EW_MAP_SHOTS && ['en', 'de'].includes(locale)
+          && (!options.tree || locale === 'de' && options.teleport)) {
         fs.mkdirSync(process.env.EW_MAP_SHOTS, { recursive: true });
         await page.screenshot({ path: path.join(process.env.EW_MAP_SHOTS, locale + (options.teleport ? '-active' : '') + '.png') });
       }
@@ -158,9 +218,38 @@ async function main() {
     assert.ok(await modal.isVisible());
     await modal.locator('button').first().tap();
     assert.deepEqual(await page.evaluate(() => window.mapActions), { centerOnCastle: 1, openMarchInfo: 1, openShield: 1 });
+    await page.locator('#mapSearch').tap();
+    assert.ok(await page.locator('#csX').isVisible());
+    await page.locator('#csCancel').tap();
+    await page.locator('#mapMineFind').tap();
+    assert.ok(await page.locator('#msRes').isVisible());
+    await page.locator('#msClose').tap();
+    const startingZoom = await page.evaluate(() => {
+      const bounds = worldZoomBounds(document.getElementById('wzone'));
+      worldZoomTo((bounds.min + bounds.max) / 2);
+      return worldZoom;
+    });
+    await page.locator('#wzIn').tap();
+    await page.waitForFunction(before => worldZoom > before, startingZoom);
+    await page.locator('#wzOut').tap();
+    await page.waitForFunction(before => Math.abs(worldZoom - before) < 0.001, startingZoom);
+
+    await page.locator('.wmhud-resource').first().tap();
+    const iron = await page.evaluate(() => mnResName('iron') + ': ' + G.res.iron.toLocaleString(LANG.cur));
+    assert.equal(await page.locator('#banner').textContent(), iron);
+    const handle = page.locator('#wmCtlHandle');
+    await handle.tap();
+    assert.equal(await handle.getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.locator('#mapCtl').evaluate(bar => bar.inert), true);
+    await page.evaluate(() => renderWorldMap(true));
+    await page.waitForFunction(() => document.getElementById('mapCtl').inert);
+    await handle.tap();
+    assert.equal(await handle.getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('#mapCtl').evaluate(bar => bar.inert), false);
+
     await page.locator('#wmCity').tap();
     assert.ok(await page.locator('#home.active').isVisible());
-    console.log('All six world map controls passed their action checks.');
+    console.log('Top and bottom control actions passed.');
   } finally {
     await browser.close();
   }
