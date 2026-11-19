@@ -42,3 +42,11 @@ Use Node 24 and installed project dependencies. Run `node tools/qa/start_v1424_f
 Run `node tools/qa/art_language_1424_browser.js <evidence-directory>` for the full matrix, or add `--arena-only` for the final art screenshots. Set `EW_UI_FIXTURE` to the generated fixture.json and run `node tools/qa/hero_ui_sweep_1424.js <sweep-output-directory> <port>`. Set `EW_UI_BASELINE_HTML` to the untouched v1423 HTML for the baseline companion. The baseline route uses the actual unmodified HTML against the same isolated local APIs.
 
 `tools/authoring/v1424_art_language.py` records the base-to-v1424 authoring and translation sources, and is not an idempotent updater. Do not rerun it over the finished tree. `package_v1424_leagues.py` exports the selected manifest sources and review sheet.
+
+## Additional painted-title acceptance requested at 07:31
+
+`qa/all-titles/painted-titles-report.json`: **306 passing checks, 34 Spanish screenshots, zero page errors**. All seventeen listed logos decode and remain visible with the same asset path as English in all sixteen desktop locales. The phone companion checks English and Spanish; every listed title has both a desktop and phone Spanish screenshot.
+
+Names: Arena, Forge, Vault, Bulletin Board, Guild Hall, Academy, Emberdraft, Market, Shady Market, Arena Shop, Elite Stages, Island of Trials, Skyfall, Temple, Watch Tower, Wishing Pool, and Dev Panel (`title@2x.webp`). Body text stays Spanish. The dev-panel screenshot uses only the session-local DEV flag in the isolated browser to expose that already existing artwork; no production account privileges or server code were changed.
+
+Screenshots are `qa/all-titles/desktop-es-title-<screen>.png` and `phone-es-title-<screen>.png`; overview `qa/all-titles/spanish-painted-titles-sheet.jpg`. Reproduce with `node tools/qa/painted_titles_1424_browser.js <fixture-directory>`. This follow-up adds evidence and the QA runner, without changing the game code or assets handed over in 25542a3ce.
