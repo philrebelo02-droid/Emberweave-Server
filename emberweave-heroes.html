@@ -7180,7 +7180,7 @@ function fitRarityBanners(root){
     }
   });
 }
-document.fonts&&document.fonts.ready.then(()=>fitRarityBanners());
+try{ if(document.fonts&&document.fonts.ready&&typeof document.fonts.ready.then==='function') document.fonts.ready.then(()=>fitRarityBanners()); }catch(e){}   /* v1424 review (Claude): guarded like muteBtnPlace - the suite sim host has no fonts.ready promise and ~96 tests crashed at load */
 function heroIcon(key,px,opts){ px=px||48; opts=opts||{}; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
   if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||uiIcon('question')}</span>`;
   const own=!!(typeof G!=='undefined'&&G.unlocked&&G.unlocked[key]);   /* v612: every hero icon wears its ascension border, with its stars on the border's bottom edge once it's big enough to read */
