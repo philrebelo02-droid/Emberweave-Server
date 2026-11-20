@@ -35676,6 +35676,18 @@ button.dvp-srow{cursor:pointer}
 .pai-tst .adm-tst-b{width:auto;height:36px!important;min-height:0!important;padding:0 4px!important;border:0!important;border-radius:0!important;background:var(--pn) 0 0/100% 100% no-repeat!important;color:var(--dvp-ink)!important;font:16px var(--dvp-font)!important;box-shadow:none!important}
 .pai-note{font:15px var(--dvp-font);color:var(--dvp-dim);align-self:center}
 .pai-grid{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.pai-xc .dvp-close{position:static;flex:0 0 auto}   /* v1427: the window's own Close sits in its header (it was placed for the 1280 panel - off the 900 window) */
+.hu-tool{display:flex;gap:6px;align-items:center;margin:10px 0 6px}
+.pai-card .hu-tool select{width:auto;flex:0 0 auto}
+.hu-sum{font:15px var(--dvp-font);color:var(--dvp-dim);margin:0 0 6px}.hu-sum b{color:var(--dvp-ink)}
+.hu-row{display:grid;grid-template-columns:36px minmax(0,1.5fr) 74px 74px minmax(0,1fr) 74px 112px;gap:8px;align-items:center;padding:3px 6px;border-bottom:1px solid var(--dvp-line-soft);font:15px var(--dvp-font);color:var(--dvp-ink)}
+.hu-row>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hu-row.hd{position:sticky;top:0;z-index:1;background:#20150f;border-bottom:1px solid var(--dvp-line)}
+.hu-row.hd button,.hu-row.hd span{all:unset;cursor:pointer;font:700 13px var(--dvp-font);letter-spacing:1px;text-transform:uppercase;color:var(--dvp-gold)}
+.hu-row.hd span{cursor:default}.hu-row.hd button.on{color:#fff1d3}
+.hu-bar{height:8px;background:#0007;border-radius:4px;overflow:hidden}.hu-bar i{display:block;height:100%;background:var(--dvp-gold)}
+.hu-f{font:700 13px var(--dvp-font);letter-spacing:.5px;text-transform:uppercase}.hu-f.strong{color:var(--dvp-bad)}.hu-f.weak{color:var(--dvp-warn)}.hu-f.unused{color:var(--dvp-dim)}
+.hu-row.z,.hu-few{color:var(--dvp-dim)}.hu-f{white-space:nowrap}
 .pai-sec{background:#150f0bcc;border:1px solid var(--dvp-line-soft);border-radius:4px;padding:6px 10px}
 .pai-st{font:700 13px var(--dvp-font);letter-spacing:1px;text-transform:uppercase;color:var(--dvp-gold);margin-bottom:3px}
 .pai-r{display:flex;justify-content:space-between;gap:8px;font:15px/1.5 var(--dvp-font)}.pai-r span{color:var(--dvp-dim);white-space:nowrap}.pai-r b{color:var(--dvp-ink);font-weight:400;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -35888,7 +35900,7 @@ function devQaHTML(){ const row=(k,l,sub,btn)=>`<div class="dvp-srow"><b>${l}</b
     `<div class="dvp-srow"><b>${t('set2.dev_god')}</b><span class="dvp-sub">${t('set2.dev_god_sub')}</span><button class="dvp-sw${DEV.god?' on':''}" id="devGod" role="switch" aria-checked="${!!DEV.god}" aria-label="${escAttr(t('set2.dev_god'))}" style="margin-left:8px"></button></div>`+
     row('perf','Performance HUD','On or off in battle','Toggle')+row('fxmiss','FX misses','Effects that landed away from a unit','Show')+row('cachelog','Cache log','What Offline Art deleted','Show')+
     row('orbs','Temple orbs preview',`<span id="dvpOrbsN">${DEV.orbPreview|0}</span>/5 on every hero card`,'Next')+`</div></div>`+
-    `<div class="dvp-right"><div class="dvp-h2">Tools</div>${row('bots','Simulations','Balance bots + every screen','Run')}${row('savecode','Save code','This device’s save','Export')}${row('update','Check for update','Reload the newest build','Reload')}<div id="saveOut" class="dvp-code"></div></div></div>`; }
+    `<div class="dvp-right"><div class="dvp-h2">Tools</div>${row('herouse','Hero usage','Pick and win rates, every server','Open')}${row('bots','Simulations','Balance bots + every screen','Run')}${row('savecode','Save code','This device’s save','Export')}${row('update','Check for update','Reload the newest build','Reload')}<div id="saveOut" class="dvp-code"></div></div></div>`; }
 /* ---- open / render / wire ---- */
 function devPanelOpen(){ if(!(DEV.on||isTesterAcct())) return; devCssEnsure(); let ov=document.getElementById('dvpOv');
   if(!ov){ ov=document.createElement('div'); ov.id='dvpOv'; ov.className='dvp-ov'; ov.addEventListener('click',e=>{ if(e.target===ov) devPanelClose(); }); document.body.appendChild(ov); }
@@ -35947,6 +35959,54 @@ function adminMailAdopt(L){ if(!Array.isArray(L)||!L.length) return; G.amSeen=Ar
     addMail('inbox',{from:String(m.from||'Emberweave Team'),subj:String(m.subj||''),body:String(m.text||''),t:+m.t||Date.now(),amid:m.id,teamSubject:m.teamSubject}); added++; }
   if(added){ if(G.amSeen.length>60) G.amSeen=G.amSeen.slice(-60); try{ updateMailBadges(); }catch(e){} try{ saveG(); }catch(e){} } }
 const DEV_ECONOMY_ACTS=['gold','gems','stam','arenacoin','guildcoins','shielditem','shards','pieces','level','squadlvl','campstage','heroes','lv100','maxteam','campall','givefrags'];   /* v1376: the Economy group = a test account's dev panel; v1379: one row per resource (amount box), Arena #1 and the fixed +30 stamina gone */
+/* v1427 HERO USAGE (Soul Eater 19 Nov 2026: "Statistics showing which heroes are the most used would also be good ... This would help us
+   control who we should nerf or level up, and who we should buff or rework"; Phil 20 Nov: "start building the statistics idea").
+   Dev > QA > Hero usage opens this window. GET /api/dev/hero-usage counts every finished fight on every server (test accounts, admins and
+   bots left out). FIGHTS = fights the hero was in; PICK RATE = the share of all fights in the view it was in; WIN RATE = how often its
+   side won. Every hero is listed, the unused ones with 0. NOTE is a hint where to look, never a verdict: STRONG / WEAK = 10 points over /
+   under the average win rate with at least 20 fights; RARELY USED = under 2% of 50+ fights. */
+const HU={days:7,mode:'all',sort:'picks',dir:-1,data:null,err:'',seq:0};
+const HU_MODES=[['all','All modes'],['campaign','Campaign'],['arena','Arena attack'],['arenadef','Arena defence'],['world','World Map'],['vault','Aether Vault'],['province','Province']];
+function heroUsageRows(){ const d=HU.data; if(!d) return []; const by={}; for(const r of d.heroes||[]) by[r.key]=r;
+  const keys=new Set([...(typeof HERO_KEYS!=='undefined'?HERO_KEYS:[]),...Object.keys(by)]), avg=d.winRate||0;
+  const rows=[...keys].map(k=>Object.assign({key:k,picks:0,wins:0,pickRate:0,winRate:0},by[k]||{}));
+  for(const r of rows){ r.name=(HERO_TYPES[r.key]&&HERO_TYPES[r.key].name)||r.key;
+    r.flag=r.picks>=20?(r.winRate>=avg+0.10?'strong':(r.winRate<=avg-0.10?'weak':'')):'';
+    if(!r.flag&&d.fights>=50&&r.pickRate<0.02) r.flag='unused'; }
+  const f={picks:r=>r.picks,name:r=>r.name.toLowerCase(),pick:r=>r.pickRate,win:r=>r.picks?r.winRate:-1}[HU.sort]||(r=>r.picks);
+  /* a win rate from a handful of fights is noise: sorted by win rate, heroes with 20+ fights come first either way, the rest after (greyed) */
+  return rows.sort((a,b)=>{ if(HU.sort==='win'){ const e=(b.picks>=20)-(a.picks>=20); if(e) return e; }
+    const x=f(a),y=f(b), c=typeof x==='string'?x.localeCompare(y):(x-y); return c?c*HU.dir:a.name.localeCompare(b.name); }); }
+function heroUsageHTML(){ const d=HU.data, pct=x=>(Math.round((+x||0)*1000)/10)+'%';
+  const tool=`<div class="hu-tool"><select id="huMode" aria-label="Mode">${HU_MODES.map(([k,l])=>`<option value="${k}"${HU.mode===k?' selected':''}>${l}</option>`).join('')}</select>`+
+    `<select id="huDays" aria-label="Days">${[[1,'Today'],[7,'Last 7 days'],[30,'Last 30 days']].map(([k,l])=>`<option value="${k}"${HU.days===k?' selected':''}>${l}</option>`).join('')}</select>`+
+    `<button class="dvp-btn ic" id="huRef" aria-label="Refresh">${uiIcon('refresh')}</button></div>`;
+  if(HU.err) return tool+`<div class="pai-err">${escapeHTML(HU.err)}</div>`;
+  if(!d) return tool+`<div class="dvp-empty">${t('common.loading')}</div>`;
+  const sum=`<div class="hu-sum"><b>${(d.fights|0).toLocaleString('en-US')}</b> fights · average win rate <b>${pct(d.winRate)}</b> · `+
+    (d.servers&&d.servers.length?'Server'+(d.servers.length===1?' ':'s ')+d.servers.join(', '):'no fights yet')+(d.authority?'':' · this server only')+`</div>`;
+  const th=(k,l)=>`<button data-husort="${k}" class="${HU.sort===k?'on':''}">${l}${HU.sort===k?`<i class="dvp-dir ${HU.dir<0?'dn':'up'}"></i>`:''}</button>`;
+  return tool+sum+`<div class="hu-row hd"><span></span>${th('name','Hero')}${th('picks','Fights')}${th('pick','Pick rate')}<span></span>${th('win','Win rate')}<span>Note</span></div>`+
+    heroUsageRows().map(r=>`<div class="hu-row${r.picks?'':' z'}"><span>${heroIcon(r.key,30)}</span><b>${escapeHTML(r.name)}</b><span>${r.picks.toLocaleString('en-US')}</span><span>${pct(r.pickRate)}</span>`+
+      `<span class="hu-bar"><i style="width:${Math.min(100,r.pickRate*100).toFixed(1)}%"></i></span><span class="${r.picks&&r.picks<20?'hu-few':''}" title="${r.picks&&r.picks<20?'Under 20 fights - too few to judge':''}">${r.picks?pct(r.winRate):'-'}</span><span class="hu-f ${r.flag}">${({strong:'Strong',weak:'Weak',unused:'Rarely used'})[r.flag]||''}</span></div>`).join(''); }
+function openHeroUsage(){ if(!DEV.on) return; devCssEnsure(); const old=document.getElementById('huOv'); if(old) old.remove();
+  const ov=document.createElement('div'); ov.className='pai-ov'; ov.id='huOv';
+  const card=document.createElement('div'); card.className='pai-card'; card.setAttribute('role','dialog'); card.setAttribute('aria-label','Hero usage');
+  card.innerHTML=`<div class="pai-hd"><div style="min-width:0"><div class="pai-nm">Hero usage</div><div class="pai-sub">Which heroes players fight with, and how often their side wins. Every server; test accounts, admins and bots are left out.</div></div>`+
+    `<div class="pai-xc"><button class="dvp-close" id="huX" aria-label="Close">Close</button></div></div><div class="pai-body" id="huBody"></div>`;
+  ov.appendChild(card); document.body.appendChild(ov); devPanelFit(); devArtWatch(ov);
+  const close=()=>ov.remove(), body=card.querySelector('#huBody');
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); }); card.querySelector('#huX').onclick=close;
+  const paint=()=>{ body.innerHTML=heroUsageHTML(); devArtFit(ov);
+    const m=body.querySelector('#huMode'), dd=body.querySelector('#huDays'), rf=body.querySelector('#huRef');
+    if(m) m.onchange=()=>{ HU.mode=m.value; load(); }; if(dd) dd.onchange=()=>{ HU.days=+dd.value; load(); }; if(rf) rf.onclick=load; };
+  body.addEventListener('click',e=>{ const s=e.target.closest('[data-husort]'); if(!s) return; const k=s.dataset.husort;
+    if(HU.sort===k) HU.dir=-HU.dir; else { HU.sort=k; HU.dir=k==='name'?1:-1; } paint(); });
+  const load=()=>{ const my=++HU.seq; HU.data=null; HU.err=''; paint();
+    api('/api/dev/hero-usage?days='+HU.days+'&mode='+encodeURIComponent(HU.mode)).then(d=>{ if(my!==HU.seq) return;
+      if(!d||!d.ok) HU.err=String((d&&d.error)||'Server unreachable'); else HU.data=d; if(ov.isConnected) paint(); })
+      .catch(()=>{ if(my!==HU.seq) return; HU.err='Server unreachable'; if(ov.isConnected) paint(); }); };
+  load(); }
 function devAction(a,b){
   if(isTesterAcct() && !DEV_ECONOMY_ACTS.includes(a)) return;   // a test account reaches the Economy actions only (the server gates every route too)
   const done=(m,bad)=>{ const d=b&&b.querySelector('#devDone'); if(d){ d.textContent=m; d.classList.toggle('bad',!!bad); } };
@@ -35964,6 +36024,7 @@ function devAction(a,b){
         G.shieldItems=r.devState.shieldItems|0; }
       saveG(); updateHubChrome(); done(typeof success==='function'?success(r):success);
     }).catch(offline); return; };
+  if(a==='herouse'){ openHeroUsage(); return; }   // v1427
   if(a==='cachelog'){ let L=[]; try{ L=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); }catch(e){}
     done(L.length? L.slice(-4).map(x=>x.t.slice(11,19)+' held '+x.held+', wanted to drop '+x.wanted+', dropped '+x.deleted+(x.blocked?' ('+x.blocked+')':'')).join(' | ')
                  : 'Offline Art has never deleted anything on this device.');

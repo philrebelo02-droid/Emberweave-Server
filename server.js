@@ -36,6 +36,7 @@ const WORLD_MARCH_ROUTE=require('./server/world-march-route.js');
 const WORLD_VOID_TIMING=require('./server/world-void-timing.js');
 const WORLD_WATCH_STATE=require('./server/world-watch-state.js');
 const WORLD_LOCATION=require('./server/world-location.js');
+const HERO_USAGE=require('./server/hero-usage.js');   /* v1427: which heroes players fight with (Soul Eater's statistics idea) */
 const WORLD_SIEGE=require('./assets/ui/world-siege.js');   /* v1235: city / oasis / World Tree sieges (shared with the client) */
 const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
 const WORLD_TREE_SITES=require('./server/world-tree-sites.js');
@@ -751,6 +752,14 @@ function totalUsersHere(){ const c=localUserCounts(); let g=c.guests, servers=1;
 async function totalUsersReport(){ if(!ACCOUNT_AUTHORITY) return null; try{ const r=await authorityCall('/api/internal/account/total',{ server:SERVER_ID||String(process.env.SERVER_NAME||''), guests:localUserCounts().guests });
   return (r&&r.status===200&&r.body&&typeof r.body.total==='number')?r.body:null; }catch(e){ return null; } }
 if(ACCOUNT_AUTHORITY){ const _tu=setInterval(()=>{ totalUsersReport(); }, 600000); if(_tu.unref) _tu.unref(); setTimeout(()=>{ totalUsersReport(); }, 20000); }
+/* v1427 HERO USAGE (server/hero-usage.js): one count per hero per finished fight, per game day and mode. Test accounts, admins and bots
+   are left out. Servers 2-5 send their days to Server 1 every 10 minutes; Server 1's Dev panel view adds every server up. */
+function heroUsageNote(u,mode,keys,won){ try{ if(!u||u.isNpc||testerTagged(u)||isDev(u)) return;
+  if(HERO_USAGE.note(DB,nyDayKey(),mode,keys,!!won,k=>!!(SIM&&SIM.HERO_BASE&&SIM.HERO_BASE[k]))) _dp('heroUsage'); }catch(e){} }
+async function heroUsageReport(){ if(!ACCOUNT_AUTHORITY) return; try{ await authorityCall('/api/internal/account/hero-usage',{ server:SERVER_ID||String(process.env.SERVER_NAME||''), days:HERO_USAGE.store(DB).days }); }catch(e){} }
+if(ACCOUNT_AUTHORITY){ const _hu=setInterval(()=>{ heroUsageReport(); }, 600000); if(_hu.unref) _hu.unref(); setTimeout(()=>{ heroUsageReport(); }, 30000); }
+function heroUsageSources(){ const out=[{server:String(SERVER_ID||'1'),days:HERO_USAGE.store(DB).days}], cut=Date.now()-86400000;
+  for(const [sv,r] of Object.entries(DB.satHeroUsage||{})) if(r&&r.t>=cut&&sv!==String(SERVER_ID||'1')) out.push({server:sv,days:r.days}); return out; }
 /* v1384 COMPENSATION (Phil 12 Nov: "where can i give server compensation?" -> "yes build it"). The dev panel's Live Ops sends rewards
    (gold, diamonds, stamina, Ember Roasts, XP potions, arena / guild coins, Forge Dust, shields) with a subject and a message to every player on
    all servers or the chosen ones, with an expiry (14 days by default). Each player sees it in Mail with a Claim button and claims ONCE per
@@ -6451,6 +6460,9 @@ async function api(req,res,url){
     if(p==='/api/internal/account/comps'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')&&b.claims&&typeof b.claims==='object') COMP_SAT[sv]={ claims:b.claims, t:Date.now() };   /* v1384 */
       const cut=Date.now()-86400000; return send(res,200,{ comps:(Array.isArray(DB.comps)?DB.comps:[]).filter(c=>c&&(!c.until||c.until>cut)) }); }
     if(p==='/api/internal/account/comp-send'){ const r=compCreate(b.by, b); if(!r.ok) return send(res,r.status||400,{error:r.error}); writeDB(); return send(res,200,{ ok:true, comp:r.comp }); }
+    if(p==='/api/internal/account/hero-usage'){ const sv=String(b.server||'').slice(0,8);   /* v1427: a satellite's hero usage days */
+      if(sv&&sv!==String(SERVER_ID||'1')&&/^[\w-]+$/.test(sv)){ DB.satHeroUsage=DB.satHeroUsage||{}; DB.satHeroUsage[sv]={ t:Date.now(), days:HERO_USAGE.clean(b.days) }; writeDBNow([],['satHeroUsage']); }
+      return send(res,200,{ok:true}); }
     if(p==='/api/internal/account/total'){ const sv=String(b.server||'').slice(0,8); if(sv&&sv!==String(SERVER_ID||'1')&&sv!=='__proto__'){
         DB.satGuests=DB.satGuests||{};
         DB.satGuests[sv]={n:Math.max(0,b.guests|0),t:Date.now()};
@@ -6667,6 +6679,10 @@ async function api(req,res,url){
     return send(res,200,{ reports: show.slice(-200).reverse().map(r=>Object.assign({},r,{
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
+  if(p==='/api/dev/hero-usage'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   /* v1427: the Dev panel's Hero usage window */
+    const days=Math.max(1,Math.min(HERO_USAGE.HU_KEEP,+url.searchParams.get('days')||7)), group=String(url.searchParams.get('mode')||'all').slice(0,12);
+    const v=HERO_USAGE.view(heroUsageSources(),nyDayKey(),days,group);
+    v.authority=!ACCOUNT_AUTHORITY; return send(res,200,Object.assign({ok:true},v)); }
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
     return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{checkBacklog:CHECK_BACKLOG.stats},{shed:Object.assign({on:SHED.on,lo:SHED.lo,full:SHED.full},SHED_STATS)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS,otherBuild:OTHER_BUILD_STATS,live:Object.assign({},LIVE_STATS,{memo:_LIVE_MEMO.size,inFlight:_LIVE_FLIGHT.size})})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1184
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -7981,6 +7997,7 @@ async function api(req,res,url){
         if(isDev(me)&&prog.claimedFloors[a.floor]){ prog.version++; writeDB();   // v362: dev replaying an already-cleared floor — no reward, progress untouched
           return { ok:true, result:{won:true, replay:true}, reward:null, dust:me.dust||0, progress:dungeonView(prog) }; }
         const won = (typeof b.won==='boolean') ? b.won : vaultWinPlausible(a);
+        heroUsageNote(me,'vault',a.heroIds,won);   // v1427
         if(typeof b.won==='boolean'){ const est=vaultWinPlausible(a);
           if(est!==b.won) console.log('vault floor %s: player says %s, estimate said %s (player wins)', a.floor, b.won?'won':'lost', est?'won':'lost'); }
         if(!won){ prog.version++; writeDB();
@@ -9575,6 +9592,7 @@ async function api(req,res,url){
       if(otherBuild) OTHER_BUILD_STATS.unfiled++;
       else if(!digestMatch && !verifyLater) campIncident(me,led,Object.assign({},_vx,{rep,serverEndDigest,why:replayFailure||'digest-mismatch'}));
       const won=witnessed.won;
+      heroUsageNote(me,mode,a.heroIds,won);   // v1427: normal / elite / veteran
       let stars=0, reward=null;
       if(won){
         stars=witnessed.stars;
@@ -9950,6 +9968,7 @@ async function api(req,res,url){
             'Province fast win at '+t+' stage '+a.stage+': '+battleMs+' ms against '+PROV_MIN_BATTLE_MS+' ms minimum.',
             'battle timing');
         const won=witnessed.won; let reward=null, dailyCapped=false;
+        heroUsageNote(me,'province',a.heroIds,won);   // v1427
         if(won){
           pr.stage=a.stage; pr.lastTeam=a.heroIds.slice();
           if(provPlaysLeft(me,pr)<=0){ dailyCapped=true; ledTx(me,'province:'+t+':clear:'+a.stage+':capped',{}); }   // cleared on another device's last play meanwhile: recorded, unpaid today
@@ -10675,6 +10694,7 @@ async function api(req,res,url){
       if(!d||typeof d.won!=='boolean'||typeof b.won!=='boolean'||d.won!==b.won||!Number.isFinite(d.t)||d.t<0||!Array.isArray(d.u))
         return {ok:false,unverified:true,error:'Battle result was incomplete - send the fight again.'};
       const won=b.won;
+      heroUsageNote(me,'siege',march.heroIds,won);   // v1427: World Map
       // the replay is a check, never a verdict
       const host=simHost(); let rep=null, why=null;
       if(!host) why='replay-unavailable'; else try{ rep=host.auto(march.snaps,march.foe,march.seed>>>0); }catch(e){ if(typeof SIM_NEEDED!=='undefined'&&e===SIM_NEEDED) throw e; why='replay-error'; }
@@ -10981,6 +11001,7 @@ async function api(req,res,url){
       else { opSnaps=rosterKeys(arenaDefTeam(opp)).filter(k=>opLed&&ownsHeroK(opLed,k)).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);   /* v1213: their DEFENSE team fights */
         if(!opSnaps.length&&opLed) opSnaps=Object.keys(opLed.unlocked||{}).filter(k=>ownsHeroK(opLed,k)&&SIM.HERO_BASE[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean); }
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
+        heroUsageNote(me,'arena',mySnaps.map(s=>s.key),won); if(!opp.isNpc) heroUsageNote(opp,'arenadef',opSnaps.map(s=>s.key),!won);   // v1427: the attack and the defence it met
         simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
     }
     if(!opp) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* v559: a missing opponent left won=false and fell through to the +5 consolation coins, so an unbounded string of invalid oppIds minted coins at the route limit without ever fighting. No opponent, no attempt, no payout. */
