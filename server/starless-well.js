@@ -322,6 +322,7 @@ async function handle(p, method, ctx) {
             reward.endXP = xp; ctx.ledTx(ctx.me, 'well2:complete:' + R.path, { px: xp }); R.offer = null; }
         }
       }
+      if (ctx.heroUsageNote) ctx.heroUsageNote(ctx.me, 'well', a.heroIds, witnessed.won);   // v1428: hero usage (inside the module's idem - a retry is not counted twice)
       ctx.ledTx(ctx.me, 'well2:' + (witnessed.won ? 'win' : 'loss'), { match });
       ctx.writeDB();
       return { status: 200, body: Object.assign(view(ctx, W), { won: witnessed.won, stars: witnessed.stars, reward, digestMatch: match, serverWon: rep ? !!rep.won : null }) };

@@ -7663,6 +7663,7 @@ async function api(req,res,url){
       /* v678: the march settles it - the loser's line is eliminated, the winner banks a kill */
       if(r.won){ defender.alive=false; attacker.kills=(attacker.kills|0)+1; }
       else { attacker.alive=false; defender.kills=(defender.kills|0)+1; }
+      heroUsageNote(me,'skyfall',attacker.lineSnapshot.map(h=>h.key),r.won); heroUsageNote(DB.users[defender.memberId],'skyfalldef',defender.lineSnapshot.map(h=>h.key),!r.won);   // v1428
       let citadelFell=false;
       /* v677 (Phil): "until that last line dies, do not trigger the fallen tower" */
       if(!foe.defenders.some(warStanding)){ foe.destroyed=true; citadelFell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
@@ -8453,6 +8454,7 @@ async function api(req,res,url){
         A.mineDay[march.node.res]=used+granted;
         A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
       }
+      heroUsageNote(me,'mine',march.heroIds,battle.won);   // v1428: World Map mine (after the battle call)
       march.resolved=true; march.resolvedAt=now;
       march.receipt={ok:true,won:battle.won,durationSec:digest.t,injuries,granted,
         res:A.res,capLeft,garrison,replay:{seed,snaps:march.snaps,foe:garrison,engine:host.buildVersion},
@@ -9403,7 +9405,9 @@ async function api(req,res,url){
       const _rid=(typeof _bb.requestId==='string'&&_bb.requestId.length>=1&&_bb.requestId.length<=48)?_bb.requestId:null;
       if(!_rid) return send(res,400,{ok:false,error:'requestId must be a string of 1-48 characters'});
       const out=idem(me.id+':bonusres:'+_rid,()=>{ const L=ensureLedger(me);
+        const _ba=(L.bonus&&L.bonus.att)||null;   // v1428: resolveRun clears the attempt - keep its squad for hero usage
         const r=BONUS.resolveRun(_bb,{ me, led:L, glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal, GLYPHS });
+        if(r&&r.status===200&&r.body&&r.body.ok&&_ba&&_ba.id===String(_bb.attemptId||'')) heroUsageNote(me,'bonus',Object.values(_ba.assign||{}).flat(),!!r.body.won);   // v1428
         return Object.assign({},r.body,(r.status===403&&r.body&&r.body.ok===false)?{locked:true}:{}); },{retryFailed:true});
       return send(res, out.storageFailed?503:(out.ok===true?200:(out.locked?403:400)), out); }
     const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
@@ -9414,7 +9418,7 @@ async function api(req,res,url){
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
   if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: the module is handed only this player */ if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'}); if(p==='/api/well/start'&&rateLimited(req,'wellStart:'+me.id,Math.round(10*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #11): a Well start's replay runs on the main thread - 10 a minute */   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
     const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
-    const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
+    const out=await WELL2.handle(p, req.method, { me, led, heroUsageNote, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
       feedbackCheatSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev,
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
@@ -10260,6 +10264,7 @@ async function api(req,res,url){
               led.earnDay['guildCoins:march']=(led.earnDay['guildCoins:march']|0)+loot.guildCoins;
             }
           }
+          heroUsageNote(me,'citypvp',ids,fight.won);   // v1428: City PvP (bot castle)
           const receipt={ok:true,won:fight.won,rounds:0,loot,injuries,
             replay:{seed,snaps:march.snaps,foe:march.botTeam,engine:host.buildVersion,durationSec:digest.t}};
           march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
@@ -10357,6 +10362,7 @@ async function api(req,res,url){
           won=r.won; rounds=r.rounds; log=r.log.slice(0,200);
           if(myWitch) injuries.attacker=WITCH.applyBattle(myWitch.state,r.aState,ids);
         }
+        if(defSnaps.length){ heroUsageNote(me,'citypvp',ids,won); if(!d.isNpc) heroUsageNote(d,'citydef',defOwned,!won); }   // v1428: City PvP + the defending city (no defenders = no fight)
         me.pvpDay.n++;
         let loot=null,paidGold=0,paidCoins=0;
         /* v1080 (scan 2 #2): a castle with NO standing defender (its wall fell in an earlier attack) is taken without a fight - and pays
@@ -10694,7 +10700,6 @@ async function api(req,res,url){
       if(!d||typeof d.won!=='boolean'||typeof b.won!=='boolean'||d.won!==b.won||!Number.isFinite(d.t)||d.t<0||!Array.isArray(d.u))
         return {ok:false,unverified:true,error:'Battle result was incomplete - send the fight again.'};
       const won=b.won;
-      heroUsageNote(me,'siege',march.heroIds,won);   // v1427: World Map
       // the replay is a check, never a verdict
       const host=simHost(); let rep=null, why=null;
       if(!host) why='replay-unavailable'; else try{ rep=host.auto(march.snaps,march.foe,march.seed>>>0); }catch(e){ if(typeof SIM_NEEDED!=='undefined'&&e===SIM_NEEDED) throw e; why='replay-error'; }
@@ -10706,6 +10711,7 @@ async function api(req,res,url){
           engine:march.engine||null,seed:march.seed>>>0,server:serverEnd?sha256hex(serverEnd):null,client:sha256hex(clientEnd),
           serverWon:rep?!!rep.won:null,witnessedWon:won}]).slice(-20);
         if(rep&&serverEnd) flag={signal:'siege-replay:'+march.id,detail:'Siege replay mismatch at '+site.name+': serverWon '+!!rep.won+', witnessedWon '+won+', seed '+(march.seed>>>0)+'.'}; }
+      heroUsageNote(me,'siege',march.heroIds,won);   // v1427: World Map; v1428: after the battle call - simRun runs this planner twice when it fetches the battle
       // wounds from the fight the player saw (each hero at most its entry HP)
       const outcomes=march.snaps.map(s=>{ const row=d.u.find(u=>Array.isArray(u)&&u[0]===s.key&&u[1]==='ally');
         return {key:s.key,hp:row&&row[2]?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp}; });
@@ -11654,6 +11660,7 @@ async function api(req,res,url){
             reward.guildCoins=led.guildCoins-before;
           }
           ledTx(du,'guild-raid',reward); }
+        heroUsageNote(du,'raid',sa.heroIds,killed);   // v1428: a win = this attempt felled the boss
         return { ok:true, dmg, killed, reward, incident, raid:raidView(gg), ledger:ledgerView(du) };
       },{fields:['guilds','reports','feedback']});
       return send(res,out&&out.storageFailed?503:200,out); }

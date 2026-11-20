@@ -10,8 +10,14 @@
    Servers 2-5 send their days to Server 1 every 10 minutes (internal link, like the total-users count); Server 1's dev view adds them
    up, so the Dev panel shows the whole game. */
 const HU_KEEP = 30;
-const HU_MODES = ['normal', 'elite', 'veteran', 'province', 'arena', 'arenadef', 'siege', 'vault'];
-const HU_GROUPS = { campaign: ['normal', 'elite', 'veteran'], province: ['province'], arena: ['arena'], arenadef: ['arenadef'], world: ['siege'], vault: ['vault'] };
+/* v1428 (Phil 20 Nov: "add the other modes to hero usage too"): + bonus stages, guild raid (won = this attempt felled the boss), Skyfall
+   (+ the defending line), World Map mines and City PvP (+ the defending city), the Starless Well. The Spire has no fight, Emberdraft's
+   fights run in the browser (no heroes reach the server), the World Tree is off - none of them can be counted. DEFENCE modes (*def) are
+   the player's heroes defending while they were away: listed on their own, never inside 'all'. */
+const HU_MODES = ['normal', 'elite', 'veteran', 'bonus', 'province', 'arena', 'arenadef', 'siege', 'mine', 'citypvp', 'citydef', 'vault', 'raid', 'skyfall', 'skyfalldef', 'well'];
+const HU_DEF = ['arenadef', 'citydef', 'skyfalldef'];
+const HU_GROUPS = { campaign: ['normal', 'elite', 'veteran'], bonus: ['bonus'], province: ['province'], arena: ['arena'], arenadef: ['arenadef'],
+  world: ['siege', 'mine', 'citypvp'], citydef: ['citydef'], vault: ['vault'], raid: ['raid'], skyfall: ['skyfall'], skyfalldef: ['skyfalldef'], well: ['well'] };
 
 function store(DB) {
   const H = DB.heroUsage;
@@ -21,7 +27,7 @@ function store(DB) {
 // one finished fight. keys = the heroes that fought on this side; known(k) = is a real hero key. Returns true when it counted.
 function note(DB, day, mode, keys, won, known) {
   if (!HU_MODES.includes(mode) || !Array.isArray(keys)) return false;
-  const ks = [...new Set(keys.map(String))].filter(k => k && k !== '__proto__' && (!known || known(k))).slice(0, 8);
+  const ks = [...new Set(keys.map(String))].filter(k => k && k !== '__proto__' && (!known || known(k))).slice(0, 15);   // v1428: raid 10, bonus 15
   if (!ks.length) return false;
   const H = store(DB);
   if (!H.days[day]) { H.days[day] = {}; prune(H, day); }
@@ -41,7 +47,7 @@ function dayMinus(day, n) { const t = Date.parse(day + 'T12:00:00Z') - n * 86400
    group = 'all' | a HU_GROUPS key; n = how many days back from today (1-30). */
 function view(sources, today, n, group) {
   n = Math.max(1, Math.min(HU_KEEP, n | 0 || 7));
-  const modes = group && HU_GROUPS[group] ? HU_GROUPS[group] : HU_MODES.filter(m => m !== 'arenadef');
+  const modes = group && HU_GROUPS[group] ? HU_GROUPS[group] : HU_MODES.filter(m => !HU_DEF.includes(m));
   const from = dayMinus(today, n - 1);
   const heroes = {}; let fights = 0, wins = 0; const servers = [];
   for (const s of sources || []) {
@@ -74,4 +80,4 @@ function clean(days) {
   }
   return out;
 }
-module.exports = { HU_KEEP, HU_MODES, HU_GROUPS, store, note, prune, view, clean, dayMinus };
+module.exports = { HU_KEEP, HU_MODES, HU_DEF, HU_GROUPS, store, note, prune, view, clean, dayMinus };

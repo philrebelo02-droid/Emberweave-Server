@@ -35966,7 +35966,9 @@ const DEV_ECONOMY_ACTS=['gold','gems','stam','arenacoin','guildcoins','shieldite
    side won. Every hero is listed, the unused ones with 0. NOTE is a hint where to look, never a verdict: STRONG / WEAK = 10 points over /
    under the average win rate with at least 20 fights; RARELY USED = under 2% of 50+ fights. */
 const HU={days:7,mode:'all',sort:'picks',dir:-1,data:null,err:'',seq:0};
-const HU_MODES=[['all','All modes'],['campaign','Campaign'],['arena','Arena attack'],['arenadef','Arena defence'],['world','World Map'],['vault','Aether Vault'],['province','Province']];
+/* v1428 (Phil: "add the other modes to hero usage too"): + bonus stages, guild raid, Skyfall attack / defence, City defence, the Starless Well;
+   World Map = sieges + mines + City PvP. Defence views (the player's heroes defending while away) are never inside All modes. */
+const HU_MODES=[['all','All modes'],['campaign','Campaign'],['bonus','Bonus stages'],['province','Province'],['vault','Aether Vault'],['well','Starless Well'],['arena','Arena attack'],['arenadef','Arena defence'],['world','World Map'],['citydef','City defence'],['raid','Guild raid'],['skyfall','Skyfall attack'],['skyfalldef','Skyfall defence']];
 function heroUsageRows(){ const d=HU.data; if(!d) return []; const by={}; for(const r of d.heroes||[]) by[r.key]=r;
   const keys=new Set([...(typeof HERO_KEYS!=='undefined'?HERO_KEYS:[]),...Object.keys(by)]), avg=d.winRate||0;
   const rows=[...keys].map(k=>Object.assign({key:k,picks:0,wins:0,pickRate:0,winRate:0},by[k]||{}));
