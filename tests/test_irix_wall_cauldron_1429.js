@@ -20,7 +20,7 @@ const D={}; for(const [m,f] of Object.entries(FILES)) D[m]=load(f);
 for(const [m,S] of Object.entries(D)){
   const tuned=[]; S.forEach(s=>s.waves.forEach((w,wi)=>w.forEach((u,ui)=>{ if('tuneHp' in u||'tuneDmg' in u) tuned.push({id:s.id,wi,ui,u}); })));
   ok(tuned.length===1&&tuned[0].id==='16-10'&&tuned[0].u.key==='irix'&&tuned[0].u.boss===true,m+': exactly one unit carries a tune - the 16-10 boss Irix');
-  ok(tuned[0].u.tuneHp===1.2&&tuned[0].u.tuneDmg===1.2,m+': its tune is +20% health and +20% damage');
+  ok(tuned[0].u.tuneHp===1.5&&tuned[0].u.tuneDmg===1.5,m+': its tune is +50% health and +50% damage (v1430 replaced the +20%: Phil 22 Nov, tests/test_irix_final_boss_1430.js)');
 }
 { const N=Object.fromEntries(D.normal.map(s=>[s.id,s])), V=D.veteran;
   ok(V.every(v=>v.waves.every((w,wi)=>w.every((u,ui)=>Math.abs(u.hpMul/(N[v.id].waves[wi][ui].hpMul*2)-1)<1e-3&&(u.tuneHp||1)===(N[v.id].waves[wi][ui].tuneHp||1)))),
@@ -30,15 +30,15 @@ const fight=(spec,waves)=>{ host.sandbox.__s=spec; host.sandbox.__w=waves; retur
   const c=campEnemyUnit(__s,0,0,'campaign',true); window._p2guard=true; units=[]; CUR={mode:'campaign',node:160,seed:1,cwaves:__w,headless:true}; waveIdx=__w.length-1; chapterWaves=__w.length;
   buildEnemyWave(); const u=units.find(x=>x.key===__s.key&&x.boss);
   return JSON.stringify({card:[c.maxHp,c.dmg],fight:u?[u.maxHp,u.dmg]:null}); })()`,host.ctx)); };
-const EXPECT={normal:[48670,58404],elite:[71575,85890],veteran:[97341,116809]};   // v1428 (7e1675cbf) HP -> v1429 HP, measured in this engine
+const EXPECT={normal:[48670,73005],elite:[71575,107363],veteran:[97341,146012]};   // v1428 (7e1675cbf) HP -> v1430 HP (x1.5; v1429 was x1.2: 58404 / 85890 / 116809), measured in this engine
 for(const [m,S] of Object.entries(D)){
   const st=S.find(s=>s.id==='16-10'), spec=st.waves.flat().find(u=>u.boss);
   const plain=Object.assign({},spec); delete plain.tuneHp; delete plain.tuneDmg;
   const now=fight(spec,st.waves), was=fight(plain,st.waves.map(w=>w.map(u=>u===spec?plain:u)));
   ok(now.fight&&now.fight[0]===now.card[0]&&Math.abs(now.fight[1]-now.card[1])<1e-9,m+' 16-10: the enemy card and the fight build the same Irix ('+now.fight[0]+' HP, '+now.fight[1].toFixed(1)+' damage)');
   ok(was.fight[0]===EXPECT[m][0],'CONTROL '+m+': without the tune Irix is the v1428 '+EXPECT[m][0]+' HP');
-  ok(now.fight[0]===EXPECT[m][1]&&now.fight[0]===Math.round(was.fight[0]*1.2),m+' 16-10: Irix HP '+was.fight[0]+' -> '+now.fight[0]+' (x1.2)');
-  ok(Math.abs(now.fight[1]/was.fight[1]-1.2)<1e-9,m+' 16-10: Irix damage '+was.fight[1].toFixed(1)+' -> '+now.fight[1].toFixed(1)+' (x1.2)');
+  ok(now.fight[0]===EXPECT[m][1]&&now.fight[0]===Math.round(was.fight[0]*1.5),m+' 16-10: Irix HP '+was.fight[0]+' -> '+now.fight[0]+' (x1.5)');
+  ok(Math.abs(now.fight[1]/was.fight[1]-1.5)<1e-9,m+' 16-10: Irix damage '+was.fight[1].toFixed(1)+' -> '+now.fight[1].toFixed(1)+' (x1.5)');
 }
 { const B=require(path.join(ROOT,'server','bonus-stages.js')); const b=B.bossFor(D.normal,16), spec=D.normal.find(s=>s.id==='16-10').waves.flat().find(u=>u.boss);
   ok(b&&b.key==='irix'&&!('tuneHp' in b)&&!('tuneDmg' in b)&&b.hpMul===spec.hpMul&&b.dmgMul===spec.dmgMul,'the Bonus stage boss read off 16-10 is the untuned Irix (hpMul '+b.hpMul+') - the tune stays in the 16-10 fight'); }

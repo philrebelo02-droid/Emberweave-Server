@@ -27,11 +27,16 @@ const REWARD_HEROES=['tick','sylthaine','vireo','vael','fritz','rhukk','bloatus'
 const rewardSlot=s=>({3:0,6:1,9:2,10:3})[((s-1)%10)+1];
 const rewardHero=s=>REWARD_HEROES[((Math.floor((s-1)/10)*4)+rewardSlot(s))%REWARD_HEROES.length];
 const rewardStages=S.filter(e=>[3,6,9,0].includes(e.node%10));
-ck('stages 3, 6, 9 and 10 put their exact sweep-reward hero in wave 3',
-  rewardStages.every(e=>e.waves[2].some(m=>m.isHero&&m.rewardHero&&m.key===rewardHero(e.node))),
-  JSON.stringify(rewardStages.filter(e=>!e.waves[2].some(m=>m.isHero&&m.rewardHero&&m.key===rewardHero(e.node))).map(e=>e.id)));
-ck('stage 10 always fights both its reward hero and its chapter boss',
-  S.filter(e=>e.node%10===0).every(e=>e.waves[2].some(m=>m.isHero&&m.rewardHero)&&e.waves[2].some(m=>m.boss)));
+/* v1430 (Soul Eater 22 Nov, Phil "Fixing"): 16-10 alone swaps its reward hero out of the fight for the tank Rhukk (companionSwap) and still
+   names / pays the reward hero - server.js rewardHeroFoughtSrv. No other stage may do it. */
+const swapOk=(e,key)=>e.id==='16-10'&&e.companionSwap&&e.companionSwap.out===key&&e.companionSwap.in==='rhukk'&&e.rewardHero===key&&e.waves[2].some(m=>m.isHero&&!m.rewardHero&&m.key==='rhukk');
+const fights=(e,key)=>e.waves[2].some(m=>m.isHero&&m.rewardHero&&m.key===key)||swapOk(e,key);
+ck('stages 3, 6, 9 and 10 put their exact sweep-reward hero in wave 3 (16-10: the v1430 tank swap, still paying it)',
+  rewardStages.every(e=>fights(e,rewardHero(e.node))),
+  JSON.stringify(rewardStages.filter(e=>!fights(e,rewardHero(e.node))).map(e=>e.id)));
+ck('stage 10 always fights both its reward hero (16-10: its tank stand-in) and its chapter boss',
+  S.filter(e=>e.node%10===0).every(e=>fights(e,rewardHero(e.node))&&e.waves[2].some(m=>m.boss)));
+ck('v1430: only 16-10 carries a companion swap', S.filter(e=>e.companionSwap).map(e=>e.id).join()==='16-10');
 ck('bosses only ever stand in wave 3, and only on stage 10',
   S.every(e=>e.waves.every((w,i)=>w.every(m=>!m.boss||(i===2&&e.node%10===0)))));
 ck('stages 3, 6 and 9 of every chapter are the Guardian checkpoints',

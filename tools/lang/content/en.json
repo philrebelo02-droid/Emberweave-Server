@@ -3401,5 +3401,8 @@
 "Irix, the City Wall and the Cauldron":"patch_notes",
 "Irix, the Sky-Shard Roc, now has {0}% more health and deals {1}% more damage in the {2}-{3} boss fight (Normal, Elite and Veteran).":"patch_notes",
 "City Wall: the wall picture now stays in full view beside the Defense lines on phones and computers.":"patch_notes",
-"Witches Hut: the Cauldron tab now counts down until the brew is full.":"patch_notes"
+"Witches Hut: the Cauldron tab now counts down until the brew is full.":"patch_notes",
+"A tougher Irix":"patch_notes",
+"Irix, the Sky-Shard Roc, now has {0}% more health and deals {1}% more damage than his original strength in the {2}-{3} boss fight (Normal, Elite and Veteran). This replaces the {4}% from the last update.":"patch_notes",
+"In Normal {0}-{1} the hero at Irix's side is now Rhukk, a tank who shields him. Clearing the stage still gives the same hero fragments as before.":"patch_notes"
 }

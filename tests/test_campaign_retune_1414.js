@@ -28,8 +28,11 @@ ck('no stage is harder than before (every d <= 1)', N.every(s => D[s.id] <= 1));
 ck('chapters 7-16 are easier on the whole (mean d < 0.8)', (a => a.reduce((x, y) => x + y, 0) / a.length)(N.filter(s => +s.id.split('-')[0] >= 7).map(s => D[s.id])) < 0.8);
 ck('recommended power unchanged', N.every(s => s.recommendedPower === on[s.id].recommendedPower));
 // v1429: tuneHp / tuneDmg are a later per-stage tune on top of the retune (16-10 Irix x1.2, tests/test_irix_wall_cauldron_1429.js) - not part of this check
+// v1430: 16-10's companion hero was swapped for the tank Rhukk (companionSwap, tests/test_irix_final_boss_1430.js) - put the authored companion back for this check
+const unswap = s => { if (!s.companionSwap) return s; const c = JSON.parse(JSON.stringify(s)), sw = c.companionSwap; delete c.companionSwap;
+  c.waves = c.waves.map(w => w.map(u => (u.isHero && u.key === sw.in && !u.rewardHero) ? { key: sw.out, lvl: u.lvl, hpMul: u.hpMul, dmgMul: u.dmgMul, isHero: true, rewardHero: true, rank: u.rank } : u)); return c; };
 ck('waves, monsters, bosses and rewards unchanged - only hpMul / dmgMul / difficultyTune moved',
-  N.every(s => { const o = on[s.id]; const strip = x => JSON.stringify(x, (k, v) => (k === 'hpMul' || k === 'dmgMul' || k === 'difficultyTune' || k === 'tuneHp' || k === 'tuneDmg') ? undefined : v); return strip(s) === strip(o); }));
+  N.every(s => { const o = on[s.id]; const strip = x => JSON.stringify(x, (k, v) => (k === 'hpMul' || k === 'dmgMul' || k === 'difficultyTune' || k === 'tuneHp' || k === 'tuneDmg') ? undefined : v); return strip(unswap(s)) === strip(o); }));
 for (const f of ['veteran-campaign-encounters.json', 'elite-campaign-encounters.json']) {
   const V = cur(f), OV = Object.fromEntries(old(f).map(s => [s.id, s])), b = [];
   for (const v of V) { const o = OV[v.id], n = nn[v.id], q = on[v.id];

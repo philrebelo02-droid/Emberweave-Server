@@ -26,8 +26,10 @@ ck('every Elite stage awards two of one named Glyph Fragment', eliteStages.every
 const eliteHeroStages=eliteStages.filter(s=>s.rewardHero);
 ck('four selected Elite stages per chapter reward heroes', eliteHeroStages.length===64
   &&eliteHeroStages.every(s=>[1,4,7,0].includes(s.node%10)));
-ck('every hero-reward Elite stage fights its authored hero', eliteHeroStages.every(s=>
-  s.waves[s.waves.length-1].some(m=>m.isHero&&m.rewardHero&&m.key===s.rewardHero)));
+/* v1430: 16-10 alone swaps its reward hero out of the fight for the tank Rhukk (companionSwap) and still pays it (server.js rewardHeroFoughtSrv) */
+const fightsHero=s=>s.waves[s.waves.length-1].some(m=>m.isHero&&m.rewardHero&&m.key===s.rewardHero)
+  || (s.id==='16-10'&&s.companionSwap&&s.companionSwap.out===s.rewardHero&&s.companionSwap.in==='rhukk'&&s.waves[s.waves.length-1].some(m=>m.isHero&&!m.rewardHero&&m.key==='rhukk'));
+ck('every hero-reward Elite stage fights its authored hero (16-10: its v1430 tank stand-in)', eliteHeroStages.every(fightsHero));
 ck('1-star rewards run through 2-1 and 2-star rewards begin at 2-4',
   eliteStages.find(s=>s.id==='2-1').rewardHero==='tick'&&['fritz','rhukk'].includes(eliteStages.find(s=>s.id==='2-4').rewardHero));
 ck('every Veteran stage names exactly ONE glyph fragment', veteranStages.every(s=>s.rewards.glyphFragments.length===1));
@@ -82,7 +84,7 @@ ck('Elite keeps the Normal wave sizes while replacing one final-wave enemy with 
   eliteStages.every((e,i)=>e.waves.every((w,wi)=>w.length===normalStages[i].waves[wi].length)));
 ck('Veteran pays hero fragments on every Elite reward-hero stage, same hero, fought in its final wave (v1149)',
   veteranStages.filter(s=>s.rewardHero).length===64 && veteranStages.every((v,i)=>v.rewardHero===eliteStages[i].rewardHero
-    && (!v.rewardHero || v.waves[v.waves.length-1].some(m=>m.isHero&&m.rewardHero&&m.key===v.rewardHero))));
+    && (!v.rewardHero || fightsHero(v))));
 ck('every stage record carries its portal mode', normalStages.every(s=>s.portalMode==='normal')
   && eliteStages.every(s=>s.portalMode==='elite') && veteranStages.every(s=>s.portalMode==='veteran'));
 

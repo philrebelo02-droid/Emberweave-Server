@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.9.9", "releases": "v1430", "items": [{"text": "Soul Eater (tester, 22 Nov 2026, Phil answered \"Fixing\" and \"make it 20 not 10 we will tone it down if needed\"): Irix 16-10 \"would seem not\" buffed / \"Then add 50% more.\" / \"I want the final boss to be a really fun challenge\" / \"Perhaps you could remove the hero who is accompanying him and use a tank instead.\"", "notes": [0,1]}]},
     {"ver": "1.9.8", "releases": "v1429", "items": [{"text": "Soul Eater (tester, Phil's WhatsApp group, 21 Nov 2026, forwarded by Phil): Irix 16-10 \"10%, or maybe 20%, and then I'll tell you if it's okay\"; City Wall Defense tab \"Art was lost here\"; Cauldron: a counter until the brew is full", "notes": [0,1,2]}]},
     {"ver": "1.9.7", "releases": "v1426", "items": [{"text": "Phil 19 Nov 2026: \"we can redesign the buttons up there so its more obvious what they are\" / \"It should match the games ui\" / \"And icon style\" / \"bottom right needs to match\" / \"put grid right of shield\" - ChatGPT 42b52cf28 + 39a4de93c", "notes": [0, 1]}]},
     {"ver": "1.9.6", "releases": "v1425", "items": [{"text": "Phil 19 Nov 2026 (Soul Eater asked for academy speed-ups): \"Add little scrolls that reduce 1 hour time off academy cooldowns they can be earned by buying 1 every day from guild shop or in future events. Otherwise its 30 diamonds per hours reduced academy times if you dont have a scroll\"", "notes": [0, 1]}]},

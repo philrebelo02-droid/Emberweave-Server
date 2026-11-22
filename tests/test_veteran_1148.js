@@ -42,7 +42,10 @@ ok(V.filter(v=>v.rewardHero).length===64 && V.every((v,i)=>(v.rewardHero||null)=
 ok(V.filter(v=>v.rewardHero).every(v=>[1,4,7,0].includes(v.node%10)),'v1149: Veteran hero stages are x-1/4/7/10, as Elite');
 { const eliteHeroes=new Set(E.filter(e=>e.rewardHero).map(e=>e.rewardHero));
   ok(V.filter(v=>v.rewardHero).every(v=>eliteHeroes.has(v.rewardHero)),'v1149: Veteran pays only heroes Elite already pays ('+[...eliteHeroes].join(', ')+') - no shop, arena or mythical heroes'); }
-ok(V.every(v=>{ const tagged=v.waves.flat().filter(u=>u.rewardHero); return v.rewardHero ? (tagged.length===1&&tagged[0].key===v.rewardHero&&tagged[0].isHero&&!tagged[0].boss&&v.waves[v.waves.length-1].includes(tagged[0])) : tagged.length===0; }),
+ok(V.every(v=>{ const tagged=v.waves.flat().filter(u=>u.rewardHero);
+    /* v1430: 16-10 alone fights the tank Rhukk in its reward hero's slot (companionSwap) and still pays that hero */
+    if(v.id==='16-10'&&v.companionSwap&&v.companionSwap.out===v.rewardHero&&v.companionSwap.in==='rhukk') return tagged.length===0&&v.waves[v.waves.length-1].some(u=>u.isHero&&u.key==='rhukk'&&!u.boss);
+    return v.rewardHero ? (tagged.length===1&&tagged[0].key===v.rewardHero&&tagged[0].isHero&&!tagged[0].boss&&v.waves[v.waves.length-1].includes(tagged[0])) : tagged.length===0; }),
   'v1149: each hero stage fights its reward hero once, in the final wave, never as the boss; other stages tag no unit');
 /* reward ordering Normal < Elite < Veteran */
 ok(V.every((v,i)=>N[i].rewards.firstGold<E[i].rewards.firstGold&&E[i].rewards.firstGold<v.rewards.firstGold

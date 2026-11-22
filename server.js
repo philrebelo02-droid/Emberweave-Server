@@ -5847,6 +5847,13 @@ const PORTAL_GATE=Object.freeze({ normal:null,
 let PORTALS={};          // mode -> { byNode, list }
 let FRAG_SOURCES={};     // fragmentId -> [{ mode, stageId }]
 let CAMP_ENC=null;
+/* v1430 (Soul Eater 22 Nov 2026, Phil: "Fixing" - 16-10: "remove the hero who is accompanying him and use a tank instead"): a hero-reward
+   stage normally fights the hero it pays. A stage may carry ONE authored companionSwap {out, in, rewardHero}: the reward hero (out) is not
+   in the fight and the hero "in" stands in that slot, while the stage still names and pays rewardHero. Only 16-10 carries one. */
+function rewardHeroFoughtSrv(e,final,key){
+  if((final||[]).some(m=>m&&m.isHero&&m.rewardHero&&m.key===key)) return true;
+  const sw=e&&e.companionSwap;
+  return !!(sw&&sw.out===key&&sw.rewardHero===key&&e.rewardHero===key&&(final||[]).some(m=>m&&m.isHero&&!m.rewardHero&&m.key===sw.in)); }
 function portalCompile(){
   PORTALS={}; FRAG_SOURCES={};
   for(const mode of PORTAL_MODES){
@@ -5864,10 +5871,10 @@ function portalCompile(){
       if(mode==='elite'){
         const final=e.waves[e.waves.length-1]||[];
         if(gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Elite stage must pay two Glyph Fragments');
-        if(e.rewardHero&&!final.some(m=>m&&m.isHero&&m.rewardHero&&m.key===e.rewardHero)) throw new Error(mode+' '+e.id+': Elite hero-reward stage must fight its authored hero');
+        if(e.rewardHero&&!rewardHeroFoughtSrv(e,final,e.rewardHero)) throw new Error(mode+' '+e.id+': Elite hero-reward stage must fight its authored hero');
       }
       if(mode==='veteran'&&gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Veteran stage must pay two Glyph Fragments (v1148)');
-      if(mode==='veteran'&&e.rewardHero&&!(e.waves[e.waves.length-1]||[]).some(m=>m&&m.isHero&&m.rewardHero&&m.key===e.rewardHero)) throw new Error(mode+' '+e.id+': Veteran hero-reward stage must fight its authored hero (v1149)');
+      if(mode==='veteran'&&e.rewardHero&&!rewardHeroFoughtSrv(e,e.waves[e.waves.length-1]||[],e.rewardHero)) throw new Error(mode+' '+e.id+': Veteran hero-reward stage must fight its authored hero (v1149)');
       for(const f of gf){
         if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error(mode+' '+e.id+': fragment record malformed');
         const q=f.key.slice(0,f.key.lastIndexOf(' '));
@@ -5919,7 +5926,7 @@ function campCompile(){
       if(isHeroRewardStageSrv(e.node)){
         const expected=eliteHeroForSrv(e.node), final=e.waves&&e.waves[2];
         if(e.rewardHero!==expected) throw new Error('stage '+e.node+' rewardHero is '+e.rewardHero+', expected '+expected);
-        if(!Array.isArray(final)||!final.some(m=>m&&m.isHero&&m.rewardHero&&m.key===expected)) throw new Error('stage '+e.node+' final wave is missing reward hero '+expected);
+        if(!Array.isArray(final)||!rewardHeroFoughtSrv(e,final,expected)) throw new Error('stage '+e.node+' final wave is missing reward hero '+expected);
         if(campIsBoss(e.node)&&!final.some(m=>m&&m.boss)) throw new Error('stage '+e.node+' final wave is missing its chapter boss');
       }
       for(const f of gf){ if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error('stage '+e.node+' glyph target malformed');
