@@ -23802,7 +23802,9 @@
           "lvl": 100,
           "hpMul": 5.9235,
           "dmgMul": 9.0415,
-          "boss": true
+          "boss": true,
+          "tuneHp": 1.2,
+          "tuneDmg": 1.2
         },
         {
           "key": "tick",

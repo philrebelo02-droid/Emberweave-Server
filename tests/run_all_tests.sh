@@ -641,6 +641,8 @@ node tests/test_hero61_art.js || FAILED=1
 node tests/test_hero61_fx.js || FAILED=1
 note "test_battle_limit_1399.js (v1399, Phil 17 Nov: \"all battles should be 3 minutes to time out now\" / \"every single battle mode\" - every mode's limit is 180 s, page and server)"
 node tests/test_battle_limit_1399.js || FAILED=1
+note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Irix +20% health and damage in that fight only; City Wall art in view; Cauldron \"Full in\")"
+node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json

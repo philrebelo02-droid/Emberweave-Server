@@ -3133,6 +3133,13 @@ function witchState(u,now){
   return {state:u.witch,capacity:cap,playerLevel:level};
 }
 const WITCH_MAX_LEVEL=100;   // witchBenchmarkCapacity stops growing at 100
+/* v1429 (tester Soul Eater 21 Nov 2026: a counter for when the brew is full): the exact time left, from the refill law itself - WITCH.settle
+   adds capacity/FULL_TICKS every TICK_MS (6 s) counted from state.tickAt, so the cauldron is full on the first tick that covers what is
+   missing. 0 = full. The Cauldron tab counts it down ("Full in 4:12", then "Full"). */
+function witchFullInMs(state,cap,now){
+  if(!state||!(cap>0)||!(state.brew<cap)) return 0;
+  const ticks=Math.max(1,Math.ceil((cap-state.brew)*WITCH.FULL_TICKS/cap-1e-9));
+  return Math.max(0,(+state.tickAt||now)+ticks*WITCH.TICK_MS-now); }
 /* 14 Nov 2026 (WIRING/41d): a heal costs 10% of this number per full HP and heal-all goes strongest first by it. The cauldron's capacity
    (witchBenchmarkCapacity) is priced without talents, so the cost is too: learning talents never makes a heal dearer. */
 function witchHealPower(u,key){ return heroGatePower(u,key); }
@@ -3154,7 +3161,7 @@ function witchView(u,now){
         returnAt:worldHeroReturnAt(u,key,now)}; })
     .filter(h=>h.hp<WITCH.HP_FULL).sort((a,b)=>b.power-a.power||a.key.localeCompare(b.key));
   return {ok:true,locked:false,level:w.state.level,playerLevel:w.playerLevel,
-    brew:w.state.brew,capacity:w.capacity,refillMs:WITCH.TICK_MS*WITCH.FULL_TICKS,
+    brew:w.state.brew,capacity:w.capacity,refillMs:WITCH.TICK_MS*WITCH.FULL_TICKS,fullInMs:witchFullInMs(w.state,w.capacity,now),
     heroes,offer:WITCH.shopOffer(w.state),shopUses:w.state.shopUses,
     surgeUntil:w.state.surgeUntil,ledger:ledgerView(u),
     upgrade:witchUpgradeOffer(w,A),res:Object.assign({},A.res)};

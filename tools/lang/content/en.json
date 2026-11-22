@@ -3397,5 +3397,9 @@
 "No scroll? Take an hour off for {0} diamonds, or finish the research at once.":"patch_notes",
 "Clearer world map buttons":"patch_notes",
 "The world map's top and bottom buttons now use the game's own frames and painted icons, and each one says what it does: Marches, Teleport, Shield, Grid, Find mines and the coordinate search.":"patch_notes",
-"Big resource counts on the map are shortened; tap one to see the exact amount.":"patch_notes"
+"Big resource counts on the map are shortened; tap one to see the exact amount.":"patch_notes",
+"Irix, the City Wall and the Cauldron":"patch_notes",
+"Irix, the Sky-Shard Roc, now has {0}% more health and deals {1}% more damage in the {2}-{3} boss fight (Normal, Elite and Veteran).":"patch_notes",
+"City Wall: the wall picture now stays in full view beside the Defense lines on phones and computers.":"patch_notes",
+"Witches Hut: the Cauldron tab now counts down until the brew is full.":"patch_notes"
 }
