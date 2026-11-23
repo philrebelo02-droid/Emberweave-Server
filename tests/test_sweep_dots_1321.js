@@ -8,10 +8,13 @@ const ck = (n, c, x) => { if (c) { P++; console.log('  ok   ' + n); } else { F++
 const html = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
 const old = cp.execSync('git show 68b0d29b:emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }).toString();
 
-ck('Guardian / boss / elite / veteran stages get a Sweep xN button (N = runs left today, capped by stamina)', /id="smSweepN" data-n="\$\{n\}"/.test(html) && /const n=Math\.max\(0,Math\.min\(_left,Math\.floor\(\(G\.stamina\|\|0\)\/Math\.max\(1,stageStamCost\(i,mode\)\)\)\)\)/.test(html));
-ck('its label is Sweep xN (x3 when out of runs, disabled)', /t\('stage\.sweep'\)\+' ×'\+\(n>0\?n:ELITE_BOSS_DAILY\)/.test(html));
-ck('it sweeps exactly N runs', /swN\.onclick=\(\)=>\{ const n=\+swN\.dataset\.n\|\|0; if\(n>0\) sweepStage\(i,n,mode\); \}/.test(html));
-ck('normal stages keep Sweep x10', /cleared&&!_eb\?`<button class="btn secondary" id="smSweep10"/.test(html));
+// v1432 (Phil 23 Nov 2026: "SWEEP, X 1, X 10, X" / "sweep isnt a pressable button but the X1 X10 and X is" / "the X should give the player the option to type their sweep amount")
+const has = s => html.includes(s);
+ck('SWEEP is a label (not a button); x1, x10 (x3 on Guardian/boss stages) and X are the buttons', has('<div class="smSweepGrp"><span class="smSweepLbl">') && has(`id="smSweep" \${live?'':'disabled'}>×1</button>`) && has('>×${_eb?ELITE_BOSS_DAILY:10}</button>') && has(`id="smSweepX" data-n="\${most}" \${live?'':'disabled'}>X</button>`));
+ck('the most a sweep sends = runs left today on Guardian/boss stages, 10 otherwise, capped by stamina', has('cap=_eb?Math.max(0,_left):10, most=Math.max(0,Math.min(cap,aff))'));
+ck('x10 / x3 sweeps that many runs', has("sw10.onclick=()=>{ const n=+sw10.dataset.n||0; if(n>0) sweepStage(i,n,mode); }"));
+ck('X lets the player type the amount (1 to the most), Enter or the tick sweeps it', has('id="smSweepXN" type="number"') && has('const n=Math.max(1,Math.min(most,Math.floor(+inp.value||0))); if(n>0) sweepStage(i,n,mode);') && has("e.key==='Enter'"));
+ck('CONTROL: v1320 had no X sweep', !old.includes('smSweepX'));
 ck('CONTROL: v1320 showed a disabled x10 on these stages and had no xN', !/smSweepN/.test(old));
 ck('after a sweep the stage panel is drawn again from the new counts (chances n/3, buttons, EGP reset) before the receipt', /openStageModal\(i,mode\); \}catch\(e\)\{\}\r?\n\s*const tgt=document\.getElementById\('smFragTarget'\);/.test(html));
 ck('the receipt survives the panel\'s own stage refresh', /window\._smReceipt=\{key:mode\+':'\+i, html:tgt\.innerHTML\}/.test(html) && /\(window\._smReceipt&&window\._smReceipt\.key===_smKey\)\?window\._smReceipt\.html:stageDropsHTML/.test(html));
