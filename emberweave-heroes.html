@@ -25460,10 +25460,10 @@ function openStageModal(i,mode){
     ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">'+t('stage.no_stamina')+'</div>'}
     <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?statusIcon('attack')+' '+(cleared?t('stage.fight_again'):t('stage.fight_now')):hudIcon('lock')+' '+t('stage.reach_level',{n:_gate})}</button>
       ${(()=>{ /* v1432 (Phil 23 Nov 2026: "SWEEP, X 1, X 10, X" / "sweep isnt a pressable button but the X1 X10 and X is"): SWEEP is a label, the counts are the buttons.
-           ×1 = one run; ×10 (×${ELITE_BOSS_DAILY} on a Guardian/boss stage) = as many as the stamina pays for, up to that; X = choose the number (one sweep is at most 10 runs, or the runs left). */
+           ×1 = one run; ×10 (×${ELITE_BOSS_DAILY} on a Guardian/boss stage) = as many as the stamina pays for, up to that; X = choose the number (one sweep is at most 10 runs) - normal stages only: Guardian/boss/Elite stages stay at 3 attempts a day, so they get ×1 and ×3 and no X (Phil 23 Nov 2026: "Elite is still capped at 3 attempts unless they reset the stage. No x button for elite"). */
         const aff=Math.floor((G.stamina||0)/Math.max(1,stageStamCost(i,mode))), cap=_eb?Math.max(0,_left):10, most=Math.max(0,Math.min(cap,aff)), live=cleared&&_threeStar&&canPay&&_farmable&&most>0;
         const lbl=cleared&&!_threeStar?hudIcon('lock')+' '+t('stage.needs',{stars:uiIcon('star-filled').repeat(3)}):statusIcon('dash')+' '+escapeHTML(t('stage.sweep').toLocaleUpperCase(LANG.cur));
-        return `<div class="smSweepGrp"><span class="smSweepLbl">${lbl}</span><button class="btn secondary" id="smSweep" ${live?'':'disabled'}>×1</button><button class="btn secondary" id="smSweep10" data-n="${most}" ${live?'':'disabled'}>×${_eb?ELITE_BOSS_DAILY:10}</button><button class="btn secondary" id="smSweepX" data-n="${most}" ${live?'':'disabled'}>X</button></div>`; })()}
+        return `<div class="smSweepGrp"><span class="smSweepLbl">${lbl}</span><button class="btn secondary" id="smSweep" ${live?'':'disabled'}>×1</button><button class="btn secondary" id="smSweep10" data-n="${most}" ${live?'':'disabled'}>×${_eb?ELITE_BOSS_DAILY:10}</button>${_eb?'':`<button class="btn secondary" id="smSweepX" data-n="${most}" ${live?'':'disabled'}>X</button>`}</div>`; })()}
       ${(()=>{ const P=patNow(); if(!_eb||_left>0||!P||!P.rows||!(P.rows.eliteResets>0)) return ''; const u=(P.used&&P.used.eliteResets)|0, mx=P.rows.eliteResets, c=(P.costs&&P.costs.eliteReset)||50;   /* v1093: EGP Elite stage reset */
         return `<button class="btn secondary" id="smReset" ${u>=mx||(G.gems||0)<c?'disabled':''}>↺ ${t('stage.reset_runs')} · ${hudIcon('gem')}${c} (${u}/${mx})</button>`; })()}
       <button class="btn sm secondary smCancel" id="smClose">${(typeof CAMP_RETURN!=='undefined'&&CAMP_RETURN&&HERO_TYPES[CAMP_RETURN.hero])?'◀ '+escapeHTML(HERO_TYPES[CAMP_RETURN.hero].name):t('stage.back_to_map')}</button></div>
@@ -38033,7 +38033,7 @@ setTimeout(async()=>{ try{ if(!('caches' in window)) return; const c=await cache
   ewStep('offart-open', 'held '+n+' persisted '+per+(est?(' usage '+Math.round((est.usage||0)/1048576)+'MB quota '+Math.round((est.quota||0)/1048576)+'MB'):'')+(last?(' log '+last):''));
 }catch(e){} }, 12000);
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1795432934261';
+const BUILD_ID = '1795433090409';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

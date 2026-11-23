@@ -70,6 +70,12 @@ let fails=0; const ok=(c,m)=>{ if(c) console.log('  ok   '+m); else { fails++; c
       await page.evaluate(()=>openStageModal(Math.min(portalStages('normal'),(G.campaignCleared|0)+1),'normal')); await delay(600);
       const U=await page.evaluate(()=>{ const q=s=>document.querySelector('#stageModal '+s); return { lbl:!!q('.smSweepLbl'), dis:['#smSweep','#smSweep10','#smSweepX'].map(s=>{ const b=q(s); return b?b.disabled:null; }) }; });
       ok(U.lbl&&U.dis.every(d=>d===true),tag+': on an uncleared stage the three are disabled ('+JSON.stringify(U.dis)+')');
+      // an Elite stage (3 attempts a day): SWEEP x1 x3, no X (Phil 23 Nov 2026: "Elite is still capped at 3 attempts unless they reset the stage. No x button for elite")
+      await page.evaluate(()=>{ closeStageModal(); G.stageStars=G.stageStars||{}; G.stageStars[3]=3; }); await delay(200);
+      await page.evaluate(()=>openStageModal(3,'normal')); await delay(600);
+      const E=await page.evaluate(()=>{ const q=s=>document.querySelector('#stageModal '+s); return { elite:isEliteStage(3), lbl:!!q('.smSweepLbl'), texts:['#smSweep','#smSweep10'].map(s=>{ const b=q(s); return b&&b.textContent.trim(); }), x:!!q('#smSweepX') }; });
+      ok(E.elite&&E.lbl&&JSON.stringify(E.texts)==='["×1","×3"]'&&!E.x,tag+': an Elite stage shows SWEEP x1 x3 and no X ('+JSON.stringify(E)+')');
+      if(OUT&&tag==='desktop') await page.screenshot({path:path.join(OUT,'sweep-'+tag+'-elite.png')});
       ok(errs.length===0,tag+': no page errors ('+errs.slice(0,2).join(' | ')+')');
       await ctx.close();
     }
