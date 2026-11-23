@@ -36333,7 +36333,7 @@ function playerInfoFill(host, id){ if(!host||!id) return Promise.resolve(null);
         row('Forge Dust',n(C.forgeDust)),row('Arena coins',n(C.arenaCoins)),row('Guild coins',n(C.guildCoins)),row('XP potions',n(C.xpPotions)),row('Shields',n(C.shields))]));
       if(R) S.push(sec('Roster',[row('Heroes',R.heroes),row('Team power',n(R.teamPower)),row('Roster power',n(R.rosterPower))]
         .concat((R.top||[]).map((h,i)=>row((i+1)+'. '+h.name,'Lv '+h.level+' · '+stars(h)+' · '+n(h.power))))));
-      if(A) S.push(sec('Purchases',[row('Packs claimed',n(A.packs)),row('Free packs',n(A.freePacks)),row('Plans',n(A.plans)),row('Diamonds bought',n(A.diamondsBought)),row('Paid',A.usd?'$'+(+A.usd).toFixed(2):'—'),row('Temple level',G.templeLevel|0)]
+      if(A) S.push(sec('Purchases',[row('Packs claimed',n(A.packs)),row('Free packs',n(A.freePacks)),row('Plans',n(A.plans)),row('Diamonds bought',n(A.diamondsBought)),row('Paid (real money)',A.usd?'$'+(+A.usd).toFixed(2):'$0.00'),row('Free pack value',A.freeUsd?'$'+(+A.freeUsd).toFixed(2):'—'),row('Temple level',G.templeLevel|0)]
         .concat((A.recent||[]).map(x=>row(dt(x.t),x.label+(x.free?' (free)':(x.usd?' · $'+(+x.usd).toFixed(2):'')))))));
     }
     S.push(sec('Reports',[row('Reports sent',n(Rp.sent)),row('Latest',Rp.lastAt?dt(Rp.lastAt):'—')]));

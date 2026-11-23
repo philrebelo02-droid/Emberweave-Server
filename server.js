@@ -4068,8 +4068,8 @@ function adminPlayerInfo(u){
     let teamPower=0; try{ teamPower=ledgerTeamPower(u); }catch(e){}
     out.roster={ heroes:keys.length, teamPower, rosterPower:heroes.reduce((s,h)=>s+h.power,0), top:heroes.slice(0,5) };
     const buys=Array.isArray(led.purchases)?led.purchases:[]; let bought=0, freeN=0, planN=0, usd=0;
-    for(const x of buys){ const o=x&&SHOP_OFFER_BY_ID[x.id]; if(!o) continue; if(x.free) freeN++; usd+=+x.usd||0; if(o.kind==='gems') bought+=o.amount|0; else planN++; }
-    out.account={ packs:buys.length, freePacks:freeN, plans:planN, diamondsBought:bought, usd:Math.round(usd*100)/100,
+    let freeUsd=0; for(const x of buys){ const o=x&&SHOP_OFFER_BY_ID[x.id]; if(!o) continue; if(x.free){ freeN++; freeUsd+=+x.usd||0; } else usd+=+x.usd||0; if(o.kind==='gems') bought+=o.amount|0; else planN++; }   /* 23 Nov 2026 (Phil: "he spent 23558 that cant be right"): Paid = real money only; free pre-beta packs on their own line */
+    out.account={ packs:buys.length, freePacks:freeN, plans:planN, diamondsBought:bought, usd:Math.round(usd*100)/100, freeUsd:Math.round(freeUsd*100)/100,
       recent:buys.slice(-10).reverse().map(x=>{ const o=x&&SHOP_OFFER_BY_ID[x&&x.id]; return { id:String((x&&x.id)||''), label:String((o&&(o.label||o.name))||(x&&x.id)||''), t:+(x&&x.t)||0, usd:+(x&&x.usd)||0, free:!!(x&&x.free) }; }) };   /* v1379: "I paid and didn't get it" */
     const inc=Array.isArray(led.battleIncidents)?led.battleIncidents:[];
     out.incidents=inc.slice(-6).reverse().map(x=>({ t:x.t||0, stage:String(x.stage||''), mode:String(x.mode||''), why:String(x.why||'').slice(0,160) }));   /* v1379: the card's Battle log */
@@ -5396,6 +5396,9 @@ function patronState(led){ let p=led.patron;
     p={v:1,base:0,prestiged:false,edpBase:0};
     for(const x of (Array.isArray(led.purchases)?led.purchases:[])) p.base+=patronBaseOfUsd(x&&x.usd);
     led.patron=p; }
+  // AUTO-PRESTIGE (Phil 23 Nov 2026: "it should automatically prestige him"): at EGP 15 a player becomes an Ember Diamond Patron by
+  // themselves - no button; the excess over EGP 15 carries into EDP (as the old /api/patron/prestige did)
+  if(!p.prestiged && p.base>=PATRON.egp[15]){ p.prestiged=true; p.edpBase=Math.max(0,p.base-PATRON.egp[15]); p.autoPrestigedAt=Date.now(); }
   return p; }
 function patronLevels(led){ const p=patronState(led); let egp=0; for(let i=1;i<PATRON.egp.length;i++) if(p.base>=PATRON.egp[i]) egp=i;
   let edp=0; if(p.prestiged){ egp=15; for(let i=1;i<PATRON.edp.length;i++) if(p.edpBase>=PATRON.edp[i]) edp=i; }
@@ -5408,7 +5411,7 @@ function pvpDayOf(me){ const dk=nyDayKey(); if(!me.pvpDay||me.pvpDay.k!==dk) me.
 function attackCap(me){ const dk=nyDayKey(), d=(me.pvpDay&&me.pvpDay.k===dk)?me.pvpDay:null; return patronFreeAttacks(ensureLedger(me))+((d&&d.extra)|0); }
 /* a paid purchase: its base diamonds raise EGP (or EDP after the prestige), and the rebate at the level held BEFORE it is paid in diamonds */
 function patronCreditPurchase(me,led,usd,reason){ const p=patronState(led), base=patronBaseOfUsd(usd), pct=patronRebatePct(led), before=patronLevels(led);
-  if(p.prestiged) p.edpBase+=base; else p.base+=base;
+  if(p.prestiged) p.edpBase+=base; else { p.base+=base; patronState(led); }   /* crossing EGP 15 prestiges at once (23 Nov 2026) */
   const rebate=Math.floor(base*pct/100); let paid=0; if(rebate>0) paid=creditGems(me,led,rebate,'patron-rebate:'+reason);
   const after=patronLevels(led); return {base,rebatePct:pct,rebate:paid,egpBefore:before.egp,egp:after.egp,edp:after.edp,prestiged:after.prestiged}; }
 /* v1092 phase 3: EGP ROWS - systems that already exist, on the reference ladder, and never below what every player has today.

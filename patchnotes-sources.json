@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver":"1.9.10","releases":"v1431","items":[{"text":"Phil, 23 Nov 2026, on Soul Eater (EGP 15 but not EDP): \"is it not reading him as EDP?\" / \"it should automatically prestige him\". Patron EGP 15 now prestiges to EDP automatically (server.js patronState); the excess carries.","shipped":"SHIPPED-v1431-auto-prestige-23-11-2026.md"}]},
     {"ver": "1.9.9", "releases": "v1430", "items": [{"text": "Soul Eater (tester, 22 Nov 2026, Phil answered \"Fixing\" and \"make it 20 not 10 we will tone it down if needed\"): Irix 16-10 \"would seem not\" buffed / \"Then add 50% more.\" / \"I want the final boss to be a really fun challenge\" / \"Perhaps you could remove the hero who is accompanying him and use a tank instead.\"", "notes": [0,1]}]},
     {"ver": "1.9.8", "releases": "v1429", "items": [{"text": "Soul Eater (tester, Phil's WhatsApp group, 21 Nov 2026, forwarded by Phil): Irix 16-10 \"10%, or maybe 20%, and then I'll tell you if it's okay\"; City Wall Defense tab \"Art was lost here\"; Cauldron: a counter until the brew is full", "notes": [0,1,2]}]},
     {"ver": "1.9.7", "releases": "v1426", "items": [{"text": "Phil 19 Nov 2026: \"we can redesign the buttons up there so its more obvious what they are\" / \"It should match the games ui\" / \"And icon style\" / \"bottom right needs to match\" / \"put grid right of shield\" - ChatGPT 42b52cf28 + 39a4de93c", "notes": [0, 1]}]},

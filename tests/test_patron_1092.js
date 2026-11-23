@@ -41,13 +41,13 @@ let n=0; const buy=offerId=>call('/api/shop/purchase',{offerId,provider:'test',r
   ok(pr0.data.ok===false&&/EGP 15/.test(pr0.data.error||''),'prestige is refused below EGP 15');
   // EGP 15 by data, then prestige
   await editDB(u=>{ u.led.patron.base=30100; });
-  L=await led(); ok(L.patron.egp===15&&L.patron.attacks.free===20&&L.patron.canPrestige===true,'EGP 15: 20 daily attacks, prestige offered');
+  L=await led(); ok(L.patron.egp===15&&L.patron.attacks.free===20&&L.patron.prestiged===true&&L.patron.edpBase===100&&L.patron.edp===0,'EGP 15: 20 daily attacks, and AUTO-PRESTIGED to EDP 0 with the 100 over carried (Phil 23 Nov: "it should automatically prestige him")');
   ok(JSON.stringify(L.patron.rows)===JSON.stringify({meals:12,goldBuys:12,eliteResets:8,arenaResets:7,vaultExtraSweeps:5,marches:5,marchSpeed:0,shadyOff:30,doubleGold:true,attackBuys:5}),'EGP 15 rows = Phil\'s chart: 12 / 12 purchases (cap), 8 Elite, 7 Arena resets, +5 Vault, 5 armies, 30 % Shady ('+JSON.stringify(L.patron.rows)+')');
   { await editDB(u=>{ u.led.gems=50000; u.led.shop={day:'',food:0,gold:0}; u.led.stamina={v:0,t:Date.now()}; });
     let okN=0, last=null; for(let i=0;i<12;i++){ const r=await call('/api/shop/buy',{what:'gold',requestId:'gb'+i}); last=r.data; if(r.data.ok) okN++; }
     ok(okN===12,'at EGP 15 a 9th-12th gold buy goes through (today everyone stops at 8): '+okN+' of 12 ('+(last&&last.error||'ok')+')'); }
   const pr=await call('/api/patron/prestige',{requestId:'pr1'}); L=await led();
-  ok(pr.data.ok===true&&L.patron.prestiged===true&&L.patron.edpBase===100&&L.patron.egp===15&&L.patron.edp===0,'prestige: EDP 0 with the 100 over EGP 15 carried; EGP 15 kept');
+  ok(pr.data.ok===false&&/Already/.test(pr.data.error||'')&&L.patron.prestiged===true&&L.patron.edpBase===100&&L.patron.egp===15&&L.patron.edp===0,'the old prestige button now just says Already (auto-prestiged); EDP 0 with the 100 over EGP 15 carried; EGP 15 kept');
   const gems2=L.gems; await buy('d6000'); L=await led();
   ok(L.patron.edpBase===400&&L.patron.base===30100&&L.gems===gems2+6600+360,'after the prestige a purchase counts toward EDP, rebate 120 % of 300 = 360 (gems +'+(L.gems-gems2)+')');
   const pr2=await call('/api/patron/prestige',{requestId:'pr2'}); ok(pr2.data.ok===false,'prestige once only');
