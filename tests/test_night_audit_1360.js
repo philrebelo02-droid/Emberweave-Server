@@ -24,6 +24,7 @@ both(H, H0, 'Arena: Buy +1 keeps its small size when enabled on short screens', 
 both(H, H0, 'Stage panel: the Fight / Sweep row stays at the bottom of the panel (Fold cover had no buttons)', /#stageModal \.smActions\{position:sticky;bottom:-7px;z-index:4;/);
 both(H, H0, 'Stage panel stars: empty positions use the empty star', /uiIcon\(x<_stars\?'star-filled':'star-empty'\)/);
 both(H, H0, 'Map node stars: empty positions use the empty star', /uiIcon\(x<_sst\?'star-filled':'star-empty'\)/);
-both(H, H0, 'Sweep x10 sends the number the stamina covers', /sweepStage\(i,Math\.max\(1,Math\.min\(10,\+sw10\.dataset\.n\|\|10\)\),mode\)/);
+// v1432 (SWEEP x1 x10 X): x10 carries data-n = the runs the stamina covers (most=min(cap,aff)) and sends exactly that
+both(H, H0, 'Sweep x10 sends the number the stamina covers', /most=Math\.max\(0,Math\.min\(cap,aff\)\)[\s\S]*sw10\.onclick=\(\)=>\{ const n=\+sw10\.dataset\.n\|\|0; if\(n>0\) sweepStage\(i,n,mode\); \}/);
 both(H, H0, 'Reward pop: one row of smaller tiles on short screens', /@media \(max-height:500px\)\{#stageRewPop \.srCard\{width:min\(680px,94vw\)\}#stageRewPop \.srItem\{width:78px/);
 console.log('test_night_audit_1360.js: ' + P + ' passed, ' + F + ' failed'); process.exit(F ? 1 : 0);
