@@ -8639,6 +8639,11 @@ async function api(req,res,url){
     const led=ensureLedger(me), had=led.market&&led.market.h, mk=marketOffersSrv(me,led,Date.now()); if(mk.h!==had) writeDB([me.id]);
     return send(res,200,{ok:true,hour:mk.h,restockAt:(mk.h+1)*MARKET_HOUR_MS,offers:marketOfferView(mk),
       today:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0),max:12}}); }
+  // v1435: the client's purchase recovery reports what Google Play says this phone still owns (item ids only, never tokens)
+  if(p==='/api/shop/play-recover-log' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
+    const owned=Array.isArray(b.owned)?b.owned.slice(0,20).map(x=>String(x).slice(0,40)):[];
+    console.log('[play] recover',me.id,'build',String(b.build||'').slice(0,20),'owned',JSON.stringify(owned),b.error?'error='+String(b.error).slice(0,200):'');
+    return send(res,200,{ok:true}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
     return send(res,200,{ ok:true, freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), playBillingReal:PLAY_BILLING.enabled(), offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null,real:!!o.real})),
       plans:plansView(led) }); }
@@ -8649,7 +8654,7 @@ async function api(req,res,url){
     const offer=SHOP_OFFER_BY_ID[String(b.provider==='play'?b.sku:b.offerId||'')]; if(!offer) return send(res,400,{error:'Unknown offer.'});
     if(b.provider==='play'&&typeof b.purchaseToken==='string'){
       const hash=PLAY_TOKENS.tokenHash(b.purchaseToken);
-      if(PLAY_TOKENS.usedToken(DB.users,hash)){
+      if(PLAY_TOKENS.usedToken(DB.users,hash)){ console.log('[play] buy',me.id,offer.id,'token',hash.slice(0,10),'ALREADY BOOKED - consume retried');
         if(!await playCreditSaved())return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same purchase.'});
         // Retry fulfilment notification for this account only; a replay never credits again.
         const own=me.led?.playTokens?.[hash];
@@ -8657,7 +8662,9 @@ async function api(req,res,url){
         return send(res,403,{ok:false,error:'Purchase token already used.'});
       }
     }
-    const v=await verifyPurchase(me,String(b.provider||''),b.provider==='play'?b.purchaseToken:b.receipt,offer); if(!v.ok) return send(res,403,{error:v.error});
+    const v=await verifyPurchase(me,String(b.provider||''),b.provider==='play'?b.purchaseToken:b.receipt,offer);
+    if(b.provider==='play') console.log('[play] buy',me.id,offer.id,'token',PLAY_TOKENS.tokenHash(String(b.purchaseToken||'')).slice(0,10),v.ok?'VERIFIED '+v.ref:'REFUSED '+v.error+(v.state?' '+JSON.stringify(v.state):'')+(v.cause?' cause='+v.cause:''));   /* v1435 (Phil 23 Nov: the $1 test pack still "already own"): every Play purchase attempt and Google's answer in the log */
+    if(!v.ok) return send(res,403,{error:v.error});
     if(b.provider==='play'&&PLAY_TOKENS.usedToken(DB.users,v.tokenHash)) return send(res,403,{ok:false,error:'Purchase token already used.'});
     const out=durableCommit(me,me.id+':purchase:'+(b.provider==='play'?v.tokenHash:reqId),(me)=>{ const led=ensureLedger(me); const granted={};
       if(offer.kind==='gems'&&led.gems+offer.amount>ECON_CAP.gems) return {ok:false,error:'Make room for the full diamond pack and retry the purchase.'};

@@ -37353,7 +37353,8 @@ const playBilling=(()=>{
     if(!service||recovering||pending||!ACC.token||typeof service.listPurchases!=='function') return;
     recovering=true; const tok=ACC.token;
     try{
-      const owned=await service.listPurchases();
+      let owned; try{ owned=await service.listPurchases(); }catch(e){ try{ api('/api/shop/play-recover-log','POST',{build:BUILD_ID,owned:[],error:String(e&&e.message||e)}); }catch(_){} throw e; }
+      try{ api('/api/shop/play-recover-log','POST',{build:BUILD_ID,owned:(Array.isArray(owned)?owned:[]).map(p=>p&&p.itemId)}); }catch(_){}   // v1435: what Play says is owned, for the server log
       for(const p of (Array.isArray(owned)?owned:[])){
         const sku=p&&p.itemId, purchaseToken=p&&p.purchaseToken;
         if(typeof purchaseToken!=='string'||!purchaseToken||recoverDone.has(purchaseToken)||ACC.token!==tok) continue;
@@ -37363,6 +37364,7 @@ const playBilling=(()=>{
           adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg(t('shop2.received',{item:offer.name}));
           if(typeof renderQuests==='function') try{ renderQuests(); }catch(_){} }
         else if(r&&/already used/i.test(String(r.error||''))) recoverDone.add(purchaseToken);   // booked before: the server just consumed it
+        else if(offer.real) bannerMsg((r&&r.error&&langMsg(r.error))||t('shop2.verify_unavail'));   // v1435: the $1 test pack says why it was not booked
         // anything else (Google unreachable, a pending payment, a save that failed) is asked again on the next return to the app
       }
     }catch(_){} finally{ recovering=false; }

@@ -18,7 +18,7 @@ function createPlayBilling({env=process.env,fetchImpl=globalThis.fetch,readKey=p
     }
     const url='https://androidpublisher.googleapis.com/androidpublisher/v3/applications/'+PACKAGE+'/purchases/products/'+encodeURIComponent(sku)+'/tokens/'+encodeURIComponent(token)+(action?':'+action:'');
     const r=await fetchImpl(url,{method:action?'POST':'GET',signal:AbortSignal.timeout(15000),headers:{Authorization:'Bearer '+access.token,...(action?{'Content-Type':'application/json'}:{})},...(action?{body:'{}'}:{})});
-    if(!r.ok){ if(r.status===401) access=null; throw Error('Play verification unavailable'); }
+    if(!r.ok){ if(r.status===401) access=null; let body=''; try{ body=(await r.text()).slice(0,200); }catch(_){} throw Error('Play verification unavailable ('+r.status+' '+body.replace(/\s+/g,' ')+')'); }
     return action?{}:r.json();
   }
   return {
@@ -31,9 +31,9 @@ function createPlayBilling({env=process.env,fetchImpl=globalThis.fetch,readKey=p
         if(p.purchaseState!==0||p.consumptionState!==0||typeof p.orderId!=='string'||!p.orderId|| (p.quantity!==undefined&&p.quantity!==1)||
           (p.productId!==undefined&&p.productId!==offer.id)||(p.purchaseToken!==undefined&&p.purchaseToken!==token)||
           (p.refundableQuantity!==undefined&&p.refundableQuantity!==1))
-          return {ok:false,error:'Purchase is not an unconsumed completed order.'};
+          return {ok:false,error:'Purchase is not an unconsumed completed order.',state:{purchaseState:p.purchaseState,consumptionState:p.consumptionState,acknowledgementState:p.acknowledgementState,quantity:p.quantity,refundableQuantity:p.refundableQuantity,productId:p.productId,order:!!p.orderId}};   // v1435: why, for the log
         return {ok:true,ref:p.orderId,tokenHash:tokenHash(token)};
-      }catch(_){ return {ok:false,error:'Play verification unavailable. Please try again.'}; }
+      }catch(e){ return {ok:false,error:'Play verification unavailable. Please try again.',cause:String(e&&e.message||e).slice(0,300)}; }   // v1435: the cause, for the log
     },
     // All seven offers (including repeatable plan durations) are consumable one-time products.
     // Consume acknowledges too. Always AFTER the durable credit, never on a rejected purchase.
