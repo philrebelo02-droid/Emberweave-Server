@@ -2137,15 +2137,15 @@ function marketOfferView(mk){ return mk.offers.map(o=>({i:o.i,hero:o.hero,qty:o.
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow','hero61','zahri']);   /* v1287 (Phil 5 Nov: "Only grosk and zahri is arena only right now") */
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
 /* v1079: the arena shop catalogue (= the client's ARENA_SHOP: id, price in arena coins); day = the old /api/tx/earn daily cap / amount. */
-const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, zahrifrag:{cost:500,frag:'zahri',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
+const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, zahrifrag:{cost:500,frag:'zahri',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}};   /* v1432 (Phil 23 Nov 2026: "Remove stam from arena"): the Stamina Refill is gone from the Arena shop */
 /* v1391 (Soul Eater 15 Nov 23:24: "Limit the number of times items can be purchased from the guild shop"; Phil 16 Nov: "you do it" - Claude set the numbers):
    each Guild Shop item has a WEEKLY purchase cap per player, reset at the game-week start (Monday, game day = nyDayKey). Slot 5 is pieces_guild. */
-const GSHOP_WEEK_LIMIT={1:7,2:3,3:7,4:5,5:5,6:5,7:7,8:2,9:1,10:3,11:2,14:1};
+const GSHOP_WEEK_LIMIT={1:7,2:3,4:5,5:5,6:5,7:7,8:2,9:1,10:3,11:2,14:1};
 /* Phil 16 Nov ~01:45: "protection shields should be 24 hour cooldown on purchase, wild teleport 24 hour cooldown, teleport 72 hour cooldown"
    / "on guild purchase" / "the shop" / "you can buy an attack card once a week": slot 0 (Protection Shield) has a 24 h cooldown instead of a
    weekly cap; new slots 12 Teleport Scroll (72 h), 13 Wild Teleport Scroll (24 h), 14 Attack Card (once a week). The cooldown counts from
    the player's own last purchase of that item. */
-const GSHOP_COOLDOWN_MS={0:24*3600000,12:72*3600000,13:24*3600000};
+const GSHOP_COOLDOWN_MS={0:24*3600000,3:72*3600000,12:72*3600000,13:24*3600000};   /* v1432 (Phil 23 Nov 2026: "Guild stam should be a 3 day cooldown"): slot 3 Stamina Refill, once every 3 days (was 7 a week) */
 /* v1425 (Phil 19 Nov 2026: "Add little scrolls that reduce 1 hour time off academy cooldowns they can be earned by buying 1 every day from guild
    shop or in future events. Otherwise its 30 diamonds per hours reduced academy times if you dont have a scroll"): slot 15 Academy Scroll -
    ONE per game day (resets with nyDayKey) and open in every guild, whatever its level. */
@@ -5691,10 +5691,13 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
     const qi=Math.min(poolTopGlyphTier(u)+step,GLYPH_LADDER.length-1); return Object.assign(poolGlyphFrag(u, GLYPH_LADDER[qi], n(2,4)),{next:!!step}); };
   if(h<(acc+=O.glyphFull)) return hit(()=>glyph(0));
   if(h<(acc+=O.glyphNext)) return hit(()=>glyph(1));
-  return hit(()=>{ const before=led.stamItems|0, added=before<STAM_ITEM_MAX?1:0; led.stamItems=before+added; return {type:'stamItem', n:added, stamina:STAM_ITEM_STAMINA, name:STAM_ITEM_NAME}; }); }
+  /* v1432: no Ember Roast any more - the odds add up to 1; a float remainder lands on 2-star fragments */
+  return hit(()=>{ const hk=poolPick(POOL_P2), k=n(2,3); creditFrags(u,led,hk,k,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; }); }
 /* v1142 THE EMBER ROAST (Phil 15 Oct): a stamina item from the Diamond Pool, kept on the ledger (led.stamItems) and eaten later through
    /api/stamina/use-item: +120 stamina exactly as a meal gives it (creditStamina, the 999 ceiling, refused at full). */
-const GEM_ODDS=Object.freeze({full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNext:0.10,stamItem:0.17});
+/* v1432 (Phil 23 Nov 2026: "remove ember roast from diamond wishing pool and add something else" -> "More hero fragments"): the Ember Roast's
+   17% is split between the fragment slots - 3-star fragments 17% -> 25%, 2-star fragments 23% -> 32%. Roasts already held stay usable. */
+const GEM_ODDS=Object.freeze({full3:0.03,full2:0.10,frag3:0.25,frag2:0.32,glyphFull:0.20,glyphNext:0.10});
 const STAM_ITEM_STAMINA=120, STAM_ITEM_MAX=9999, STAM_ITEM_NAME='Ember Roast';
 /* v1257 (Phil 2 Nov 2026: "Also there shouldnt be a max to stamina"): the old 999 ceiling on held stamina is gone - meals, Ember Roasts,
    rewards, refunds and level-ups add in full. STAM_CEIL is only an overflow guard. Regeneration still stops at the normal max (59 + level). */

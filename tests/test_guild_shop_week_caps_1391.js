@@ -50,9 +50,16 @@ let rid=0; const buy=what=>call('/api/shop/buy',{what,requestId:'gsw-'+(++rid)})
   const a1=await buy('gshop:14'), a2=await buy('gshop:14');
   ok(a1.data.ok===true&&a2.data.ok===false&&/Sold out for this week/.test(a2.data.error||''),'Attack Card: once a week ('+(a1.data.error||'ok')+' / '+(a2.data.error||'ok')+')');
   ok((disk().users[id].led.cards.attack|0)===1,'the attack card lands in led.cards');
+  // v1432 (Phil 23 Nov 2026: "Guild stam should be a 3 day cooldown"): the Stamina Refill (slot 3) - once, then 3 days (it was 7 a week)
+  await editDB((db,u)=>{ u.led.stam={v:1,ts:Date.now()}; }); const sr1=await buy('gshop:3');
+  await editDB((db,u)=>{ u.led.stam={v:1,ts:Date.now()}; }); const sr2=await buy('gshop:3');
+  ok(sr1.data.ok===true&&sr2.data.ok===false&&/on cooldown/.test(sr2.data.error||''),'Stamina Refill: one, then on cooldown ('+(sr1.data.error||'ok')+' / '+(sr2.data.error||'ok')+')');
+  const Ls=await led(); ok(Ls.gshopCd&&Ls.gshopCd[3]>71*3600000&&Ls.gshopCd[3]<=72*3600000,'the Stamina Refill cooldown is 3 days ('+(Ls.gshopCd&&Ls.gshopCd[3])+' ms left)');
+  ok(Ls.gshopLeft[3]===undefined,'no weekly cap on the Stamina Refill any more');
   // the cooldowns end: 72 h + 1 min later the teleport sells again (cooldown stamps moved back)
   await editDB((db,u)=>{ for(const k in u.led.gshopCd) u.led.gshopCd[k]-=72*3600000+60000; });
   const t3=await buy('gshop:12'), sh3=await buy('gshop:0'); ok(t3.data.ok===true&&sh3.data.ok===true,'after the cooldowns the teleport and the shield sell again');
+  await editDB((db,u)=>{ u.led.stam={v:1,ts:Date.now()}; }); const sr3=await buy('gshop:3'); ok(sr3.data.ok===true,'after 3 days the Stamina Refill sells again ('+(sr3.data.error||'ok')+')');
   // a new game week resets the counts
   await editDB((db,u)=>{ u.led.gshopWk.wk='2000-01-03'; });
   const L2=await led(); ok(L2.gshopLeft[1]===7&&L2.gshopLeft[9]===1&&L2.gshopLeft[5]===5,'a new week resets every cap ('+JSON.stringify(L2.gshopLeft)+')');

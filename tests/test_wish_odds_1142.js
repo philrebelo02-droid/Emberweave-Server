@@ -26,7 +26,8 @@ const _byStars=n=>new Set(Object.keys(_HB).filter(k=>!_SKIP.has(k)&&((_HB[k]||{}
 const P2=_byStars(2), P3=_byStars(3);
 const LADDER=(()=>{ const m=src.match(/const GLYPH_LADDER=Object\.freeze\((\[[^\]]*\])\)/); return m?eval(m[1]):[]; })();
 let rq=0; const R=()=>'w'+(rq++)+'-'+Date.now();
-const TABLE={full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNext:0.10,stamItem:0.17};
+// v1432 (Phil 23 Nov 2026): the Ember Roast left the Diamond Pool - its 17% went to the fragment slots (frag3 0.17 -> 0.25, frag2 0.23 -> 0.32)
+const TABLE={full3:0.03,full2:0.10,frag3:0.25,frag2:0.32,glyphFull:0.20,glyphNext:0.10};
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'wish1142-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
@@ -78,7 +79,7 @@ const TABLE={full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNex
   // the ledger gain over the batch, not the raw total: the 39th wish in 1b is an ordinary roll and is itself an Ember Roast 17 % of the time,
   // which sat on the ledger before L0 and made this read 1 over (16 Oct 2026, 1 run in 4 - never a double credit)
   const gained=(L1.stamItems|0)-(L0.stamItems|0);
-  ok(gained===items&&items>0,'every Ember Roast that dropped in the batch is held on the ledger (+'+gained+' of '+items+', '+(L0.stamItems|0)+' held before)');
+  ok(items===0&&gained===0,'v1432: no Ember Roast comes out of the Diamond Pool any more ('+items+' dropped, ledger +'+gained+')');
 
   // ---- 5. the Ember Roast: +120, spends one, refuses at 0, a replayed requestId pays once ----
   await editDB(u=>{ u.led.stamItems=2; u.led.stam={v:500,ts:Date.now()}; });

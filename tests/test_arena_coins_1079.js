@@ -53,6 +53,8 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   ok(s2.data.ok===true&&((L6.frags||{}).grosk|0)===((L5.frags||{}).grosk|0)+5&&L6.arenaCoins===4200,'Grosk Fragments x5 for 500 coins ('+(s2.data.error||'')+')');
   const bad=await call('/api/arena/shop',{item:'__proto__',requestId:'ac-bad'});
   ok(bad.data.ok===false||bad.status>=400,'an unknown item is refused');
+  const st=await call('/api/arena/shop',{item:'stam',requestId:'ac-stam'}); const L7=await led();   // v1432 (Phil 23 Nov 2026: "Remove stam from arena.")
+  ok(st.data.ok===false&&L7.arenaCoins===L6.arenaCoins,'the Arena shop no longer sells the Stamina Refill (' +(st.data.error||'ok')+')');
   // daily limit
   await editDB((db,u)=>{ u.coins=100000; u.arenaShopDay=Object.assign({},u.arenaShopDay||{},{gems1:20}); });
   const lim=await call('/api/arena/shop',{item:'gems1',requestId:'ac-lim'});
