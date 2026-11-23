@@ -34,7 +34,7 @@ async function call(route, data) { const r = await fetch(base + route, { method:
   const other = await call('/api/shop/purchase', { offerId: 'd500', provider: 'prebeta', requestId: 'tp4' });
   ok(other.status === 200 && other.data.ok === true, 'every other pack is still free (600 Diamonds claimed)');
   const src = fs.readFileSync(path.join(root, 'emberweave-heroes.html'), 'utf8');
-  ok(/id:'testpack', price:'\$1\.00', img:'d500', real:true/.test(src) && /free&&!o\.real\?t\('shop\.free_caps'\)/.test(src) && /GEM_OFFERS\[i\]\.real\) return playBilling\.buy/.test(src),
+  ok(/id:'testpack', price:'\$1\.00', img:'d500', real:true/.test(src) && /free&&!o\.real\?t\('shop\.free_caps'\)/.test(src) && /GEM_OFFERS\[i\]\.real\) return confirmRealPurchase/.test(src) && /function confirmRealPurchase[\s\S]{0,500}?gameConfirm\([\s\S]{0,400}?playBilling\.buy\(o\)/.test(src),   // v1436: real money asks first, then Google Play
      'the shop card shows $1.00 (never FREE) and buying goes only through Google Play');
   if (process.env.AUD_SERVER) { console.log('CONTROL: ' + missed.length + ' check(s) failed as expected on the old server'); process.exit(missed.length ? 0 : 1); }
   console.log('test_testpack_1291.js: ' + pass + ' checks passed');
