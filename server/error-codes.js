@@ -474,6 +474,11 @@ const EXACT=[
   ["elite_chapter_1_opens_after_completing","Elite Chapter 1 opens after completing Normal 1-10."],
   ["veteran_chapter_1_opens_after_completing","Veteran Chapter 1 opens after completing Elite 1-10."],
   ["the_prayer_failed","The prayer failed."],
+  /* v1433 (23 Nov 2026): a Temple prayer past its reach, or a hero at the Temple cap - refused, nothing spent */
+  ["this_hero_has_outgrown_that_prayer","This hero has outgrown that prayer. Use a higher prayer."],
+  ["this_hero_is_full_for_your","This hero is full for your Temple level."],
+  ["this_hero_has_outgrown_that_prayer_nothing_spent","This hero has outgrown that prayer. Use a higher prayer. Nothing was spent."],
+  ["this_hero_is_full_for_your_temple_nothing_spent","This hero is full for your Temple level. Raise the Temple to pray further. Nothing was spent."],
   ["nothing_has_accrued_yet","Nothing has accrued yet."],
   ["no_bonus_stages_cleared_yet","No bonus stages cleared yet."],
   ["unknown_bonus_stage","Unknown bonus stage."],

@@ -9243,7 +9243,7 @@ async function api(req,res,url){
           state.prayN=(state.prayN|0)+1;const prayN=state.prayN;   /* v1097 (sweep 9 Oct P0 #1): a server-owned prayer count in the seed - a reused requestId never replays rolls */
           let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,prayN,reqId+':'+i,rollIndex++));
           const s=TEMPLE.pray(state,key,tier,{profile:info.damageProfile});
-          if(!s||s.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(iterSnap)); led.gold+=g; led.gems+=d; gold-=g; gems-=d; stopped='The prayer failed.'; break; }   /* v1097: a failed prayer is refunded */
+          if(!s||s.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(iterSnap)); led.gold+=g; led.gems+=d; gold-=g; gems-=d; if(s&&s.reason==='needs_higher_prayer') stopped='This hero has outgrown that prayer. Use a higher prayer.'; else if(s&&s.reason==='hero_full_for_temple') stopped='This hero is full for your Temple level.'; else stopped='The prayer failed.'; break; }   /* v1097: a failed prayer is refunded */
           if(s.power>0){TEMPLE.saveSession(state);saved++;power+=s.power;for(const x of TEMPLE.earnBlessings(state,key,info))unlocked.push(x);}
           else{TEMPLE.discardSession(state);cancelled++;for(const x of TEMPLE.earnBlessings(state,key,info))unlocked.push(x);}   /* v1356: dots were only checked on a SAVED prayer - at the cap Multi pray always discards */
           results.push({power:s.power,saved:s.power>0,rolls:s.rolls,bonusWon:!!s.bonusPrayer,levelUps:s.levelUps||0});
@@ -9293,7 +9293,7 @@ async function api(req,res,url){
         const popt={profile:SIM.HERO_BASE[key].damageProfile};
         const session=tier==='free'?TEMPLE.freeDailyPray(state,key,popt):tier==='bonus'?TEMPLE.useBonusPrayer(state,key,popt):TEMPLE.pray(state,key,tier,popt);
         if(!session||session.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(templeSnap)); led.gold+=gold; led.gems+=gems;
-          return {ok:false,error:session&&session.reason==='tier_locked'?'That prayer tier is locked.':'The prayer failed. Nothing was spent.'}; }
+          return {ok:false,error:session&&session.reason==='tier_locked'?'That prayer tier is locked.':session&&session.reason==='needs_higher_prayer'?'This hero has outgrown that prayer. Use a higher prayer. Nothing was spent.':session&&session.reason==='hero_full_for_temple'?'This hero is full for your Temple level. Raise the Temple to pray further. Nothing was spent.':'The prayer failed. Nothing was spent.'}; }
         const tx=ledTx(me,'temple:pray',{hero:key,tier,held:b.held===true,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
         return {ok:true,rolls:session.rolls,net:session.net,power:session.power,breakout:session.breakout||1,gain:!!session.gain,amount:session.amount|0,cap:session.cap,completion:session.completion,
           tier:session.tier,bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,

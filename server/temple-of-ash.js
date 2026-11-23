@@ -176,7 +176,7 @@
       physical: { health: 35, attack: 2.4, armorMr: 7.2, pen: 4.8 },
     },
     /* Cap in steps by Temple level (spec §3): 40 / 110 / 140 / 200 MEASURED, 75 and 170 interpolated. [from temple level, cap] */
-    CAP_STEPS: [[1, 40], [5, 75], [9, 110], [13, 140], [16, 170], [19, 200]],
+    CAP_STEPS: [[1, 40], [5, 75], [9, 110], [13, 140], [16, 170], [19, 200], [25, 230], [33, 260], [40, 290], [48, 320]],   // v1433 (Phil 23 Nov 2026: "Make a cap raise at 25, 33, 40, 48") - +30 steps each, as the last three
     POWER_PER_STEP: 10,               // MEASURED: "Power +N" = 10 x net steps, exact in all 103 measured prayers
 
     /* --- prayer tiers (OUR names; costs, exp and unlocks unchanged) --- */
@@ -206,7 +206,22 @@
        START (by Temple level, the cap bands) x (1 - (1 - END_FACTOR) x completion), completion = the open bars' average / the cap.
        Temple 1-4 90%, 5-8 80%, 9-12 70%, 13-15 60%, 16-18 50%, 19+ 40%; a full hero prays at half its band's rate. Tiers still differ
        in how much they gain or lose (PRAYER_AMOUNT) - gems never buy odds. REACH / PRESSURE_MAX / ROLL_TABLES no longer set roll 1. */
-    SUCCESS: { START: [[1, 0.90], [5, 0.80], [9, 0.70], [13, 0.60], [16, 0.50], [19, 0.40]], END_FACTOR: 0.5 },
+    SUCCESS: { START: [[1, 0.90], [5, 0.80], [9, 0.70], [13, 0.60], [16, 0.50], [19, 0.40]], END_FACTOR: 0.5,
+      /* v1433 THE RULE (Phil 23 Nov 2026, after the testers: "It needs to be a fair gain or not gain as the temple level rides and percentage of heroes
+         completion rises" / "Lower prayers should work less as the heroes completion % goes up" / "Should require upgraded prayer" / "% of total
+         stats the hero can get at 50. Gold can never work after 25% of those total stats / The 50 diamonds ... 40% / The 100 diamond ... 55% / The 200
+         diamonds ... 70% / ... the only way to get max is 400 diamonds one" / "little more gradual than that but yes" / "the % is based on the MAX
+         temple level not the current" / "25% of these numbers can never be exceeded with gold prayer ... by vex"):
+         - per HERO, per BAR: a bar's fill is measured against the most it can ever hold (the Temple 50 cap, MAX_CAP_STEPS = 320 steps);
+         - the chance of a GAIN = 1 - (fill / REACH[tier]) ^ CURVE: 100 % on an empty bar, falling gently then faster, 0 at the tier's REACH;
+         - a prayer only raises bars below its ceiling (REACH x 320); when none are left it is refused and nothing is spent ("needs_higher_prayer");
+         - a prayer that does not gain changes NOTHING - no prayer lowers a bar any more (PRAYER_AMOUNT .loss is unused);
+         - the Temple level no longer changes the rate; it only sets the cap. START / END_FACTOR / TIER_MUL / FALLOFF are kept for the record only. */
+      CURVE: 1.5,
+      TIER_MUL: { gold: 0.8, kindled: 0.9, stoked: 1.0, blazing: 1.15, inferno: 1.3 },
+      FALLOFF:  { gold: 1, kindled: 1, stoked: 1, blazing: 1, inferno: 1 },
+      REACH:    { gold: 0.25, kindled: 0.40, stoked: 0.55, blazing: 0.70, inferno: 1.00 },
+      },   // an empty bar gains every time (100 %)
     /* v1098 PRAYER ROLLS (Phil 9 Oct): "1st roll for +/-, 2nd roll for the prayers numbers. Lets say gold is 1-30 ... if it lands on 30 it
        randomly distributes 30 stats between the ones available" / "the amount you lose is higher with lower tier prayers, amount you lose
        is lower with higher tier prayers. And the amount you gain is higher with higher tier".  ROLL 1 = gain or loss for the whole prayer,
@@ -315,7 +330,7 @@
     { lv: 22, exp: 10000, playerLevel: 90, unlock: "aura_3" },
     { lv: 23, exp: 10000, playerLevel: 90, unlock: "aura_4" },
     { lv: 24, exp: 10000, playerLevel: 90, unlock: null },
-    { lv: 25, exp: 10000, playerLevel: 90, unlock: null },
+    { lv: 25, exp: 10000, playerLevel: 90, unlock: "attribute_cap_raise_6" },
     { lv: 26, exp: 10000, playerLevel: 90, unlock: null },
     { lv: 27, exp: 11000, playerLevel: 90, unlock: null },
     { lv: 28, exp: 11000, playerLevel: 90, unlock: null },
@@ -323,14 +338,14 @@
     { lv: 30, exp: 11000, playerLevel: 90, unlock: "hero_meditation" },
     { lv: 31, exp: 11000, playerLevel: 95, unlock: null },
     { lv: 32, exp: 12000, playerLevel: 95, unlock: null },
-    { lv: 33, exp: 12000, playerLevel: 95, unlock: null },
+    { lv: 33, exp: 12000, playerLevel: 95, unlock: "attribute_cap_raise_7" },
     { lv: 34, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 35, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 36, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 37, exp: 13000, playerLevel: 95, unlock: null },
     { lv: 38, exp: 13000, playerLevel: 95, unlock: null },
     { lv: 39, exp: 13000, playerLevel: 95, unlock: null },
-    { lv: 40, exp: 13000, playerLevel: 95, unlock: null },
+    { lv: 40, exp: 13000, playerLevel: 95, unlock: "attribute_cap_raise_8" },
     /* OURS past the reference's 40 (Phil 27 Sep: "the temple levels should be higher, since we added a 5th dot") */
     { lv: 41, exp: 14000, playerLevel: 105, unlock: null },
     { lv: 42, exp: 14000, playerLevel: 105, unlock: null },
@@ -339,11 +354,12 @@
     { lv: 45, exp: 14000, playerLevel: 105, unlock: null },
     { lv: 46, exp: 15000, playerLevel: 110, unlock: null },
     { lv: 47, exp: 15000, playerLevel: 110, unlock: null },
-    { lv: 48, exp: 15000, playerLevel: 110, unlock: null },
+    { lv: 48, exp: 15000, playerLevel: 110, unlock: "attribute_cap_raise_9" },
     { lv: 49, exp: 15000, playerLevel: 110, unlock: null },
     { lv: 50, exp: 15000, playerLevel: 110, unlock: null },
   ];
-  const CAP_RAISE_LEVELS = [5, 9, 13, 16, 19];
+  const CAP_RAISE_LEVELS = [5, 9, 13, 16, 19, 25, 33, 40, 48];   // v1433: + 25, 33, 40, 48
+  const MAX_CAP_STEPS = TEMPLE_CONFIG.CAP_STEPS[TEMPLE_CONFIG.CAP_STEPS.length - 1][1];   // v1433: the most any bar can ever hold (Temple 50: 320)
 
   /* STATE (server-owned, plain object):
      { keeperPoints, playerLevel, freeRitualDay, _freeClaimedDay, goldLadderStep, gemTierCounts, discardsInRow, bonusPrayers, levelSeen,
@@ -552,16 +568,18 @@
     return up + down > 0 ? up / (up + down) : 1;
   }
   /* v1353: the chance a prayer is a GAIN - lower at a higher Temple level, and falling as the hero fills up (see CONFIG.SUCCESS). */
-  function successChance(templeLevel, completion) {
-    const S = TEMPLE_CONFIG.SUCCESS; let start = S.START[0][1];
-    S.START.forEach(function (x) { if ((templeLevel | 0) >= x[0]) start = x[1]; });
-    const c = Math.max(0, Math.min(1, Number(completion) || 0));
-    return start * (1 - (1 - S.END_FACTOR) * c);
+  function successChance(templeLevel, completion, tierId) {   /* v1433: completion = share of the Temple 50 max; the Temple level is ignored */
+    const S = TEMPLE_CONFIG.SUCCESS, t = S.REACH[tierId] ? tierId : 'gold', r = S.REACH[t];
+    const c = Math.max(0, Math.min(1, Number(completion) || 0)); if (c >= r - 1e-9) return 0;
+    return Math.max(0, 1 - Math.pow(c / r, S.CURVE));
   }
+  function tierCeiling(tierId, cap) { const S = TEMPLE_CONFIG.SUCCESS, r = S.REACH[tierId] || S.REACH.gold; return Math.min(cap, Math.floor(r * MAX_CAP_STEPS + 1e-9)); }   // v1433: the highest a bar can be raised by this prayer
   function prayerDeltas(tierId, bars, cur, cap, templeLevel) {
-    const avg = bars.reduce(function (a, b) { return a + Math.min(cap, cur[b] | 0); }, 0) / Math.max(1, bars.length);
-    const pUp = successChance(templeLevel, cap > 0 ? avg / cap : 0);
+    const ceil = tierCeiling(tierId, cap), able = bars.filter(function (b) { return Math.min(cap, cur[b] | 0) < ceil; });   // v1433: per bar
+    const avg = able.reduce(function (a, b) { return a + Math.min(cap, cur[b] | 0); }, 0) / Math.max(1, able.length);
+    const pUp = able.length ? successChance(templeLevel, avg / MAX_CAP_STEPS, tierId) : 0;
     const gain = roll() < pUp;
+    if (!gain) { const none = { _gain: false, _amount: 0, _steps: 0, _breakout: 1, _nothing: true }; bars.forEach(function (b) { none[b] = 0; }); return none; }   // v1433: no gain = no change (never a loss)
     const R = (TEMPLE_CONFIG.PRAYER_AMOUNT[tierId] || TEMPLE_CONFIG.PRAYER_AMOUNT.gold)[gain ? 'gain' : 'loss'];
     let amount = R[0] + Math.floor(roll() * (R[1] - R[0] + 1)), breakout = 1;
     if (gain) { const b = roll(); let acc = 0; for (const x of TEMPLE_CONFIG.BREAKOUT) { acc += x.chance; if (b < acc) { breakout = x.mult; break; } } amount *= breakout; }   // a breakout multiplies a GAIN (never a loss)
@@ -571,10 +589,10 @@
     const out = { _gain: gain, _amount: amount, _steps: steps, _breakout: breakout }, now = {};
     bars.forEach(function (b) { out[b] = 0; now[b] = Math.min(cap, cur[b] | 0); });   // bars = the OPEN bars only
     for (let i = 0; i < steps; i++) {
-      const open = bars.filter(function (b) { return gain ? now[b] < cap : now[b] > 0; });
+      const open = bars.filter(function (b) { return now[b] < ceil; });   // v1433: a gain only, and never past this prayer's ceiling
       if (!open.length) break;
       const b = open[Math.floor(roll() * open.length)];
-      out[b] += gain ? 1 : -1; now[b] += gain ? 1 : -1;
+      out[b] += 1; now[b] += 1;
     }
     return out;
   }
@@ -607,6 +625,8 @@
     const session = { v2: true, heroId: heroId, tier: tierId, profile: profile, bars: bars, rolls: {}, net: 0, power: 0, cap: cap,
       completion: heroCompletion(heroState, L, heroId) };
     const open = bars.filter(function (b, i) { return L >= (TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i] || 1); });   // v1098: a locked bar cannot move
+    { const ceil = tierCeiling(tierId, cap), able = open.filter(function (b) { return Math.min(cap, cur[b] | 0) < ceil; });   // v1433: can this prayer still raise any bar?
+      if (open.length && !able.length) return { ok: false, reason: ceil < cap ? "needs_higher_prayer" : "hero_full_for_temple" }; }
     const deltas = prayerDeltas(tierId, open, cur, cap, L);                               // v1098: roll 1 (+/-) and roll 2 (how much), dealt across the bars
     bars.forEach(function (bar) {
       const from = Math.min(cap, cur[bar]);
@@ -911,13 +931,13 @@
   }
 
   global.TempleOfAsh = {
-    CONFIG: TEMPLE_CONFIG, FLAMEKEEPER_TRACK: FLAMEKEEPER_TRACK, CAP_RAISE_LEVELS: CAP_RAISE_LEVELS,
+    CONFIG: TEMPLE_CONFIG, FLAMEKEEPER_TRACK: FLAMEKEEPER_TRACK, CAP_RAISE_LEVELS: CAP_RAISE_LEVELS, MAX_CAP_STEPS: MAX_CAP_STEPS,
     setRng: setRng, setDayKey: setDayKey,
     templeUnlocked: templeUnlocked, heroCanKindle: heroCanKindle, keeperLevel: keeperLevel, keeperProgress: keeperProgress,
     capSteps: capSteps, profileOf: profileOf, stepValue: stepValue, barValue: barValue, heroSteps: heroSteps,
     heroBars: heroBars, alignSteps: alignSteps, kindStep: kindStep, kindTargets: kindTargets, barName: barName, barIcon: barIcon, barText: barText,
     heroCompletion: heroCompletion, barsOpen: barsOpen, migrateState: migrateState, effectMax: effectMax,
-    pressureChance: pressureChance, successChance: successChance, rollBar: rollBar, tiersOpen: tiersOpen, bonusPrayerChance: bonusPrayerChance,
+    pressureChance: pressureChance, successChance: successChance, tierCeiling: tierCeiling, rollBar: rollBar, tiersOpen: tiersOpen, bonusPrayerChance: bonusPrayerChance,
     pray: pray, saveSession: saveSession, discardSession: discardSession,
     freeRitualAvailable: freeRitualAvailable, freeDailyPray: freeDailyPray, useBonusPrayer: useBonusPrayer, grantLevelUps: grantLevelUps,
     claimFreeRitual: claimFreeRitual, nextGoldCost: nextGoldCost, tierGems: tierGems, discountFor: discountFor, prayerTiers: prayerTiers,

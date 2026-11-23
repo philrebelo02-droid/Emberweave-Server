@@ -62,7 +62,7 @@ function tableSpecProblems(table, keys) {
   const auto=server.slice(server.indexOf('let gold=0,gems=0,saved=0,cancelled=0,power=0,stopped=null'),
     server.indexOf("const tx=ledTx(me,'temple:auto'"));
   const stops=[...auto.matchAll(/stopped='([^']+)'/g)].map(match=>match[1]);
-  ck(stops.length===3&&stops.every(reason=>EC.errorInfo(reason)), 'Auto-Pray server branches have registered stop reasons');
+  ck(stops.length===5&&stops.every(reason=>EC.errorInfo(reason)), 'Auto-Pray server branches have registered stop reasons');   // v1433: + outgrown prayer, hero full for the Temple
   const render=html.slice(html.indexOf('function tp2AutoHtml()'),html.indexOf('function tp2AutoWire('));
   const result={ran:2,saved:1,cancelled:1,power:12,cost:{gold:15000,gems:12000}};
   for(const locale of locales){

@@ -33,17 +33,17 @@ ck('roll 1 keeps the existing Gold success odds (up share of the measured table)
   ck('roll 2: a Gold gain of 30 power is 3 steps, all on the open bars (v1099: the roll is power, 10 power = 1 step)', s.gain === true && s.amount === 30 && s.steps === 3 && s.net === 3);
   ck('power = 10 x net steps', s.power === 30);
   ck('values are steps x the physical step', s.rolls.health.toValue === s.rolls.health.toSteps * 35); T.discardSession(st); }
-{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; T.setRng(seq([0.999, 0.999]));   // a loss of 30 on empty bars
+{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; T.setRng(seq([0.999, 0.999]));   // v1433: the highest roll on empty bars (was a loss of 30)
   const s = T.pray(st, 'h', 'gold');
-  ck('a loss on empty bars takes nothing (never below 0, power counts only applied steps)', s.gain === false && BARS.every(b => s.rolls[b].toSteps === 0) && s.power === 0); T.discardSession(st); }
+  ck('v1433: an empty bar gains every time - even the highest roll is a gain, never a loss', s.gain === true && s.net > 0 && BARS.every(b => s.rolls[b].toSteps >= 0)); T.discardSession(st); }
 { const st = T.newState(); st.heroes = { h: hero(39, 39, 39, 39) }; st.playerLevel = 50; T.setRng(seq([0.0, 0.999, 0.5]));
   const s = T.pray(st, 'h', 'gold'); T.saveSession(st);
   ck('a bar never passes the cap (40 at Temple 1); the extra points have nowhere to go', BARS.every(b => st.heroes.h.steps[b] <= 40) && s.net === 2); }
 { const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 100; st.keeperPoints = pts(14); const amt = { kindled: [], stoked: [] };
   let a = 5; T.setRng(() => { a = (a * 16807) % 2147483647; return a / 2147483647; });
   for (let i = 0; i < 300; i++) for (const t of ['kindled', 'stoked']) { const s = T.pray(st, 'h', t); amt[t].push(s.gain ? s.amount : -s.amount); T.discardSession(st); }
-  const R = T.CONFIG.PRAYER_AMOUNT; const inR = (t) => amt[t].every(v => v > 0 ? [1, 2, 3].some(m => v % m === 0 && v / m >= R[t].gain[0] && v / m <= R[t].gain[1]) : -v >= R[t].loss[0] && -v <= R[t].loss[1]);   // gains may be a x2 / x3 breakout
-  ck('every amount is inside the tier gain / loss range', inR('kindled') && inR('stoked'));
+  const R = T.CONFIG.PRAYER_AMOUNT; const inR = (t) => amt[t].every(v => v > 0 ? [1, 2, 3].some(m => v % m === 0 && v / m >= R[t].gain[0] && v / m <= R[t].gain[1]) : v === 0);   // gains may be a x2 / x3 breakout; v1433: a prayer that does not gain moves nothing (no losses)
+  ck('every gain is inside the tier range; a non-gain is 0 (v1433: never a loss)', inR('kindled') && inR('stoked'));
   ck('amounts are random, not fixed (many distinct values)', new Set(amt.kindled).size > 20); }
 // v1099 (Phil 9 Oct: Gold +260 / Kindled +390 'way too much'): a prayer moves about as much as a measured reference prayer
 { const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 100; st.keeperPoints = pts(19); let a = 7; T.setRng(() => { a = (a * 16807) % 2147483647; return a / 2147483647; });
@@ -57,8 +57,10 @@ ck('breakout chances are 1% x3 and 5% x2', JSON.stringify(T.CONFIG.BREAKOUT) ===
   const s = T.pray(st, 'h', 'gold'); ck('a 1% roll is a x3 breakout: Gold 30 becomes 90 power (9 steps)', s.breakout === 3 && s.amount === 90 && s.net === 9); T.discardSession(st); }
 { const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.0, 0.999, 0.03, 0.5]));
   const s = T.pray(st, 'h', 'gold'); ck('a 5% roll is a x2 breakout: Gold 30 becomes 60', s.breakout === 2 && s.amount === 60); T.discardSession(st); }
-{ const st = T.newState(); st.heroes = { h: hero(100, 100, 100, 100) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.999, 0.999, 0.0, 0.5]));
-  const s = T.pray(st, 'h', 'gold'); ck('a loss is never multiplied (control)', s.gain === false && s.breakout === 1 && s.amount === 30); T.discardSession(st); }
+{ const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.999, 0.999, 0.0, 0.5]));
+  const s = T.pray(st, 'h', 'gold'); ck('v1433: a prayer that does not gain changes nothing - no loss, no breakout', s.gain === false && s.breakout === 1 && s.amount === 0 && s.net === 0); T.discardSession(st); }
+{ const st = T.newState(); st.heroes = { h: hero(100, 100, 100, 100) }; st.playerLevel = 100; st.keeperPoints = pts(19);
+  const s = T.pray(st, 'h', 'gold'); ck('v1433: a Gold prayer on a hero past 25 % of its Temple 50 total is refused', s && s.ok === false && s.reason === 'needs_higher_prayer'); }
 // v1101 (Phil 9 Oct): "when you have a free prayer, you dont get free daily prayers unless you use it"
 { const st = T.newState(); st.bonusPrayers = 2; ck('holding a stored free prayer: the daily one does not arrive', T.freeRitualAvailable(st) === false);
   st.bonusPrayers = 0; ck('control: none stored and not used today: the daily free prayer is there', T.freeRitualAvailable(st) === true); }

@@ -35,7 +35,7 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   /* ---- the module's numbers are the spec's ---- */
   const C=T.CONFIG;
   ok(JSON.stringify(C.STEP.magic)===JSON.stringify({health:25,attack:3.2,armorMr:4.8,pen:7.2})&&JSON.stringify(C.STEP.physical)===JSON.stringify({health:35,attack:2.4,armorMr:7.2,pen:4.8}),'step sizes are the spec\'s "Ours" table (magic 25/3.2/4.8/7.2, physical 35/2.4/7.2/4.8)');
-  ok([[1,40],[4,40],[5,75],[8,75],[9,110],[12,110],[13,140],[15,140],[16,170],[18,170],[19,200],[40,200]].every(([l,c])=>T.capSteps(l)===c),'the cap in steps by Temple level: 40 / 75 / 110 / 140 / 170 / 200 at 1 / 5 / 9 / 13 / 16 / 19');
+  ok([[1,40],[4,40],[5,75],[8,75],[9,110],[12,110],[13,140],[15,140],[16,170],[18,170],[19,200],[24,200],[25,230],[33,260],[40,290],[47,290],[48,320],[50,320]].every(([l,c])=>T.capSteps(l)===c),'the cap in steps by Temple level: 40 / 75 / 110 / 140 / 170 / 200 / 230 / 260 / 290 / 320 at 1 / 5 / 9 / 13 / 16 / 19 / 25 / 33 / 40 / 48 (v1433: + 25, 33, 40, 48)');
   ok(T.profileOf('Magic')==='magic'&&T.profileOf('Healer')==='magic'&&T.profileOf('Attack')==='physical'&&T.profileOf('Hybrid')==='hybrid','damage type -> step profile (Magic/Healer magic, Attack physical, Hybrid both)');
   ok(T.heroCompletion({steps:steps(40,20,0,20)},1)===0.75&&T.heroCompletion({steps:steps(40,20,0,20)},19)===0.1,'completion = sum of the OPEN bar steps / (open bars x cap) (v1098: bars 3-4 open at Temple 7 / 11)');
   { const full=T.heroBonuses({steps:steps(200,200,200,200),boonsUnlocked:[]},'Bruiser','Attack');
@@ -46,8 +46,8 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
     ok(five.hpFlat===7000,'the 5th dot never touches the bars: a 200-step health bar stays +7,000 (Phil 9 Oct: 15% of BONUS stats only)'); }
   { const st=T.newState(); st.playerLevel=100; st.keeperPoints=levelPoints(19); st.heroes.h={steps:steps(200,200,200,200),boonsUnlocked:[]};
     let a=11; T.setRng(()=>{ a=(a*16807)%2147483647; return a/2147483647; });
-    let drops=0,n=0; for(let i=0;i<400;i++){ const s=T.pray(st,'h','gold',{profile:'Attack'}); n++; if(s.net<0) drops++; T.discardSession(st); }   // v1099: a prayer moves 1-3 steps, so count prayers, not bars
-    ok(drops/n>0.5,'past a tier\'s reach the pressure turns gains into drops (Gold ritual at the cap: '+Math.round(100*drops/n)+' % of prayers go down)');
+    let drops=0,n=0,refused=0; for(let i=0;i<400;i++){ const s=T.pray(st,'h','gold',{profile:'Attack'}); n++; if(s&&s.ok===false){ refused++; continue; } if(s.net<0) drops++; T.discardSession(st); }   // v1433: past its reach a tier is refused
+    ok(refused===n&&drops===0,'v1433: past Gold\'s reach (25 % of the Temple 50 total) a Gold prayer is refused - never a drop ('+refused+' of '+n+' refused)');
     st.heroes.h.steps=steps(0,0,0,0); drops=0; n=0;
     for(let i=0;i<400;i++){ const s=T.pray(st,'h','kindled',{profile:'Attack'}); n++; if(s.net<0) drops++; T.discardSession(st); }   // v1099: a prayer moves 1-3 steps, so count prayers, not bars
     ok(drops===0,'control: a fresh hero on Kindled never goes down (the measured table has no negative roll)'); }
@@ -83,10 +83,14 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   await setHero(PHYS,steps(40,39,40,38));
   await editDB(u=>{ u.led.temple.keeperPoints=0; u.led.temple.levelSeen=1; });
   let maxSeen=0;
-  for(let i=0;i<8;i++){ const p=await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()}); await call('/api/temple/save',{requestId:R()});
+  let refused=null;
+  for(let i=0;i<8;i++){ const p=await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()});
+    if(!p.data||!p.data.rolls){ refused=p.data; break; }   // v1433: every open bar at the cap - the prayer is refused, nothing spent
+    await call('/api/temple/save',{requestId:R()});
     for(const b of VB) maxSeen=Math.max(maxSeen,p.data.rolls[b].toSteps); if(i===0) ok(p.data.cap===40,'the prayer reports the Temple 1 cap (40)'); }
   L=await led();
   ok(maxSeen<=40&&VB.every(b=>L.temple.heroes[PHYS].steps[b]<=40),'no bar passes the Temple 1 cap of 40 steps (highest '+maxSeen+')');
+  ok(refused&&/full|cap|higher/i.test(JSON.stringify(refused)),'v1433: once the open bars sit at the Temple 1 cap the prayer is refused, nothing spent ('+JSON.stringify(refused&&(refused.error||refused.reason))+')');
 
   /* blessings: Temple 5, hero level 60+: dot 1 (bar 1 >= 20) and dot 2 (bar 2 >= 50) light; dot 3 needs Temple 13. v1098: the v1096-keyed
      fixture (health 25 / attack 60 / armorMr 70 / pen 10) moves positionally onto Vael's own bars (Health 25 / Crit chance 60 / ...) */
@@ -116,7 +120,9 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   ok(A.ok===true&&A.ran===10&&A.saved+A.cancelled===10,'auto pray ran 10 ('+A.saved+' saved, '+A.cancelled+' cancelled)');
   ok(A.results.every(x=>x.saved===(x.power>0)),'every prayer with power > 0 was saved and every other one cancelled');
   ok(A.results.every(x=>Object.keys(x.rolls).length===4),'every auto prayer rolled all four bars');
-  ok(VB.every(b=>A.results.some(x=>x.rolls[b].deltaSteps!==0)),'each bar moved at least once across the run');
+  /* v1433: a Gold prayer never lifts a bar past 25 % of the Temple 50 total (80 steps), so a bar at that ceiling legitimately stays put */
+  ok(A.results.some(x=>VB.some(b=>x.rolls[b].deltaSteps>0)),'the run moved the bars');
+  ok(A.results.every(x=>VB.every(b=>x.rolls[b].deltaSteps>=0&&(x.rolls[b].deltaSteps===0||x.rolls[b].toSteps<=80))),'v1433: no Gold prayer lowers a bar or lifts one past 80 steps (25 % of 320)');
   const lastSaved=A.results.filter(x=>x.saved).pop();
   ok(VB.every(b=>A.after[b]===(lastSaved?lastSaved.rolls[b].toSteps:before[b])),'the hero ends on the last saved prayer\'s steps');
   ok(A.power===A.results.filter(x=>x.saved).reduce((a,x)=>a+x.power,0)&&A.power>0,'auto pray reports the saved power ('+A.power+')');
