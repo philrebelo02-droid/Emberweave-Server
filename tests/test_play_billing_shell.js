@@ -21,7 +21,7 @@ const offers={d500:{id:'d500',kind:'gems',amount:600,usd:4.99},cluster:{id:'clus
 let verifier=billing;
 const pending={waits:new Set()};
 const ctx={DB:{users},PLAY_TOKENS:{recordToken,usedToken,tokenHash:require('../server/play-billing').tokenHash},PLAY_BILLING:{verify:(...a)=>verifier.verify(...a),settle:(...a)=>billing.settle(...a)},FREE_PACKS:false,isDev:()=>false,process:{env:{}},_reqCtx:{getStore:()=>pending},_inflight:[],_batchOpen:null,
-  SHOP_OFFER_BY_ID:offers,body:async req=>req.input,send:(_r,status,value)=>({status,value}),
+  ECON_CAP:{gems:1e12},SHOP_OFFER_BY_ID:offers,body:async req=>req.input,send:(_r,status,value)=>({status,value}),
   ensureLedger:me=>me.led,shopPlans:led=>led.plans||(led.plans={gems:{daysLeft:0},stamina:{daysLeft:0}}),
   creditGems:(me,led,n)=>{led.gems+=n;return n;},patronState:()=>{},patronCreditPurchase:()=>0,ledTx:()=>{},writeDB:()=>{},plansView:led=>led.plans||{},ledgerView:me=>({gems:me.led.gems}),
   durableCommit:(me,key,fn)=>{const draft=structuredClone(me),result=fn(draft);if(result.ok&&!failSave){Object.assign(me,draft);return result;}return failSave?{ok:false,storageFailed:true}:result;}};
