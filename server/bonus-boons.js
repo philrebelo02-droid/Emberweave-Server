@@ -30,8 +30,41 @@
    ========================================================================== */
 'use strict';
 
-const BOON_SCALE_PER_LEVEL = 0.06;
-function scaleFor(level){ return Math.pow(1+BOON_SCALE_PER_LEVEL, Math.max(0,(level|0)-1)); }
+/* v1443 (Phil 24 Nov 2026, on the boons that did nothing: "Add the effects, dont hide them" / "Add them and make them fully functional").
+   THE OLD SCALE IS GONE. A flat boon grew x1.06 per Commander level, COMPOUNDING: Ironhide was +260 health at level 1 and +83,225 at
+   level 100, against heroes of about 680 and 26,800 health - 38% of a hero at the bottom, three whole heroes at the top.
+   A flat boon is now a SHARE OF THE ROAD'S OWN HEROES: the number on the card is that share of the average maximum health (or
+   attack) of the heroes standing on the road when the firebreak opens. It grows exactly as the heroes grow - level, stars, glyphs,
+   gear - and is the same share at Commander 1 and at Commander 100. The page works the number out from the live road (it is the
+   only side that has the fight); the server sends the share. BOON_SCALE_PER_LEVEL stays exported at 0 so nothing compounds. */
+const BOON_SCALE_PER_LEVEL = 0;
+function scaleFor(level){ return 1; }
+/* of: 'hp' = the road's average maximum health; 'atk' = its average attack (a hero's Attack or Ability Power, whichever is higher) */
+const SHARE = {
+  shieldproc: { of:'hp',  share:0.05  },   // Bulwarked: a shield worth 5% of health
+  healproc:   { of:'hp',  share:0.07  },   // Merciful: a heal of 7%
+  deathblast: { of:'atk', share:2.5   },   // Pyre: 250% of attack to everything near
+  shieldstack:{ of:'hp',  share:0.025 },   // Accreting: 2.5% a kill, kept
+  crosser:    { of:'hp',  share:0.09  },   // Wayfarer: a 9% shield on arrival
+  neighbour:  { of:'hp',  share:0.08  },   // Good Neighbour (not offerable yet)
+  arriveburn: { of:'atk', share:0.25  },   // Scorched Earth: 25% of attack a second
+  bighp:      { of:'hp',  share:0.15  },   // Ironhide: +15% maximum health
+  regen:      { of:'hp',  share:0.01  }    // Mending: 1% of health a second
+};
+/* The server never holds the fight, so when it must print a number itself (the Start table an out-of-date page still reads) it uses
+   a typical road: the median hero of the balance project's squads at each Commander level (bonus scan, 24 Nov 2026), in between by
+   straight line. The live page never uses these - it measures the road. */
+const REF_HP  = [[1,680],[10,2038],[30,5439],[50,11895],[65,16013],[86,23326],[100,26770]];
+const REF_ATK = [[1,40],[10,99],[30,115],[50,151],[65,196],[86,233],[100,245]];
+function refAt(tab, level){ const L=Math.max(1,Math.min(100,level|0||1));
+  for(let i=1;i<tab.length;i++) if(L<=tab[i][0]){ const a=tab[i-1], b=tab[i]; return a[1]+(b[1]-a[1])*(L-a[0])/(b[0]-a[0]); }
+  return tab[tab.length-1][1]; }
+function refFor(level){ return { hp:refAt(REF_HP,level), atk:refAt(REF_ATK,level) }; }
+/* Picking these again changes nothing, so a road whose heroes all carry one is not offered it again. */
+const ONCE = ['lowhpimmune','healtoshield','nohealenemy','backline','critchain','firstcast','revengekill','eternalsummon','freeult',
+  'doublespeed','inherit','preheal','prewarn','prefight','arriveslow'];
+/* Does nothing at the last firebreak (one wave left): Foresight shows the waves AFTER the next one. */
+const NOT_LAST = ['prewarn'];
 
 /* v: the number in the blurb. scale:true means it grows with level. */
 const B = (fam,id,name,v,scale,text,needs,req)=>({fam,id,name,v,scale:!!scale,text,needs:needs||null,req:req||null});
@@ -61,7 +94,7 @@ function laneProfile(heroKeys, hero, opts){
   return {
     n: keys.length,
     summoner: keys.some(k=>SUMMONER_KEYS.indexOf(k)>=0),
-    healer:   keys.some(k=>HEALER_KEYS.indexOf(k)>=0 || info(k).healer===true),
+    healer:   keys.some(k=>HEALER_KEYS.indexOf(k)>=0 || info(k).healer===true || info(k).role==='Healer'),
     caster:   keys.some(k=>(+info(k).apow||0)>0),
     mixedRows: rows.some(r=>r==='Front'||r==='Mid') && rows.some(r=>r==='Back'),
     room:     o.room!==false,          // the road is below its ten-hero cap
@@ -86,6 +119,16 @@ function boonFits(b, prof){
   }
 }
 function fitsFor(prof){ return CATALOGUE.filter(b=>!b.needs && boonFits(b, prof)); }
+/* v1443: what one hero is, for the road tests - the page rebuilds a road's profile from these at EVERY firebreak (after crossings and
+   deaths), so the rule stays here and the page only counts heads. */
+function heroTags(key, hero){ const k=String(key); let h={}; try{ h=(hero&&hero(k))||{}; }catch(e){ h={}; }
+  return { s: SUMMONER_KEYS.indexOf(k)>=0 ? 1:0, h: (HEALER_KEYS.indexOf(k)>=0 || h.healer===true || h.role==='Healer') ? 1:0,
+           c: (+h.apow||0)>0 ? 1:0, r: String(h.combatRow||h.row||'') }; }
+/* the same answer laneProfile() gives, from tags (the page's own test is a copy of this one: tests/test_boon_effects_1443.js compares them) */
+function profileFromTags(tags, opts){ const o=opts||{}, t=tags||[];
+  return { n:t.length, summoner:t.some(x=>x&&x.s), healer:t.some(x=>x&&x.h), caster:t.some(x=>x&&x.c),
+    mixedRows: t.some(x=>x&&(x.r==='Front'||x.r==='Mid')) && t.some(x=>x&&x.r==='Back'),
+    room:o.room!==false, otherRoad:o.otherRoad!==false }; }
 
 const CATALOGUE = [
 
@@ -156,7 +199,7 @@ B('ESCALATE','killstack','Relentless',   0.04,false,'+{p} attack speed for every
 B('ESCALATE','hitstack','Drumbeat',      0.02,false,'+{p} damage for every attack you land this wave, up to ten.'),
 B('ESCALATE','timestack','Slow Burn',    0.05,false,'+{p} damage for every 10 seconds the wave has lasted.'),
 B('ESCALATE','hurtstack','Grudge',       0.03,false,'+{p} damage for every 10% health you are missing.'),
-B('ESCALATE','castsstack','Rhythm',      0.06,false,'Each cast in a row without auto attacking adds {p} ability power. Resets on an auto.'),
+B('ESCALATE','castsstack','Rhythm',      0.06,false,'Each cast in a row without auto attacking adds {p} ability power. Resets on an auto.',null,'caster'),   /* v1443: ability power does nothing for a road with none - server.js now passes hero(), so the caster test is real */
 B('ESCALATE','wavestack','Veteran',      0.12,false,'+{p} to everything for every wave this road has already cleared.'),
 B('ESCALATE','alonestack','Last Stand',  0.20,false,'+{p} to everything for each ally on this road who has fallen.',null,'multi'),
 B('ESCALATE','crowdstack','Warband',     0.08,false,'+{p} to everything for each ally still standing beside you.',null,'multi'),
@@ -239,7 +282,7 @@ B('BREAK','undo','Second Thoughts',  0,false,'You may redo the last window — i
    actually change your plan for. */
 B('STAT','bighp','Ironhide',        260,true, '+{v} maximum health, and you heal that much now.'),
 B('STAT','regen','Mending',         22, true, '+{v} health a second, forever.'),
-B('STAT','energy','Focus',          14, true, '+{v} energy a second, forever.'),
+B('STAT','energy','Focus',          14, false,'+{v} energy a second, forever.'),   /* v1443: energy is 0-100 at every level, so this number never scales (it was x1.06 a level: +4,481 a second at Commander 100) */
 B('STAT','lifesteal','Siphoning',   0.09,false,'{p} of all damage you deal comes back as health.'),
 B('STAT','haste','Quickened',       0.30,false,'+{p} attack speed, and it never stops.'),
 B('STAT','dr','Warded',             0.25,false,'{p} of incoming damage turned aside.'),
@@ -251,21 +294,31 @@ const FAMILIES = ['PROC','RULE','PACT','ESCALATE','ROAD','WAVE','BREAK','STAT'];
 function catalogue(){ return CATALOGUE; }
 function byFamily(f){ return CATALOGUE.filter(b=>b.fam===f); }
 
-/* the number that appears in the blurb */
-function magnitude(b, level){
+/* the number that appears in the blurb. v1443: a flat boon is a share of the road's heroes (SHARE); `ref` = {hp, atk} of that road,
+   or a typical road at this Commander level when the caller has no fight to measure. */
+function magnitude(b, level, ref){
   if(!b.scale) return b.v;
-  return Math.max(1, Math.round(b.v*scaleFor(level)));
+  const sh=SHARE[b.id]; if(!sh) return b.v;
+  const r=ref||refFor(level);
+  return Math.max(1, Math.round(sh.share*(+r[sh.of]||0)));
 }
-function describe(b, level){
-  const m=magnitude(b, level);
+function describe(b, level, ref){
+  const m=magnitude(b, level, ref);
   return b.name+' — '+b.text.split('{p}').join(Math.round(b.v*100)+'%').split('{v}').join(String(m));
 }
 function readyNow(){ return CATALOGUE.filter(b=>!b.needs); }
+/* v1443: everything the page needs to offer a boon that fits the road AS IT STANDS and to print its card: the authored name and
+   text, the number (or the share it is worked out from), who it is for, and whether a second pick does anything. */
+function deckDefs(){ const o={};
+  for(const b of readyNow()){ const sh=b.scale?SHARE[b.id]:null;
+    o[b.id]={ name:b.name, text:b.text, v:b.v, fam:b.fam, req:b.req||null, of:sh?sh.of:null, share:sh?sh.share:null,
+              once:ONCE.indexOf(b.id)>=0?1:0, notLast:NOT_LAST.indexOf(b.id)>=0?1:0 }; }
+  return o; }
 function needsEngine(){ return CATALOGUE.filter(b=>b.needs); }
 function enginePieces(){
   const s=new Set(); for(const b of needsEngine()) s.add(b.needs); return [...s].sort();
 }
 
-module.exports = { CATALOGUE, FAMILIES, BOON_SCALE_PER_LEVEL, scaleFor,
+module.exports = { CATALOGUE, FAMILIES, BOON_SCALE_PER_LEVEL, scaleFor, SHARE, ONCE, NOT_LAST, refFor, heroTags, profileFromTags, deckDefs,
   SUMMONER_KEYS, HEALER_KEYS, laneProfile, boonFits, fitsFor,
   catalogue, byFamily, magnitude, describe, readyNow, needsEngine, enginePieces };
