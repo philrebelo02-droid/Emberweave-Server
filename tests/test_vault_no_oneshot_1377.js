@@ -57,8 +57,10 @@ ck('floor 80 is still a fight: the benchmark loses heroes (' + (B80.deaths / B80
 ck('no hit cap in the page (balance is numbers only)', vm.runInContext('typeof VAULT_HIT_CAP', host.ctx) === 'undefined' && !/VAULT_HIT_CAP/.test(fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8')));
 // 5. numbers only
 ck('floors 1-59 identical to ' + OLD_SHA, NOW.slice(0, 59).every((f, i) => JSON.stringify(f) === JSON.stringify(OLD[i])));
-const strip = f => JSON.stringify(Object.assign({}, f, { waves: f.waves.map(w => w.map(m => Object.assign({}, m, { dmgMul: 0 }))) }));
-ck('floors 60-100 differ from ' + OLD_SHA + ' only in dmgMul (never raised)', NOW.slice(59).every((f, i) => strip(f) === strip(OLD[59 + i]) && f.waves.every((w, a) => w.every((m, b) => m.dmgMul <= OLD[59 + i].waves[a][b].dmgMul))));
+/* v1437 (Phil 24 Nov 2026, a player: floors 60+ "10% more damage and more health"): floors 60-100 hpMul, dmgMul and recommendedPower are x1.10
+   of the v1436 table - pinned exactly in tests/test_vault60_harder_1437.js. Here: only those three change, and dmgMul is never above the pre-v1378 table x1.10. */
+const strip = f => JSON.stringify(Object.assign({}, f, { recommendedPower: 0, waves: f.waves.map(w => w.map(m => Object.assign({}, m, { dmgMul: 0, hpMul: 0 }))) }));
+ck('floors 60-100 differ from ' + OLD_SHA + ' only in dmgMul / hpMul / recommendedPower (dmgMul never above it x1.10)', NOW.slice(59).every((f, i) => strip(f) === strip(OLD[59 + i]) && f.waves.every((w, a) => w.every((m, b) => m.dmgMul <= +(OLD[59 + i].waves[a][b].dmgMul * 1.1).toFixed(4)))));
 // information: not ready
 const U = scan(NOW, ALL, ['U'], [1]);
 console.log('  info teams ten levels under the benchmark (not ready, ' + U.n + ' fights): ' + U.os + ' one-hit kills, wins ' + U.wins + '/' + U.n + ' - allowed (Phil: "1 shotting is ok if the player isnt ready")');
