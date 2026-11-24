@@ -32,11 +32,12 @@ async function run(width,height){
     await page.evaluate(slot=>{show('campaign');openBonusModal(1,slot);},slot);
     await page.locator('#gsplitPicker .gsplitHero').first().waitFor();
   };
-  const dialog=page.locator('#bonus13Coach');
+  /* v1442 (Phil 24 Nov 2026: "Build the voice lines like you did all the other ones in the game"): the talk is spoken in the feature-guide bar (#ftutBar), not in its own bubble */
+  const dialog=page.locator('#ftutBar .ftut-box');
   const step=async(who,part,shot)=>{
     await dialog.waitFor({timeout:10000});
-    ok(await dialog.locator('strong').textContent()===who, width+' speaker '+who);
-    ok((await dialog.locator('p').textContent()).includes(part),width+' copy '+part);
+    ok((await dialog.locator('.ftut-name').textContent()).startsWith(who), width+' speaker '+who);
+    ok((await dialog.locator('.ftut-text').textContent()).includes(part),width+' copy '+part);
     const box=await dialog.boundingBox();
     ok(box.x>=0&&box.y>=0&&box.x+box.width<=width&&box.y+box.height<=height,width+' bubble fits');
     if(shot==='2-roads'||shot==='3-goal'){
@@ -45,7 +46,7 @@ async function run(width,height){
       ok(rects.length===3&&rects.every(r=>r&&(r.x+r.width<=box.x||r.x>=box.x+box.width||r.y+r.height<=box.y||r.y>=box.y+box.height)),width+' bubble leaves all road labels visible');
     }
     if(process.env.SHOTS) await page.screenshot({path:path.join(process.env.SHOTS,width+'x'+height+'-'+shot+'.png')});
-    await dialog.getByRole('button',{name:'Tap to continue'}).click();
+    await page.locator('#ftutBar .ftut-next').click(); await delay(250);
   };
   await page.evaluate(async()=>{await api('/api/admin/led-grant','POST',{unlock:Object.keys(HERO_TYPES).slice(0,12),campCleared:4});await ledgerSync();});
   await open(4);

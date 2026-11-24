@@ -5658,14 +5658,16 @@ function mineNeedPower(level){ return Math.round(300*Math.pow(1.75,level-1)*(1.4
 function mineSquadPower(u,ids){ return ids.reduce((sum,k)=>sum+heroGatePower(u,k),0); }
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
+const TUT_BONUS13_GEMS=30;   /* v1442: the reward for the Bonus 1-3 step - one number, Phil to confirm */
 const TUTORIAL_REWARDS=Object.freeze({
   win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{}, quest12:{}, rune:{gems:30},
   win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{xpPotion:'minor'}, vexxp:{}, win15:{}, gemwish:{gems:140},
-  signin:{stam:60}, name:{gems:20} });
+  signin:{stam:60}, name:{gems:20},
+  bonusclear:{gems:TUT_BONUS13_GEMS} });   /* v1442 (Phil 24 Nov 2026: "Is bonus stage part of tutorial? If not lets add it as the last step"): the last Getting Started step - clear Bonus 1-3. Its id is not "bonus13": led.tut.bonus13 already marks the Bonus 1-3 coach talk as seen (v1371). */
 const TUTORIAL_GROUPS=Object.freeze([
   Object.freeze(['win11','quest11','skill']), Object.freeze(['win12','quest12','rune']),
   Object.freeze(['win13','quest13']), Object.freeze(['win14','quest14','vexxp']),
-  Object.freeze(['win15','wish','gemwish'])]);   /* v1377 (Phil 12 Nov: "Wishing pool is a part that comes up after 1-5. It needs to first make you use gold wish, then after that diamonds wish" / "the tutorial needs to be adjusted to do gold before diamond wish"): the Gold Wish lesson moved from Stage 1-3 to Stage 1-5, right before the free Diamond Wish, and it needs a GOLD wish */
+  Object.freeze(['win15','wish','gemwish']), Object.freeze(['bonusclear'])]);   /* v1377 (Phil 12 Nov: "Wishing pool is a part that comes up after 1-5. It needs to first make you use gold wish, then after that diamonds wish" / "the tutorial needs to be adjusted to do gold before diamond wish"): the Gold Wish lesson moved from Stage 1-3 to Stage 1-5, right before the free Diamond Wish, and it needs a GOLD wish */
 /* 22 Oct 2026 (ChatGPT's overnight audit, verified by Claude): a claim was checked only against the earlier claims in its
    lesson, so POST win15 then gemwish paid 140 diamonds to a fresh account with nothing cleared. Each step now needs the
    same progress its client card waits for (TUTORIAL_STEPS done() in emberweave-heroes.html), read from the server's own
@@ -5680,6 +5682,7 @@ function tutorialStepMet(u,led,step){ const c=((led.camp||{}).cleared)|0, q=((le
   if(step==='quest14') return !!(led.unlocked&&led.unlocked.vex);
   if(step==='vexxp') return true;   // the route's own potion check below decides it
   if(step==='gemwish') return !!pool.gemFirstDone;
+  if(step==='bonusclear') return !!(led.bonus&&led.bonus.done&&led.bonus.done['1-3']);   /* v1442: Bonus 1-3 cleared */
   return false; }
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================

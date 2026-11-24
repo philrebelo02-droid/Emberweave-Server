@@ -6,7 +6,7 @@ const file = process.argv[2] || path.join(__dirname, '..', 'server.js');
 const src = fs.readFileSync(file, 'utf8');
 const a = src.indexOf("  if(p==='/api/tutorial/claim' && req.method==='POST')"), b = src.indexOf("  if(p==='/api/hero/xp-potion'", a);
 if (a < 0 || b < 0) { console.log('FAIL: tutorial route not found'); process.exit(1); }
-const table = src.match(/const TUTORIAL_REWARDS=Object\.freeze\(\{[\s\S]*?\}\);/)[0];
+const table = (src.match(/const TUT_BONUS13_GEMS=\d+;/) || [''])[0] + '\n' + src.match(/const TUTORIAL_REWARDS=Object\.freeze\(\{[\s\S]*?\}\);/)[0];
 const groups = src.match(/const TUTORIAL_GROUPS=Object\.freeze\(\[[\s\S]*?\]\);/)[0];
 const met = (src.match(/function tutorialStepMet\([\s\S]*?\n  return false; \}/) || [''])[0];
 
@@ -46,6 +46,17 @@ function check(ok, what) { n++; if (!ok) { fail++; console.log('FAIL: ' + what);
   // 4) an account that claimed signin before keeps the already:true answer
   t = account({ led: { tut: { signin: 1 } } });
   const old = await t.claim('signin'); check(old.status === 200 && old.payload.already === true, 'old signin claim no longer answers already');
+  // 5) v1442 (Phil 24 Nov 2026: "Is bonus stage part of tutorial? If not lets add it as the last step"): the Bonus 1-3 step pays only once Bonus 1-3 is cleared
+  t = account({ led: { camp: { cleared: 5 } } });
+  let rb = await t.claim('bonusclear'); check(rb.status === 409 && t.paid.gems === 0, 'bonusclear paid before Bonus 1-3 was cleared (status ' + rb.status + ')');
+  t = account({ led: { camp: { cleared: 5 }, bonus: { done: { '1-4': { stars: 3, at: 1 } } } } });
+  rb = await t.claim('bonusclear'); check(rb.status === 409 && t.paid.gems === 0, 'bonusclear paid for another bonus stage');
+  t = account({ led: { camp: { cleared: 5 }, tut: { bonus13: 1 }, bonus: { done: {} } } });   // the Bonus 1-3 coach talk was seen (led.tut.bonus13) - that is not the step
+  rb = await t.claim('bonusclear'); check(rb.status === 409 && t.paid.gems === 0, 'bonusclear paid an account that only saw the coach talk');
+  t = account({ led: { camp: { cleared: 3 }, tut: { bonus13: 1 }, bonus: { done: { '1-3': { stars: 1, at: 1 } } } } });   // cleared, none of the other 14 steps claimed: its own group
+  rb = await t.claim('bonusclear'); check(rb.status === 200 && rb.payload.ok && !rb.payload.already && t.paid.gems === 30, 'bonusclear refused or mispaid after Bonus 1-3 was cleared (' + rb.status + ', gems ' + t.paid.gems + ')');
+  rb = await t.claim('bonusclear'); check(rb.payload.already === true && t.paid.gems === 30, 'bonusclear paid twice');
+  rb = await t.claim('bonus13'); check(rb.status === 400, 'bonus13 is not a step id (' + rb.status + ')');
   console.log(fail ? 'FAIL ' + fail + ' of ' + n : 'PASS ' + n + ' checks (lesson rewards need the lesson done)');
   process.exit(fail ? 1 : 0);
 })();

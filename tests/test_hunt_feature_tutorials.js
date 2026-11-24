@@ -85,7 +85,7 @@ async function playGuide(page,key,open,mode,tag){
   /* never in a battle, never during the first-run tutorial, never over a modal */
   await page.evaluate(()=>{ show('home'); delete G.ftutSeen.forge; show('forge'); state='battle'; }); await delay(1800);
   b=await bar(page); ok(!b,'no guide while a battle runs ('+(b?b.guide:'none')+')');
-  await page.evaluate(()=>{ state='home'; show('home'); G.tutDone=false; G.tutStarted=true; G.tutSkipped=false; show('forge'); }); await delay(1800);
+  await page.evaluate(()=>{ state='home'; show('home'); G.tutDone=false; G.tutStarted=true; G.tutSkipped=false; G.tutRewarded={};   /* v1442: lessons other than Bonus 1-3 are still open - that is the first-run tutorial */ show('forge'); }); await delay(1800);
   b=await bar(page); ok(!b,'no guide while the first-run tutorial runs ('+(b?b.guide:'none')+')');
   await page.evaluate(()=>{ show('home'); G.tutDone=true; show('forge'); gameConfirm('Test modal',()=>{}); }); await delay(1800);
   b=await bar(page); ok(!b||b.hold,'no guide over an open modal ('+(b?b.guide+(b.hold?' held':''):'none')+')');
