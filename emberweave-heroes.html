@@ -10850,7 +10850,7 @@ async function bonusHourlyClaim(){ if(!ACC.token){ bannerMsg(t('bonusclaim.sign_
   const c=st.claim||{}, rates=c.rates||{}, per=c.perQuality||{}, ph=st.perHour|0, cap=c.capHours||36, hours=c.hours|0, total=c.total|0;
   const skew=(st.serverNow||Date.now())-Date.now(), fmt=n=>(n|0).toLocaleString('en-US');
   const qs=G2_LADDER16.filter(q=>(rates[q]|0)>0);
-  const rows=qs.length ? qs.map(q=>`<div class="bfRow"><span style="color:${G2_LCOL[q]||'#cdd6e4'};font-weight:700">${escapeHTML(q)}</span><span style="text-align:right">${fmt(rates[q])}</span><span style="text-align:right;color:#ffd45e;font-weight:700">${fmt(per[q]||0)}</span></div>`).join('')
+  const rows=qs.length ? qs.map(q=>`<div class="bfRow"><span style="color:${G2_LCOL[q]||'#cdd6e4'};font-weight:700">${escapeHTML(g2QualName(q))}</span><span style="text-align:right">${fmt(rates[q])}</span><span style="text-align:right;color:#ffd45e;font-weight:700">${fmt(per[q]||0)}</span></div>`).join('')
     : `<div class="bfRow" style="grid-template-columns:1fr;color:#8b98a9">${t('bonusclaim.clear_first')}</div>`;
   const ov=document.createElement('div'); ov.id='bonusFragPanel';
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:20050;padding:16px';
@@ -10888,7 +10888,7 @@ function bonusClaimReveal(ov,r){ const card=ov&&ov.querySelector('.bfCard'); if(
   card.querySelectorAll('.bfPlaques,.bfHead,.bfList,#bfNext').forEach(e=>e.remove()); const cb=card.querySelector('#bfClaim'); if(cb) cb.parentNode.remove();
   const box=document.createElement('div'); box.className='bfList bfWon';
   box.innerHTML=`<div style="text-align:center;font-size:12px;color:#c9b88a;margin-bottom:6px">${t('bonusclaim.claimed',{n:tot.toLocaleString('en-US'),h:r.hours|0})}</div>`+
-    `<div class="bfGrid">${list.map(x=>`<div class="bfFrag"><img src="${x.key?art(x.key):ART_ICON['glyph-frag']}" alt="" draggable="false"><b>x${(x.q|0).toLocaleString('en-US')}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div>`;
+    `<div class="bfGrid">${list.map(x=>`<div class="bfFrag"><img src="${x.key?art(x.key):ART_ICON['glyph-frag']}" alt="" draggable="false"><b>x${(x.q|0).toLocaleString('en-US')}</b><span>${(x.key&&RUNE2.cat?.fragmentNames?.[x.key])?g2FragmentName(x.key):escapeHTML(langDesc(x.name))}</span></div>`).join('')}</div>`;
   card.appendChild(box);
   const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;margin-top:10px';
   row.innerHTML=`<button class="bfClaim" id="bfCollect">${t('wish.collect_all')}</button>`; card.appendChild(row);
@@ -11010,7 +11010,7 @@ function gsplitPickerRender(){
   const artOf  = k=>(HERO_CARD_ART&&HERO_CARD_ART[k])||HERO_PORTRAITS[k]||'';
   gsplitPickerCss();
   const head = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-weight:800;font-size:15px">${t('bonuspick.title',{id:E.id})}${info.tier?' — '+info.tier:''}</div>
+      <div style="font-weight:800;font-size:15px">${t('bonuspick.title',{id:E.id})}${info.tier?' — '+escapeHTML(g2QualName(info.tier)):''}</div>
       <span style="display:flex;gap:6px;align-items:center"><button type="button" class="btn xs secondary" onclick="bonusHourlyClaim()">${t('bonuspick.claim_frags')}</button>
       <button type="button" id="gsplitClose" class="btn xs secondary" aria-label="${escapeHTML(t('common.close'))}">${uiIcon('close')}</button></span></div>`;
 
@@ -12054,7 +12054,7 @@ gsplitShowResult=function(won,data,_afterDeath){
   card.appendChild(note);
   if(won && data && data.firstClear){
     const reward=document.createElement('p');
-    { const _n=Array.isArray(data.granted)?data.granted.length:0, _ph=data.perHour||0;   // v596: plurals ("1 fragments per hour")
+    { const _n=Array.isArray(data.granted)?data.granted.reduce((a,g)=>a+((g&&g.quantity)|0),0):0, _ph=data.perHour||0;   // v596: plurals ("1 fragments per hour"); v1442 (bonus bug scan B9, Phil 24 Nov 2026: "Fix all of those bugs"): fragments, not kinds - 14 kinds at 1-2 each is about 21 fragments
       reward.textContent=ewT('bonusrun.first_clear_frags',{n:_n,ph:_ph}); }
     reward.style.cssText='font-size:13px;color:#ccebd0';
     card.appendChild(reward);
