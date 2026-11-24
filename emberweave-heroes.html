@@ -12022,9 +12022,13 @@ gsplitWindowDraw=function(){
 /* Keep the server-confirmed verdict visible after the base runner returns to Campaign.
    Its transient banner is hidden by that screen switch and lasts only 1.5 seconds. */
 const _bonusShowResult=gsplitShowResult;
-gsplitShowResult=function(won,data){
+gsplitShowResult=function(won,data,_afterDeath){
+  /* v1442 (bonus bug scan B7, Phil 24 Nov 2026: "Fix all of those bugs"): this wrapper dropped the "after the death" flag. On a run ending on a death the base
+     runner waited for the clip, but the card below was drawn at once over the live fight - and drawn again when the clip ended.
+     The whole card now waits for the last death (v1197) and shows once. */
+  if(!_afterDeath&&deathPlaying()){ const st0=GSPLIT.stage; return afterDeaths(()=>gsplitShowResult(won,data,true),()=>GSPLIT.stage===st0); }
   const stage=GSPLIT.stage;
-  _bonusShowResult(won,data);
+  _bonusShowResult(won,data,true);
   document.getElementById('gsplitResultOverlay')?.remove();
   const overlay=document.createElement('div');
   overlay.id='gsplitResultOverlay';
