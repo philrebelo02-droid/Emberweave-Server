@@ -112,7 +112,13 @@ const ATTEMPT_MS = 45 * 60 * 1000;
         the four boon-window closes as they happen, server-stamped and sequence-checked. A result
         claiming a win must show all four window closes actually occurred; a forged instant
         resolve has none. This is real evidence of play, not just a clock. */
-const MIN_RESOLVE_MS = 10 * 1000;
+/* v1442 (bonus bug scan B5, Phil 24 Nov 2026: "Fix all of those bugs"): a claimed win faster than this is now REFUSED, not only
+   flagged. The floor stays at 10 s for every stage: the scan's fastest real clears were 30 s of fight on Bonus 1-3 and 51-57 s
+   elsewhere, but those are fight seconds at x1 - the x2 speed button is open to every player who can enter a bonus stage, so the
+   same clears take 15 s and about 26 s on the clock, and an over-levelled squad on any stage tends to the 1-3 time (walking
+   between the five stations). 10 s is under all of them. The attempt stays open, so the page's own re-send lands once the floor
+   has passed - an honest player can never lose a run to it. BONUS_MIN_RESOLVE_MS is for the tests. */
+const MIN_RESOLVE_MS = +(process.env.BONUS_MIN_RESOLVE_MS || 10 * 1000);
 /* HONEST LIMIT, 17 Sep (caught in review, not by me): neither defense below is authoritative combat.
    A scripted client can still POST all four /api/bonus/window calls back-to-back and wait out
    MIN_RESOLVE_MS, then claim any outcome it likes — these checks stop the ONE forge that was found
@@ -1099,9 +1105,11 @@ function resolveRun(body, ctx){
     if(won && (a.windowsSeen|0) < WINDOWS){
       return { status:400, body:{ok:false,error:'That run is missing '+(WINDOWS-(a.windowsSeen|0))+' boon window(s) of evidence.'} };
     }
-    if(won && runMs < MIN_RESOLVE_MS) ctx.feedbackCheatSignal(ctx.me,'bonus-fast:'+a.id,
+    /* v1442 (bonus bug scan B5): refused as well as flagged - see MIN_RESOLVE_MS. The attempt stays open. */
+    if(won && runMs < MIN_RESOLVE_MS){ ctx.feedbackCheatSignal(ctx.me,'bonus-fast:'+a.id,
       'Bonus stage fast win at '+a.stage+': '+runMs+' ms against '+MIN_RESOLVE_MS+' ms minimum.',
       'battle timing');
+      return { status:400, body:{ok:false, tooFast:true, error:'That result arrived too fast to count.'} }; }
     b.att=null;
     const id=a.stage, ch=chOf(id), slot=slotOf(id);
     /* heroesSent is taken from the ATTEMPT the server issued, never from the client's report —
