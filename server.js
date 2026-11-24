@@ -9543,7 +9543,8 @@ async function api(req,res,url){
     const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
       body:()=>Promise.resolve(_bb), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal,
       GLYPHS, CAMP_ENC:CAMP_ENC?Object.values(CAMP_ENC.byNode):[], uid,
-      playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k) });
+      playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k),
+      hero:k=>((SIM&&SIM.HERO_BASE&&Object.prototype.hasOwnProperty.call(SIM.HERO_BASE,k))?SIM.HERO_BASE[k]:null) });   /* v1443: what a hero IS (role, row, ability power, healer), so a road's caster / healer / mixed-rows boon tests are real */
     if(out) return send(res, out.status, out.body); }
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
   if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: the module is handed only this player */ if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'}); if(p==='/api/well/start'&&rateLimited(req,'wellStart:'+me.id,Math.round(10*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #11): a Well start's replay runs on the main thread - 10 a minute */   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */

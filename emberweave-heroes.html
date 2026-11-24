@@ -9593,7 +9593,7 @@ function gsplitEnd(){
   clearBattle();
   gsplitBoundsExit(); FX_SIZE=2;
   GSPLIT.window = null; GSPLIT._winSig = ''; GSPLIT._tutorialSwapDone = false;
-  GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null;
+  GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null; GSPLIT.boonDeck = null; gsplitBoonsReset();   // v1443: the run's boons end with the run
   GSPLIT._finishing = false; GSPLIT._verdictPending = null;   /* v1364 (tester reports 11 Nov: bonus stage frozen at the gate, Retreat dead): a finished run left _finishing set, so the NEXT run never ticked and its Retreat returned at once */
   try{ setBattleZoom(1); }catch(e){}   /* v1371 (ChatGPT 20:17, Fold repro): every bonus teardown (win, loss, retreat) puts zoom AND pan back to 1x, so Campaign and Arena never open zoomed */
   try{ evictUnusedArt(G.team); }catch(e){}   // game-speed/memory fix, 17 Sep 2026: whole Gauntlet run finished, not mid-run
@@ -9875,7 +9875,7 @@ function gsplitOpenWindow(){
   const row = table && table[GSPLIT.waveShown];
   for(const L of GSPLIT.lanes){
     if(L.state !== 'walking') continue;
-    L.offer = (row && Array.isArray(row[L.i]) && row[L.i].length) ? row[L.i] : null;
+    L.offer = gsplitBoonOffer(L, (row && Array.isArray(row[L.i]) && row[L.i].length) ? row[L.i] : null);   // v1443: fitted to the road as it stands now
   }
   return true;
 }
@@ -9952,10 +9952,11 @@ function gsplitReseat(u, from, to){
   const F = GSPLIT.lanes[from], T = GSPLIT.lanes[to];
   const i = F.units.indexOf(u); if(i >= 0) F.units.splice(i, 1);
   /* a summoner's pack travels with it - it is the summoner's, not the road's */
-  for(const s of F.units.filter(s => s._summon && s._owner === u)){
+  for(const s of F.units.filter(s => s._summon && s._summonOwner === u)){   /* v1443: the field is _summonOwner - `_owner` never existed, so the pack was left behind */
     F.units.splice(F.units.indexOf(s), 1); T.units.push(s);
   }
   T.units.push(u);
+  BoonFx.crossed(u, F, T);   // v1443: Wayfarer / Rooted
   /* v589: the feet plate (burn/poison/...) lives in its road's effect list now that the lists are really per
      road - it moves with the hero, or the old road would keep animating a plate for a unit it no longer has */
   if(u._statusFx && F.fx && T.fx && F.fx._statusFx && T.fx._statusFx){
@@ -9975,6 +9976,301 @@ function gsplitCloseWindow(){
   }
   return true;
 }
+
+/* ============================================================================
+   v1443 - THE BOONS DO WHAT THEIR CARDS SAY.
+   Phil, 24 Nov 2026, on the scan that found every boon pick only raised a counter nothing read:
+     "Add the effects, dont hide them" / "Add them and make them fully functional"
+
+   WHOSE A BOON IS. Phil's spec of 16 Sep: "the heroes that got swapped maintain the boon buff they got before swap", and the
+   tutorial says "Their boon goes with them". So a boon is GIVEN TO THE HEROES STANDING ON THE ROAD when it is confirmed (u._bn),
+   and each of them keeps it for the run - through every wave and firebreak, and across a crossing. A hero who walks onto the
+   road later does not get what was picked before he arrived. A boon whose card talks about "this road", its enemies or its waves
+   (BOON_ROAD below) works on whichever road a living carrier is standing on. Inheritance passes a fallen hero's boons on.
+   Picked again, a boon stacks: chances and percentages add, flat numbers add, "less damage" multiplies; the few that cannot
+   grow (the server's ONCE list) are not offered again to a road that already has them.
+
+   HOW IT REACHES THE FIGHT. No parallel battle code: the boons write the unit fields the fight already reads (shield, stunned,
+   fearT, slow, forcedTarget, dots, energy, cooldowns, glyphCrit, castMul, skillLv, maxHp) and sit behind one-line hooks beside
+   the talents' own ("BOON HOOK" in the fight code): damage dealt (out) and taken (u._bnIn inside damage(), so the 95% ceiling
+   counts it), the crit roll, on-hit, on-death, healing, casts, the attack interval (u._bnAs), the tick and the wave start.
+   Every hook is behind GSPLIT.active or a field only this block sets, so no other mode - and no server replay - runs a line of it.
+   Every roll is brnd(), the road's own seeded stream: a run replays the same for a given seed.
+
+   THE NUMBERS are the catalogue's (server/bonus-boons.js); BOON_V mirrors its percentages (tests/test_boon_effects_1443.js fails
+   if they drift). A flat number (Ironhide's health, Mending's regen ...) is on the offer itself: a share of the road's own heroes.
+
+   CLEAN-UP. Everything lives on the run's unit objects and on GSPLIT.lanes, both thrown away by gsplitEnd; BoonFx.reset() clears
+   the three module fields. Nothing is written to the save.
+   ========================================================================== */
+const BOON_V = { stunstrike:0.10, freezehit:0.08, fearhit:0.07, silencecast:0.12, mortalhit:0.15, cdreset:0.10, ultrefund:0.20,
+  doublestrike:0.15, critconvert:0.10, blinkdodge:0.12, summonproc:0.06, slowfield:0.20, burnproc:0.22, taunthit:0.10, sleepproc:0.06,
+  ultcharge:0.25, ultcheap:0.30, glass:0.60, slowtank:0.50, halfhp:0.75, nofirstaid:0.40, killstack:0.04, hitstack:0.02, timestack:0.05,
+  hurtstack:0.03, castsstack:0.06, wavestack:0.12, alonestack:0.20, crowdstack:0.08, critstack:0.05, stayer:0.25, frontrunner:0.35,
+  rearguard:0.35, lonewolf:0.50, crowded:0.15, envy:0.30, pacer:0.30, arrivehalf:0.25, eternalsummon:0.50, lifesteal:0.09, haste:0.30,
+  dr:0.25, skill:1, energy:14 };
+/* the numbers written into a card's sentence rather than its {p}/{v} */
+const BOON_K = { stunSec:1, freezeSec:1.5, fearSec:2, silenceSec:2, mortalSec:3, slowSec:3, slowMul:0.5, tauntSec:3, sleepSec:999,
+  shieldprocChance:0.18, healprocChance:0.15, killresetsSec:2, ultchargeEnergy:20, ultrefundEnergy:50, casthaste:0.30, hitstackCap:10,
+  lowHp:0.25, arriveStunSec:2, arriveSlowSec:5, burnShare:0.12, burnSec:3, pyreMeters:3, calledKey:'boar warrior' };
+/* flat-number boons: the number is on the offer (a share of the road's heroes) and adds up on the hero */
+const BOON_FLAT = { shieldproc:1, healproc:1, deathblast:1, shieldstack:1, crosser:1, arriveburn:1, bighp:1, regen:1 };
+/* boons about the ROAD: they work on the road a living carrier stands on, for everyone (or every enemy) there */
+const BOON_ROAD = ['nohealenemy','frontrunner','rearguard','crowded','arriveburn','arriveslow','preheal','prefight','doublespeed'];
+
+const BoonFx=(function(){
+  let depth=0;
+  const P=BOON_V, K=BOON_K;
+  const isHero=u=>!!u&&u.team==='ally'&&!u._summon&&!u._wasSummon;
+  const live=u=>isHero(u)&&u.alive;
+  const n=(u,id)=>(u&&u._bn&&u._bn[id]&&u._bn[id].n)||0;
+  const cur=()=>(GSPLIT.active&&GSPLIT.curLane!=null)?GSPLIT.lanes[GSPLIT.curLane]:null;
+  const roll=p=>p>0&&brnd()<Math.min(0.95,p);
+  const nameOf=id=>{ const D=GSPLIT.boonDeck; return (D&&D.defs&&D.defs[id]&&D.defs[id].name)||''; };
+  function say(u,id){ try{ const s=nameOf(id); if(s&&u) floatTexts.push({x:u.x,y:u.y-12,txt:langDesc(s),t:.7,color:'#ffd45e',vy:1.1,sz:11}); }catch(e){} }
+  function shieldAdd(u,v){ if(!(v>0)||!u||!u.alive) return; u.shield=(u.shield||0)+v; u._bnSh=(u._bnSh||0)+v; }   // u._bnSh: the part of the shield that never runs out on a timer
+  function ever(s){ if(!s||s[EVERLASTING_FLAG]) return; s[EVERLASTING_FLAG]=true; s._summonT=Infinity;   /* Everlasting: never to the timer, the summoner's death or the firebreak - at half power, halved ONCE */
+    const k=P.eternalsummon; s.maxHp=Math.max(1,Math.round(s.maxHp*k)); s.hp=Math.max(1,Math.min(s.maxHp,s.hp*k)); s.dmg*=k; if(s.apow) s.apow*=k; }
+  function reset(){ depth=0; _bnSrc=null; GSPLIT._bnOn=false; }
+
+  /* ---- a confirmed pick: every living hero on the road takes the boon ---- */
+  function grant(L,id,value){ if(!L||!id) return 0;
+    const hs=(L.units||[]).filter(live); if(!hs.length) return 0;
+    GSPLIT._bnOn=true;
+    let champ=null; if(id==='onehero'){ let bp=-1; for(const u of hs){ let p=0; try{ p=+heroPower(u.key)||0; }catch(e){} if(!(p>0)) p=u.maxHp+20*Math.max(u.dmg||0,u.apow||0); if(p>bp){ bp=p; champ=u; } } }
+    for(const u of hs){ const B=u._bn||(u._bn={}), e=B[id]||(B[id]={n:0,v:0}); e.n++; if(BOON_FLAT[id]) e.v+=(+value||0); take(L,u,id,e,(+value||0),u===champ?1:0); }
+    return hs.length; }
+  /* what a boon does the moment a hero receives it (a pick, or an inheritance) */
+  function take(L,u,id,e,value,isChamp){
+    if(id==='bighp'){ u.maxHp+=value; if(!n(u,'nofirstaid')) u.hp=Math.min(worldHealCap(u),u.hp+value); }
+    else if(id==='skill'){ u.skillLv=(u.skillLv||[1,1,1,1]).map(x=>(x|0)+P.skill); if(u.pass||u.passMul!==1){ try{ u.passMul=skillMul(u.skillLv[3]||1); }catch(_e){} } }
+    else if(id==='allin'){ u._bnAllin=(u._bnAllin||0)+1; u._bnNoUlt=0; u.energy=100; }
+    else if(id==='onehero'){ e.c=(e.c||0)+(isChamp?1:0); }
+    else if(id==='eternalsummon'){ for(const s of (L.units||[])) if(s.alive&&s._summon&&s._summonOwner===u) ever(s); }
+    else if(id==='arrivestun'||id==='arrivehalf'){ e.p=(e.p||0)+1; }   // "the next wave": owed once
+  }
+
+  /* ---- once per fight tick of the road being stepped (before anyone thinks) ---- */
+  function progress(X,mine){ const us=mine?units:(X.units||[]), w=mine?waveIdx:(X.waveIdx|0); let rem=0; for(const e of us) if(e.team==='enemy'&&e.alive) rem+=Math.max(0,e.hp);
+    const tot=X.bnWaveHp||0; return w+(tot>0?1-Math.min(1,rem/tot):0); }
+  function tick(dt){ if(!GSPLIT._bnOn) return; const L=cur(); if(!L) return;
+    const hs=[]; let dead=0;
+    for(const u of units){ if(!isHero(u)) continue; if(u.alive) hs.push(u); else dead++; }
+    const R=L.bn||(L.bn={}); R.n=hs.length; R.dead=dead; R.has={}; R.burn=0;
+    for(const id of BOON_ROAD){ let m=0; for(const u of hs){ const k=n(u,id); if(k>m) m=k; } R.has[id]=m; }
+    R.front=null; R.rear=null; for(const u of hs){ if(!R.front||u.x>R.front.x) R.front=u; if(!R.rear||u.x<R.rear.x) R.rear=u; }
+    /* Envious / Pacesetter: how far each walking road has come = waves cleared + the share of this wave's enemy health already removed */
+    R.rank=0; { const others=GSPLIT.lanes.filter(o=>o!==L&&o.state==='walking'); if(others.length){ const me=progress(L,true); let lo=true, hi=true;
+        for(const o of others){ const p=progress(o,false); if(!(me<p-1e-9)) lo=false; if(!(me>p+1e-9)) hi=false; } R.rank=lo?-1:(hi?1:0); } }
+    L.bnFast=R.has.doublespeed>0;
+    const crowdDr=R.has.crowded?Math.min(0.95,P.crowded*R.has.crowded*Math.max(0,hs.length-1)):0;
+    for(const u of hs){ const B=u._bn||(u._bn={}); let c;
+      /* "to everything" = damage dealt, attack speed, and toughness (damage taken divided by the same number) */
+      const ev=1 + P.nofirstaid*n(u,'nofirstaid') + P.wavestack*n(u,'wavestack')*(waveIdx|0) + P.alonestack*n(u,'alonestack')*dead
+        + P.crowdstack*n(u,'crowdstack')*Math.max(0,hs.length-1) + (hs.length===1?P.lonewolf*n(u,'lonewolf'):0)
+        + (R.rank<0?P.envy*n(u,'envy'):0) + (R.rank>0?P.pacer*n(u,'pacer'):0);
+      let as=ev*(1+P.haste*n(u,'haste'))*(1+P.halfhp*n(u,'halfhp'))*(1+P.killstack*n(u,'killstack')*(L.bnKills|0));
+      if((c=n(u,'slowtank'))) as*=Math.pow(1-P.slowtank,c);
+      u._bnAs=(as!==1)?as:0;
+      let out=ev*(1+P.glass*n(u,'glass'));
+      if(B.onehero){ const ch=B.onehero.c|0, re=(B.onehero.n|0)-ch; out*=Math.pow(2,ch)*Math.pow(2/3,re); }
+      out*=1+P.timestack*n(u,'timestack')*Math.floor((battleTime||0)/10);
+      out*=1+P.hurtstack*n(u,'hurtstack')*Math.max(0,Math.floor((1-Math.max(0,u.hp)/Math.max(1,u.maxHp))*10+1e-9));
+      if(R.has.frontrunner&&R.front===u) out*=1+P.frontrunner*R.has.frontrunner;
+      u._bnOut=(out!==1)?out:0;
+      let inc=(1/ev)*(1+P.glass*n(u,'glass'));
+      if((c=n(u,'slowtank'))) inc*=Math.pow(1-P.slowtank,c);
+      if((c=n(u,'dr'))) inc*=Math.pow(1-P.dr,c);
+      if((c=n(u,'stayer'))&&!u._bnCrossed) inc*=Math.pow(1-P.stayer,c);
+      if(R.has.rearguard&&R.rear===u) inc*=Math.pow(1-P.rearguard,R.has.rearguard);
+      if(crowdDr) inc*=1-crowdDr;
+      u._bnIn=(inc!==1)?inc:null;
+      if((c=n(u,'regen'))&&!B.nofirstaid){ const cap=worldHealCap(u), add=B.regen.v*dt, to=Math.min(cap,u.hp+add);   /* Mending */
+        if(B.healtoshield&&u.hp+add>cap) shieldAdd(u,Math.min(u.hp+add-cap,Math.max(0,u.maxHp-(u.shield||0))));
+        if(to>u.hp) u.hp=ddHp(u,to,u); }
+      if((c=n(u,'energy'))) u.energy=Math.min(100,(u.energy||0)+P.energy*c*dt);   /* Focus */
+      if(B.lowhpimmune&&u.hp<K.lowHp*u.maxHp){ u.stunned=0; u.fearT=0; u._frozenT=0; u._sleepT=0; }   /* Defiant */
+      if(u._bnNoUlt) u.energy=0;   /* Reckless Oath, after its one ultimate */
+      if(u._bnFree==='green'){ u.greenCd=0; u._bnFree=null; } else if(u._bnFree==='blue'){ u.blueCd=0; u._bnFree=null; }   /* Opening Gambit: the wave's first cast cost nothing */
+      if(u._bnSh) u._bnSh=Math.min(u._bnSh,u.shield||0);
+      if(B.eternalsummon){ for(const s of units) if(s.alive&&s._summon&&s._summonOwner===u&&!s[EVERLASTING_FLAG]) ever(s); }
+    }
+  }
+
+  /* ---- a firebreak closes: the wave about to be fought (its monsters are already parked on the road) ---- */
+  function wave(L){ if(!L) return; const us=L.units||[], hs=us.filter(live), es=us.filter(e=>e.team==='enemy'&&e.alive);
+    L.bnKills=0; L.bnWaveHp=es.reduce((a,e)=>a+Math.max(0,e.maxHp||0),0);
+    if(!GSPLIT._bnOn) return;
+    const has=id=>hs.reduce((m,u)=>Math.max(m,n(u,id)),0);
+    const pre=has('preheal');
+    for(const u of hs){ const B=u._bn||(u._bn={});
+      u._bnHits=0; u._bnHit1=0; u._bnCastW=0;
+      if(pre&&!B.nofirstaid) u.hp=Math.max(u.hp,worldHealCap(u));   /* Rested */
+      if(B.halfhp){ const half=Math.max(1,u.maxHp*0.5); if(u.hp>half||!B.nofirstaid) u.hp=Math.min(worldHealCap(u),half); }   /* Blood Oath */
+      if(B.freeult&&!u._bnNoUlt) u.energy=100;   /* Crowned */
+    }
+    let stun=0, half=0, burn=0;
+    for(const u of hs){ const B=u._bn; if(!B) continue;
+      if(B.arrivestun&&B.arrivestun.p>0){ stun=Math.max(stun,B.arrivestun.p); B.arrivestun.p=0; }
+      if(B.arrivehalf&&B.arrivehalf.p>0){ half=Math.max(half,B.arrivehalf.p); B.arrivehalf.p=0; }
+      if(B.arriveburn) burn=Math.max(burn,B.arriveburn.v||0); }
+    const slow=has('arriveslow');
+    for(const e of es){
+      if(stun) e.stunned=Math.max(e.stunned||0,K.arriveStunSec);   /* Ambush */
+      if(half) e.hp=Math.max(1,e.hp*Math.pow(1-P.arrivehalf,half));   /* Softened */
+      standing(e,burn,slow);
+    }
+  }
+  function standing(e,burn,slow){
+    if(burn>0&&!e._bnBurn){ e._bnBurn=1; pushDot(e,burn,999,1,'#ff6a3a',null); }   /* Scorched Earth: the stated number a second, for as long as it lives */
+    if(slow){ e.slow=Math.max(e.slow||0,K.arriveSlowSec); e.slowMul=Math.min(e.slowMul==null?1:e.slowMul,K.slowMul); }   /* Bogged */
+  }
+  /* a fallen road's monster marches onto road T: "every enemy arrives ..." is true of it as well */
+  function arrive(T,e){ if(!GSPLIT._bnOn||!T||!e||e.team!=='enemy'||!e.alive) return; let burn=0, slow=0;
+    for(const u of (T.units||[])){ if(!live(u)||!u._bn) continue; if(u._bn.arriveburn) burn=Math.max(burn,u._bn.arriveburn.v||0); if(n(u,'arriveslow')) slow=1; }
+    standing(e,burn,slow); }
+
+  /* ---- a hero has crossed a firebreak (F -> T) ---- */
+  function crossed(u,F,T){ if(!GSPLIT._bnOn||!isHero(u)) return; u._bnCrossed=1;
+    let v=(u._bn&&u._bn.crosser)?u._bn.crosser.v:0;
+    for(const h of (T&&T.units)||[]) if(h!==u&&live(h)&&h._bn&&h._bn.crosser) v=Math.max(v,h._bn.crosser.v);
+    if(v>0){ shieldAdd(u,v); if(u.greenAb) u.greenCd=0; else if(u.blueAb) u.blueCd=0; say(u,'crosser'); } }   /* Wayfarer */
+
+  /* ---- the hit ---- */
+  function dodge(tgt){ const c=n(tgt,'blinkdodge'); if(c&&roll(P.blinkdodge*c)){ say(tgt,'blinkdodge'); return true; } return false; }   /* Slipstream */
+  function crit(src,pre){ const B=src._bn, L=cur(); if(!B) return pre;
+    const first=!!(L&&L.bn&&L.bn.has&&L.bn.has.prefight)&&!src._bnHit1; src._bnHit1=1;
+    src._bnChain=0;
+    if(pre===true) return pre;
+    if(first) return true;   /* First Blood */
+    if(src._bnNextCrit){ src._bnNextCrit=0; src._bnChain=1; return true; }   /* Momentum: the crit a crit paid for (it does not pay for another) */
+    const c=n(src,'critconvert'); if(c&&roll(P.critconvert*c)) return true;   /* Fateful */
+    return pre; }
+  function out(src,isAuto){ let m=src._bnOut||1; const c=n(src,'hitstack'); if(c) m*=1+P.hitstack*c*Math.min(K.hitstackCap,src._bnHits|0); return m; }
+  function hit(src,tgt,hpLost,raw,kind,isAuto,wasCrit,color){
+    if(src&&src._bn&&src.team==='ally'&&isHero(src)){ const B=src._bn; let c;
+      src._bnHits=(src._bnHits|0)+1;
+      if(B.critchain){ if(wasCrit&&!src._bnChain) src._bnNextCrit=1; }
+      src._bnChain=0;
+      if((c=n(src,'critstack'))){ if(wasCrit){ if(src._bnCs){ src.glyphCrit=Math.max(0,(src.glyphCrit||0)-src._bnCs); src._bnCs=0; } }
+        else { const add=P.critstack*c; src.glyphCrit=(src.glyphCrit||0)+add; src._bnCs=(src._bnCs||0)+add; } }   /* Sharpening */
+      if((c=n(src,'lifesteal'))&&tgt!==src&&src.alive&&hpLost>0) healUnit(src,hpLost*P.lifesteal*c);   /* Siphoning */
+      if(isAuto){
+        if(src._bnApAdd){ src.apow=Math.max(0,(src.apow||0)-src._bnApAdd); src._bnApAdd=0; }   /* Rhythm resets on an auto */
+        if(src._bnCh){ src._bnCh=0; src.castT=0; src.castMul=1; }   /* Fluent resets on an auto */
+        src._bnCastSil=0;
+        if(tgt&&tgt.alive&&tgt.team!==src.team){
+          if((c=n(src,'stunstrike'))&&roll(P.stunstrike*c)){ tgt.stunned=Math.max(tgt.stunned||0,K.stunSec); say(tgt,'stunstrike'); }
+          if((c=n(src,'freezehit'))&&roll(P.freezehit*c)){ tgt.stunned=Math.max(tgt.stunned||0,K.freezeSec); tgt._frozenT=Math.max(tgt._frozenT||0,K.freezeSec); say(tgt,'freezehit'); }
+          if((c=n(src,'fearhit'))&&roll(P.fearhit*c)&&!tgt.stunImmune){ tgt.fearT=Math.max(tgt.fearT||0,K.fearSec); tgt._fearFrom=src; say(tgt,'fearhit'); }
+          if((c=n(src,'mortalhit'))&&roll(P.mortalhit*c)){ tgt._bnNoHealT=Math.max(tgt._bnNoHealT||0,(battleTime||0)+K.mortalSec); tgt.mortalT=Math.max(tgt.mortalT||0,K.mortalSec); say(tgt,'mortalhit'); }
+          if((c=n(src,'slowfield'))&&roll(P.slowfield*c)){ tgt.slow=Math.max(tgt.slow||0,K.slowSec); tgt.slowMul=Math.min(tgt.slowMul==null?1:tgt.slowMul,K.slowMul); say(tgt,'slowfield'); }
+          if((c=n(src,'burnproc'))&&roll(P.burnproc*c)){ pushDot(tgt,Math.max(src.dmg||0,src.apow||0)*K.burnShare,K.burnSec,1,'#ff6a3a',src); say(tgt,'burnproc'); }
+          if((c=n(src,'taunthit'))&&roll(P.taunthit*c)){ tgt.forcedTarget=src; tgt.forcedTargetT=Math.max(tgt.forcedTargetT||0,K.tauntSec); say(tgt,'taunthit'); }
+          if((c=n(src,'sleepproc'))&&roll(P.sleepproc*c)&&!tgt.stunImmune){ tgt._sleepT=K.sleepSec; tgt.stunned=Math.max(tgt.stunned||0,K.sleepSec); say(tgt,'sleepproc'); }   /* until it is struck: the fight's own sleep wakes on the next hit */
+          if((c=n(src,'doublestrike'))&&!src._bnTwin&&roll(P.doublestrike*c)){ src._bnTwin=1; say(src,'doublestrike');   /* Twinned: the same blow again */
+            const _p=_preCrit, _q=_autoAtk; _preCrit=null; _autoAtk=1; try{ dealDamage(src,tgt,raw,color,kind); } finally{ _preCrit=_p; _autoAtk=_q; src._bnTwin=0; } }
+        }
+      } else if(src._bnCastSil&&tgt&&tgt.alive&&tgt.team!==src.team){ tgt.silencedT=Math.max(tgt.silencedT||0,K.silenceSec); }   /* Hushing */
+    }
+    if(tgt&&tgt._bn&&tgt.alive&&isHero(tgt)&&src&&src.team!==tgt.team){
+      if(n(tgt,'shieldproc')&&roll(K.shieldprocChance)){ shieldAdd(tgt,tgt._bn.shieldproc.v); say(tgt,'shieldproc'); } }   /* Bulwarked */
+  }
+
+  /* ---- a unit has just fallen (k = who dealt the blow, when the fight knows) ---- */
+  function death(u,k){ if(!GSPLIT._bnOn) return; const L=cur(); if(!L) return;
+    if(u.team==='enemy'){ L.bnKills=(L.bnKills|0)+1;
+      if(k&&(k._summon||k._wasSummon)&&k._summonOwner) k=k._summonOwner;   // a summon's kill is its hero's
+      if(!k||!k.alive||!k._bn||!isHero(k)) return;
+      const B=k._bn; let c;
+      if((c=n(k,'killresets'))){ if(k.greenAb) k.greenCd=Math.max(0,(k.greenCd||0)-K.killresetsSec*c); if(k.blueAb) k.blueCd=Math.max(0,(k.blueCd||0)-K.killresetsSec*c); }   /* Bloodthirst */
+      if((c=n(k,'cdreset'))&&roll(P.cdreset*c)){ k.greenCd=0; say(k,'cdreset'); }   /* Impatient */
+      if((c=n(k,'ultcharge'))&&roll(P.ultcharge*c)&&!k._bnNoUlt){ k.energy=Math.min(100,(k.energy||0)+K.ultchargeEnergy); say(k,'ultcharge'); }   /* Rising */
+      if(n(k,'shieldstack')) shieldAdd(k,B.shieldstack.v);   /* Accreting */
+      if(n(k,'healproc')&&roll(K.healprocChance)){ let low=null; for(const h of units) if(live(h)&&(!low||h.hp/h.maxHp<low.hp/low.maxHp)) low=h; if(low){ healUnit(low,B.healproc.v); say(low,'healproc'); } }   /* Merciful */
+      if((c=n(k,'summonproc'))&&roll(P.summonproc*c)){ const s=summonUnit(k,K.calledKey,0,{a:brnd()*6.283}); if(s){ s._bnCalled=1; say(k,'summonproc'); } }   /* Called: until the next firebreak's purge */
+      if(n(k,'deathblast')&&depth<3){ depth++; try{ const R=K.pyreMeters*METER*gsplitAreaMul(k);   /* Pyre: the stated number, to every other enemy near the body */
+          for(const e of units.slice()) if(e.alive&&e.team==='enemy'&&e!==u&&dist(e,u)<=R+bodyR(e)){ _bnSrc=k; damage(e,B.deathblast.v,'#ff8a3a',true); }
+          try{ ringBurst(u.x,u.y,0xff8a3a,14); }catch(_e){} } finally{ depth--; } }
+      return; }
+    if(!isHero(u)) return;
+    const hs=units.filter(h=>h!==u&&live(h));
+    for(const h of hs) if(n(h,'revengekill')&&!h._bnNoUlt){ h.energy=100; say(h,'revengekill'); }   /* Vengeance */
+    if(n(u,'inherit')&&hs.length){ let heir=null, bd=1e18; for(const h of hs){ const d=dist(h,u); if(d<bd){ bd=d; heir=h; } }   /* Inheritance: everything he carried, to whoever is nearest */
+      const HB=heir._bn||(heir._bn={});
+      for(const id in u._bn){ const e=u._bn[id]; if(!e||!e.n||id==='allin') continue; const t=HB[id]||(HB[id]={n:0,v:0}); t.n+=e.n; t.v+=(e.v||0); if(e.p) t.p=(t.p||0)+e.p;
+        if(id==='bighp') take(L,heir,id,t,e.v||0,0); else if(id==='skill'){ for(let i=0;i<e.n;i++) take(L,heir,id,t,0,0); } else if(id==='eternalsummon') take(L,heir,id,t,0,0); else if(id==='onehero') t.c=(t.c||0)+(e.c||0); }
+      say(heir,'inherit'); }
+  }
+
+  /* ---- healing about to land ---- */
+  function heal(u,a){ if(!GSPLIT._bnOn) return a;
+    if(u.team==='enemy'){ if((u._bnNoHealT||0)>(battleTime||0)) return 0;   /* Grave-touched */
+      const L=cur(); if(L&&L.bn&&L.bn.has&&L.bn.has.nohealenemy) return 0;   /* Withering */
+      return a; }
+    const B=u._bn; if(!B||!isHero(u)) return a;
+    if(B.nofirstaid) return 0;   /* Ascetic Oath */
+    if(B.healtoshield){ const room=Math.max(0,worldHealCap(u)-u.hp); if(a>room) shieldAdd(u,Math.min(a-room,Math.max(0,u.maxHp-(u.shield||0)))); }   /* Aegis: the overflow, up to a shield as large as the hero's health */
+    return a; }
+
+  /* ---- a cast starts (Green / Blue), and an ultimate has just spent its energy ---- */
+  function cast(u,slot){ const B=u._bn; if(!B) return; let c;
+    if((c=n(u,'castsstack'))){ if(u._bnAp0==null) u._bnAp0=u.apow||0; const add=u._bnAp0*P.castsstack*c; u.apow=(u.apow||0)+add; u._bnApAdd=(u._bnApAdd||0)+add; }   /* Rhythm */
+    if((c=n(u,'casthaste'))){ u.castMul=Math.max(u.castMul||1,1+K.casthaste*c); u.castT=Math.max(u.castT||0,999); u._bnCh=1; }   /* Fluent: the next cast comes 30% sooner (the fight's own cast-speed buff) */
+    if((c=n(u,'silencecast'))) u._bnCastSil=roll(P.silencecast*c)?1:0;   /* Hushing: one roll a cast */
+    if(B.firstcast&&!u._bnCastW){ u._bnCastW=1; u._bnFree=slot; }   /* Opening Gambit */
+  }
+  function ult(u){ if(!u._bn) return; cast(u,'ult'); let e=0, c;
+    if(u._bnFree==='ult'){ u._bnFree=null; e=100; }
+    if((c=n(u,'ultcheap'))) e=Math.max(e,Math.min(90,100*P.ultcheap*c));   /* Unburdened: 30% of the cost stays */
+    if((c=n(u,'ultrefund'))&&roll(P.ultrefund*c)) e=Math.max(e,K.ultrefundEnergy);   /* Unspent */
+    if((u._bnAllin|0)>0){ u._bnAllin--; if(u._bnAllin>0) e=100; else { u._bnNoUlt=1; e=0; } }   /* Reckless Oath: that was the one */
+    else if(u._bnNoUlt) e=0;
+    u.energy=e; }
+
+  function far(u){ let b=null, bd=-1; for(const o of units){ if(o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)){ const d=dist(u,o); if(d>bd){ bd=d; b=o; } } } return b; }   /* Ambusher */
+  function summon(owner,s){ ever(s); }
+  return { grant, tick, wave, arrive, crossed, dodge, crit, out, hit, death, heal, cast, ult, far, summon, reset, n, isHero };
+})();
+
+/* The heroes a road's boon is given to, and that an offer is fitted to: alive, and not somebody's summon. */
+function gsplitBoonRoad(L){ return ((L&&L.units)||[]).filter(u=>u.team==='ally'&&u.alive&&!u._summon&&!u._wasSummon); }
+/* v1443 - THE OFFER FITS THE ROAD AS IT STANDS NOW (after crossings and deaths), not the starting line-up: the first three boons of
+   this run's seeded order for this window and road that do something for the heroes on it. The rules (who a boon is for, which
+   cannot be taken twice) are the server's, sent with the deck; this only counts heads. A flat number is the boon's share of the
+   road's own average health or attack, so the card and the effect are the same number. No deck (an older server) = the old table. */
+function gsplitBoonOffer(L, legacy){
+  const D=GSPLIT.boonDeck; if(!D||!D.defs||!Array.isArray(D.order)) return legacy;
+  const w=GSPLIT.waveShown|0, ord=(D.order[w]||[])[L.i]; if(!Array.isArray(ord)) return legacy;
+  const hs=gsplitBoonRoad(L); if(!hs.length) return legacy;
+  const tg=hs.map(u=>(D.tags&&D.tags[u.key])||{});
+  const prof={ n:hs.length, summoner:tg.some(x=>x.s), healer:tg.some(x=>x.h), caster:tg.some(x=>x.c),
+    mixedRows:tg.some(x=>x.r==='Front'||x.r==='Mid')&&tg.some(x=>x.r==='Back'),
+    room:hs.length<MAX_PER_LANE, otherRoad:GSPLIT.lanes.some(o=>o!==L&&o.state==='walking') };
+  const fits=r=>{ switch(r){ case 'summoner': return !!prof.summoner; case 'healer': return !!prof.healer; case 'caster': return !!prof.caster;
+    case 'multi': return prof.n>1; case 'solo': return prof.n===1; case 'room': return !!prof.room; case 'mixedRows': return !!prof.mixedRows;
+    case 'otherRoad': return !!prof.otherRoad; default: return true; } };
+  const ref={ hp:hs.reduce((a,u)=>a+(u.maxHp||0),0)/hs.length, atk:hs.reduce((a,u)=>a+Math.max(u.dmg||0,u.apow||0),0)/hs.length };
+  const out=[];
+  for(const id of ord){ const d=D.defs[id]; if(!d||!fits(d.req)) continue;
+    if(d.notLast&&w>=GSPLIT_WINDOWS-1) continue;
+    if(d.once&&hs.every(u=>u._bn&&u._bn[id])) continue;
+    const value=d.share?Math.max(1,Math.round(d.share*(ref[d.of]||0))):d.v;
+    out.push({ id, name:d.name, value, blurb:d.name+' — '+String(d.text).split('{p}').join(Math.round(d.v*100)+'%').split('{v}').join(String(value)) });
+    if(out.length>=(D.size||3)) break; }
+  return out.length?out:legacy;
+}
+function gsplitBoonsReset(){ BoonFx.reset(); }
+/* CONFIRM BOONS: the picks become real. Once per window; a pick can still be changed until then (gsplitPickBoon). */
+function gsplitBoonsCommit(){ const W=GSPLIT.window; if(!W||W._bnDone||W.phase==='boon') return;
+  W._bnDone=true;
+  for(const L of GSPLIT.lanes){ if(L.state!=='walking') continue; const id=W.picked[L.i]; if(!id) continue;
+    const o=(L.offer||[]).find(b=>b.id===id); BoonFx.grant(L,id,o?o.value:0); } }
+/* Foresight: every wave still to come on this road, named, in the boon panel. */
+function gsplitBoonForesight(L){ try{ if(!gsplitBoonRoad(L).some(u=>u._bn&&u._bn.prewarn)) return ''; const parts=[];
+    for(let w=(GSPLIT.waveShown|0)+1; w<GSPLIT_WAVES; w++){ const cnt={}; for(const s of ((L.waves3||[])[w]||[])) cnt[s.key]=(cnt[s.key]||0)+1;
+      parts.push(ewT('battle.wave_n',{n:w+1})+': '+Object.keys(cnt).map(k=>mcardName(k)+(cnt[k]>1?' ×'+cnt[k]:'')).join(', ')); }
+    return '<div class="gw-fore" style="font-size:9px;line-height:1.25;color:#c9a35e;white-space:nowrap;overflow-x:auto;margin:1px 0 2px">'+gsplitEsc(parts.join(' · '))+'</div>'; }catch(e){ return ''; } }
 
 /* ============================================================================
    THE GAUNTLET SPLIT — LANE ISOLATION FOR AREA EFFECTS, AND THE ONCE-PER-FRAME TAIL.
@@ -10279,6 +10575,7 @@ function gsplitStepMovers(dt){
    defensively for any mover that somehow lacks a phase; it is now a belt, not the braces. */
 function gsplitMove(unit, from, to){
   if(!gsplitCanMove(from, to)) return false;
+  gsplitBoonsCommit();   // v1443: the boon first, then the swap - a hero who leaves takes the boon with him
   const side = (Math.min(from, to) === 0) ? 'upper' : 'lower';
   /* v585 - SOFTLOCK FIX. Hollow (`_backHunter`) waits OFF-WORLD (x -9999) between waves so he can drop
      in when the next one starts - and the firebreak opens after that next wave is built, so he is always
@@ -10646,7 +10943,7 @@ function gsplitWindowClick(e){
     gsplitPickBoon(lane,id);gsplitWindowDraw();
   }else if(kind==='confirm'){
     const live=GSPLIT.lanes.filter(L=>L.state==='walking');
-    if(live.every(L=>W.picked[L.i])){W.phase='move';W.selectedHero=null;gsplitWindowDraw();}
+    if(live.every(L=>W.picked[L.i])){W.phase='move';gsplitBoonsCommit();W.selectedHero=null;gsplitWindowDraw();}
   }else if(kind==='hero'){
     if(W._suppressClick && Date.now()-W._suppressClick<500) return;   // v585: that was the end of a drag
     W.selectedHero=(W.selectedHero===b.dataset.unit)?null:b.dataset.unit;gsplitWindowDraw();   // tap again to put it down
@@ -10691,6 +10988,7 @@ function gsplitWindowDraw(){
       const picked=W.picked[L.i],out=L.state!=='walking';
       html+='<div class="gw-road'+(picked?' gw-done':'')+(out?' gw-out':'')+'"><div class="gw-name">'+gsplitEsc(gsplitRoadName(L.i))+'</div>';
       if(!out){
+        html+=gsplitBoonForesight(L);   // v1443 Foresight
         html+='<div class="gw-boons">';
         for(const b of (L.offer||[]))
           html+='<button class="gw-boon'+(picked===b.id?' gw-pick':'')+'" data-gw="boon" data-lane="'+L.i+'" data-id="'+gsplitEsc(b.id)+'" title="'+gsplitEsc(langDesc(b.blurb||'',true))+'" aria-label="'+gsplitEsc(b.blurb?langDesc(b.blurb,true):langDesc(b.name))+'">'+gsplitEsc(langDesc(b.name))+'</button>';
@@ -11217,6 +11515,7 @@ function gsplitEnterBattle(data, assign, id, coach){
   GSPLIT.level = data.boonLevel||1;
   GSPLIT.waveShown = 0; GSPLIT._cardSeq=0;
   GSPLIT.boonOffers = data.boonOffers||[];
+  GSPLIT.boonDeck = data.boonDeck||null; gsplitBoonsReset();   // v1443
   GSPLIT.lanes = [0,1,2].map(i=>{
     const L=gsplitLane(i);
     L.brng = mulberry32(seed^(i*7919));
@@ -11433,12 +11732,12 @@ function gsplitRedistribute(F){
     try{ const sl = laneSlot('enemy', s.key, 0, 1, [s.key]);
       const u = makeUnit(s.key, 'enemy', sl.x, sl.y, s.lvl||1, {boss:!!s.boss});
       u.maxHp = Math.round(u.maxHp*(s.hpMul||1)*(s.boss?1.15:1)); u.hp = u.maxHp; u.dmg = u.dmg*(s.dmgMul||1);
-      u.homeX = sl.x; units.push(u); buildFigure(u); spot(T, u);
+      u.homeX = sl.x; units.push(u); buildFigure(u); spot(T, u); BoonFx.arrive(T, u);   // v1443
     } finally { gsplitSave(T); } };
   for(const u of F.units.filter(e => e.alive && e.team === 'enemy' && !e._summon)){
     const T = pick(); F.units.splice(F.units.indexOf(u), 1);
     const fighting = T.waveIdx === w && !T.xfer && T.units.some(e => e.alive && e.team === 'enemy');
-    if(fighting || (T.waveIdx|0) > w){ T.units.push(u); spot(T, u); }            // joins T's fight, or the wave T has parked
+    if(fighting || (T.waveIdx|0) > w){ T.units.push(u); spot(T, u); BoonFx.arrive(T, u); }            // joins T's fight, or the wave T has parked (v1443: and meets that road's Scorched Earth / Bogged)
     else { if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } place(T, specOf(u), w + 1); }
   }
   for(let k = w + 1; k <= last; k++){
@@ -11756,6 +12055,7 @@ function gsplitHudExit(){
    real, earned win into either a false CLEARED or a forced loss. */
 function gsplitCloseWindow(){
   if(!gsplitStartAllowed()) return false;
+  gsplitBoonsCommit();   // v1443
   const windowIndex = GSPLIT.waveShown + 1;   // captured BEFORE the increment below - 1-based, matches server's WINDOWS count
   if(GSPLIT.attemptId){
     if(!GSPLIT._windowEvidence) GSPLIT._windowEvidence = [];
@@ -11775,6 +12075,7 @@ function gsplitCloseWindow(){
       waveIdx=_w; }
     for(const s of L.units.filter(s => s._summon && !s[EVERLASTING_FLAG])) killSummon(s);
     L.offer = null;
+    BoonFx.wave(L);   // v1443: what the road's boons do to the wave about to start
   }
   return true;
 }
@@ -11807,7 +12108,7 @@ function gsplitStep(dt){
        until the window resolves. */
     if(L.waveIdx > GSPLIT.waveShown) continue;
     gsplitLoad(L); gsplitFxSwapIn(L); gsplitLoadWaves(L);
-    try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
+    try{ updateBattle(dt); if(L.bnFast&&!ended&&waveIdx<=GSPLIT.waveShown&&units.some(u=>u.team==='enemy'&&u.alive)&&units.some(u=>u.team==='ally'&&u.alive)) updateBattle(dt);   /* v1443 Headlong: this road, and everything on it, runs two fight ticks a tick */ }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
     gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
     if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
     else if(!units.some(u=>u.team==='ally'&&u.alive&&(!u._summon||u[EVERLASTING_FLAG]))) gsplitLaneFallen(L);   // v596: Everlasting summons hold the road
@@ -12820,6 +13121,7 @@ function summonUnit(owner,key,dur,off){
   const _rc=(BATTLE_ANIM[key]&&BATTLE_ANIM[key].rise), _rt=_rc?(_rc.n/(_rc.fps||14)):(12/14);
   u._summon=true; u._wasSummon=true; u._summonOwner=owner; u._summonT=(dur===0)?Infinity:(dur||15);   // v546: dur 0 = lives until killed (Zahri's mirage)
   if(owner._tal&&owner._tal.on.summon) TalentFx.summon(owner,u,key);   /* TALENT HOOK summon: a summon of a talented hero (Aldren) - it carries his rows (u._talS), his talents may change it as it is called */
+  if(owner._bn&&owner._bn.eternalsummon) BoonFx.summon(owner,u);   /* BOON HOOK summon: Everlasting */
   u._riseT=_rt; u._riseMax=_rt;   /* v559: these two were swallowed by the v546 line comment above, so _riseT never received the rise-clip duration and every summon skipped its emergence -- targeting and think both read it. */
   if(t_is_mirage(key)){ u._mirage=true;   // v532: a MIRAGE summon (Zahri) - tagged so mechanics can tell it from the herd
     /* v534 (Phil, 9 Sep): "the mirage can crit, it inherits 30% of her crit chance. however the crit wont have a different
@@ -13048,13 +13350,14 @@ function ddRender(S,onDone){ const old=document.getElementById('ddPop'); if(old)
    own modifiers (element, a crushed attack), and crit resist (it shrinks a crit's bonus, never a hit below a normal one). The same ceiling sits in the
    server's line model (server/combat-core.js applyDamage). Tested: tests/balance-dr-ceiling.test.js */
 const DR_FLOOR=0.05;
-let _drPre=-1;
+let _drPre=-1, _bnSrc=null;   /* v1443 _bnSrc: who dealt the blow damage() is about to take (dealDamage, a DoT tick) - read once there, for the bonus-stage boons that act on a kill */
 function drPreOf(t,amt,f){ let a=amt; const ir=t._talIr; if(ir){ t._talIr=null; a=Math.max(amt,ir[0]*ir[1]); } return f>0?a/f:a; }   /* the talents' incoming rows: _talIr = [the hit before them, the share not moved away] (talents-mech/_engine.js inc) */
-function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1;
+function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1; const _bnK=_bnSrc; _bnSrc=null;
   if(HERO61.immune(u,battleTime))return;
   if(DEV.god && u.team==='ally'){ return; }   // dev god-mode: your team takes no damage
   if(u.drT>0)a*=u.drMul;                 // active damage-reduction cooldown (Shield Wall etc.)
   if(u.glyphDR)a*=(1-u.glyphDR);          // Armor / Magic Resist glyphs
+  if(u._bnIn!=null)a*=u._bnIn;   /* BOON HOOK in: a bonus-stage boon's share of every hit, DoT tick and hazard tick this hero takes (Warded, Bulwark Oath, Shieldwall, Glass Oath's cost ...; only BoonFx.tick sets _bnIn) - before the 95% ceiling below, so it counts */
   if(u.pass&&u.pass.bulwark)a*=(1-0.18*(u.passMul||1));   // passive mitigation (scales with skill level)
   if(u.pass&&u.pass.warden&&u.wardenStk)a*=(1-wardenCut(u));   /* v1112: the cap grows 20% -> 29.9% */   // Adamant Discipline: stacking armour/MR
   /* v894 - Unmovable Mass: every 3 direct hits build a molten-armour stack (max 5), and the stacks cut damage taken */
@@ -13096,6 +13399,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
+    if(GSPLIT.active) BoonFx.death(u,_bnK);   /* BOON HOOK death: a kill's boons (Pyre, Rising, Accreting ...) and a fallen hero's (Vengeance, Inheritance) */
     if(u._tal||u._talW) TalentFx.death(u);   /* TALENT HOOK death */
     if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
     // Overdue (Grimsby): a debt that outlives the debtor is served on the room.
@@ -13945,7 +14249,7 @@ const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10,
 function edgeTauntPlus(taunter,victim){ return AFFINITIES_LIVE&&(unitClass(taunter)==='Tank'&&unitClass(victim)==='Marksman')?EDGE.tauntPlus:0; }
 function dealDamage(src,tgt,amt,color,kind,silent){ if(!DD.on) return _dealDamageCore(src,tgt,amt,color,kind,silent);   /* v1388 Damage Done: who hit, with what (bookkeeping only) */
   const _p=DD.hit; DD.hit={src,l:ddLbl(src)}; DD.depth++; try{ return _dealDamageCore(src,tgt,amt,color,kind,silent); } finally{ DD.depth--; DD.hit=_p; } }
-function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
+function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk, _bnRaw=amt; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
   if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'wall');   /* TALENT HOOK foiled: a hit of a talented unit was stopped by the shield wall (Meridian's Windage) */ return; }   /* Shield wall: the Tank is the one being shot */
  if(typeof SFX!=='undefined'&&SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
@@ -13983,6 +14287,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
     if(tgt._tal&&tgt._tal.on.bank) TalentFx.bank(tgt,src,amt,kind,_isAuto);
     return; }
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
+  if(tgt._bn&&src&&src.team!==tgt.team&&BoonFx.dodge(tgt)) return;   /* BOON HOOK dodge: Slipstream (the seeded roll is inside, only for a hero carrying it) */
   const _svT=(tgt.pass&&tgt.pass.stormdodge&&tgt._tal&&tgt._tal.on.veil)?TalentFx.veil(tgt,src,_isAuto,kind,((tgt._stormT||0)>0||(tgt._castT||0)>0),SKLV.stormdodge(passLv(tgt))):-1;   /* TALENT HOOK veil: Static Veil's chance, and whether it is up, for a talented Fritz (-1 for every other unit: the line below is then the old one) */
   if(tgt.pass&&tgt.pass.stormdodge && (_svT>=0?_svT>0:((tgt._stormT||0)>0||(tgt._castT||0)>0)) && brnd()<(_svT>=0?_svT:SKLV.stormdodge(passLv(tgt)))){   /* v1112: 30% + 0.15 pt a level */ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); if(_svT>=0) TalentFx.veiled(tgt,src,_isAuto,kind);   /* TALENT HOOK veiled: Static Veil dodged this hit */ return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
   { const _coldStacks=Math.max(((tgt._chillT||0)>0?(tgt._chillStacks||0):0),((tgt._frozenT||0)>0?1:0)); if(src&&src._frostHit&&_coldStacks>0)amt*=1+Math.min(5,_coldStacks)*((src.pass&&src.pass.coldsnap)?SKLV.coldsnap(passLv(src)):0.05); }   /* v1112: Cold Snap 5% + 0.03 pt a level per stack */   // Cold Snap: only frost abilities gain +5% damage per Chill, max +25%
@@ -14054,17 +14359,19 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
+  let _bnPc; if(src&&src._bn){ _bnPc=[_preCrit]; _preCrit=BoonFx.crit(src,_preCrit); }   /* BOON HOOK crit: First Blood, Momentum, Fateful may make this hit a critical */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0)+((src&&src._wpnCrit)||0);   /* v1137: + Rivet's revolver (15% on that hit; 0 on every other unit) */   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<Math.max(0,cc-((tgt&&tgt.defenseStat)||0))))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+Math.max(0,bonus-tgt.critRes);   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), floor = a normal hit; = combat-core */ amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
-  if(_talPc) _preCrit=_talPc[0];
+  if(_bnPc) _preCrit=_bnPc[0]; if(_talPc) _preCrit=_talPc[0];
   if(src&&src._tal&&src._tal.on.out) amt=TalentFx.out(src,tgt,amt,kind,_isAuto,_crit);   /* TALENT HOOK out: the attacker's learned talents */
+  if(src&&src._bn) amt*=BoonFx.out(src,_isAuto);   /* BOON HOOK out: what the attacker's boons add to the damage it deals */
   if(src&&src._talS) amt=TalentFx.sOut(src,tgt,amt,kind,_isAuto,_crit);   /* TALENT HOOK sOut: a talented hero's summon strikes (his rows about his summons' hits; only his summon hook sets _talS) */
   if((tgt._tal&&tgt._tal.on.in)||tgt._talW) amt=TalentFx.inc(tgt,src,amt,kind,_isAuto,_crit);   /* TALENT HOOK in: the target's learned talents, and team-wide ones watching it */
   if(tgt._talMiss&&TalentFx.miss(tgt)) return;   /* TALENT HOOK miss: one of the target's 'in' rows made this hit miss (only a talent sets _talMiss) */
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   if(_edge==='Assassin'&&(tgt.shield||0)>0) tgt.shield-=Math.min(tgt.shield,amt);   /* Silence the healer: double damage to a shield - only a blow that lands */
-  const _hpBefore=tgt.hp; _drPre=drPreOf(tgt,amt,_drF); damage(tgt,amt,color,!!silent,_crit);
+  const _hpBefore=tgt.hp; _drPre=drPreOf(tgt,amt,_drF); _bnSrc=src; damage(tgt,amt,color,!!silent,_crit);
   if(_edge&&tgt.alive&&src&&src.alive!==false){ try{   /* v1367 class edges that act after the hit */
     if(_edge==='Marksman'&&unitClass(tgt)==='Mage'){ tgt.energy=Math.max(0,(tgt.energy||0)-EDGE.drain); }
     else if(_edge==='Mage'&&kind!=='phys'&&!_isAuto){ tgt._hexUntil=battleTime+EDGE.hexDur; }   /* v1376 (Phil 12 Nov: "Change the movement speed to 20%"): Hex slows movement 20% (EDGE.hexMove) on its own timer, not the generic 45% slow */   /* through ccApply: CC_NERF / CC_DUR_MAX like every other control */
@@ -14089,6 +14396,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk;
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
   if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4',src);   /* v1112: 10% + 0.1 pt a level */
   if((src&&src._tal)||tgt._tal) TalentFx.hit(src,tgt,_hpLost,amt,kind,_isAuto,_crit,_hpBefore);   /* TALENT HOOK hit / kill / hurt */
+  if(src&&(src._bn||tgt._bn)) BoonFx.hit(src,tgt,_hpLost,_bnRaw,kind,_isAuto,_crit,color);   /* BOON HOOK hit: the on-hit boons (Concussive, Twinned, Siphoning, Bulwarked ...) */
   if(src&&src._talS) TalentFx.sHit(src,tgt,_hpLost,amt,kind,_isAuto,_crit,_hpBefore);   /* TALENT HOOK sHit: a talented hero's summon landed a hit (and its killing blow) */
   /* v1137 (Phil 14 Oct): Rivet's old six-step Whatever's Loaded cycle (stun, splash, bleed, slow, chain, heavy shot) lived here, on every hit he dealt. It is REPLACED by his ten weapons - each basic attack's effect is its weapon's (rivetFire), the chain hook is automatic (rivetHookTick). */
 }
@@ -14123,9 +14431,10 @@ function dotDmgKind(src,color,kind){ if(kind) return kind; const f=color?DOT_KIN
   if(f==='bleed') return 'phys'; if(f==='curse') return 'magic';
   return (src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys'; }
 /* v1309: the tick's damage after the target's Armor / Magic Resist (no source recorded = unchanged) */
-function dotTickAmt(src,tgt,amt,kind){ _drPre=(tgt._talDp!=null)?tgt._talDp:amt;   /* the 95% ceiling: the tick before the target's reductions (_talDp: before its talents' DoT rows) */
+function dotTickAmt(src,tgt,amt,kind){ _bnSrc=src||null; _drPre=(tgt._talDp!=null)?tgt._talDp:amt;   /* the 95% ceiling: the tick before the target's reductions (_talDp: before its talents' DoT rows) */
   return (DOT_MITIGATION&&src)?amt*defMul(src,tgt,kind):amt; }
 function pushDot(t,dps,dur,interval,color,src,kind){   // v1309: src (the caster) and kind decide the tick's Armor / MR mitigation
+  if(src&&src._bnOut) dps*=src._bnOut;   /* BOON HOOK out (DoTs): a boon's "more damage dealt" reaches the damage-over-time its hero applies */
   // Compound Interest (Grimsby): a debt near him is slower to clear — every DoT on an enemy
   // within his aura lasts 20% longer. Applies to the WHOLE team's damage-over-time, not just his.
   try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
@@ -15849,7 +16158,7 @@ function hero61Cast(u,slot,target){
   const _rec61=(_A61&&_A61.contact>0&&_A61.n>_A61.contact)?(_A61.n-_A61.contact)*ct/_A61.contact:0;
   u._castT=ct;u._castNow=ct;u.castAnim=ct;u._lockPri=slot==='ult'?6:4;u._abilPri=u._lockPri;u._animLockT=ct+_rec61;
   if(slot!=='ult')u._h61Rec=ct+_rec61;
-  if(slot==='ult'){u.energy=0;u._ultRootT=Math.max(ct,ultClipDur(u));}
+  if(slot==='ult'){u.energy=0;u._ultRootT=Math.max(ct,ultClipDur(u)); if(u._bn) BoonFx.ult(u);}
   return true;
 }
 function hero61Schedule(u,dt){
@@ -15881,7 +16190,7 @@ function hero61Schedule(u,dt){
   if(!u._pend&&u.greenAb&&HERO61.allies(u,units).length)start('green');
 }
 
-function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
+function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct; if(u._bn) BoonFx.cast(u,slot);
   // Green/Blue are automatic: ground-targeted offensive areas choose the densest pack.
   // Self-centred and allied circles deliberately retain their authored anchors.
   const _kAx=u._aimWX, _kAy=u._aimWY; u._aimWX=null; u._aimWY=null;   /* v1391 (skill reach audit 14 Nov): a Green/Blue cast carries only the aim it picks itself just below. u._aimWX still held the spot of the hero's LAST aimed ult (never cleared), so Starfire, Nebula, Toxic Breath and Blazing Orbit fired at that old spot; the old aim is put back after the press (end of castKit) so an ultimate reads exactly what it read before */
@@ -16042,6 +16351,7 @@ function healUnit(u,a){ if(u.mortalT>0)a*=0.5;
   if((u._healCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._healCutUntil>battleTime) a*=1-EDGE.healCut;   /* v1367 Silence the healer */
   if((u._beeCutUntil||0)>0&&typeof battleTime!=='undefined'&&u._beeCutUntil>battleTime) a*=1-(u._beeCut||BEE_HEAL_CUT);   /* v1376 The Swarm Moves On */
   if(typeof AFFINITIES_LIVE!=='undefined'&&AFFINITIES_LIVE&&u.target&&u.target.alive&&unitClass(u.target)==='Tank'&&u.target.team!==u.team&&units.some(o=>o.alive&&o.team===u.team&&unitClass(o)==='Support')) a*=1+EDGE.healBonus;   /* v1367 Sundering grace: allies attacking a Tank heal more while a Support fights beside them */ if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; if(u._tal&&u._tal.on.heal) TalentFx.heal(u,a);   /* TALENT HOOK heal: sees the heal before it is cut to the room left */
+  if(GSPLIT.active){ a=BoonFx.heal(u,a); if(!(a>0)) return; }   /* BOON HOOK heal: Ascetic Oath, Withering, Grave-touched stop a heal; Aegis turns the overflow into a shield */
   a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a; if(DD.on) ddHeal(u,a,null);
   /* v527 - healing that travels. Golden Thread (Threadseer) sends part of what SHE receives to
      the ally nearest death; Dreamthread (Lysara) shares between the two allies she linked.
@@ -16103,7 +16413,7 @@ function castAbility(u){ if(u.key===HERO61.KEY){return hero61Cast(u,'ult',u.targ
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
   u._ultChanT=0;   // v525: clock for the wind-up / hold-at-apex / return of a CHANNELLED ult
-  u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
+  u.energy=0; if(u._bn) BoonFx.ult(u); u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
 }
 
 // ---------------------------------------------------------------------------
@@ -17965,7 +18275,7 @@ function think(u,dt){
   if(u.key!==HERO61.KEY && !silenced && u.blueAb){u.blueCd-=dt*((u.castT||0)>0?(u.castMul||1):1);if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1); u._castLv=((u.skillLv&&u.skillLv[2])|0)||1;   /* v787 */castKit(u,u.blueAb);u._castSM=1; u._castLv=0;u.blueCd=u.blueAb.cd; if(u._tal&&u._tal.on.cd) u.blueCd=TalentFx.cd(u,'blue',u.blueCd);   /* TALENT HOOK cd */ }}
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else if((u._chaseT||0)>0 && u._chaseTg && u._chaseTg.alive) u.target=u._chaseTg;   // v1044 KonWu runs down the mark he kicked away
-  else{ u.target=nearestEnemy(u); if(u.target&&u.target._talAgg&&u.target._tal) u.target=TalentFx.aggro(u.target,u)||u.target; }   /* TALENT HOOK aggro: he picked a unit whose talent says who may pick it (Kharos's Scentless; only his rows set _talAgg) */   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
+  else{ u.target=nearestEnemy(u); if(u.target&&u.target._talAgg&&u.target._tal) u.target=TalentFx.aggro(u.target,u)||u.target; if(u._bn&&u._bn.backline) u.target=BoonFx.far(u)||u.target; }   /* TALENT HOOK aggro: he picked a unit whose talent says who may pick it (Kharos's Scentless; only his rows set _talAgg) */   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   if(u.target&&u.target._talShd&&u.target._talShd._tal&&!(u.forcedTargetT>0&&u.forcedTarget&&u.forcedTarget.alive)&&!((u._chaseT||0)>0&&u._chaseTg&&u._chaseTg.alive)) u.target=TalentFx.shade(u.target._talShd,u,u.target)||u.target;   /* TALENT HOOK shade: u picked an ally a talented hero keeps in his shade (Umbris's Shroud of Shade; only his rows set _talShd); never over a taunt or a chase */
   if(u._tal&&u._tal.on.pickTgt&&!(u.forcedTargetT>0&&u.forcedTarget&&u.forcedTarget.alive)&&!((u._chaseT||0)>0&&u._chaseTg&&u._chaseTg.alive)) u.target=TalentFx.pickTgt(u,u.target);   /* TALENT HOOK pickTgt: a talented unit's own basic-attack target, never over a taunt or a chase (Lysara's The Lantern; only a talented hero with pickTgt rows) */
   const t=u.target;if(!t)return;const d=dist(u,t);
@@ -17974,7 +18284,7 @@ function think(u,dt){
   // NEAREST foe (the front line) — so mid holds 13 m and back holds 25 m even while heroes charge in from the side.
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
-  const doAtk=()=>{ const ai=u.atkInterval*(((u._hexUntil||0)>battleTime)?EDGE.hexAtk:1)/(u.hasteT>0?u.hasteMul:1)/((typeof edAtkRamp==='function')?edAtkRamp():1); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp. v663: guarded - edAtkRamp lives in the Emberdraft <script>, which server/sim-host.js does not load, so every server replay threw "edAtkRamp is not defined"
+  const doAtk=()=>{ const ai=u.atkInterval*(((u._hexUntil||0)>battleTime)?EDGE.hexAtk:1)/(u.hasteT>0?u.hasteMul:1)/(u._bnAs||1)/((typeof edAtkRamp==='function')?edAtkRamp():1); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp. v663: guarded - edAtkRamp lives in the Emberdraft <script>, which server/sim-host.js does not load, so every server replay threw "edAtkRamp is not defined"
     if((u.key!==HERO61.KEY||HERO61.canAttack(u,units)||u._moSwing>0) && u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && !(u._talDisarmT>0) && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       u._atkSpdMul=Math.max(0.25,Math.min(4,(u._atkI0||u.atkInterval)/Math.max(0.05,ai)));   /* v1024 (Phil): every attack-speed source speeds this swing's clip and its blow */
       if(u.pass&&u.pass.desertmom){ const _pm=(u.passMul||1); u._dmAS=Math.min(0.5*_pm,(u._dmAS||0)+0.04*_pm); u._dmPen=Math.min(120*_pm,(u._dmPen||0)+6*_pm); }   // v545 Desert Momentum: +4% attack speed, +6 penetration per auto (caps 50% / 120)
@@ -19018,6 +19328,7 @@ function _updateBattleCore(dt){
   pumpInputs();   // v269: a tap is applied HERE, on a tick boundary — never mid-frame
   simTick++;
   battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>RAGE_START?1+(battleTime-RAGE_START)*RAGE_RATE:1); screenFlash=Math.max(0,screenFlash-dt);   // v636: Emberdraft ramps attack speed instead (edAtkRamp). v644: the flash decay had been swallowed by this comment since v636 - every mode kept a permanent gold tint after the first ally ult
+  if(GSPLIT.active&&GSPLIT.curLane!=null) BoonFx.tick(dt);   /* BOON HOOK tick: this road's boons, before anyone acts (a bonus run only) */
   if(CUR && CUR.mode==='emberdraft' && window.ED && ED.fighting){ edTick(dt); if(ended) return; }   // v604 Emberdraft: item actives, leaps, the 30 s draw, instant end
   if(!ended && CUR.mode!=='online' && CUR.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // v644: Emberdraft draws at ED_FIGHT_LIMIT in edTick   // ⏱ time's up → defeat (battle timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
@@ -19092,7 +19403,7 @@ function _updateBattleCore(dt){
           burstAt(e.x,e.y,0xffcf40,10); } });
       if(u._stampT<=0){ u._stampT=0; ringBurst(u.x,u.y,0xffcf40,16); burstAt(u.x,u.y,0xff8844,14); u._stampFoes=null; } }
     if(u._summon&&u._talS&&u._summonOwner&&u._summonOwner.alive&&u._summonT-dt<=0) TalentFx.sGone(u);   /* TALENT HOOK sGone: a talented hero's summon is at the end of its time, still standing */
-    if(u._summon){
+    if(u._summon&&!u[EVERLASTING_FLAG]){   /* v1443 Everlasting: not to the timer, not with their summoner (only BoonFx sets the flag) */
       if(!u._summonOwner||!u._summonOwner.alive){ killSummon(u); }   // the pack dies with its master
       else { u._summonT-=dt; if(u._summonT<=0){ ringBurst(u.x,u.y,0x4a3a22,10); killSummon(u); } }
     }
@@ -19263,7 +19574,7 @@ function _updateBattleCore(dt){
     for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; const _talD=((u._tal&&u._tal.on.dotIn)||d._talK||u._talDw)?TalentFx.dotPre(u,d):null;   /* TALENT HOOK dot tick (before); _talDw: a talented unit watching u has rows about DoTs on it (Dandra's Lamplight) */ if(DD.on){ const _g=DD.tag.get(d), _p=DD.hit; DD.hit={src:d.src,l:_g?_g.l:'passive'}; try{ damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); } finally{ DD.hit=_p; } } else damage(u,dotTickAmt(d.src,u,d.dps,d.kind),d.color,true); if(_talD) TalentFx.dotPost(u,d,_talD);   /* TALENT HOOK dot tick (after) */ d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; const _talH=h._talU?TalentFx.hotPre(u,h):null;   /* TALENT HOOK hot tick (before): only a heal over time a talented healer's rows made hers */ if(DD.on){ const _g=DD.tag.get(h), _p=DD.healBy; DD.healBy=_g?_g.src:null; try{ healUnit(u,h.hps); } finally{ DD.healBy=_p; } } else healUnit(u,h.hps); if(_talH) TalentFx.hotPost(u,h,_talH);   /* TALENT HOOK hot tick (after) */ h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
-    if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
+    if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=u._bnSh||0;}   /* v1443: a boon's shield does not run out with a skill's timer (_bnSh: only BoonFx sets it) */
     if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ if(u.dmgBuffT>0){u.dmgBuffT-=dt; if(u.dmgBuffT<=0)u.dmgBuffMul=1;} if(u.drT>0){u.drT-=dt; if(u.drT<=0)u.drMul=1;}   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): an expired buff's multiplier no longer seeds the next one */ if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._talDisarmT>0)u._talDisarmT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
     if(u._gearDelayedHeals&&u._gearDelayedHeals.length){ for(let i=u._gearDelayedHeals.length-1;i>=0;i--){ const h=u._gearDelayedHeals[i]; h.t-=dt; if(h.t<=0){ healUnit(u,h.amt); u._gearDelayedHeals.splice(i,1); } } }
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence

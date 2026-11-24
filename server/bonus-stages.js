@@ -544,6 +544,27 @@ function boonOffer(runSeed, lane, wave, level, profile){
   return out;
 }
 
+/* v1443 (Phil 24 Nov 2026: "Add them and make them fully functional") - THE OFFER FITS THE ROAD AS IT STANDS.
+   The table above is rolled at Start from the starting line-up, so after a crossing or a death a road could still be offered
+   Lone Wolf with five heroes on it, or Everlasting with its summoner gone. The page is the only side that knows who is standing
+   where at a firebreak (the fight is not replayed here), so Start now also hands it the DECK: for every window and road the whole
+   offerable catalogue in this run's seeded order, each
+   boon's card and rule, and what each hero of the squad is. At each firebreak the page takes the first three of that order that
+   fit the road as it is. The order is still fixed by the attempt's seed, so it cannot be re-rolled; `boonOffers` stays for a
+   page that has not updated. */
+function boonDeck(runSeed, ctx, assign){
+  if(!BOONS_LIB) return null;
+  const all = BOONS_LIB.readyNow();
+  const order = Array.from({length:WINDOWS},(_,i)=>[0,1,2].map(lane=>{
+    const next = rng(((runSeed>>>0) ^ (lane*7919) ^ ((i+1)*104729))>>>0);
+    const bag = all.slice(), out = [];
+    while(bag.length) out.push(bag.splice(next()%bag.length,1)[0].id);
+    return out; }));
+  const tags = {};
+  for(const L of [1,2,3]) for(const k of ((assign&&(assign[L]||assign[String(L)]))||[])) tags[String(k)] = BOONS_LIB.heroTags(k, ctx&&ctx.hero);
+  return { size:BOON_OFFER_SIZE, defs:BOONS_LIB.deckDefs(), order, tags };
+}
+
 /* ------------------------------------------------------------------ the stars
    PHIL'S LADDER, 17 Sep 2026, in his own final wording. This REPLACES the one Claude invented
    (1★ win · 2★ all three lanes standing · 3★ no hero lost), which was never his:
@@ -1049,6 +1070,7 @@ async function handle(p, method, ctx){
       boonOffers:Array.from({length:WINDOWS},(_,i)=>[0,1,2].map(L=>
         boonOffer(b.att.seed, L, i+1, lvl, laneProfileFor(ctx, body.assign, L+1)))),   // after waves 1-4
       boonLevel:lvl,
+      boonDeck:boonDeck(b.att.seed, ctx, body.assign),   // v1443: the page fits the offer to the road as it stands at each firebreak
       waves:WAVES, laneCount:LANES } };
   }
 
@@ -1198,7 +1220,7 @@ function rulesSettled(){ return [
 
 module.exports = { handle, resolveRun, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLOTS, CHAPTERS,
   LANES, WAVES, WINDOWS, MAX_HEROES, MAX_PER_LANE, STAR_DEATH_LIMIT_2, starExplain,
-  BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending, stageClock, nextHourClock, clockAfterClaim, checkCrossings, MIN_RESOLVE_MS, ATTEMPT_MS,
+  BOON_OFFER_SIZE, boonPool, boonDeck, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending, stageClock, nextHourClock, clockAfterClaim, checkCrossings, MIN_RESOLVE_MS, ATTEMPT_MS,
   bossFor, BONUS_BOSS_PIN,
   claimList, advanceClock, buildLanes, boonOffer, starsFor, clearReward, families,
   resetFamilyCache, checkSquad, checkSquadStrict, checkSwap, laneMoveOK, lanesReachableFrom,
