@@ -20,5 +20,9 @@ const fn=sig=>{ const i=html.indexOf(sig); assert(i>=0,'found '+sig); const e=[h
   ok(iU>0&&iL>0&&iU<iL,'renderDungeon shows the unreachable screen before the legacy dungeon branch');
   ok(/vaultRetry/.test(rd),'the unreachable screen has a Retry control');
   const iK=rd.indexOf('VAULT.st.locked'); ok(iK>0&&iK<iL,'renderDungeon shows the sealed screen before the legacy dungeon branch');
+  /* v1443 (review): a Vault switched off on the server no longer opens the legacy dungeon (its kind:'dungeon' result is refused by the server now) */
+  { const iOff=rd.indexOf('VAULT.st.enabled===false'), off=rd.slice(iOff,iL);
+    ok(iOff>0&&iOff<iL&&off.indexOf("t('dungeon.sealed')")>0&&off.indexOf('vaultRetry')>0&&off.indexOf('return; }')>0,'enabled:false shows the sealed card with Retry and returns BEFORE the legacy dungeon branch');
+    const srv=fs.readFileSync(path.join(__dirname,'..','server.js'),'utf8'); ok(srv.indexOf("if(kind==='dungeon') return {ok:false,error:'The Aether Vault climbs on its own ladder.'}")>0,'(the server refuses a kind:dungeon trial result, which is why)'); }
   console.log('test_vault_status_client.js: '+pass+' checks passed (client sha256 '+sha.slice(0,16)+')');
 })().catch(e=>{ console.error('FAIL',e.message); process.exitCode=1; });
