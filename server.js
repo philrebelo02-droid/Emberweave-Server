@@ -10201,7 +10201,12 @@ async function api(req,res,url){
           if(kind==='tower'&&_lv<40) return {ok:false,error:'The Tower of Trials opens at level 40.'}; if(kind==='dungeon'&&_lv<10) return {ok:false,error:'The Vault opens at level 10.'};
           /* v1097 (sweep 9 Oct P0 #3): kind 'tower' was a hidden second Tower ladder - first-clear gold for floors to 500 on floor-100 waves,
              no power wall, beside the real Tower (/api/tower/ascend pays each floor once). It is retired; the Tower climbs only there. */
-          if(kind==='tower') return {ok:false,error:'The Tower of Trials climbs on its own ladder.'}; }
+          if(kind==='tower') return {ok:false,error:'The Tower of Trials climbs on its own ladder.'};
+          /* B2 (vault bug scan 24 Nov): kind 'dungeon' was a hidden second Vault ladder - decided by a server-side
+             estimate with NO fight, paying 200 gold + 100 commander XP + 90 hero XP per first clear plus up to 10
+             equipment-material wins a day (a level-10 account cleared 8 floors in under a second, level 10 -> 16 in
+             the scan). Retired exactly like the tower in v1097: the Vault climbs only on /api/dungeon. */
+          if(kind==='dungeon') return {ok:false,error:'The Aether Vault climbs on its own ladder.'}; }
         /* v1097 (sweep 9 Oct P0 #3): floors stop at the last built encounter (DUNGEON_MAX_FLOOR) - beyond it every floor was floor 100 again,
            each paying its first clear; floors still go in order (best+1) and pay once */
         if((+b.floor|0)>DUNGEON_MAX_FLOOR) return {ok:false,error:'The last floor is '+DUNGEON_MAX_FLOOR+'.'};

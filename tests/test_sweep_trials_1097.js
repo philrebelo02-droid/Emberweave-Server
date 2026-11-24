@@ -1,6 +1,8 @@
 // v1097 - sweep 9 Oct P0 #3 (Island of Trials): /api/trial/resolve kind 'tower' was a hidden second Tower ladder paying first-clear gold
-// to floor 500 on floor-100 waves; it is retired (the Tower climbs on /api/tower/ascend). kind 'dungeon' stops at the last built floor
-// (DUNGEON_MAX_FLOOR) and floors still go in order.
+// to floor 500 on floor-100 waves; it is retired (the Tower climbs on /api/tower/ascend).
+// B2 (vault bug scan 24 Nov): kind 'dungeon' was a hidden second Vault ladder paying first-clear rewards with no
+// fight; it is retired too (the Vault climbs on /api/dungeon). Floors-in-order and the max-floor cap now hold on
+// the real Vault routes, not here.
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-v1097 server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-tr1097-'));
@@ -34,19 +36,19 @@ const HEROES=['vael','sylthaine','vireo','kael','nyra'];
   const g1=(await led()).gold;
   ok(tw.data.ok===false,'kind tower is refused ('+(tw.data.error||JSON.stringify(tw.data).slice(0,100))+')');
   ok(g1===g0,'kind tower pays no gold ('+(g1-g0)+')');
-  /* #3b the dungeon kind stops at the last built floor */
-  const d1=await call('/api/trial/resolve',{kind:'dungeon',floor:1,heroIds:owned,requestId:'tr-d1'});
-  ok(d1.data.ok===true&&d1.data.won===true&&d1.data.first===true,'control: dungeon floor 1 is won and pays its first clear ('+(d1.data.error||'won '+d1.data.won)+')');
-  const d3=await call('/api/trial/resolve',{kind:'dungeon',floor:3,heroIds:owned,requestId:'tr-d3'});
-  ok(d3.data.ok===false&&/previous floor/.test(d3.data.error||''),'floors go in order: floor 3 after floor 1 is refused');
-  await editDB(u=>{ u.led.trial=u.led.trial||{}; u.led.trial.dungeon={best:100}; });
+  /* #3b B2: the dungeon kind was a hidden second Vault ladder (estimate, no fight, first-clear gold/px/hero XP
+     + up to 10 material wins a day) - retired like the tower; the Vault climbs only on /api/dungeon */
   const ga=(await led()).gold;
+  const d1=await call('/api/trial/resolve',{kind:'dungeon',floor:1,heroIds:owned,requestId:'tr-d1'});
+  const gb=(await led()).gold;
+  ok(d1.data.ok===false&&/own ladder/.test(d1.data.error||''),'kind dungeon is refused ('+(d1.data.error||JSON.stringify(d1.data).slice(0,100))+')');
+  ok(gb===ga,'kind dungeon pays no gold ('+(gb-ga)+')');
+  await editDB(u=>{ u.led.trial=u.led.trial||{}; u.led.trial.dungeon={best:100}; });
+  const gc=(await led()).gold;
   const d101=await call('/api/trial/resolve',{kind:'dungeon',floor:101,heroIds:owned,requestId:'tr-d101'});
-  const d500=await call('/api/trial/resolve',{kind:'dungeon',floor:500,heroIds:owned,requestId:'tr-d500'});
-  const gb=(await led()).gold; await delay(400);
+  const gd=(await led()).gold; await delay(400);
   ok(d101.data.ok===false,'dungeon floor 101 (past the last built floor) is refused ('+(d101.data.error||JSON.stringify(d101.data).slice(0,100))+')');
-  ok(d500.data.ok===false,'dungeon floor 500 is refused');
-  ok(gb===ga&&((disk().users[id].led.trial||{}).dungeon||{}).best===100,'no gold is paid and the best floor stays 100 ('+(gb-ga)+')');
+  ok(gd===gc&&((disk().users[id].led.trial||{}).dungeon||{}).best===100,'no gold is paid and the best floor stays 100 ('+(gd-gc)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_sweep_trials_1097.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();
