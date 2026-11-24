@@ -74,5 +74,6 @@ ok(['portalCompile','campCompile'].every(fn=>new RegExp('function '+fn+'\\(\\)[\
 
 console.log('== 3. patch note ==');
 const feed=JSON.parse(fs.readFileSync(path.join(ROOT,'patchnotes.json'),'utf8')).patches;
-ok(feed[0].ver==='1.9.9'&&/50% more health/.test(feed[0].items[0])&&/Rhukk/.test(feed[0].items[1]),'patch note 1.9.9 is first in the feed: Irix +50% and Rhukk');
+{ const n199=feed.find(n=>n.ver==='1.9.9');   /* v1442: later notes sit above it now - the note must EXIST in the feed, not be first */
+  ok(!!n199&&/50% more health/.test(n199.items[0])&&/Rhukk/.test(n199.items[1]),'patch note 1.9.9 is in the feed: Irix +50% and Rhukk'); }
 console.log('test_irix_final_boss_1430.js: '+P+' checks passed');
