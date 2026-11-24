@@ -155,7 +155,7 @@ B('PROC','shieldproc','Bulwarked',    90,true,'Blocking or taking a hit has a 18
 B('PROC','healproc','Merciful',       120,true,'Kills have a 15% chance to heal the lowest hero on your road for {v}.'),
 B('PROC','taunthit','Goading',         0.10,false,'Auto attacks have a {p} chance to force the target onto you for 3 seconds.'),
 B('PROC','markproc','Hunted',          0.14,false,'Casts have a {p} chance to mark the target — everyone on your road hits it harder.','a shared damage mark'),
-B('PROC','sleepproc','Lulling',        0.06,false,'Auto attacks have a {p} chance to put the target to sleep until it is struck again.'),
+B('PROC','sleepproc','Lulling',        0.06,false,'Auto attacks have a {p} chance to put the target to sleep for 2 seconds, or until it takes damage.'),   /* review fix 5: the fight's own sleep, through ccApply (2 s reads 1.4 s on the clock, as every control); any damage wakes it */
 B('PROC','ultcharge','Rising',         0.25,false,'Every kill has a {p} chance to grant 20 energy.'),
 B('PROC','execproc','Merciless',       0.20,false,'Attacks on anything under a quarter health have a {p} chance to kill outright.','an execute threshold'),
 

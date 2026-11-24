@@ -114,19 +114,31 @@ function vmTests(){
         const o=hero(1,'vex'); }); }); }
 
   /* ================= PROC ================= */
-  autoProc('stunstrike',0.10,e=>{e.stunned=0;},e=>e.stunned===1);
-  autoProc('freezehit',0.08,e=>{e.stunned=0;e._frozenT=0;},e=>e.stunned===1.5&&e._frozenT===1.5);
-  autoProc('fearhit',0.07,e=>{e.fearT=0;},e=>e.fearT===2);
-  autoProc('slowfield',0.20,e=>{e.slow=0;e.slowMul=null;},e=>e.slow===3&&e.slowMul===0.5);
-  autoProc('taunthit',0.10,e=>{e.forcedTarget=null;e.forcedTargetT=0;},(e,h)=>e.forcedTarget===h&&e.forcedTargetT===3);
+  /* review fix 5: a boon's control goes through the fight's own ccApply - every control is 30% shorter (1 s reads 0.7 s on the clock), cut by Control Resist, capped, and never lands on a stun-immune boss */
+  autoProc('stunstrike',0.10,e=>{e.stunned=0;e._bnStunAt=null;},e=>near(e.stunned,0.7));
+  autoProc('freezehit',0.08,e=>{e.stunned=0;e._frozenT=0;e._bnStunAt=null;},e=>near(e.stunned,1.05)&&near(e._frozenT,1.05));
+  autoProc('fearhit',0.07,e=>{e.fearT=0;},e=>near(e.fearT,1.4));
+  autoProc('slowfield',0.20,e=>{e.slow=0;e.slowMul=null;},e=>near(e.slow,2.1)&&e.slowMul<=0.5&&e.slowMul>0);
+  autoProc('taunthit',0.10,e=>{e.forcedTarget=null;e.forcedTargetT=0;},(e,h)=>e.forcedTarget===h&&near(e.forcedTargetT,2.1+edgeTauntPlus(h,e)));
   autoProc('burnproc',0.22,e=>{e.dots=[];},(e,h)=>e.dots.length===1&&near(e.dots[0].dps,Math.max(h.dmg,h.apow||0)*0.12)&&e.dots[0].remaining===3);
   autoProc('mortalhit',0.15,e=>{e._bnNoHealT=0;},e=>(e._bnNoHealT||0)>0);
   T1('mortalhit',()=>{ inLane(0,()=>{ const h=hero(0,'vael'), e=big(E(0)[0]); e._bnNoHealT=0; rng(0,()=>hit(h,e,100,true)); e.hp=1000; healUnit(e,500);
       check(e.hp===1000, 'mortalhit: the target cannot be healed for 3 seconds'); const bt=battleTime; battleTime=bt+3.01; e.mortalT=0; healUnit(e,500); battleTime=bt;
       check(e.hp===1500, 'mortalhit: after 3 seconds it can be healed again ('+e.hp+')'); }); });
-  autoProc('sleepproc',0.06,e=>{e._sleepT=0;e.stunned=0;},e=>e._sleepT>0&&e.stunned>0);
-  T1('sleepproc',()=>{ inLane(0,()=>{ const h=hero(0,'vael'), e=big(E(0)[0]); e._sleepT=0; e.stunned=0; rng(0,()=>hit(h,e,100,true)); const asleep=e._sleepT>0;
-      rng(0.99,()=>hit(hero(0,'yenna'),e,100,true)); check(asleep&&e._sleepT===0&&e.stunned===0, 'sleepproc: it sleeps until it is struck again'); }); });
+  autoProc('sleepproc',0.06,e=>{e._sleepT=0;e.stunned=0;e._bnStunAt=null;},e=>near(e._sleepT,1.4)&&near(e.stunned,1.4));
+  T1('sleepproc',()=>{ inLane(0,()=>{ const h=hero(0,'vael'), e=big(E(0)[0]); e._sleepT=0; e.stunned=0; e._bnStunAt=null; rng(0,()=>hit(h,e,100,true)); const asleep=e._sleepT>0;
+      rng(0.99,()=>hit(hero(0,'yenna'),e,100,true)); check(asleep&&e._sleepT===0&&e.stunned===0, 'sleepproc: it sleeps until it is struck again');
+      e._bnStunAt=null; rng(0,()=>hit(h,e,100,true)); const a2=e._sleepT>0; e.dots=[]; pushDot(e,50,3,1,'#ff6a3a',null); waveXfer=null; H(0).forEach(x=>{x.stunned=999;}); for(let i=0;i<Math.ceil(1.05/SIM_STEP)&&e._sleepT>0;i++) updateBattle(SIM_STEP); H(0).forEach(x=>{x.stunned=0;});
+      check(a2&&e._sleepT===0&&e.stunned===0&&battleTime<1.2, 'sleepproc: a burn tick wakes it too');
+      e.dots=[]; e._bnStunAt=null; e.stunned=0; e.stunImmune=true; rng(0,()=>hit(h,e,100,true)); check(!e._sleepT&&!e.stunned, 'sleepproc: a stun-immune boss does not sleep'); e.stunImmune=false; }); });
+  T1('ccrules',()=>{ scene('stunstrike',0); take({0:'stunstrike'}); tick(0); inLane(0,()=>{ const h=hero(0,'vael'), e=big(E(0)[0]);
+      /* measured (review): 10 heroes, two Concussive picks on ONE enemy = stunned 57% of the time; with the 3 s window 18% */
+      e.stunned=0; e._bnStunAt=null; battleTime=10; rng(0,()=>hit(h,e,100,true)); const first=e.stunned; e.stunned=0; battleTime=12.9; rng(0,()=>hit(h,e,100,true)); const again=e.stunned; battleTime=13.01; rng(0,()=>hit(h,e,100,true));
+      check(near(first,0.7)&&again===0&&near(e.stunned,0.7), 'an enemy stunned by a boon cannot be stunned by a boon again for 3 seconds ('+[first,again,e.stunned]+')'); battleTime=0; e._bnStunAt=null;
+      e.stunned=0; e.stunImmune=true; rng(0,()=>hit(h,e,100,true)); check(e.stunned===0, 'Concussive does not stun a stun-immune boss'); e.stunImmune=false;
+      e.stunned=0; e._bnStunAt=null; e.ctrlRes=0.5; rng(0,()=>hit(h,e,100,true)); check(near(e.stunned,0.35), 'Control Resist shortens a boon stun (50% -> '+e.stunned+' s)'); e.ctrlRes=0;
+      e.stunned=0; e._bnStunAt=null; e.level=h.level+50; e.lvl=e.level; rng(0.0995,()=>hit(h,e,100,true)); const lowRoll=e.stunned; e.stunned=0; e._bnStunAt=null; let res=0; const p=_brng; let k=0; _brng=()=>(k++===0?0:0.999); try{ hit(h,e,100,true); } finally{ _brng=p; }
+      check(e.stunned===0, 'a much higher-level enemy can resist a boon stun, by the fight’s own level roll'); e.level=e.lvl=1; }); });
   T1('doublestrike',()=>{ scene('doublestrike',0); inLane(0,()=>{ const h=hero(0,'vael'), e=big(E(0)[0]); T.b=rng(0.99,()=>hit(h,e,100,true)); });
     take({0:'doublestrike'}); tick(0); inLane(0,()=>{ const h=hero(0,'vael'), e=big(E(0)[0]);
       check(near(rng(0.99,()=>hit(h,e,100,true)),T.b), 'doublestrike: one blow when the roll fails');
@@ -275,7 +287,7 @@ function vmTests(){
     check(GSPLIT.lanes[1].units.includes(c)&&c.shield===got[0].value&&c.greenCd===0, 'crosser: a hero who carries it gets it wherever he arrives'); });
 
   /* ================= WAVE ================= */
-  T1('arrivestun',()=>{ scene('arrivestun',0); take({0:'arrivestun'}); close(); check(E(0).length>0&&E(0).every(e=>e.stunned===2), 'arrivestun: every enemy of the next wave arrives stunned for 2 seconds'); check(E(1).every(e=>!e.stunned), 'arrivestun: only on that road');
+  T1('arrivestun',()=>{ scene('arrivestun',0); take({0:'arrivestun'}); E(0)[0].stunImmune=true; close(); check(E(0).length>1&&E(0).slice(1).every(e=>near(e.stunned,1.4)), 'arrivestun: every enemy of the next wave arrives stunned for 2 seconds (1.4 s on the clock, as every control)'); check(!E(0)[0].stunned, 'arrivestun: not a stun-immune boss'); check(E(1).every(e=>!e.stunned), 'arrivestun: only on that road');
     open({}); take({}); close(); check(E(0).length>0&&E(0).every(e=>!e.stunned), 'arrivestun: the NEXT wave only'); });
   T1('arrivehalf',()=>{ scene('arrivehalf',0); take({0:'arrivehalf'}); close(); check(E(0).length>0&&E(0).every(e=>near(e.hp,e.maxHp*0.75)), 'arrivehalf: every enemy of the next wave arrives at 25% less health');
     open({}); take({}); close(); check(E(0).every(e=>near(e.hp,e.maxHp)), 'arrivehalf: the NEXT wave only'); });
