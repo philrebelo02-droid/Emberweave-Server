@@ -61,6 +61,7 @@ host.sandbox.__mkStart=function(assignJson, seed, id){ const assign=JSON.parse(a
   const deck=STAGES.boonDeck(seed>>>0,{hero:k=>SIM.HERO_BASE[k]||null},assign);
   return JSON.stringify({ ok:true, attemptId:'att-'+seed, id, lanes:JSON.parse(lanes), boonOffers:[], boonLevel:30, boonDeck:deck }); };
 host.sandbox.__IDS=JSON.stringify(IDS);
+host.sandbox.__SHARE=JSON.stringify(BOONS.SHARE);
 host.sandbox.__CATV=JSON.stringify(Object.fromEntries(BOONS.CATALOGUE.map(b=>[b.id,b.v])));
 
 function vmTests(){
@@ -413,11 +414,14 @@ function vmTests(){
   T1('fit5',()=>{ start(A0,9); toWindow(); take({}); close(); inLane(2,()=>{ for(const h of H(2)){ h.shield=0; damage(h,1e12,'#fff',true); } }); step(3);
     check(GSPLIT.lanes[2].state==='lost', '(a road has fallen)'); order({0:'envy',1:'pacer'}); toWindow(); check(GSPLIT.lanes[0].offer.some(b=>b.id==='envy')&&GSPLIT.lanes[1].offer.some(b=>b.id==='pacer'), 'with two roads walking, the boons about the other road are still offered');
     take({}); close(); inLane(1,()=>{ for(const h of H(1)){ h.shield=0; damage(h,1e12,'#fff',true); } }); });
-  T1('legacy',()=>{ end(); T.verdict=null; const d=JSON.parse(__mkStart(JSON.stringify(A0),3)); d.boonDeck=null; d.boonOffers=[0,1,2,3].map(()=>[0,1,2].map(()=>[{id:'haste',name:'Quickened',value:0.3,blurb:'Quickened — +30% attack speed, and it never stops.'},{id:'dr',name:'Warded',value:0.25,blurb:'x'},{id:'bighp',name:'Ironhide',value:500,blurb:'y'}]));
+  T1('legacy',()=>{ end(); T.verdict=null; const d=JSON.parse(__mkStart(JSON.stringify(A0),3)); d.boonDeck=null; d.boonOffers=[0,1,2,3].map(()=>[0,1,2].map(()=>[{id:'haste',name:'Quickened',value:0.3,blurb:'Quickened — +30% attack speed, and it never stops.'},{id:'dr',name:'Warded',value:0.25,blurb:'x'},{id:'bighp',name:'Ironhide',value:83225,blurb:'Ironhide — +83225 maximum health, and you heal that much now.'}]));
     gsplitEnterBattle(d,A0,'3-7',null); toWindow(); check(GSPLIT.lanes[0].offer.length===3&&GSPLIT.lanes[0].offer[0].id==='haste', 'with no deck (an older server) the Start table is still what is offered');
-    gsplitPickBoon(0,'haste'); gsplitPickBoon(1,'bighp'); const m=hero(1,'vex').maxHp; GSPLIT.window.phase='move'; gsplitBoonsCommit(); tick(0); check(near(hero(0,'vael')._bnAs,1.3)&&hero(1,'vex').maxHp===m+500, 'and its boons work too'); });
+    const iron=GSPLIT.lanes[1].offer.find(b=>b.id==='bighp'), mean=H(1).reduce((a,h)=>a+h.maxHp,0)/H(1).length;
+    check(iron.value===Math.round(0.15*mean)&&iron.blurb==='Ironhide — +'+iron.value+' maximum health, and you heal that much now.', 'review fix 7: an old server’s compounding number (+83,225) is replaced by the same share of the road the deck gives ('+iron.blurb+')');
+    gsplitPickBoon(0,'haste'); gsplitPickBoon(1,'bighp'); const m=hero(1,'vex').maxHp; GSPLIT.window.phase='move'; gsplitBoonsCommit(); tick(0); check(near(hero(0,'vael')._bnAs,1.3)&&hero(1,'vex').maxHp===m+iron.value&&iron.value<m, 'and its boons work, with that number (+'+iron.value+' on '+Math.round(m)+')'); });
 
   /* ================= the page's numbers are the catalogue's ================= */
+  { const sh=JSON.parse(__SHARE); check(Object.keys(BOON_SHARE).every(id=>sh[id]&&sh[id].of===BOON_SHARE[id][0]&&sh[id].share===BOON_SHARE[id][1])&&Object.keys(sh).filter(id=>id!=='neighbour').every(id=>BOON_SHARE[id]), 'the page’s fallback shares are the catalogue’s'); }
   { const cat=JSON.parse(__CATV); for(const id in BOON_V) check(cat[id]===BOON_V[id], 'the page\'s number for '+id+' is the catalogue\'s ('+BOON_V[id]+' vs '+cat[id]+')');
     const ids=JSON.parse(__IDS); check(ids.every(id=>covered[id]), 'every offerable boon was picked and checked here (missing: '+ids.filter(id=>!covered[id]).join(',')+')');
     check(Object.keys(covered).every(id=>ids.indexOf(id)>=0), 'and nothing else'); }

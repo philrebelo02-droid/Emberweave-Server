@@ -10016,6 +10016,15 @@ const BOON_K = { stunSec:1, freezeSec:1.5, fearSec:2, silenceSec:2, mortalSec:3,
 /* flat-number boons: the number is on the offer (a share of the road's heroes) and adds up on the hero */
 const BOON_FLAT = { shieldproc:1, healproc:1, deathblast:1, shieldstack:1, crosser:1, arriveburn:1, bighp:1, regen:1 };
 /* boons about the ROAD: they work on the road a living carrier stands on, for everyone (or every enemy) there */
+/* review fix 7: the catalogue's shares (server/bonus-boons.js SHARE; the test fails if they drift). Used only when Start came back with no
+   deck - the page is newer than the server for the minutes of a deploy - so the old Start table's COMPOUNDING numbers (Ironhide +83,225
+   at Commander 100) are never shown or applied: the card and the effect take the same share of the road as the deck would give. */
+const BOON_SHARE = { shieldproc:['hp',0.05], healproc:['hp',0.07], deathblast:['atk',1.5], shieldstack:['hp',0.025], crosser:['hp',0.09],
+  arriveburn:['atk',0.15], bighp:['hp',0.15], regen:['hp',0.01] };
+function gsplitBoonLegacy(L, row){ if(!Array.isArray(row)) return row; const hs=gsplitBoonRoad(L); if(!hs.length) return row;
+  const ref={ hp:hs.reduce((a,u)=>a+(u.maxHp||0),0)/hs.length, atk:hs.reduce((a,u)=>a+Math.max(u.dmg||0,u.apow||0),0)/hs.length };
+  return row.map(o=>{ const sh=o&&BOON_SHARE[o.id]; if(!sh) return (o&&o.id==='energy')?Object.assign({},o,{value:BOON_V.energy,blurb:String(o.blurb||'').split(String(o.value)).join(String(BOON_V.energy))}):o;
+    const v=Math.max(1,Math.round(sh[1]*(ref[sh[0]]||0))); return Object.assign({},o,{ value:v, blurb:String(o.blurb||'').split(String(o.value)).join(String(v)) }); }); }
 const BOON_NEXT = ['arrivestun','arrivehalf'];   // the next wave of the road it was picked on, once
 const BOON_ROAD = ['nohealenemy','frontrunner','rearguard','crowded','arriveburn','arriveslow','preheal','prefight','doublespeed'];
 
@@ -10253,7 +10262,7 @@ function gsplitBoonRoad(L){ return ((L&&L.units)||[]).filter(u=>u.team==='ally'&
    cannot be taken twice) are the server's, sent with the deck; this only counts heads. A flat number is the boon's share of the
    road's own average health or attack, so the card and the effect are the same number. No deck (an older server) = the old table. */
 function gsplitBoonOffer(L, legacy){
-  const D=GSPLIT.boonDeck; if(!D||!D.defs||!Array.isArray(D.order)) return legacy;
+  const D=GSPLIT.boonDeck; if(!D||!D.defs||!Array.isArray(D.order)) return gsplitBoonLegacy(L, legacy);
   const w=GSPLIT.waveShown|0, ord=(D.order[w]||[])[L.i]; if(!Array.isArray(ord)) return legacy;
   const hs=gsplitBoonRoad(L); if(!hs.length) return legacy;
   const tg=hs.map(u=>(D.tags&&D.tags[u.key])||{});
