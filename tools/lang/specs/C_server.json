@@ -611,7 +611,16 @@
   "err.gear_nothing_built": "Nothing built.",
   "err.gear_temper_max": "Already at Temper 30.",
   "err.gear_dust_cost": "Not enough Forge Dust (next use: {dust} dust).",
-  "err.gear_bound_hero": "That item is bound to {hero}."
+  "err.gear_bound_hero": "That item is bound to {hero}.",
+  "err.no_squad_was_sent": "No squad was sent.",
+  "err.a_hero_cannot_walk_two_lanes": "A hero cannot walk two lanes.",
+  "err.that_result_arrived_too_fast": "That result arrived too fast to count.",
+  "err.a_hero_can_cross_only_once": "A hero can cross only once at each firebreak.",
+  "err.that_hero_is_not_on_that_road": "That hero is not on that road.",
+  "err.lane_is_not_a_list_of_heroes": "Lane {lane} is not a list of heroes.",
+  "err.lane_is_empty_every_lane_walks": "Lane {lane} is empty — every lane walks.",
+  "err.at_most_heroes_on_one_road": "At most {n} heroes on one road.",
+  "err.at_most_heroes": "At most {n} heroes."
  },
  "edits": []
 }

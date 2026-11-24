@@ -916,6 +916,32 @@ function checkSwap(assign, prevAssign){
   return null;
 }
 
+/* v1442 (bonus bug scan B12, Phil 24 Nov 2026: "Fix all of those bugs" - "A hero may cross more than once in a firebreak; the
+   server checks no move"): the page now reports who crossed at each firebreak (moves:[[heroKey, fromRoad, toRoad], ...], roads
+   1-3) and the server keeps where every hero of the squad stands. A squad hero may be in the list ONCE, and must leave the road
+   the server has it on. A Top <-> Bottom move through the Middle road is still one crossing (v574/v602). Keys that are not in the
+   squad are ignored, so a boon that lends or adds a unit can never get an honest run refused. A window sent without the list
+   (an older page, still cached) is accepted as before; the server then stops checking the from-road for that run.
+   Returns the refusal text, or null after applying the moves. */
+function checkCrossings(a, moves){
+  if(!Array.isArray(moves)){ a.posLost=1; return null; }
+  if(moves.length > MAX_HEROES*2) return 'A hero can cross only once at each firebreak.';
+  if(!a.pos){ a.pos={}; for(let L=1;L<=LANES;L++) for(const k of ((a.assign&&(a.assign[L]||a.assign[String(L)]))||[])) a.pos[String(k)]=L; }
+  const own=k=>Object.prototype.hasOwnProperty.call(a.pos,k), seen={}, next={};
+  for(const m of moves){
+    if(!Array.isArray(m)) return 'That hero is not on that road.';
+    const key=String(m[0]), from=m[1], to=m[2];
+    if(!own(key)) continue;
+    if(seen[key]===1) return 'A hero can cross only once at each firebreak.';
+    seen[key]=1;
+    if(!Number.isInteger(from) || !Number.isInteger(to) || from<1 || from>LANES || to<1 || to>LANES || from===to) return 'That hero is not on that road.';
+    if(!a.posLost && a.pos[key]!==from) return 'That hero is not on that road.';
+    next[key]=to;
+  }
+  for(const k of Object.keys(next)) a.pos[k]=next[k];
+  return null;
+}
+
 /* ================================================================= route handler
    Returns { status, body } for anything it owns, or null if the path is not ours.
    ctx (supplied by server.js, all of it already exists there):
@@ -1036,7 +1062,9 @@ async function handle(p, method, ctx){
     const body = await ctx.body();
     const a = b.att;
     if(!a || a.id !== String(body.attemptId||'')) return { status:400, body:{ok:false,error:'No matching bonus run.'} };
-    const idx = body.windowIndex|0;
+    /* v1442 (bonus bug scan B12): the index must be a whole number - 1.9 was read as 1 and "1" as 1 */
+    if(!Number.isInteger(body.windowIndex)) return { status:400, body:{ok:false,error:'Window out of sequence.'} };
+    const idx = body.windowIndex;
     /* 17 Sep, caught in review (not by me): this route was rejecting a RETRY of an index it had
        already booked, with the same 400 "out of sequence" as a genuinely bad index. If the client's
        original POST for window 1 was booked server-side (a.windowsSeen went to 1) but its ACK never
@@ -1052,6 +1080,7 @@ async function handle(p, method, ctx){
     }
     const expect = (a.windowsSeen|0) + 1;
     if(idx !== expect || expect > WINDOWS) return { status:400, body:{ok:false,error:'Window out of sequence.'} };
+    { const bad=checkCrossings(a, body.moves); if(bad) return { status:400, body:{ok:false,error:bad} }; }   // v1442 (B12)
     a.windowsSeen = expect;
     a.lastAt = now;   // v1442 (B4): the 45 minutes are counted from the last reported firebreak
     ctx.writeDB();
@@ -1090,8 +1119,14 @@ function resolveRun(body, ctx){
        lanes before you lose one"; 18 Sep 2026 (v596) Phil: "You are allowed to lose 1 lane" - a fallen road ends, its
        monsters split between the other two (client gsplitRedistribute), and two roads home is a win. A second fallen
        road is a loss. */
-    const cleared = Math.max(0, Math.min(LANES, body.lanesCleared|0));
-    const lost    = Math.max(0, Math.min(LANES, body.lanesLost|0));
+    /* v1442 (bonus bug scan B12): the counts must be whole numbers in range - "3" was read as 3, 2.9 as 2 and a huge number
+       wrapped round. heroesLost may be left out (it is 0 then); when sent it must be a whole number too. */
+    const hl = body.heroesLost==null ? 0 : body.heroesLost;
+    if(!Number.isInteger(body.lanesCleared) || !Number.isInteger(body.lanesLost) || !Number.isInteger(hl)
+       || body.lanesCleared<0 || body.lanesCleared>LANES || body.lanesLost<0 || body.lanesLost>LANES)
+      return { status:400, body:{ok:false,error:'Impossible lane count.'} };
+    const cleared = body.lanesCleared;
+    const lost    = body.lanesLost;
     if(cleared+lost > LANES) return { status:400, body:{ok:false,error:'Impossible lane count.'} };
     const won = (cleared>=2) && (lost<=1);
 
@@ -1116,7 +1151,7 @@ function resolveRun(body, ctx){
        otherwise a forged `heroesSent` inflates the denominator and buys a star. */
     let sent=0; for(let L=1;L<=LANES;L++) sent += ((a.assign&&(a.assign[L]||a.assign[String(L)]))||[]).length;
     const res = { won, lanesCleared:cleared, lanesLost:lost,
-                  heroesSent:sent, heroesLost:Math.max(0,Math.min(sent, body.heroesLost|0)) };
+                  heroesSent:sent, heroesLost:Math.max(0,Math.min(sent, hl)) };
     const stars = starsFor(res);
 
     const prev = b.done[id]||null;
@@ -1163,7 +1198,7 @@ function rulesSettled(){ return [
 
 module.exports = { handle, resolveRun, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLOTS, CHAPTERS,
   LANES, WAVES, WINDOWS, MAX_HEROES, MAX_PER_LANE, STAR_DEATH_LIMIT_2, starExplain,
-  BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending, stageClock, nextHourClock, clockAfterClaim, MIN_RESOLVE_MS, ATTEMPT_MS,
+  BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending, stageClock, nextHourClock, clockAfterClaim, checkCrossings, MIN_RESOLVE_MS, ATTEMPT_MS,
   bossFor, BONUS_BOSS_PIN,
   claimList, advanceClock, buildLanes, boonOffer, starsFor, clearReward, families,
   resetFamilyCache, checkSquad, checkSquadStrict, checkSwap, laneMoveOK, lanesReachableFrom,
