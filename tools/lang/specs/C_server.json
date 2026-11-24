@@ -620,7 +620,9 @@
   "err.lane_is_not_a_list_of_heroes": "Lane {lane} is not a list of heroes.",
   "err.lane_is_empty_every_lane_walks": "Lane {lane} is empty — every lane walks.",
   "err.at_most_heroes_on_one_road": "At most {n} heroes on one road.",
-  "err.at_most_heroes": "At most {n} heroes."
+  "err.at_most_heroes": "At most {n} heroes.",
+  "err.the_aether_vault_climbs_on": "The Aether Vault climbs on its own ladder.",
+  "err.result_must_be_true_or_false": "Result must be true or false."
  },
  "edits": []
 }

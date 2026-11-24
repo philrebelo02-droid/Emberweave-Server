@@ -123,5 +123,15 @@ function tableSpecProblems(table, keys) {
       ck(r.status === 401 && r.data.error === 'auth' && !('code' in r.data), 'route: unknown-text error carries no code', JSON.stringify(r)); }
     { const r = await call('/api/register', { name: 'LangOk1', pass: 'password1' }); ck(r.status === 200 && !('code' in r.data), 'route: a success reply is unchanged (no code)'); }
   } finally { srv.kill(); }
+  /* v1443: NO NEW server refusal without a code. tools/lang/srvcheck.js reads every error text of server.js + server/*.js; the texts below are
+     the dev / admin-panel replies that had no code when this check was added (a player never sees them). Any OTHER uncoded text fails here -
+     v1443's two Vault refusals ('The Aether Vault climbs on its own ladder.', 'Result must be true or false.') had shipped without one. */
+  { const KNOWN_UNCODED = new Set(["A backup was just made - wait a few minutes.","A guest cannot be a test account.","Amount must be 1 to 7 (a minus amount takes).","Choose a hero for the fragments.","Could not change the account.","Could not pick a free username - try again.","Could not send.","Five mails to everyone in ten minutes - wait a little.","POST only","Pick at least one reward.","Pick the servers.","Server 1 is unreachable right now - try again in a minute.","Six compensations in ten minutes - wait a little.","Slow down - too many admin actions this minute.","Test accounts are switched off.","That username was just taken - try again.","The saved copy could not be read.","The world did not load - no backup made.","There is no reset to undo for this player.","Type a subject.","Type at least 2 characters.","Type the message first.","Unknown roster action."]);
+    const r = require('child_process').spawnSync(process.execPath, [require('path').join(__dirname, '..', 'tools', 'lang', 'srvcheck.js'), '--list'], { encoding: 'utf8' });
+    const texts = String(r.stdout || '').split(/\r?\n/).filter(l => /^server[^ ]*:\d+  /.test(l)).map(l => l.replace(/^[^ ]+  /, ''));
+    const fresh = [...new Set(texts)].filter(t => !KNOWN_UNCODED.has(t));
+    ck(/error texts read/.test(String(r.stdout)) && fresh.length === 0, 'no server refusal text without a code beyond the ' + KNOWN_UNCODED.size + ' known dev / admin replies', fresh.slice(0, 5).join(' | '));
+    ck(!!EC.errorInfo('The Aether Vault climbs on its own ladder.') && !!EC.errorInfo('Result must be true or false.') && !KNOWN_UNCODED.has('Result must be true or false.'), 'the two v1443 Vault refusals have codes');
+    ck(['A refusal nobody gave a code.'].filter(t => !KNOWN_UNCODED.has(t)).length === 1, 'CONTROL: a new uncoded text would be caught'); }
   console.log('\n' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });
