@@ -314,6 +314,27 @@ function vmTests(){
     check(s.indexOf('gw-fore')>0&&[2,3,4].every(w=>(L.waves3[w]||[]).length===0||s.indexOf(mcardName(L.waves3[w][0].key))>=0), 'prewarn: the boon panel names every wave still to come on that road');
     check(gsplitBoonForesight(GSPLIT.lanes[1])==='', 'prewarn: not for a road without it'); gsplitWindowDraw(); });
 
+  /* review fix 6: one pick, one road */
+  const mv=(u,a,b)=>{ if(!gsplitMove(u,a,b)) throw new Error('move refused '+u.key+' '+a+'>'+b); };
+  const land=()=>{ for(let i=0;i<4000&&!gsplitStartAllowed();i++) gsplitStep(SIM_STEP); };
+  T1('oneroad',()=>{ scene('arrivehalf',0); take({0:'arrivehalf'}); for(const h of H(0)) mv(h,0,1); land(); H(1).slice(0,5).forEach(()=>{}); mv(hero(1,'vex'),1,0); land(); close();
+    check(E(0).length>0&&E(0).every(e=>near(e.hp,e.maxHp*0.75)), 'Softened softens the next wave of the road it was picked on, even when its heroes have all walked away');
+    check(E(1).every(e=>near(e.hp,e.maxHp)), 'and NOT the road they walked to'); });
+  T1('oneroad',()=>{ scene('arrivestun',0); take({0:'arrivestun'}); mv(hero(0,'yenna'),0,1); mv(hero(0,'fritz'),0,1); land(); close();
+    check(E(0).every(e=>e.stunned>0)&&E(1).every(e=>!e.stunned), 'Ambush: one pick stuns ONE road’s next wave, not every road its heroes stand on'); });
+  T1('oneroad',()=>{ const A={1:['vael','hurne','oakmir','fritz','yenna'],2:['vex'],3:['gruel']}; scene('arriveburn',0,A); const got=take({0:'arriveburn'}), v=got[0].value; const burning=i=>E(i).length>0&&E(i).every(e=>e.dots.some(d=>d.dps===v)), clean=i=>E(i).every(e=>!e.dots.some(d=>d.dps===v));
+    mv(hero(0,'yenna'),0,1); mv(hero(0,'fritz'),0,1); land(); close();
+    check(burning(0)&&clean(1), 'Scorched Earth with its carriers split 3 / 2 burns only on the road holding most of them');
+    check(BoonFx.roadOf(GSPLIT._bnPicks[0])===0, '(the pick names road 0)');
+    open({}); take({}); mv(hero(0,'oakmir'),0,1); land(); close();
+    check(clean(0)&&burning(1), 'when most of them have moved (2 / 3) it burns on their road instead, and no longer on the first');
+    open({}); take({}); inLane(1,()=>{ const d=hero(1,'oakmir'); d.shield=0; damage(d,1e12,'#fff',true); }); check(BoonFx.roadOf(GSPLIT._bnPicks[0])===0, 'a 2 / 2 tie goes to the road it was picked on');
+    inLane(0,()=>{ const d=hero(0,'hurne'); d.shield=0; damage(d,1e12,'#fff',true); }); check(BoonFx.roadOf(GSPLIT._bnPicks[0])===1, '1 / 2: the road with more of the pick’s living carriers');
+    const a=BoonFx.roadOf(GSPLIT._bnPicks[0]), b=BoonFx.roadOf(GSPLIT._bnPicks[0]); check(a===b, 'the same answer every time it is asked');
+    close(); check(clean(0)&&burning(1), 'and the next wave burns there'); });
+  T1('oneroad',()=>{ scene('prefight',0); take({0:'prefight'}); mv(hero(0,'yenna'),0,1); land(); close(); tick(0); tick(1); inLane(0,()=>{ const e=big(E(0)[0]); rng(0.99,()=>hit(hero(0,'vael'),e,100,true)); check(e._critHit===true, 'First Blood: on the road with most carriers'); });
+    inLane(1,()=>{ const e=big(E(1)[0]); rng(0.99,()=>hit(hero(1,'yenna'),e,100,true)); check(e._critHit===false, 'First Blood: not also on the road one carrier walked to'); }); });
+
   /* ================= BREAK ================= */
   T1('eternalsummon',()=>{ scene('eternalsummon',0); let s1=null, m=0, d=0; inLane(0,()=>{ const hu=hero(0,'hurne'); s1=summonUnit(hu,'boar warrior',15); s1._riseT=0; m=s1.maxHp; d=s1.dmg; });
     check(!!s1&&s1.alive, 'eternalsummon: (a summon to test with)'); take({0:'eternalsummon'});

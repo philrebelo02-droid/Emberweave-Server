@@ -10016,6 +10016,7 @@ const BOON_K = { stunSec:1, freezeSec:1.5, fearSec:2, silenceSec:2, mortalSec:3,
 /* flat-number boons: the number is on the offer (a share of the road's heroes) and adds up on the hero */
 const BOON_FLAT = { shieldproc:1, healproc:1, deathblast:1, shieldstack:1, crosser:1, arriveburn:1, bighp:1, regen:1 };
 /* boons about the ROAD: they work on the road a living carrier stands on, for everyone (or every enemy) there */
+const BOON_NEXT = ['arrivestun','arrivehalf'];   // the next wave of the road it was picked on, once
 const BOON_ROAD = ['nohealenemy','frontrunner','rearguard','crowded','arriveburn','arriveslow','preheal','prefight','doublespeed'];
 
 const BoonFx=(function(){
@@ -10031,14 +10032,18 @@ const BoonFx=(function(){
   function shieldAdd(u,v){ if(!(v>0)||!u||!u.alive) return; v=Math.min(v,Math.max(0,(u.maxHp||0)-(u._bnSh||0))); if(!(v>0)) return; u.shield=(u.shield||0)+v; u._bnSh=(u._bnSh||0)+v; }   // u._bnSh: the part of the shield a boon gave - it never runs out on a timer or at a wave's end, and is never more than the hero's own health (review fix)
   function ever(s){ if(!s||s[EVERLASTING_FLAG]) return; s[EVERLASTING_FLAG]=true; s._summonT=Infinity;   /* Everlasting: never to the timer, the summoner's death or the firebreak - at half power, halved ONCE */
     const k=P.eternalsummon; s.maxHp=Math.max(1,Math.round(s.maxHp*k)); s.hp=Math.max(1,Math.min(s.maxHp,s.hp*k)); s.dmg*=k; if(s.apow) s.apow*=k; }
-  function reset(){ depth=0; _bnSrc=null; GSPLIT._bnOn=false; }
+  function reset(){ depth=0; _bnSrc=null; GSPLIT._bnOn=false; GSPLIT._bnPicks=[]; }
 
   /* ---- a confirmed pick: every living hero on the road takes the boon ---- */
   function grant(L,id,value){ if(!L||!id) return 0;
     const hs=(L.units||[]).filter(live); if(!hs.length) return 0;
     GSPLIT._bnOn=true;
     let champ=null; if(id==='onehero'){ let bp=-1; for(const u of hs){ let p=0; try{ p=+heroPower(u.key)||0; }catch(e){} if(!(p>0)) p=u.maxHp+20*Math.max(u.dmg||0,u.apow||0); if(p>bp){ bp=p; champ=u; } } }
-    for(const u of hs){ const B=u._bn||(u._bn={}), e=B[id]||(B[id]={n:0,v:0}); e.n++; if(BOON_FLAT[id]) e.v+=(+value||0); take(L,u,id,e,(+value||0),u===champ?1:0); }
+    for(const u of hs){ const B=u._bn||(u._bn={}), e=B[id]||(B[id]={n:0,v:0}); e.n++; u._bnLane=L.i; if(BOON_FLAT[id]) e.v+=(+value||0); take(L,u,id,e,(+value||0),u===champ?1:0); }
+    /* review fix 6: a boon about the ROAD is one pick = one road. "The next wave" (Ambush, Softened) is owed by the road it was picked on, once.
+       A standing road boon is remembered as a pick with its original carriers, and at any moment works on ONE road only (roadOf). */
+    if(BOON_NEXT.indexOf(id)>=0){ const N=L.bnNext||(L.bnNext={}); N[id]=(N[id]|0)+1; }
+    else if(BOON_ROAD.indexOf(id)>=0) (GSPLIT._bnPicks||(GSPLIT._bnPicks=[])).push({ id, lane:L.i, v:(+value||0), c:hs.slice() });
     return hs.length; }
   /* what a boon does the moment a hero receives it (a pick, or an inheritance) */
   function take(L,u,id,e,value,isChamp){
@@ -10047,17 +10052,24 @@ const BoonFx=(function(){
     else if(id==='allin'){ u._bnAllin=(u._bnAllin||0)+1; u._bnNoUlt=0; u.energy=100; }
     else if(id==='onehero'){ e.c=(e.c||0)+(isChamp?1:0); }
     else if(id==='eternalsummon'){ for(const s of (L.units||[])) if(s.alive&&s._summon&&s._summonOwner===u) ever(s); }
-    else if(id==='arrivestun'||id==='arrivehalf'){ e.p=(e.p||0)+1; }   // "the next wave": owed once
   }
 
   /* ---- once per fight tick of the road being stepped (before anyone thinks) ---- */
+  /* The ONE road a standing road boon works on right now: the walking road where most of that pick's original carriers are alive.
+     A tie goes to the road it was picked on, else to the lower road. No living carrier, no road. */
+  function roadOf(p){ const cnt=[0,0,0]; for(const u of p.c) if(u&&u.alive&&u._bnLane!=null) cnt[u._bnLane]++;
+    let best=-1, bn=0; for(let i=0;i<3;i++){ const X=GSPLIT.lanes[i]; if(!X||X.state!=='walking'||!cnt[i]) continue; if(cnt[i]>bn||(cnt[i]===bn&&i===p.lane)){ bn=cnt[i]; best=i; } }
+    return best; }
+  function roadState(L){ const has={}; let burn=0; for(const id of BOON_ROAD) has[id]=0;
+    for(const p of (GSPLIT._bnPicks||[])) if(roadOf(p)===L.i){ has[p.id]++; if(p.id==='arriveburn') burn+=p.v; }
+    return { has, burn }; }
   function progress(X,mine){ const us=mine?units:(X.units||[]), w=mine?waveIdx:(X.waveIdx|0); let rem=0; for(const e of us) if(e.team==='enemy'&&e.alive) rem+=Math.max(0,e.hp);
     const tot=X.bnWaveHp||0; return w+(tot>0?1-Math.min(1,rem/tot):0); }
   function tick(dt){ if(!GSPLIT._bnOn) return; const L=cur(); if(!L) return;
     const hs=[]; let dead=0;
     for(const u of units){ if(!isHero(u)) continue; if(u.alive) hs.push(u); else dead++; }
     const R=L.bn||(L.bn={}); R.n=hs.length; R.dead=dead; R.has={}; R.burn=0;
-    for(const id of BOON_ROAD){ let m=0; for(const u of hs){ const k=n(u,id); if(k>m) m=k; } R.has[id]=m; }
+    { const S=roadState(L); R.has=S.has; R.burn=S.burn; }
     R.front=null; R.rear=null; for(const u of hs){ if(!R.front||u.x>R.front.x) R.front=u; if(!R.rear||u.x<R.rear.x) R.rear=u; }
     /* Envious / Pacesetter: how far each walking road has come = waves cleared + the share of this wave's enemy health already removed */
     R.rank=0; { const others=GSPLIT.lanes.filter(o=>o!==L&&o.state==='walking'); if(others.length){ const me=progress(L,true); let lo=true, hi=true;
@@ -10102,7 +10114,7 @@ const BoonFx=(function(){
   function wave0(L){ const us=L.units||[], hs=us.filter(live), es=us.filter(e=>e.team==='enemy'&&e.alive);
     L.bnKills=0; L.bnWaveHp=es.reduce((a,e)=>a+Math.max(0,e.maxHp||0),0);
     if(!GSPLIT._bnOn) return;
-    const has=id=>hs.reduce((m,u)=>Math.max(m,n(u,id)),0);
+    const S=roadState(L), has=id=>S.has[id]|0, N=L.bnNext||{}; L.bnNext=null;
     const pre=has('preheal');
     for(const u of hs){ const B=u._bn||(u._bn={});
       u._bnHits=0; u._bnHit1=0; u._bnCastW=0;
@@ -10110,11 +10122,7 @@ const BoonFx=(function(){
       if(B.halfhp) u.hp=Math.min(u.hp,Math.max(1,u.maxHp*0.5));   /* Blood Oath: its cost never heals - a hero under half stays where he is (review fix) */
       if(B.freeult&&!u._bnNoUlt) u.energy=100;   /* Crowned */
     }
-    let stun=0, half=0, burn=0;
-    for(const u of hs){ const B=u._bn; if(!B) continue;
-      if(B.arrivestun&&B.arrivestun.p>0){ stun=Math.max(stun,B.arrivestun.p); B.arrivestun.p=0; }
-      if(B.arrivehalf&&B.arrivehalf.p>0){ half=Math.max(half,B.arrivehalf.p); B.arrivehalf.p=0; }
-      if(B.arriveburn) burn=Math.max(burn,B.arriveburn.v||0); }
+    const stun=N.arrivestun|0, half=N.arrivehalf|0, burn=S.burn;
     const slow=has('arriveslow'), car=hs[0]||null;
     for(const e of es){
       if(stun&&car) ctl(car,e,'stunned',K.arriveStunSec);   /* Ambush */
@@ -10127,12 +10135,10 @@ const BoonFx=(function(){
     if(slow){ e.slow=Math.max(e.slow||0,K.arriveSlowSec); e.slowMul=Math.min(e.slowMul==null?1:e.slowMul,K.slowMul); }   /* Bogged */
   }
   /* a fallen road's monster marches onto road T: "every enemy arrives ..." is true of it as well */
-  function arrive(T,e){ if(!GSPLIT._bnOn||!T||!e||e.team!=='enemy'||!e.alive) return; let burn=0, slow=0;
-    for(const u of (T.units||[])){ if(!live(u)||!u._bn) continue; if(u._bn.arriveburn) burn=Math.max(burn,u._bn.arriveburn.v||0); if(n(u,'arriveslow')) slow=1; }
-    standing(e,burn,slow); }
+  function arrive(T,e){ if(!GSPLIT._bnOn||!T||!e||e.team!=='enemy'||!e.alive) return; const S=roadState(T); standing(e,S.burn,S.has.arriveslow); }
 
   /* ---- a hero has crossed a firebreak (F -> T) ---- */
-  function crossed(u,F,T){ if(!GSPLIT._bnOn||!isHero(u)) return; u._bnCrossed=1;
+  function crossed(u,F,T){ if(isHero(u)&&T) u._bnLane=T.i; if(!GSPLIT._bnOn||!isHero(u)) return; u._bnCrossed=1;
     let v=(u._bn&&u._bn.crosser)?u._bn.crosser.v:0;
     for(const h of (T&&T.units)||[]) if(h!==u&&live(h)&&h._bn&&h._bn.crosser) v=Math.max(v,h._bn.crosser.v);
     if(v>0){ shieldAdd(u,v); if(u.greenAb) u.greenCd=0; else if(u.blueAb) u.blueCd=0; say(u,'crosser'); } }   /* Wayfarer */
@@ -10204,7 +10210,8 @@ const BoonFx=(function(){
     for(const h of hs) if(n(h,'revengekill')&&!h._bnNoUlt){ h.energy=100; say(h,'revengekill'); }   /* Vengeance */
     if(n(u,'inherit')&&hs.length){ let heir=null, bd=1e18; for(const h of hs){ const d=dist(h,u); if(d<bd){ bd=d; heir=h; } }   /* Inheritance: everything he carried, to whoever is nearest */
       const HB=heir._bn||(heir._bn={});
-      for(const id in u._bn){ const e=u._bn[id]; if(!e||!e.n||id==='allin') continue; const t=HB[id]||(HB[id]={n:0,v:0}); t.n+=e.n; t.v+=(e.v||0); if(e.p) t.p=(t.p||0)+e.p;
+      heir._bnLane=L.i; for(const p of (GSPLIT._bnPicks||[])) if(p.c.indexOf(u)>=0&&p.c.indexOf(heir)<0) p.c.push(heir);   // the heir stands in for him as a carrier of his road boons
+      for(const id in u._bn){ const e=u._bn[id]; if(!e||!e.n||id==='allin') continue; const t=HB[id]||(HB[id]={n:0,v:0}); t.n+=e.n; t.v+=(e.v||0);
         if(id==='bighp') take(L,heir,id,t,e.v||0,0); else if(id==='skill'){ for(let i=0;i<e.n;i++) take(L,heir,id,t,0,0); } else if(id==='eternalsummon') take(L,heir,id,t,0,0); else if(id==='onehero') t.c=(t.c||0)+(e.c||0); }
       say(heir,'inherit'); }
   }
@@ -10236,7 +10243,7 @@ const BoonFx=(function(){
 
   function far(u){ let b=null, bd=-1; for(const o of units){ if(o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)){ const d=dist(u,o); if(d>bd){ bd=d; b=o; } } } return b; }   /* Ambusher */
   function summon(owner,s){ ever(s); }
-  return { grant, tick, wave, arrive, crossed, dodge, crit, out, hit, death, heal, cast, ult, far, summon, reset, n, isHero };
+  return { roadOf, roadState, grant, tick, wave, arrive, crossed, dodge, crit, out, hit, death, heal, cast, ult, far, summon, reset, n, isHero };
 })();
 
 /* The heroes a road's boon is given to, and that an offer is fitted to: alive, and not somebody's summon. */
