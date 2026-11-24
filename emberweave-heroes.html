@@ -8968,7 +8968,7 @@ let _inputQ=[];        // actions taken this frame, applied on the next tick bou
 let REPLAY_IN=null;    // when set, the fight is driven by a recorded log instead of live input
 let _riIdx=0;
 function battleInputsReset(){ autoPendingTarget=null; simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0;
-  _actOpt={}; _actSeq=0; _actRejects=[]; _actSched={}; _actSent={}; _actWait=0; _actWaitFrom=0; _actWaitAt=0; _actStreamOn=false; _stallOn=false; _stallOff=false; }
+  _actOpt={}; _actQuiet={}; _actSeq=0; _actRejects=[]; _actSched={}; _actSent={}; _actWait=0; _actWaitFrom=0; _actWaitAt=0; _actStreamOn=false; _stallOn=false; _stallOff=false; }
 function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i++) if(units[i].uid===uid) return units[i]; return null; }
 /* record + queue one player action. Aim is stored in FIELD coordinates and by target uid — never in
    screen coordinates, which depend on the device's viewport and zoom. */
@@ -8983,13 +8983,14 @@ function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i
    all we fall back to applying locally and submitting the log, and the server says so in the result
    (`transcript: submitted-log`), so a report can never blur the two. */
 let _actOpt={};   /* v897: taps applied at once, waiting only for the server to agree on the tick */
+let _actQuiet={};   /* v1441: frames nothing waits on (a speed change) - their answer must not release the hold of an action that IS waiting */
 let _actSeq=0, _actRejects=[], _actSched={}, _actSent={}, _actWait=0, _actWaitFrom=0, _actWaitAt=0, _actStreamOn=false, _actDrift=0;
 let _stallOn=false, _stallOff=false;   // v327: is the server's clock currently held, and has an old server refused to hold it
 function actStreamLive(){ return _actStreamOn && (ACC&&ACC.token) && typeof chatNetSend==='function'
   && typeof CHATNET!=='undefined' && CHATNET.ws && CHATNET.ws.readyState===1; }
 function actSend(o){ try{ return chatNetSend(Object.assign({t:'act', sessionId:CUR.attemptId}, o)); }catch(e){ return false; } }
 function actBegin(){
-  _actStreamOn=false; _actSched={}; _actOpt={}; _actWait=0; _actSeq=0; _actRejects=[];
+  _actStreamOn=false; _actSched={}; _actOpt={}; _actQuiet={}; _actWait=0; _actSeq=0; _actRejects=[];
   if(!(ACC&&ACC.token)) return;
   if(!(CUR&&CUR.mode==='campaign'&&CUR.attemptId)) return;
   if(!(typeof CHATNET!=='undefined' && CHATNET.ws && CHATNET.ws.readyState===1)) return;
@@ -9025,7 +9026,7 @@ function streamAct(inp){
 function streamSpeed(v){ if(!actStreamLive()) return; _actSeq++;
   /* v328: same rule as streamAct — a frame that never left must not consume a sequence number,
      or every action after it is refused 'out-of-order' and the battle drops to the local log. */
-  if(!actSend({seq:_actSeq, kind:'speed', value:v, tick:simTick})) _actSeq--; }
+  if(!actSend({seq:_actSeq, kind:'speed', value:v, tick:simTick})) _actSeq--; else _actQuiet[_actSeq]=1; }
 /* v327 — TELL THE SERVER WHEN THIS SIM IS NOT RUNNING.
    Pause, aim and the wave cinematic stop simTick; the server's session clock used to keep counting
    real time, so every action after a freeze was placed further and further into the future. Sent
@@ -9046,6 +9047,10 @@ function onActAck(m){
     if(m.ok===false||(m.tick|0)!==T){ _actRejects.push({seq:m.seq, reason:(m.ok===false?m.reason:'tick-moved'), t:Date.now()});
       if(_actStreamOn){ try{ actGiveUp(); }catch(e){} } }
     return; }
+  /* v1441: the answer to a speed change. Nothing waits on it - but it used to fall through to the last lines of this function and take one off
+     _actWait, the count of actions the fight is HOLDING for. Speed then AUTO pressed close together (every 2x + AUTO player): the speed's
+     answer released AUTO's hold, the fight ran on past the tick the server then named for AUTO, and AUTO was never applied (see below). */
+  if(_actQuiet[m.seq]){ delete _actQuiet[m.seq]; if(m.ok!==false) return; }
   if(m.ok===false){ _actRejects.push({seq:m.seq, reason:m.reason, t:Date.now()});
     if(_actRejects.length>20) _actRejects.shift();
     if(_actWait>0) _actWait--;
@@ -9067,6 +9072,15 @@ function onActAck(m){
     return; }
   if(m.begun) return;
   const inp=_actSent[m.seq]; delete _actSent[m.seq];
+  /* v1441 REPLAY DISAGREEMENT - "AUTO never came on" (Phil 24 Nov 2026: "make sure the game is actually replaying with auto on"). The
+     server names the tick an AUTO switch lands on, from its own clock. When that tick is one this fight has ALREADY PLAYED (the server's
+     clock ran behind ours, or its answer came late while we waited at the hold), the action was filed under the past tick: pumpInputs
+     only ever reads the CURRENT tick, so it was never applied here - the AUTO button stayed on "switching" for the rest of the fight
+     and no hero used an ultimate - yet it was written to the record at that tick, so the server's replay DID fight with AUTO on.
+     Two different fights (Server 1, 10 Nov, stage 9-8: the replay won a fight the player lost). A tick that has passed cannot be
+     honoured: the action is applied now, and this fight resolves from our own complete log (the same hand-over as a lost stream). */
+  if(inp && (m.tick|0)<simTick){ _actRejects.push({seq:m.seq, reason:'tick-passed', t:Date.now()}); if(_actRejects.length>20) _actRejects.shift();
+    _actSent[m.seq]=inp; actGiveUp(); return; }
   if(inp){ const t=m.tick|0; (_actSched[t]=_actSched[t]||[]).push(inp);
     if(INPUT_LOG.length<400) INPUT_LOG.push([t, inp.k, (inp.uid==null?-1:inp.uid), (inp.tid==null?-1:inp.tid),
       (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
@@ -9094,8 +9108,18 @@ function actGiveUp(){
   bannerMsg(uiIcon('warning')+' '+t('combatnet.slow'));
 }
 const ACT_INPUT_DELAY_CLIENT=9;   // must match the server's ACT_INPUT_DELAY
+/* v1441 REPLAY DISAGREEMENT (Phil 24 Nov 2026: "If the server is doing auto on and not using ults when they matter. Players like this
+   will always mismatch"). A hand-aimed ultimate was cast in the player's fight at the exact spot the finger let go (a long decimal),
+   but the record the server replays holds that spot rounded to 2 decimals and held inside the field (server.js sanitizeInputLog /
+   streamAction). The replay cast the same ultimate on the same tick a hair to the side, and the two fights ended differently (measured:
+   23 of 40 hand-aimed fights). The aim is now made that same recorded number BEFORE the player's fight uses it, so both fights cast at
+   one spot. INPUT_LOG_CAP: an action the record has no room for is not played either (it used to be played but not recorded). */
+const INPUT_LOG_CAP=400;   // must match the server's INPUT_LOG_MAX
+function aimQ(v,hi){ return (v==null||!isFinite(v))?null:Math.max(0,Math.min(hi,+(+v).toFixed(2))); }
 function queueInput(inp){
   if(REPLAY_IN) return;
+  if(inp&&(inp.wx!=null||inp.wy!=null)){ inp.wx=aimQ(inp.wx,FW); inp.wy=aimQ(inp.wy,FD); if(inp.wx==null||inp.wy==null){ inp.wx=null; inp.wy=null; } }
+  if(INPUT_LOG.length+Object.keys(_actSent).length>=INPUT_LOG_CAP) return;
   try{ if(inp&&inp.k==='ult'&&ULTCOACH.u&&ULTCOACH.u.uid===inp.uid){ ULTCOACH.done[inp.uid]=1; ultCoachClear(); } }catch(e){}   /* v1141: the coached ult was cast - the fight resumes */                       // a replay is driven by its log, not by live taps
   /* v275: with a live session the SERVER decides the tick — send the intent and wait for the receipt.
      The action is applied by pumpInputs() on exactly the tick that comes back. */
@@ -21199,6 +21223,7 @@ let FORGE={ cat:null, st:null, busy:false, tab:'items', q:0, eqPick:null, open:n
    burst are genuinely different choices, and Temper never changes an active. One use per combat. */
 const GEAR_TYPE_ICON={dmg:'attack',stun:'stun',silence:'silence',slow:'slow',shield:'shield',heal:'heal',energy:'energy',buff:'buff-up',mark:'mark',taunt:'taunt',cleanse:'cleanse',untarget:'untargetable',ward:'ward',next:'next-cast',move:'dash'};   /* v1096: status icon art (was emojis) */
 const gearTypeIcon=t=>`<img class="stIc" src="/assets/img/icons/status/${GEAR_TYPE_ICON[t]||'attack'}-v1.webp" alt="">`;
+function gearFromSnapshot(){ return !!(CUR&&Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length); }   /* v1441 */
 function gearActiveFor(key){ try{
   const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled)return null;
   const id=(st.active||{})[key]; const it=id&&st.items&&st.items[id]; const d=it&&forgeDef(it.d); if(!d||!d.active)return null;
@@ -36353,11 +36378,11 @@ function playerInfoFill(host, id){ if(!host||!id) return Promise.resolve(null);
         .concat((A.recent||[]).map(x=>row(dt(x.t),x.label+(x.free?' (free)':(x.usd?' · $'+(+x.usd).toFixed(2):'')))))));
     }
     S.push(sec('Reports',[row('Reports sent',n(Rp.sent)),row('Latest',Rp.lastAt?dt(Rp.lastAt):'—')]));
-    S.push(sec('Integrity',[row('Flag',X.flag?X.flag.reason:'None',X.flag?'bad':''),row('Cheat signals',n(X.cheatSignals)+(X.lastCheat?' · last '+dt(X.lastCheat.t):''),X.cheatSignals?'warn':''),
-      row('Battle incidents',n(X.battleIncidents)+(X.lastIncident?' · '+X.lastIncident.why:''),X.battleIncidents?'warn':''),
+    S.push(sec('Integrity',[row('Flag',X.flag?X.flag.reason:'None',X.flag?'bad':''),row('Cheat signals',n(X.cheatSignals)+(X.replaySignals?' ('+n(X.replaySignals)+' replay disagreement'+(X.replaySignals===1?'':'s')+' - not cheat findings)':'')+(X.lastCheat?' · last '+dt(X.lastCheat.t):''),(X.cheatSignals-(X.replaySignals|0))>0?'warn':''),
+      row('Replay records (not a cheat flag)',n(X.battleIncidents)+(X.lastIncident?' · last: '+incidentWhyLabel(X.lastIncident.why):''),X.battleIncidents?'warn':''),   /* v1441 (Phil 24 Nov: "Whats this digest mismatch" / "I know hes not cheating"): named for what it is */
       row('Reports on them',n(X.reportsAgainst)+(X.openReportsAgainst?' · '+X.openReportsAgainst+' open':''),X.openReportsAgainst?'warn':''),
       row('Ban',I.ban?banLabel(I.ban):'None',I.ban?'bad':''),row('Progress reset',P.preReset?dt(P.preReset.t)+' by '+P.preReset.by+' (undo kept)':'—',P.preReset?'warn':'')]));
-    S.push(sec('Battle log',(P.incidents&&P.incidents.length)?P.incidents.map(x=>row(dt(x.t)+' · '+x.stage,x.why||x.mode)):[row('Flagged fights','None')],true));
+    S.push(sec('Battle log',(P.incidents&&P.incidents.length)?[row('What these are',INCIDENT_NOTE)].concat(P.incidents.map(x=>row(dt(x.t)+' · '+x.stage,x.why?incidentWhyLabel(x.why):x.mode))):[row('Replay records','None')],true));
     S.push(sec('Admin log',(P.log&&P.log.length)?P.log.map(x=>row(dt(x.t)+' · '+x.by, x.act+(x.detail?' · '+x.detail:''))):[row('Actions','None yet')],true));
     host.innerHTML=S.join('');
     return P;
@@ -36763,7 +36788,9 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     // dedicated info tap: always shows the description (even when the ult is ready)
     const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,4500); }; info.addEventListener('pointerdown',(e)=>e.stopPropagation()); info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
     // AUDIT CR-3: one-use Gear Skill button (manual battles only — deterministic fights stay pure-auto)
-    if(side==='ally'&&!isAutoBattle()&&!u.gearSkill){ const gs=gearActiveFor(u.key); if(gs) u.gearSkill=Object.assign({used:false},gs); }
+    /* v1441: a fight on the server's frozen squad (CUR.serverSnaps) takes its Gear Active from that snapshot ONLY. This line used to add one from this device's Forge state to a hero whose snapshot had none -
+       with AUTO on it was then cast in the player's fight (think: castGearSkill at 2.5 s) and never in the server's replay of it. Fights built from the local save (no snapshot) keep it. */
+    if(side==='ally'&&!isAutoBattle()&&!u.gearSkill&&!gearFromSnapshot()){ const gs=gearActiveFor(u.key); if(gs) u.gearSkill=Object.assign({used:false},gs); }
     if(side==='ally'&&u.gearSkill){
       const gb=document.createElement('div');
       /* v478 (Phil: "the equipment active button should be the item that you have activated in the heroes panel, not a placeholder"):
@@ -36888,6 +36915,11 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
    pressed) a ring glows on the best target; the player drags onto it and lets go. Render and input only - the cast is the same
    queued input on the same tick, so the server's replay of the fight is unchanged. */
 const ULTCOACH={u:null,done:{},ring:null,hold:false};
+/* v1441 (Phil 24 Nov 2026: "Whats this digest mismatch" / "I know hes not cheating"): the player card shows the stored reason of a battle record in plain words.
+   The stored value (led.battleIncidents[].why) is unchanged - data and tests read it. */
+const INCIDENT_WHY={'digest-mismatch':'replay disagreement','replay-unavailable':'replay not available','replay-error':'replay failed to run'};
+const INCIDENT_NOTE='The server replayed the fight and reached a different ending. The player kept their own result. A record for us, not a cheat flag.';
+function incidentWhyLabel(why){ const w=String(why||''); return INCIDENT_WHY[w]||w; }
 
 /* v1255 STAGE 1-1 SCRIPTED INTRO (Phil 2 Nov 2026: "Basically its a scripted fight, nearly animation, the fight starts out and just vael
    runs in. Against 2 enemies. He reaches his ult when hes about 75% health" ... Vireo rushes in after his ult, Sylthaine at wave 2,
@@ -37173,10 +37205,10 @@ function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming;
       if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:u.key===HERO61.KEY?best.id:-1,wx:null,wy:null}); }
       else queueInput({k:'ult', uid:u.uid, tid:u.key===HERO61.KEY?best.uid:null, wx:null, wy:null});
       return; } }
-  if(mode==='allyradius'){ const w=best?{x:best.x,y:best.y}:(auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15)); u._aimWX=w.x; u._aimWY=w.y; }   // v369: snaps to the ally under the cursor
+  if(mode==='allyradius'){ const w=best?{x:best.x,y:best.y}:(auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15)); u._aimWX=aimQ(w.x,FW); u._aimWY=aimQ(w.y,FD); }   // v369: snaps to the ally under the cursor   /* v1441: the recorded number (aimQ) */
   else if(mode==='radius'||mode==='line'){ const w=auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15);
     { const _AR=(ULT_DEF[u.abilityOverride||u.t.ability]||{}).aimRange; if(_AR){ const _d=Math.hypot(w.x-u.x,w.y-u.y); if(_d>_AR){ w.x=u.x+(w.x-u.x)/_d*_AR; w.y=u.y+(w.y-u.y)/_d*_AR; } } }   /* v1116: aimRange - the circle cannot leave the range ring */
-    u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
+    u._aimWX=aimQ(w.x,FW); u._aimWY=aimQ(w.y,FD); if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
   else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
   if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:(best&&mode!=='allyradius')?best.id:-1,wx:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWX:null,wy:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWY:null}); }
   // v269: the ult is QUEUED with its resolved FIELD aim + target uid, and fires on the next tick —
