@@ -43,11 +43,11 @@ function scaleFor(level){ return 1; }
 const SHARE = {
   shieldproc: { of:'hp',  share:0.05  },   // Bulwarked: a shield worth 5% of health
   healproc:   { of:'hp',  share:0.07  },   // Merciful: a heal of 7%
-  deathblast: { of:'atk', share:2.5   },   // Pyre: 250% of attack to everything near
+  deathblast: { of:'atk', share:1.5   },   // Pyre: 150% of attack to everything near
   shieldstack:{ of:'hp',  share:0.025 },   // Accreting: 2.5% a kill, kept
   crosser:    { of:'hp',  share:0.09  },   // Wayfarer: a 9% shield on arrival
   neighbour:  { of:'hp',  share:0.08  },   // Good Neighbour (not offerable yet)
-  arriveburn: { of:'atk', share:0.25  },   // Scorched Earth: 25% of attack a second
+  arriveburn: { of:'atk', share:0.15  },   // Scorched Earth: 15% of attack a second, on every enemy, for the whole wave
   bighp:      { of:'hp',  share:0.15  },   // Ironhide: +15% maximum health
   regen:      { of:'hp',  share:0.01  }    // Mending: 1% of health a second
 };

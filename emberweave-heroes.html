@@ -9592,7 +9592,7 @@ function gsplitEnd(){
   clearBattle();
   gsplitBoundsExit(); FX_SIZE=2;
   GSPLIT.window = null; GSPLIT._winSig = ''; GSPLIT._tutorialSwapDone = false;
-  GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null; GSPLIT.boonDeck = null; BoonFx.reset();   // v1443: the run's boons end with the run
+  GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null; GSPLIT.boonDeck = null; gsplitBoonsReset();   // v1443: the run's boons end with the run
   GSPLIT._finishing = false; GSPLIT._verdictPending = null;   /* v1364 (tester reports 11 Nov: bonus stage frozen at the gate, Retreat dead): a finished run left _finishing set, so the NEXT run never ticked and its Retreat returned at once */
   try{ setBattleZoom(1); }catch(e){}   /* v1371 (ChatGPT 20:17, Fold repro): every bonus teardown (win, loss, retreat) puts zoom AND pan back to 1x, so Campaign and Arena never open zoomed */
   try{ evictUnusedArt(G.team); }catch(e){}   // game-speed/memory fix, 17 Sep 2026: whole Gauntlet run finished, not mid-run
@@ -10117,10 +10117,17 @@ const BoonFx=(function(){
     for(const e of es){
       if(stun) e.stunned=Math.max(e.stunned||0,K.arriveStunSec);   /* Ambush */
       if(half) e.hp=Math.max(1,e.hp*Math.pow(1-P.arrivehalf,half));   /* Softened */
-      if(burn>0&&!e._bnBurn){ e._bnBurn=1; pushDot(e,burn,999,1,'#ff6a3a',null); }   /* Scorched Earth: the stated number a second, for as long as it lives */
-      if(slow){ e.slow=Math.max(e.slow||0,K.arriveSlowSec); e.slowMul=Math.min(e.slowMul==null?1:e.slowMul,K.slowMul); }   /* Bogged */
+      standing(e,burn,slow);
     }
   }
+  function standing(e,burn,slow){
+    if(burn>0&&!e._bnBurn){ e._bnBurn=1; pushDot(e,burn,999,1,'#ff6a3a',null); }   /* Scorched Earth: the stated number a second, for as long as it lives */
+    if(slow){ e.slow=Math.max(e.slow||0,K.arriveSlowSec); e.slowMul=Math.min(e.slowMul==null?1:e.slowMul,K.slowMul); }   /* Bogged */
+  }
+  /* a fallen road's monster marches onto road T: "every enemy arrives ..." is true of it as well */
+  function arrive(T,e){ if(!GSPLIT._bnOn||!T||!e||e.team!=='enemy'||!e.alive) return; let burn=0, slow=0;
+    for(const u of (T.units||[])){ if(!live(u)||!u._bn) continue; if(u._bn.arriveburn) burn=Math.max(burn,u._bn.arriveburn.v||0); if(n(u,'arriveslow')) slow=1; }
+    standing(e,burn,slow); }
 
   /* ---- a hero has crossed a firebreak (F -> T) ---- */
   function crossed(u,F,T){ if(!GSPLIT._bnOn||!isHero(u)) return; u._bnCrossed=1;
@@ -10222,7 +10229,7 @@ const BoonFx=(function(){
 
   function far(u){ let b=null, bd=-1; for(const o of units){ if(o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)){ const d=dist(u,o); if(d>bd){ bd=d; b=o; } } } return b; }   /* Ambusher */
   function summon(owner,s){ ever(s); }
-  return { grant, tick, wave, crossed, dodge, crit, out, hit, death, heal, cast, ult, far, summon, reset, n, isHero };
+  return { grant, tick, wave, arrive, crossed, dodge, crit, out, hit, death, heal, cast, ult, far, summon, reset, n, isHero };
 })();
 
 /* The heroes a road's boon is given to, and that an offer is fitted to: alive, and not somebody's summon. */
@@ -10252,6 +10259,7 @@ function gsplitBoonOffer(L, legacy){
     if(out.length>=(D.size||3)) break; }
   return out.length?out:legacy;
 }
+function gsplitBoonsReset(){ BoonFx.reset(); }
 /* CONFIRM BOONS: the picks become real. Once per window; a pick can still be changed until then (gsplitPickBoon). */
 function gsplitBoonsCommit(){ const W=GSPLIT.window; if(!W||W._bnDone||W.phase==='boon') return;
   W._bnDone=true;
@@ -11475,7 +11483,7 @@ function gsplitEnterBattle(data, assign, id, coach){
   GSPLIT.level = data.boonLevel||1;
   GSPLIT.waveShown = 0; GSPLIT._cardSeq=0;
   GSPLIT.boonOffers = data.boonOffers||[];
-  GSPLIT.boonDeck = data.boonDeck||null; BoonFx.reset();   // v1443
+  GSPLIT.boonDeck = data.boonDeck||null; gsplitBoonsReset();   // v1443
   GSPLIT.lanes = [0,1,2].map(i=>{
     const L=gsplitLane(i);
     L.brng = mulberry32(seed^(i*7919));
@@ -11692,12 +11700,12 @@ function gsplitRedistribute(F){
     try{ const sl = laneSlot('enemy', s.key, 0, 1, [s.key]);
       const u = makeUnit(s.key, 'enemy', sl.x, sl.y, s.lvl||1, {boss:!!s.boss});
       u.maxHp = Math.round(u.maxHp*(s.hpMul||1)*(s.boss?1.15:1)); u.hp = u.maxHp; u.dmg = u.dmg*(s.dmgMul||1);
-      u.homeX = sl.x; units.push(u); buildFigure(u); spot(T, u);
+      u.homeX = sl.x; units.push(u); buildFigure(u); spot(T, u); BoonFx.arrive(T, u);   // v1443
     } finally { gsplitSave(T); } };
   for(const u of F.units.filter(e => e.alive && e.team === 'enemy' && !e._summon)){
     const T = pick(); F.units.splice(F.units.indexOf(u), 1);
     const fighting = T.waveIdx === w && !T.xfer && T.units.some(e => e.alive && e.team === 'enemy');
-    if(fighting || (T.waveIdx|0) > w){ T.units.push(u); spot(T, u); }            // joins T's fight, or the wave T has parked
+    if(fighting || (T.waveIdx|0) > w){ T.units.push(u); spot(T, u); BoonFx.arrive(T, u); }            // joins T's fight, or the wave T has parked (v1443: and meets that road's Scorched Earth / Bogged)
     else { if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } place(T, specOf(u), w + 1); }
   }
   for(let k = w + 1; k <= last; k++){

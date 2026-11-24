@@ -271,6 +271,12 @@ function vmTests(){
     const e=E(0)[0]; e.pass=null; e.glyphDR=0; e.shield=0; H(0).forEach(h=>{ h.stunned=999; }); const h0=e.hp; inLane(0,()=>{ waveXfer=null; for(let i=0;i<Math.round(3/SIM_STEP);i++) updateBattle(SIM_STEP); }); H(0).forEach(h=>{ h.stunned=0; });
     check(near(h0-e.hp,3*got[0].value,0.02), 'arriveburn: three seconds of it take three times the stated amount ('+(h0-e.hp)+' vs '+3*got[0].value+')');
     open({}); take({}); close(); check(E(0).length>0&&E(0).every(e=>e.dots.some(d=>d.dps===got[0].value)), 'arriveburn: every later wave too'); });
+  T1('arriveburn',()=>{ scene('arriveburn',0); const got=take({0:'arriveburn'}); close(); for(let i=0;i<4000&&(GSPLIT.lanes[0].xfer||GSPLIT.lanes[1].xfer||GSPLIT.lanes[2].xfer);i++) gsplitStep(SIM_STEP);
+    const n0=E(0).length, n1=E(1).length; H(0).forEach(h=>{h.maxHp=h.hp=1e9;}); H(1).forEach(h=>{h.maxHp=h.hp=1e9;}); E(0).forEach(big); E(0).forEach(e=>{ e._bnBurn=1; pushDot(e,got[0].value,999,1,'#ff6a3a',null); });
+    inLane(2,()=>{ for(const h of H(2)){ h.shield=0; damage(h,1e12,'#fff',true); } }); step(3);
+    check(GSPLIT.lanes[2].state==='lost'&&E(0).length>n0, 'arriveburn: (a road fell and its monsters marched onto this one: '+n0+' -> '+E(0).length+')');
+    check(E(0).every(e=>e.dots.some(d=>d.dps===got[0].value)), 'arriveburn: a monster that marches over from a fallen road burns too');
+    check(E(1).length>n1&&E(1).every(e=>!e.dots.some(d=>d.dps===got[0].value)), 'arriveburn: but not on the road without the boon'); });
   T1('arriveslow',()=>{ scene('arriveslow',0); take({0:'arriveslow'}); close(); check(E(0).length>0&&E(0).every(e=>e.slow===5&&e.slowMul===0.5), 'arriveslow: every enemy arrives at half speed for 5 seconds');
     open({}); take({}); close(); check(E(0).every(e=>e.slow===5&&e.slowMul===0.5), 'arriveslow: every later wave too'); });
   T1('preheal',()=>{ scene('preheal',0); take({0:'preheal'}); H(0).forEach(h=>{h.hp=h.maxHp*0.3;}); H(1).forEach(h=>{h.hp=h.maxHp*0.3;}); close();
