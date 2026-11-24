@@ -1006,7 +1006,8 @@ async function handle(p, method, ctx){
     b.att = { id:ctx.uid(), stage:id, startedAt:now, level:lvl,
               assign:JSON.parse(JSON.stringify(body.assign)),
               seed:ctx.srvSeed('bonusrun', ctx.me.id, id, String(now)),
-              windowsSeen:0 };   // SECURITY 17 Sep - real per-window evidence, see MIN_RESOLVE_MS above
+              windowsSeen:0,     // SECURITY 17 Sep - real per-window evidence, see MIN_RESOLVE_MS above
+              lastAt:now };      // v1442 (B4): when the run was last heard from - the 45 minutes count from here
     ctx.writeDB();
     return { status:200, body:{ ok:true, attemptId:b.att.id, id, lanes,
       windows:WINDOWS,
@@ -1046,6 +1047,7 @@ async function handle(p, method, ctx){
     const expect = (a.windowsSeen|0) + 1;
     if(idx !== expect || expect > WINDOWS) return { status:400, body:{ok:false,error:'Window out of sequence.'} };
     a.windowsSeen = expect;
+    a.lastAt = now;   // v1442 (B4): the 45 minutes are counted from the last reported firebreak
     ctx.writeDB();
     return { status:200, body:{ok:true, windowsSeen:a.windowsSeen} };
   }
@@ -1072,7 +1074,10 @@ function resolveRun(body, ctx){
     if(!a || a.id !== String(body.attemptId||'')) return { status:400, body:{ok:false,error:'No matching bonus run.'} };
     const locked=bonusUnlockError(led,a.stage);
     if(locked) return { status:403, body:{ok:false,locked:true,error:locked} };
-    if(now - (a.startedAt||0) > ATTEMPT_MS){ b.att=null; ctx.writeDB();
+    /* v1442 (bonus bug scan B4, Phil 24 Nov 2026: "Fix all of those bugs"): the 45 minutes were counted from Start, so a long run
+       (a pause, a phone put down between waves) was refused at the finish although the player was still playing. They are counted
+       from the last firebreak the run reported (lastAt; an attempt started before v1442 has only startedAt). */
+    if(now - (a.lastAt||a.startedAt||0) > ATTEMPT_MS){ b.att=null; ctx.writeDB();
       return { status:400, body:{ok:false, expired:true, error:'That bonus run expired — start it again.'} }; }
 
     /* Phil's win rule, enforced here and not taken from the client. It WAS "in order to win you must win atleast 2
