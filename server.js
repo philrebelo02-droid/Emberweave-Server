@@ -8106,6 +8106,11 @@ async function api(req,res,url){
       const out=idem(me.id+':dresolve:'+reqId,()=>{
         const a=prog.activeAttempt;
         if(!a||a.id!==String(b.attemptId||'')) return { ok:false, error:'No matching Vault battle.' };
+        /* B7 (vault bug scan 24 Nov): a result that is not a real boolean used to fall back to the
+           generous vaultWinPlausible() estimate - won:"false" (a string) was PAID as a win. The shipped
+           client always sends a boolean, so anything else is a malformed/modified request: refuse it,
+           and refuse BEFORE the attempt is consumed so an honest client retry still resolves. */
+        if(typeof b.won!=='boolean') return { ok:false, error:'Result must be true or false.' };
         prog.activeAttempt=null;
         /* v410 — PLAYER TRUTH IN THE VAULT (Phil, 4 Sep: "campaign and vault should be the players
            truth, not the servers truth … what i see on my screen should be the result").
@@ -8120,7 +8125,7 @@ async function api(req,res,url){
            log a disagreement so a real divergence between the two is visible rather than silent. */
         if(isDev(me)&&prog.claimedFloors[a.floor]){ prog.version++; writeDB();   // v362: dev replaying an already-cleared floor — no reward, progress untouched
           return { ok:true, result:{won:true, replay:true}, reward:null, dust:me.dust||0, progress:dungeonView(prog) }; }
-        const won = (typeof b.won==='boolean') ? b.won : vaultWinPlausible(a);
+        const won = b.won;   // B7: strictly boolean - anything else was refused above
         heroUsageNote(me,'vault',a.heroIds,won);   // v1427
         if(typeof b.won==='boolean'){ const est=vaultWinPlausible(a);
           if(est!==b.won) console.log('vault floor %s: player says %s, estimate said %s (player wins)', a.floor, b.won?'won':'lost', est?'won':'lost'); }
