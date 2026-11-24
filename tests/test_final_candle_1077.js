@@ -60,7 +60,7 @@ ok(cFlat.includes("_coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e
 // v1112 (Phil 10 Oct: "please make wax reduce healing on the enemy effected by 30%"): run the real first line of healUnit with stubs
 { const hs = H.indexOf('function healUnit(u,a){'), he = H.indexOf('u.hp+=a;', hs);
   const head = H.slice(hs, he) + 'u.hp+=a; }';
-  const env2 = { worldHealCap: u => u.maxHp, WAX_HEAL_CUT: 0.30 }; vm.runInNewContext(head + '\nthis.heal=healUnit;', env2);
+  const env2 = { worldHealCap: u => u.maxHp, WAX_HEAL_CUT: 0.30, GSPLIT: { active: false } };   /* v1442: healUnit carries a bonus-run boon hook, off outside a bonus run */ vm.runInNewContext(head + '\nthis.heal=healUnit;', env2);
   const mk = x => Object.assign({ hp: 100, maxHp: 1000, mortalT: 0 }, x);
   const plain = mk({}), coat = mk({ _waxCoatT: 3 }), tallow = mk({ _waxT: 2, _wax: 1 }), spent = mk({ _waxT: 0, _wax: 2 });
   [plain, coat, tallow, spent].forEach(u => env2.heal(u, 100));

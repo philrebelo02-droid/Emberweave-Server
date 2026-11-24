@@ -173,7 +173,7 @@ function vmTests(){
   T1('shieldstack',()=>{ scene('shieldstack',0); const got=take({0:'shieldstack'}); close(); const h=hero(0,'vael'), v=got[0].value; inLane(0,()=>{ h.shield=0; h._bnSh=0; kill(h,E(0)[0]); kill(h,E(0)[0]); });
     check(near(h.shield,2*v), 'shieldstack: two kills, two shields ('+h.shield+')'); open({}); check(near(h.shield,2*v), 'shieldstack: the shield is still there when the wave has ended and the next firebreak opens ('+h.shield+' of '+2*v+')');
     take({}); close(); step(60); tick(0); check(near(h.shield,2*v)&&near(h._bnSh,2*v), 'shieldstack: and in the wave after that');
-    inLane(0,()=>{ h.shield=0; h._bnSh=0; for(let i=0;i<200;i++) BoonFx.death({team:'enemy'},h); }); check(near(h.shield,h.maxHp)&&near(h._bnSh,h.maxHp), 'shieldstack: the kept shield stops at the hero own maximum health ('+Math.round(h.shield)+' of '+Math.round(h.maxHp)+')');
+    inLane(0,()=>{ h.shield=0; h._bnSh=0; for(let i=0;i<200;i++) BoonFx.fell({team:'enemy'},h); }); check(near(h.shield,h.maxHp)&&near(h._bnSh,h.maxHp), 'shieldstack: the kept shield stops at the hero own maximum health ('+Math.round(h.shield)+' of '+Math.round(h.maxHp)+')');
     inLane(0,()=>{ h.shield=h._bnSh=0; h.shield=500; h.shieldT=3; }); open({}); check(h.shield===0, 'shieldstack: a timed shield from a skill still ends with the wave'); });
   T1('shieldproc',()=>{ scene('shieldproc',0); const got=take({0:'shieldproc'}); close(); const h=hero(0,'vael'); inLane(0,()=>{ h.shield=0; h._bnSh=0; rng(0,()=>hit(E(0)[0],h,1,true)); }); const s=h.shield;
     open({}); take({}); close(); check(s>0&&near(h.shield,s), 'shieldproc: the Bulwarked shield also lasts across the wave end ('+h.shield+' of '+s+')'); });
