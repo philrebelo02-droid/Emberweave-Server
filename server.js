@@ -8069,11 +8069,15 @@ async function api(req,res,url){
        ledger. Dev accounts pass (God Mode opens every building). */
     { const _pl=ledPlayerLevel(ensureLedger(me)); if(!isDev(me)&&_pl<VAULT_UNLOCK_LEVEL) return send(res,200,{enabled:false, locked:true, unlockLevel:VAULT_UNLOCK_LEVEL, playerLevel:_pl}); }
     if(rateLimited(req,'dungeon',40,60000)) return send(res,429,{error:'Slow down.'});
-    const prog=getDungeonProgress(me.id);
-    resetDungeonSweepIfNewDay(prog.sweep); prog.sweep.extraPaid=patronRow(ensureLedger(me),'vaultExtra');   /* v1092: EGP row */
-    if(p==='/api/dungeon/status'){ return send(res,200,Object.assign({enabled:true},dungeonView(prog))); }
+    if(p==='/api/dungeon/status'){ const prog=getDungeonProgress(me.id);
+      resetDungeonSweepIfNewDay(prog.sweep); prog.sweep.extraPaid=patronRow(ensureLedger(me),'vaultExtra');   /* v1092: EGP row */
+      return send(res,200,Object.assign({enabled:true},dungeonView(prog))); }
     if(req.method!=='POST') return send(res,404,{error:'dungeon'});
     const b=await body(req);
+    /* B9 (vault bug scan 24 Nov): the Vault state used to be read BEFORE the body await (same class as
+       v1089) - a slow/large body could leave the progress record stale across the await. Read it after. */
+    const prog=getDungeonProgress(me.id);
+    resetDungeonSweepIfNewDay(prog.sweep); prog.sweep.extraPaid=patronRow(ensureLedger(me),'vaultExtra');   /* v1092: EGP row */
     const reqId=String(b.requestId||'').slice(0,64);
     if(!reqId) return send(res,400,{error:'requestId required'});
 
