@@ -216,14 +216,43 @@ function ratesFor(bonus){
 }
 function totalPerHour(bonus){ const r=ratesFor(bonus); let n=0; for(const k in r) n+=r[k]; return n; }
 
-/* what is sitting in the pot right now — whole hours only, capped at 36 */
+const HOUR_MS = 3600000;
+/* v1442 (bonus bug scan B3, Phil 24 Nov 2026: "Fix all of those bugs"): EVERY STAGE EARNS FROM ITS OWN CLEAR TIME. The pot was
+   today's rates x the hours since the last claim, so a stage cleared a minute ago was paid for every unclaimed hour before it
+   (measured: 30 saved became 360 on clearing five more stages). A stage's clock is the later of the pot clock (bonus.ts) and its
+   own clear time (done[id].at); once a claim has settled a stage that was cleared after the pot clock, its own clock is kept in
+   done[id].from so its part-hour is neither lost nor gifted. */
+function stageClock(bonus, id){
+  const r=(bonus.done&&bonus.done[id])||{};
+  return (r.from>0) ? r.from : Math.max(bonus.ts||0, r.at||0);
+}
+/* what is sitting in the pot right now — whole hours only, capped at 36, counted stage by stage */
 function pending(bonus, now){
   const rates=ratesFor(bonus);
-  const elapsedH = Math.floor(Math.max(0, (now-(bonus.ts||now))) / 3600000);
-  const hours = Math.min(CAP_HOURS, elapsedH);
-  const per={}; let total=0;
-  for(const q in rates){ const n=rates[q]*hours; if(n>0){ per[q]=n; total+=n; } }
+  const per={}; let total=0, elapsedH=0, any=false;
+  for(const id of Object.keys(bonus.done||{})){
+    if(!validBonusId(id)) continue;
+    const q=tierFor(chOf(id)); if(!q) continue;
+    any=true;
+    const el=Math.floor(Math.max(0, now-stageClock(bonus,id)) / HOUR_MS);
+    if(el>elapsedH) elapsedH=el;
+    const n=(SLOT_RATE[slotOf(id)]|0)*Math.min(CAP_HOURS, el);
+    if(n>0){ per[q]=(per[q]|0)+n; total+=n; }
+  }
+  if(!any) elapsedH = Math.floor(Math.max(0, (now-(bonus.ts||now))) / HOUR_MS);   // nothing cleared yet: the pot clock alone, as before
+  const hours = Math.min(CAP_HOURS, elapsedH);   // the longest-saved stage - what "H h of 36 h" shows
   return { hours, capHours:CAP_HOURS, capped:elapsedH>=CAP_HOURS, perQuality:per, total, rates };
+}
+/* the clock whose next whole hour comes first (the panel's "Next hour in m:ss"); a full stage has no next hour */
+function nextHourClock(bonus, now){
+  let best=0, left=Infinity;
+  for(const id of Object.keys(bonus.done||{})){
+    if(!validBonusId(id)) continue;
+    const c=stageClock(bonus,id), el=now-c;
+    if(!(c>0) || el<0 || Math.floor(el/HOUR_MS)>=CAP_HOURS) continue;
+    const l=HOUR_MS-(el%HOUR_MS); if(l<left){ left=l; best=c; }
+  }
+  return best || bonus.ts || 0;
 }
 
 /* ------------------------------------------------------------------ the claim
@@ -246,11 +275,25 @@ function claimList(bonus, now, seed, GLYPHS){
   return { list:Object.keys(qty).map(key=>({key, quantity:qty[key]})), pending:p };
 }
 
-/* Advancing the clock on a claim: move ts FORWARD by the hours paid, never to `now`.
-   Paying 36 of 40 stored hours and then stamping `now` would burn the 4 hours the
-   player was owed. Whole hours only, so the part-hour keeps ticking. */
-function advanceClock(bonus, now, hoursPaid){
-  bonus.ts = Math.min(now, (bonus.ts||now) + hoursPaid*3600000);
+/* Advancing a clock on a claim: forward by the whole hours paid, so the part-hour keeps ticking.
+   v1442 (bonus bug scan B2, Phil 24 Nov 2026: "Fix all of those bugs"): THE 36-HOUR CAP IS A CAP. The clock used to move forward
+   only by the hours paid, so 100 hours away was collected in full with three presses of Claim (432 + 432 + 336). "It maxes at
+   36 hours saved": hours past the cap were never saved, so a clock that was at the cap moves to now and keeps only its part-hour. */
+function clockAfterClaim(clock, now){
+  const el=now-clock;
+  if(!(el>0)) return Math.min(now, clock);
+  const h=Math.floor(el/HOUR_MS);
+  return h>=CAP_HOURS ? now-(el%HOUR_MS) : clock+h*HOUR_MS;
+}
+function advanceClock(bonus, now){
+  const ts0=bonus.ts||now;
+  for(const id of Object.keys(bonus.done||{})){
+    const r=bonus.done[id]; if(!r || typeof r!=='object') continue;
+    const c=stageClock(bonus,id);
+    if(!(r.from>0) && c===ts0) continue;   // this stage rides the pot clock
+    r.from=clockAfterClaim(c, now);        // B3: a stage cleared after the pot clock keeps its own
+  }
+  bonus.ts = clockAfterClaim(ts0, now);
   return bonus.ts;
 }
 
@@ -891,7 +934,7 @@ async function handle(p, method, ctx){
   if(p==='/api/bonus/state' && method==='GET'){
     return { status:200, body:{ ok:true,
       done:b.done, tiers:CH_BONUS_TIER, slotRate:SLOT_RATE,
-      perHour:totalPerHour(b), claim:pending(b, now), serverNow:now, since:b.ts||0 } };   // v1298: since = accrual start, for the panel's next-hour timer
+      perHour:totalPerHour(b), claim:pending(b, now), serverNow:now, since:nextHourClock(b, now) } };   // v1298: since = accrual start, for the panel's next-hour timer (v1442: the clock whose next hour comes first)
   }
 
   /* ---- the bottom-left "Bonus stage rewards" icon ---- */
@@ -904,7 +947,7 @@ async function handle(p, method, ctx){
     if(!pd.hours) return { status:400, body:{ok:false, error:'Nothing has accrued yet.', claim:pd} };
     if(!list.length) return { status:400, body:{ok:false, error:'No bonus stages cleared yet.', claim:pd} };
     const receipt = ctx.glyphGrantNamedList(ctx.me, list) || [];
-    advanceClock(b, now, pd.hours);
+    advanceClock(b, now);
     ctx.ledTx(ctx.me, 'bonus:claim', { hours:pd.hours, fragments:pd.total });
     ctx.writeDB();
     return { status:200, body:{ ok:true, granted:receipt, hours:pd.hours,
@@ -1098,7 +1141,7 @@ function rulesSettled(){ return [
 
 module.exports = { handle, resolveRun, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLOTS, CHAPTERS,
   LANES, WAVES, WINDOWS, MAX_HEROES, MAX_PER_LANE, STAR_DEATH_LIMIT_2, starExplain,
-  BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending,
+  BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending, stageClock, nextHourClock, clockAfterClaim, MIN_RESOLVE_MS, ATTEMPT_MS,
   bossFor, BONUS_BOSS_PIN,
   claimList, advanceClock, buildLanes, boonOffer, starsFor, clearReward, families,
   resetFamilyCache, checkSquad, checkSquadStrict, checkSwap, laneMoveOK, lanesReachableFrom,
