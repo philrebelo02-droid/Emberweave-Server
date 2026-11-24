@@ -11811,7 +11811,10 @@ async function api(req,res,url){
           if((gg.level||1)>=GMAXLVL) gg.exp=0;
           r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
           gg.log=gg.log||[]; gg.log.push({sys:1,tx:du.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(gg.log.length>100)gg.log=gg.log.slice(-100);
-          reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
+          /* v1445 (Phil 24 Nov: "When you kill a boss it shouldnt say no damage"): the killing assault is paid for the damage it dealt
+             like every other assault AND gets the kill package on top (it used to get the package INSTEAD - a big last hit paid
+             fewer guild coins than the same hit a moment earlier) */
+          reward={ guildCoins:300*lv+Math.round(dmg/50), gold:800*lv, gems:15+lv*3, tier:lv }; }
         else { reward={ guildCoins:Math.round(dmg/50) }; }
         { const led=ensureLedger(du);
           if(reward.gold) reward.gold=creditGold(du,led,reward.gold,'guild-raid');
