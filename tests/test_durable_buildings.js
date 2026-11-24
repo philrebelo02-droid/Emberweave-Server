@@ -60,9 +60,11 @@ async function round(name,run,observe){
   const er2=await call('/api/emberdraft/result',{requestId:'er1',attemptId:attId,place:1,rounds:0}); ok(er2.status===200&&er2.data.ok===true,'same request succeeds once the disk works (review-first: paid '+er2.data.stamina+')');
   await call('/api/emberdraft/result',{requestId:'er1',attemptId:attId,place:1,rounds:0});
   fl=await flagsOnDisk(); ok(fl.fb===1&&fl.rp===1,'exactly one flag and one report after the saved result + replay ('+JSON.stringify(fl)+')');
-  // ISLAND TRIAL: a dungeon trial floor
-  await round('trial resolve',()=>call('/api/trial/resolve',{kind:'dungeon',floor:1,heroIds:heroes,requestId:'tr1'}),
-    async()=>{ const l=await led(); return {gold:l.gold,trial:l.trial,eq:l.eqMats}; });
+  // ISLAND TRIAL: the dungeon trial floor is retired (v1443, Vault bug scan B2: it paid with no fight) - it refuses and changes nothing
+  { const before=JSON.stringify(await (async()=>{ const l=await led(); return {gold:l.gold,trial:l.trial,eq:l.eqMats}; })());
+    const tr=await call('/api/trial/resolve',{kind:'dungeon',floor:1,heroIds:heroes,requestId:'tr1'});
+    const after=JSON.stringify(await (async()=>{ const l=await led(); return {gold:l.gold,trial:l.trial,eq:l.eqMats}; })());
+    ok(tr.data&&tr.data.ok===false&&before===after,'trial resolve kind dungeon is refused and pays nothing ('+JSON.stringify(tr.data).slice(0,90)+')'); }
   // STARLESS WELL: resolve a fight
   const st=(await call('/api/well/state')).data; const row=[0,1,2].find(r=>st.grid&&st.grid[1]&&st.grid[1][r]);
   const ws=await call('/api/well/start',{requestId:'ws1',col:1,row,heroIds:heroes}); ok(ws.status===200&&ws.data.attemptId,'well start ('+JSON.stringify(ws.data).slice(0,80)+')');

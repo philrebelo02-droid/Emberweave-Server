@@ -63,8 +63,8 @@ async function httpLayer() {
   { const body = { kind: 'dungeon', floor: 1, heroIds: keys, requestId: 'rr-trial-1' };
     const g0 = await gold(); const a = await call('/api/trial/resolve', body); const g1 = await gold();
     const b = await call('/api/trial/resolve', body); const g2 = await gold();
-    ck('Trial: the floor answers a receipt', a.data && a.data.ok === true && typeof a.data.won === 'boolean', JSON.stringify(a.data).slice(0, 120));
-    ck('Trial: same requestId answers the same receipt and pays once', b.data && strip(b.data) === strip(a.data) && g2 === g1 && (a.data.won ? g1 >= g0 : g1 === g0), g0 + ' -> ' + g1 + ' -> ' + g2 + ' won ' + (a.data && a.data.won)); }
+    ck('Trial: the retired dungeon floor refuses (v1443, Vault bug scan B2)', a.data && a.data.ok === false, JSON.stringify(a.data).slice(0, 120));
+    ck('Trial: a re-send is refused the same way and nothing is paid', b.data && b.data.ok === false && g1 === g0 && g2 === g0, g0 + ' -> ' + g1 + ' -> ' + g2); }
 
   // Elite screen route: retired - every send pays nothing
   { const g0 = await gold(); const a = await call('/api/elite/resolve', { node: 3, heroIds: keys, requestId: 'rr-elite' }); const b = await call('/api/elite/resolve', { node: 3, heroIds: keys, requestId: 'rr-elite' }); const g1 = await gold();
