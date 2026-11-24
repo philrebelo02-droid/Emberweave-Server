@@ -219,8 +219,8 @@ function vmTests(){
   T1('haste',()=>{ const o=mults('haste',0,'vael'); check(near(o.as,1.3), 'haste: +30% attack speed ('+o.as+')'); });
   T1('nofirstaid',()=>{ const o=mults('nofirstaid',0,'vael'); check(near(o.d,1.4)&&near(o.t,1/1.4)&&near(o.as,1.4), 'nofirstaid: +40% to everything - damage, attack speed, toughness ('+[o.d,o.t,o.as]+')');
     inLane(0,()=>{ const h=o.h; h.hp=h.maxHp*0.5; healUnit(h,1000); check(near(h.hp,h.maxHp*0.5), 'nofirstaid: the hero cannot be healed'); }); });
-  T1('halfhp',()=>{ const o=mults('halfhp',0,'vael'); check(near(o.as,1.75), 'halfhp: +75% attack speed ('+o.as+')'); H(0)[1].hp=H(0)[1].maxHp*0.2; close();
-    check(H(0).every(h=>near(h.hp,h.maxHp*0.5)), 'halfhp: every wave starts at half health'); step(40); tick(0); check(near(hero(0,'vael')._bnAs,1.75), 'halfhp: and the attack speed never stops'); });
+  T1('halfhp',()=>{ const o=mults('halfhp',0,'vael'); check(near(o.as,1.75), 'halfhp: +75% attack speed ('+o.as+')'); const low=H(0)[1]; low.hp=low.maxHp*0.2; close();
+    check(H(0).every(h=>h===low||near(h.hp,h.maxHp*0.5)), 'halfhp: every wave starts at half health'); check(near(low.hp,low.maxHp*0.2), 'halfhp: the cost never heals - a hero at 20% stays at 20% ('+(low.hp/low.maxHp).toFixed(2)+')'); step(40); tick(0); check(near(hero(0,'vael')._bnAs,1.75), 'halfhp: and the attack speed never stops'); });
   T1('onehero',()=>{ scene('onehero',0); let champ=null, bp=-1; for(const h of H(0)){ const p=heroPower(h.key); if(p>bp){ bp=p; champ=h; } } const other=H(0).find(h=>h!==champ); const o={};
     inLane(0,()=>{ const e=big(E(0)[0]); o.c0=rng(0.99,()=>hit(champ,e,100,false)); o.o0=rng(0.99,()=>hit(other,e,100,false)); }); take({0:'onehero'}); tick(0);
     inLane(0,()=>{ const e=big(E(0)[0]); check(near(rng(0.99,()=>hit(champ,e,100,false))/o.c0,2), 'onehero: the strongest hero on the road ('+champ.key+') deals double');

@@ -10106,7 +10106,7 @@ const BoonFx=(function(){
     for(const u of hs){ const B=u._bn||(u._bn={});
       u._bnHits=0; u._bnHit1=0; u._bnCastW=0;
       if(pre&&!B.nofirstaid) u.hp=Math.max(u.hp,worldHealCap(u));   /* Rested */
-      if(B.halfhp){ const half=Math.max(1,u.maxHp*0.5); if(u.hp>half||!B.nofirstaid) u.hp=Math.min(worldHealCap(u),half); }   /* Blood Oath */
+      if(B.halfhp) u.hp=Math.min(u.hp,Math.max(1,u.maxHp*0.5));   /* Blood Oath: its cost never heals - a hero under half stays where he is (review fix) */
       if(B.freeult&&!u._bnNoUlt) u.energy=100;   /* Crowned */
     }
     let stun=0, half=0, burn=0;
