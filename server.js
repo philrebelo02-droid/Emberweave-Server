@@ -2313,6 +2313,7 @@ function snapshotHeroFromServer(u, key, save, sOpts){
 // ---- spec constants (server-only tuning) ----
 const DUNGEON_MAX_FLOOR=100;
 const VAULT_UNLOCK_LEVEL=10;
+const SWEEP_X_MAX=100;   // v1437: the most runs one campaign sweep can do (the page's X button)
 const VAULT_HERO_XP_PER_FLOOR=30;
 /* Phil 3 Oct 2026: "If the player is below 15% of the recommended power and they passes, they should be flagged for Review by ember, their exact
    report is sent to her" / "A player within 15% of the power may be able to do it ... When you start getting to 20% you should be more suspicious" /
@@ -9018,7 +9019,7 @@ async function api(req,res,url){
       if(node>prog.cleared) return {ok:false,error:'Clear the stage first.'};
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
       if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs three stars.', stars:(prog.stars[node]|0)};
-      let times=Math.max(1,Math.min(10,b.times|0||1));
+      let times=Math.max(1,Math.min(SWEEP_X_MAX,b.times|0||1));   /* v1437: X sweeps up to 100 runs (was 10); stamina and the 3-a-day Guardian/boss/Elite cap still limit it below */
       const elite=campCapStageSrv(mode,node);   // every Elite stage and Normal/Veteran 3/6/9/10: 3 rewarded runs/day, sweeps included (v1097: Veteran was missing)
       prog.runs=prog.runs||{}; const dk=nyDayKey();
       if(prog.runs.k!==dk) prog.runs={k:dk};

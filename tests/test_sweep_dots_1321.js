@@ -10,9 +10,10 @@ const old = cp.execSync('git show 68b0d29b:emberweave-heroes.html', { cwd: ROOT,
 
 // v1432 (Phil 23 Nov 2026: "SWEEP, X 1, X 10, X" / "sweep isnt a pressable button but the X1 X10 and X is" / "the X should give the player the option to type their sweep amount")
 const has = s => html.includes(s);
-ck('SWEEP is a label (not a button); x1, x10 (x3 on Guardian/boss stages) and X are the buttons', has('<div class="smSweepGrp"><span class="smSweepLbl">') && has(`id="smSweep" \${live?'':'disabled'}>×1</button>`) && has('>×${_eb?ELITE_BOSS_DAILY:10}</button>') && has(`\${_eb?'':\`<button class="btn secondary" id="smSweepX" data-n="\${most}" \${live?'':'disabled'}>X</button>\`}`));
+ck('SWEEP is a label (not a button); x1, x10 (x3 on Guardian/boss stages) and X are the buttons', has('<div class="smSweepGrp"><span class="smSweepLbl">') && has(`id="smSweep" \${live?'':'disabled'}>×1</button>`) && has('>×${_eb?ELITE_BOSS_DAILY:10}</button>') && has(`\${_eb?'':\`<button class="btn secondary" id="smSweepX" data-n="\${mostX}" \${live?'':'disabled'}>X</button>\`}`));
 ck('Guardian / boss / Elite stages (3 attempts a day) get x1 and x3 and NO X (Phil 23 Nov: "No x button for elite")', has("${_eb?'':`<button class=\"btn secondary\" id=\"smSweepX\""));
 ck('the most a sweep sends = runs left today on Guardian/boss stages, 10 otherwise, capped by stamina', has('cap=_eb?Math.max(0,_left):10, most=Math.max(0,Math.min(cap,aff))'));
+ck('v1437: X goes to SWEEP_X_MAX (100) or the runs left today, capped by stamina; the server allows the same', has('mostX=Math.max(0,Math.min(_eb?Math.max(0,_left):SWEEP_X_MAX,aff))') && /const SWEEP_X_MAX=100;/.test(fs.readFileSync(path.join(ROOT,'server.js'),'utf8')) && fs.readFileSync(path.join(ROOT,'server.js'),'utf8').includes('Math.min(SWEEP_X_MAX,b.times'));
 ck('x10 / x3 sweeps that many runs', has("sw10.onclick=()=>{ const n=+sw10.dataset.n||0; if(n>0) sweepStage(i,n,mode); }"));
 ck('X lets the player type the amount (1 to the most), Enter or the tick sweeps it', has('id="smSweepXN" type="number"') && has('const n=Math.max(1,Math.min(most,Math.floor(+inp.value||0))); if(n>0) sweepStage(i,n,mode);') && has("e.key==='Enter'"));
 ck('CONTROL: v1320 had no X sweep', !old.includes('smSweepX'));

@@ -57,12 +57,12 @@ let fails=0; const ok=(c,m)=>{ if(c) console.log('  ok   '+m); else { fails++; c
         ok(box&&box.type==='number'&&box.min==='1'&&+box.max>=1,tag+': X opens a number box ('+JSON.stringify(box)+')');
         if(OUT) await page.screenshot({path:path.join(OUT,'sweep-'+tag+'-X.png')});
         const most=+box.max;
-        ok(most===10,tag+': X goes up to 10 (one sweep, stamina for 20 runs) - '+most);
+        ok(most===20,tag+': X goes up to what the stamina pays for, past 10 (v1437: up to 100; stamina for 20 runs) - '+most);
         await page.fill('#smSweepXN','3'); await page.press('#smSweepXN','Enter'); await delay(300);
         await page.fill('#smSweepXN','99'); await page.click('#smSweepXGo'); await delay(300);   // more than one sweep can do: held at the most
         await page.click('#smSweep'); await delay(200); await page.click('#smSweep10'); await delay(200);
         const calls=await page.evaluate(()=>window._sw);
-        ok(JSON.stringify(calls)==='[[4,3,"normal"],[4,10,"normal"],[4,1,"normal"],[4,10,"normal"]]',tag+': X typed 3 sends 3, typed 99 is held at 10, x1 sends 1, x10 sends 10 ('+JSON.stringify(calls)+')');
+        ok(JSON.stringify(calls)==='[[4,3,"normal"],[4,20,"normal"],[4,1,"normal"],[4,10,"normal"]]',tag+': X typed 3 sends 3, typed 99 is held at 20 (the stamina), x1 sends 1, x10 sends 10 ('+JSON.stringify(calls)+')');
         await page.evaluate(()=>{ window.sweepStage=sweepStage=window._swOrig; });
       }
       // an uncleared stage: the label is there, the buttons are disabled
