@@ -4083,7 +4083,8 @@ function adminPlayerInfo(u){
   out.reports={ sent:sent.length, lastAt:sent.reduce((m,x)=>Math.max(m,+x.t||0),0) };
   const cheat=fb.filter(x=>x&&x.kind==='cheat'&&x.userId===u.id), irep=rp.filter(x=>x&&x.kind!=='moderation'&&x.userId===u.id), lc=cheat[cheat.length-1], lr=irep[irep.length-1];
   Object.assign(out.integrity,{ flag:u.flag?{ reason:String(u.flag.reason||''), t:u.flag.t||0 }:null,
-    cheatSignals:cheat.length, lastCheat:lc?{ t:lc.t||0, signal:String(lc.signal||''), text:String(lc.text||'').slice(0,200) }:null,
+    cheatSignals:cheat.length, replaySignals:cheat.filter(x=>/^(campaign|province|well|siege)-replay(:|$)/.test(String(x.signal||''))).length,   /* v1441: how many of them are replay disagreements (a record, not a cheat finding) - the card says so */
+    lastCheat:lc?{ t:lc.t||0, signal:String(lc.signal||''), text:String(lc.text||'').slice(0,200) }:null,
     reportsAgainst:irep.length, openReportsAgainst:irep.filter(x=>!x.resolved).length, lastReport:lr?{ t:lr.t||0, kind:String(lr.kind||''), detail:String(lr.detail||'').slice(0,200) }:null });
   return out;
 }
@@ -4310,7 +4311,7 @@ function campIncident(u,led,x){   // the flagged-fight record (shared by the res
     witnessedStars:x.witnessed.stars,transcript:x.inputLog}]).slice(-20);
   console.warn('battle replay incident ('+x.why+') — stage '+x.st.id+' — player-witnessed result recorded');
   if(x.rep&&x.serverEndDigest) feedbackCheatSignal(u,'campaign-replay',
-    'Campaign replay digest mismatch at '+x.mode+' stage '+x.st.id+'. Player-witnessed result kept for review.',
+    'Replay disagreement at '+x.mode+' stage '+x.st.id+': the replay on the server ended differently from the fight the player played. The result the player saw stands. A record for engine review - not proof of cheating.',   /* v1441: was "Campaign replay digest mismatch" */
     'battle integrity'); }
 /* v1124 THE CHECK BACKLOG (Phil 11 Oct 2026: "skipped checks must never be lost"). A fight answered before its check keeps what the
    check needs ON ITS RECEIPT (the frozen snapshots in rc.chk + the transcript + the seed; the stage's waves come from the stage) - so
@@ -4653,10 +4654,10 @@ function streamAction(u, m, ws){
   }
 
   const uid=m.casterUid|0, tid=(m.targetUid==null?-1:(m.targetUid|0));
-  if(kind!=='auto' && !(uid>=0&&uid<64)) return bad('bad-caster');
+  if(kind!=='auto' && !(uid>=0&&uid<ACT_UID_MAX)) return bad('bad-caster');
   const clamp=(v,hi)=>(v==null||!isFinite(v))?null:Math.max(0,Math.min(hi,+(+v).toFixed(2)));
   const entry=[acceptedTick, kind, (kind==='auto'?-1:uid),
-    (kind==='auto'?((m.value?1:0)) : ((tid>=0&&tid<64)?tid:-1)),
+    (kind==='auto'?((m.value?1:0)) : ((tid>=0&&tid<ACT_UID_MAX)?tid:-1)),
     clamp(m.wx,FIELD_W), clamp(m.wy,FIELD_D)];
   st.acts.push(entry);
   st.seq=seq; st.sec.n++;
@@ -4718,7 +4719,13 @@ function ledSkillImport(u){ const led=u.led; if(!led || led.skillImported) retur
    sim: bounded length, integer ticks in range, known action kinds, integer uids, aim clamped to the
    field. Legality (alive caster, energy, stun/silence, one gear skill) is enforced by the battle code
    itself when the action is applied — a forged entry is ignored, never honoured. */
-const INPUT_LOG_MAX=400, SIM_TICK_MAX=14400, FIELD_W=1000, FIELD_D=1400;
+/* v1441 REPLAY DISAGREEMENT: two limits here were tighter than the fight itself, so an action the player really took was dropped from the
+   record and the replay became another fight. (1) SIM_TICK_MAX was 14400 ticks (~393 s of fighting) - since v1399 a wave lasts up to 180 s,
+   so a three-wave fight runs to ~19,750 ticks and the client's own replay cap is simTickCap(waves); every ultimate pressed after tick 14400
+   was refused ('past-the-end') or cut from the submitted log. Now (180 s + 30 s) x 8 waves of ticks, the page's formula with room to spare.
+   (2) a caster / target id had to be under 64 - ids count every unit made in the fight (each wave's enemies, every summon), so a late target
+   in a summon-heavy fight was recorded as 'no target' (-1) and the replayed ultimate hit someone else. Now ACT_UID_MAX. */
+const INPUT_LOG_MAX=400, SIM_TICK_MAX=Math.ceil((180+30)*8/(BATTLE_PACE_SRV/SIM_HZ_SRV)), ACT_UID_MAX=512, FIELD_W=1000, FIELD_D=1400;
 function sanitizeInputLog(raw){
   if(!Array.isArray(raw)) return [];
   const out=[];
@@ -4728,9 +4735,9 @@ function sanitizeInputLog(raw){
     if(!(t>=0&&t<=SIM_TICK_MAX)) continue;
     if(k!=='ult'&&k!=='gear'&&k!=='auto') continue;
     if(k==='auto'){ out.push([t,'auto',-1,(tid?1:0),null,null]); continue; }
-    if(!(uid>=0&&uid<64)) continue;
+    if(!(uid>=0&&uid<ACT_UID_MAX)) continue;
     const clamp=(v,hi)=>(v==null||!isFinite(v))?null:Math.max(0,Math.min(hi,+(+v).toFixed(2)));
-    out.push([t,k,uid,(tid>=0&&tid<64)?tid:-1, clamp(e[4],FIELD_W), clamp(e[5],FIELD_D)]);
+    out.push([t,k,uid,(tid>=0&&tid<ACT_UID_MAX)?tid:-1, clamp(e[4],FIELD_W), clamp(e[5],FIELD_D)]);
   }
   out.sort((a,b)=>a[0]-b[0]);
   return out;
@@ -9603,7 +9610,17 @@ async function api(req,res,url){
           /* A resumed session plays a NEW fight on the same attempt — the interrupted fight's action
              transcript and clock must not survive to be replayed as this result. (v1124: nothing persisted changes - no save.) */
           rec.stream=null; rec.clock=null;
-          return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:rec.seed,
+          /* v1441 (Phil 24 Nov 2026, on replayed fights: "And the properly gear they have"): a resumed attempt handed back the squad as it was
+             frozen when the attempt was FIRST opened. Quit a fight, level up / equip / temper / learn a talent, press BATTLE on the same stage
+             with the same heroes - and the fight (the player's and the server's replay alike) was fought with the OLD heroes, on the same
+             seed, so it ended the same way. The squad is now re-frozen from the account as it is at THIS start whenever any hero's build
+             changed; the attempt, the stamina already paid and the seed stay as they were (no re-charge, no reroll). */
+          let refrozen=false;
+          { const specsNow=ids.map(k=>campaignHeroSpec(me,k)), hostNow=simHost();
+            if(hostNow && !specsNow.some(x=>!x) && JSON.stringify(specsNow)!==JSON.stringify(rec.specs||null)){
+              let sn=null; try{ sn=hostNow.snapFromSpecs(specsNow); }catch(e){ console.error('sim-host snapFromSpecs failed (resume):',e.message); }
+              if(Array.isArray(sn)&&sn.length===ids.length){ rec.specs=specsNow; rec.snaps=sn; rec.teamSnapshot=ids.map(k=>snapshotHeroFromServer(me,k)); refrozen=true; } } }
+          return send(res,200,{ ok:true, resumed:true, refrozen, attemptId:open.id, mode, stage:st0, seed:rec.seed,
             snaps:rec.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
         }
         led.stam.v=Math.min(STAM_CEIL, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
