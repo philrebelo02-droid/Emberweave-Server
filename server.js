@@ -1324,7 +1324,8 @@ function bbRankGuildOk(g){ return !!(g && g.id && (g.members||[]).length>0); }
 /* the same number as cardPower(), but a board build does not park every hero of every account in CARD_POWER_CACHE (it would never be pruned) */
 function bbCardPower(u,k){ const hit=CARD_POWER_CACHE.get(String(u.id)+'|'+k); if(hit&&(Date.now()-hit.t)<CARD_POWER_TTL_MS) return hit.v; try{ return heroCardPower(u,k); }catch(e){ return hit?hit.v:0; } }
 function bbOwnedKeys(led){ return Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)); }
-function bbJournalCounts(u){ const led=u.led, owned=bbOwnedKeys(led), boards=(u.glyphs&&u.glyphs.boards)||{}, dp=(DB.dungeonProgress||{})[u.id]||null;
+function bbJournalCounts(u){ if(u&&u.led&&u.led.devJournal) return Object.fromEntries(BB_JOURNAL_TRACKS.map(([name,th])=>[name,th[th.length-1]]));   /* v1438: the dev panel's Unlock all achievement journal */
+  const led=u.led, owned=bbOwnedKeys(led), boards=(u.glyphs&&u.glyphs.boards)||{}, dp=(DB.dungeonProgress||{})[u.id]||null;
   const portals=led.portals||{}, w2=(led.well2&&led.well2.cleared)||{}, bonus=(led.bonus&&led.bonus.done)||{};
   return { 'Commander level':ledPlayerLevel(led),
     'Heroes to Purple':owned.filter(k=>((boards[k]&&boards[k].ascensionIndex)|0)>=6).length,   /* = the client's heroQuality()>=3 (G2_TIER16, ascension index 6+) */
@@ -1345,7 +1346,8 @@ function bbRankEntry(board,x){
   if(board==='spire'){ const tw=x.led.tower, f=(tw&&typeof tw==='object')?(tw.floor|0):0; return f>0?{ s:f, value:f }:null; }
   if(board==='bonus'){ const d=(x.led.bonus&&x.led.bonus.done)||{}, n=Object.keys(d).filter(k=>d[k]).length; return n>0?{ s:n, value:n }:null; }
   if(board==='power'){ const ps=bbOwnedKeys(x.led).map(k=>bbCardPower(x,k)).sort((a,b)=>b-a); let p=0; for(const v of ps.slice(0,5)) p+=v; p=Math.round(p); return p>0?{ s:p, value:p }:null; }
-  if(board==='journal'){ const n=bbJournalEarned(x); return n>0?{ s:n, value:n, of:BB_JOURNAL_TOTAL }:null; }
+  if(board==='journal'){ if(x.led&&x.led.devJournal) return null;   /* v1438: a dev-unlocked Journal is not a ranking */
+    const n=bbJournalEarned(x); return n>0?{ s:n, value:n, of:BB_JOURNAL_TOTAL }:null; }
   if(board==='guilds') return { s:(x.level||1)*1e4+(x.members||[]).length, value:x.level||1, level:x.level||1, count:(x.members||[]).length, cap:gCapOf(x) };
   if(board==='guildraid'){ const r=x.raid; if(!r) return null; const k=r.kills|0, d=Math.round(Object.values(r.contrib||{}).reduce((a,b)=>a+(+b||0),0));
     return (k>0||d>0)?{ s:k*1e13+d, value:k, dmg:d, level:x.level||1 }:null; }
@@ -5490,12 +5492,96 @@ function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=n
     table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd } }; }
 /* v1323: every level's numbers for the patron screen's arrows (Phil 9 Nov) - their own GET, fetched when a level is browsed, so the tables stay out of every ledger and saved fight */
 function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS, attackBuys:PATRON_ATTACK_BUYS, doubleGoldEgp:PATRON_DOUBLE_GOLD_EGP }; }
+/* v1438 DEV ROSTER CHEATS (Phil 24 Nov 2026: "These cheats need to change ... Commander level to X / All heroes to level X ... / Set glyphs to
+   current max for all / set equipment to current max for all / set prayer to current max for all / unlock all achievement journal / unlock all of
+   academy to current commander level / give all current heroes X amount of stars / unlock all stages / temper all current equipment to temper
+   level X" - "This is for dev panel also. Not just tester"). /api/admin/led-grant {roster:<act>, n} on the caller's OWN account (a dev may name
+   userId). Each act sets an ABSOLUTE state through the game's own rules, so pressing it twice changes nothing more (idempotent), and only OWNED
+   heroes are touched (bbOwnedKeys). "Current max" = what the game's own gates allow at the account's CURRENT Commander / hero levels:
+   - cmdlevel n (1-100): px = the XP curve's start of level n. Up goes through ledAddPlayerXP (its +30 stamina a level and Temple level-ups, as a
+     real level-up); down sets px. Hero levels follow by themselves (ledHeroLevel is capped by Commander level).
+   - herolevel n: every owned hero's XP = the start of level n, n clamped to 1..min(100, Commander level) (ledHeroLevel's cap).
+   - glyphs: the v1312 walk (maxGlyphs + toLevel): each board ascended while the hero's level meets glyphLevelGate. Never lowers a board.
+   - gear: the Forge opens at Commander 25 (the town hotspot lk(25)); from 25 every owned hero wears all nine of its own items (HERO_GEAR_LIST),
+     bound, as /api/gear/equip leaves them - the gear code has no other level gate. Items already worn stay; Temper stays the type's.
+   - temple: Temple of Ash (Commander 50+): any pending prayer is SAVED first (saveSession, nothing paid is lost), the Temple level is raised to
+     the highest the Commander level allows (keeper points, TEMPLE_PLAYER_GATES; grantLevelUps banks its free prayers as a real climb does), every
+     owned Purple+ hero (heroCanKindle) gets each OPEN bar (BAR_UNLOCK_TEMPLE) to capSteps(Temple level), then earnBlessings lights the dots the
+     Temple / hero-level gates allow. Heroes below Purple cannot pray and are skipped (counted).
+   - journal: led.devJournal - every Achievement Journal milestone shows completed. The Journal has no claim and pays nothing (its rewards are
+     labels), so nothing is minted; a flagged account is left off the Journal ranking board.
+   - academy (Commander 20+): the Academy building to min(120, Commander level), each stat track to min(60, Academy level); research timers are
+     settled first (acadCollect) and the rest cancelled (one would carry a track past the Academy cap). Never lowers.
+   - stars n (1-5): every owned hero to n stars (never under its base stars), pips 0; Refine (above 5 stars) is cleared below 5 (it needs 5).
+   - stages: Normal, Elite and Veteran all cleared with 3 stars on every stage, and all 96 bonus stages done with 3 stars (their idle fragment
+     clock starts now - nothing back-paid). Star-track milestones are left to claim, never auto-claimed.
+   - temper n (0-30): every owned item type's Temper = n (gearTTSet - Temper is per item type), bar progress 0. */
+const DEV_ROSTER_ACTS=['cmdlevel','herolevel','glyphs','gear','temple','journal','academy','stars','stages','temper'];
+const FORGE_UNLOCK_LEVEL=25;   /* = the client's town hotspot ...lk(25) for the Forge */
+function devRosterApply(tgt,led,act,n){
+  const owned=bbOwnedKeys(led), pl=()=>ledPlayerLevel(led), clamp=(v,a,b)=>Math.max(a,Math.min(b,Math.floor(+v||0)));
+  if(act==='cmdlevel'){ const X=clamp(n,1,D_MAX_LEVEL), want=D_TROOP_CUM[X]|0, before=pl();
+    if((led.px||0)<want) ledAddPlayerXP(led,want-(led.px||0),tgt,{devPanel:true}); else led.px=want;
+    if(led.temple) templeState(led);
+    return {act,level:pl(),from:before,range:[1,D_MAX_LEVEL]}; }
+  if(act==='herolevel'){ const top=Math.min(D_MAX_LEVEL,pl()), X=clamp(n,1,top);
+    for(const k of owned){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0}); h.xp=D_HERO_CUM[X]|0; }
+    return {act,level:X,heroes:owned.length,range:[1,top]}; }
+  if(act==='gear'){ if(pl()<FORGE_UNLOCK_LEVEL) return {act,heroes:0,added:0,locked:FORGE_UNLOCK_LEVEL};
+    if(!GEARCAT||!HERO_GEAR_LIST) return {act,heroes:0,added:0,off:true};
+    const g=ensureGear(tgt); g.items=g.items||{}; g.equipped=g.equipped||{}; g.active=g.active||{}; g.seq=g.seq||1; let added=0, heroes=0;
+    for(const k of owned){ const list=HERO_GEAR_LIST[k]; if(!Array.isArray(list)) continue; heroes++; const eq=g.equipped[k]||(g.equipped[k]={});
+      for(const id of list){ const def=GEARCAT.byId[id]; if(!def) continue; const cur=gearItemOf(g,eq[def.slot]); if(cur&&cur.d===def.id){ cur.bound=true; cur.hero=k; continue; }
+        const t0=gearTT(g,def.id), nid='q'+(g.seq++);
+        g.items[nid]={ d:def.id, temper:t0.temper|0, prog:t0.prog|0, dustSpent:0, bound:true, hero:k, createdAt:Date.now(), dev:true };
+        eq[def.slot]=nid; added++; }
+      if(!gearItemOf(g,g.active[k])||!gearItemEquippedBy(g,g.active[k])){ const top=list.map(id=>GEARCAT.byId[id]).filter(Boolean).pop(); if(top&&eq[top.slot]) g.active[k]=eq[top.slot]; } }
+    if(added) g.revision=(g.revision|0)+1; cardPowerForget(tgt.id);
+    return {act,heroes,added}; }
+  if(act==='temper'){ if(!GEARCAT) return {act,types:0,off:true};
+    const T=GEARCAT.meta.temper, X=clamp(n,0,T.max|0), g=ensureGear(tgt), types=new Set();
+    for(const id in (g.items||{})){ const it=g.items[id]; if(it&&GEARCAT.byId[it.d]) types.add(it.d); }
+    for(const d of types){ const r=gearTT(g,d); gearTTSet(g,d,{temper:X,prog:0,dustSpent:r.dustSpent|0}); }
+    if(types.size) g.revision=(g.revision|0)+1; cardPowerForget(tgt.id);
+    return {act,temper:X,types:types.size,range:[0,T.max|0]}; }
+  if(act==='temple'){ if(!TEMPLE.templeUnlocked(pl())) return {act,heroes:0,locked:TEMPLE.CONFIG.UNLOCK_PLAYER_LEVEL};
+    const state=templeState(led); if(state._pending) TEMPLE.saveSession(state);
+    let need=0, pts=0; for(const row of TEMPLE.FLAMEKEEPER_TRACK){ need+=row.exp|0; if(TEMPLE.keeperLevel(need,state.playerLevel)>=row.lv) pts=need; else break; }
+    if((state.keeperPoints|0)<pts) state.keeperPoints=pts; TEMPLE.grantLevelUps(state);
+    const L=TEMPLE.keeperLevel(state.keeperPoints|0,state.playerLevel), cap=TEMPLE.capSteps(L), gg=(glyphMigrate(tgt),glyphFlowMigrate(tgt),ensureGlyphs(tgt));
+    let filled=0, skipped=0, dots=0;
+    for(const k of owned){ if(!TEMPLE.heroCanKindle(gg.boards&&gg.boards[k])){ skipped++; continue; }
+      const base=SIM.HERO_BASE[k]||{}; if(!state.heroes[k]) state.heroes[k]=TEMPLE.newHero(k,base.damageProfile);
+      const h=state.heroes[k], bars=TEMPLE.heroBars(k,base.damageProfile), steps=TEMPLE.alignSteps(h,bars);
+      bars.forEach((bar,i)=>{ steps[bar]=L>=(TEMPLE.CONFIG.BAR_UNLOCK_TEMPLE[i]||1)?cap:Math.min(cap,steps[bar]|0); });
+      h.steps=steps; h.bars=bars.slice(); h.key=k; dots+=TEMPLE.earnBlessings(state,k,templeHeroInfo(led,k)).length; filled++; }
+    cardPowerForget(tgt.id);
+    return {act,templeLevel:L,cap,heroes:filled,skipped,dots}; }
+  if(act==='journal'){ led.devJournal=led.devJournal||Date.now(); return {act,milestones:'all'}; }
+  if(act==='academy'){ if(pl()<ACADEMY_UNLOCK_LEVEL) return {act,locked:ACADEMY_UNLOCK_LEVEL};
+    const A=ensureAcad(tgt); acadCollect(A); const lvA=Math.max(A.lv.academy|0,Math.min(acadTrackMax('academy'),pl()));
+    if(lvA!==(A.lv.academy|0)){ acadIncome(A,Date.now()); A.lv.academy=lvA; }
+    for(const k of ACAD_TRACKS) if(k!=='academy') A.lv[k]=Math.max(A.lv[k]|0,Math.min(acadTrackMax(k),lvA));
+    A.learn={}; cardPowerForget(tgt.id);
+    return {act,academy:A.lv.academy,track:Math.min(TECH_MAX_SRV,A.lv.academy)}; }
+  if(act==='stars'){ const top=(SIM.MAX_STARS|0)||5, X=clamp(n,1,top);
+    for(const k of owned){ const b=SIM.HERO_BASE[k]; const h=led.hero[k]||(led.hero[k]={xp:0,stars:b.stars,pips:0});
+      h.stars=Math.max(b.stars|0,X); h.pips=0; if(h.stars<5&&h.ref) h.ref=0; }
+    cardPowerForget(tgt.id); return {act,stars:X,heroes:owned.length,range:[1,top]}; }
+  if(act==='stages'){ let stages=0;
+    for(const m of PORTAL_MODES){ const pr=portalProg(led,m); pr.cleared=PORTAL_SIZE[m]; pr.stars=pr.stars||{}; for(let i=1;i<=PORTAL_SIZE[m];i++){ pr.stars[i]=3; stages++; } }
+    let bonus=0; if(BONUS){ const bb=BONUS.ensureBonus(led), was=Object.keys(bb.done).length, now=Date.now();
+      for(let ch=1;ch<=BONUS.CHAPTERS;ch++) for(const c of BONUS.BONUS_CODES){ const id=ch+'-'+c; if(!bb.done[id]) bb.done[id]={stars:3,at:now}; else bb.done[id].stars=3; bonus++; }
+      if(!was) bb.ts=now; }
+    return {act,stages,bonus}; }
+  return null; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, tester:isTester(u)?1:0, notice:noticeView(), amail:adminMailView(u), comps:compView(u), born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, talents:(TALENTS_ON?(led.talents||{}):undefined), talentResetGems:(TALENTS_ON?TALENT_RESET_GEMS:undefined), temple:templeClientState(led), wall:wallView(u),
     gshopLeft:gshopLeftView(led), gshopCd:gshopCdView(led),   /* v1391: Guild Shop weekly caps left + cooldown ms left */
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
+    devJournal:led.devJournal?1:0,   /* v1438: the dev panel's Unlock all achievement journal */
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
     prov:(function(){ try{ return provLedgerView(u,led); }catch(e){ return null; } })(),   /* v663: Training Province stage + plays */
@@ -9050,6 +9136,9 @@ async function api(req,res,url){
     const b=await body(req);
     const tgt=(isDev(me)&&b.userId&&DB.users[String(b.userId)])||me;   // v1376: a tester grants only to itself   // v229: admin may grant to a named account (test fixtures, support)
     const led=ensureLedger(tgt);
+    /* v1438: the ten Roster cheats ({roster, n}; see devRosterApply). 'glyphs' is the v1312 board walk below on every OWNED hero. */
+    const rosterAct=b.roster!=null?String(b.roster):''; if(rosterAct&&!DEV_ROSTER_ACTS.includes(rosterAct)) return send(res,400,{error:'Unknown roster action.'});
+    if(rosterAct==='glyphs'){ b.heroKeys=bbOwnedKeys(led); b.maxGlyphs=true; b.toLevel=true; }
     if(Array.isArray(b.unlock)) for(const k of b.unlock.map(String)){ if(SIM.HERO_BASE[k]){ led.unlocked[k]=true;
       if(!led.hero[k]) led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0}; } }
     // Dev fragment grants must reach the same authoritative balance summon checks.
@@ -9104,13 +9193,17 @@ async function api(req,res,url){
           board.slots=[null,null,null,null,null,null]; board.ascensionIndex++; }
         glyphAudit(gg,'ascend',{hero:k,to:board.ascensionIndex,fed:'dev-max'}); glyphsMaxed++; }
       glyphPruneConsumed(gg); gg.revision++; }
-    if((Array.isArray(b.unlock)&&b.unlock.length)||b.stars||b.heroXp||b.maxGlyphs)
+    let roster=null; if(rosterAct&&rosterAct!=='glyphs') roster=devRosterApply(tgt,led,rosterAct,b.n);
+    if(rosterAct==='glyphs') roster={act:'glyphs',boards:glyphsMaxed,heroes:b.heroKeys.length};
+    if(rosterAct) led.rev++;
+    if(rosterAct) feedbackCheatSignal(tgt,'dev-team','TEST dev panel: roster '+rosterAct+(b.n!=null?' '+(b.n|0):'')+' by '+(me.name||me.id)+'.','dev panel',0);
+    else if((Array.isArray(b.unlock)&&b.unlock.length)||b.stars||b.heroXp||b.maxGlyphs)
       feedbackCheatSignal(tgt,'dev-team','TEST dev panel: team progression granted by '+(me.name||me.id)+
         ' (unlock '+(Array.isArray(b.unlock)?b.unlock.length:0)+', stars '+(b.stars|0)+
         ', hero XP '+(b.heroXp|0)+', max glyphs '+glyphsMaxed+').','dev panel',0);
-    adminLog(me, tgt===me?'economy:self':'economy:grant', tgt, Object.keys(b).filter(k=>k!=='userId'&&b[k]!=null&&b[k]!==false).map(k=>{ const v=b[k]; return k+((typeof v==='number')?' '+v:(Array.isArray(v)?' x'+v.length:'')); }).join(', '));
+    adminLog(me, tgt===me?'economy:self':'economy:grant', tgt, Object.keys(b).filter(k=>k!=='userId'&&b[k]!=null&&b[k]!==false).map(k=>{ const v=b[k]; return k+((typeof v==='number')?' '+v:(typeof v==='string'?' '+v.slice(0,24):(Array.isArray(v)?' x'+v.length:''))); }).join(', '));
     ledTx(tgt,'admin:grant',Object.keys(grantedFrags).length?{heroFrags:grantedFrags}:{});
-    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt), glyphsMaxed,
+    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt), glyphsMaxed, roster,
       devState:{arenaCoins:tgt.coins|0,arenaRank:tgt.rank|0,bestArenaRank:tgt.bestRank!=null?(tgt.bestRank|0):5000,
         shieldItems:parseSaveOf(tgt).shieldItems|0}}); }
 

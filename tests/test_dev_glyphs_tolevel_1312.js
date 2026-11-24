@@ -36,7 +36,7 @@ const ascFor = L => Math.min(16, GATES.filter(g => g <= L).length);   // 16 = fu
   await call('/api/admin/led-grant', { heroKeys: keys, maxGlyphs: true }, tok); await delay(500); await stop();
   db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
   ck('CONTROL: maxGlyphs without toLevel walks every board to fully ascended (16)', keys.every(k => db.users[id].glyphs.boards[k].ascensionIndex === 16), keys.map(k => db.users[id].glyphs.boards[k].ascensionIndex));
-  const html = fs.readFileSync(path.join(root, 'emberweave-heroes.html'), 'utf8');
-  ck('the dev button sends toLevel:true', html.includes("{heroKeys:keys,stars:MAX_STARS,maxGlyphs:true,toLevel:true}"));
+  const src = fs.readFileSync(path.join(root, 'server.js'), 'utf8');   // v1438: the dev button is Roster > Glyphs to current max ({roster:'glyphs'})
+  ck('the dev button walks with toLevel:true', src.includes("if(rosterAct==='glyphs'){ b.heroKeys=bbOwnedKeys(led); b.maxGlyphs=true; b.toLevel=true; }"));
 } catch (e) { F++; console.log('  FAIL run: ' + e.stack); } finally { await stop(); }
   console.log('test_dev_glyphs_tolevel_1312.js: ' + P + ' passed, ' + F + ' failed'); process.exit(F ? 1 : 0); })();

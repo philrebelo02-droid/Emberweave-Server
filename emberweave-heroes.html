@@ -24711,6 +24711,7 @@ let bbMode=2,bbPage=0,bbData={},bbLoad=0;
 function bbProgress(){
   const owned=HERO_KEYS.filter(key=>G.unlocked&&G.unlocked[key]);
   const st=LED.st||{};
+  if(st.devJournal) return Object.fromEntries(BB_TRACKS.map(row=>[row[0],row[1][row[1].length-1]]));   /* v1438: Dev > Economy > Unlock achievement journal */
   const counts={
     'Commander level':playerLevel(),
     'Heroes to Purple':owned.filter(key=>heroQuality(key)>=3).length,
@@ -35653,6 +35654,11 @@ button.dvp-srow{cursor:pointer}
 .dvp-srow b,.dvp-erow b,.dvp-rep b{font-weight:700;color:#fff1d3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}
 .dvp-sub{margin-left:auto;font:14px var(--dvp-font);color:var(--dvp-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;text-align:right}
 .dvp-srow .stIc,.dvp-erow .stIc{width:28px;height:28px;margin:0;flex:0 0 28px}
+.dvp-right .dvp-rrow{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 52px 64px auto;align-items:center;column-gap:8px}
+.dvp-right .dvp-rrow.nox>b{grid-column:1/4}
+.dvp-right .dvp-rrow>.dvp-btn{grid-column:4;justify-self:end}
+.dvp-rng{font:14px var(--dvp-font);color:var(--dvp-dim);text-align:right;white-space:nowrap}
+.dvp-right input.dvp-ramt{width:64px;height:34px;margin:0;padding:0 6px;text-align:right;font-size:16px}
 .dvp-amt{flex:0 0 130px;width:130px;height:36px;box-sizing:border-box;background:var(--dvp-search-bg);border:1px solid var(--dvp-line);border-radius:4px;color:var(--dvp-ink);padding:0 10px;font:17px var(--dvp-font);text-align:right;margin-left:auto}
 .dvp[data-dvp="liveops"] .dvp-left,.dvp[data-dvp="qa"] .dvp-left{background:url('${DVP_ART}stack@2x.webp${DVP_ARTV}') 0 0/660px 522px no-repeat;padding:18px 20px;box-sizing:border-box}
 .dvp-group+.dvp-group{margin-top:16px}
@@ -35851,12 +35857,58 @@ function devEconomyHTML(TST){
   const row=(k,ic,l)=>`<div class="dvp-erow">${ic}<b>${l}</b><input class="dvp-amt" type="number" inputmode="numeric" min="1" step="1" data-amt="${k}" value="${DVP_AMT_DEF[k]}" aria-label="${escAttr(l)}"><button class="dvp-btn gold sm" data-dev="${k}">Grant</button></div>`;
   const cur=[['gold',hudIcon('gold'),'Gold'],['gems',hudIcon('gem'),'Diamonds'],['stam',uiIcon('res-stamina'),'Stamina'],['shards',uiIcon('hero'),'Fragments'],['arenacoin',uiIcon('res-arena-coins'),'Arena coins'],
     ['guildcoins',uiIcon('res-guild-coins'),'Guild coins'],['shielditem',hudIcon('shield'),'Shields'],['pieces',uiIcon('mode-forge'),'Gear pieces'],['level',uiIcon('res-player-xp'),'Player levels'],['squadlvl',uiIcon('level-up'),'Squad hero levels'],['campstage',uiIcon('map'),'Campaign stages']];
-  const one=[['heroes',t('set2.dev_heroes')],['lv100','All heroes to level '+MAX_LEVEL],['maxteam','Max glyphs + stars'],['campall',t('set2.dev_campall')],['givefrags','One hero’s fragments']];
   return `<div class="dvp-tool"><span class="dvp-h">Own account</span></div><div class="dvp-split"><div class="dvp-left">${cur.map(x=>row(...x)).join('')}</div><div class="dvp-right">`+
-    `<div class="dvp-h2">Roster</div>${one.map(([k,l])=>`<div class="dvp-srow"><b>${l}</b><button class="dvp-btn sm" data-dev="${k}" style="margin-left:auto">${k==='givefrags'?'Choose':'Apply'}</button></div>`).join('')}`+
+    `<div class="dvp-h2">Roster</div><div id="dvpRoster">${devRosterHTML()}</div>`+
     (TST?'':`<div class="dvp-h2" style="margin-top:12px">Purchase support</div><div class="dvp-line dim">Find a purchase by order number, pack or player.</div>`+
       `<div class="pai-line" style="display:flex;gap:6px"><input id="dvpBuyQ" placeholder="Order number, pack or player" aria-label="Find a purchase" style="margin-top:0"><button class="dvp-btn" data-dev="findbuy">Find purchase</button></div><div id="dvpBuys">${devBuysHTML()}</div>`)+
     `</div></div>`; }
+/* v1438 ROSTER (Phil 24 Nov 2026: "These cheats need to change" / "This is for dev panel also. Not just tester. Because these cheats are out
+   dated"): ten rows, the same for an admin and a test account (a test account acts on itself only - the server decides). An X row has a number
+   box clamped to its legal range (shown beside it); every row's Apply sends /api/admin/led-grant {roster, n} - the server's devRosterApply holds
+   the rules (Commander / hero level, glyphs, Forge, Temple of Ash, Journal, Academy, stars, stages, Temper) - and the game re-reads what changed.
+   Layout: one grid per row - label | range | box | Apply - so every Apply sits in one right-hand column and every box is the same width. */
+const DEV_ROSTER=()=>[['cmdlevel','Commander level'],['herolevel','All heroes to level'],['glyphs','Glyphs to current max'],['gear','Equipment to current max'],
+  ['temple','Prayer to current max'],['journal','Unlock achievement journal'],['academy','Academy to Commander level'],['stars','All heroes to stars'],
+  ['stages',t('set2.dev_campall')],['temper','Temper all equipment to']];
+function devRosterRange(k){ const temperMax=(typeof FORGE!=='undefined'&&FORGE.cat&&FORGE.cat.meta&&FORGE.cat.meta.temper&&FORGE.cat.meta.temper.max)||30;
+  return ({cmdlevel:[1,MAX_LEVEL], herolevel:[1,Math.max(1,Math.min(MAX_LEVEL,playerLevel()))], stars:[1,MAX_STARS], temper:[0,temperMax]})[k]||null; }
+function devRosterDefault(k,rg){ return ({cmdlevel:playerLevel(), herolevel:rg[1], stars:MAX_STARS, temper:rg[1]})[k]; }
+function devRosterHTML(){ return DEV_ROSTER().map(([k,l])=>{ const rg=devRosterRange(k);
+  return `<div class="dvp-srow dvp-rrow${rg?'':' nox'}" data-rrow="${k}"><b>${l}</b>`+(rg?`<span class="dvp-rng">${rg[0]}-${rg[1]}</span>`+
+    `<input class="dvp-ramt" type="number" inputmode="numeric" min="${rg[0]}" max="${rg[1]}" step="1" value="${devRosterDefault(k,rg)}" data-ramt="${k}" aria-label="${escAttr(l+' ('+rg[0]+'-'+rg[1]+')')}">`:'')+
+    `<button class="dvp-btn sm" data-dev="ro_${k}">Apply</button></div>`; }).join(''); }
+function devRosterRepaint(b){ const h=(b&&b.querySelector('#dvpRoster'))||document.getElementById('dvpRoster'); if(!h) return;
+  for(const [k] of DEV_ROSTER()){ const rg=devRosterRange(k), el=h.querySelector('[data-ramt="'+k+'"]'), sp=h.querySelector('[data-rrow="'+k+'"] .dvp-rng'); if(!rg||!el) continue;
+    el.min=String(rg[0]); el.max=String(rg[1]); if(sp) sp.textContent=rg[0]+'-'+rg[1]; const v=Math.floor(+el.value); if(!(v>=rg[0]&&v<=rg[1])) el.value=String(devRosterDefault(k,rg)); } }
+function devRosterMsg(r){ const R=r.roster||{}, f=n=>(+n||0).toLocaleString('en-US');
+  switch(R.act){
+    case 'cmdlevel': return 'Commander level '+R.level;
+    case 'herolevel': return 'All '+f(R.heroes)+' owned heroes at level '+R.level+(R.range&&R.level===R.range[1]&&R.level<MAX_LEVEL?' (heroes cannot pass Commander level '+R.range[1]+')':'');
+    case 'glyphs': return 'Glyphs: '+f(R.boards)+' of '+f(R.heroes)+' boards raised to the best quality each hero\'s level allows';
+    case 'gear': return R.locked?'The Forge opens at Commander level '+R.locked+' - nothing changed':(R.off?'The Forge is off on this server':'All '+f(R.heroes)+' owned heroes wear all nine of their items ('+f(R.added)+' new)');
+    case 'temple': return R.locked?'The Temple of Ash opens at Commander level '+R.locked+' - nothing changed':'Temple level '+R.templeLevel+': every open prayer bar at '+R.cap+' on '+f(R.heroes)+' heroes'+(R.dots?', '+f(R.dots)+' blessings lit':'')+(R.skipped?' ('+f(R.skipped)+' below Purple glyphs cannot pray)':'');
+    case 'journal': return 'Every achievement journal milestone completed (the journal pays no rewards)';
+    case 'academy': return R.locked?'The Academy opens at Commander level '+R.locked+' - nothing changed':'Academy level '+R.academy+', every research track at '+R.track;
+    case 'stars': return 'All '+f(R.heroes)+' owned heroes at '+R.stars+' stars';
+    case 'stages': return 'All '+f(R.stages)+' campaign stages (Normal, Elite, Veteran) cleared with 3 stars'+(R.bonus?' + '+f(R.bonus)+' bonus stages':'');
+    case 'temper': return R.off?'The Forge is off on this server':'Temper '+R.temper+' on all '+f(R.types)+' owned item types';
+  } return 'Done'; }
+async function devRosterRun(k,b,done){ const rg=devRosterRange(k); let n=null;
+  if(rg){ const el=b&&b.querySelector('[data-ramt="'+k+'"]'), v=el&&el.value!==''?Math.floor(+el.value):NaN;
+    if(!Number.isFinite(v)){ done('Enter a number '+rg[0]+'-'+rg[1],true); return; }
+    n=Math.max(rg[0],Math.min(rg[1],v)); if(el) el.value=String(n); }
+  done('Applying on server…'); let r=null;
+  try{ r=await api('/api/admin/led-grant','POST',n==null?{roster:k}:{roster:k,n}); }catch(e){ done('Server unavailable — not applied',true); return; }
+  if(!r||!r.ok||!r.ledger||!r.roster){ done('Server refused — not applied',true); return; }
+  adoptLedger(r.ledger);
+  try{ if(k==='glyphs'&&typeof glyphV2Sync==='function') await glyphV2Sync(); }catch(e){}
+  try{ if((k==='gear'||k==='temper')&&typeof forgeSync==='function'){ FORGE.st=null; FORGE.stAt=0; await forgeSync(); } }catch(e){}
+  try{ if(k==='academy'&&typeof academySync==='function') await academySync(); }catch(e){}
+  try{ saveG(); updateHubChrome(); }catch(e){}
+  try{ if(state==='forge') renderForge(); else if(state==='tech') renderTech(); else if(state==='temple') renderTemple(); else if(state==='roadmap') renderRoadmap(); }catch(e){}
+  try{ if(state==='heroDetail'||(typeof _popout!=='undefined'&&_popout==='heroDetail')) renderHeroDetail(); }catch(e){}
+  try{ const j=document.getElementById('bbJournal'); if(j&&j.open) bbOpenJournal(); }catch(e){}
+  devRosterRepaint(b); done(devRosterMsg(r)); }
 function devBuysHTML(){ const L=DVP.buys; if(!L) return ''; if(!L.length) return '<div class="dvp-empty">No purchase found.</div>';
   return L.map(x=>`<div class="dvp-srow"><b>${escapeHTML(x.label)}</b><span class="dvp-sub">${escapeHTML(x.name)} · ${new Date(x.t).toLocaleDateString()}${x.free?' · free':(x.usd?' · $'+(+x.usd).toFixed(2):'')}</span><button class="dvp-btn sm" data-ropen="${escAttr(x.userId)}" data-rname="${escAttr(x.name)}">Open player</button></div>`).join(''); }
 /* ---- Live Ops: what goes out to everyone on the left; the composer on the right ---- */
@@ -35995,7 +36047,7 @@ function adminMailAdopt(L){ if(!Array.isArray(L)||!L.length) return; G.amSeen=Ar
   for(const m of L){ if(!m||!m.id||G.amSeen.includes(m.id)) continue; G.amSeen.push(m.id);
     addMail('inbox',{from:String(m.from||'Emberweave Team'),subj:String(m.subj||''),body:String(m.text||''),t:+m.t||Date.now(),amid:m.id,teamSubject:m.teamSubject}); added++; }
   if(added){ if(G.amSeen.length>60) G.amSeen=G.amSeen.slice(-60); try{ updateMailBadges(); }catch(e){} try{ saveG(); }catch(e){} } }
-const DEV_ECONOMY_ACTS=['gold','gems','stam','arenacoin','guildcoins','shielditem','shards','pieces','level','squadlvl','campstage','heroes','lv100','maxteam','campall','givefrags'];   /* v1376: the Economy group = a test account's dev panel; v1379: one row per resource (amount box), Arena #1 and the fixed +30 stamina gone */
+const DEV_ECONOMY_ACTS=['gold','gems','stam','arenacoin','guildcoins','shielditem','shards','pieces','level','squadlvl','campstage','ro_cmdlevel','ro_herolevel','ro_glyphs','ro_gear','ro_temple','ro_journal','ro_academy','ro_stars','ro_stages','ro_temper'];   /* v1438: the ten Roster cheats replace heroes / lv100 / maxteam / campall / givefrags */   /* v1376: the Economy group = a test account's dev panel; v1379: one row per resource (amount box), Arena #1 and the fixed +30 stamina gone */
 /* v1427 HERO USAGE (Soul Eater 19 Nov 2026: "Statistics showing which heroes are the most used would also be good ... This would help us
    control who we should nerf or level up, and who we should buff or rework"; Phil 20 Nov: "start building the statistics idea").
    Dev > QA > Hero usage opens this window. GET /api/dev/hero-usage counts every finished fight on every server (test accounts, admins and
@@ -36097,32 +36149,7 @@ function devAction(a,b){
       }).catch(()=>done('Server unavailable; reload to review progress',true)); return; }
   if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+amt()); done('Advancing campaign…');
     api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else refused(); }).catch(offline); return; }
-  if(a==='heroes'){ done('Unlocking…');
-    api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else refused(); }).catch(offline); return; }
-  /* v401 (4 Sep): every unlocked hero straight to MAX_LEVEL */
-  if(a==='lv100'){ const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked',true); return; }
-    done('Levelling '+keys.length+' heroes to '+MAX_LEVEL+'…');
-    (async()=>{ let last=null,refusedN=0;
-      for(let i=0;i<keys.length;i+=10){ const chunk=keys.slice(i,i+10);
-        const rs=await Promise.all(chunk.map(k=>{ const need=Math.max(0,(HERO_CUM[MAX_LEVEL]||0)-((G.heroXP&&G.heroXP[k])||0));
-          return need>0 ? api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}).catch(()=>null) : Promise.resolve({ok:true}); }));
-        refusedN+=rs.filter(r=>!r||!r.ok).length;
-        last=[...rs].reverse().find(r=>r&&r.ok&&r.ledger)||last;
-        if(last)adoptLedger(last.ledger);
-      }
-      await ledgerSync().catch(()=>null);
-      done(refusedN?'Server refused '+refusedN+' of '+keys.length+' hero levels; reload to review progress':'All '+keys.length+' heroes at level '+MAX_LEVEL, !!refusedN);
-    })().catch(()=>done('Server unavailable; reload to review progress',true)); return; }
-  if(a==='campall'){ done('Unlocking every campaign stage…');   /* v1305 (Phil 7 Nov: "make an unlock all stages dev option in dev panel, it unlocks all campaign stages") */
-    api('/api/admin/led-grant','POST',{campCleared:CAMPAIGN_NODES}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); try{ saveG(); updateHubChrome(); }catch(e){} done('All '+CAMPAIGN_NODES+' campaign stages unlocked'); } else refused(); }).catch(offline); return; }
-  if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs; v1312 (Phil 8 Nov): glyphs to the best quality each hero's current level allows */
-    const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked',true); return; }
-    done('Maxing '+keys.length+' heroes…');
-    api('/api/admin/led-grant','POST',{heroKeys:keys,stars:MAX_STARS,maxGlyphs:true,toLevel:true}).then(async r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
-        try{ if(typeof glyphV2Sync==='function') await glyphV2Sync(); }catch(e){}
-        done('All '+keys.length+' heroes: stars maxed, glyph boards raised to the best quality their level allows ('+(r.glyphsMaxed|0)+' boards). Reopen a hero to see it.'); }
-      else refused(); }).catch(offline); return; }
-  if(a==='givefrags'){ openDevFragGranter(b); return; }
+  if(a.startsWith('ro_')){ devRosterRun(a.slice(3),b,done); return; }   /* v1438 */
   /* below: admin tools - the server refuses every admin route to anyone else */
   if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); const c=document.getElementById('dvpOrbsN'); if(c) c.textContent=String(DEV.orbPreview); return; }   /* Phil 27 Sep: view each orb count's art */
   if(a==='perf'){ PERF.on=!PERF.on; perfHUD(); done('Performance HUD '+(PERF.on?'ON — open a battle and screenshot it':'off')); return; }
@@ -36184,33 +36211,6 @@ function adminPlayerMenu(el, who){ if(!DEV.on||!el||!who) return; closeChatLineM
   adminTesterButton(pop, who);
   setTimeout(()=>document.addEventListener('click',closeChatLineMenu,{once:true}),0); }
 // dev: search any hero in the database and grant 100 of their fragments
-function openDevFragGranter(b){
-  const AMT=100, ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:14000;display:flex;align-items:stretch;justify-content:flex-end';
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:16px;width:min(380px,calc(var(--ew-game-width,100vw) * 0.94));height:calc(var(--ew-game-height,100vh) * 1);max-height:calc(var(--ew-game-height,100vh) * 1);display:flex;flex-direction:column;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">Give ${AMT} fragments</b><button class="btn sm secondary" id="dfgX">${uiIcon('close')}</button></div>
-    <input id="dfgSearch" placeholder="Type a hero name…" autocomplete="off" style="width:100%;padding:9px 11px;border-radius:9px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:14px;margin-bottom:8px">
-    <div id="dfgList" style="overflow:auto;flex:1;display:flex;flex-direction:column;gap:5px"></div>
-    <div id="dfgMsg" style="font-size:12px;color:#5ee89b;min-height:16px;margin-top:6px;text-align:center"></div></div>`;
-  document.body.appendChild(ov);
-  const listEl=ov.querySelector('#dfgList'), msgEl=ov.querySelector('#dfgMsg'), searchEl=ov.querySelector('#dfgSearch');
-  const close=()=>ov.remove(); ov.querySelector('#dfgX').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
-  function renderList(q){ q=(q||'').trim().toLowerCase();
-    const keys=HERO_KEYS.filter(k=>{ const t=HERO_TYPES[k]; return !q || k.toLowerCase().includes(q) || (t.name||'').toLowerCase().includes(q); });
-    if(!keys.length){ listEl.innerHTML='<div style="color:#8b98a9;font-size:12px;text-align:center;padding:12px">No heroes match.</div>'; return; }
-    listEl.innerHTML=keys.map(k=>{ const t=HERO_TYPES[k];
-      return `<button class="btn sm secondary" data-fk="${k}" style="display:flex;align-items:center;gap:9px;justify-content:flex-start;text-align:left;padding:6px 9px">
-        <span style="width:30px;flex:none;display:flex;align-items:center;justify-content:center">${heroIcon(k,28)}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}${uiIcon('star-filled')} · ${G.unlocked[k]?'owned':'locked'}</span></span>
-        <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)} fragments</span></button>`; }).join('');
-    listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=async()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
-      el.disabled=true; msgEl.textContent='Granting '+AMT+' '+t.name+' fragments…';
-      try{ const r=await api('/api/admin/led-grant','POST',{heroFrags:{[k]:AMT}});
-        if(!r||!r.ok||!r.ledger){ msgEl.textContent='Server refused — fragments not added'; el.disabled=false; return; }
-        adoptLedger(r.ledger); saveG(); updateHubChrome();
-        msgEl.textContent='+'+AMT+' '+t.name+' fragments (now '+heroFrag(k)+')'; renderList(searchEl.value);
-      }catch(e){ msgEl.textContent='Server unavailable — fragments not added'; el.disabled=false; } }); }
-  searchEl.oninput=()=>renderList(searchEl.value); renderList(''); setTimeout(()=>searchEl.focus(),40);
-}
 // dev: automated balance bots — a fast model using the game's own stat/level/difficulty formulas.
 // Reports required level per chapter, difficulty flags, reachable depth, and rough time-to-L40 / time-to-purple.
 function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">'+uiIcon('npc')+' Simulating…</span>';

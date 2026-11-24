@@ -31,10 +31,10 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const label = await pg.evaluate(() => t('set2.dev_campall'));
     ck('the Dev panel has "Unlock all stages"', label === 'Unlock all stages', label);
     const r = await pg.evaluate(async () => { const box = document.createElement('div'); box.innerHTML = '<div id="devDone"></div>'; document.body.appendChild(box);
-      devAction('campall', box); for (let i = 0; i < 40 && !/unlocked|refused|unavailable/i.test(box.querySelector('#devDone').textContent); i++) await new Promise(r => setTimeout(r, 150));
+      devAction('ro_stages', box); for (let i = 0; i < 40 && !/cleared|refused|unavailable/i.test(box.querySelector('#devDone').textContent); i++) await new Promise(r => setTimeout(r, 150));
       const l = await api('/api/ledger'); return { msg: box.querySelector('#devDone').textContent, cleared: l && l.ledger ? l.ledger.camp && l.ledger.camp.cleared : (l && l.camp && l.camp.cleared), g: G.campaignCleared, nodes: CAMPAIGN_NODES }; });
     ck('pressing it clears all ' + r.nodes + ' campaign stages on the server', r.cleared === r.nodes && r.nodes === 160, JSON.stringify(r));
-    ck('...and the game shows them (G.campaignCleared = 160) with the done line', r.g === 160 && /All 160 campaign stages unlocked/.test(r.msg), JSON.stringify(r));
+    ck('...and the game shows them (G.campaignCleared = 160) with the done line (v1438: Roster > Unlock all stages, ro_stages)', r.g === 160 && /All 480 campaign stages \(Normal, Elite, Veteran\) cleared with 3 stars/.test(r.msg), JSON.stringify(r));
     ck('no page errors', errs.length === 0, errs.join(' | '));
   } catch (e) { fail++; console.log('  FAIL run: ' + (e.stack || e)); }
   finally { try { if (br) await br.close(); } catch (_) {} if (srv) srv.kill(); }

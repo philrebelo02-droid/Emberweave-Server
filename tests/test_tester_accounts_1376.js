@@ -102,7 +102,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
       const o = document.getElementById('dvpOv') || document.createElement('div'); const q = s => o.querySelectorAll(s).length;
       const acts = [...o.querySelectorAll('[data-dev]')].map(x => x.dataset.dev);
       return { devTabBtn: !!b.querySelector('[data-settab="dev"]'), groups: q('[data-devtab]'), acts, reset: !!b.querySelector('#resetBtn'), badge: ((x => x ? (x.querySelector('img') ? x.querySelector('img').alt : x.textContent) : '')(o.querySelector('.dvp-title'))) || '' }; });
-    const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'heroes', 'lv100', 'maxteam', 'campall', 'givefrags'];
+    const ECON = ['gold', 'gems', 'stam', 'arenacoin', 'guildcoins', 'shielditem', 'shards', 'pieces', 'level', 'squadlvl', 'campstage', 'ro_cmdlevel', 'ro_herolevel', 'ro_glyphs', 'ro_gear', 'ro_temple', 'ro_journal', 'ro_academy', 'ro_stars', 'ro_stages', 'ro_temper'];   // v1438: the ten Roster cheats
     // tester
     const tpg = await page(TG, PW); tgTok = tpg.tok; let v = await look(tpg);
     ck('page, tester: Settings has the Dev tab with ONLY the Economy group (no group tabs) + Reset all progress', v.devTabBtn && v.groups === 0 && v.reset && v.acts.length === ECON.length && v.acts.every(a => ECON.includes(a)) && v.badge === 'TEST ACCOUNT', JSON.stringify(v));
