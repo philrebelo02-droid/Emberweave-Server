@@ -35868,11 +35868,11 @@ function devEconomyHTML(TST){
    the rules (Commander / hero level, glyphs, Forge, Temple of Ash, Journal, Academy, stars, stages, Temper) - and the game re-reads what changed.
    Layout: one grid per row - label | range | box | Apply - so every Apply sits in one right-hand column and every box is the same width. */
 const DEV_ROSTER=()=>[['cmdlevel','Commander level'],['herolevel','All heroes to level'],['glyphs','Glyphs to current max'],['gear','Equipment to current max'],
-  ['temple','Prayer to current max'],['journal','Unlock achievement journal'],['academy','Academy to Commander level'],['stars','All heroes to stars'],
+  ['temple','Prayer to current max'],['journal','Unlock achievement journal'],['academy','Academy to Commander level'],['stars','All heroes to stars'],['frags','All heroes fragments'],
   ['stages',t('set2.dev_campall')],['temper','Temper all equipment to']];
 function devRosterRange(k){ const temperMax=(typeof FORGE!=='undefined'&&FORGE.cat&&FORGE.cat.meta&&FORGE.cat.meta.temper&&FORGE.cat.meta.temper.max)||30;
-  return ({cmdlevel:[1,MAX_LEVEL], herolevel:[1,Math.max(1,Math.min(MAX_LEVEL,playerLevel()))], stars:[1,MAX_STARS], temper:[0,temperMax]})[k]||null; }
-function devRosterDefault(k,rg){ return ({cmdlevel:playerLevel(), herolevel:rg[1], stars:MAX_STARS, temper:rg[1]})[k]; }
+  return ({cmdlevel:[1,MAX_LEVEL], herolevel:[1,Math.max(1,Math.min(MAX_LEVEL,playerLevel()))], stars:[1,MAX_STARS], frags:[1,9999], temper:[0,temperMax]})[k]||null; }
+function devRosterDefault(k,rg){ return ({cmdlevel:playerLevel(), herolevel:rg[1], stars:MAX_STARS, frags:100, temper:rg[1]})[k]; }
 function devRosterHTML(){ return DEV_ROSTER().map(([k,l])=>{ const rg=devRosterRange(k);
   return `<div class="dvp-srow dvp-rrow${rg?'':' nox'}" data-rrow="${k}"><b>${l}</b>`+(rg?`<span class="dvp-rng">${rg[0]}-${rg[1]}</span>`+
     `<input class="dvp-ramt" type="number" inputmode="numeric" min="${rg[0]}" max="${rg[1]}" step="1" value="${devRosterDefault(k,rg)}" data-ramt="${k}" aria-label="${escAttr(l+' ('+rg[0]+'-'+rg[1]+')')}">`:'')+
@@ -35890,6 +35890,7 @@ function devRosterMsg(r){ const R=r.roster||{}, f=n=>(+n||0).toLocaleString('en-
     case 'journal': return 'Every achievement journal milestone completed (the journal pays no rewards)';
     case 'academy': return R.locked?'The Academy opens at Commander level '+R.locked+' - nothing changed':'Academy level '+R.academy+', every research track at '+R.track;
     case 'stars': return 'All '+f(R.heroes)+' owned heroes at '+R.stars+' stars';
+    case 'frags': return '+'+f(R.each)+' fragments to each of '+f(R.heroes)+' heroes ('+f(R.gain)+' in all; each hero holds at most 9,999)';
     case 'stages': return 'All '+f(R.stages)+' campaign stages (Normal, Elite, Veteran) cleared with 3 stars'+(R.bonus?' + '+f(R.bonus)+' bonus stages':'');
     case 'temper': return R.off?'The Forge is off on this server':'Temper '+R.temper+' on all '+f(R.types)+' owned item types';
   } return 'Done'; }

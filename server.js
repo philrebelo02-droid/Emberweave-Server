@@ -5516,10 +5516,16 @@ function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS,
    - stages: Normal, Elite and Veteran all cleared with 3 stars on every stage, and all 96 bonus stages done with 3 stars (their idle fragment
      clock starts now - nothing back-paid). Star-track milestones are left to claim, never auto-claimed.
    - temper n (0-30): every owned item type's Temper = n (gearTTSet - Temper is per item type), bar progress 0. */
-const DEV_ROSTER_ACTS=['cmdlevel','herolevel','glyphs','gear','temple','journal','academy','stars','stages','temper'];
+const DEV_ROSTER_ACTS=['cmdlevel','herolevel','glyphs','gear','temple','journal','academy','stars','frags','stages','temper'];
 const FORGE_UNLOCK_LEVEL=25;   /* = the client's town hotspot ...lk(25) for the Forge */
 function devRosterApply(tgt,led,act,n){
   const owned=bbOwnedKeys(led), pl=()=>ledPlayerLevel(led), clamp=(v,a,b)=>Math.max(a,Math.min(b,Math.floor(+v||0)));
+  /* v1439 (Phil 24 Nov 2026: "give all heroes X hero fragements"): X of its own fragments to EVERY hero in the game (owned or not - fragments unlock
+     a hero), added each press, each hero's pile capped at 9999 (the dev panel's grant cap); logged as a resource gain like the Fragments grant */
+  if(act==='frags'){ const X=clamp(n,1,9999); led.frags=led.frags||{}; let gain=0, heroes=0;
+    for(const k of Object.keys(SIM.HERO_BASE)){ const before=led.frags[k]|0; led.frags[k]=Math.min(9999,before+X); gain+=led.frags[k]-before; heroes++; }
+    if(gain) resourceGain(tgt,'frags',gain,'admin:fragments',{devPanel:true});
+    return {act,each:X,heroes,gain,range:[1,9999]}; }
   if(act==='cmdlevel'){ const X=clamp(n,1,D_MAX_LEVEL), want=D_TROOP_CUM[X]|0, before=pl();
     if((led.px||0)<want) ledAddPlayerXP(led,want-(led.px||0),tgt,{devPanel:true}); else led.px=want;
     if(led.temple) templeState(led);

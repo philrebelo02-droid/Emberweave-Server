@@ -119,6 +119,12 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     ck('Stars 1: every owned hero at 1 star or its base stars, never under', OWN.every(k => L.hero[k].stars === Math.max(1, (HB.heroes || HB)[k].stars | 0)), JSON.stringify(OWN.map(k => [L.hero[k].stars, (HB.heroes || HB)[k].stars])));
     await R(D, 'stars', 3); L = await led(D); ck('Stars 3: every owned hero at 3 (or its base)', OWN.every(k => L.hero[k].stars === Math.max(3, (HB.heroes || HB)[k].stars | 0)));
     ck('...the unowned hero has no stars set', !(L.hero[NOT] && L.hero[NOT].stars > ((HB.heroes || HB)[NOT].stars | 0)));
+    /* ---- 8b. v1439 Give all heroes X hero fragments (Phil: "just below" the stars row) - every hero in the game, owned or not ---- */
+    { const L0 = await led(D), all = Object.keys(HB.heroes || HB), f0 = k => ((L0.frags || {})[k] | 0);
+      r = await R(D, 'frags', 100); L = await led(D); const f1 = k => ((L.frags || {})[k] | 0);
+      ck('Give fragments 100: every hero in the game (' + all.length + ') +100, the unowned hero too', r.ok && (r.roster || {}).each === 100 && all.every(k => f1(k) === Math.min(9999, f0(k) + 100)) && f1(NOT) === Math.min(9999, f0(NOT) + 100), JSON.stringify(r.roster));
+      r = await R(D, 'frags', 99999); L = await led(D);
+      ck('Give fragments 99999 is clamped to 9999 each, and no pile passes 9999', (r.roster || {}).each === 9999 && all.every(k => ((L.frags || {})[k] | 0) === 9999), JSON.stringify(r.roster)); }
     /* ---- 9. Unlock all stages ---- */
     r = await R(D, 'stages'); L = await led(D); let bs = await get('/api/bonus/state', D);
     const all3 = s => { for (let i = 1; i <= 160; i++) if ((s || {})[i] !== 3) return false; return true; };
@@ -179,10 +185,10 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       return { n: rows.length, boxes: inp.length, keys: rows.map(r => r.dataset.rrow), ranges: [...box.querySelectorAll('.dvp-rng')].map(x => x.textContent), bad, scale: +scale.toFixed(3),
         applyW: btn.length ? btn[0].w : 0, boxW: inp.length ? inp[0].w : 0 }; });
     const SIZES = [['phone-landscape', 844, 390], ['phone-portrait', 390, 844], ['tablet', 1024, 768], ['desktop', 1400, 900]];
-    const KEYS = ['cmdlevel', 'herolevel', 'glyphs', 'gear', 'temple', 'journal', 'academy', 'stars', 'stages', 'temper'];
+    const KEYS = ['cmdlevel', 'herolevel', 'glyphs', 'gear', 'temple', 'journal', 'academy', 'stars', 'frags', 'stages', 'temper'];   // v1439: frags just below stars
     for (const [who, name] of [['admin', DEV], ['test account', TST]]) for (const [sz, w, h] of SIZES) {
       const pg = await page(name, { width: w, height: h }); await openEco(pg); const m = await measure(pg);
-      ck(who + ' ' + sz + ' ' + w + 'x' + h + ': the Roster box has exactly the ten rows (4 with a number box), in Phil\'s order', !m.none && m.n === 10 && m.boxes === 4 && JSON.stringify(m.keys) === JSON.stringify(KEYS), JSON.stringify(m));
+      ck(who + ' ' + sz + ' ' + w + 'x' + h + ': the Roster box has exactly the eleven rows (5 with a number box), in Phil\'s order', !m.none && m.n === 11 && m.boxes === 5 && JSON.stringify(m.keys) === JSON.stringify(KEYS), JSON.stringify(m));
       ck(who + ' ' + sz + ' ' + w + 'x' + h + ': aligned - centred rows, one Apply column of equal buttons, equal boxes, no overlap, nothing cut off (scale ' + m.scale + ', Apply ' + m.applyW + ' px, boxes ' + m.boxW + ' px)', !m.none && m.bad.length === 0, (m.bad || []).join(' | '));
       if (who === 'admin' && sz === 'desktop') {   /* the measure itself: a 6 px drop on one Apply and a wider box must be caught */
         await pg.evaluate(() => { const st = document.createElement('style'); st.id = 'roNeg'; st.textContent = '#dvpRoster [data-rrow="glyphs"] .dvp-btn{margin-top:12px} #dvpRoster [data-rrow="stars"] .dvp-ramt{width:80px}'; document.head.appendChild(st); });
