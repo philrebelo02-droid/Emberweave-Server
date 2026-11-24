@@ -1,6 +1,6 @@
 {
  "meta": {
-  "note": "AUTHORED 100-floor Aether Vault table (v241). The server reads THIS file \u2014 waves, boss rules, dust, glyph fragments, and the two TARGETED gear fragments per floor. No runtime monster selection, no random gear roll. | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v478 (Phil, 6 Sep): every floor drops glyph fragments \u2014 1 on a normal floor, 2 on a boss floor (first clears double) \u2014 rotating through every (quality,family) pair of the floor band's quality RANGE (Grey / Green\u2013Green+1 / Blue\u2013Blue+1 / Blue+1\u2013Blue+2 / Purple\u2013Purple+1 / Purple+2\u2013Purple+3 / Gold\u2013Gold+2 / Gold+3\u2013Gold+4 / Orange).",
+  "note": "AUTHORED 100-floor Aether Vault table (v241). The server reads THIS file — waves, boss rules, dust, glyph fragments, and the two TARGETED gear fragments per floor. No runtime monster selection, no random gear roll. | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v478 (Phil, 6 Sep): every floor drops glyph fragments — 1 on a normal floor, 2 on a boss floor (first clears double) — rotating through every (quality,family) pair of the floor band's quality RANGE (Grey / Green–Green+1 / Blue–Blue+1 / Blue+1–Blue+2 / Purple–Purple+1 / Purple+2–Purple+3 / Gold–Gold+2 / Gold+3–Gold+4 / Orange).",
   "generated": "2026-08-27"
  },
  "floors": [
@@ -6688,63 +6688,63 @@
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 73.4251,
-      "dmgMul": 21.7129
+      "hpMul": 247.215,
+      "dmgMul": 50.7901
      },
      {
       "key": "nightgloom",
       "lvl": 51,
-      "hpMul": 73.4251,
-      "dmgMul": 13.3621
+      "hpMul": 247.215,
+      "dmgMul": 31.2562
      },
      {
       "key": "kelp hexer",
       "lvl": 51,
-      "hpMul": 73.4251,
-      "dmgMul": 26.4261
+      "hpMul": 247.215,
+      "dmgMul": 61.8151
      },
      {
       "key": "nightcap mimic",
       "lvl": 51,
-      "hpMul": 73.4251,
-      "dmgMul": 21.1409
+      "hpMul": 247.215,
+      "dmgMul": 49.4521
      }
     ],
     [
      {
       "key": "nightgloom",
       "lvl": 51,
-      "hpMul": 85.3747,
-      "dmgMul": 15.5385
+      "hpMul": 287.4481,
+      "dmgMul": 36.3471
      },
      {
       "key": "nightcap mimic",
       "lvl": 51,
-      "hpMul": 85.3747,
-      "dmgMul": 24.584
+      "hpMul": 287.4481,
+      "dmgMul": 57.5061
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 85.3747,
-      "dmgMul": 25.2493
+      "hpMul": 287.4481,
+      "dmgMul": 59.0623
      },
      {
       "key": "bitwraith",
       "lvl": 51,
-      "hpMul": 85.3747,
-      "dmgMul": 15.5942
+      "hpMul": 287.4481,
+      "dmgMul": 36.4774
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 85.3747,
-      "dmgMul": 25.2493
+      "hpMul": 287.4481,
+      "dmgMul": 59.0623
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 13996,
+   "recommendedPower": 277975,
    "dust": 4624,
    "glyphFragments": [
     "Orange Stoneheart"
@@ -6755,10 +6755,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 87,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 66,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.6,
+    "wrPlus5": 0.8,
+    "avgSec": 90.8,
+    "d": 3.3669
    }
   },
   {
@@ -6769,63 +6773,63 @@
      {
       "key": "nightgloom",
       "lvl": 51,
-      "hpMul": 83.1277,
-      "dmgMul": 16.849
+      "hpMul": 212.1751,
+      "dmgMul": 32.4667
      },
      {
       "key": "nightgloom",
       "lvl": 51,
-      "hpMul": 83.1277,
-      "dmgMul": 16.849
+      "hpMul": 212.1751,
+      "dmgMul": 32.4667
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 83.1277,
-      "dmgMul": 32.1724
+      "hpMul": 212.1751,
+      "dmgMul": 61.9937
      },
      {
       "key": "nightcap mimic",
       "lvl": 51,
-      "hpMul": 83.1277,
-      "dmgMul": 23.9406
+      "hpMul": 212.1751,
+      "dmgMul": 46.1317
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 96.6558,
-      "dmgMul": 37.409
+      "hpMul": 246.7043,
+      "dmgMul": 72.0842
      },
      {
       "key": "lost soul",
       "lvl": 51,
-      "hpMul": 96.6558,
-      "dmgMul": 28.6633
+      "hpMul": 246.7043,
+      "dmgMul": 55.2319
      },
      {
       "key": "nightgloom",
       "lvl": 51,
-      "hpMul": 96.6558,
-      "dmgMul": 19.5914
+      "hpMul": 246.7043,
+      "dmgMul": 37.7511
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 96.6558,
-      "dmgMul": 37.409
+      "hpMul": 246.7043,
+      "dmgMul": 72.0842
      },
      {
       "key": "wispweaver shade",
       "lvl": 51,
-      "hpMul": 96.6558,
-      "dmgMul": 22.1845
+      "hpMul": 246.7043,
+      "dmgMul": 42.7478
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 14311,
+   "recommendedPower": 280312,
    "dust": 4925,
    "glyphFragments": [
     "Orange Ironwall"
@@ -6836,10 +6840,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 87,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 67,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.45,
+    "wrPlus5": 0.8,
+    "avgSec": 82.7,
+    "d": 2.5524
    }
   },
   {
@@ -6850,63 +6858,63 @@
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 107.362,
-      "dmgMul": 29.3292
+      "hpMul": 259.2685,
+      "dmgMul": 54.3663
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 107.362,
-      "dmgMul": 29.3292
+      "hpMul": 259.2685,
+      "dmgMul": 54.3663
      },
      {
       "key": "wispweaver shade",
       "lvl": 52,
-      "hpMul": 107.362,
-      "dmgMul": 18.4466
+      "hpMul": 259.2685,
+      "dmgMul": 34.1937
      },
      {
       "key": "nightgloom",
       "lvl": 52,
-      "hpMul": 107.362,
-      "dmgMul": 11.422
+      "hpMul": 259.2685,
+      "dmgMul": 21.1725
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 52,
-      "hpMul": 124.85,
-      "dmgMul": 25.7155
+      "hpMul": 301.5003,
+      "dmgMul": 47.6677
      },
      {
       "key": "nightcap mimic",
       "lvl": 52,
-      "hpMul": 124.85,
-      "dmgMul": 23.6115
+      "hpMul": 301.5003,
+      "dmgMul": 43.7676
      },
      {
       "key": "nightgloom",
       "lvl": 52,
-      "hpMul": 124.85,
-      "dmgMul": 13.2822
+      "hpMul": 301.5003,
+      "dmgMul": 24.6206
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 124.85,
-      "dmgMul": 34.1057
+      "hpMul": 301.5003,
+      "dmgMul": 63.2203
      },
      {
       "key": "nightgloom",
       "lvl": 52,
-      "hpMul": 124.85,
-      "dmgMul": 13.2822
+      "hpMul": 301.5003,
+      "dmgMul": 24.6206
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 14582,
+   "recommendedPower": 282666,
    "dust": 5245,
    "glyphFragments": [
     "Orange Veilward"
@@ -6917,10 +6925,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 88,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 68,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.35,
+    "wr100": 0.725,
+    "wrPlus5": 0.875,
+    "avgSec": 91.9,
+    "d": 2.4149
    }
   },
   {
@@ -6931,63 +6943,63 @@
      {
       "key": "nightgloom",
       "lvl": 52,
-      "hpMul": 85.3162,
-      "dmgMul": 7.8463
+      "hpMul": 320.9084,
+      "dmgMul": 19.834
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 85.3162,
-      "dmgMul": 24.476
+      "hpMul": 320.9084,
+      "dmgMul": 61.8707
      },
      {
       "key": "storm eel",
       "lvl": 52,
-      "hpMul": 85.3162,
-      "dmgMul": 25.1241
+      "hpMul": 320.9084,
+      "dmgMul": 63.509
      },
      {
       "key": "nightcap mimic",
       "lvl": 52,
-      "hpMul": 85.3162,
-      "dmgMul": 23.7142
+      "hpMul": 320.9084,
+      "dmgMul": 59.945
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 99.2118,
-      "dmgMul": 28.4595
+      "hpMul": 373.1753,
+      "dmgMul": 71.9402
      },
      {
       "key": "bitwraith",
       "lvl": 52,
-      "hpMul": 99.2118,
-      "dmgMul": 19.7001
+      "hpMul": 373.1753,
+      "dmgMul": 49.7981
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 99.2118,
-      "dmgMul": 28.4595
+      "hpMul": 373.1753,
+      "dmgMul": 71.9402
      },
      {
       "key": "nightgloom",
       "lvl": 52,
-      "hpMul": 99.2118,
-      "dmgMul": 9.1233
+      "hpMul": 373.1753,
+      "dmgMul": 23.062
      },
      {
       "key": "nightgloom",
       "lvl": 52,
-      "hpMul": 99.2118,
-      "dmgMul": 9.1233
+      "hpMul": 373.1753,
+      "dmgMul": 23.062
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 14906,
+   "recommendedPower": 308253,
    "dust": 5586,
    "glyphFragments": [
     "Orange Ravager"
@@ -6998,10 +7010,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 89,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 70,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.675,
+    "wrPlus5": 0.775,
+    "avgSec": 99.2,
+    "d": 3.7614
    }
   },
   {
@@ -7012,58 +7028,58 @@
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 10.8979,
-      "dmgMul": 9.3178
+      "hpMul": 138.6507,
+      "dmgMul": 55.2737
      },
      {
       "key": "nightgloom",
       "lvl": 53,
-      "hpMul": 10.8979,
-      "dmgMul": 9.3178
+      "hpMul": 138.6507,
+      "dmgMul": 55.2737
      },
      {
       "key": "lost soul",
       "lvl": 53,
-      "hpMul": 10.8979,
-      "dmgMul": 9.3178
+      "hpMul": 138.6507,
+      "dmgMul": 55.2737
      },
      {
       "key": "mourn moth",
       "lvl": 53,
-      "hpMul": 10.8979,
-      "dmgMul": 9.3178
+      "hpMul": 138.6507,
+      "dmgMul": 55.2737
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 16.3469,
-      "dmgMul": 11.6487
+      "hpMul": 207.9767,
+      "dmgMul": 69.1008
      },
      {
       "key": "nightgloom",
       "lvl": 53,
-      "hpMul": 16.3469,
-      "dmgMul": 11.6487
+      "hpMul": 207.9767,
+      "dmgMul": 69.1008
      },
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 16.3469,
-      "dmgMul": 11.6487
+      "hpMul": 207.9767,
+      "dmgMul": 69.1008
      },
      {
       "key": "nightgloom",
       "lvl": 53,
-      "hpMul": 16.3469,
-      "dmgMul": 11.6487
+      "hpMul": 207.9767,
+      "dmgMul": 69.1008
      },
      {
       "key": "hourglass sentinel",
       "lvl": 56,
-      "hpMul": 105.7692,
-      "dmgMul": 6.0229,
+      "hpMul": 1345.6698,
+      "dmgMul": 35.7282,
       "boss": true
      }
     ]
@@ -7074,7 +7090,7 @@
     "ascended": true,
     "gatekeeper": false
    },
-   "recommendedPower": 24389,
+   "recommendedPower": 325106,
    "dust": 5949,
    "glyphFragments": [
     "Orange Starfire",
@@ -7086,10 +7102,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 90,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 72,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.5,
+    "wrPlus5": 0.6,
+    "avgSec": 141,
+    "d": 12.7227
    }
   },
   {
@@ -7100,63 +7120,63 @@
      {
       "key": "lost soul",
       "lvl": 54,
-      "hpMul": 81.2717,
-      "dmgMul": 18.7944
+      "hpMul": 266.1648,
+      "dmgMul": 43.1198
      },
      {
       "key": "wispweaver shade",
       "lvl": 54,
-      "hpMul": 81.2717,
-      "dmgMul": 15.7037
+      "hpMul": 266.1648,
+      "dmgMul": 36.0288
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 81.2717,
-      "dmgMul": 36.0415
+      "hpMul": 266.1648,
+      "dmgMul": 82.6896
      },
      {
       "key": "nightgloom",
       "lvl": 54,
-      "hpMul": 81.2717,
-      "dmgMul": 17.1739
+      "hpMul": 266.1648,
+      "dmgMul": 39.4019
      }
     ],
     [
      {
       "key": "kelp hexer",
       "lvl": 54,
-      "hpMul": 94.5061,
-      "dmgMul": 17.5415
+      "hpMul": 309.5075,
+      "dmgMul": 40.2453
      },
      {
       "key": "nightgloom",
       "lvl": 54,
-      "hpMul": 94.5061,
-      "dmgMul": 19.9689
+      "hpMul": 309.5075,
+      "dmgMul": 45.8144
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 94.5061,
-      "dmgMul": 41.907
+      "hpMul": 309.5075,
+      "dmgMul": 96.1467
      },
      {
       "key": "nightgloom",
       "lvl": 54,
-      "hpMul": 94.5061,
-      "dmgMul": 19.9689
+      "hpMul": 309.5075,
+      "dmgMul": 45.8144
      },
      {
       "key": "wispweaver shade",
       "lvl": 54,
-      "hpMul": 94.5061,
-      "dmgMul": 18.2595
+      "hpMul": 309.5075,
+      "dmgMul": 41.8925
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 16191,
+   "recommendedPower": 308253,
    "dust": 6336,
    "glyphFragments": [
     "Orange Hawkeye"
@@ -7167,10 +7187,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 90,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 70,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.263,
+    "wr100": 0.6,
+    "wrPlus5": 0.625,
+    "avgSec": 82.6,
+    "d": 3.275
    }
   },
   {
@@ -7181,63 +7205,63 @@
      {
       "key": "storm eel",
       "lvl": 54,
-      "hpMul": 81.2681,
-      "dmgMul": 28.9161
+      "hpMul": 225.4052,
+      "dmgMul": 59.0569
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 81.2681,
-      "dmgMul": 36.1451
+      "hpMul": 225.4052,
+      "dmgMul": 73.821
      },
      {
       "key": "kelp hexer",
       "lvl": 54,
-      "hpMul": 81.2681,
-      "dmgMul": 17.6769
+      "hpMul": 225.4052,
+      "dmgMul": 36.1025
      },
      {
       "key": "nightgloom",
       "lvl": 54,
-      "hpMul": 81.2681,
-      "dmgMul": 18.8761
+      "hpMul": 225.4052,
+      "dmgMul": 38.5516
      }
     ],
     [
      {
       "key": "nightgloom",
       "lvl": 54,
-      "hpMul": 94.4989,
-      "dmgMul": 21.9501
+      "hpMul": 262.1021,
+      "dmgMul": 44.8298
      },
      {
       "key": "wispweaver shade",
       "lvl": 54,
-      "hpMul": 94.4989,
-      "dmgMul": 23.3631
+      "hpMul": 262.1021,
+      "dmgMul": 47.7157
      },
      {
       "key": "storm eel",
       "lvl": 54,
-      "hpMul": 94.4989,
-      "dmgMul": 33.625
+      "hpMul": 262.1021,
+      "dmgMul": 68.6741
      },
      {
       "key": "nightgloom",
       "lvl": 54,
-      "hpMul": 94.4989,
-      "dmgMul": 21.9501
+      "hpMul": 262.1021,
+      "dmgMul": 44.8298
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 94.4989,
-      "dmgMul": 42.0313
+      "hpMul": 262.1021,
+      "dmgMul": 85.8427
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 15535,
+   "recommendedPower": 310685,
    "dust": 6748,
    "glyphFragments": [
     "Orange Lifebloom"
@@ -7248,10 +7272,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 91,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 71,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.338,
+    "wr100": 0.525,
+    "wrPlus5": 0.675,
+    "avgSec": 89.1,
+    "d": 2.7736
    }
   },
   {
@@ -7262,63 +7290,63 @@
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 95.1399,
-      "dmgMul": 22.0609
+      "hpMul": 320.3265,
+      "dmgMul": 51.6041
      },
      {
       "key": "lost soul",
       "lvl": 55,
-      "hpMul": 95.1399,
-      "dmgMul": 12.8986
+      "hpMul": 320.3265,
+      "dmgMul": 30.172
      },
      {
       "key": "nightcap mimic",
       "lvl": 55,
-      "hpMul": 95.1399,
-      "dmgMul": 32.3906
+      "hpMul": 320.3265,
+      "dmgMul": 75.767
      },
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 95.1399,
-      "dmgMul": 14.3564
+      "hpMul": 320.3265,
+      "dmgMul": 33.582
      }
     ],
     [
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 110.6272,
-      "dmgMul": 16.6928
+      "hpMul": 372.4707,
+      "dmgMul": 39.0472
      },
      {
       "key": "lost soul",
       "lvl": 55,
-      "hpMul": 110.6272,
-      "dmgMul": 14.9977
+      "hpMul": 372.4707,
+      "dmgMul": 35.0821
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 110.6272,
-      "dmgMul": 25.6511
+      "hpMul": 372.4707,
+      "dmgMul": 60.0022
      },
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 110.6272,
-      "dmgMul": 16.6928
+      "hpMul": 372.4707,
+      "dmgMul": 39.0472
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 110.6272,
-      "dmgMul": 25.6511
+      "hpMul": 372.4707,
+      "dmgMul": 60.0022
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 16107,
+   "recommendedPower": 325106,
    "dust": 7186,
    "glyphFragments": [
     "Orange Bastion"
@@ -7329,10 +7357,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 92,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 72,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.525,
+    "wrPlus5": 0.675,
+    "avgSec": 97.5,
+    "d": 3.3669
    }
   },
   {
@@ -7343,63 +7375,63 @@
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 82.542,
-      "dmgMul": 11.5979
+      "hpMul": 255.7564,
+      "dmgMul": 25.5968
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 82.542,
-      "dmgMul": 34.5611
+      "hpMul": 255.7564,
+      "dmgMul": 76.277
      },
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 82.542,
-      "dmgMul": 11.5979
+      "hpMul": 255.7564,
+      "dmgMul": 25.5968
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 82.542,
-      "dmgMul": 34.5611
+      "hpMul": 255.7564,
+      "dmgMul": 76.277
      }
     ],
     [
      {
       "key": "wispweaver shade",
       "lvl": 55,
-      "hpMul": 95.9772,
-      "dmgMul": 18.4375
+      "hpMul": 297.3854,
+      "dmgMul": 40.6919
      },
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 95.9772,
-      "dmgMul": 13.4863
+      "hpMul": 297.3854,
+      "dmgMul": 29.7645
      },
      {
       "key": "nightgloom",
       "lvl": 55,
-      "hpMul": 95.9772,
-      "dmgMul": 13.4863
+      "hpMul": 297.3854,
+      "dmgMul": 29.7645
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 95.9772,
-      "dmgMul": 40.1889
+      "hpMul": 297.3854,
+      "dmgMul": 88.6977
      },
      {
       "key": "mourn moth",
       "lvl": 55,
-      "hpMul": 95.9772,
-      "dmgMul": 42.7515
+      "hpMul": 297.3854,
+      "dmgMul": 94.3534
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 16169,
+   "recommendedPower": 330041,
    "dust": 7653,
    "glyphFragments": [
     "Orange Bloodroot"
@@ -7410,10 +7442,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 92,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 74,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.338,
+    "wr100": 0.575,
+    "wrPlus5": 0.725,
+    "avgSec": 86.5,
+    "d": 3.0985
    }
   },
   {
@@ -7424,58 +7460,58 @@
      {
       "key": "nightgloom",
       "lvl": 56,
-      "hpMul": 9.8155,
-      "dmgMul": 10.029
+      "hpMul": 118.1511,
+      "dmgMul": 57.2302
      },
      {
       "key": "lost soul",
       "lvl": 56,
-      "hpMul": 9.8155,
-      "dmgMul": 10.029
+      "hpMul": 118.1511,
+      "dmgMul": 57.2302
      },
      {
       "key": "nightcap mimic",
       "lvl": 56,
-      "hpMul": 9.8155,
-      "dmgMul": 10.029
+      "hpMul": 118.1511,
+      "dmgMul": 57.2302
      },
      {
       "key": "reef prowler",
       "lvl": 56,
-      "hpMul": 9.8155,
-      "dmgMul": 10.029
+      "hpMul": 118.1511,
+      "dmgMul": 57.2302
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 56,
-      "hpMul": 14.7234,
-      "dmgMul": 12.537
+      "hpMul": 177.2285,
+      "dmgMul": 71.5421
      },
      {
       "key": "kelp hexer",
       "lvl": 56,
-      "hpMul": 14.7234,
-      "dmgMul": 12.537
+      "hpMul": 177.2285,
+      "dmgMul": 71.5421
      },
      {
       "key": "nightgloom",
       "lvl": 56,
-      "hpMul": 14.7234,
-      "dmgMul": 12.537
+      "hpMul": 177.2285,
+      "dmgMul": 71.5421
      },
      {
       "key": "nightgloom",
       "lvl": 56,
-      "hpMul": 14.7234,
-      "dmgMul": 12.537
+      "hpMul": 177.2285,
+      "dmgMul": 71.5421
      },
      {
       "key": "nameless admiral",
       "lvl": 59,
-      "hpMul": 95.2677,
-      "dmgMul": 2.642,
+      "hpMul": 1146.7564,
+      "dmgMul": 15.0765,
       "boss": true
      }
     ]
@@ -7486,7 +7522,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 41542,
+   "recommendedPower": 334867,
    "dust": 8151,
    "glyphFragments": [
     "Orange Cataclysm",
@@ -7498,10 +7534,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 93,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 76,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.525,
+    "wrPlus5": 0.875,
+    "avgSec": 140.5,
+    "d": 12.0372
    }
   },
   {
@@ -7512,63 +7552,63 @@
      {
       "key": "zephyr harrier",
       "lvl": 57,
-      "hpMul": 81.6408,
-      "dmgMul": 9.7803
+      "hpMul": 267.3736,
+      "dmgMul": 22.4388
      },
      {
       "key": "basalt mauler",
       "lvl": 57,
-      "hpMul": 81.6408,
-      "dmgMul": 34.3488
+      "hpMul": 267.3736,
+      "dmgMul": 78.806
      },
      {
       "key": "luminant orb",
       "lvl": 57,
-      "hpMul": 81.6408,
-      "dmgMul": 15.9719
+      "hpMul": 267.3736,
+      "dmgMul": 36.6441
      },
      {
       "key": "ironjaw raider",
       "lvl": 57,
-      "hpMul": 81.6408,
-      "dmgMul": 25.3813
+      "hpMul": 267.3736,
+      "dmgMul": 58.232
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 57,
-      "hpMul": 94.9395,
-      "dmgMul": 7.7079
+      "hpMul": 310.9269,
+      "dmgMul": 17.6841
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 57,
-      "hpMul": 94.9395,
-      "dmgMul": 16.7802
+      "hpMul": 310.9269,
+      "dmgMul": 38.4986
      },
      {
       "key": "zephyr harrier",
       "lvl": 57,
-      "hpMul": 94.9395,
-      "dmgMul": 11.3728
+      "hpMul": 310.9269,
+      "dmgMul": 26.0925
      },
      {
       "key": "skyroot dryad",
       "lvl": 57,
-      "hpMul": 94.9395,
-      "dmgMul": 8.2149
+      "hpMul": 310.9269,
+      "dmgMul": 18.8473
      },
      {
       "key": "bonepike guard",
       "lvl": 57,
-      "hpMul": 94.9395,
-      "dmgMul": 23.3742
+      "hpMul": 310.9269,
+      "dmgMul": 53.6271
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 16837,
+   "recommendedPower": 330041,
    "dust": 8681,
    "glyphFragments": [
     "Orange Keenmind"
@@ -7579,12 +7619,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 94,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.112,
-    "cliffDmgScale": 1.008
+    "level": 74,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.5,
+    "wrPlus5": 0.65,
+    "avgSec": 132.2,
+    "d": 3.275
    }
   },
   {
@@ -7595,63 +7637,63 @@
      {
       "key": "vineback boar",
       "lvl": 57,
-      "hpMul": 88.1363,
-      "dmgMul": 32.0712
+      "hpMul": 265.634,
+      "dmgMul": 69.4233
      },
      {
       "key": "skyroot dryad",
       "lvl": 57,
-      "hpMul": 88.1363,
-      "dmgMul": 14.9333
+      "hpMul": 265.634,
+      "dmgMul": 32.3256
      },
      {
       "key": "zephyr harrier",
       "lvl": 57,
-      "hpMul": 88.1363,
-      "dmgMul": 30.5154
+      "hpMul": 265.634,
+      "dmgMul": 66.0555
      },
      {
       "key": "luminant orb",
       "lvl": 57,
-      "hpMul": 88.1363,
-      "dmgMul": 7.3358
+      "hpMul": 265.634,
+      "dmgMul": 15.8795
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 57,
-      "hpMul": 102.4922,
-      "dmgMul": 22.6826
+      "hpMul": 308.9012,
+      "dmgMul": 49.1002
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 57,
-      "hpMul": 102.4922,
-      "dmgMul": 24.3166
+      "hpMul": 308.9012,
+      "dmgMul": 52.6372
      },
      {
       "key": "bonepike guard",
       "lvl": 57,
-      "hpMul": 102.4922,
-      "dmgMul": 45.1614
+      "hpMul": 308.9012,
+      "dmgMul": 97.7592
      },
      {
       "key": "basalt mauler",
       "lvl": 57,
-      "hpMul": 102.4922,
-      "dmgMul": 29.916
+      "hpMul": 308.9012,
+      "dmgMul": 64.758
      },
      {
       "key": "ironjaw raider",
       "lvl": 57,
-      "hpMul": 102.4922,
-      "dmgMul": 29.7365
+      "hpMul": 308.9012,
+      "dmgMul": 64.3695
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 17213,
+   "recommendedPower": 332489,
    "dust": 9245,
    "glyphFragments": [
     "Orange Shadepath"
@@ -7662,10 +7704,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 94,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 75,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.362,
+    "wr100": 0.55,
+    "wrPlus5": 0.9,
+    "avgSec": 97.8,
+    "d": 3.0139
    }
   },
   {
@@ -7676,63 +7722,63 @@
      {
       "key": "ironjaw raider",
       "lvl": 58,
-      "hpMul": 114.8539,
-      "dmgMul": 27.4526
+      "hpMul": 408.7306,
+      "dmgMul": 66.7556
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 114.8539,
-      "dmgMul": 8.2815
+      "hpMul": 408.7306,
+      "dmgMul": 20.1378
      },
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 114.8539,
-      "dmgMul": 5.7399
+      "hpMul": 408.7306,
+      "dmgMul": 13.9575
      },
      {
       "key": "basalt mauler",
       "lvl": 58,
-      "hpMul": 114.8539,
-      "dmgMul": 34.8172
+      "hpMul": 408.7306,
+      "dmgMul": 84.6638
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 133.56,
-      "dmgMul": 6.6744
+      "hpMul": 475.3,
+      "dmgMul": 16.2299
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 133.56,
-      "dmgMul": 11.1078
+      "hpMul": 475.3,
+      "dmgMul": 27.0105
      },
      {
       "key": "skyroot dryad",
       "lvl": 58,
-      "hpMul": 133.56,
-      "dmgMul": 5.3497
+      "hpMul": 475.3,
+      "dmgMul": 13.0087
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 133.56,
-      "dmgMul": 9.6298
+      "hpMul": 475.3,
+      "dmgMul": 23.4165
      },
      {
       "key": "runic automaton",
       "lvl": 58,
-      "hpMul": 133.56,
-      "dmgMul": 12.4301
+      "hpMul": 475.3,
+      "dmgMul": 30.2259
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 17392,
+   "recommendedPower": 334867,
    "dust": 9846,
    "glyphFragments": [
     "Orange Sunder"
@@ -7743,11 +7789,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 95,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.112
+    "level": 76,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.5,
+    "wrPlus5": 0.75,
+    "avgSec": 136.7,
+    "d": 3.5587
    }
   },
   {
@@ -7758,63 +7807,63 @@
      {
       "key": "bonepike guard",
       "lvl": 58,
-      "hpMul": 127.9339,
-      "dmgMul": 50.7046
+      "hpMul": 537.5782,
+      "dmgMul": 138.5054
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 58,
-      "hpMul": 127.9339,
-      "dmgMul": 15.9322
+      "hpMul": 537.5782,
+      "dmgMul": 43.5206
      },
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 127.9339,
-      "dmgMul": 5.7091
+      "hpMul": 537.5782,
+      "dmgMul": 15.5951
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 127.9339,
-      "dmgMul": 16.1343
+      "hpMul": 537.5782,
+      "dmgMul": 44.0727
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 148.7446,
-      "dmgMul": 6.6381
+      "hpMul": 625.0248,
+      "dmgMul": 18.1327
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 148.7446,
-      "dmgMul": 11.9114
+      "hpMul": 625.0248,
+      "dmgMul": 32.5373
      },
      {
       "key": "ironjaw raider",
       "lvl": 58,
-      "hpMul": 148.7446,
-      "dmgMul": 26.5549
+      "hpMul": 625.0248,
+      "dmgMul": 72.5377
      },
      {
       "key": "runic automaton",
       "lvl": 58,
-      "hpMul": 148.7446,
-      "dmgMul": 10.0944
+      "hpMul": 625.0248,
+      "dmgMul": 27.574
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 148.7446,
-      "dmgMul": 18.7595
+      "hpMul": 625.0248,
+      "dmgMul": 51.2437
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 17668,
+   "recommendedPower": 339564,
    "dust": 10486,
    "glyphFragments": [
     "Orange Tidecall"
@@ -7825,10 +7874,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 96,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 78,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.275,
+    "wr100": 0.6,
+    "wrPlus5": 0.875,
+    "avgSec": 113.2,
+    "d": 4.202
    }
   },
   {
@@ -7839,58 +7892,58 @@
      {
       "key": "vineback boar",
       "lvl": 59,
-      "hpMul": 6.805,
-      "dmgMul": 6.9049
+      "hpMul": 154.8811,
+      "dmgMul": 61.5427
      },
      {
       "key": "ironjaw raider",
       "lvl": 59,
-      "hpMul": 6.805,
-      "dmgMul": 6.9049
+      "hpMul": 154.8811,
+      "dmgMul": 61.5427
      },
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 6.805,
-      "dmgMul": 6.9049
+      "hpMul": 154.8811,
+      "dmgMul": 61.5427
      },
      {
       "key": "luminant orb",
       "lvl": 59,
-      "hpMul": 6.805,
-      "dmgMul": 6.9049
+      "hpMul": 154.8811,
+      "dmgMul": 61.5427
      }
     ],
     [
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 10.208,
-      "dmgMul": 8.6313
+      "hpMul": 232.3331,
+      "dmgMul": 76.93
      },
      {
       "key": "runic automaton",
       "lvl": 59,
-      "hpMul": 10.208,
-      "dmgMul": 8.6313
+      "hpMul": 232.3331,
+      "dmgMul": 76.93
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 59,
-      "hpMul": 10.208,
-      "dmgMul": 8.6313
+      "hpMul": 232.3331,
+      "dmgMul": 76.93
      },
      {
       "key": "basalt mauler",
       "lvl": 59,
-      "hpMul": 10.208,
-      "dmgMul": 8.6313
+      "hpMul": 232.3331,
+      "dmgMul": 76.93
      },
      {
       "key": "asterion",
       "lvl": 60,
-      "hpMul": 66.0496,
-      "dmgMul": 3.9034,
+      "hpMul": 1503.2823,
+      "dmgMul": 34.7906,
       "boss": true
      }
     ]
@@ -7901,7 +7954,7 @@
     "ascended": true,
     "gatekeeper": false
    },
-   "recommendedPower": 28931,
+   "recommendedPower": 393279,
    "dust": 11168,
    "glyphFragments": [
     "Orange Voidbind",
@@ -7913,10 +7966,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 97,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 80,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.338,
+    "wr100": 0.65,
+    "wrPlus5": 0.725,
+    "avgSec": 151.2,
+    "d": 22.7599
    }
   },
   {
@@ -7927,63 +7984,63 @@
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 115.2956,
-      "dmgMul": 5.7067
+      "hpMul": 433.6729,
+      "dmgMul": 14.4255
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 115.2956,
-      "dmgMul": 19.4338
+      "hpMul": 433.6729,
+      "dmgMul": 49.125
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 115.2956,
-      "dmgMul": 19.9919
+      "hpMul": 433.6729,
+      "dmgMul": 50.5358
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 115.2956,
-      "dmgMul": 14.7879
+      "hpMul": 433.6729,
+      "dmgMul": 37.381
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 134.0657,
-      "dmgMul": 6.6352
+      "hpMul": 504.2747,
+      "dmgMul": 16.7725
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 134.0657,
-      "dmgMul": 22.596
+      "hpMul": 504.2747,
+      "dmgMul": 57.1184
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 134.0657,
-      "dmgMul": 17.1941
+      "hpMul": 504.2747,
+      "dmgMul": 43.4634
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 134.0657,
-      "dmgMul": 14.3326
+      "hpMul": 504.2747,
+      "dmgMul": 36.2301
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 134.0657,
-      "dmgMul": 23.245
+      "hpMul": 504.2747,
+      "dmgMul": 58.759
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 18935,
+   "recommendedPower": 339564,
    "dust": 11894,
    "glyphFragments": [
     "Orange Stoneheart"
@@ -7994,10 +8051,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 97,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 78,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.7,
+    "wrPlus5": 0.875,
+    "avgSec": 114.7,
+    "d": 3.7614
    }
   },
   {
@@ -8008,63 +8069,63 @@
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 62.0261,
-      "dmgMul": 17.3341
+      "hpMul": 172.0356,
+      "dmgMul": 35.4023
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 62.0261,
-      "dmgMul": 30.8054
+      "hpMul": 172.0356,
+      "dmgMul": 62.9155
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 62.0261,
-      "dmgMul": 7.2971
+      "hpMul": 172.0356,
+      "dmgMul": 14.9032
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 62.0261,
-      "dmgMul": 19.7417
+      "hpMul": 172.0356,
+      "dmgMul": 40.3195
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 72.1229,
-      "dmgMul": 21.4795
+      "hpMul": 200.0401,
+      "dmgMul": 43.8687
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 72.1229,
-      "dmgMul": 32.8877
+      "hpMul": 200.0401,
+      "dmgMul": 67.1683
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 72.1229,
-      "dmgMul": 20.1563
+      "hpMul": 200.0401,
+      "dmgMul": 41.1663
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 72.1229,
-      "dmgMul": 24.4836
+      "hpMul": 200.0401,
+      "dmgMul": 50.0041
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 72.1229,
-      "dmgMul": 8.4851
+      "hpMul": 200.0401,
+      "dmgMul": 17.3296
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 19243,
+   "recommendedPower": 355754,
    "dust": 12667,
    "glyphFragments": [
     "Orange Ironwall"
@@ -8075,10 +8136,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 98,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 79,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.275,
+    "wr100": 0.725,
+    "wrPlus5": 0.85,
+    "avgSec": 106.9,
+    "d": 2.7736
    }
   },
   {
@@ -8089,63 +8154,63 @@
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 89.7447,
-      "dmgMul": 8.4044
+      "hpMul": 328.34,
+      "dmgMul": 20.8366
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 89.7447,
-      "dmgMul": 30.5544
+      "hpMul": 328.34,
+      "dmgMul": 75.752
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 89.7447,
-      "dmgMul": 10.8247
+      "hpMul": 328.34,
+      "dmgMul": 26.8371
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 89.7447,
-      "dmgMul": 22.8633
+      "hpMul": 328.34,
+      "dmgMul": 56.6839
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 104.3526,
-      "dmgMul": 9.7719
+      "hpMul": 381.7844,
+      "dmgMul": 24.227
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 104.3526,
-      "dmgMul": 13.5527
+      "hpMul": 381.7844,
+      "dmgMul": 33.6005
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 104.3526,
-      "dmgMul": 6.6771
+      "hpMul": 381.7844,
+      "dmgMul": 16.5542
      },
      {
       "key": "ironjaw raider",
       "lvl": 60,
-      "hpMul": 104.3526,
-      "dmgMul": 35.5258
+      "hpMul": 381.7844,
+      "dmgMul": 88.0774
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 104.3526,
-      "dmgMul": 12.586
+      "hpMul": 381.7844,
+      "dmgMul": 31.2038
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 19340,
+   "recommendedPower": 393279,
    "dust": 13490,
    "glyphFragments": [
     "Orange Veilward"
@@ -8156,11 +8221,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 99,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.069
+    "level": 80,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.6,
+    "wrPlus5": 0.675,
+    "avgSec": 119.1,
+    "d": 3.6586
    }
   },
   {
@@ -8171,63 +8239,63 @@
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 105.0643,
-      "dmgMul": 8.2336
+      "hpMul": 441.4802,
+      "dmgMul": 22.491
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 105.0643,
-      "dmgMul": 16.0417
+      "hpMul": 441.4802,
+      "dmgMul": 43.8197
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 105.0643,
-      "dmgMul": 7.1731
+      "hpMul": 441.4802,
+      "dmgMul": 19.5941
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 105.0643,
-      "dmgMul": 21.2435
+      "hpMul": 441.4802,
+      "dmgMul": 58.029
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 122.1647,
-      "dmgMul": 24.702
+      "hpMul": 513.3361,
+      "dmgMul": 67.4763
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 122.1647,
-      "dmgMul": 14.6299
+      "hpMul": 513.3361,
+      "dmgMul": 39.9632
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 122.1647,
-      "dmgMul": 11.3691
+      "hpMul": 513.3361,
+      "dmgMul": 31.056
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 122.1647,
-      "dmgMul": 22.0926
+      "hpMul": 513.3361,
+      "dmgMul": 60.3484
      },
      {
       "key": "ironjaw raider",
       "lvl": 60,
-      "hpMul": 122.1647,
-      "dmgMul": 24.7462
+      "hpMul": 513.3361,
+      "dmgMul": 67.5971
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 19110,
+   "recommendedPower": 400567,
    "dust": 14367,
    "glyphFragments": [
     "Orange Ravager"
@@ -8238,10 +8306,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 99,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 83,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.575,
+    "wrPlus5": 0.7,
+    "avgSec": 99.6,
+    "d": 4.202
    }
   },
   {
@@ -8252,58 +8324,58 @@
      {
       "key": "bonepike guard",
       "lvl": 60,
-      "hpMul": 8.9374,
-      "dmgMul": 9.6637
+      "hpMul": 192.4526,
+      "dmgMul": 82.8557
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 8.9374,
-      "dmgMul": 9.6637
+      "hpMul": 192.4526,
+      "dmgMul": 82.8557
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 8.9374,
-      "dmgMul": 9.6637
+      "hpMul": 192.4526,
+      "dmgMul": 82.8557
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 8.9374,
-      "dmgMul": 9.6637
+      "hpMul": 192.4526,
+      "dmgMul": 82.8557
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 13.4068,
-      "dmgMul": 12.0792
+      "hpMul": 288.694,
+      "dmgMul": 103.566
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 13.4068,
-      "dmgMul": 12.0792
+      "hpMul": 288.694,
+      "dmgMul": 103.566
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 13.4068,
-      "dmgMul": 12.0792
+      "hpMul": 288.694,
+      "dmgMul": 103.566
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 13.4068,
-      "dmgMul": 12.0792
+      "hpMul": 288.694,
+      "dmgMul": 103.566
      },
      {
       "key": "irix",
       "lvl": 60,
-      "hpMul": 86.7486,
-      "dmgMul": 2.4998,
+      "hpMul": 1867.9923,
+      "dmgMul": 21.4331,
       "boss": true
      }
     ]
@@ -8314,7 +8386,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 50830,
+   "recommendedPower": 424701,
    "dust": 15301,
    "glyphFragments": [
     "Orange Starfire",
@@ -8326,10 +8398,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 100,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 86,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.6,
+    "wrPlus5": 0.625,
+    "avgSec": 145.1,
+    "d": 21.5334
    }
   }
  ]
