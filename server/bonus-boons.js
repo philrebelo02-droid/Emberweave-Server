@@ -62,7 +62,7 @@ function refAt(tab, level){ const L=Math.max(1,Math.min(100,level|0||1));
 function refFor(level){ return { hp:refAt(REF_HP,level), atk:refAt(REF_ATK,level) }; }
 /* Picking these again changes nothing, so a road whose heroes all carry one is not offered it again. */
 const ONCE = ['lowhpimmune','healtoshield','nohealenemy','backline','critchain','firstcast','revengekill','eternalsummon','freeult',
-  'doublespeed','inherit','preheal','prewarn','prefight','arriveslow'];
+  'doublespeed','inherit','preheal','prewarn','prefight','arriveslow','crowded'];
 /* Does nothing at the last firebreak (one wave left): Foresight shows the waves AFTER the next one. */
 const NOT_LAST = ['prewarn'];
 
@@ -213,7 +213,7 @@ B('ROAD','stayer','Rooted',          0.25,false,'A hero that has never crossed a
 B('ROAD','frontrunner','Spearhead',  0.35,false,'The hero furthest ahead on this road deals {p} more damage.',null,'multi'),
 B('ROAD','rearguard','Rearguard',    0.35,false,'The hero furthest back on this road takes {p} less damage.',null,'multi'),
 B('ROAD','lonewolf','Lone Wolf',     0.50,false,'If this road has exactly one hero, it fights at {p} more of everything.',null,'solo'),
-B('ROAD','crowded','Shieldwall',     0.15,false,'+{p} damage reduction for every hero on this road beyond the first.',null,'multi'),
+B('ROAD','crowded','Shieldwall',     0.15,false,'+{p} damage reduction for every hero on this road beyond the first, up to three.',null,'multi'),   /* review fix: at most three counted (45%), and in ONCE - one pick with eight heroes was a permanent 95% */
 B('ROAD','neighbour','Good Neighbour',130,true,'Whenever the road beside you clears a wave, everyone here heals {v}.','cross-lane events','otherRoad'),
 B('ROAD','envy','Envious',           0.30,false,'+{p} to everything while this road is the furthest behind.',null,'otherRoad'),
 B('ROAD','pacer','Pacesetter',       0.30,false,'+{p} to everything while this road is the furthest ahead.',null,'otherRoad'),

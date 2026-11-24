@@ -246,7 +246,12 @@ function vmTests(){
     take({0:'frontrunner'}); tick(0); inLane(0,()=>{ const e=big(E(0)[0]); check(near(rng(0.99,()=>hit(f,e,100,false))/o.f,1.35), 'frontrunner: the hero furthest ahead deals 35% more'); check(near(rng(0.99,()=>hit(r,e,100,false))/o.r,1), 'frontrunner: nobody else does'); }); });
   T1('rearguard',()=>{ scene('rearguard',0); const hs=H(0).slice().sort((a,b)=>b.x-a.x), f=hs[0], r=hs[hs.length-1]; const o={}; inLane(0,()=>{ o.f=taken(f,100); o.r=taken(r,100); });
     take({0:'rearguard'}); tick(0); inLane(0,()=>{ check(near(taken(r,100)/o.r,0.65), 'rearguard: the hero furthest back takes 35% less'); check(near(taken(f,100)/o.f,1), 'rearguard: nobody else does'); }); });
-  T1('crowded',()=>{ const o=mults('crowded',0,'vael'); check(near(o.t,0.4), 'crowded: +15% damage reduction for each of the 4 heroes beyond the first ('+o.t+')'); });
+  T1('crowded',()=>{ const o=mults('crowded',0,'vael'); check(near(o.t,0.55), 'crowded: +15% damage reduction for every hero beyond the first, three counted at most - five heroes take 45% less ('+o.t+')');
+    check(o.got[0].blurb==='Shieldwall — +15% damage reduction for every hero on this road beyond the first, up to three.', 'crowded: the card says so');
+    inLane(0,()=>{ const d=hero(0,'yenna'); d.shield=0; damage(d,1e12,'#fff',true); const e=hero(0,'fritz'); e.shield=0; damage(e,1e12,'#fff',true); BoonFx.tick(0); check(near(taken(o.h,100)/o.t0,0.70), 'crowded: with two other heroes left it is 30%'); }); });
+  T1('crowded',()=>{ const A8={1:['vael','hurne','oakmir','fritz','yenna','mirelle','aureth','sloe'],2:['vex','tick'],3:['gruel']}; const o=mults('crowded',0,'vael',null,null,A8);
+    check(H(0).length===8&&near(o.t,0.55), 'crowded: a road of eight takes 45% less, not 95% ('+o.t+')'); close(); order({0:'crowded',1:'crowded'}); toWindow();
+    check(!GSPLIT.lanes[0].offer.some(b=>b.id==='crowded')&&GSPLIT.lanes[1].offer.some(b=>b.id==='crowded'), 'crowded: it is not offered again to the road that holds it'); });
   T1('lonewolf',()=>{ const o=mults('lonewolf',2,'gruel'); check(near(o.d,1.5)&&near(o.as,1.5)&&near(o.t,1/1.5), 'lonewolf: a road with exactly one hero fights at 50% more of everything ('+[o.d,o.as,o.t]+')'); });
   function rank(id,want){ T1(id,()=>{ scene(id,0); take({0:id}); close(); const h=hero(0,'vael'), e0=E(0)[0];
       const probe=()=>{ tick(0); return inLane(0,()=>{ const hp=e0.hp; const d=rng(0.99,()=>hit(h,e0,1,false)); e0.hp=hp; return d; }); };
