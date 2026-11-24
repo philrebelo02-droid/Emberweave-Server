@@ -189,16 +189,21 @@ async function pageLayer() {
       Object.assign(GSPLIT, { active: true, stage: '1-3', attemptId: 'bx-page', lanes: verdict === 'won' ? [{ state: 'cleared', units: [] }, { state: 'cleared', units: [] }, { state: 'cleared', units: [] }] : [{ state: 'lost', units: [] }, { state: 'lost', units: [] }, { state: 'cleared', units: [] }],
         _finishing: false, _windowEvidence: [], _windowRetryQueue: [], _verdictPending: null, _resolveRid: null, _resolveVerdict: null });
       gsplitFinish(verdict);
-      for (let i = 0; i < 200 && !banners.some(m => /CLEARED|RUN LOST|RETRY RESULT/.test(m)); i++) await new Promise(r => window.__rr.st.call(window, r, 50));
+      for (let i = 0; i < 200 && !banners.some(m => /CLEARED|RUN LOST|RETRY RESULT/.test(m)) && !document.getElementById('gsplitResultOverlay'); i++) await new Promise(r => window.__rr.st.call(window, r, 50));
+      const _ov = document.getElementById('gsplitResultOverlay'), card = _ov ? _ov.textContent : ''; if (_ov) _ov.remove();   /* v1442: a refusal that is final shows a card */
       Object.assign(window, keep); GSPLIT.active = false; GSPLIT._finishing = false; window.__rrDisarm();
-      return { banners, calls: S.n, rids: S.rids }; }, { verdict, replies });
+      return { banners, calls: S.n, rids: S.rids, card }; }, { verdict, replies });
     { const WINR = { ok: true, won: true, stars: 3, starNote: '', heroesSent: 3, heroesLost: 0, firstClear: true, granted: [] };
       let g = await gauntlet('won', [LOST, [200, WINR]]);
       ck('Gauntlet: won + lost first reply, then the receipt -> CLEARED (one requestId)', g.banners.some(m => /BONUS 1-3 CLEARED/.test(m)) && oneRid(g) && g.calls === 2 && !g.banners.some(m => /RUN LOST/.test(m)), JSON.stringify(g).slice(0, 300));
       g = await gauntlet('won', [LOST]);
       ck('Gauntlet: won + every reply lost -> not confirmed in plain words, never RUN LOST / "offline"', g.banners.some(m => /RETRY RESULT/.test(m)) && g.calls === 7 && oneRid(g) && !g.banners.some(m => /RUN LOST|\boffline\b/i.test(m)) && g.banners.some(m => /Connection lost before the server answered/.test(m)), JSON.stringify(g).slice(0, 300));
-      g = await gauntlet('won', [[400, { ok: false, error: 'No matching bonus run.' }]]);
+      g = await gauntlet('won', [[400, { ok: false, error: 'That run is missing 1 boon window(s) of evidence.' }]]);   /* v1442: a refusal that can still be repaired */
       ck('Gauntlet: won + the server refuses -> not confirmed, never RUN LOST', g.banners.some(m => /not confirmed/i.test(m)) && !g.banners.some(m => /RUN LOST/.test(m)), JSON.stringify(g).slice(0, 300));
+      /* v1442 (bonus bug scan B4): a refusal that is final is sent ONCE, then the card says why - never 7 sends and RETRY RESULT forever */
+      for (const [nm, reply, words] of [['another run was started', { ok: false, error: 'No matching bonus run.', errCode: 'no_matching_bonus_run' }, /newer bonus run/], ['the run expired', { ok: false, expired: true, error: 'That bonus run expired — start it again.' }, /45 minutes/], ['the stage is locked', { ok: false, locked: true, error: 'Clear Normal 1-3 to unlock Bonus 1-3.' }, /Clear Normal 1-3/]]) {
+        g = await gauntlet('won', [[nm === 'the stage is locked' ? 403 : 400, reply]]);
+        ck('Gauntlet: won + a final refusal (' + nm + ') -> one send, NOT COUNTED card with the reason, never RUN LOST / RETRY', g.calls === 1 && /NOT COUNTED/.test(g.card) && words.test(g.card) && !g.banners.some(m => /RUN LOST|RETRY RESULT/.test(m)), JSON.stringify(g).slice(0, 300)); }
       g = await gauntlet('lost', [[200, { ok: true, won: false, stars: 0, starNote: '', firstClear: false, granted: [] }]]);
       ck('Gauntlet: a real loss -> RUN LOST', g.banners.some(m => /RUN LOST/.test(m)), JSON.stringify(g).slice(0, 200)); }
     ck('no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
