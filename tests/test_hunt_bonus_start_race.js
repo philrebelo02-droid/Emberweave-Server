@@ -50,7 +50,7 @@ async function endRun(page){ if(!(await page.evaluate(()=>typeof GSPLIT!=='undef
   await page.evaluate(()=>{ try{ gsplitRetreat(); }catch(e){} }); await delay(600);
   const cf=page.locator('.modal:visible button:has-text("Retreat"), #confirmYes:visible'); if(await cf.count().catch(()=>0)){ try{ await cf.first().click({timeout:2000}); }catch(_){} }
   await page.waitForFunction(()=>!GSPLIT.active,null,{timeout:30000}).catch(()=>{}); await delay(1500);
-  for(let i=0;i<20;i++){ const gone=await page.evaluate(()=>{ const o=document.getElementById('gsplitResultOverlay'); if(!o) return true; const b=[...o.querySelectorAll('button')].find(x=>x.offsetWidth); if(b) b.click(); return false; }); if(gone) break; await delay(700); }
+  for(let i=0;i<20;i++){ const gone=await page.evaluate(()=>{ const dd=document.querySelector('#ddPop .ddGo'); if(dd){ dd.click(); return false; }   /* v1442: the Damage Done card (v1388) sits over the result card - close it first, as a player does */ const o=document.getElementById('gsplitResultOverlay'); if(!o) return true; const b=[...o.querySelectorAll('button')].find(x=>x.offsetWidth); if(b) b.click(); return false; }); if(gone) break; await delay(700); }
   await page.evaluate(()=>{ document.querySelectorAll('.modal.active').forEach(m=>{ const b=m.querySelector('button'); if(b) b.click(); }); try{ show('campaign'); }catch(e){} }); await delay(800); }
 (async()=>{ try{
   const {page,errs}=await boot(); ok(await bonusReady(page),'fixture: heroes + campaign 45 granted');

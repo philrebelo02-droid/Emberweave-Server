@@ -44,6 +44,7 @@ async function zoomTo(page,want,width,height,tag){ const btn=page.locator('#bonu
   const v=await viewOf(page); ok(v.panX!==0||v.panY!==0, tag+' panned before exit '+JSON.stringify(v)); }
 async function checkAfter(page,tag){
   const ov=page.locator('#gsplitResultOverlay button').last(); try{ await ov.waitFor({timeout:15000}); }catch(_){}
+  { const dd=page.locator('#ddPop .ddGo'); try{ await dd.waitFor({timeout:4000}); await dd.click(); await delay(300); }catch(_){} }   /* v1442: the Damage Done card (v1388) sits over the result card - close it first, as a player does */
   ok(await ov.count()>0, tag+' result card shown'); if(await ov.count()) await ov.click(); await delay(400);   // Continue, as a player would
   ok(await rectOf(page,'#bonusZoomBtn')===null, tag+' zoom button hidden after exit');
   const v=await viewOf(page); ok(atOne(v), tag+' exit reset zoom+pan '+JSON.stringify(v));
