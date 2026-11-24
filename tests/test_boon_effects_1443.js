@@ -51,6 +51,10 @@ ok(READY.length===71, '71 boons are offerable ('+READY.length+')');
   ok(deck.tags.hurne.s===1 && deck.tags.oakmir.h===1 && deck.tags.fritz.c===1 && deck.tags.vael.r==='Front', 'the deck says what each hero is');
 }
 
+{ /* review fix 8: what the wrong count cost - the server's star rule with 4 heroes lost of 15, and with two purged summons added to it */
+  ok(STAGES.starsFor({won:true,lanesCleared:2,lanesLost:0,heroesSent:15,heroesLost:4})===2 && STAGES.starsFor({won:true,lanesCleared:2,lanesLost:0,heroesSent:15,heroesLost:6})===1, 'star rule: 4 of 15 heroes lost is 2 stars; counting two dead summons as heroes (6) made it 1');
+}
+
 /* ---------------------------------------------------------------- the fight, in the page's own code */
 const host=require(path.join(ROOT,'server','sim-host.js')).load(path.join(ROOT,'emberweave-heroes.html'));
 const CAMP=(()=>{ const raw=JSON.parse(fs.readFileSync(path.join(ROOT,'server','campaign-encounters.json'),'utf8')); return Array.isArray(raw)?raw:Object.values(raw.byNode||raw); })();
@@ -394,6 +398,10 @@ function vmTests(){
     check(JSON.stringify(G.skillLevel||null)===sk, 'nothing was written to the save'); start(A0,5);
     const h=hero(0,'vael'); check(h.maxHp===m0&&h.glyphCrit===c0&&!h._bn&&h._bnIn==null&&!h._bnAs, 'the next run starts clean: same hero, no boon left on it');
     const e=big(E(0)[0]); const a=inLane(0,()=>rng(0.5,()=>hit(h,e,100,true))); check(a>0, 'and a fight with no boon picked runs the hooks without effect'); });
+
+  T1('heroeslost',()=>{ start(); open({}); let s1=null, s2=null; inLane(0,()=>{ const hu=hero(0,'hurne'); s1=summonUnit(hu,'boar warrior',15); s2=summonUnit(hu,'boar warrior',15); }); take({}); close();
+    check(!s1.alive&&!s2.alive&&gsplitHeroesLost()===0, 'review fix 8: two summons purged at the firebreak are not heroes lost ('+gsplitHeroesLost()+')');
+    inLane(1,()=>{ const d=hero(1,'vex'); d.shield=0; damage(d,1e12,'#fff',true); }); check(gsplitHeroesLost()===1, 'a fallen hero is ('+gsplitHeroesLost()+')'); });
 
   /* ================= the offer fits the road as it is NOW ================= */
   T1('fit',()=>{ start(A0,9); let lw=0, ev=0, sm=0; for(let w=0;w<4;w++){ order({0:'lonewolf',1:'eternalsummon',2:'crowded'}); toWindow(); if(GSPLIT.lanes[0].offer.some(b=>b.id==='lonewolf')) lw++; if(GSPLIT.lanes[1].offer.some(b=>b.id==='eternalsummon')) ev++; if(GSPLIT.lanes[2].offer.some(b=>b.id==='crowded')) sm++;

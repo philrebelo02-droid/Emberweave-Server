@@ -11859,6 +11859,9 @@ function gsplitResendMissingWindows(){
   return chain;
 }
 
+/* review fix 8: the heroes lost, for the star rule - REAL heroes only. killSummon clears `_summon` on the way out, so every purged or
+   fallen summon (a firebreak's purge, Called's warrior, Hurne's boars) used to be counted as a hero lost; `_wasSummon` stays set. */
+function gsplitHeroesLost(){ let n=0; for(const L of GSPLIT.lanes) n+=(L.units||[]).filter(u => u.team==='ally' && !u._summon && !u._wasSummon && !u.alive).length; return n; }
 function gsplitFinish(verdict){
   if(GSPLIT._finishing) return;
   GSPLIT._finishing = true;
@@ -11868,10 +11871,7 @@ function gsplitFinish(verdict){
                                        // actual result instead of RETREAT silently converting it to a loss
   const won = (verdict === 'won');
   const cleared = gsplitCleared(), lost = gsplitLost();
-  let heroesLost = 0;
-  for(const L of GSPLIT.lanes){
-    heroesLost += (L.units||[]).filter(u => u.team==='ally' && !u._summon && !u.alive).length;
-  }
+  const heroesLost = gsplitHeroesLost();
   const firstLossAfterSecondClear = won && lost >= 1;
   const attemptId = GSPLIT.attemptId;
   /* v1151 (15 Oct proof sweep: /api/bonus/resolve had no requestId - a booked win whose reply was lost was re-sent and answered
@@ -11947,8 +11947,7 @@ function gsplitFinishFailed(won, data, err, attempt){
   if(attempt <= GSPLIT_RESOLVE_RETRY_MAX && GSPLIT.active){
     const attemptId = GSPLIT.attemptId;
     const cleared = gsplitCleared(), lost = gsplitLost();
-    let heroesLost = 0;
-    for(const L of GSPLIT.lanes) heroesLost += (L.units||[]).filter(u => u.team==='ally' && !u._summon && !u.alive).length;
+    const heroesLost = gsplitHeroesLost();
     const firstLossAfterSecondClear = won && lost >= 1;
     const requestId = GSPLIT._resolveRid;   // v1151: the SAME requestId as the first send
     setTimeout(() => {
