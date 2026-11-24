@@ -942,12 +942,18 @@ async function handle(p, method, ctx){
     const body = await ctx.body();
     const reqId = String(body.requestId||'').slice(0,48);
     if(!reqId) return { status:400, body:{ok:false,error:'requestId required'} };
+    /* v1442 (bonus bug scan B11, Phil 24 Nov 2026: "Fix all of those bugs"): a claim whose reply was lost was re-sent with the same
+       requestId and answered "Nothing has accrued yet." although the fragments had been granted. The last claim's receipt is kept
+       with the account (saved in the same write as the grant) and the same requestId answers it again - nothing is paid twice. */
+    if(b.claimed && b.claimed.id===reqId) return { status:200, body:{ ok:true, granted:b.claimed.granted||[], hours:b.claimed.hours|0,
+      replay:true, claim:pending(b, now), ledger:ctx.ledgerView(ctx.me) } };
     const seed = ctx.srvSeed('bonusclaim', ctx.me.id, reqId, String(b.ts||0));
     const { list, pending:pd } = claimList(b, now, seed, ctx.GLYPHS);
     if(!pd.hours) return { status:400, body:{ok:false, error:'Nothing has accrued yet.', claim:pd} };
     if(!list.length) return { status:400, body:{ok:false, error:'No bonus stages cleared yet.', claim:pd} };
     const receipt = ctx.glyphGrantNamedList(ctx.me, list) || [];
     advanceClock(b, now);
+    b.claimed = { id:reqId, granted:receipt, hours:pd.hours, at:now };   // B11: the receipt a re-sent claim gets
     ctx.ledTx(ctx.me, 'bonus:claim', { hours:pd.hours, fragments:pd.total });
     ctx.writeDB();
     return { status:200, body:{ ok:true, granted:receipt, hours:pd.hours,
