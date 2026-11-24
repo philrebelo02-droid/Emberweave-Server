@@ -8150,7 +8150,7 @@ async function api(req,res,url){
           for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
           ledTx(me,'vault:clear:'+a.floor,{heroXp:reward.heroXp}); }
         prog.claimedFloors[a.floor]={ claimedAt:Date.now(), dust:reward.dust, fragments:reward.fragments||[] };
-        prog.highestClearedFloor=a.floor; prog.currentFloor=a.floor+1;
+        prog.highestClearedFloor=Math.max(prog.highestClearedFloor|0,a.floor); prog.currentFloor=Math.max(prog.currentFloor|0,a.floor+1);   // B8: a dev floor-jump down must never lower the climb
         if(a.floor===DUNGEON_MAX_FLOOR) prog.vaultStatus='complete';
         prog.version++; writeDB();
         return { ok:true, result:{won:true}, reward, dust:me.dust||0, progress:dungeonView(prog) };
