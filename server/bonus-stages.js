@@ -609,18 +609,20 @@ function clearReward(ch, slot, seed, GLYPHS){
 function checkSquad(assign, isUnlocked, id){
   if(isTutorialBonus(id)) return checkSquadTutorial(assign, isUnlocked);
   return checkSquadStrict(assign, isUnlocked); }
+/* v1442 (bonus bug scan B10, Phil 24 Nov 2026: "Fix all of those bugs"): the teaching stage forgave an empty road by throwing away
+   the FIRST complaint - and an empty road 1 is the first thing checked, so every later check was skipped: 20 unowned heroes with
+   a duplicate started, and so did a squad of no heroes, which could then "win". Only the empty road is forgiven now; every other
+   rule is checked, and at least one hero must walk. */
 function checkSquadTutorial(assign, isUnlocked){
-  const bad=checkSquadStrict(assign, isUnlocked);
-  if(!bad) return null;
-  return (bad.indexOf('is empty')>=0) ? null : bad;   // an unfilled road is forgiven HERE and nowhere else
+  return checkSquadStrict(assign, isUnlocked, true);   // an unfilled road is forgiven HERE and nowhere else
 }
-function checkSquadStrict(assign, isUnlocked){
+function checkSquadStrict(assign, isUnlocked, emptyRoadOk){
   if(!assign || typeof assign!=='object') return 'No squad was sent.';
   const seen={}; let total=0;
   for(let L=1;L<=LANES;L++){
     const arr=assign[L]||assign[String(L)]||[];
     if(!Array.isArray(arr)) return 'Lane '+L+' is not a list of heroes.';
-    if(arr.length<MIN_PER_LANE) return 'Lane '+L+' is empty — every lane walks.';
+    if(arr.length<MIN_PER_LANE && !emptyRoadOk) return 'Lane '+L+' is empty — every lane walks.';
     if(arr.length>MAX_PER_LANE) return 'At most '+MAX_PER_LANE+' heroes on one road.';
     for(const k of arr){
       const key=String(k);
@@ -630,6 +632,7 @@ function checkSquadStrict(assign, isUnlocked){
     }
   }
   if(total>MAX_HEROES) return 'At most '+MAX_HEROES+' heroes.';
+  if(!total) return 'No squad was sent.';
   return null;
 }
 
