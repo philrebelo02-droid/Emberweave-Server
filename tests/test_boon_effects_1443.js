@@ -265,7 +265,7 @@ function vmTests(){
       check(near(h.glyphCrit,c0+0.10), 'critstack: +5% critical chance every time you fail to crit (two misses -> +'+((h.glyphCrit-c0)*100).toFixed(1)+'%)');
       rng(0.99,()=>hit(h,e,100,true,true)); check(near(h.glyphCrit,c0), 'critstack: resets when you do crit'); }); });
   T1('stayer',()=>{ const o=mults('stayer',0,'vael'); check(near(o.t,0.75), 'stayer: a hero that has never crossed takes 25% less ('+o.t+')');
-    const h=o.h; gsplitMove(h,0,1); for(let i=0;i<3000&&!gsplitStartAllowed();i++) gsplitStep(SIM_STEP); tick(1); inLane(1,()=>{ check(near(taken(h,100)/o.t0,1), 'stayer: once it has crossed a firebreak it no longer does'); }); });
+    const h=o.h; gsplitMove(h,0,1); close(); tick(1); inLane(1,()=>{ check(near(taken(h,100)/o.t0,1), 'stayer: once it has crossed a firebreak it no longer does'); }); });
   T1('frontrunner',()=>{ scene('frontrunner',0); const hs=H(0).slice().sort((a,b)=>b.x-a.x), f=hs[0], r=hs[hs.length-1]; const o={}; inLane(0,()=>{ const e=big(E(0)[0]); o.f=rng(0.99,()=>hit(f,e,100,false)); o.r=rng(0.99,()=>hit(r,e,100,false)); });
     take({0:'frontrunner'}); tick(0); inLane(0,()=>{ const e=big(E(0)[0]); check(near(rng(0.99,()=>hit(f,e,100,false))/o.f,1.35), 'frontrunner: the hero furthest ahead deals 35% more'); check(near(rng(0.99,()=>hit(r,e,100,false))/o.r,1), 'frontrunner: nobody else does'); }); });
   T1('rearguard',()=>{ scene('rearguard',0); const hs=H(0).slice().sort((a,b)=>b.x-a.x), f=hs[0], r=hs[hs.length-1]; const o={}; inLane(0,()=>{ o.f=taken(f,100); o.r=taken(r,100); });
@@ -286,9 +286,9 @@ function vmTests(){
       if(want<0){ set(1,1); set(2,0.3); } else { set(1,0.1); }
       const d2=probe(); check(near(d2/b,1), id+': and not when another road is '+(want<0?'as far behind':'further ahead')+' ('+(d2/b)+')'); }); }
   rank('envy',-1); rank('pacer',1);
-  T1('crosser',()=>{ scene('crosser',0); const got=take({0:'crosser'}); const a=hero(1,'vex'); a.shield=0; a.greenCd=9; gsplitMove(a,1,0); for(let i=0;i<3000&&!gsplitStartAllowed();i++) gsplitStep(SIM_STEP);
+  T1('crosser',()=>{ scene('crosser',0); const got=take({0:'crosser'}); const a=hero(1,'vex'); a.shield=0; a.greenCd=9; gsplitMove(a,1,0); close();
     check(GSPLIT.lanes[0].units.includes(a)&&a.shield===got[0].value&&got[0].value>0&&a.greenCd===0, 'crosser: a hero arriving on the road lands with the stated shield and a free cast ('+a.shield+')'); });
-  T1('crosser',()=>{ scene('crosser',0); const got=take({0:'crosser'}); const c=hero(0,'yenna'); c.shield=0; c.greenCd=9; gsplitMove(c,0,1); for(let i=0;i<3000&&!gsplitStartAllowed();i++) gsplitStep(SIM_STEP);
+  T1('crosser',()=>{ scene('crosser',0); const got=take({0:'crosser'}); const c=hero(0,'yenna'); c.shield=0; c.greenCd=9; gsplitMove(c,0,1); close();
     check(GSPLIT.lanes[1].units.includes(c)&&c.shield===got[0].value&&c.greenCd===0, 'crosser: a hero who carries it gets it wherever he arrives'); });
 
   /* ================= WAVE ================= */
@@ -403,6 +403,28 @@ function vmTests(){
     check(!s1.alive&&!s2.alive&&gsplitHeroesLost()===0, 'review fix 8: two summons purged at the firebreak are not heroes lost ('+gsplitHeroesLost()+')');
     inLane(1,()=>{ const d=hero(1,'vex'); d.shield=0; damage(d,1e12,'#fff',true); }); check(gsplitHeroesLost()===1, 'a fallen hero is ('+gsplitHeroesLost()+')'); });
 
+  /* review fix 3: a crossing can be undone until START, and an emptied road asks first */
+  T1('undo',()=>{ scene('crosser',0); const got=take({0:'crosser'}); const v=hero(0,'vael'), y=hero(0,'yenna'), f=hero(0,'fritz'); v.shield=0; v._bnSh=0; v.greenCd=9;
+    check(gsplitMove(v,0,1), '(a hero crosses Top to Middle)'); land(); check(GSPLIT.lanes[1].units.includes(v)&&v.shield===0, 'nothing is given for a crossing until START makes it final');
+    check(!gsplitMove(v,1,2), 'a crossed hero cannot go on to a third road'); check(gsplitCrossOrigin(v)===0&&gsplitNetMoves().length===1, '(one net move)');
+    check(gsplitMove(v,1,0), 'he CAN go back to the road he came from'); land(); check(GSPLIT.lanes[0].units.includes(v)&&gsplitNetMoves().length===0, 'and then he has not crossed: no net move');
+    check(gsplitMove(y,0,1), 'another hero crosses'); check(gsplitMove(f,0,2), 'Top to Bottom through Middle is one crossing'); land();
+    check(gsplitMove(v,0,1)&&(land(),true)&&gsplitMove(v,1,0), 'the hero who came back may cross again, and come back again'); land();
+    let asked=0; const uc=uiConfirm; uiConfirm=function(){ asked++; return Promise.resolve(false); }; try{ check(gsplitStartPressed()===true&&asked===0, 'no question when no road was emptied'); } finally{ uiConfirm=uc; }
+    check(!gsplitWindowOpen()&&v.shield===0&&!v._bnCrossed&&v.greenCd===9, 'a hero who came back gets no Wayfarer shield and is still "never crossed"');
+    check(y.shield===got[0].value&&y._bnCrossed===1&&f._bnCrossed===1, 'the heroes who did cross get it at START');
+    T.moves=(GSPLIT._windowMoves||{})[1]; });
+  T1('emptyroad',()=>{ start(); open({}); take({}); const g=hero(2,'gruel'); check(gsplitMove(g,2,1), '(the only hero of the Bottom road leaves it)'); land();
+    check(gsplitEmptiedRoads().length===1&&gsplitEmptiedRoads()[0].i===2, 'the road he left is seen as emptied');
+    const uc=uiConfirm; let asked=[], answer=false, pend=null; uiConfirm=function(title,body,okl){ asked.push(title); return { then(fn){ pend=()=>fn(answer); } }; };
+    try{ check(gsplitStartPressed()===false&&asked.length===1&&gsplitWindowOpen(), 'START asks first instead of starting');
+      check(asked[0]===t('gswin.empty_road_q',{road:gsplitRoadName(2)})&&/no heroes/.test(asked[0])&&/Bottom/.test(asked[0]), 'in plain words, naming the road ("'+asked[0]+'")');
+      check(gsplitStartPressed()===false&&asked.length===1, 'one question at a time'); pend(); check(gsplitWindowOpen(), 'answering No keeps the firebreak open');
+      check(gsplitMove(g,1,2), 'and the hero can be sent back'); land(); check(gsplitEmptiedRoads().length===0, 'then no road is empty');
+      check(gsplitMove(g,2,1), '(he leaves again)'); land(); answer=true; gsplitStartPressed(); check(asked.length===2, 'asked again on the next press'); pend();
+      check(!gsplitWindowOpen(), 'answering Yes starts the wave'); step(5); check(GSPLIT.lanes[2].state==='lost', 'and the empty road is lost, as the question said');
+    } finally{ uiConfirm=uc; } });
+
   /* ================= the offer fits the road as it is NOW ================= */
   T1('fit',()=>{ start(A0,9); let lw=0, ev=0, sm=0; for(let w=0;w<4;w++){ order({0:'lonewolf',1:'eternalsummon',2:'crowded'}); toWindow(); if(GSPLIT.lanes[0].offer.some(b=>b.id==='lonewolf')) lw++; if(GSPLIT.lanes[1].offer.some(b=>b.id==='eternalsummon')) ev++; if(GSPLIT.lanes[2].offer.some(b=>b.id==='crowded')) sm++;
       check(GSPLIT.lanes.every(L=>L.offer&&L.offer.length===3&&new Set(L.offer.map(b=>b.id)).size===3), 'firebreak '+(w+1)+': three different boons for every road'); take({}); close(); }
@@ -434,7 +456,7 @@ function vmTests(){
     const ids=JSON.parse(__IDS); check(ids.every(id=>covered[id]), 'every offerable boon was picked and checked here (missing: '+ids.filter(id=>!covered[id]).join(',')+')');
     check(Object.keys(covered).every(id=>ids.indexOf(id)>=0), 'and nothing else'); }
   end();
-  return JSON.stringify({R,covered:Object.keys(covered).length});
+  return JSON.stringify({R,covered:Object.keys(covered).length,moves:T.moves||null});
 }
 
 /* determinism: a whole run, first boon on every road, twice with the same seed (and Math.random poisoned differently each time) */
@@ -455,6 +477,11 @@ let res;
 try{ res=JSON.parse(vm.runInContext('('+vmTests.toString()+')()',host.ctx,{timeout:900000})); }
 catch(e){ console.log('THE PAGE TESTS THREW: '+(e&&e.stack||e)); fail++; res={R:[],covered:0}; }
 for(const [c,m] of res.R) ok(c,m);
+{ /* review fix 3: what the page reported for that firebreak is what the server's own check accepts - and a hand-made double move is refused */
+  const A0={1:['vael','hurne','oakmir','fritz','yenna'],2:['vex','tick','askel','rivet','sylthaine'],3:['gruel']};
+  ok(JSON.stringify(res.moves)===JSON.stringify([['yenna',1,2],['fritz',1,3]]), 'the page reports each hero’s NET move: went-and-came-back is not there, Top to Bottom is one move ('+JSON.stringify(res.moves)+')');
+  const a={assign:A0}; ok(STAGES.checkCrossings(a,res.moves)===null && a.pos.yenna===2 && a.pos.fritz===3 && a.pos.vael===1, 'the server accepts it and holds the same roads');
+  ok(typeof STAGES.checkCrossings({assign:A0},[['vael',1,2],['vael',2,1]])==='string', 'the server still refuses a hero reported twice at one firebreak'); }
 try{ const f='('+vmRun.toString()+')()';
   const a=vm.runInContext(f+'(31337,0.11)',host.ctx,{timeout:300000}), b=vm.runInContext(f+'(31337,0.87)',host.ctx,{timeout:300000}), c=vm.runInContext(f+'(4242,0.5)',host.ctx,{timeout:300000});
   const A=JSON.parse(a); ok(A.picks.length>=3, 'a whole run with boons finishes ('+A.verdict+', '+A.ticks+' ticks, picks '+A.picks.join(',')+')');
