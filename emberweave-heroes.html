@@ -18795,14 +18795,18 @@ function bossBarPlace(el){ try{ const par=el.offsetParent||el.parentElement; if(
 function bossBarTick(){ if(typeof document==='undefined') return; const el=document.getElementById('bossTopBar'); if(!el) return;
   let bs=null; if(state==='battle'&&!ended&&typeof units!=='undefined'){ for(let i=0;i<units.length;i++){ const u=units[i]; if(u.team==='enemy'&&u.boss&&u.alive&&!u._dropHidden) (bs||(bs=[])).push(u); } }
   if(!bs){ if(el._on){ el._on=0; el._k=null; el._pc=-1; el.classList.remove('on'); } return; }
-  let lead=bs[0], hp=0, mx=0; bs.forEach(u=>{ if(u.maxHp>lead.maxHp) lead=u; hp+=Math.max(0,u.hp); mx+=Math.max(1,u.maxHp); });
-  const f=Math.max(0,Math.min(1,hp/mx)), pc=Math.ceil(f*100), key=lead.uid+'|'+bs.length;
+  let lead=bs[0], hp=0, mx=0; bs.forEach(u=>{ if(u.maxHp>lead.maxHp) lead=u; hp+=Math.max(0,u.hp); mx+=Math.max(1,hpBarMax(u)); });   /* v1445: a raid boss's bar is his health out of his REAL maximum */
+  const f=Math.max(0,Math.min(1,hp/mx)), key=lead.uid+'|'+bs.length;
+  /* v1445: the guild raid bar reads like the Guild Hall's - "50,901 / 400,000 HP · 13%" - and follows every point of damage */
+  const _rd=(CUR?.mode==='graid'&&lead._raidBoss), pc=_rd?Math.max(1,Math.round(hp)):Math.ceil(f*100);
   if(!el._on){ el._on=1; el.classList.add('on'); el._pt=0; } { const nw=performance.now(); if(!el._pt||nw-el._pt>500){ el._pt=nw; bossBarPlace(el); } }
   if(el._k!==key||el._lang!==LANG.cur||el._dict!==LANG.dict||el._content!==LANG.content){
     el._k=key; el._lang=LANG.cur; el._dict=LANG.dict; el._content=LANG.content;
     const name=(CUR?.mode==='graid'&&graidBossLabel(CUR.raid?.name))||langDesc(lead.t?.name)||'';
     el.querySelector('.btN').textContent=name+(bs.length>1?' x'+bs.length:''); const a=bossArt(lead); el.querySelector('.btPort').style.backgroundImage=a?'url("'+a+'")':''; }
-  if(el._pc!==pc){ el._pc=pc; el.querySelector('.btFill').style.width=(f*100).toFixed(1)+'%'; el.querySelector('.btLag').style.width=(f*100).toFixed(1)+'%'; el.querySelector('.btPct').textContent=pc+'%'; } }
+  if(el._pc!==pc){ const _lg=el.querySelector('.btLag'), _first=(el._pc===-1||el._pc==null);
+    if(_first) _lg.style.transition='none';   /* v1445: a bar that OPENS part-way (a raid boss already hurt) opens there - the pale catch-up bar is for damage dealt in this fight */
+    el._pc=pc; el.querySelector('.btFill').style.width=(f*100).toFixed(1)+'%'; _lg.style.width=(f*100).toFixed(1)+'%'; if(_first){ void _lg.offsetWidth; _lg.style.transition=''; } el.querySelector('.btPct').textContent=_rd?ewT('graid.hp_line',{hp:Math.max(1,Math.round(hp)).toLocaleString(),max:Math.round(mx).toLocaleString(),pct:Math.max(1,Math.round(f*100))}):(pc+'%'); } }
 /* v1372 (Phil 11 Nov: "I only want boss banner on boss fights, not ever stage. that means x-10 for campaign and every 5 level in vault"):
    the BOSS INCOMING ribbon shows on the last wave of a campaign x-10 stage and of every 5th Vault floor, nowhere else (other fights say WAVE n). */
 function isBossFight(){ try{ if(CUR.mode==='campaign') return isBossStage(CUR.node); if(CUR.mode==='vault') return (CUR.floor|0)>0&&(CUR.floor|0)%5===0; }catch(e){} return false; }
@@ -20354,7 +20358,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='ba
     { // over-head health bar, team-colored — sits just above the head
       // v253 (visual audit #5): one mobile scale step up — taller bars, stronger outline; a BOSS
       // gets a wider, gold-framed bar that cannot be mistaken for a normal enemy's.
-      const eb=_ebw, eh=_bn?Math.max(1.25, Math.round(eb*0.16*4)/4):Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
+      const eb=_ebw, eh=_bn?Math.max(1.25, Math.round(eb*0.16*4)/4):Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/hpBarMax(u)));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
       const pad=_bn?1:2;
       /* v962 (Phil 3 Oct: "I want these health bars changed, they look bad"): the video
          frame (iron rim, gold edge, pointed caps) drawn 3-slice round the bar, a soft vertical gradient fill, and a pale DAMAGE TRAIL
@@ -21519,7 +21523,10 @@ async function raidLaunch(){
   const _sn=Array.isArray(st.snaps)?st.snaps:null;
   CUR={mode:'graid', attemptId:st.attemptId, seed:(st.seed!=null?(st.seed>>>0):null), serverSnaps:_sn,
        backupSnaps:_sn?_sn.slice(TEAM_SIZE):null,   /* the bench fights with the SERVER's numbers too */
-       backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,B.hp|0), lvl:Math.max(1,B.lvl|0)},
+       backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,B.hp|0), lvl:Math.max(1,B.lvl|0),
+         /* v1445 (Phil 24 Nov: "when you do damage to a boss, the next time you face it, it should have the same hp bar it had the fight before"):
+            his FULL health, for the bars only. From the fight's own boss, or (an older server) from the raid view when it is the same tier. */
+         max:Math.max(1,B.hp|0, Math.round(+B.max>0?+B.max:((st.raid&&(st.raid.level|0)===(B.tier|0))?(+st.raid.max||0):0)))},
        cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]], engine:st.engine||null};
   startBattle();
 }
@@ -21531,7 +21538,14 @@ async function raidLaunch(){
    raidDamageDone() found nobody and answered 0: every killing assault booked 0 damage, paid nothing, left the boss alive and
    spent the attempt. The boss of the fight is now remembered when he is marked, so the meter reads him alive, dying or gone. */
 let RAID_BOSS_U=null;
-function raidBossMark(){ RAID_BOSS_U=null; units.forEach(u=>{ if(u.team==='enemy'){ u._raidBoss=true; u._raidStartHp=u.maxHp; if(!RAID_BOSS_U) RAID_BOSS_U=u; } }); }
+function raidBossMark(){ RAID_BOSS_U=null; const full=+(CUR&&CUR.raid&&CUR.raid.max)||0;
+  units.forEach(u=>{ if(u.team==='enemy'){ u._raidBoss=true; u._raidStartHp=u.maxHp; if(full>u.maxHp) u._raidPoolMax=full; if(!RAID_BOSS_U) RAID_BOSS_U=u; } }); }
+/* v1445 - THE BOSS'S BAR CARRIES OVER (Phil 24 Nov). The raid boss walks in with the health his guild has LEFT him as his whole
+   fight pool (u.maxHp = what is left; that rule is unchanged - every skill, heal and threshold still reads it), so his bars opened
+   FULL on every assault: a boss stored at 50,901 / 400,000 showed 100%, then 85% twenty seconds in. The bars - the HUD boss bar
+   and the bar over his head - now measure his health against his real maximum (u._raidPoolMax, set on the page only; the
+   server's replay never sets it and no fight rule reads it), so the fight opens exactly where the Guild Hall left him. */
+function hpBarMax(u){ return (u&&u._raidPoolMax>0)?u._raidPoolMax:u.maxHp; }
 function raidDamageDone(){
   const b=units.find(u=>u.team==='enemy'&&u._raidBoss)||((RAID_BOSS_U&&RAID_BOSS_U._raidBoss)?RAID_BOSS_U:null);
   if(!b) return 0;

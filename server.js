@@ -11738,7 +11738,7 @@ async function api(req,res,url){
          the open fight, so "your attempt is kept" after an unverified result was not true. The squad is the open fight's. */
       if(open && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps, heroIds:open.heroIds,
-          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, max:bossMax(open.tier), lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.
       if(me.raidDay && me.raidDay.d===r.day && (me.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
@@ -11768,7 +11768,7 @@ async function api(req,res,url){
         rr.att[du.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
           startedAt:Date.now(), reqId, tier:rr.level, bossKey:bb.key, bossHp:rr.hp, bossLvl };
         return { ok:true, attemptId:rr.att[du.id].id, seed, snaps:fightSnaps, engine:rr.att[du.id].engine,
-          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level)}, raid:raidView(gg) };
+          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, max:rr.max, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level)}, raid:raidView(gg) };   /* v1445: max = his full health, so the fight's bar opens where the last fight left it */
       },{fields:['guilds']});
       if(out&&out.none) return send(res,200,{ none:true, raid:out.raid });
       return send(res, out&&out.storageFailed?503:((out&&out.ok)?200:400), out); }
