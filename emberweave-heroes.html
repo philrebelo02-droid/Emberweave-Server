@@ -10028,7 +10028,7 @@ const BoonFx=(function(){
   const roll=p=>p>0&&brnd()<Math.min(0.95,p);
   const nameOf=id=>{ const D=GSPLIT.boonDeck; return (D&&D.defs&&D.defs[id]&&D.defs[id].name)||''; };
   function say(u,id){ try{ const s=nameOf(id); if(s&&u) floatTexts.push({x:u.x,y:u.y-12,txt:langDesc(s),t:.7,color:'#ffd45e',vy:1.1,sz:11}); }catch(e){} }
-  function shieldAdd(u,v){ if(!(v>0)||!u||!u.alive) return; u.shield=(u.shield||0)+v; u._bnSh=(u._bnSh||0)+v; }   // u._bnSh: the part of the shield that never runs out on a timer
+  function shieldAdd(u,v){ if(!(v>0)||!u||!u.alive) return; v=Math.min(v,Math.max(0,(u.maxHp||0)-(u._bnSh||0))); if(!(v>0)) return; u.shield=(u.shield||0)+v; u._bnSh=(u._bnSh||0)+v; }   // u._bnSh: the part of the shield a boon gave - it never runs out on a timer or at a wave's end, and is never more than the hero's own health (review fix)
   function ever(s){ if(!s||s[EVERLASTING_FLAG]) return; s[EVERLASTING_FLAG]=true; s._summonT=Infinity;   /* Everlasting: never to the timer, the summoner's death or the firebreak - at half power, halved ONCE */
     const k=P.eternalsummon; s.maxHp=Math.max(1,Math.round(s.maxHp*k)); s.hp=Math.max(1,Math.min(s.maxHp,s.hp*k)); s.dmg*=k; if(s.apow) s.apow*=k; }
   function reset(){ depth=0; _bnSrc=null; GSPLIT._bnOn=false; }
@@ -10086,7 +10086,7 @@ const BoonFx=(function(){
       if(crowdDr) inc*=1-crowdDr;
       u._bnIn=(inc!==1)?inc:null;
       if((c=n(u,'regen'))&&!B.nofirstaid){ const cap=worldHealCap(u), add=B.regen.v*dt, to=Math.min(cap,u.hp+add);   /* Mending */
-        if(B.healtoshield&&u.hp+add>cap) shieldAdd(u,Math.min(u.hp+add-cap,Math.max(0,u.maxHp-(u.shield||0))));
+        if(B.healtoshield&&u.hp+add>cap) shieldAdd(u,u.hp+add-cap);
         if(to>u.hp) u.hp=ddHp(u,to,u); }
       if((c=n(u,'energy'))) u.energy=Math.min(100,(u.energy||0)+P.energy*c*dt);   /* Focus */
       if(B.lowhpimmune&&u.hp<K.lowHp*u.maxHp){ u.stunned=0; u.fearT=0; u._frozenT=0; u._sleepT=0; }   /* Defiant */
@@ -10210,7 +10210,7 @@ const BoonFx=(function(){
       return a; }
     const B=u._bn; if(!B||!isHero(u)) return a;
     if(B.nofirstaid) return 0;   /* Ascetic Oath */
-    if(B.healtoshield){ const room=Math.max(0,worldHealCap(u)-u.hp); if(a>room) shieldAdd(u,Math.min(a-room,Math.max(0,u.maxHp-(u.shield||0)))); }   /* Aegis: the overflow, up to a shield as large as the hero's health */
+    if(B.healtoshield){ const room=Math.max(0,worldHealCap(u)-u.hp); if(a>room) shieldAdd(u,a-room); }   /* Aegis: the overflow, up to a shield as large as the hero's health */
     return a; }
 
   /* ---- a cast starts (Green / Blue), and an ultimate has just spent its energy ---- */
@@ -18805,7 +18805,7 @@ function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   for(const _u of units){ if(_u&&_u._tal) TalentFx.clock(_u,battleTime); }   /* TALENT HOOK clock: the clock starts again at 0 below - a talented unit's stored fight times are moved back with it (only a unit with a learned mechanic talent has u._tal) */
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
-  allies.forEach((u,i)=>{ /* Phil 26 Aug: HP & Energy carry between waves — only combat states clear */ u.target=null; u.attackAnim=0; u.castAnim=0; u._danceT=0; u._dash=null; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u._digHealT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._chillStacks=0; u._chillT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._noTargetT=0; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
+  allies.forEach((u,i)=>{ /* Phil 26 Aug: HP & Energy carry between waves — only combat states clear */ u.target=null; u.attackAnim=0; u.castAnim=0; u._danceT=0; u._dash=null; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=Math.min(u._bnSh||0,u.shield||0); u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u._digHealT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._chillStacks=0; u._chillT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._noTargetT=0; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     if(u._backHunter){   // Hollow never marches — he goes back up into the dark and waits again
       u._dropT=5.5; u._dropHidden=true; u._dropHome={x:sl.x,y:sl.y}; u._fallT=0; u._fallH=0; u._noTarget=false;
