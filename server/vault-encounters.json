@@ -5033,63 +5033,63 @@
      {
       "key": "luminant orb",
       "lvl": 39,
-      "hpMul": 66.2294,
-      "dmgMul": 28.5512
+      "hpMul": 114.7159,
+      "dmgMul": 41.9397
      },
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 66.2294,
-      "dmgMul": 28.5512
+      "hpMul": 114.7159,
+      "dmgMul": 41.9397
      },
      {
       "key": "granith",
       "lvl": 39,
-      "hpMul": 66.2294,
-      "dmgMul": 28.5512
+      "hpMul": 114.7159,
+      "dmgMul": 41.9397
      },
      {
       "key": "blackquill",
       "lvl": 39,
-      "hpMul": 66.2294,
-      "dmgMul": 15.0051
+      "hpMul": 114.7159,
+      "dmgMul": 22.0414
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 39,
-      "hpMul": 77.0129,
-      "dmgMul": 33.1977
+      "hpMul": 133.394,
+      "dmgMul": 48.7651
      },
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 77.0129,
-      "dmgMul": 33.1977
+      "hpMul": 133.394,
+      "dmgMul": 48.7651
      },
      {
       "key": "zephyr harrier",
       "lvl": 39,
-      "hpMul": 77.0129,
-      "dmgMul": 29.4874
+      "hpMul": 133.394,
+      "dmgMul": 43.3149
      },
      {
       "key": "frostjaw troll",
       "lvl": 39,
-      "hpMul": 77.0129,
-      "dmgMul": 33.1977
+      "hpMul": 133.394,
+      "dmgMul": 48.7651
      },
      {
       "key": "blackquill",
       "lvl": 39,
-      "hpMul": 77.0129,
-      "dmgMul": 17.4471
+      "hpMul": 133.394,
+      "dmgMul": 25.6286
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 9012,
+   "recommendedPower": 195852,
    "dust": 1312,
    "glyphFragments": [
     "Gold Stoneheart"
@@ -5100,10 +5100,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 68,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 50,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.375,
+    "wr100": 0.85,
+    "wrPlus5": 0.85,
+    "avgSec": 80.3,
+    "d": 1.7321
    }
   },
   {
@@ -5114,63 +5118,63 @@
      {
       "key": "granith",
       "lvl": 39,
-      "hpMul": 69.1018,
-      "dmgMul": 25.4492
+      "hpMul": 126.5047,
+      "dmgMul": 38.8603
      },
      {
       "key": "storm eel",
       "lvl": 39,
-      "hpMul": 69.1018,
-      "dmgMul": 25.4492
+      "hpMul": 126.5047,
+      "dmgMul": 38.8603
      },
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 69.1018,
-      "dmgMul": 25.4492
+      "hpMul": 126.5047,
+      "dmgMul": 38.8603
      },
      {
       "key": "blackquill",
       "lvl": 39,
-      "hpMul": 69.1018,
-      "dmgMul": 20.1324
+      "hpMul": 126.5047,
+      "dmgMul": 30.7417
      }
     ],
     [
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 80.351,
-      "dmgMul": 29.594
+      "hpMul": 147.0986,
+      "dmgMul": 45.1893
      },
      {
       "key": "frostjaw troll",
       "lvl": 39,
-      "hpMul": 80.351,
-      "dmgMul": 29.594
+      "hpMul": 147.0986,
+      "dmgMul": 45.1893
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 39,
-      "hpMul": 80.351,
-      "dmgMul": 29.594
+      "hpMul": 147.0986,
+      "dmgMul": 45.1893
      },
      {
       "key": "luminant orb",
       "lvl": 39,
-      "hpMul": 80.351,
-      "dmgMul": 19.7821
+      "hpMul": 147.0986,
+      "dmgMul": 30.2068
      },
      {
       "key": "granith",
       "lvl": 39,
-      "hpMul": 80.351,
-      "dmgMul": 29.594
+      "hpMul": 147.0986,
+      "dmgMul": 45.1893
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 9301,
+   "recommendedPower": 197996,
    "dust": 1397,
    "glyphFragments": [
     "Gold Ironwall"
@@ -5181,11 +5185,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 69,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.237
+    "level": 51,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.75,
+    "wrPlus5": 0.75,
+    "avgSec": 91.9,
+    "d": 1.8307
    }
   },
   {
@@ -5196,63 +5203,63 @@
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 76.058,
-      "dmgMul": 31.7173
+      "hpMul": 108.5196,
+      "dmgMul": 40.6771
      },
      {
       "key": "ironjaw raider",
       "lvl": 40,
-      "hpMul": 76.058,
-      "dmgMul": 31.7173
+      "hpMul": 108.5196,
+      "dmgMul": 40.6771
      },
      {
       "key": "blackquill",
       "lvl": 40,
-      "hpMul": 76.058,
-      "dmgMul": 31.7173
+      "hpMul": 108.5196,
+      "dmgMul": 40.6771
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 40,
-      "hpMul": 76.058,
-      "dmgMul": 31.7173
+      "hpMul": 108.5196,
+      "dmgMul": 40.6771
      }
     ],
     [
      {
       "key": "granith",
       "lvl": 40,
-      "hpMul": 88.4547,
-      "dmgMul": 36.8786
+      "hpMul": 126.2072,
+      "dmgMul": 47.2965
      },
      {
       "key": "ironjaw raider",
       "lvl": 40,
-      "hpMul": 88.4547,
-      "dmgMul": 36.8786
+      "hpMul": 126.2072,
+      "dmgMul": 47.2965
      },
      {
       "key": "storm eel",
       "lvl": 40,
-      "hpMul": 88.4547,
-      "dmgMul": 36.8786
+      "hpMul": 126.2072,
+      "dmgMul": 47.2965
      },
      {
       "key": "zephyr harrier",
       "lvl": 40,
-      "hpMul": 88.4547,
-      "dmgMul": 36.8786
+      "hpMul": 126.2072,
+      "dmgMul": 47.2965
      },
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 88.4547,
-      "dmgMul": 36.8786
+      "hpMul": 126.2072,
+      "dmgMul": 47.2965
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 9770,
+   "recommendedPower": 200499,
    "dust": 1488,
    "glyphFragments": [
     "Gold Veilward"
@@ -5263,10 +5270,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 70,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 52,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.75,
+    "wrPlus5": 0.775,
+    "avgSec": 82.2,
+    "d": 1.4268
    }
   },
   {
@@ -5277,63 +5288,63 @@
      {
       "key": "storm eel",
       "lvl": 40,
-      "hpMul": 77.7878,
-      "dmgMul": 29.7848
+      "hpMul": 107.9539,
+      "dmgMul": 37.4648
      },
      {
       "key": "luminant orb",
       "lvl": 40,
-      "hpMul": 77.7878,
-      "dmgMul": 28.4288
+      "hpMul": 107.9539,
+      "dmgMul": 35.7592
      },
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 77.7878,
-      "dmgMul": 32.0437
+      "hpMul": 107.9539,
+      "dmgMul": 40.3062
      },
      {
       "key": "granith",
       "lvl": 40,
-      "hpMul": 77.7878,
-      "dmgMul": 23.2528
+      "hpMul": 107.9539,
+      "dmgMul": 29.2485
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 40,
-      "hpMul": 90.4452,
-      "dmgMul": 34.6352
+      "hpMul": 125.5198,
+      "dmgMul": 43.5659
      },
      {
       "key": "blackquill",
       "lvl": 40,
-      "hpMul": 90.4452,
-      "dmgMul": 37.2619
+      "hpMul": 125.5198,
+      "dmgMul": 46.8699
      },
      {
       "key": "ironjaw raider",
       "lvl": 40,
-      "hpMul": 90.4452,
-      "dmgMul": 37.2619
+      "hpMul": 125.5198,
+      "dmgMul": 46.8699
      },
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 90.4452,
-      "dmgMul": 37.2619
+      "hpMul": 125.5198,
+      "dmgMul": 46.8699
      },
      {
       "key": "granith",
       "lvl": 40,
-      "hpMul": 90.4452,
-      "dmgMul": 27.0394
+      "hpMul": 125.5198,
+      "dmgMul": 34.0115
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 9722,
+   "recommendedPower": 205111,
    "dust": 1585,
    "glyphFragments": [
     "Gold Ravager"
@@ -5344,11 +5355,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 71,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.013
+    "level": 54,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.775,
+    "wrPlus5": 0.8,
+    "avgSec": 81,
+    "d": 1.3878
    }
   },
   {
@@ -5359,58 +5373,58 @@
      {
       "key": "granith",
       "lvl": 41,
-      "hpMul": 9.034,
-      "dmgMul": 7.6172
+      "hpMul": 73.7924,
+      "dmgMul": 33.135
      },
      {
       "key": "blackquill",
       "lvl": 41,
-      "hpMul": 9.034,
-      "dmgMul": 7.6172
+      "hpMul": 73.7924,
+      "dmgMul": 33.135
      },
      {
       "key": "zephyr harrier",
       "lvl": 41,
-      "hpMul": 9.034,
-      "dmgMul": 7.6172
+      "hpMul": 73.7924,
+      "dmgMul": 33.135
      },
      {
       "key": "frostjaw troll",
       "lvl": 41,
-      "hpMul": 9.034,
-      "dmgMul": 7.6172
+      "hpMul": 73.7924,
+      "dmgMul": 33.135
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 41,
-      "hpMul": 13.5506,
-      "dmgMul": 9.5224
+      "hpMul": 110.6854,
+      "dmgMul": 41.4227
      },
      {
       "key": "ironjaw raider",
       "lvl": 41,
-      "hpMul": 13.5506,
-      "dmgMul": 9.5224
+      "hpMul": 110.6854,
+      "dmgMul": 41.4227
      },
      {
       "key": "granith",
       "lvl": 41,
-      "hpMul": 13.5506,
-      "dmgMul": 9.5224
+      "hpMul": 110.6854,
+      "dmgMul": 41.4227
      },
      {
       "key": "zephyr harrier",
       "lvl": 41,
-      "hpMul": 13.5506,
-      "dmgMul": 9.5224
+      "hpMul": 110.6854,
+      "dmgMul": 41.4227
      },
      {
       "key": "vharok",
       "lvl": 44,
-      "hpMul": 87.6811,
-      "dmgMul": 4.2497,
+      "hpMul": 716.2055,
+      "dmgMul": 18.4863,
       "boss": true
      }
     ]
@@ -5421,7 +5435,7 @@
     "ascended": true,
     "gatekeeper": false
    },
-   "recommendedPower": 16214,
+   "recommendedPower": 209876,
    "dust": 1688,
    "glyphFragments": [
     "Gold Starfire",
@@ -5433,10 +5447,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 72,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 56,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.263,
+    "wr100": 0.875,
+    "wrPlus5": 1,
+    "avgSec": 138.4,
+    "d": 8.1683
    }
   },
   {
@@ -5447,63 +5465,63 @@
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 74.0187,
-      "dmgMul": 31.487
+      "hpMul": 102.7232,
+      "dmgMul": 39.6059
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 74.0187,
-      "dmgMul": 31.487
+      "hpMul": 102.7232,
+      "dmgMul": 39.6059
      },
      {
       "key": "blackquill",
       "lvl": 42,
-      "hpMul": 74.0187,
-      "dmgMul": 31.487
+      "hpMul": 102.7232,
+      "dmgMul": 39.6059
      },
      {
       "key": "granith",
       "lvl": 42,
-      "hpMul": 74.0187,
-      "dmgMul": 31.487
+      "hpMul": 102.7232,
+      "dmgMul": 39.6059
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 86.0555,
-      "dmgMul": 36.6146
+      "hpMul": 119.4278,
+      "dmgMul": 46.0557
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 86.0555,
-      "dmgMul": 36.6146
+      "hpMul": 119.4278,
+      "dmgMul": 46.0557
      },
      {
       "key": "granith",
       "lvl": 42,
-      "hpMul": 86.0555,
-      "dmgMul": 36.6146
+      "hpMul": 119.4278,
+      "dmgMul": 46.0557
      },
      {
       "key": "storm eel",
       "lvl": 42,
-      "hpMul": 86.0555,
-      "dmgMul": 36.6146
+      "hpMul": 119.4278,
+      "dmgMul": 46.0557
      },
      {
       "key": "frostjaw troll",
       "lvl": 42,
-      "hpMul": 86.0555,
-      "dmgMul": 36.6146
+      "hpMul": 119.4278,
+      "dmgMul": 46.0557
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 10256,
+   "recommendedPower": 205111,
    "dust": 1798,
    "glyphFragments": [
     "Gold Hawkeye"
@@ -5514,10 +5532,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 73,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 54,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.825,
+    "wrPlus5": 0.8,
+    "avgSec": 79.9,
+    "d": 1.3878
    }
   },
   {
@@ -5528,63 +5550,63 @@
      {
       "key": "storm eel",
       "lvl": 42,
-      "hpMul": 82.4006,
-      "dmgMul": 34.0801
+      "hpMul": 91.6295,
+      "dmgMul": 36.7091
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 82.4006,
-      "dmgMul": 34.0801
+      "hpMul": 91.6295,
+      "dmgMul": 36.7091
      },
      {
       "key": "zephyr harrier",
       "lvl": 42,
-      "hpMul": 82.4006,
-      "dmgMul": 27.2641
+      "hpMul": 91.6295,
+      "dmgMul": 29.3673
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 82.4006,
-      "dmgMul": 34.0801
+      "hpMul": 91.6295,
+      "dmgMul": 36.7091
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 42,
-      "hpMul": 95.8214,
-      "dmgMul": 39.6251
+      "hpMul": 106.5534,
+      "dmgMul": 42.6819
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 95.8214,
-      "dmgMul": 39.6251
+      "hpMul": 106.5534,
+      "dmgMul": 42.6819
      },
      {
       "key": "granith",
       "lvl": 42,
-      "hpMul": 95.8214,
-      "dmgMul": 39.6251
+      "hpMul": 106.5534,
+      "dmgMul": 42.6819
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 95.8214,
-      "dmgMul": 39.6251
+      "hpMul": 106.5534,
+      "dmgMul": 42.6819
      },
      {
       "key": "zephyr harrier",
       "lvl": 42,
-      "hpMul": 95.8214,
-      "dmgMul": 31.7
+      "hpMul": 106.5534,
+      "dmgMul": 34.1454
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 10446,
+   "recommendedPower": 207302,
    "dust": 1915,
    "glyphFragments": [
     "Gold Lifebloom"
@@ -5595,10 +5617,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 73,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 55,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.875,
+    "wrPlus5": 1,
+    "avgSec": 72.8,
+    "d": 1.112
    }
   },
   {
@@ -5609,63 +5635,63 @@
      {
       "key": "zephyr harrier",
       "lvl": 43,
-      "hpMul": 78.7789,
-      "dmgMul": 35.8807
+      "hpMul": 106.3436,
+      "dmgMul": 44.2662
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 78.7789,
-      "dmgMul": 20.5758
+      "hpMul": 106.3436,
+      "dmgMul": 25.3845
      },
      {
       "key": "ironjaw raider",
       "lvl": 43,
-      "hpMul": 78.7789,
-      "dmgMul": 35.8807
+      "hpMul": 106.3436,
+      "dmgMul": 44.2662
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 78.7789,
-      "dmgMul": 29.7329
+      "hpMul": 106.3436,
+      "dmgMul": 36.6816
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 43,
-      "hpMul": 91.6079,
-      "dmgMul": 20.2083
+      "hpMul": 123.6615,
+      "dmgMul": 24.9311
      },
      {
       "key": "ironjaw raider",
       "lvl": 43,
-      "hpMul": 91.6079,
-      "dmgMul": 41.7227
+      "hpMul": 123.6615,
+      "dmgMul": 51.4735
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 91.6079,
-      "dmgMul": 23.926
+      "hpMul": 123.6615,
+      "dmgMul": 29.5176
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 91.6079,
-      "dmgMul": 34.5739
+      "hpMul": 123.6615,
+      "dmgMul": 42.654
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 43,
-      "hpMul": 91.6079,
-      "dmgMul": 27.9016
+      "hpMul": 123.6615,
+      "dmgMul": 34.4223
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 10688,
+   "recommendedPower": 209876,
    "dust": 2039,
    "glyphFragments": [
     "Gold Bastion"
@@ -5676,12 +5702,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 74,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1.082
+    "level": 56,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.362,
+    "wr100": 0.825,
+    "wrPlus5": 0.975,
+    "avgSec": 80.2,
+    "d": 1.3499
    }
   },
   {
@@ -5692,63 +5720,63 @@
      {
       "key": "granith",
       "lvl": 43,
-      "hpMul": 58.837,
-      "dmgMul": 27.1282
+      "hpMul": 88.7321,
+      "dmgMul": 36.1678
      },
      {
       "key": "blackquill",
       "lvl": 43,
-      "hpMul": 58.837,
-      "dmgMul": 27.1282
+      "hpMul": 88.7321,
+      "dmgMul": 36.1678
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 58.837,
-      "dmgMul": 27.1282
+      "hpMul": 88.7321,
+      "dmgMul": 36.1678
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 58.837,
-      "dmgMul": 27.1282
+      "hpMul": 88.7321,
+      "dmgMul": 36.1678
      }
     ],
     [
      {
       "key": "granith",
       "lvl": 43,
-      "hpMul": 68.4153,
-      "dmgMul": 31.5426
+      "hpMul": 103.1771,
+      "dmgMul": 42.0532
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 68.4153,
-      "dmgMul": 31.5426
+      "hpMul": 103.1771,
+      "dmgMul": 42.0532
      },
      {
       "key": "luminant orb",
       "lvl": 43,
-      "hpMul": 68.4153,
-      "dmgMul": 24.6402
+      "hpMul": 103.1771,
+      "dmgMul": 32.8508
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 68.4153,
-      "dmgMul": 31.5426
+      "hpMul": 103.1771,
+      "dmgMul": 42.0532
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 43,
-      "hpMul": 68.4153,
-      "dmgMul": 31.5426
+      "hpMul": 103.1771,
+      "dmgMul": 42.0532
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 11171,
+   "recommendedPower": 222851,
    "dust": 2172,
    "glyphFragments": [
     "Gold Bloodroot"
@@ -5759,10 +5787,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 75,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 58,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.375,
+    "wr100": 0.775,
+    "wrPlus5": 0.9,
+    "avgSec": 76.7,
+    "d": 1.5081
    }
   },
   {
@@ -5773,58 +5805,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 4.8289,
-      "dmgMul": 7.2444
+      "hpMul": 49.2273,
+      "dmgMul": 36.8004
      },
      {
       "key": "granith",
       "lvl": 44,
-      "hpMul": 4.8289,
-      "dmgMul": 7.2444
+      "hpMul": 49.2273,
+      "dmgMul": 36.8004
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 4.8289,
-      "dmgMul": 7.2444
+      "hpMul": 49.2273,
+      "dmgMul": 36.8004
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 4.8289,
-      "dmgMul": 7.2444
+      "hpMul": 49.2273,
+      "dmgMul": 36.8004
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 7.2437,
-      "dmgMul": 9.0553
+      "hpMul": 73.8445,
+      "dmgMul": 45.9995
      },
      {
       "key": "storm eel",
       "lvl": 44,
-      "hpMul": 7.2437,
-      "dmgMul": 9.0553
+      "hpMul": 73.8445,
+      "dmgMul": 45.9995
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 7.2437,
-      "dmgMul": 9.0553
+      "hpMul": 73.8445,
+      "dmgMul": 45.9995
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 7.2437,
-      "dmgMul": 9.0553
+      "hpMul": 73.8445,
+      "dmgMul": 45.9995
      },
      {
       "key": "barrowmaw",
       "lvl": 47,
-      "hpMul": 46.8717,
-      "dmgMul": 14.5644,
+      "hpMul": 477.8242,
+      "dmgMul": 73.9848,
       "boss": true
      }
     ]
@@ -5835,7 +5867,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 29792,
+   "recommendedPower": 254019,
    "dust": 2313,
    "glyphFragments": [
     "Gold Dawnshield",
@@ -5847,12 +5879,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 76,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1.268
+    "level": 60,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.237,
+    "wr100": 0.5,
+    "wrPlus5": 0.675,
+    "avgSec": 92.8,
+    "d": 10.1943
    }
   },
   {
@@ -5863,63 +5897,63 @@
      {
       "key": "riftling spider",
       "lvl": 45,
-      "hpMul": 51.9434,
-      "dmgMul": 17.8456
+      "hpMul": 103.331,
+      "dmgMul": 28.8816
      },
      {
       "key": "grundle",
       "lvl": 45,
-      "hpMul": 51.9434,
-      "dmgMul": 25.0492
+      "hpMul": 103.331,
+      "dmgMul": 40.54
      },
      {
       "key": "bitwraith",
       "lvl": 45,
-      "hpMul": 51.9434,
-      "dmgMul": 15.8628
+      "hpMul": 103.331,
+      "dmgMul": 25.6726
      },
      {
       "key": "saltglass siren",
       "lvl": 45,
-      "hpMul": 51.9434,
-      "dmgMul": 25.0492
+      "hpMul": 103.331,
+      "dmgMul": 40.54
      }
     ],
     [
      {
       "key": "bonepike guard",
       "lvl": 45,
-      "hpMul": 60.4,
-      "dmgMul": 29.1246
+      "hpMul": 120.1537,
+      "dmgMul": 47.1357
      },
      {
       "key": "grundle",
       "lvl": 45,
-      "hpMul": 60.4,
-      "dmgMul": 29.1246
+      "hpMul": 120.1537,
+      "dmgMul": 47.1357
      },
      {
       "key": "bitwraith",
       "lvl": 45,
-      "hpMul": 60.4,
-      "dmgMul": 18.4436
+      "hpMul": 120.1537,
+      "dmgMul": 29.8494
      },
      {
       "key": "riftling spider",
       "lvl": 45,
-      "hpMul": 60.4,
-      "dmgMul": 20.7491
+      "hpMul": 120.1537,
+      "dmgMul": 33.5807
      },
      {
       "key": "clockwork lantern",
       "lvl": 45,
-      "hpMul": 60.4,
-      "dmgMul": 29.1246
+      "hpMul": 120.1537,
+      "dmgMul": 47.1357
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 12135,
+   "recommendedPower": 222851,
    "dust": 2463,
    "glyphFragments": [
     "Gold +3 Stoneheart"
@@ -5930,10 +5964,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 77,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 58,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.338,
+    "wr100": 0.85,
+    "wrPlus5": 1,
+    "avgSec": 85.3,
+    "d": 1.9893
    }
   },
   {
@@ -5944,63 +5982,63 @@
      {
       "key": "runic automaton",
       "lvl": 45,
-      "hpMul": 48.125,
-      "dmgMul": 23.8271
+      "hpMul": 93.1219,
+      "dmgMul": 37.8223
      },
      {
       "key": "grundle",
       "lvl": 45,
-      "hpMul": 48.125,
-      "dmgMul": 23.8271
+      "hpMul": 93.1219,
+      "dmgMul": 37.8223
      },
      {
       "key": "riftling spider",
       "lvl": 45,
-      "hpMul": 48.125,
-      "dmgMul": 20.7491
+      "hpMul": 93.1219,
+      "dmgMul": 32.9364
      },
      {
       "key": "rustclank",
       "lvl": 45,
-      "hpMul": 48.125,
-      "dmgMul": 23.8271
+      "hpMul": 93.1219,
+      "dmgMul": 37.8223
      }
     ],
     [
      {
       "key": "grundle",
       "lvl": 45,
-      "hpMul": 55.9572,
-      "dmgMul": 27.7064
+      "hpMul": 108.2772,
+      "dmgMul": 43.9802
      },
      {
       "key": "runic automaton",
       "lvl": 45,
-      "hpMul": 55.9572,
-      "dmgMul": 27.7064
+      "hpMul": 108.2772,
+      "dmgMul": 43.9802
      },
      {
       "key": "bitwraith",
       "lvl": 45,
-      "hpMul": 55.9572,
-      "dmgMul": 27.7064
+      "hpMul": 108.2772,
+      "dmgMul": 43.9802
      },
      {
       "key": "saltglass siren",
       "lvl": 45,
-      "hpMul": 55.9572,
-      "dmgMul": 27.7064
+      "hpMul": 108.2772,
+      "dmgMul": 43.9802
      },
      {
       "key": "bonepike guard",
       "lvl": 45,
-      "hpMul": 55.9572,
-      "dmgMul": 27.7064
+      "hpMul": 108.2772,
+      "dmgMul": 43.9802
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 11541,
+   "recommendedPower": 225110,
    "dust": 2623,
    "glyphFragments": [
     "Gold +3 Ironwall"
@@ -6011,10 +6049,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 78,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 59,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.275,
+    "wr100": 0.925,
+    "wrPlus5": 1,
+    "avgSec": 87.6,
+    "d": 1.935
    }
   },
   {
@@ -6025,63 +6067,63 @@
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 60.0863,
-      "dmgMul": 27.9367
+      "hpMul": 213.8291,
+      "dmgMul": 67.9327
      },
      {
       "key": "riftling spider",
       "lvl": 46,
-      "hpMul": 60.0863,
-      "dmgMul": 16.487
+      "hpMul": 213.8291,
+      "dmgMul": 40.0909
      },
      {
       "key": "saltglass siren",
       "lvl": 46,
-      "hpMul": 60.0863,
-      "dmgMul": 27.9367
+      "hpMul": 213.8291,
+      "dmgMul": 67.9327
      },
      {
       "key": "rustclank",
       "lvl": 46,
-      "hpMul": 60.0863,
-      "dmgMul": 27.9367
+      "hpMul": 213.8291,
+      "dmgMul": 67.9327
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 46,
-      "hpMul": 69.8642,
-      "dmgMul": 32.4816
+      "hpMul": 248.6257,
+      "dmgMul": 78.9844
      },
      {
       "key": "clockwork lantern",
       "lvl": 46,
-      "hpMul": 69.8642,
-      "dmgMul": 32.4816
+      "hpMul": 248.6257,
+      "dmgMul": 78.9844
      },
      {
       "key": "riftling spider",
       "lvl": 46,
-      "hpMul": 69.8642,
-      "dmgMul": 19.1693
+      "hpMul": 248.6257,
+      "dmgMul": 46.6133
      },
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 69.8642,
-      "dmgMul": 32.4816
+      "hpMul": 248.6257,
+      "dmgMul": 78.9844
      },
      {
       "key": "bitwraith",
       "lvl": 46,
-      "hpMul": 69.8642,
-      "dmgMul": 18.0183
+      "hpMul": 248.6257,
+      "dmgMul": 43.8145
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 12146,
+   "recommendedPower": 254019,
    "dust": 2794,
    "glyphFragments": [
     "Gold +3 Veilward"
@@ -6092,10 +6134,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 79,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 60,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.675,
+    "wrPlus5": 0.675,
+    "avgSec": 90.1,
+    "d": 3.5587
    }
   },
   {
@@ -6106,63 +6152,63 @@
      {
       "key": "grundle",
       "lvl": 46,
-      "hpMul": 69.6856,
-      "dmgMul": 31.0985
+      "hpMul": 210.0254,
+      "dmgMul": 67.3178
      },
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 69.6856,
-      "dmgMul": 31.0985
+      "hpMul": 210.0254,
+      "dmgMul": 67.3178
      },
      {
       "key": "saltglass siren",
       "lvl": 46,
-      "hpMul": 69.6856,
-      "dmgMul": 25.4986
+      "hpMul": 210.0254,
+      "dmgMul": 55.1959
      },
      {
       "key": "bitwraith",
       "lvl": 46,
-      "hpMul": 69.6856,
-      "dmgMul": 24.8788
+      "hpMul": 210.0254,
+      "dmgMul": 53.8542
      }
     ],
     [
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 81.0241,
-      "dmgMul": 36.1616
+      "hpMul": 244.1985,
+      "dmgMul": 78.2777
      },
      {
       "key": "rustclank",
       "lvl": 46,
-      "hpMul": 81.0241,
-      "dmgMul": 36.1616
+      "hpMul": 244.1985,
+      "dmgMul": 78.2777
      },
      {
       "key": "saltglass siren",
       "lvl": 46,
-      "hpMul": 81.0241,
-      "dmgMul": 29.65
+      "hpMul": 244.1985,
+      "dmgMul": 64.1822
      },
      {
       "key": "bitwraith",
       "lvl": 46,
-      "hpMul": 81.0241,
-      "dmgMul": 28.9293
+      "hpMul": 244.1985,
+      "dmgMul": 62.6222
      },
      {
       "key": "grundle",
       "lvl": 46,
-      "hpMul": 81.0241,
-      "dmgMul": 36.1616
+      "hpMul": 244.1985,
+      "dmgMul": 78.2777
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 12142,
+   "recommendedPower": 258688,
    "dust": 2976,
    "glyphFragments": [
     "Gold +3 Ravager"
@@ -6173,10 +6219,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 80,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 62,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.575,
+    "wrPlus5": 0.675,
+    "avgSec": 96.4,
+    "d": 3.0139
    }
   },
   {
@@ -6187,58 +6237,58 @@
      {
       "key": "grundle",
       "lvl": 47,
-      "hpMul": 7.2618,
-      "dmgMul": 6.7854
+      "hpMul": 74.029,
+      "dmgMul": 34.4688
      },
      {
       "key": "bitwraith",
       "lvl": 47,
-      "hpMul": 7.2618,
-      "dmgMul": 6.7854
+      "hpMul": 74.029,
+      "dmgMul": 34.4688
      },
      {
       "key": "rustclank",
       "lvl": 47,
-      "hpMul": 7.2618,
-      "dmgMul": 6.7854
+      "hpMul": 74.029,
+      "dmgMul": 34.4688
      },
      {
       "key": "bonepike guard",
       "lvl": 47,
-      "hpMul": 7.2618,
-      "dmgMul": 6.7854
+      "hpMul": 74.029,
+      "dmgMul": 34.4688
      }
     ],
     [
      {
       "key": "rustclank",
       "lvl": 47,
-      "hpMul": 10.8926,
-      "dmgMul": 8.4824
+      "hpMul": 111.0424,
+      "dmgMul": 43.0893
      },
      {
       "key": "bonepike guard",
       "lvl": 47,
-      "hpMul": 10.8926,
-      "dmgMul": 8.4824
+      "hpMul": 111.0424,
+      "dmgMul": 43.0893
      },
      {
       "key": "runic automaton",
       "lvl": 47,
-      "hpMul": 10.8926,
-      "dmgMul": 8.4824
+      "hpMul": 111.0424,
+      "dmgMul": 43.0893
      },
      {
       "key": "clockwork lantern",
       "lvl": 47,
-      "hpMul": 10.8926,
-      "dmgMul": 8.4824
+      "hpMul": 111.0424,
+      "dmgMul": 43.0893
      },
      {
       "key": "maelvara",
       "lvl": 50,
-      "hpMul": 70.4841,
-      "dmgMul": 7.7893,
+      "hpMul": 718.5361,
+      "dmgMul": 39.5684,
       "boss": true
      }
     ]
@@ -6249,7 +6299,7 @@
     "ascended": true,
     "gatekeeper": false
    },
-   "recommendedPower": 20268,
+   "recommendedPower": 263369,
    "dust": 3169,
    "glyphFragments": [
     "Gold +3 Starfire",
@@ -6261,10 +6311,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 81,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 64,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.725,
+    "wrPlus5": 0.75,
+    "avgSec": 129.9,
+    "d": 10.1943
    }
   },
   {
@@ -6275,63 +6329,63 @@
      {
       "key": "riftling spider",
       "lvl": 48,
-      "hpMul": 56.4973,
-      "dmgMul": 22.8493
+      "hpMul": 179.9721,
+      "dmgMul": 51.4159
      },
      {
       "key": "grundle",
       "lvl": 48,
-      "hpMul": 56.4973,
-      "dmgMul": 27.0408
+      "hpMul": 179.9721,
+      "dmgMul": 60.8477
      },
      {
       "key": "runic automaton",
       "lvl": 48,
-      "hpMul": 56.4973,
-      "dmgMul": 27.0408
+      "hpMul": 179.9721,
+      "dmgMul": 60.8477
      },
      {
       "key": "clockwork lantern",
       "lvl": 48,
-      "hpMul": 56.4973,
-      "dmgMul": 27.0408
+      "hpMul": 179.9721,
+      "dmgMul": 60.8477
      }
     ],
     [
      {
       "key": "clockwork lantern",
       "lvl": 48,
-      "hpMul": 65.6985,
-      "dmgMul": 31.4425
+      "hpMul": 209.2826,
+      "dmgMul": 70.7524
      },
      {
       "key": "grundle",
       "lvl": 48,
-      "hpMul": 65.6985,
-      "dmgMul": 31.4425
+      "hpMul": 209.2826,
+      "dmgMul": 70.7524
      },
      {
       "key": "riftling spider",
       "lvl": 48,
-      "hpMul": 65.6985,
-      "dmgMul": 26.5687
+      "hpMul": 209.2826,
+      "dmgMul": 59.7853
      },
      {
       "key": "bitwraith",
       "lvl": 48,
-      "hpMul": 65.6985,
-      "dmgMul": 27.6186
+      "hpMul": 209.2826,
+      "dmgMul": 62.1478
      },
      {
       "key": "runic automaton",
       "lvl": 48,
-      "hpMul": 65.6985,
-      "dmgMul": 31.4425
+      "hpMul": 209.2826,
+      "dmgMul": 70.7524
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 12734,
+   "recommendedPower": 258688,
    "dust": 3375,
    "glyphFragments": [
     "Gold +3 Hawkeye"
@@ -6342,10 +6396,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 82,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 62,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.575,
+    "wrPlus5": 0.7,
+    "avgSec": 86.7,
+    "d": 3.1855
    }
   },
   {
@@ -6356,63 +6414,63 @@
      {
       "key": "grundle",
       "lvl": 48,
-      "hpMul": 60.1849,
-      "dmgMul": 28.3603
+      "hpMul": 252.8969,
+      "dmgMul": 77.4694
      },
      {
       "key": "clockwork lantern",
       "lvl": 48,
-      "hpMul": 60.1849,
-      "dmgMul": 28.3603
+      "hpMul": 252.8969,
+      "dmgMul": 77.4694
      },
      {
       "key": "bitwraith",
       "lvl": 48,
-      "hpMul": 60.1849,
-      "dmgMul": 28.3603
+      "hpMul": 252.8969,
+      "dmgMul": 77.4694
      },
      {
       "key": "rustclank",
       "lvl": 48,
-      "hpMul": 60.1849,
-      "dmgMul": 28.3603
+      "hpMul": 252.8969,
+      "dmgMul": 77.4694
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 48,
-      "hpMul": 69.987,
-      "dmgMul": 28.7426
+      "hpMul": 294.0854,
+      "dmgMul": 78.5137
      },
      {
       "key": "rustclank",
       "lvl": 48,
-      "hpMul": 69.987,
-      "dmgMul": 32.9793
+      "hpMul": 294.0854,
+      "dmgMul": 90.0867
      },
      {
       "key": "riftling spider",
       "lvl": 48,
-      "hpMul": 69.987,
-      "dmgMul": 14.0702
+      "hpMul": 294.0854,
+      "dmgMul": 38.4343
      },
      {
       "key": "bonepike guard",
       "lvl": 48,
-      "hpMul": 69.987,
-      "dmgMul": 32.9793
+      "hpMul": 294.0854,
+      "dmgMul": 90.0867
      },
      {
       "key": "grundle",
       "lvl": 48,
-      "hpMul": 69.987,
-      "dmgMul": 32.9793
+      "hpMul": 294.0854,
+      "dmgMul": 90.0867
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 13155,
+   "recommendedPower": 261022,
    "dust": 3594,
    "glyphFragments": [
     "Gold +3 Lifebloom"
@@ -6423,10 +6481,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 83,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 63,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.4,
+    "wrPlus5": 0.5,
+    "avgSec": 111.5,
+    "d": 4.202
    }
   },
   {
@@ -6437,63 +6499,63 @@
      {
       "key": "rustclank",
       "lvl": 49,
-      "hpMul": 79.4658,
-      "dmgMul": 34.571
+      "hpMul": 315.9242,
+      "dmgMul": 90.8435
      },
      {
       "key": "saltglass siren",
       "lvl": 49,
-      "hpMul": 79.4658,
-      "dmgMul": 34.571
+      "hpMul": 315.9242,
+      "dmgMul": 90.8435
      },
      {
       "key": "runic automaton",
       "lvl": 49,
-      "hpMul": 79.4658,
-      "dmgMul": 15.0861
+      "hpMul": 315.9242,
+      "dmgMul": 39.6423
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 79.4658,
-      "dmgMul": 18.5247
+      "hpMul": 315.9242,
+      "dmgMul": 48.678
      }
     ],
     [
      {
       "key": "bonepike guard",
       "lvl": 49,
-      "hpMul": 92.4051,
-      "dmgMul": 32.5795
+      "hpMul": 367.3657,
+      "dmgMul": 85.6104
      },
      {
       "key": "bitwraith",
       "lvl": 49,
-      "hpMul": 92.4051,
-      "dmgMul": 11.6118
+      "hpMul": 367.3657,
+      "dmgMul": 30.5128
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 92.4051,
-      "dmgMul": 21.5401
+      "hpMul": 367.3657,
+      "dmgMul": 56.6017
      },
      {
       "key": "grundle",
       "lvl": 49,
-      "hpMul": 92.4051,
-      "dmgMul": 40.1985
+      "hpMul": 367.3657,
+      "dmgMul": 105.6311
      },
      {
       "key": "runic automaton",
       "lvl": 49,
-      "hpMul": 92.4051,
-      "dmgMul": 17.5417
+      "hpMul": 367.3657,
+      "dmgMul": 46.095
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 13138,
+   "recommendedPower": 263369,
    "dust": 3828,
    "glyphFragments": [
     "Gold +3 Bastion"
@@ -6504,10 +6566,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 84,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 64,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.225,
+    "wr100": 0.575,
+    "wrPlus5": 0.75,
+    "avgSec": 114.1,
+    "d": 3.9756
    }
   },
   {
@@ -6518,63 +6584,63 @@
      {
       "key": "bitwraith",
       "lvl": 49,
-      "hpMul": 68.284,
-      "dmgMul": 31.1879
+      "hpMul": 211.578,
+      "dmgMul": 68.8323
      },
      {
       "key": "riftling spider",
       "lvl": 49,
-      "hpMul": 68.284,
-      "dmgMul": 21.7128
+      "hpMul": 211.578,
+      "dmgMul": 47.9206
      },
      {
       "key": "rustclank",
       "lvl": 49,
-      "hpMul": 68.284,
-      "dmgMul": 31.1879
+      "hpMul": 211.578,
+      "dmgMul": 68.8323
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 68.284,
-      "dmgMul": 31.1879
+      "hpMul": 211.578,
+      "dmgMul": 68.8323
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 49,
-      "hpMul": 79.3995,
-      "dmgMul": 36.2678
+      "hpMul": 246.0194,
+      "dmgMul": 80.0437
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 79.3995,
-      "dmgMul": 36.2678
+      "hpMul": 246.0194,
+      "dmgMul": 80.0437
      },
      {
       "key": "riftling spider",
       "lvl": 49,
-      "hpMul": 79.3995,
-      "dmgMul": 25.2494
+      "hpMul": 246.0194,
+      "dmgMul": 55.7259
      },
      {
       "key": "saltglass siren",
       "lvl": 49,
-      "hpMul": 79.3995,
-      "dmgMul": 22.9304
+      "hpMul": 246.0194,
+      "dmgMul": 50.6078
      },
      {
       "key": "rustclank",
       "lvl": 49,
-      "hpMul": 79.3995,
-      "dmgMul": 36.2678
+      "hpMul": 246.0194,
+      "dmgMul": 80.0437
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 13298,
+   "recommendedPower": 277975,
    "dust": 4077,
    "glyphFragments": [
     "Gold +3 Bloodroot"
@@ -6585,10 +6651,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 85,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 66,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.6,
+    "wrPlus5": 0.8,
+    "avgSec": 94.5,
+    "d": 3.0985
    }
   },
   {
@@ -6599,58 +6669,58 @@
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 8.0115,
-      "dmgMul": 6.8716
+      "hpMul": 73.1065,
+      "dmgMul": 32.3019
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 8.0115,
-      "dmgMul": 6.8716
+      "hpMul": 73.1065,
+      "dmgMul": 32.3019
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 8.0115,
-      "dmgMul": 6.8716
+      "hpMul": 73.1065,
+      "dmgMul": 32.3019
      },
      {
       "key": "rustclank",
       "lvl": 50,
-      "hpMul": 8.0115,
-      "dmgMul": 6.8716
+      "hpMul": 73.1065,
+      "dmgMul": 32.3019
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 12.0174,
-      "dmgMul": 8.59
+      "hpMul": 109.6612,
+      "dmgMul": 40.3797
      },
      {
       "key": "bitwraith",
       "lvl": 50,
-      "hpMul": 12.0174,
-      "dmgMul": 8.59
+      "hpMul": 109.6612,
+      "dmgMul": 40.3797
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 12.0174,
-      "dmgMul": 8.59
+      "hpMul": 109.6612,
+      "dmgMul": 40.3797
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 12.0174,
-      "dmgMul": 8.59
+      "hpMul": 109.6612,
+      "dmgMul": 40.3797
      },
      {
       "key": "orryx",
       "lvl": 53,
-      "hpMul": 77.7604,
-      "dmgMul": 6.82,
+      "hpMul": 709.5792,
+      "dmgMul": 32.0593,
       "boss": true
      }
     ]
@@ -6661,7 +6731,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 35459,
+   "recommendedPower": 282666,
    "dust": 4342,
    "glyphFragments": [
     "Gold +3 Dawnshield",
@@ -6673,11 +6743,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 86,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.339
+    "level": 68,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.575,
+    "wrPlus5": 0.875,
+    "avgSec": 121.9,
+    "d": 9.1252
    }
   },
   {
