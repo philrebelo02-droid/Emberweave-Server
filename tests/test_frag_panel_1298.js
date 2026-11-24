@@ -21,7 +21,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const me = (await call('/api/register', { name: 'fragTester', pass: 'password1' })).data;
     await call('/api/ledger', null, me.token); await call('/api/bonus/state', null, me.token); await delay(500); await stop();
     { const db = JSON.parse(fs.readFileSync(dbFile, 'utf8')), now = Date.now(), u = db.users[me.profile.id];
-      u.led.bonus = { done: { '1-3': { stars: 3, at: now }, '2-6': { stars: 3, at: now } }, ts: now - 5.5 * 3600000, att: null };
+      u.led.bonus = { done: { '1-3': { stars: 3, at: now - 6 * 3600000 }, '2-6': { stars: 3, at: now - 6 * 3600000 } }, ts: now - 5.5 * 3600000, att: null };   /* v1442 (B3): a stage earns from its own clear time - both were cleared before the pot clock */
       fs.writeFileSync(dbFile, JSON.stringify(db)); }
     await start();
     const st0 = (await call('/api/bonus/state', null, me.token)).data;
