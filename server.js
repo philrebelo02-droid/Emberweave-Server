@@ -11508,8 +11508,9 @@ async function api(req,res,url){
     /* v1453 (Phil 25 Nov 2026: "why would the bosses be that tanky" / "2 attacks a day" / "just raise its spell power"): measured
        again with the bosses' spells (raidSpellMul), the lower hide (10,000) and the RIGHT boss per tier (20 bosses - the v1450 sizing
        cycled 16): health = 120 attacks (20 members x 2 a day x 3 days) of an 85%-built squad 15 levels above the boss (tier 1 = level 30,
-       capped at 90), each tier at least 2% above the one before so the climb never dips. Tier 1 2.69M (was 1.85M). */
-    const RAID_HP=[2690000,2740000,2790000,2850000,2980000,3040000,3100000,3160000,3220000,3470000,4630000,5360000,5470000,5580000,6070000,6190000,6380000,6510000,7720000,7870000,8030000,8190000,8350000,8920000,9800000,10000000,10640000,10850000,11070000,11290000,11520000,11750000,13530000,13800000,14080000,14360000,14650000,14940000,15240000,15540000];
+       capped at 90), each tier at least 2% above the one before so the climb never dips; 5 heroes + 5 substitutes, spells x1.2 (a level 30
+       squad loses ~2-7 heroes an attack). Tier 1 2.77M (was 1.85M). */
+    const RAID_HP=[2770000,2830000,2890000,2950000,3060000,3120000,3180000,3240000,3300000,3700000,4630000,4880000,6170000,6290000,6420000,6550000,6680000,6810000,7640000,7790000,7950000,8110000,8270000,8840000,9660000,9850000,10710000,10920000,11140000,11360000,11590000,11820000,12060000,13640000,14310000,14600000,14890000,15190000,15490000,15800000];
     /* v1450 (Phil 25 Nov: "Guild raid is 90 seconds" / "guild raid boss 1 shouldn't be killable by a guild pre 20 pretty much. But
        level 30s maybe would be fine for 3 days" / "Basically should take an average geared guild of 20 players 3 days to kill raid
        boss 1" / "And climb from there"). RAID_HP is MEASURED for 90 s assaults: tier t is sized for an average-geared (85% build)
@@ -11525,9 +11526,11 @@ async function api(req,res,url){
        his spells hit harder (his basic attacks are unchanged). Measured on boss 1 (x30): a level 20 squad ends a 90 s attack at ~21% health,
        a level 30 squad at ~56%, a level 73 squad at ~97%. The bosses' kits differ ~3x in spell danger, so each boss has his own
        multiplier, measured so a level 30 squad against him at level 15 ends at about that same 56% (Magmourn and Maelvara already
-       cast hard; Sylphice's spells barely land). */
-    const RAID_SPELL_MUL={'wintercrag':30,'magmourn':10,'voraxis':42,'grommash':45,'leviath':13,'vharok':39,'nerissa':25,'barrowmaw':26,'asterion':32,'maelvara':12,'brukk':22,'nymira':23,'irix':19,'hourglass sentinel':42,'sylphice':100,'miregor':25,'sable vesper':8,'orryx':16,'thorneveil':48,'nameless admiral':32};
-    const raidSpellMul=key=>RAID_SPELL_MUL[key]||30;
+       cast hard; Sylphice's spells barely land). Then x1.2 on every boss (Phil 25 Nov: "if no one dies from a level 1 boss it means
+       its not doing enough damage"): a level 30 squad of 5 + 5 substitutes now loses ~3.4 heroes an attack on boss 1 (was ~1.1) and
+       its substitutes come in; a level 73 squad still loses none. */
+    const RAID_SPELL_MUL={'wintercrag':36,'magmourn':12,'voraxis':50,'grommash':54,'leviath':16,'vharok':47,'nerissa':30,'barrowmaw':31,'asterion':38,'maelvara':14,'brukk':26,'nymira':28,'irix':23,'hourglass sentinel':50,'sylphice':120,'miregor':30,'sable vesper':10,'orryx':19,'thorneveil':58,'nameless admiral':38};
+    const raidSpellMul=key=>RAID_SPELL_MUL[key]||36;
     /* v670 (Phil): the boss's own level is 15 at tier 1 and climbs by 4 a tier, stopping at 65. */
     /* v670 (Phil) — THE LADDER.
          Tiers 1-20  : the twenty bosses. Level 15 at tier 1, +4 a tier, stopping at 65.

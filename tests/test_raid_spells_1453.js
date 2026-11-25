@@ -46,7 +46,7 @@ ok(/if\(\+m\.spellMul>0\) u\._spellMul=\+m\.spellMul;/.test(html), 'campEnemyUni
 ok((html.match(/spellMul:\(\+B\.spellMul>0\?\+B\.spellMul:1\)\}\]\],/g) || []).length === 2, 'the live raid fight and the headless replay both pass spellMul to the boss');
 ok((srv.match(/spellMul:raidSpellMul\((open\.bossKey|bb\.key|a\.bossKey)\)\}/g) || []).length === 3, 'the server sends spellMul with all three raid boss specs (fight start, rejoin, replay check)');
 { const m = srv.match(/const RAID_SPELL_MUL=(\{[^}]*\});/); let M = null; try { M = m && (new Function('return ' + m[1]))(); } catch (e) {}
-  ok(!!M && Object.keys(M).length === 20 && M.wintercrag === 30 && Object.values(M).every(v => v >= 5 && v <= 100), 'every one of the 20 raid bosses has his own spell power (boss 1 x30, all between x5 and x100)'); }
+  ok(!!M && Object.keys(M).length === 20 && M.wintercrag === 36 && Object.values(M).every(v => v >= 5 && v <= 150), 'every one of the 20 raid bosses has his own spell power (boss 1 x36, all between x5 and x150)'); }
 ok(/const bossHide=lvl=>Math\.round\(10000\*Math\.pow\(1\.12,\(lvl\|\|1\)-1\)\);/.test(srv), 'the hide is lowered to a third (10,000 at boss 1), not removed');
 ok(/const RAID_ATT=2;/.test(srv), '2 raid attempts a day');
 
