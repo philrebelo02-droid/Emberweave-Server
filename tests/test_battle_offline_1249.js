@@ -19,5 +19,5 @@ const RE=eval(m[1]);
 for(const r of ['/api/campaign/resolve','/api/bonus/resolve','/api/dungeon/resolve-battle','/api/elite/resolve','/api/province/resolve','/api/tower/ascend','/api/tower/tribute','/api/trial/resolve','/api/well/resolve','/api/arena/result','/api/emberdraft/result','/api/emberdraft/round','/api/guild/raid/resolve','/api/guild/war/attack','/api/world/mine/resolve','/api/world/siege/resolve','/api/pvp/attack','/api/pvp/attack-report'])
   ok(RE.test(r),'battle route waits for the server: '+r);
 ok(!RE.test('/api/tx/spend')&&!RE.test('/api/guild/chat'),'non-battle routes are not held');
-ok(/async function api\(path,method,bodyObj\)\{ const r=await _apiRaw\(path,method,bodyObj\);\s*if\(method==='POST'&&bodyObj&&bodyObj\.requestId&&BATTLE_RESULT_ROUTES\.test/.test(html),'api() waits only for a POST with a requestId on a battle route');
+ok(/async function api\(path,method,bodyObj\)\{ let r=await _apiRaw\(path,method,bodyObj\);\s*if\(method==='POST'&&bodyObj&&bodyObj\.requestId&&BATTLE_RESULT_ROUTES\.test/.test(html),'api() waits only for a POST with a requestId on a battle route (v1452: r is let - a result then re-reads glyph state)');
 console.log('test_battle_offline_1249.js: '+pass+' checks passed, 0 failed');
