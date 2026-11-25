@@ -95,7 +95,8 @@
      "scale": 0.6,
      "why": "Ember's 7 sim bots lost floor 1 at levels 10-13 every time (the old bots first won it at 14-15), so no Grey gear before 14; tuned on realboard-v364, its HP sat above floor 2 (x9.9 vs x7.1). Phil: \"At level 10 I would enter dungeon and attempt to get my first grey equipment\" / \"they are level 10+ with no equipment\""
     }
-   ]
+   ],
+   "recommendedPowerGate": 22714
   },
   {
    "floor": 2,
@@ -180,7 +181,8 @@
     "wrPlus5": 0.7,
     "avgSec": 80.7,
     "d": 4.4413
-   }
+   },
+   "recommendedPowerGate": 23424
   },
   {
    "floor": 3,
@@ -265,7 +267,8 @@
     "wrPlus5": 0.75,
     "avgSec": 82.7,
     "d": 4.4413
-   }
+   },
+   "recommendedPowerGate": 24130
   },
   {
    "floor": 4,
@@ -350,7 +353,8 @@
     "wrPlus5": 0.8,
     "avgSec": 71.0,
     "d": 2.6241
-   }
+   },
+   "recommendedPowerGate": 24130
   },
   {
    "floor": 5,
@@ -442,7 +446,8 @@
     "wrPlus5": 1.0,
     "avgSec": 66.9,
     "d": 2.4149
-   }
+   },
+   "recommendedPowerGate": 27200
   },
   {
    "floor": 6,
@@ -527,7 +532,8 @@
     "wrPlus5": 0.725,
     "avgSec": 78.0,
     "d": 3.0139
-   }
+   },
+   "recommendedPowerGate": 23424
   },
   {
    "floor": 7,
@@ -612,7 +618,8 @@
     "wrPlus5": 0.85,
     "avgSec": 73.7,
     "d": 2.1616
-   }
+   },
+   "recommendedPowerGate": 24130
   },
   {
    "floor": 8,
@@ -697,7 +704,8 @@
     "wrPlus5": 0.775,
     "avgSec": 76.4,
     "d": 2.5524
-   }
+   },
+   "recommendedPowerGate": 27200
   },
   {
    "floor": 9,
@@ -782,7 +790,8 @@
     "wrPlus5": 0.925,
     "avgSec": 76.0,
     "d": 1.6387
-   }
+   },
+   "recommendedPowerGate": 28591
   },
   {
    "floor": 10,
@@ -875,7 +884,8 @@
     "avgSec": 75,
     "d": 2.404,
     "refit": "N=8 re-confirm 0.150 -> re-fit x0.891 on committed waves (Kimi 25 Nov)"
-   }
+   },
+   "recommendedPowerGate": 29296
   },
   {
    "floor": 11,
@@ -960,7 +970,8 @@
     "wrPlus5": 1.0,
     "avgSec": 52.5,
     "d": 1.2423
-   }
+   },
+   "recommendedPowerGate": 27912
   },
   {
    "floor": 12,
@@ -1045,7 +1056,8 @@
     "wrPlus5": 0.85,
     "avgSec": 72.8,
     "d": 1.313
-   }
+   },
+   "recommendedPowerGate": 28591
   },
   {
    "floor": 13,
@@ -1130,7 +1142,8 @@
     "wrPlus5": 0.7,
     "avgSec": 67.9,
     "d": 1.935
-   }
+   },
+   "recommendedPowerGate": 29296
   },
   {
    "floor": 14,
@@ -1215,7 +1228,8 @@
     "wrPlus5": 0.625,
     "avgSec": 63.7,
     "d": 2.5524
-   }
+   },
+   "recommendedPowerGate": 33497
   },
   {
    "floor": 15,
@@ -1307,7 +1321,8 @@
     "wrPlus5": 0.95,
     "avgSec": 55.9,
     "d": 2.1616
-   }
+   },
+   "recommendedPowerGate": 34193
   },
   {
    "floor": 16,
@@ -1392,7 +1407,8 @@
     "wrPlus5": 0.6,
     "avgSec": 61.2,
     "d": 1.6387
-   }
+   },
+   "recommendedPowerGate": 29995
   },
   {
    "floor": 17,
@@ -1477,7 +1493,8 @@
     "wrPlus5": 0.5,
     "avgSec": 77.1,
     "d": 1.8307
-   }
+   },
+   "recommendedPowerGate": 33497
   },
   {
    "floor": 18,
@@ -1562,7 +1579,8 @@
     "wrPlus5": 0.625,
     "avgSec": 65.4,
     "d": 1.3878
-   }
+   },
+   "recommendedPowerGate": 34193
   },
   {
    "floor": 19,
@@ -1647,7 +1665,8 @@
     "wrPlus5": 0.8,
     "avgSec": 79.3,
     "d": 1.8307
-   }
+   },
+   "recommendedPowerGate": 36412
   },
   {
    "floor": 20,
@@ -1739,7 +1758,8 @@
     "wrPlus5": 0.975,
     "avgSec": 63.3,
     "d": 1.112
-   }
+   },
+   "recommendedPowerGate": 37269
   },
   {
    "floor": 21,
@@ -1824,7 +1844,8 @@
     "wrPlus5": 0.775,
     "avgSec": 86.7,
     "d": 2.1026
-   }
+   },
+   "recommendedPowerGate": 35715
   },
   {
    "floor": 22,
@@ -1909,7 +1930,8 @@
     "wrPlus5": 0.8,
     "avgSec": 71.0,
     "d": 0.8667
-   }
+   },
+   "recommendedPowerGate": 36412
   },
   {
    "floor": 23,
@@ -1994,7 +2016,8 @@
     "wrPlus5": 0.575,
     "avgSec": 85.6,
     "d": 1.2423
-   }
+   },
+   "recommendedPowerGate": 37269
   },
   {
    "floor": 24,
@@ -2079,7 +2102,8 @@
     "wrPlus5": 0.625,
     "avgSec": 77.6,
     "d": 1.3878
-   }
+   },
+   "recommendedPowerGate": 42060
   },
   {
    "floor": 25,
@@ -2171,7 +2195,8 @@
     "wrPlus5": 0.975,
     "avgSec": 100.7,
     "d": 1.2084
-   }
+   },
+   "recommendedPowerGate": 45273
   },
   {
    "floor": 26,
@@ -2256,7 +2281,8 @@
     "wrPlus5": 0.7,
     "avgSec": 77.7,
     "d": 1.0521
-   }
+   },
+   "recommendedPowerGate": 37944
   },
   {
    "floor": 27,
@@ -2341,7 +2367,8 @@
     "wrPlus5": 0.575,
     "avgSec": 77.5,
     "d": 1.1754
-   }
+   },
+   "recommendedPowerGate": 42060
   },
   {
    "floor": 28,
@@ -2434,7 +2461,8 @@
      "scale": 0.85,
      "why": "Ember's WALL WATCH, 7 Oct night: all 7 sim bots stopped at Vault 28-30 (levels 42-46, floors tuned for 36-38 at a 35% win target), so no Blue +2 ore (floor 31+) and every hero's gear stopped at Blue; floor 28's HP sat 22% above 27's and 29 carried a 1.56x damage cliff. One step easier, the campaign wall step (v1052 x0.85). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
     }
-   ]
+   ],
+   "recommendedPowerGate": 45273
   },
   {
    "floor": 29,
@@ -2527,7 +2555,8 @@
      "scale": 0.85,
      "why": "Ember's WALL WATCH, 7 Oct night: all 7 sim bots stopped at Vault 28-30 (levels 42-46, floors tuned for 36-38 at a 35% win target), so no Blue +2 ore (floor 31+) and every hero's gear stopped at Blue; floor 28's HP sat 22% above 27's and 29 carried a 1.56x damage cliff. One step easier, the campaign wall step (v1052 x0.85). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
     }
-   ]
+   ],
+   "recommendedPowerGate": 46792
   },
   {
    "floor": 30,
@@ -2627,7 +2656,8 @@
      "scale": 0.85,
      "why": "Ember's WALL WATCH, 7 Oct night: all 7 sim bots stopped at Vault 28-30 (levels 42-46, floors tuned for 36-38 at a 35% win target), so no Blue +2 ore (floor 31+) and every hero's gear stopped at Blue; floor 28's HP sat 22% above 27's and 29 carried a 1.56x damage cliff. One step easier, the campaign wall step (v1052 x0.85). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
     }
-   ]
+   ],
+   "recommendedPowerGate": 47567
   },
   {
    "floor": 31,
@@ -2712,7 +2742,8 @@
     "wrPlus5": 0.85,
     "avgSec": 78.2,
     "d": 0.843
-   }
+   },
+   "recommendedPowerGate": 46094
   },
   {
    "floor": 32,
@@ -2797,7 +2828,8 @@
     "wrPlus5": 0.725,
     "avgSec": 69.3,
     "d": 1.2423
-   }
+   },
+   "recommendedPowerGate": 46792
   },
   {
    "floor": 33,
@@ -2882,7 +2914,8 @@
     "wrPlus5": 0.825,
     "avgSec": 65.7,
     "d": 1.0521
-   }
+   },
+   "recommendedPowerGate": 47567
   },
   {
    "floor": 34,
@@ -2967,7 +3000,8 @@
     "wrPlus5": 0.775,
     "avgSec": 71.4,
     "d": 1.3878
-   }
+   },
+   "recommendedPowerGate": 55175
   },
   {
    "floor": 35,
@@ -3059,7 +3093,8 @@
     "wrPlus5": 0.95,
     "avgSec": 77.5,
     "d": 0.9954
-   }
+   },
+   "recommendedPowerGate": 56694
   },
   {
    "floor": 36,
@@ -3144,7 +3179,8 @@
     "wrPlus5": 0.8,
     "avgSec": 87.9,
     "d": 1.1754
-   }
+   },
+   "recommendedPowerGate": 55175
   },
   {
    "floor": 37,
@@ -3229,7 +3265,8 @@
     "wrPlus5": 0.775,
     "avgSec": 79.5,
     "d": 1.2423
-   }
+   },
+   "recommendedPowerGate": 55871
   },
   {
    "floor": 38,
@@ -3314,7 +3351,8 @@
     "wrPlus5": 0.8,
     "avgSec": 72.4,
     "d": 1.1754
-   }
+   },
+   "recommendedPowerGate": 56694
   },
   {
    "floor": 39,
@@ -3399,7 +3437,8 @@
     "wrPlus5": 0.875,
     "avgSec": 69.3,
     "d": 0.9954
-   }
+   },
+   "recommendedPowerGate": 61287
   },
   {
    "floor": 40,
@@ -3491,7 +3530,8 @@
     "wrPlus5": 0.95,
     "avgSec": 77.4,
     "d": 1.5081
-   }
+   },
+   "recommendedPowerGate": 67519
   },
   {
    "floor": 41,
@@ -3576,7 +3616,8 @@
     "wrPlus5": 0.9,
     "avgSec": 84.9,
     "d": 0.6755
-   }
+   },
+   "recommendedPowerGate": 61287
   },
   {
    "floor": 42,
@@ -3661,7 +3702,8 @@
     "wrPlus5": 0.9,
     "avgSec": 60.7,
     "d": 0.891
-   }
+   },
+   "recommendedPowerGate": 61967
   },
   {
    "floor": 43,
@@ -3746,7 +3788,8 @@
     "wrPlus5": 0.85,
     "avgSec": 93.7,
     "d": 1.112
-   }
+   },
+   "recommendedPowerGate": 67519
   },
   {
    "floor": 44,
@@ -3839,7 +3882,8 @@
      "scale": 0.85,
      "why": "Ember's Wall Watch (8 Oct 03:31 proposal, re-checked 04:4x): Vault 44 held 5 sim tabs, all 5 still stuck, up to 20.6 game days, 0 of 46, all five audits FULLY UPGRADED at levels 51-54 (floor tuned for 51). A cliff: hpMul 54.15 / dmgMul 22.22 against floor 43's 29.31 / 14.38 and 46's 43.07 / 19.14. One step easier, the wall step (v1052/v1057). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
     }
-   ]
+   ],
+   "recommendedPowerGate": 69124
   },
   {
    "floor": 45,
@@ -3931,7 +3975,8 @@
     "wrPlus5": 0.95,
     "avgSec": 94.0,
     "d": 0.7976
-   }
+   },
+   "recommendedPowerGate": 76723
   },
   {
    "floor": 46,
@@ -4016,7 +4061,8 @@
     "wrPlus5": 0.775,
     "avgSec": 67.6,
     "d": 1.0521
-   }
+   },
+   "recommendedPowerGate": 69124
   },
   {
    "floor": 47,
@@ -4101,7 +4147,8 @@
     "wrPlus5": 0.9,
     "avgSec": 62.3,
     "d": 0.9954
-   }
+   },
+   "recommendedPowerGate": 69822
   },
   {
    "floor": 48,
@@ -4186,7 +4233,8 @@
     "wrPlus5": 0.85,
     "avgSec": 69.3,
     "d": 1.2423
-   }
+   },
+   "recommendedPowerGate": 76723
   },
   {
    "floor": 49,
@@ -4279,7 +4327,8 @@
      "scale": 0.85,
      "why": "Wall Watch 07:1x: Vault 49 - Medium A 0 of 14 over game days 62-76 and Whale A 0 of 3, both audits UPGRADED AS FAR AS IT CAN; Big B (level 58) won it on try 3. A cliff: last wave dmgMul 29.38 against floor 48's 19.87 (+48%) and hpMul 46.21 vs 41.99. One step easier, the wall step (v1052/v1057). Phil 8 Oct: 'reset all of them after you complete changes for balance'."
     }
-   ]
+   ],
+   "recommendedPowerGate": 78452
   },
   {
    "floor": 50,
@@ -4371,7 +4420,8 @@
     "wrPlus5": 0.925,
     "avgSec": 82.6,
     "d": 0.9954
-   }
+   },
+   "recommendedPowerGate": 91540
   },
   {
    "floor": 51,
@@ -4456,7 +4506,8 @@
     "wrPlus5": 0.775,
     "avgSec": 68.3,
     "d": 0.7546
-   }
+   },
+   "recommendedPowerGate": 78452
   },
   {
    "floor": 52,
@@ -4541,7 +4592,8 @@
     "wrPlus5": 0.725,
     "avgSec": 72.8,
     "d": 0.891
-   }
+   },
+   "recommendedPowerGate": 84650
   },
   {
    "floor": 53,
@@ -4626,7 +4678,8 @@
     "wrPlus5": 0.8,
     "avgSec": 71.3,
     "d": 0.843
-   }
+   },
+   "recommendedPowerGate": 91540
   },
   {
    "floor": 54,
@@ -4711,7 +4764,8 @@
     "wrPlus5": 1.0,
     "avgSec": 62.1,
     "d": 0.891
-   }
+   },
+   "recommendedPowerGate": 93241
   },
   {
    "floor": 55,
@@ -4803,7 +4857,8 @@
     "wrPlus5": 1.0,
     "avgSec": 105.1,
     "d": 0.9682
-   }
+   },
+   "recommendedPowerGate": 94846
   },
   {
    "floor": 56,
@@ -4888,7 +4943,8 @@
     "wrPlus5": 1.0,
     "avgSec": 67.8,
     "d": 1.0521
-   }
+   },
+   "recommendedPowerGate": 93241
   },
   {
    "floor": 57,
@@ -4973,7 +5029,8 @@
     "wrPlus5": 1.0,
     "avgSec": 67.0,
     "d": 1.2084
-   }
+   },
+   "recommendedPowerGate": 93956
   },
   {
    "floor": 58,
@@ -5058,7 +5115,8 @@
     "wrPlus5": 1.0,
     "avgSec": 72.6,
     "d": 0.843
-   }
+   },
+   "recommendedPowerGate": 94846
   },
   {
    "floor": 59,
@@ -5143,7 +5201,8 @@
     "wrPlus5": 0.775,
     "avgSec": 88.0,
     "d": 1.5081
-   }
+   },
+   "recommendedPowerGate": 139798
   },
   {
    "floor": 60,
@@ -5235,7 +5294,8 @@
     "wrPlus5": 1.0,
     "avgSec": 110.9,
     "d": 3.7614
-   }
+   },
+   "recommendedPowerGate": 141806
   },
   {
    "floor": 61,
@@ -5320,7 +5380,8 @@
     "wrPlus5": 0.85,
     "avgSec": 80.3,
     "d": 1.7321
-   }
+   },
+   "recommendedPowerGate": 139798
   },
   {
    "floor": 62,
@@ -5405,7 +5466,8 @@
     "wrPlus5": 0.75,
     "avgSec": 91.9,
     "d": 1.8307
-   }
+   },
+   "recommendedPowerGate": 140561
   },
   {
    "floor": 63,
@@ -5490,7 +5552,8 @@
     "wrPlus5": 0.775,
     "avgSec": 82.2,
     "d": 1.4268
-   }
+   },
+   "recommendedPowerGate": 141806
   },
   {
    "floor": 64,
@@ -5575,7 +5638,8 @@
     "wrPlus5": 0.8,
     "avgSec": 81,
     "d": 1.3878
-   }
+   },
+   "recommendedPowerGate": 143692
   },
   {
    "floor": 65,
@@ -5676,7 +5740,8 @@
      "wrPlus5": 1.0,
      "avgSec": 125.9
     }
-   }
+   },
+   "recommendedPowerGate": 145546
   },
   {
    "floor": 66,
@@ -5761,7 +5826,8 @@
     "wrPlus5": 0.8,
     "avgSec": 79.9,
     "d": 1.3878
-   }
+   },
+   "recommendedPowerGate": 143692
   },
   {
    "floor": 67,
@@ -5846,7 +5912,8 @@
     "wrPlus5": 1,
     "avgSec": 72.8,
     "d": 1.112
-   }
+   },
+   "recommendedPowerGate": 144412
   },
   {
    "floor": 68,
@@ -5931,7 +5998,8 @@
     "wrPlus5": 0.975,
     "avgSec": 80.2,
     "d": 1.3499
-   }
+   },
+   "recommendedPowerGate": 145546
   },
   {
    "floor": 69,
@@ -6016,7 +6084,8 @@
     "wrPlus5": 0.9,
     "avgSec": 76.7,
     "d": 1.5081
-   }
+   },
+   "recommendedPowerGate": 155497
   },
   {
    "floor": 70,
@@ -6108,7 +6177,8 @@
     "wrPlus5": 0.775,
     "avgSec": 95.4,
     "d": 0.4103
-   }
+   },
+   "recommendedPowerGate": 177522
   },
   {
    "floor": 71,
@@ -6193,7 +6263,8 @@
     "wrPlus5": 1,
     "avgSec": 85.3,
     "d": 1.9893
-   }
+   },
+   "recommendedPowerGate": 155497
   },
   {
    "floor": 72,
@@ -6278,7 +6349,8 @@
     "wrPlus5": 1,
     "avgSec": 87.6,
     "d": 1.935
-   }
+   },
+   "recommendedPowerGate": 156254
   },
   {
    "floor": 73,
@@ -6363,7 +6435,8 @@
     "wrPlus5": 0.675,
     "avgSec": 90.1,
     "d": 3.5587
-   }
+   },
+   "recommendedPowerGate": 177522
   },
   {
    "floor": 74,
@@ -6448,7 +6521,8 @@
     "wrPlus5": 0.675,
     "avgSec": 96.4,
     "d": 3.0139
-   }
+   },
+   "recommendedPowerGate": 179134
   },
   {
    "floor": 75,
@@ -6540,7 +6614,8 @@
     "wrPlus5": 0.775,
     "avgSec": 127.2,
     "d": 0.4584
-   }
+   },
+   "recommendedPowerGate": 180708
   },
   {
    "floor": 76,
@@ -6625,7 +6700,8 @@
     "wrPlus5": 0.7,
     "avgSec": 86.7,
     "d": 3.1855
-   }
+   },
+   "recommendedPowerGate": 179134
   },
   {
    "floor": 77,
@@ -6710,7 +6786,8 @@
     "wrPlus5": 0.5,
     "avgSec": 111.5,
     "d": 4.202
-   }
+   },
+   "recommendedPowerGate": 179902
   },
   {
    "floor": 78,
@@ -6795,7 +6872,8 @@
     "wrPlus5": 0.75,
     "avgSec": 114.1,
     "d": 3.9756
-   }
+   },
+   "recommendedPowerGate": 180708
   },
   {
    "floor": 79,
@@ -6880,7 +6958,8 @@
     "wrPlus5": 0.8,
     "avgSec": 94.5,
     "d": 3.0985
-   }
+   },
+   "recommendedPowerGate": 192130
   },
   {
    "floor": 80,
@@ -6981,7 +7060,8 @@
      "wrPlus5": 0.725,
      "avgSec": 124.3
     }
-   }
+   },
+   "recommendedPowerGate": 193698
   },
   {
    "floor": 81,
@@ -7066,7 +7146,8 @@
     "wrPlus5": 0.8,
     "avgSec": 90.8,
     "d": 3.3669
-   }
+   },
+   "recommendedPowerGate": 192130
   },
   {
    "floor": 82,
@@ -7151,7 +7232,8 @@
     "wrPlus5": 0.8,
     "avgSec": 82.7,
     "d": 2.5524
-   }
+   },
+   "recommendedPowerGate": 192927
   },
   {
    "floor": 83,
@@ -7236,7 +7318,8 @@
     "wrPlus5": 0.875,
     "avgSec": 91.9,
     "d": 2.4149
-   }
+   },
+   "recommendedPowerGate": 193698
   },
   {
    "floor": 84,
@@ -7321,7 +7404,8 @@
     "wrPlus5": 0.775,
     "avgSec": 99.2,
     "d": 3.7614
-   }
+   },
+   "recommendedPowerGate": 210963
   },
   {
    "floor": 85,
@@ -7422,7 +7506,8 @@
      "wrPlus5": 0.75,
      "avgSec": 126.7
     }
-   }
+   },
+   "recommendedPowerGate": 224463
   },
   {
    "floor": 86,
@@ -7507,7 +7592,8 @@
     "wrPlus5": 0.625,
     "avgSec": 82.6,
     "d": 3.275
-   }
+   },
+   "recommendedPowerGate": 210963
   },
   {
    "floor": 87,
@@ -7592,7 +7678,8 @@
     "wrPlus5": 0.675,
     "avgSec": 89.1,
     "d": 2.7736
-   }
+   },
+   "recommendedPowerGate": 211756
   },
   {
    "floor": 88,
@@ -7677,7 +7764,8 @@
     "wrPlus5": 0.675,
     "avgSec": 97.5,
     "d": 3.3669
-   }
+   },
+   "recommendedPowerGate": 224463
   },
   {
    "floor": 89,
@@ -7762,7 +7850,8 @@
     "wrPlus5": 0.725,
     "avgSec": 86.5,
     "d": 3.0985
-   }
+   },
+   "recommendedPowerGate": 226038
   },
   {
    "floor": 90,
@@ -7863,7 +7952,8 @@
      "wrPlus5": 0.875,
      "avgSec": 127.1
     }
-   }
+   },
+   "recommendedPowerGate": 227599
   },
   {
    "floor": 91,
@@ -7948,7 +8038,8 @@
     "wrPlus5": 0.65,
     "avgSec": 132.2,
     "d": 3.275
-   }
+   },
+   "recommendedPowerGate": 226038
   },
   {
    "floor": 92,
@@ -8033,7 +8124,8 @@
     "wrPlus5": 0.9,
     "avgSec": 97.8,
     "d": 3.0139
-   }
+   },
+   "recommendedPowerGate": 226789
   },
   {
    "floor": 93,
@@ -8127,7 +8219,8 @@
      "wrPlus5": 0.8,
      "avgSec": 133.5
     }
-   }
+   },
+   "recommendedPowerGate": 227599
   },
   {
    "floor": 94,
@@ -8212,7 +8305,8 @@
     "wrPlus5": 0.875,
     "avgSec": 113.2,
     "d": 4.202
-   }
+   },
+   "recommendedPowerGate": 229175
   },
   {
    "floor": 95,
@@ -8313,7 +8407,8 @@
      "wrPlus5": 0.65,
      "avgSec": 130.4
     }
-   }
+   },
+   "recommendedPowerGate": 269266
   },
   {
    "floor": 96,
@@ -8398,7 +8493,8 @@
     "wrPlus5": 0.875,
     "avgSec": 114.7,
     "d": 3.7614
-   }
+   },
+   "recommendedPowerGate": 229175
   },
   {
    "floor": 97,
@@ -8483,7 +8579,8 @@
     "wrPlus5": 0.825,
     "avgSec": 95.6,
     "d": 1.0234
-   }
+   },
+   "recommendedPowerGate": 244013
   },
   {
    "floor": 98,
@@ -8568,7 +8665,8 @@
     "wrPlus5": 0.675,
     "avgSec": 119.1,
     "d": 3.6586
-   }
+   },
+   "recommendedPowerGate": 269266
   },
   {
    "floor": 99,
@@ -8653,7 +8751,8 @@
     "wrPlus5": 0.7,
     "avgSec": 99.6,
     "d": 4.202
-   }
+   },
+   "recommendedPowerGate": 271696
   },
   {
    "floor": 100,
@@ -8754,7 +8853,8 @@
      "wrPlus5": 0.725,
      "avgSec": 128.2
     }
-   }
+   },
+   "recommendedPowerGate": 291346
   }
  ]
 }

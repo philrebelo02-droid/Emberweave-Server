@@ -2367,6 +2367,14 @@ const VAULT_HERO_XP_PER_FLOOR=30;
 /* v1399 (Phil 17 Nov: rescale fixed power gates and recommended power "by the average factor" so they feel the same as today): the HP rule (base HP x2, +1000 by Lv 100 for non-Tanks) raises a typical card x1.096 on average (61 heroes, Lv 10-100, stars/gear/glyph board/skills rising with level: x1.13 at Lv 10 .. x1.06 at Lv 100; bare heroes x1.26-1.39), so every fixed gate is x1.096 too: the Vault's card-scale recommendation (the 80% review line) is x1.096 - floor 50: 47793 -> 52381. */
 const VAULT_POWER_SCALE=3.0908*1.096, VAULT_UNDERPOWER_RATIO=0.80;
 function vaultRecommendedCardPower(floor){ try{ return Math.round(((vaultFloorRecord(floor)||{}).recommendedPower||0)*VAULT_POWER_SCALE); }catch(e){ return 0; } }
+/* 25 Nov 2026 (Kimi, Vault re-ramp QA - Claude's pick of the 41d gate fix): the 41d review prices the SQUAD
+   talent-less (vaultReviewSquadPower), so its gate must be a talent-less number too. recommendedPowerGate
+   is authored per floor in vault-encounters.json - the median tuner lineup at the floor's tunedFor.level,
+   priced through heroCardPower(u,k,{noTalents:true}), the exact unit vaultReviewSquadPower sums (generated
+   by herobreak raw/vault_gate_gen.js 25 Nov; the talent-inclusive ladder price lands within ~1% of the
+   encounters recommendedPower, which is the same measurement with talents on). Floors without the field
+   (old attempts, extension floors) fall back to the pre-ramp card-scale formula. */
+function vaultRecommendedGatePower(floor){ try{ const r=vaultFloorRecord(floor)||{}; if(r.recommendedPowerGate>0) return Math.round(r.recommendedPowerGate); }catch(e){} return vaultRecommendedCardPower(floor); }
 /* 14 Nov 2026 (WIRING/41d): `power` is the card (what the review report shows); `gate` is the talent-less card the underpower review
    compares with the authored recommendation (vaultReviewSquadPower), so switching talents on files no more and no fewer reviews by number. */
 function vaultHeroPowerRow(u,k){ const led=ensureLedger(u), h=(led.hero&&led.hero[k])||{}; return { key:k, power:Math.round(cardPower(u,k,true)||0), gate:Math.round(cardPower(u,k,true,NO_TALENTS)||0), xp:h.xp|0, stars:h.stars|0, pips:h.pips|0 }; }
@@ -8338,7 +8346,7 @@ async function api(req,res,url){
             'battle timing');
         const reward=makeFirstClearDungeonReward(a.floor);   // rolls with server RNG; persisted below + in the idempotency record
         grantDungeonReward(me, reward);
-        { const rec=vaultRecommendedCardPower(a.floor), pw=a.power, squad=vaultReviewSquadPower(pw);   /* 41d: talent-less on both sides */
+        { const rec=vaultRecommendedGatePower(a.floor), pw=a.power, squad=vaultReviewSquadPower(pw);   /* 41d: talent-less on both sides; rec is the authored talent-less gate (vaultRecommendedGatePower, 25 Nov 2026) */
           if(rec>0&&squad!=null&&squad<VAULT_UNDERPOWER_RATIO*rec){ const pct=Math.round(100*squad/rec);
             const report={ mode:'vault', floor:a.floor, recommendedPower:rec, squadPower:squad, percentOfRecommended:pct, threshold:Math.round(VAULT_UNDERPOWER_RATIO*100),
               fighters:pw.fighters, backups:pw.backups||[], battleMs:vaultBattleMs, attemptId:a.id, startedAt:a.startedAt, reward:{dust:reward.dust|0, fragments:(reward.fragments||[]).length, gearFragments:(reward.gearFragments||[]).length} };
