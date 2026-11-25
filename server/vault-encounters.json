@@ -5373,58 +5373,58 @@
      {
       "key": "granith",
       "lvl": 41,
-      "hpMul": 73.7924,
-      "dmgMul": 33.135
+      "hpMul": 41.1998,
+      "dmgMul": 28.2837
      },
      {
       "key": "blackquill",
       "lvl": 41,
-      "hpMul": 73.7924,
-      "dmgMul": 33.135
+      "hpMul": 41.1998,
+      "dmgMul": 28.2837
      },
      {
       "key": "zephyr harrier",
       "lvl": 41,
-      "hpMul": 73.7924,
-      "dmgMul": 33.135
+      "hpMul": 41.1998,
+      "dmgMul": 28.2837
      },
      {
       "key": "frostjaw troll",
       "lvl": 41,
-      "hpMul": 73.7924,
-      "dmgMul": 33.135
+      "hpMul": 41.1998,
+      "dmgMul": 28.2837
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 41,
-      "hpMul": 110.6854,
-      "dmgMul": 41.4227
+      "hpMul": 61.7979,
+      "dmgMul": 35.358
      },
      {
       "key": "ironjaw raider",
       "lvl": 41,
-      "hpMul": 110.6854,
-      "dmgMul": 41.4227
+      "hpMul": 61.7979,
+      "dmgMul": 35.358
      },
      {
       "key": "granith",
       "lvl": 41,
-      "hpMul": 110.6854,
-      "dmgMul": 41.4227
+      "hpMul": 61.7979,
+      "dmgMul": 35.358
      },
      {
       "key": "zephyr harrier",
       "lvl": 41,
-      "hpMul": 110.6854,
-      "dmgMul": 41.4227
+      "hpMul": 61.7979,
+      "dmgMul": 35.358
      },
      {
       "key": "vharok",
       "lvl": 44,
-      "hpMul": 716.2055,
-      "dmgMul": 18.4863,
+      "hpMul": 199.9359,
+      "dmgMul": 15.7797,
       "boss": true
      }
     ]
@@ -5450,11 +5450,20 @@
     "level": 56,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.263,
-    "wr100": 0.875,
-    "wrPlus5": 1,
-    "avgSec": 138.4,
-    "d": 8.1683
+    "wr85": 0.287,
+    "wr100": 1.0,
+    "wrPlus5": 1.0,
+    "avgSec": 125.9,
+    "d": 0.7976,
+    "shapeFix": {
+     "hpTrim": 0.7,
+     "bossTrim": 0.5,
+     "d": 0.7976,
+     "wr85": 0.287,
+     "wr100": 1.0,
+     "wrPlus5": 1.0,
+     "avgSec": 125.9
+    }
    }
   },
   {
@@ -5805,58 +5814,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 49.2273,
-      "dmgMul": 36.8004
+      "hpMul": 20.198,
+      "dmgMul": 19.7253
      },
      {
       "key": "granith",
       "lvl": 44,
-      "hpMul": 49.2273,
-      "dmgMul": 36.8004
+      "hpMul": 20.198,
+      "dmgMul": 19.7253
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 49.2273,
-      "dmgMul": 36.8004
+      "hpMul": 20.198,
+      "dmgMul": 19.7253
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 49.2273,
-      "dmgMul": 36.8004
+      "hpMul": 20.198,
+      "dmgMul": 19.7253
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 73.8445,
-      "dmgMul": 45.9995
+      "hpMul": 30.2984,
+      "dmgMul": 24.6561
      },
      {
       "key": "storm eel",
       "lvl": 44,
-      "hpMul": 73.8445,
-      "dmgMul": 45.9995
+      "hpMul": 30.2984,
+      "dmgMul": 24.6561
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 73.8445,
-      "dmgMul": 45.9995
+      "hpMul": 30.2984,
+      "dmgMul": 24.6561
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 73.8445,
-      "dmgMul": 45.9995
+      "hpMul": 30.2984,
+      "dmgMul": 24.6561
      },
      {
       "key": "barrowmaw",
       "lvl": 47,
-      "hpMul": 477.8242,
-      "dmgMul": 73.9848,
+      "hpMul": 196.0513,
+      "dmgMul": 39.6564,
       "boss": true
      }
     ]
@@ -5882,11 +5891,11 @@
     "level": 60,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.237,
-    "wr100": 0.5,
-    "wrPlus5": 0.675,
-    "avgSec": 92.8,
-    "d": 10.1943
+    "wr85": 0.325,
+    "wr100": 0.7,
+    "wrPlus5": 0.775,
+    "avgSec": 95.4,
+    "d": 0.4103
    }
   },
   {
@@ -6237,58 +6246,58 @@
      {
       "key": "grundle",
       "lvl": 47,
-      "hpMul": 74.029,
-      "dmgMul": 34.4688
+      "hpMul": 33.9349,
+      "dmgMul": 19.9663
      },
      {
       "key": "bitwraith",
       "lvl": 47,
-      "hpMul": 74.029,
-      "dmgMul": 34.4688
+      "hpMul": 33.9349,
+      "dmgMul": 19.9663
      },
      {
       "key": "rustclank",
       "lvl": 47,
-      "hpMul": 74.029,
-      "dmgMul": 34.4688
+      "hpMul": 33.9349,
+      "dmgMul": 19.9663
      },
      {
       "key": "bonepike guard",
       "lvl": 47,
-      "hpMul": 74.029,
-      "dmgMul": 34.4688
+      "hpMul": 33.9349,
+      "dmgMul": 19.9663
      }
     ],
     [
      {
       "key": "rustclank",
       "lvl": 47,
-      "hpMul": 111.0424,
-      "dmgMul": 43.0893
+      "hpMul": 50.9018,
+      "dmgMul": 24.9598
      },
      {
       "key": "bonepike guard",
       "lvl": 47,
-      "hpMul": 111.0424,
-      "dmgMul": 43.0893
+      "hpMul": 50.9018,
+      "dmgMul": 24.9598
      },
      {
       "key": "runic automaton",
       "lvl": 47,
-      "hpMul": 111.0424,
-      "dmgMul": 43.0893
+      "hpMul": 50.9018,
+      "dmgMul": 24.9598
      },
      {
       "key": "clockwork lantern",
       "lvl": 47,
-      "hpMul": 111.0424,
-      "dmgMul": 43.0893
+      "hpMul": 50.9018,
+      "dmgMul": 24.9598
      },
      {
       "key": "maelvara",
       "lvl": 50,
-      "hpMul": 718.5361,
-      "dmgMul": 39.5684,
+      "hpMul": 329.3769,
+      "dmgMul": 22.9203,
       "boss": true
      }
     ]
@@ -6314,11 +6323,11 @@
     "level": 64,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.325,
-    "wr100": 0.725,
-    "wrPlus5": 0.75,
-    "avgSec": 129.9,
-    "d": 10.1943
+    "wr85": 0.313,
+    "wr100": 0.775,
+    "wrPlus5": 0.775,
+    "avgSec": 127.2,
+    "d": 0.4584
    }
   },
   {
@@ -6669,58 +6678,58 @@
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 73.1065,
-      "dmgMul": 32.3019
+      "hpMul": 31.7063,
+      "dmgMul": 17.9995
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 73.1065,
-      "dmgMul": 32.3019
+      "hpMul": 31.7063,
+      "dmgMul": 17.9995
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 73.1065,
-      "dmgMul": 32.3019
+      "hpMul": 31.7063,
+      "dmgMul": 17.9995
      },
      {
       "key": "rustclank",
       "lvl": 50,
-      "hpMul": 73.1065,
-      "dmgMul": 32.3019
+      "hpMul": 31.7063,
+      "dmgMul": 17.9995
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 109.6612,
-      "dmgMul": 40.3797
+      "hpMul": 47.5601,
+      "dmgMul": 22.5007
      },
      {
       "key": "bitwraith",
       "lvl": 50,
-      "hpMul": 109.6612,
-      "dmgMul": 40.3797
+      "hpMul": 47.5601,
+      "dmgMul": 22.5007
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 109.6612,
-      "dmgMul": 40.3797
+      "hpMul": 47.5601,
+      "dmgMul": 22.5007
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 109.6612,
-      "dmgMul": 40.3797
+      "hpMul": 47.5601,
+      "dmgMul": 22.5007
      },
      {
       "key": "orryx",
       "lvl": 53,
-      "hpMul": 709.5792,
-      "dmgMul": 32.0593,
+      "hpMul": 307.7445,
+      "dmgMul": 17.8643,
       "boss": true
      }
     ]
@@ -6746,11 +6755,11 @@
     "level": 68,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.3,
-    "wr100": 0.575,
-    "wrPlus5": 0.875,
-    "avgSec": 121.9,
-    "d": 9.1252
+    "wr85": 0.35,
+    "wr100": 0.7,
+    "wrPlus5": 0.7,
+    "avgSec": 129.8,
+    "d": 0.4337
    }
   },
   {
@@ -7101,58 +7110,58 @@
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 138.6507,
-      "dmgMul": 55.2737
+      "hpMul": 93.9691,
+      "dmgMul": 54.0374
      },
      {
       "key": "nightgloom",
       "lvl": 53,
-      "hpMul": 138.6507,
-      "dmgMul": 55.2737
+      "hpMul": 93.9691,
+      "dmgMul": 54.0374
      },
      {
       "key": "lost soul",
       "lvl": 53,
-      "hpMul": 138.6507,
-      "dmgMul": 55.2737
+      "hpMul": 93.9691,
+      "dmgMul": 54.0374
      },
      {
       "key": "mourn moth",
       "lvl": 53,
-      "hpMul": 138.6507,
-      "dmgMul": 55.2737
+      "hpMul": 93.9691,
+      "dmgMul": 54.0374
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 207.9767,
-      "dmgMul": 69.1008
+      "hpMul": 140.9541,
+      "dmgMul": 67.5552
      },
      {
       "key": "nightgloom",
       "lvl": 53,
-      "hpMul": 207.9767,
-      "dmgMul": 69.1008
+      "hpMul": 140.9541,
+      "dmgMul": 67.5552
      },
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 207.9767,
-      "dmgMul": 69.1008
+      "hpMul": 140.9541,
+      "dmgMul": 67.5552
      },
      {
       "key": "nightgloom",
       "lvl": 53,
-      "hpMul": 207.9767,
-      "dmgMul": 69.1008
+      "hpMul": 140.9541,
+      "dmgMul": 67.5552
      },
      {
       "key": "hourglass sentinel",
       "lvl": 56,
-      "hpMul": 1345.6698,
-      "dmgMul": 35.7282,
+      "hpMul": 319.205,
+      "dmgMul": 34.929,
       "boss": true
      }
     ]
@@ -7178,11 +7187,20 @@
     "level": 72,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.287,
-    "wr100": 0.5,
-    "wrPlus5": 0.6,
-    "avgSec": 141,
-    "d": 12.7227
+    "wr85": 0.325,
+    "wr100": 0.65,
+    "wrPlus5": 0.75,
+    "avgSec": 126.7,
+    "d": 0.9682,
+    "shapeFix": {
+     "hpTrim": 0.7,
+     "bossTrim": 0.35,
+     "d": 0.9682,
+     "wr85": 0.325,
+     "wr100": 0.65,
+     "wrPlus5": 0.75,
+     "avgSec": 126.7
+    }
    }
   },
   {
@@ -7533,58 +7551,58 @@
      {
       "key": "nightgloom",
       "lvl": 56,
-      "hpMul": 118.1511,
-      "dmgMul": 57.2302
+      "hpMul": 89.4546,
+      "dmgMul": 60.4605
      },
      {
       "key": "lost soul",
       "lvl": 56,
-      "hpMul": 118.1511,
-      "dmgMul": 57.2302
+      "hpMul": 89.4546,
+      "dmgMul": 60.4605
      },
      {
       "key": "nightcap mimic",
       "lvl": 56,
-      "hpMul": 118.1511,
-      "dmgMul": 57.2302
+      "hpMul": 89.4546,
+      "dmgMul": 60.4605
      },
      {
       "key": "reef prowler",
       "lvl": 56,
-      "hpMul": 118.1511,
-      "dmgMul": 57.2302
+      "hpMul": 89.4546,
+      "dmgMul": 60.4605
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 56,
-      "hpMul": 177.2285,
-      "dmgMul": 71.5421
+      "hpMul": 134.1832,
+      "dmgMul": 75.5803
      },
      {
       "key": "kelp hexer",
       "lvl": 56,
-      "hpMul": 177.2285,
-      "dmgMul": 71.5421
+      "hpMul": 134.1832,
+      "dmgMul": 75.5803
      },
      {
       "key": "nightgloom",
       "lvl": 56,
-      "hpMul": 177.2285,
-      "dmgMul": 71.5421
+      "hpMul": 134.1832,
+      "dmgMul": 75.5803
      },
      {
       "key": "nightgloom",
       "lvl": 56,
-      "hpMul": 177.2285,
-      "dmgMul": 71.5421
+      "hpMul": 134.1832,
+      "dmgMul": 75.5803
      },
      {
       "key": "nameless admiral",
       "lvl": 59,
-      "hpMul": 1146.7564,
-      "dmgMul": 15.0765,
+      "hpMul": 303.8813,
+      "dmgMul": 15.9275,
       "boss": true
      }
     ]
@@ -7610,11 +7628,20 @@
     "level": 76,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.25,
-    "wr100": 0.525,
+    "wr85": 0.237,
+    "wr100": 0.6,
     "wrPlus5": 0.875,
-    "avgSec": 140.5,
-    "d": 12.0372
+    "avgSec": 127.1,
+    "d": 1.0816,
+    "shapeFix": {
+     "hpTrim": 0.7,
+     "bossTrim": 0.35,
+     "d": 1.0816,
+     "wr85": 0.237,
+     "wr100": 0.6,
+     "wrPlus5": 0.875,
+     "avgSec": 127.1
+    }
    }
   },
   {
@@ -7795,58 +7822,58 @@
      {
       "key": "ironjaw raider",
       "lvl": 58,
-      "hpMul": 408.7306,
-      "dmgMul": 66.7556
+      "hpMul": 375.7706,
+      "dmgMul": 70.5236
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 408.7306,
-      "dmgMul": 20.1378
+      "hpMul": 375.7706,
+      "dmgMul": 21.2745
      },
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 408.7306,
-      "dmgMul": 13.9575
+      "hpMul": 375.7706,
+      "dmgMul": 14.7453
      },
      {
       "key": "basalt mauler",
       "lvl": 58,
-      "hpMul": 408.7306,
-      "dmgMul": 84.6638
+      "hpMul": 375.7706,
+      "dmgMul": 89.4426
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 475.3,
-      "dmgMul": 16.2299
+      "hpMul": 436.9718,
+      "dmgMul": 17.146
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 475.3,
-      "dmgMul": 27.0105
+      "hpMul": 436.9718,
+      "dmgMul": 28.5351
      },
      {
       "key": "skyroot dryad",
       "lvl": 58,
-      "hpMul": 475.3,
-      "dmgMul": 13.0087
+      "hpMul": 436.9718,
+      "dmgMul": 13.743
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 475.3,
-      "dmgMul": 23.4165
+      "hpMul": 436.9718,
+      "dmgMul": 24.7382
      },
      {
       "key": "runic automaton",
       "lvl": 58,
-      "hpMul": 475.3,
-      "dmgMul": 30.2259
+      "hpMul": 436.9718,
+      "dmgMul": 31.932
      }
     ]
    ],
@@ -7865,11 +7892,20 @@
     "level": 76,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.3,
-    "wr100": 0.5,
-    "wrPlus5": 0.75,
-    "avgSec": 136.7,
-    "d": 3.5587
+    "wr85": 0.275,
+    "wr100": 0.55,
+    "wrPlus5": 0.8,
+    "avgSec": 133.5,
+    "d": 1.0816,
+    "shapeFix": {
+     "hpTrim": 0.85,
+     "bossTrim": 1.0,
+     "d": 1.0816,
+     "wr85": 0.275,
+     "wr100": 0.55,
+     "wrPlus5": 0.8,
+     "avgSec": 133.5
+    }
    }
   },
   {
@@ -7965,58 +8001,58 @@
      {
       "key": "vineback boar",
       "lvl": 59,
-      "hpMul": 154.8811,
-      "dmgMul": 61.5427
+      "hpMul": 96.5993,
+      "dmgMul": 56.7663
      },
      {
       "key": "ironjaw raider",
       "lvl": 59,
-      "hpMul": 154.8811,
-      "dmgMul": 61.5427
+      "hpMul": 96.5993,
+      "dmgMul": 56.7663
      },
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 154.8811,
-      "dmgMul": 61.5427
+      "hpMul": 96.5993,
+      "dmgMul": 56.7663
      },
      {
       "key": "luminant orb",
       "lvl": 59,
-      "hpMul": 154.8811,
-      "dmgMul": 61.5427
+      "hpMul": 96.5993,
+      "dmgMul": 56.7663
      }
     ],
     [
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 232.3331,
-      "dmgMul": 76.93
+      "hpMul": 144.9062,
+      "dmgMul": 70.9594
      },
      {
       "key": "runic automaton",
       "lvl": 59,
-      "hpMul": 232.3331,
-      "dmgMul": 76.93
+      "hpMul": 144.9062,
+      "dmgMul": 70.9594
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 59,
-      "hpMul": 232.3331,
-      "dmgMul": 76.93
+      "hpMul": 144.9062,
+      "dmgMul": 70.9594
      },
      {
       "key": "basalt mauler",
       "lvl": 59,
-      "hpMul": 232.3331,
-      "dmgMul": 76.93
+      "hpMul": 144.9062,
+      "dmgMul": 70.9594
      },
      {
       "key": "asterion",
       "lvl": 60,
-      "hpMul": 1503.2823,
-      "dmgMul": 34.7906,
+      "hpMul": 328.159,
+      "dmgMul": 32.0905,
       "boss": true
      }
     ]
@@ -8042,11 +8078,20 @@
     "level": 80,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.338,
-    "wr100": 0.65,
-    "wrPlus5": 0.725,
-    "avgSec": 151.2,
-    "d": 22.7599
+    "wr85": 0.375,
+    "wr100": 0.625,
+    "wrPlus5": 0.65,
+    "avgSec": 130.4,
+    "d": 0.891,
+    "shapeFix": {
+     "hpTrim": 0.7,
+     "bossTrim": 0.35,
+     "d": 0.891,
+     "wr85": 0.375,
+     "wr100": 0.625,
+     "wrPlus5": 0.65,
+     "avgSec": 130.4
+    }
    }
   },
   {
@@ -8142,58 +8187,58 @@
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 172.0356,
-      "dmgMul": 35.4023
+      "hpMul": 176.0612,
+      "dmgMul": 35.9802
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 172.0356,
-      "dmgMul": 62.9155
+      "hpMul": 176.0612,
+      "dmgMul": 63.9425
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 172.0356,
-      "dmgMul": 14.9032
+      "hpMul": 176.0612,
+      "dmgMul": 15.1465
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 172.0356,
-      "dmgMul": 40.3195
+      "hpMul": 176.0612,
+      "dmgMul": 40.9776
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 200.0401,
-      "dmgMul": 43.8687
+      "hpMul": 204.721,
+      "dmgMul": 44.5848
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 200.0401,
-      "dmgMul": 67.1683
+      "hpMul": 204.721,
+      "dmgMul": 68.2647
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 200.0401,
-      "dmgMul": 41.1663
+      "hpMul": 204.721,
+      "dmgMul": 41.8383
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 200.0401,
-      "dmgMul": 50.0041
+      "hpMul": 204.721,
+      "dmgMul": 50.8203
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 200.0401,
-      "dmgMul": 17.3296
+      "hpMul": 204.721,
+      "dmgMul": 17.6125
      }
     ]
    ],
@@ -8212,11 +8257,11 @@
     "level": 79,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.275,
+    "wr85": 0.3,
     "wr100": 0.725,
-    "wrPlus5": 0.85,
-    "avgSec": 106.9,
-    "d": 2.7736
+    "wrPlus5": 0.825,
+    "avgSec": 95.6,
+    "d": 1.0234
    }
   },
   {
@@ -8397,58 +8442,58 @@
      {
       "key": "bonepike guard",
       "lvl": 60,
-      "hpMul": 192.4526,
-      "dmgMul": 82.8557
+      "hpMul": 141.7356,
+      "dmgMul": 85.8544
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 192.4526,
-      "dmgMul": 82.8557
+      "hpMul": 141.7356,
+      "dmgMul": 85.8544
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 192.4526,
-      "dmgMul": 82.8557
+      "hpMul": 141.7356,
+      "dmgMul": 85.8544
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 192.4526,
-      "dmgMul": 82.8557
+      "hpMul": 141.7356,
+      "dmgMul": 85.8544
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 288.694,
-      "dmgMul": 103.566
+      "hpMul": 212.6145,
+      "dmgMul": 107.3142
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 288.694,
-      "dmgMul": 103.566
+      "hpMul": 212.6145,
+      "dmgMul": 107.3142
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 288.694,
-      "dmgMul": 103.566
+      "hpMul": 212.6145,
+      "dmgMul": 107.3142
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 288.694,
-      "dmgMul": 103.566
+      "hpMul": 212.6145,
+      "dmgMul": 107.3142
      },
      {
       "key": "irix",
       "lvl": 60,
-      "hpMul": 1867.9923,
-      "dmgMul": 21.4331,
+      "hpMul": 481.5021,
+      "dmgMul": 22.2088,
       "boss": true
      }
     ]
@@ -8474,11 +8519,20 @@
     "level": 86,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.3,
-    "wr100": 0.6,
-    "wrPlus5": 0.625,
-    "avgSec": 145.1,
-    "d": 21.5334
+    "wr85": 0.325,
+    "wr100": 0.65,
+    "wrPlus5": 0.725,
+    "avgSec": 128.2,
+    "d": 1.0521,
+    "shapeFix": {
+     "hpTrim": 0.7,
+     "bossTrim": 0.35,
+     "d": 1.0521,
+     "wr85": 0.325,
+     "wr100": 0.65,
+     "wrPlus5": 0.725,
+     "avgSec": 128.2
+    }
    }
   }
  ]
