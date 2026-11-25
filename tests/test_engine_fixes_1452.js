@@ -198,4 +198,17 @@ console.log('== 10. a stun, fear, silence, sleep or death during a wind-up cance
      window.__FIRE=0; window.__de0=_doEffectCore; _doEffectCore=function(u,type,o){ if(u&&u.key==='sylthaine') window.__FIRE++; return window.__de0.apply(this,arguments); };`);
   ok(J('(function(){ for(let i=0;i<160;i++) updateBattle(SIM_STEP); _doEffectCore=window.__de0; return window.__FIRE; })()') === 1, 'CONTROL: uninterrupted, Frozen Orb fires exactly once'); }
 
+console.log('== 11. the Range rating works for ranged heroes (10 points = 1%, cap 30%) ==');
+{ const bare = (k, lv, tt) => ({ key: k, level: lv, stars: 1, rank: 3, pips: 0, ref: 0, glyphRank: 0, tt: tt || {}, ex: {}, fAtk: 0, fHp: 0, fApow: 0, apMul: 1, skillLv: [1, 1, 1, 1] });
+  const rng = (k, pts) => { setup([bare(k, 30, { range: pts })], [bare('grosk', 1)], 1); return J(`({r:U(${JSON.stringify(k)}).range,cd:U(${JSON.stringify(k)}).combatDist})`); };
+  for (const k of ['meridian', 'sylthaine', 'fritz']) { const a = rng(k, 0), b = rng(k, 200), c = rng(k, 1000);
+    ok(Math.abs(b.cd / a.cd - 1.2) < 1e-6 && b.r > a.r && b.r >= b.cd, k + ': 200 Range points = it fights from 20% further (hold ' + a.cd.toFixed(1) + ' -> ' + b.cd.toFixed(1) + ', reach ' + a.r.toFixed(1) + ' -> ' + b.r.toFixed(1) + '; was unchanged)');
+    ok(Math.abs(c.cd / a.cd - 1.3) < 1e-6, k + ': 1000 points stop at the 30% cap'); }
+  const m0 = rng('rhukk', 0), m200 = rng('rhukk', 200);
+  ok(Math.abs(m200.r / m0.r - 1.2) < 1e-6 && m200.cd === m0.cd, 'a melee hero is unchanged (+20% on its range number as before, same hold)');
+  // in a fight: Meridian rooted, a target 10% past her plain hold: she waits without the rating, shoots with 200 points
+  const shots = pts => { setup([bare('meridian', 30, { range: pts })], [bare('grosk', 30)], 3);
+    return J(`(function(){ const m=U('meridian'), g=U('grosk','enemy'); m.speed=0; m.greenAb=null; m.blueAb=null; autoUlt=false; g.speed=0; g.atkCd=1e9; g.greenAb=null; g.blueAb=null; g.maxHp=1e9; g.hp=1e9; m.x=500; m.y=1200; g.x=500; g.y=1200-Math.round(813.45*1.1); const h0=g.hp; for(let i=0;i<200;i++) updateBattle(SIM_STEP); return g.hp<h0; })()`); };
+  ok(!shots(0) && shots(200), 'a rooted Meridian does not shoot an enemy 10% past her 25 m hold without the rating, and does with 200 Range points'); }
+
 console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;

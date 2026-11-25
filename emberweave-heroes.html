@@ -13083,9 +13083,14 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.hasteEnergyMul=1+((tt.haste||0)*0.0005);
     /* Forge mobility ratings: 100 points = 10%, capped at 30%. */
     u.speed*=1+Math.min(0.30,(tt.moveSpd||0)*0.001);
-    u.range*=1+Math.min(0.30,(tt.range||0)*0.001);
+    u._rangeRt=1+Math.min(0.30,(tt.range||0)*0.001); u.range*=u._rangeRt;
     u.atkInterval/= (1+((tt.atkSpd||0)*0.0005));   /* v1020 (Phil 4 Oct): 20 attack speed = 1% (was 0.4% a point) */
     u.defRating=u.armorRating+u.mrRating; u.penRating=u.armorPen+u.magicPen; }   // legacy aliases
+  /* v1452 BUG FIX (lockdown audit): the Range rating (10 points = 1%, cap 30%) multiplied only the hero's base range, and the next line
+     then widened a ranged hero's range to its row hold (13 m / 25 m), so it was thrown away (Meridian 831.45 with and without 200 Range
+     points) - and a ranged hero shoots from its hold, not from its range. The rating now stretches a ranged hero's hold and reach
+     together: 200 points = it fights from 20% further. Melee is unchanged (its reach is its body and weapon). */
+  if(!u.melee && (u._rangeRt||1)>1) u.combatDist*=u._rangeRt;
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18*UNIT_SIZE;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   // ---- Hollow: he does not march in. He waits in the shadow above the field and comes down
