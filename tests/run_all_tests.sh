@@ -645,6 +645,14 @@ note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Ir
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"
 node tests/test_irix_final_boss_1430.js || FAILED=1
+note "test_screens_affinities_1450.js (lockdown 25 Nov, needs playwright: class + element icons on the Heroes card and the campaign/Vault enemy cards, Affinities button left of Glossary, the art chart, rule cards with their numbers on hover and tap, the chart in de/ja/th)"
+node tests/test_screens_affinities_1450.js || FAILED=1
+note "test_screens_talents_1450.js (lockdown 25 Nov, needs playwright: Talents board one size for every hero, tree colours, fixed header, tap selects / Learn learns, tooltips, red dot, refit on resize, Reset 1000 diamonds / free after a data correction / refused reset shows cost and balance)"
+node tests/test_screens_talents_1450.js || FAILED=1
+note "test_screens_glyphs_1450.js (lockdown 25 Nov, needs playwright: six-slot glyph board per hero on phone and desktop, recipe tree have/need + sources + an inner node, Quick Build, ASCEND shows the next bonus; known glyph bugs reported)"
+node tests/test_screens_glyphs_1450.js || FAILED=1
+note "test_screens_energy_1450.js (lockdown 25 Nov, needs playwright: portrait energy bars = real energy every few ticks of a real 1-1 fight, Vireo and Sylthaine joining mid-fight)"
+node tests/test_screens_energy_1450.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
