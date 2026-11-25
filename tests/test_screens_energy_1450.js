@@ -32,7 +32,7 @@ const C=H.checker('test_screens_energy_1450.js');
           if(!f||!inDom){ missing.push(u.key+'@'+t.toFixed(1)); continue; }
           if(lastBarEls[u.key]!==u.enEl){ lastBarEls[u.key]=u.enEl; P.bars++; rebuilds++; }
           const want=u.alive?Math.min(100,u.energy):0, sw=parseFloat(f.style.width)||0;
-          const bw=u.enEl.getBoundingClientRect(), fw=f.getBoundingClientRect(), rw=bw.width?fw.width/bw.width*100:-1;
+          const inner=u.enEl.clientWidth, rw=inner?f.offsetWidth/inner*100:-1;
           const slot=u.slotEl&&u.slotEl.getBoundingClientRect();
           if(!slot||!(slot.width>0&&slot.left>=-1&&slot.right<=innerWidth+1&&slot.top>=-1&&slot.bottom<=innerHeight+1)) offscreen.push(u.key+'@'+t.toFixed(1));
           P.n++; samples++; P.maxE=Math.max(P.maxE,want); P.maxBar=Math.max(P.maxBar,sw);
@@ -45,8 +45,8 @@ const C=H.checker('test_screens_energy_1450.js');
         if(!autoOn&&ticks>=40){ window.patEgp1=()=>true; try{ document.getElementById('autoBtn').onclick(); }catch(e){} autoOn=true; await sl(600); }
         if(chunk%5===0) await sl(4);
         if(chunk%150===75){ /* let a CSS transition finish, then the painted width must match */ await sl(700);
-          for(const u of units){ if(u.team!=='ally'||!u.enEl||!document.contains(u.enEl)) continue; const f=fillOf(u); const bw=u.enEl.getBoundingClientRect(), fw=f.getBoundingClientRect();
-            settled.push({k:u.key,want:+(u.alive?Math.min(100,u.energy):0).toFixed(1),painted:+(bw.width?fw.width/bw.width*100:-1).toFixed(1)}); } }
+          for(const u of units){ if(u.team!=='ally'||!u.enEl||!document.contains(u.enEl)) continue; const f=fillOf(u); const inner=u.enEl.clientWidth;   /* the fill runs inside the bar's 4 px side borders */
+            settled.push({k:u.key,want:+(u.alive?Math.min(100,u.energy):0).toFixed(1),painted:+(inner?f.offsetWidth/inner*100:-1).toFixed(1),innerPx:inner,fillPx:f.offsetWidth}); } }
       }
       const I=CUR._intro||{};
       const bar=document.getElementById('portraitBar').getBoundingClientRect();

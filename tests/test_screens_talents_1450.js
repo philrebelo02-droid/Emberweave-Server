@@ -57,6 +57,7 @@ async function desktop(s){
   C.ok(JSON.stringify(fx.headerBefore)===JSON.stringify(fx.headerAfter)&&fx.boardMoved>100&&fx.headerVisible.every(Boolean),'fixed header: banners, Points, Learn and Reset stay put while the board scrolls under them',fx);
   // ---- talent tooltip beside the talent (hover), tree tooltip on the banner only
   const first=t1('vael');
+  await pg.evaluate(()=>{ const b=document.querySelector('.tl-bn[data-tl-tree="0"]'); if(b) b.click(); }); await H.wait(400);
   await pg.evaluate(id=>document.getElementById('tl_'+id).scrollIntoView({block:'center'}),first[0]); await H.wait(200);
   await pg.hover('#tl_'+first[0]); await H.wait(300);
   const tip=await pg.evaluate(()=>{ const c=document.getElementById('tlCard'); if(!c) return {shown:false}; const id=c.dataset.tl, a=document.getElementById('tl_'+id), r=c.ewGameRect(), V=ewGameView(), s=a.ewGameRect(), b=a.querySelector('.tl-rk').ewGameRect();

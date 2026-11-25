@@ -55,6 +55,8 @@ async function game(port,o){ o=o||{}; const b=await browser(); const w=o.w||1280
   await wait(1500); await pg.evaluate(()=>{ const p=document.querySelector('.splashPlay'); if(p) p.click(); }); await wait(1000);
   const ok=await pg.evaluate(async()=>{ G.tutSkipped=true; G.tutDone=true; G.ftutOff=true; document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); const d=await ledgerSync(); return !!(d&&ACC.token); });
   if(!ok) throw new Error('could not sign in as the seeded player');
+  /* the account's language travels in the cloud save (an earlier context saved 'en'): pick the language the way Settings does */
+  await pg.evaluate(l=>langSet(l,{save:true}),lang);
   if(lang!=='en') await pg.waitForFunction(l=>LANG.cur===l&&LANG.dict&&Object.keys(LANG.dict).length>100,lang,{timeout:60000});
   pg._ctx=ctx; return pg; }
 const clean=pg=>pg.evaluate(()=>{ document.querySelectorAll('#tutOffer,.ftutOv,#ftutOv').forEach(n=>n.remove()); [...document.querySelectorAll('button')].filter(b=>/Got it/.test(b.textContent)&&b.offsetParent).forEach(b=>b.click()); });

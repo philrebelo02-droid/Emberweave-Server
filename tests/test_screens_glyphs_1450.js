@@ -40,7 +40,8 @@ async function boardCheck(pg,tag,key){
     {step:r.step,cells:r.cells.map(c=>c.w+'x'+c.h+(c.on?'':' OFF')+(c.front?'':' COVERED')+' '+(c.img?(c.img.fallback?'PLACEHOLDER':c.img.w+'px'):'no img')).join(', ')});
   return r; }
 /* the in-panel recipe tree of the slot just opened, compared with the server's own tree */
-async function treeCheck(pg,tag,key,slot,srv,touch){
+async function treeCheck(pg,tag,key,slot,server,touch){
+  const srv=(await server.api('/api/glyphs/build-tree?heroKey='+key+'&slot='+slot)).body;   /* the server's tree right now (have counts move with builds) */
   const cell=`#heroDetailBody .hd-armorgrid>div:nth-child(${slot+1})`;
   await pg.evaluate(c=>document.querySelector(c).scrollIntoView({block:'center'}),cell);
   if(touch) await pg.tap(cell); else await pg.click(cell);
@@ -50,23 +51,25 @@ async function treeCheck(pg,tag,key,slot,srv,touch){
     for(let i=0;i<50&&[...box.querySelectorAll('img')].some(x=>!x.complete);i++) await new Promise(r=>setTimeout(r,100));
     const D=RUNE2.build.data, root=document.getElementById('g2n_m_r');
     const leaves=[]; (D.root.children||[]).forEach((n,i)=>{ const walk=(n,p)=>{ const el=document.getElementById('g2n_m_'+p); if(n.kind==='fragment'&&el){ const pills=[...el.querySelectorAll('.pill')].map(x=>x.textContent.trim());
-          leaves.push({key:n.key,have:n.have,need:n.need,inherited:!!n.inherited,pill:pills[0]||null,sources:pills.slice(1),name:(el.querySelector('div[style*="font-size:9.5px"]')||{}).textContent}); }
+          leaves.push({path:p,key:n.key,have:n.have,need:n.need,inherited:!!n.inherited,pill:pills[0]||null,sources:pills.slice(1),name:(el.querySelector('div[style*="font-size:9.5px"]')||{}).textContent}); }
         if(n.kind!=='fragment'&&p.split('.').length<3) (n.children||[]).forEach((c,j)=>walk(c,p+'.'+j)); }; walk(n,'r.'+i); });
     const inner=(D.root.children||[]).map((n,i)=>({n,i})).filter(x=>x.n.kind!=='fragment'&&(x.n.children||[]).length).map(x=>({path:'r.'+x.i,kind:x.n.kind,name:x.n.kind==='subGlyph'?(x.n.displayName||x.n.key):x.n.name}));
     const all=imgs(box), byNode=[...box.querySelectorAll('[id^="g2n_m_"]')].map(el=>({id:el.id,name:((el.querySelector('div[style*="font-weight:800"]')||el.querySelector('div[style*="font-weight:700"]')||{}).textContent||'').trim(),fallback:[...el.querySelectorAll(':scope img')].some(im=>(im.getAttribute('src')||'')===G2_FALLBACK)}));
+    const cores=(D.root.children||[]).map((n,i)=>({n,i})).filter(x=>x.n.kind==='subGlyph').map(x=>{ const el=document.getElementById('g2n_m_r.'+x.i); const nm=el&&el.querySelector('div[style*="font-weight:800"]'); const im=el&&el.querySelector('img');
+      return {name:nm&&nm.textContent.trim(),color:nm&&getComputedStyle(nm).color,src:im&&(im.getAttribute('src')===G2_FALLBACK?'PLACEHOLDER':(im.getAttribute('src')||'').replace(/^.*glyphs-v3\//,'')),w:im&&im.naturalWidth}; });
     const rr=root.getBoundingClientRect();
     return {open:true,rootName:(root.querySelector('div[style*="font-size:15px"]')||{}).textContent,rootStats:(root.querySelector('div[style*="font-size:10px"]')||{}).textContent||'',badge:(root.querySelector('.pill')||{}).textContent,
       rootOn:rr.width>0&&rr.top<innerHeight&&rr.bottom>0,leaves,inner,images:all.length,loaded:all.filter(x=>x.w>0&&!x.fallback).length,fallback:all.filter(x=>x.fallback).length,fallbackNodes:byNode.filter(x=>x.fallback).map(x=>x.name),
-      buildBtn:!!document.querySelector('#heroDetail [data-tut-glyph-build]')&&!document.querySelector('#heroDetail [data-tut-glyph-build]').disabled}; },[IMGS]);
+      cores,buildBtn:!!document.querySelector('#heroDetail [data-tut-glyph-build]')&&!document.querySelector('#heroDetail [data-tut-glyph-build]').disabled}; },[IMGS]);
   if(!r.open){ C.ok(false,tag+' '+key+' slot '+slot+': tapping the slot opens its recipe tree'); return r; }
-  const sv=srv&&srv.root; const want={}; (sv&&sv.children||[]).forEach(n=>{ const walk=n=>{ if(n.kind==='fragment') want[n.key]=n.have+' / '+n.need; else (n.children||[]).forEach(walk); }; walk(n); });
+  const sv=srv&&srv.root; const at=p=>{ let n=sv; for(const i of p.split('.').slice(1)) n=n&&n.children&&n.children[+i]; return n; };
   const own=r.leaves.filter(l=>!l.inherited);
-  const pillsOk=own.length>0&&own.every(l=>l.pill===l.have+' / '+l.need&&(!want[l.key]||want[l.key]===l.pill));
+  const pillsOk=own.length>0&&own.every(l=>{ const n=at(l.path); return l.pill===l.have+' / '+l.need&&n&&l.pill===n.have+' / '+n.need; });
   const srcOk=own.length>0&&own.every(l=>l.sources.length>0&&l.sources.every(s=>/\d+-\d+/.test(s)));
   C.ok(r.rootOn&&r.rootName===(sv&&sv.name)&&pillsOk&&srcOk,tag+' '+key+' slot '+slot+' recipe tree: the glyph "'+r.rootName+'", every fragment with its have / need pill (= the server) and its source pill',
-    {badge:r.badge,leaves:own.map(l=>l.name+' '+l.pill+' ['+l.sources.join(',')+']').join(' | ').slice(0,400)});
+    {rootOn:r.rootOn,name:r.rootName===(sv&&sv.name),pills:pillsOk,sources:srcOk,badge:r.badge,leaves:own.map(l=>l.name+' '+l.pill+' ['+l.sources.join(',')+']').join(' | ').slice(0,400)});
   C.ok(r.images>0&&r.loaded+r.fallback===r.images,tag+' '+key+' slot '+slot+' tree art: '+r.loaded+' of '+r.images+' images loaded',{fallback:r.fallback});
-  C.bug(r.fallback>0,tag+' '+key+' slot '+slot+' grey placeholder icons in the recipe tree (the "Core" nodes)',{nodes:r.fallbackNodes});
+  C.bug(r.fallback>0||(r.cores||[]).some(c=>c.src==='PLACEHOLDER'||/139, 152, 169/.test(c.color||'')),tag+' '+key+' slot '+slot+' grey placeholder icon or grey name on a "Core" node in the recipe tree',{placeholderNodes:r.fallbackNodes,cores:r.cores});
   C.bug(/%/.test(r.rootStats),tag+' '+key+' slot '+slot+' the glyph card prints rating values with a % sign',{stats:r.rootStats});
   return r; }
 async function innerTap(pg,tag,key,r,touch){
@@ -76,8 +79,8 @@ async function innerTap(pg,tag,key,r,touch){
   if(touch) await pg.tap(sel); else await pg.click(sel);
   await H.wait(1200);
   const o=await pg.evaluate(()=>{ const host=document.getElementById('g2ovlHost'); const box=host&&host.querySelector('.g2treeBox'); if(!box) return {open:false};
-    const root=document.getElementById('g2n_o0_r'), rr=root.getBoundingClientRect(); const pills=[...box.querySelectorAll('.pill')].map(p=>p.textContent.trim());
-    return {open:true,name:(root.querySelector('div[style*="font-size:15px"]')||{}).textContent,on:rr.width>0&&rr.top>=-1&&rr.bottom<=innerHeight+1,stack:RUNE2.build.stack.slice(),pills:pills.slice(0,8),children:box.querySelectorAll('[id^="g2n_o0_r."]').length}; });
+    const vp=RUNE2.build.stack[0], root=document.getElementById('g2n_o0_'+vp); if(!root) return {open:true,root:false,stack:RUNE2.build.stack.slice()}; const rr=root.getBoundingClientRect(); const pills=[...box.querySelectorAll('.pill')].map(p=>p.textContent.trim());
+    return {open:true,name:(root.querySelector('div[style*="font-size:15px"]')||{}).textContent,on:rr.width>0&&rr.top>=-1&&rr.bottom<=innerHeight+1,stack:RUNE2.build.stack.slice(),pills:pills.slice(0,8),children:box.querySelectorAll('[id^="g2n_o0_'+vp+'."]').length}; });
   C.ok(o.open&&o.on&&o.children>0&&o.stack[0]===n.path,tag+' '+key+' tapping the inner node "'+n.name+'" ('+n.kind+') opens its own tree on top, on screen',o);
   await pg.evaluate(()=>{ try{ g2TreeCloseTo(0); }catch(e){} }); }
 
@@ -88,7 +91,7 @@ async function innerTap(pg,tag,key,r,touch){
     const v0=P['vael:0'], v1=P['vael:1'];
     C.ok(v0&&v0.totals&&v0.totals.length&&v1&&v1.totals&&v1.totals.length,'server build trees read for Vael slots 1 and 2',{slot1:v0&&v0.totals&&v0.totals.map(t=>t.key+' x'+t.need),slot2:v1&&v1.totals&&v1.totals.map(t=>t.key+' x'+t.need)});
     const frags={}; for(const t of v0.totals) frags[t.key]=(frags[t.key]||0)+t.need;   /* slot 1: everything */
-    const t2=v1.totals[0]; frags[t2.key]=(frags[t2.key]||0)+Math.max(0,t2.need-1);   /* slot 2: one short */
+    const t2=v1.totals.find(t=>!v0.totals.some(x=>x.key===t.key))||v1.totals[0]; frags[t2.key]=(frags[t2.key]||0)+Math.max(0,t2.need-1);   /* slot 2: one short */
     const sKey=Object.keys(P).filter(k=>k.startsWith('sylthaine:')).find(k=>P[k]&&P[k].root&&(P[k].root.children||[]).some(n=>n.kind!=='fragment'&&(n.children||[]).length));
     C.ok(!!sKey,'a Sylthaine Purple slot has an inner node (a core or an earlier glyph) in its tree',{slot:sKey,kinds:sKey&&P[sKey].root.children.map(n=>n.kind)});
     const sSlot=sKey?+sKey.split(':')[1]:0;
@@ -108,12 +111,12 @@ async function innerTap(pg,tag,key,r,touch){
       const want=st.boards.vael&&st.boards.vael.nextAscensionBonus;
       C.ok(nb.found&&nb.on&&want&&nb.text.includes('+'+want.amount)&&nb.text.includes(want.stat),tag+' ASCEND button shows the next personal bonus (+'+(want&&want.amount)+' '+(want&&want.stat)+')',{text:nb.text,disabled:nb.disabled});
       // ---- recipe tree: slot 2 (one fragment short), then slot 1 (all there) built with Quick Build
-      const r1=await treeCheck(pg,tag,'vael',1,v1,touch);
+      const r1=await treeCheck(pg,tag,'vael',1,s,touch);
       const short=(r1.leaves||[]).find(l=>l.key===t2.key);
-      C.ok(short&&short.pill===(frags[t2.key]|0)+' / '+t2.need&&!r1.buildBtn,tag+' Vael slot 2: the fragment given one short reads '+(short&&short.pill)+' and Quick Build stays off',{pill:short&&short.pill,badge:r1.badge,quickBuild:r1.buildBtn});
+      C.ok(short&&short.have<short.need&&short.pill===short.have+' / '+t2.need&&!r1.buildBtn,tag+' Vael slot 2: the fragment given one short reads '+(short&&short.pill)+' and Quick Build stays off',{pill:short&&short.pill,badge:r1.badge,quickBuild:r1.buildBtn});
       await pg.evaluate(()=>g2buildCancel()); await H.wait(400);
       if(tag==='1280x720'){
-        const r0=await treeCheck(pg,tag,'vael',0,v0,touch);
+        const r0=await treeCheck(pg,tag,'vael',0,s,touch);
         C.ok(r0.buildBtn,tag+' Vael slot 1: every fragment there, Quick Build is lit',{badge:r0.badge});
         if(r0.buildBtn){ await pg.click('#heroDetail [data-tut-glyph-build]'); await pg.waitForFunction(()=>!RUNE2.build&&g2board('vael').slots[0],null,{timeout:20000}).catch(()=>{}); await H.wait(800); }
         const disk=s.disk().glyphs.boards.vael.slots[0];
@@ -122,7 +125,7 @@ async function innerTap(pg,tag,key,r,touch){
       }
       // ---- an inner node tapped (Sylthaine, Purple)
       await openGlyphs(pg,'sylthaine',touch);
-      const rs=await treeCheck(pg,tag,'sylthaine',sSlot,P[sKey],touch);
+      const rs=await treeCheck(pg,tag,'sylthaine',sSlot,s,touch);
       await innerTap(pg,tag,'sylthaine',rs,touch);
       await pg.evaluate(()=>{ try{ g2buildCancel(); }catch(e){} });
       C.ok(pg._errs.length===0,tag+' no page errors',pg._errs.slice(0,3).map(e=>e.replace(/Error:/g,'Err')));

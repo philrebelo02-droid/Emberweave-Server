@@ -73,7 +73,7 @@ async function button(pg,tag){
 async function chart(pg,tag,touch,lang){
   await pg.evaluate(()=>{ const o=document.getElementById('affOv'); if(o) o.remove(); });
   const b=await pg.evaluate(()=>{ const a=document.getElementById('campAffBtn'); const r=a.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; });
-  if(touch) await pg.touchscreen.tap(b.x,b.y); else await pg.mouse.click(b.x,b.y);
+  if(touch) await pg.tap('#campAffBtn'); else await pg.mouse.click(b.x,b.y);
   for(let i=0;i<50;i++){ if(await pg.evaluate(()=>{ const im=document.querySelector('#affOv img'); return !!im&&im.complete; })) break; await H.wait(100); }
   const r=await pg.evaluate(([IMG,VIS])=>{ const img=eval(IMG), vis=eval(VIS); const ov=document.getElementById('affOv'); if(!ov) return {open:false};
     const im=ov.querySelector('#affBox>img'), box=ov.querySelector('#affBox').getBoundingClientRect(), hits=[...ov.querySelectorAll('.affHit')];
@@ -92,7 +92,7 @@ async function ruleCards(pg,tag,touch,en){
   const keys=await pg.evaluate(()=>[...document.querySelectorAll('#affOv .affHit')].map(h=>h.dataset.k)); const got={};
   for(const k of keys){
     const p=await pg.evaluate(k=>{ const h=document.querySelector('#affOv .affHit[data-k="'+k+'"]'); const r=h.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; },k);
-    if(touch) await pg.touchscreen.tap(p.x,p.y); else { await pg.mouse.move(2,2); await pg.mouse.move(p.x,p.y,{steps:3}); }
+    if(touch) await pg.tap('#affOv .affHit[data-k="'+k+'"]'); else { await pg.mouse.move(2,2); await pg.mouse.move(p.x,p.y,{steps:3}); }
     await H.wait(200);
     const t=await pg.evaluate(k=>{ const tip=document.getElementById('affTip'), box=document.getElementById('affBox').getBoundingClientRect(); if(!tip||tip.style.display==='none') return {shown:false};
       const r=tip.getBoundingClientRect(); const want=affTip(k);
