@@ -30,6 +30,8 @@ async function editDB(fn){ await delay(600); await stop(); const db=disk(); fn(d
   const g2=await call('/api/guest',{deviceId:'aatom2-'+Date.now()}); const oppId=g2.data.profile.id; await call('/api/ledger',null,g2.data.token);
   await editDB((db,u)=>{ u.led.px=900000; u.led.gold=12345; for(const k of ['vael','sylthaine','vireo','vex','gruel']){ u.led.unlocked[k]=true; u.led.hero[k]={xp:9000000,stars:5,pips:0}; }
     u.team=['vael','sylthaine','vireo','vex','gruel']; u._arenaOffer=[{id:oppId,t:Date.now()}]; /* v1078: an offered opponent */ const o=db.users[oppId]; o.team=[]; o.wall=[]; });
+  const st=await call('/api/arena/start',{oppId,requestId:'aatom-s'});   /* v1450: the server fixes the fight before it is played */
+  ok(st.data.ok===true,'the fight starts ('+(st.data.error||'ok')+')');
   await delay(1200); fs.writeFileSync(logFile,'');
   const ar=await call('/api/arena/result',{oppId,won:true,requestId:'aatom-1'}); await delay(1500);
   const writes=fs.readFileSync(logFile,'utf8').split(String.fromCharCode(10)).filter(Boolean).map(l=>JSON.parse(l));

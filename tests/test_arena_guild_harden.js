@@ -40,8 +40,9 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
     db.guilds=db.guilds||{}; db.guilds.gmax={id:'gmax',name:'Max Guild',members:[id],level:7,exp:0}; u.guildId='gmax'; });
 
   // Arena at level 14
-  const self=await call('/api/arena/result',{oppId:id,won:true,requestId:'ar-self'});
+  const self=await call('/api/arena/start',{oppId:id,requestId:'ar-self'});   /* v1450: the opponent is checked when the fight starts */
   ok(self.data.ok===false&&/Unknown opponent/.test(self.data.error||''),'fighting yourself is refused ('+(self.data.error||JSON.stringify(self.data).slice(0,80))+')');
+  const st2=await call('/api/arena/start',{oppId,requestId:'ar-l14-s'}); ok(st2.data.ok===true,'a level-14 arena fight starts ('+(st2.data.error||'ok')+')');
   const ar2=await call('/api/arena/result',{oppId,won:true,requestId:'ar-l14',def:{seed:7,mineSnap:[{key:'vael'}],foe:[{key:'vael'}],atkName:'Impostor'}});
   { const rep=await call('/api/arena/reports',null,g2.data.token); const d0=(rep.data.defenses||[])[0]||{};   /* v996 (Arena audit #12) */
     ok(d0.atkName&&d0.atkName!=='Impostor'&&d0.atkName===g.data.profile.name,"the defender's report names the real attacker ("+d0.atkName+' / '+g.data.profile.name+')'); }

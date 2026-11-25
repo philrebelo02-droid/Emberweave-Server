@@ -6196,6 +6196,31 @@ function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.are
 function arenaOffered(me,ids){ const now=Date.now(); me._arenaOffer=(Array.isArray(me._arenaOffer)?me._arenaOffer:[]).filter(x=>x&&now-x.t<2*3600000);
   for(const id of ids){ if(id) me._arenaOffer.push({id:String(id),t:now}); } if(me._arenaOffer.length>30) me._arenaOffer=me._arenaOffer.slice(-30); }
 function arenaWasOffered(me,id){ const now=Date.now(); return !!id&&Array.isArray(me._arenaOffer)&&me._arenaOffer.some(x=>x&&x.id===id&&now-x.t<2*3600000); }
+/* v1450 ONE ARENA FIGHT (Phil 25 Nov: "The player should see the exact recording everyone sees"). Before v1450 the browser played its own
+   squads on its own seed, and /api/arena/result decided `won` with ANOTHER engine (combat-core resolveLineBattle) on a fresh seed - a player
+   could watch a win and be told it was a loss, and every replay was a different fight that only shared the outcome (a seed search).
+   Now /api/arena/start fixes the fight: both squads as the server builds them (the client's own unit builder, sim-host snapFromSpecs) and a
+   server seed, saved on the account (me._arenaPend). The browser plays exactly that (setupMarchTeams + the fixed-step engine, full auto),
+   /api/arena/result replays it with the same engine (simHost().auto = simFightResult), and every report stores those snapshots + seed.
+   A started fight that is walked away from is FORFEITED by the next start (the attempt is spent, nothing else): the seed is known before the
+   fight, so a free walk-away would let a player skip every loss. A retry of the same opponent and squad resumes the same fight. */
+const ARENA_PEND_MS=15*60000;
+function arenaAttackKeys(me,b){ const myLed=ensureLedger(me);
+  /* v1360 (night smoke): the squad the player just picked comes with the request (the saved team could be up to ~10 s stale). Only OWNED heroes, at most 5; no usable team in the body = the saved team. */
+  let myKeys=(Array.isArray(b.team)&&b.team.length&&b.team.length<=8)?rosterKeys(b.team.map(x=>String(x||'').slice(0,40))).filter(k=>ownsHeroK(myLed,k)).slice(0,5):[];
+  if(!myKeys.length) myKeys=rosterKeys(me.team).filter(k=>ownsHeroK(myLed,k)).slice(0,5);
+  if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>ownsHeroK(myLed,k)&&SIM.HERO_BASE[k]).slice(0,5);   // v327: a player who never pressed save still fields a squad
+  return myKeys; }
+function arenaDefenceKeys(opp){ const opLed=ensureLedger(opp);   /* v1213: their DEFENSE team fights */
+  let k=rosterKeys(arenaDefTeam(opp)).filter(x=>ownsHeroK(opLed,x)).slice(0,5);
+  if(!k.length) k=Object.keys(opLed.unlocked||{}).filter(x=>ownsHeroK(opLed,x)&&SIM.HERO_BASE[x]).slice(0,5);
+  return k; }
+/* A ladder bot has no ledger (snapshotNpcHero): its line is its seeded roster entry {key,level,rank} - exactly what the arena list showed the
+   player and what the client's engine builds an enemy from (setupMarchTeams -> makeUnit for a non-snapshot entry). */
+function arenaNpcLine(opp){ return (Array.isArray(opp.team)?opp.team:[]).map(e=>(e&&typeof e==='object')?e:{key:e}).filter(e=>e&&SIM.HERO_BASE[String(e.key||'')]).slice(0,5)
+  .map(e=>({ key:String(e.key), level:Math.max(1,Math.min(200,(e.level|0)||1)), rank:Math.max(0,Math.min(5,(e.rank|0)||0)) })); }
+function arenaPendView(me,pd){ return { ok:true, fightId:pd.id, oppId:pd.oppId, seed:pd.seed>>>0, mySnaps:pd.mySnaps, foeSnaps:pd.foeSnaps, engine:pd.engine||null,
+  expiresAt:pd.exp, arena:arenaAttView(ensureLedger(me)) }; }
 /* The defender's watchable report is written by the ATTACKER's client: accept it only when every hero in it belongs to the real squads
    (the attacker's owned heroes, the defender's team) and it is small - before, any JSON up to the body limit landed on their account. */
 function arenaDefOk(me,opp,def){ try{ if(JSON.stringify(def).length>16000) return false;
@@ -11122,6 +11147,39 @@ async function api(req,res,url){
     arenaOffered(me,out.map(o=>o.id));
     return send(res,200,{ rank:me.rank, opponents:out, arena:arenaAttView(ensureLedger(me)) }); }
 
+  /* v1450 ONE ARENA FIGHT - the fight is fixed here, before it is played (see arenaPendView). The attempt is spent by /api/arena/result. */
+  if(p==='/api/arena/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'arenastart:'+me.id,30,60000)) return send(res,429,{error:'Slow down.'});
+    const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
+    const led=ensureLedger(me), oppId=String(b.oppId||''), now=Date.now();
+    const old=(me._arenaPend&&typeof me._arenaPend==='object')?me._arenaPend:null;
+    if(old&&old.reqId===rid&&now<old.exp) return send(res,200,arenaPendView(me,old));   // a lost reply re-sent with the same id
+    { const aa=arenaAtt(led); if(aa.used>=ARENA_FREE_ATTEMPTS+aa.bought) return send(res,400,{ok:false,error:'No arena attempts left today.',arena:arenaAttView(led)});
+      if(ledPlayerLevel(led)<10) return send(res,400,{ok:false,error:'The Arena opens at level 10.'}); }   /* 3 Oct Arena audit #9 */
+    const opp=DB.users[oppId];
+    if(!opp||opp.id===me.id) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* 3 Oct Arena audit #6 (part): never yourself */
+    /* v1078 (scan 9 Oct #5): the opponent must be one the server OFFERED this player (the list or the single pick, last 2 h) */
+    if(!arenaWasOffered(me,oppId)) return send(res,400,{ok:false,error:'Pick an opponent from your list - refresh the arena.'});
+    const myKeys=arenaAttackKeys(me,b);
+    if(old&&now<old.exp&&old.oppId===oppId&&JSON.stringify(old.myKeys||[])===JSON.stringify(myKeys)) return send(res,200,arenaPendView(me,old));   // the same fight again - never a new seed
+    const host=simHost(); if(!host) return send(res,503,{ok:false,error:'The battle could not be resolved.'});
+    let mySnaps=null, foeSnaps=null, foeKeys=[];
+    try{ const specs=myKeys.map(k=>campaignHeroSpec(me,k)); if(specs.length&&!specs.some(x=>!x)) mySnaps=host.snapFromSpecs(specs);
+      if(opp.isNpc) foeSnaps=arenaNpcLine(opp);
+      else { foeKeys=arenaDefenceKeys(opp); const os=foeKeys.map(k=>campaignHeroSpec(opp,k)); if(os.length&&!os.some(x=>!x)) foeSnaps=host.snapFromSpecs(os); }
+      /* exactly what is sent, stored and replayed: a JSON round trip (a NaN would become null in the browser and on the disk) */
+      if(mySnaps) mySnaps=JSON.parse(JSON.stringify(mySnaps)); if(foeSnaps) foeSnaps=JSON.parse(JSON.stringify(foeSnaps));
+    }catch(e){ console.error('arena start: the squads could not be resolved:',e.message); mySnaps=null; foeSnaps=null; }
+    if(!Array.isArray(mySnaps)||!mySnaps.length) return send(res,400,{ok:false,error:'Pick your squad.'});
+    if(!Array.isArray(foeSnaps)||!foeSnaps.length) return send(res,400,{ok:false,error:'The battle could not be resolved.'});
+    if(old){ const aa=arenaAtt(led); if(DB.users[old.oppId]&&aa.used<ARENA_FREE_ATTEMPTS+aa.bought){ aa.used++; ledTx(me,'arena:forfeit',{opp:String(old.oppId||'').slice(0,40)}); } delete me._arenaPend;   /* an opponent that left the ladder costs nothing */   // walked away from = an attempt spent, no rank, no reward
+      if(aa.used>=ARENA_FREE_ATTEMPTS+aa.bought){ writeDB([me.id]); return send(res,400,{ok:false,error:'No arena attempts left today.',arena:arenaAttView(led)}); } }
+    const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
+    const pd={ id:uid(), reqId:rid, oppId, myKeys, foeKeys:opp.isNpc?foeSnaps.map(x=>x.key):foeKeys, mySnaps, foeSnaps, seed, engine:host.buildVersion||null, t:now, exp:now+ARENA_PEND_MS };
+    me._arenaPend=pd; writeDB([me.id]);
+    try{ simPrefetch([{m:'auto',args:[pd.mySnaps,pd.foeSnaps,pd.seed>>>0]}]).catch(()=>{}); }catch(e){}   // the verdict can be fought on a battle worker while the player watches
+    return send(res,200,arenaPendView(me,pd)); }
+
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
     const b=await body(req);
@@ -11130,6 +11188,8 @@ async function api(req,res,url){
     const areqId=String(b.requestId||'').slice(0,48); if(!areqId) return send(res,400,{error:'requestId required'});
     const akey=me.id+':arena:'+areqId;
     DB.idem=DB.idem||{}; if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
+    { const _p=me._arenaPend; if(_p&&Array.isArray(_p.mySnaps)&&Array.isArray(_p.foeSnaps)) try{ await simPrefetch([{m:'auto',args:[_p.mySnaps,_p.foeSnaps,_p.seed>>>0]}],SIM_RESOLVE_WAIT_MS); }catch(e){} }   /* v1450: the verdict on a battle worker when one is free */
+    if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
     const _aSnapMe=JSON.parse(JSON.stringify(me)), _aRp=Array.isArray(DB.reports)?DB.reports.slice():null, _aFb=Array.isArray(DB.feedback)?DB.feedback.slice():null;   /* v981: taken before anything below can touch the account */
     /* v1017 (release review #8): no write reaches the disk mid-route - ledTx used to flush the gold/milestone reward before the
        receipt existed, so a crash between them paid a retry twice. The final save below is the only write; the section is synchronous. */
@@ -11139,40 +11199,22 @@ async function api(req,res,url){
     { const aled=ensureLedger(me), aa=arenaAtt(aled);
       if(aa.used>=ARENA_FREE_ATTEMPTS+aa.bought) return send(res,400,{ok:false,error:'No arena attempts left today.',arena:arenaAttView(aled)});
       if(ledPlayerLevel(aled)<10) return send(res,400,{ok:false,error:'The Arena opens at level 10.'}); }   /* 3 Oct Arena audit #9 */
-    const opp=DB.users[b.oppId];
-    /* 3 Oct Arena audit #6 (part): never yourself. A rank-above rule would lock the rank-1 player out; the full fix is a
-       server-stored opponents list (open). */
-    if(!opp||opp.id===me.id) return send(res,400,{ok:false,error:'Unknown opponent.'});
-    /* v1078 (scan 9 Oct #5): the opponent must be one the server OFFERED this player (the list or the single pick, last 2 h) - before,
-       any account id was accepted, so a player could pick the weakest account near rank 1 and take every milestone between. */
-    if(!arenaWasOffered(me,String(b.oppId||''))) return send(res,400,{ok:false,error:'Pick an opponent from your list - refresh the arena.'});
+    /* v1450 ONE ARENA FIGHT: the result is the fight /api/arena/start fixed and the player watched - both squads as the server built them and
+       the server's seed - replayed HERE on the game's own engine (sim-host: simFightResult). Never the client's `won`, never another engine.
+       No open fight = refused, nothing spent (an old page, a second tab, a fight that expired). The opponent was checked when it started. */
+    const pend=(me._arenaPend&&typeof me._arenaPend==='object')?me._arenaPend:null;
+    if(!pend||!Array.isArray(pend.mySnaps)||!Array.isArray(pend.foeSnaps)||!pend.mySnaps.length||!pend.foeSnaps.length||pend.oppId!==String(b.oppId||'')||(b.fightId!=null&&String(b.fightId)!==pend.id)||!(Date.now()<pend.exp))
+      return send(res,400,{ok:false,error:'Pick an opponent from your list - refresh the arena.',arena:arenaAttView(ensureLedger(me))});
+    const opp=DB.users[pend.oppId];
+    if(!opp||opp.id===me.id){ delete me._arenaPend; return send(res,400,{ok:false,error:'Unknown opponent.'}); }   // a ladder bot can leave the ladder (applyResult) while a fight is open
     const _aSnapOpp=JSON.parse(JSON.stringify(opp)), _aOppId=opp.id;   /* v981: the opponent, before anything below touches it */
-    // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
-    // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
-    // already uses. This is a power comparison, NOT the real battle sim; the faithful fix is the shared
-    // deterministic simulator (Phase 2). Tune ARENA_RNG if even matchups feel too swingy. -PR review
-    // AUDIT C3: the arena is resolved by the SHARED deterministic simulator over server-built
-    // snapshots of both teams — never by a raw power comparison, never by a client-declared result.
-    // The seed is returned so the fight is replayable.
-    const seed=SIM.seedFrom('arena:'+me.id+':'+String(b.oppId||'')+':'+uid());
-    let won=false, simRes=null;
-    if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
-      const myLed=ensureLedger(me);
-      /* v1360 (night smoke): the squad the player just picked comes with the result (the saved team could be up to ~10 s stale). Same rule as before: only OWNED heroes, at most 5; no usable team in the body = the saved team. */
-      let myKeys=(Array.isArray(b.team)&&b.team.length&&b.team.length<=8)?rosterKeys(b.team.map(x=>String(x||'').slice(0,40))).filter(k=>ownsHeroK(myLed,k)).slice(0,5):[];
-      if(!myKeys.length) myKeys=rosterKeys(me.team).filter(k=>ownsHeroK(myLed,k)).slice(0,5);
-      if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>ownsHeroK(myLed,k)&&SIM.HERO_BASE[k]).slice(0,5);   // v327: a player who never pressed save still fields a squad (ledgerTeamPower:312 does the same)
-      const mySnaps=myKeys.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
-      const opLed=opp.isNpc?null:ensureLedger(opp);
-      let opSnaps;
-      if(opp.isNpc){ opSnaps=(Array.isArray(opp.team)?opp.team:[]).filter(Boolean).slice(0,5).map(function(e){ return snapshotNpcHero(e); }).filter(Boolean); }
-      else { opSnaps=rosterKeys(arenaDefTeam(opp)).filter(k=>opLed&&ownsHeroK(opLed,k)).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);   /* v1213: their DEFENSE team fights */
-        if(!opSnaps.length&&opLed) opSnaps=Object.keys(opLed.unlocked||{}).filter(k=>ownsHeroK(opLed,k)&&SIM.HERO_BASE[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean); }
-      if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
-        heroUsageNote(me,'arena',mySnaps.map(s=>s.key),won); if(!opp.isNpc) heroUsageNote(opp,'arenadef',opSnaps.map(s=>s.key),!won);   // v1427: the attack and the defence it met
-        simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
-    }
-    if(!opp) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* v559: a missing opponent left won=false and fell through to the +5 consolation coins, so an unbounded string of invalid oppIds minted coins at the route limit without ever fighting. No opponent, no attempt, no payout. */
+    const host=simHost(); if(!host) return send(res,503,{ok:false,error:'The battle could not be resolved.'});
+    const seed=pend.seed>>>0, mySnaps=pend.mySnaps, opSnaps=pend.foeSnaps;
+    let won=false, fight=null;
+    try{ fight=host.auto(mySnaps,opSnaps,seed); }catch(e){ console.error('arena result: the replay failed:',e&&e.message); return send(res,503,{ok:false,error:'The battle could not be resolved.'}); }
+    won=!!(fight&&fight.won);
+    heroUsageNote(me,'arena',mySnaps.map(s=>s.key),won); if(!opp.isNpc) heroUsageNote(opp,'arenadef',opSnaps.map(s=>s.key),!won);   // v1427: the attack and the defence it met
+    delete me._arenaPend;   // the fight is resolved (a failed save below puts it back with the rest of the account)
     /* v981 (3 Oct Arena audit #7): the result is saved before it is acknowledged. Both accounts (the rank swap writes the
        opponent, and may delete a bot) and the review stores are snapshotted; a failed save restores them and answers 503. */
     const r=applyResult(me,opp,won); const reward=won?Math.max(5,20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;   /* v1088 (scan 9 #2): below rank 5750 a win paid less than a loss, below 6000 it took coins */
@@ -11183,12 +11225,13 @@ async function api(req,res,url){
       const aused=(led.earnDay['gold:arena']|0), ACAP=8000;
       goldReward=Math.min(Math.max(0,200+Math.floor((5000-me.rank)/20)), Math.max(0,ACAP-aused));
       if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; goldReward=creditGold(me,led,goldReward,'arena:win'); ledTx(me,'arena:win',{gold:goldReward}); } }
-    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length && arenaDefOk(me,opp,b.def)){   /* v1078 (scan #6): only a report of the two real squads, size-capped */   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
+    { /* v1450: the defender's watchable report and the Top-pick record are written from the fight itself - the server's snapshots and seed,
+         the engine that fought it - so every replay of it (attacker, defender, Top pick) is this exact fight. The client's `def` is ignored. */
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
-      const _defEngine=(typeof b.def.engine==='string')?b.def.engine.slice(0,40):null;   /* v1391: the build that fought it - the viewer says when it is not its own */
-      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now(), engine:_defEngine });
+      const _atk=String(me.name||'A challenger').slice(0,24), _eng=pend.engine||null;   /* v996 (Arena audit #12): the attacker's real name */
+      opp.arenaDefenses.unshift({ v:2, seed, mineSnap:mySnaps, foe:opSnaps, won:won, atkName:_atk, t:Date.now(), engine:_eng });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10;
-      arenaTopAdd({ seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24), defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank, engine:_defEngine }); }
+      arenaTopAdd({ seed, mineSnap:mySnaps, foe:opSnaps, won:won, atkName:_atk, defName:String(opp.name||'Defender').slice(0,24), atkRank:me.rank, defRank:opp.rank, engine:_eng }); }
     me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
     /* v267 (80/20 §9): rank-milestone diamonds are paid HERE, from the server's own rank record —
        the client used to award them itself through the generic earn endpoint. */
@@ -11198,7 +11241,7 @@ async function api(req,res,url){
         me.bestRank=me.rank; me._gemFrac=(me._gemFrac||0)+d; milestoneGems=Math.floor(me._gemFrac); me._gemFrac-=milestoneGems;
         if(milestoneGems>0){ milestoneGems=creditGems(me,led,milestoneGems,'arena:rank-milestone'); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
-    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
+    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:null, fightId:pend.id, digest:(fight&&fight.digest)||null, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
     DB.idem[akey]={t:Date.now(),resp:aresp}; _rkn(akey);
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; a failed save rolls both accounts back
       _holdReply(_joinBatch(()=>{ console.error('Arena result save failed - both accounts rolled back');

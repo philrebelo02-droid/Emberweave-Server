@@ -61,7 +61,9 @@ async function call(route,tok,bodyObj,headers){ const r=await fetch(base+route,{
   // a real Arena fight against a bot
   const fight=async tok=>{ const o=await call('/api/arena/opponents',tok); const opp=(o.data.opponents||[]).find(x=>x.isNpc)||(o.data.opponents||[])[0];
     if(!opp) return {status:0,data:{error:'no opponent '+JSON.stringify(o.data).slice(0,200)}};
-    return call('/api/arena/result',tok,{requestId:'r'+Math.random().toString(36).slice(2),oppId:opp.id}); };
+    const st=await call('/api/arena/start',tok,{requestId:'s'+Math.random().toString(36).slice(2),oppId:opp.id});   /* v1450: the server fixes the fight first */
+    if(!(st.data&&st.data.ok)) return st;
+    return call('/api/arena/result',tok,{requestId:'r'+Math.random().toString(36).slice(2),oppId:opp.id,fightId:st.data.fightId}); };
   const r1=await fight(A.token); ok(r1.status===200&&r1.data&&r1.data.ok!==false,'a real Arena fight resolves ('+r1.status+' '+JSON.stringify(r1.data).slice(0,160)+')');
   const r2=await fight(T.token); ok(r2.status===200,'the test account fights too ('+r2.status+')');
   // the satellite route (link secret) and the dev view

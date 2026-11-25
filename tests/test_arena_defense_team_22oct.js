@@ -22,7 +22,7 @@ check(/if\(Array\.isArray\(b\.arenaDef\)\) me\.arenaDef=sanitizeRoster\(b\.arena
 // 3) every Arena defender read goes through arenaDefTeam (no raw opp.team / o.team / u.team left in them)
 check(/team:hydrateRoster\(o,arenaDefTeam\(o\)\)/.test(srv), '/api/arena/opponent preview does not use the defense team');
 check(/team:hydrateRoster\(u,arenaDefTeam\(u\)\)/.test(srv), '/api/arena/opponents preview does not use the defense team');
-check(/opSnaps=rosterKeys\(arenaDefTeam\(opp\)\)\.filter\(k=>opLed&&ownsHeroK\(opLed,k\)\)/.test(srv), 'the real defense fight does not use the defense team');
+check(/let k=rosterKeys\(arenaDefTeam\(opp\)\)\.filter\(x=>ownsHeroK\(opLed,x\)\)/.test(srv) && /foeKeys=arenaDefenceKeys\(opp\)/.test(srv), 'the real defense fight does not use the defense team');   /* v1450: arenaDefenceKeys, used by /api/arena/start */
 // 4) the helper's behaviour, with the server's own sanitizeRoster and rosterKeys
 const helper = fn('arenaDefTeam'), san = fn('sanitizeRoster'), keys = fn('rosterKeys');
 check(!!helper && !!san && !!keys, 'arenaDefTeam / sanitizeRoster / rosterKeys not found');

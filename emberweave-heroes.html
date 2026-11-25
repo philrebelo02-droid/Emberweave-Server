@@ -9141,6 +9141,7 @@ function queueInput(inp){
    record - each extra click used to write one more refused action into it (and toward the cap). A press the fight refuses (stunned, its
    condition not met) frees the button again in applyInput. */
 function gearBtnPress(u){ if(!u||!u.alive||!u.gearSkill||u.gearSkill.used||((u._gearQ||0)>simTick)) return false;
+  if(CUR&&(CUR.mode==='replay'||(CUR.mode==='arena'&&CUR.oneFight))) return false;   /* v1450: a fixed arena fight (and its replay) is full auto - a press would make it another fight */
   u._gearQ=simTick+GEAR_PRESS_TICKS; if(!queueInput({k:'gear', uid:u.uid})){ u._gearQ=0; return false; } return true; }
 const GEAR_PRESS_TICKS=36;   // a press that never reaches its tick (the server would not place it) frees the button again after this many ticks
 /* the AUTO button: the toggle is a battle input, and it is never left "switching" when the fight will not take it */
@@ -19057,17 +19058,16 @@ function endBattle(won){
       document.getElementById('resultHint').textContent=ewT('result.replay_no_rewards'); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); resultLater(()=>onlineResult(won),800); return; }
   if(CUR.mode==='arena'){ if(won)grantTeamXP(70); let _arepDef=null, _arepMine=null;
-    // record a watchable arena-attack report. The live arena fight is variable-timestep (non-deterministic), so we
-    // seed-SEARCH for a fixed-step seed whose deterministic sim ends in the SAME result → the replay is exact AND matches
-    // the real outcome. (Arena is 100% auto, no player input, so the seed fully determines the fight.)
+    /* v1450 ONE ARENA FIGHT: the watchable report IS this fight - the squads and the seed it was played on (the server's, signed in). Arena is
+       100% auto and fixed-step, so that seed replays it exactly. The seed search that used to find "a fight with the same outcome" is gone, and
+       the DEFENDER's report is written by the server from the same fight (the page no longer sends one). */
     try{ if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]}; if(!Array.isArray(G.arenaReports.attacks))G.arenaReports.attacks=[];
       const snap=CUR.arenaSnap||[], foe=CUR.arenaFoe||[];
-      if(snap.length&&foe.length){ let sd=(CUR.seed>>>0)||newFightSeed(); for(let t=0;t<5;t++){ if(simFightResult(snap,foe,sd)===!!won)break; sd=newFightSeed(); }
-        _arepMine={v:2,seed:sd,mineSnap:snap,foe,won:!!won,oppName:CUR.oppName,t:Date.now(),engine:BUILD_ID}; G.arenaReports.attacks.unshift(_arepMine);   /* v1391: engine = the build that fought it */
+      if(CUR.oneFight&&snap.length&&foe.length){ const sd=(CUR.seed>>>0);
+        _arepMine={v:2,seed:sd,mineSnap:snap,foe,won:!!won,oppName:CUR.oppName,t:Date.now(),engine:(CUR.arenaEngine||BUILD_ID)}; G.arenaReports.attacks.unshift(_arepMine);   /* v1391: engine = the build that fought it */
         if(G.arenaReports.attacks.length>10)G.arenaReports.attacks.length=10;
-        _arepDef={seed:sd,mineSnap:snap,foe,atkName:(ACC.name||'A challenger'),engine:BUILD_ID};   // sent to server so the DEFENDER gets a watchable report of this attack
       } }catch(e){}
-    const oldRank=G.arenaRank, arenaOpponent=CUR.oppId, arenaToken=ACC.token; let reward=0;   /* v1387 (ChatGPT Arena hunt): a delayed result retry stays on ITS fight's opponent + account */
+    const oldRank=G.arenaRank, arenaOpponent=CUR.oppId, arenaToken=ACC.token, arenaFight=CUR.arenaFightId||null; let reward=0;   /* v1387 (ChatGPT Arena hunt): a delayed result retry stays on ITS fight's opponent + account */
     saveG(); updateHubChrome();
     resultLater(async(ep)=>{ let newRank=oldRank;
       let d=null;
@@ -19076,7 +19076,7 @@ function endBattle(won){
         const _rid=uid8();
         /* v1360 (night smoke, world, P2): the attack squad reached the server only through the cloud save, which can leave ~10 s after BATTLE. In that window the server fought the OLD saved team - a fight won on screen with three Lv 94 heroes came back ARENA LOSS (it had fielded Vael Lv 1), the attempt was spent, and Record still said Victory. The squad that fought is sent with the result; the server keeps only heroes the account owns. */
         const _ateam=(Array.isArray(G.team)?G.team:[]).map(h=>(h&&typeof h==='object')?h.key:h).filter(k=>typeof k==='string'&&k).slice(0,5);
-        for(let _try=0;_try<3;_try++){ if(ACC.token!==arenaToken) return; d=await api('/api/arena/result','POST',{oppId:arenaOpponent,won,def:_arepDef,team:_ateam,requestId:_rid});
+        for(let _try=0;_try<3;_try++){ if(ACC.token!==arenaToken) return; d=await api('/api/arena/result','POST',{oppId:arenaOpponent,fightId:arenaFight,won,team:_ateam,requestId:_rid});   /* v1450: `won` is informational - the server replays the fight it fixed */
           if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
         if(ACC.token!==arenaToken) return;   /* v1387 (ChatGPT): the account changed while the save was in flight - never apply its reply to the new account */
         try{ if(d&&typeof d.won==='boolean'&&typeof _arepMine!=='undefined'&&_arepMine&&_arepMine.won!==d.won){ _arepMine.won=d.won; saveG(); } }catch(e){}   /* the Record row follows the server's verdict */   // v981: a refused save is re-sent too
@@ -19091,7 +19091,7 @@ function endBattle(won){
           document.getElementById('resultReward').textContent=(d&&d.error&&d.error!=='offline')?langMsg(d.error):ewT('net.connection_lost');
           document.getElementById('resultHint').textContent=''; gameSpeed=1; show('result'); return; }   // v328: a new fight started during the round-trip — the server already paid; do not paint over the live battle
         if(d&&typeof d.rank==='number') newRank=d.rank;
-        if(d&&d.sim) CUR.arenaSim=d.sim;   // v255 (§7): keep the server's event log for the result recap
+        if(d&&d.sim&&Array.isArray(d.sim.log)) CUR.arenaSim=d.sim;   // v255 (§7): a recap log, when the server sends one (v1450: it no longer does - that log described another engine's fight)
         if(d&&typeof d.won==='boolean') won=d.won; }   // the SERVER decides the arena outcome
       // AUDIT C3: the SERVER's shared-simulator verdict is the arena result — the visual fight is
       // presentation. Rewards (gold + arena coins) are granted server-side.
@@ -29524,9 +29524,27 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     btn.onclick=()=>{ if(arenaNoAttempts()) return; G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); }; });
 }
 function arenaNoAttempts(){ const a=ACC.token&&ARENA.att; if(a&&(a.attemptsLeft|0)<=0){ bannerMsg(t('arena.no_attempts')); return true; } return false; }
-function startArena(o){ if(arenaNoAttempts()){ show('arena'); return; } G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id,oppPower:o.power||0};
+/* v1450 ONE ARENA FIGHT (Phil 25 Nov: "The player should see the exact recording everyone sees"). Signed in, the server fixes the fight first
+   (/api/arena/start: both squads as the server built them + the server's seed) and this page plays EXACTLY that - setupMarchTeams and the
+   fixed-step engine, full auto, the same path simFightResult runs headless - so the fight on screen, the server's verdict, the attacker's and
+   the defender's replays and the Top-pick replay are one fight. Signed out (the local ladder) the page fixes its own squads + seed the same way,
+   so its Record replay is the fight too. CUR.oneFight marks such a fight. */
+let _arenaStartBusy=false;
+function startArena(o){ if(arenaNoAttempts()){ show('arena'); return; } if(_arenaStartBusy) return; G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id,oppPower:o.power||0};
+  if(ACC.token){ arenaStartServer(o); return; }
   CUR.arenaSnap=snapAllySquad((G.team||[]).filter(Boolean)); CUR.arenaFoe=trimTeam(o.team||[]);   // capture both squads (resolved) for a watchable report
-  startVersus(o.team,true); }
+  CUR.seed=newFightSeed(); CUR.oneFight=true; CUR.replayAlly=CUR.arenaSnap; CUR.replayFoe=CUR.arenaFoe.slice();
+  startVersus(o.team,true,CUR.arenaSnap.map(s=>s.key)); }
+async function arenaStartServer(o){ const cur=CUR, tok=ACC.token; _arenaStartBusy=true;
+  const team=(Array.isArray(G.team)?G.team:[]).map(h=>(h&&typeof h==='object')?h.key:h).filter(k=>typeof k==='string'&&k).slice(0,5);   // v1360: the squad just picked
+  let r=null; try{ r=await api('/api/arena/start','POST',{oppId:o.id,team,requestId:uid8()}); }catch(e){ r=null; } finally{ _arenaStartBusy=false; }
+  if(CUR!==cur||ACC.token!==tok) return;   // another screen or account took over while the fight was being fixed
+  if(r&&r.arena) ARENA.att=r.arena;
+  if(!(r&&r.ok&&Array.isArray(r.mySnaps)&&r.mySnaps.length&&Array.isArray(r.foeSnaps)&&r.foeSnaps.length)){
+    bannerMsg(escapeHTML(langMsg((r&&r.error))||'')||t('net.connection_lost')); show('arena'); return; }
+  CUR.seed=(r.seed>>>0); CUR.oneFight=true; CUR.arenaFightId=String(r.fightId||''); CUR.arenaEngine=r.engine||null;
+  CUR.arenaSnap=r.mySnaps; CUR.arenaFoe=r.foeSnaps; CUR.replayAlly=r.mySnaps; CUR.replayFoe=r.foeSnaps.slice();
+  startVersus(trimTeam(r.foeSnaps), true, r.mySnaps.map(s=>s.key)); }
 /* Arena Reports — a sub-view INSIDE the Arena screen (Attacks = your last 10 challenges; Defenses = incoming, server-fed). */
 /* Phil 10 Nov: "I dont like the record pop out, it looks so basic, make it more appealing": a pop-out on the Bonus panel frame, gold tabs,
    each fight as a card with both teams' portraits, a Victory / Defeat ribbon, and compact Watch / Share */
@@ -32861,7 +32879,7 @@ function startVersus(enemyTeam,auto,allyKeys){
   catch(e){ go(); }
 }
 function _startVersusNow(enemyTeam,auto,allyKeys){
-  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
+  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&(CUR.mode==='replay'||(CUR.mode==='arena'&&CUR.oneFight))&&CUR.seed!=null?CUR.seed:null);   /* v1450: a fixed arena fight plays on its own seed */
   if(CUR&&CUR.replayAlly&&CUR.replayAlly.length){   // v2 exact replay: build BOTH teams from data exactly as the headless resolver did (laneSlot), so the replay == the recorded fight
     /* v756b - BOTH means both. enemyTeam here has been through trimTeam and is only keys and
        levels; CUR.replayFoe is the line the server actually fought with. */
