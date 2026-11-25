@@ -561,6 +561,7 @@
   /* v586 (Phil: the pause box came up "a layer behind the lines" in a bonus run): above the firebreak panel (40-50) and its road zones (45) */
   #pauseModal{position:absolute;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.7);}
   #pauseModal.active{display:flex;}
+  #restartBtn.pmOff{display:none!important}   /* v1451: no Restart Stage in a fight that cannot be restarted (pauseCanRestart) */
   #pauseModal .pm{background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:22px;width:80%;max-width:320px;text-align:center;}
   /* v1358 (Phil 10 Nov: sound settings in every pause menu): the panel never leaves the game frame; on a short screen (a landscape phone) the
      buttons sit on the left and the sound controls on the right */
@@ -1133,11 +1134,11 @@
   #resultSquad .rCard .rEmoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:34px;}
   #resultSquad .rCard .rLv{position:absolute;top:0;left:0;background:rgba(10,14,22,.86);color:#ffd45e;font-size:9px;font-weight:900;padding:1px 4px;border-bottom-right-radius:6px;}
   #resultSquad .rCard .rStars{position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:8px;color:#ffd45e;text-shadow:0 1px 2px #000;line-height:1;}
-  #battleCtrls{position:absolute;top:8px;right:8px;display:none;flex-direction:column;gap:6px;z-index:16;}
+  #battleCtrls{position:absolute;top:8px;right:8px;display:none;flex-direction:column;align-items:flex-end;gap:6px;z-index:16;}
   #battleCtrls.active{display:flex;}
   .ctrlBtn{pointer-events:auto;background:rgba(21,27,43,.92);color:#e6edf3;border:1px solid #33405e;border-radius:20px;padding:0 8px;font-size:12px;font-weight:800;cursor:pointer;width:92px;height:32px;box-sizing:border-box;white-space:nowrap;text-align:center;}
   .ctrlBtn.on{background:#ffd45e;color:#0b0e14;border-color:#ffd45e;}
-  .ctrlBtn.pending{background:rgba(21,27,43,.92);border-color:#ffd45e;color:#ffe49c;font-size:10px;cursor:wait;}
+  .ctrlBtn.pending{background:rgba(21,27,43,.92);border-color:#ffd45e;color:#ffe49c;font-size:10px;cursor:wait;width:auto;min-width:92px;line-height:1.15;}   /* v1451 (lockdown audit 25 Nov): the SWITCHING label is two lines ("AUTO:" / the state) and the button widens to the left to fit it - it read "AUTO: SWITCHIN" in a 92 px button */
   #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:9600;text-align:center;letter-spacing:2px;padding:20px;}   /* v1320 (Phil 9 Nov: "The prompt in the back of the glyph screen should be infront"): over the pop-out panels (9000-9200), under the reward pop-out (9800) */
   #banner.show{display:flex;animation:pop 1.4s ease-out forwards;}
 /* v1368 (tester B 4.6 "Standardize boss warnings and a top boss health bar"; Claude 11 Nov: "a stylized ribbon with the boss portrait and a large boss
@@ -18671,6 +18672,9 @@ function _startBattleNow(){
     const oppSlots=formationSlots('enemy',_opp.length); _opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
     bannerMsg(ewT('battle.raid_bang')+'\n'+ewT('battle.raid_defeat_squad')); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
+  /* v1451 (lockdown audit 25 Nov): the buttons above were drawn before show('battle'), when state is not 'battle' yet, so the one-time x2
+     teaching flash (v1256, tut-next-glow until the first speed tap) never showed in a campaign fight. Draw them again on the battle screen. */
+  try{ refreshCtrlBtns(); }catch(e){}
   /* v478 (Phil: "equipment actives don't work"): the Gear Active button only existed if the Forge had been opened earlier in the
      session (FORGE.st stays null until then). Fetch the gear state now and rebuild the portrait bar so the button is there. */
   if(FORGE.st===null&&!isAutoBattle()){ forgeSync().then(()=>{ try{ if(state==='battle'&&!ended) buildPortraitBar(); }catch(e){} }).catch(()=>{}); }
@@ -28876,7 +28880,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
             the other player is still fighting. */
          try{ if(state==='battle' && !ended && !paused && CUR.mode!=='online' && !(typeof OL!=='undefined'&&OL.active)
                  && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province'||CUR.mode==='well')){
-           paused=true; try{ pauseSndRender(); }catch(e){} document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
+           try{ pauseMenuSync(); }catch(e){} paused=true; try{ pauseSndRender(); }catch(e){} document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
 // load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
 // the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
 // game paints instantly before the profile fetch returns; it is never trusted over the cloud.
@@ -37413,6 +37417,8 @@ function isAutoBattle(){ const m=CUR&&CUR.mode;
   // ultimates the player deliberately held back, or the replay is a different fight.
   if(CUR&&CUR.manualReplay) return false;
   return m==='arena'||m==='raid'||m==='elite'||m==='replay'||m==='emberdraft'; }   // v604: Emberdraft fights are fully automatic (and never pick up the player's own Forge actives)
+/* v1451: "AUTO: SWITCHING ON…" -> "AUTO:" over "SWITCHING ON…" (breaks after the first colon, ASCII or full-width; every language has one) */
+function autoSwLabel(s){ const m=String(s).match(/^([^:\uFF1A]*[:\uFF1A])\s*(.+)$/); return m?(m[1]+'<br>'+m[2]):String(s); }
 function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn'),kb=document.getElementById('skipBtn');
   { const S=spdChoices(); if(S.indexOf(gameSpeed)<0) gameSpeed=1; }   /* v1256: no x0.5 outside replays, no x2 before 1-3 */
   const _spLock=spdChoices().length===1;
@@ -37431,7 +37437,7 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
   if(kb) kb.style.display=(forced && !_isReplay && !(CUR&&CUR.mode==='emberdraft') && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   /* v645 (Phil: Skip "should only be for deterministic fights like world map and arena"): never in Emberdraft */   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
   if(forced) autoPendingTarget=null;
   const switching=!forced && autoPendingTarget!==null;
-  ab.innerHTML=switching?(autoPendingTarget?t('bhud.auto_sw_on'):t('bhud.auto_sw_off')):((!forced&&!autoOpen()&&!autoUlt)?(t('bhud.auto')+' '+hudIcon('lock')):((autoUlt?t('bhud.auto_on'):t('bhud.auto_off'))+(forced?' '+hudIcon('lock'):'')));
+  ab.innerHTML=switching?autoSwLabel(autoPendingTarget?t('bhud.auto_sw_on'):t('bhud.auto_sw_off')):((!forced&&!autoOpen()&&!autoUlt)?(t('bhud.auto')+' '+hudIcon('lock')):((autoUlt?t('bhud.auto_on'):t('bhud.auto_off'))+(forced?' '+hudIcon('lock'):'')));
   ab.className='ctrlBtn'+(autoUlt?' on':'')+(switching?' pending':'')+(forced?' locked':'');
   ab.disabled=switching; ab.title=switching?t('bhud.auto_pending_tip'):'';
   ab.style.opacity=forced?'.7':'';}
@@ -38387,9 +38393,17 @@ async function _startBtnGo(_ctx){
     } else { bannerMsg(ewT('battle.connect_campaign')); return; } }
   if(state!=='menu' || _ctx!==_startCtx()) return;   // v328: never land in a fight the player already backed out of
   startBattle(); }
-document.getElementById('pauseBtn').onclick=()=>{ paused=true; pauseSndRender(); document.getElementById('pauseModal').classList.add('active'); };
+/* v1451 (lockdown audit 25 Nov): leaving the app mid-Arena auto-pauses into this menu, and Restart Stage called startBattle() for every
+   mode. Arena keeps its squads on CUR.arenaSnap / arenaFoe (the server's one fixed fight, v1450), never CUR.opp, so the restart was a fake
+   fight against one level 1 Grosk under a RAID banner that still ended as ARENA LOSS. Restart Stage is offered only where startBattle()
+   really re-runs the same stage: campaign, Vault, dungeon, Training Province, Starless Well (the modes that have the pause button). A bonus
+   run hides it itself (gsplitHudEnter); replays, Arena, Emberdraft, guild raid, world-map and live fights never restart. */
+function pauseCanRestart(){ const m=CUR&&CUR.mode; return m==='campaign'||m==='dungeon'||m==='vault'||m==='province'||m==='well'; }
+function pauseMenuSync(){ const r=document.getElementById('restartBtn'); if(r) r.classList.toggle('pmOff',!pauseCanRestart()); }
+document.getElementById('pauseBtn').onclick=()=>{ paused=true; pauseSndRender(); pauseMenuSync(); document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
-document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active');
+document.getElementById('restartBtn').onclick=()=>{ if(!pauseCanRestart()) return;   // v1451: never a fake restart (see pauseCanRestart)
+  paused=false; document.getElementById('pauseModal').classList.remove('active');
   /* Tell the server this fight is over BEFORE the new one begins, so its partial transcript can never
      be replayed as the restarted fight's result (and so an older server, which cannot reset a stream,
      at least drops its acts and stamps the result honestly). */
@@ -38408,6 +38422,10 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   /* v758 - QUIT leaves a replay the same way CONTINUE does. resultBtn routes mode 'replay' through
      _replayReturn, which is what clears the Skyfall pause; this one did not, so skipping out of a
      watched march left every lane frozen with nothing left to release them. */
+  /* v1451: Quit mid-Arena goes back to the Arena screen (it went to the hub). Nothing is sent: the server keeps this fixed fight open
+     (/api/arena/start, v1450). The same opponent with the same squad plays the same fight again; starting any other fight spends the
+     attempt as a forfeit (no rank, no reward), so quitting never dodges a loss. */
+  if(CUR&&CUR.mode==='arena'){ clearBattle(); show('arena'); try{ evictUnusedArt(G.team); }catch(e){} return; }
   if(CUR&&CUR.mode==='replay'){ const rr=_replayReturn; _replayReturn=null; clearBattle();
     if(rr){ try{ rr(); return; }catch(e){} } show('home'); return; }
   clearBattle();
