@@ -12,63 +12,63 @@
      {
       "key": "vexmite",
       "lvl": 3,
-      "hpMul": 5.9398,
-      "dmgMul": 2.5582
+      "hpMul": 41.0898,
+      "dmgMul": 9.9062
      },
      {
       "key": "sootwing imp",
       "lvl": 3,
-      "hpMul": 5.9398,
-      "dmgMul": 2.5582
+      "hpMul": 41.0898,
+      "dmgMul": 9.9062
      },
      {
       "key": "skulk",
       "lvl": 3,
-      "hpMul": 5.9398,
-      "dmgMul": 2.5582
+      "hpMul": 41.0898,
+      "dmgMul": 9.9062
      },
      {
       "key": "cindertusk",
       "lvl": 3,
-      "hpMul": 5.9398,
-      "dmgMul": 2.5582
+      "hpMul": 41.0898,
+      "dmgMul": 9.9062
      }
     ],
     [
      {
       "key": "ooznik",
       "lvl": 3,
-      "hpMul": 6.9068,
-      "dmgMul": 2.9746
+      "hpMul": 47.7792,
+      "dmgMul": 11.5187
      },
      {
       "key": "grushak",
       "lvl": 3,
-      "hpMul": 6.9068,
-      "dmgMul": 2.9746
+      "hpMul": 47.7792,
+      "dmgMul": 11.5187
      },
      {
       "key": "skarrn",
       "lvl": 3,
-      "hpMul": 6.9068,
-      "dmgMul": 2.9746
+      "hpMul": 47.7792,
+      "dmgMul": 11.5187
      },
      {
       "key": "vexmite",
       "lvl": 3,
-      "hpMul": 6.9068,
-      "dmgMul": 2.9746
+      "hpMul": 47.7792,
+      "dmgMul": 11.5187
      },
      {
       "key": "skulk",
       "lvl": 3,
-      "hpMul": 6.9068,
-      "dmgMul": 2.9746
+      "hpMul": 47.7792,
+      "dmgMul": 11.5187
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 515,
+   "recommendedPower": 23902,
    "dust": 30,
    "glyphFragments": [
     "Grey Stoneheart"
@@ -80,9 +80,13 @@
    "realEngineTuned": true,
    "tunedFor": {
     "level": 10,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.275,
+    "wrPlus5": 0.625,
+    "avgSec": 87.3,
+    "d": 6.9177
    },
    "wallFixes": [
     {
@@ -101,63 +105,63 @@
      {
       "key": "skulk",
       "lvl": 3,
-      "hpMul": 7.1131,
-      "dmgMul": 3.4649
+      "hpMul": 31.5914,
+      "dmgMul": 9.8389
      },
      {
       "key": "cinder skulk",
       "lvl": 3,
-      "hpMul": 7.1131,
-      "dmgMul": 3.4649
+      "hpMul": 31.5914,
+      "dmgMul": 9.8389
      },
      {
       "key": "vexmite",
       "lvl": 3,
-      "hpMul": 7.1131,
-      "dmgMul": 3.4649
+      "hpMul": 31.5914,
+      "dmgMul": 9.8389
      },
      {
       "key": "cindertusk",
       "lvl": 3,
-      "hpMul": 7.1131,
-      "dmgMul": 3.4649
+      "hpMul": 31.5914,
+      "dmgMul": 9.8389
      }
     ],
     [
      {
       "key": "skulk",
       "lvl": 3,
-      "hpMul": 8.2702,
-      "dmgMul": 4.0315
+      "hpMul": 36.7304,
+      "dmgMul": 11.4478
      },
      {
       "key": "ooznik",
       "lvl": 3,
-      "hpMul": 8.2702,
-      "dmgMul": 4.0315
+      "hpMul": 36.7304,
+      "dmgMul": 11.4478
      },
      {
       "key": "sootwing imp",
       "lvl": 3,
-      "hpMul": 8.2702,
-      "dmgMul": 4.0315
+      "hpMul": 36.7304,
+      "dmgMul": 11.4478
      },
      {
       "key": "vexmite",
       "lvl": 3,
-      "hpMul": 8.2702,
-      "dmgMul": 4.0315
+      "hpMul": 36.7304,
+      "dmgMul": 11.4478
      },
      {
       "key": "cinder skulk",
       "lvl": 3,
-      "hpMul": 8.2702,
-      "dmgMul": 4.0315
+      "hpMul": 36.7304,
+      "dmgMul": 11.4478
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 556,
+   "recommendedPower": 25761,
    "dust": 31,
    "glyphFragments": [
     "Grey Ironwall"
@@ -169,9 +173,13 @@
    "realEngineTuned": true,
    "tunedFor": {
     "level": 11,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.275,
+    "wr100": 0.3,
+    "wrPlus5": 0.7,
+    "avgSec": 80.7,
+    "d": 4.4413
    }
   },
   {
@@ -182,63 +190,63 @@
      {
       "key": "shellwark",
       "lvl": 4,
-      "hpMul": 8.1206,
-      "dmgMul": 3.8917
+      "hpMul": 36.066,
+      "dmgMul": 11.0509
      },
      {
       "key": "sootwing imp",
       "lvl": 4,
-      "hpMul": 8.1206,
-      "dmgMul": 3.8917
+      "hpMul": 36.066,
+      "dmgMul": 11.0509
      },
      {
       "key": "cinder skulk",
       "lvl": 4,
-      "hpMul": 8.1206,
-      "dmgMul": 3.8917
+      "hpMul": 36.066,
+      "dmgMul": 11.0509
      },
      {
       "key": "ooznik",
       "lvl": 4,
-      "hpMul": 8.1206,
-      "dmgMul": 3.8917
+      "hpMul": 36.066,
+      "dmgMul": 11.0509
      }
     ],
     [
      {
       "key": "grushak",
       "lvl": 4,
-      "hpMul": 9.4411,
-      "dmgMul": 4.525
+      "hpMul": 41.9308,
+      "dmgMul": 12.8492
      },
      {
       "key": "skulk",
       "lvl": 4,
-      "hpMul": 9.4411,
-      "dmgMul": 4.525
+      "hpMul": 41.9308,
+      "dmgMul": 12.8492
      },
      {
       "key": "shellwark",
       "lvl": 4,
-      "hpMul": 9.4411,
-      "dmgMul": 4.525
+      "hpMul": 41.9308,
+      "dmgMul": 12.8492
      },
      {
       "key": "vexmite",
       "lvl": 4,
-      "hpMul": 9.4411,
-      "dmgMul": 4.525
+      "hpMul": 41.9308,
+      "dmgMul": 12.8492
      },
      {
       "key": "skarrn",
       "lvl": 4,
-      "hpMul": 9.4411,
-      "dmgMul": 4.525
+      "hpMul": 41.9308,
+      "dmgMul": 12.8492
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 638,
+   "recommendedPower": 27634,
    "dust": 34,
    "glyphFragments": [
     "Grey Veilward"
@@ -250,9 +258,13 @@
    "realEngineTuned": true,
    "tunedFor": {
     "level": 12,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.35,
+    "wrPlus5": 0.75,
+    "avgSec": 82.7,
+    "d": 4.4413
    }
   },
   {
@@ -263,63 +275,63 @@
      {
       "key": "shellwark",
       "lvl": 4,
-      "hpMul": 13.4175,
-      "dmgMul": 5.6459
+      "hpMul": 35.2089,
+      "dmgMul": 11.0922
      },
      {
       "key": "skarrn",
       "lvl": 4,
-      "hpMul": 13.4175,
-      "dmgMul": 5.6459
+      "hpMul": 35.2089,
+      "dmgMul": 11.0922
      },
      {
       "key": "cinder skulk",
       "lvl": 4,
-      "hpMul": 13.4175,
-      "dmgMul": 5.6459
+      "hpMul": 35.2089,
+      "dmgMul": 11.0922
      },
      {
       "key": "grushak",
       "lvl": 4,
-      "hpMul": 13.4175,
-      "dmgMul": 5.6459
+      "hpMul": 35.2089,
+      "dmgMul": 11.0922
      }
     ],
     [
      {
       "key": "sootwing imp",
       "lvl": 4,
-      "hpMul": 15.6122,
-      "dmgMul": 6.5681
+      "hpMul": 40.968,
+      "dmgMul": 12.904
      },
      {
       "key": "grushak",
       "lvl": 4,
-      "hpMul": 15.6122,
-      "dmgMul": 6.5681
+      "hpMul": 40.968,
+      "dmgMul": 12.904
      },
      {
       "key": "skarrn",
       "lvl": 4,
-      "hpMul": 15.6122,
-      "dmgMul": 6.5681
+      "hpMul": 40.968,
+      "dmgMul": 12.904
      },
      {
       "key": "cinder skulk",
       "lvl": 4,
-      "hpMul": 15.6122,
-      "dmgMul": 6.5681
+      "hpMul": 40.968,
+      "dmgMul": 12.904
      },
      {
       "key": "cindertusk",
       "lvl": 4,
-      "hpMul": 15.6122,
-      "dmgMul": 6.5681
+      "hpMul": 40.968,
+      "dmgMul": 12.904
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 676,
+   "recommendedPower": 27634,
    "dust": 36,
    "glyphFragments": [
     "Grey Ravager"
@@ -330,10 +342,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 13,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 12,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.375,
+    "wrPlus5": 0.8,
+    "avgSec": 71.0,
+    "d": 2.6241
    }
   },
   {
@@ -344,58 +360,58 @@
      {
       "key": "ooznik",
       "lvl": 5,
-      "hpMul": 0.9641,
-      "dmgMul": 0.965
+      "hpMul": 2.3282,
+      "dmgMul": 1.7888
      },
      {
       "key": "grushak",
       "lvl": 5,
-      "hpMul": 0.9641,
-      "dmgMul": 0.965
+      "hpMul": 2.3282,
+      "dmgMul": 1.7888
      },
      {
       "key": "cinder skulk",
       "lvl": 5,
-      "hpMul": 0.9641,
-      "dmgMul": 0.965
+      "hpMul": 2.3282,
+      "dmgMul": 1.7888
      },
      {
       "key": "vexmite",
       "lvl": 5,
-      "hpMul": 0.9641,
-      "dmgMul": 0.965
+      "hpMul": 2.3282,
+      "dmgMul": 1.7888
      }
     ],
     [
      {
       "key": "cindertusk",
       "lvl": 5,
-      "hpMul": 1.446,
-      "dmgMul": 1.2065
+      "hpMul": 3.4919,
+      "dmgMul": 2.2364
      },
      {
       "key": "skarrn",
       "lvl": 5,
-      "hpMul": 1.446,
-      "dmgMul": 1.2065
+      "hpMul": 3.4919,
+      "dmgMul": 2.2364
      },
      {
       "key": "shellwark",
       "lvl": 5,
-      "hpMul": 1.446,
-      "dmgMul": 1.2065
+      "hpMul": 3.4919,
+      "dmgMul": 2.2364
      },
      {
       "key": "cinder skulk",
       "lvl": 5,
-      "hpMul": 1.446,
-      "dmgMul": 1.2065
+      "hpMul": 3.4919,
+      "dmgMul": 2.2364
      },
      {
       "key": "grommash",
       "lvl": 8,
-      "hpMul": 9.3532,
-      "dmgMul": 5.2011,
+      "hpMul": 22.587,
+      "dmgMul": 9.6411,
       "boss": true
      }
     ]
@@ -406,7 +422,7 @@
     "ascended": false,
     "gatekeeper": false
    },
-   "recommendedPower": 1253,
+   "recommendedPower": 31868,
    "dust": 38,
    "glyphFragments": [
     "Grey Starfire",
@@ -418,10 +434,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 14,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 13,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.975,
+    "wrPlus5": 1.0,
+    "avgSec": 66.9,
+    "d": 2.4149
    }
   },
   {
@@ -432,63 +452,63 @@
      {
       "key": "skulk",
       "lvl": 6,
-      "hpMul": 10.2895,
-      "dmgMul": 4.8686
+      "hpMul": 31.0115,
+      "dmgMul": 10.5389
      },
      {
       "key": "ooznik",
       "lvl": 6,
-      "hpMul": 10.2895,
-      "dmgMul": 4.8686
+      "hpMul": 31.0115,
+      "dmgMul": 10.5389
      },
      {
       "key": "shellwark",
       "lvl": 6,
-      "hpMul": 10.2895,
-      "dmgMul": 4.8686
+      "hpMul": 31.0115,
+      "dmgMul": 10.5389
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 10.2895,
-      "dmgMul": 4.8686
+      "hpMul": 31.0115,
+      "dmgMul": 10.5389
      }
     ],
     [
      {
       "key": "skarrn",
       "lvl": 6,
-      "hpMul": 11.9587,
-      "dmgMul": 5.6633
+      "hpMul": 36.0423,
+      "dmgMul": 12.2591
      },
      {
       "key": "shellwark",
       "lvl": 6,
-      "hpMul": 11.9587,
-      "dmgMul": 5.6633
+      "hpMul": 36.0423,
+      "dmgMul": 12.2591
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 11.9587,
-      "dmgMul": 5.6633
+      "hpMul": 36.0423,
+      "dmgMul": 12.2591
      },
      {
       "key": "sootwing imp",
       "lvl": 6,
-      "hpMul": 11.9587,
-      "dmgMul": 5.6633
+      "hpMul": 36.0423,
+      "dmgMul": 12.2591
      },
      {
       "key": "grushak",
       "lvl": 6,
-      "hpMul": 11.9587,
-      "dmgMul": 5.6633
+      "hpMul": 36.0423,
+      "dmgMul": 12.2591
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 839,
+   "recommendedPower": 25761,
    "dust": 41,
    "glyphFragments": [
     "Grey Hawkeye"
@@ -499,10 +519,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 15,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 11,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.338,
+    "wr100": 0.425,
+    "wrPlus5": 0.725,
+    "avgSec": 78.0,
+    "d": 3.0139
    }
   },
   {
@@ -513,63 +537,63 @@
      {
       "key": "sootwing imp",
       "lvl": 6,
-      "hpMul": 13.2963,
-      "dmgMul": 5.9314
+      "hpMul": 28.7413,
+      "dmgMul": 10.1742
      },
      {
       "key": "shellwark",
       "lvl": 6,
-      "hpMul": 13.2963,
-      "dmgMul": 5.9314
+      "hpMul": 28.7413,
+      "dmgMul": 10.1742
      },
      {
       "key": "skarrn",
       "lvl": 6,
-      "hpMul": 13.2963,
-      "dmgMul": 5.9314
+      "hpMul": 28.7413,
+      "dmgMul": 10.1742
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 13.2963,
-      "dmgMul": 5.9314
+      "hpMul": 28.7413,
+      "dmgMul": 10.1742
      }
     ],
     [
      {
       "key": "ooznik",
       "lvl": 6,
-      "hpMul": 15.4523,
-      "dmgMul": 6.8958
+      "hpMul": 33.4017,
+      "dmgMul": 11.8284
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 15.4523,
-      "dmgMul": 6.8958
+      "hpMul": 33.4017,
+      "dmgMul": 11.8284
      },
      {
       "key": "skarrn",
       "lvl": 6,
-      "hpMul": 15.4523,
-      "dmgMul": 6.8958
+      "hpMul": 33.4017,
+      "dmgMul": 11.8284
      },
      {
       "key": "skulk",
       "lvl": 6,
-      "hpMul": 15.4523,
-      "dmgMul": 6.8958
+      "hpMul": 33.4017,
+      "dmgMul": 11.8284
      },
      {
       "key": "grushak",
       "lvl": 6,
-      "hpMul": 15.4523,
-      "dmgMul": 6.8958
+      "hpMul": 33.4017,
+      "dmgMul": 11.8284
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 874,
+   "recommendedPower": 27634,
    "dust": 43,
    "glyphFragments": [
     "Grey Lifebloom"
@@ -580,10 +604,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 16,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 12,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.35,
+    "wrPlus5": 0.85,
+    "avgSec": 73.7,
+    "d": 2.1616
    }
   },
   {
@@ -594,63 +622,63 @@
      {
       "key": "skulk",
       "lvl": 7,
-      "hpMul": 11.0672,
-      "dmgMul": 5.3007
+      "hpMul": 28.2479,
+      "dmgMul": 10.214
      },
      {
       "key": "sootwing imp",
       "lvl": 7,
-      "hpMul": 11.0672,
-      "dmgMul": 5.3007
+      "hpMul": 28.2479,
+      "dmgMul": 10.214
      },
      {
       "key": "cindertusk",
       "lvl": 7,
-      "hpMul": 11.0672,
-      "dmgMul": 5.3007
+      "hpMul": 28.2479,
+      "dmgMul": 10.214
      },
      {
       "key": "ooznik",
       "lvl": 7,
-      "hpMul": 11.0672,
-      "dmgMul": 5.3007
+      "hpMul": 28.2479,
+      "dmgMul": 10.214
      }
     ],
     [
      {
       "key": "cinder skulk",
       "lvl": 7,
-      "hpMul": 12.8707,
-      "dmgMul": 6.1658
+      "hpMul": 32.8512,
+      "dmgMul": 11.881
      },
      {
       "key": "ooznik",
       "lvl": 7,
-      "hpMul": 12.8707,
-      "dmgMul": 6.1658
+      "hpMul": 32.8512,
+      "dmgMul": 11.881
      },
      {
       "key": "sootwing imp",
       "lvl": 7,
-      "hpMul": 12.8707,
-      "dmgMul": 6.1658
+      "hpMul": 32.8512,
+      "dmgMul": 11.881
      },
      {
       "key": "skulk",
       "lvl": 7,
-      "hpMul": 12.8707,
-      "dmgMul": 6.1658
+      "hpMul": 32.8512,
+      "dmgMul": 11.881
      },
      {
       "key": "grushak",
       "lvl": 7,
-      "hpMul": 12.8707,
-      "dmgMul": 6.1658
+      "hpMul": 32.8512,
+      "dmgMul": 11.881
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 977,
+   "recommendedPower": 31868,
    "dust": 46,
    "glyphFragments": [
     "Grey Stoneheart"
@@ -661,10 +689,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 17,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 13,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.575,
+    "wrPlus5": 0.775,
+    "avgSec": 76.4,
+    "d": 2.5524
    }
   },
   {
@@ -675,63 +707,63 @@
      {
       "key": "skarrn",
       "lvl": 7,
-      "hpMul": 18.6567,
-      "dmgMul": 7.7644
+      "hpMul": 30.5727,
+      "dmgMul": 10.9713
      },
      {
       "key": "shellwark",
       "lvl": 7,
-      "hpMul": 18.6567,
-      "dmgMul": 7.7644
+      "hpMul": 30.5727,
+      "dmgMul": 10.9713
      },
      {
       "key": "skulk",
       "lvl": 7,
-      "hpMul": 18.6567,
-      "dmgMul": 7.7644
+      "hpMul": 30.5727,
+      "dmgMul": 10.9713
      },
      {
       "key": "cindertusk",
       "lvl": 7,
-      "hpMul": 18.6567,
-      "dmgMul": 7.7644
+      "hpMul": 30.5727,
+      "dmgMul": 10.9713
      }
     ],
     [
      {
       "key": "shellwark",
       "lvl": 7,
-      "hpMul": 21.6955,
-      "dmgMul": 9.027
+      "hpMul": 35.5524,
+      "dmgMul": 12.7554
      },
      {
       "key": "skarrn",
       "lvl": 7,
-      "hpMul": 21.6955,
-      "dmgMul": 9.027
+      "hpMul": 35.5524,
+      "dmgMul": 12.7554
      },
      {
       "key": "cindertusk",
       "lvl": 7,
-      "hpMul": 21.6955,
-      "dmgMul": 9.027
+      "hpMul": 35.5524,
+      "dmgMul": 12.7554
      },
      {
       "key": "sootwing imp",
       "lvl": 7,
-      "hpMul": 21.6955,
-      "dmgMul": 9.027
+      "hpMul": 35.5524,
+      "dmgMul": 12.7554
      },
      {
       "key": "grushak",
       "lvl": 7,
-      "hpMul": 21.6955,
-      "dmgMul": 9.027
+      "hpMul": 35.5524,
+      "dmgMul": 12.7554
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1036,
+   "recommendedPower": 35606,
    "dust": 49,
    "glyphFragments": [
     "Grey Ironwall"
@@ -742,10 +774,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 18,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 15,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.7,
+    "wrPlus5": 0.925,
+    "avgSec": 76.0,
+    "d": 1.6387
    }
   },
   {
@@ -756,58 +792,58 @@
      {
       "key": "cindertusk",
       "lvl": 8,
-      "hpMul": 1.1875,
-      "dmgMul": 1.3836
+      "hpMul": 3.2036,
+      "dmgMul": 2.7715
      },
      {
       "key": "skulk",
       "lvl": 8,
-      "hpMul": 1.1875,
-      "dmgMul": 1.3836
+      "hpMul": 3.2036,
+      "dmgMul": 2.7715
      },
      {
       "key": "grushak",
       "lvl": 8,
-      "hpMul": 1.1875,
-      "dmgMul": 1.3836
+      "hpMul": 3.2036,
+      "dmgMul": 2.7715
      },
      {
       "key": "sootwing imp",
       "lvl": 8,
-      "hpMul": 1.1875,
-      "dmgMul": 1.3836
+      "hpMul": 3.2036,
+      "dmgMul": 2.7715
      }
     ],
     [
      {
       "key": "shellwark",
       "lvl": 8,
-      "hpMul": 1.7815,
-      "dmgMul": 1.7295
+      "hpMul": 4.8061,
+      "dmgMul": 3.4644
      },
      {
       "key": "ooznik",
       "lvl": 8,
-      "hpMul": 1.7815,
-      "dmgMul": 1.7295
+      "hpMul": 4.8061,
+      "dmgMul": 3.4644
      },
      {
       "key": "grushak",
       "lvl": 8,
-      "hpMul": 1.7815,
-      "dmgMul": 1.7295
+      "hpMul": 4.8061,
+      "dmgMul": 3.4644
      },
      {
       "key": "cindertusk",
       "lvl": 8,
-      "hpMul": 1.7815,
-      "dmgMul": 1.7295
+      "hpMul": 4.8061,
+      "dmgMul": 3.4644
      },
      {
       "key": "voraxis",
       "lvl": 11,
-      "hpMul": 11.5274,
-      "dmgMul": 7.459,
+      "hpMul": 31.0986,
+      "dmgMul": 14.9413,
       "boss": true
      }
     ]
@@ -818,7 +854,7 @@
     "ascended": false,
     "gatekeeper": true
    },
-   "recommendedPower": 3072,
+   "recommendedPower": 37484,
    "dust": 52,
    "glyphFragments": [
     "Grey Veilward",
@@ -830,10 +866,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 19,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 16,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.7,
+    "wrPlus5": 1.0,
+    "avgSec": 76.3,
+    "d": 2.6978
    }
   },
   {
@@ -844,63 +884,63 @@
      {
       "key": "mudsnap crab",
       "lvl": 9,
-      "hpMul": 15.0835,
-      "dmgMul": 6.8879
+      "hpMul": 18.7382,
+      "dmgMul": 8.0176
      },
      {
       "key": "gnashul",
       "lvl": 9,
-      "hpMul": 15.0835,
-      "dmgMul": 6.8879
+      "hpMul": 18.7382,
+      "dmgMul": 8.0176
      },
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 15.0835,
-      "dmgMul": 6.8879
+      "hpMul": 18.7382,
+      "dmgMul": 8.0176
      },
      {
       "key": "rotbloom ooze",
       "lvl": 9,
-      "hpMul": 15.0835,
-      "dmgMul": 6.8879
+      "hpMul": 18.7382,
+      "dmgMul": 8.0176
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 17.549,
-      "dmgMul": 8.0082
+      "hpMul": 21.8011,
+      "dmgMul": 9.3217
      },
      {
       "key": "gnashul",
       "lvl": 9,
-      "hpMul": 17.549,
-      "dmgMul": 8.0082
+      "hpMul": 21.8011,
+      "dmgMul": 9.3217
      },
      {
       "key": "rotbloom ooze",
       "lvl": 9,
-      "hpMul": 17.549,
-      "dmgMul": 8.0082
+      "hpMul": 21.8011,
+      "dmgMul": 9.3217
      },
      {
       "key": "nightcap mimic",
       "lvl": 9,
-      "hpMul": 17.549,
-      "dmgMul": 8.0082
+      "hpMul": 21.8011,
+      "dmgMul": 9.3217
      },
      {
       "key": "kelp hexer",
       "lvl": 9,
-      "hpMul": 17.549,
-      "dmgMul": 8.0082
+      "hpMul": 21.8011,
+      "dmgMul": 9.3217
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1277,
+   "recommendedPower": 33764,
    "dust": 56,
    "glyphFragments": [
     "Green Stoneheart"
@@ -911,10 +951,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 20,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 14,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.825,
+    "wrPlus5": 1.0,
+    "avgSec": 52.5,
+    "d": 1.2423
    }
   },
   {
@@ -925,63 +969,63 @@
      {
       "key": "bilewretch",
       "lvl": 9,
-      "hpMul": 18.7062,
-      "dmgMul": 6.8317
+      "hpMul": 24.5612,
+      "dmgMul": 8.2664
      },
      {
       "key": "kelp hexer",
       "lvl": 9,
-      "hpMul": 18.7062,
-      "dmgMul": 6.8317
+      "hpMul": 24.5612,
+      "dmgMul": 8.2664
      },
      {
       "key": "nightcap mimic",
       "lvl": 9,
-      "hpMul": 18.7062,
-      "dmgMul": 6.8317
+      "hpMul": 24.5612,
+      "dmgMul": 8.2664
      },
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 18.7062,
-      "dmgMul": 6.8317
+      "hpMul": 24.5612,
+      "dmgMul": 8.2664
      }
     ],
     [
      {
       "key": "bilewretch",
       "lvl": 9,
-      "hpMul": 21.762,
-      "dmgMul": 7.9456
+      "hpMul": 28.5735,
+      "dmgMul": 9.6142
      },
      {
       "key": "mudsnap crab",
       "lvl": 9,
-      "hpMul": 21.762,
-      "dmgMul": 7.9456
+      "hpMul": 28.5735,
+      "dmgMul": 9.6142
      },
      {
       "key": "kelp hexer",
       "lvl": 9,
-      "hpMul": 21.762,
-      "dmgMul": 7.9456
+      "hpMul": 28.5735,
+      "dmgMul": 9.6142
      },
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 21.762,
-      "dmgMul": 7.9456
+      "hpMul": 28.5735,
+      "dmgMul": 9.6142
      },
      {
       "key": "gnashul",
       "lvl": 9,
-      "hpMul": 21.762,
-      "dmgMul": 7.9456
+      "hpMul": 28.5735,
+      "dmgMul": 9.6142
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1283,
+   "recommendedPower": 35606,
    "dust": 59,
    "glyphFragments": [
     "Green Ironwall"
@@ -992,11 +1036,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 21,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1.279
+    "level": 15,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.575,
+    "wrPlus5": 0.85,
+    "avgSec": 72.8,
+    "d": 1.313
    }
   },
   {
@@ -1007,63 +1054,63 @@
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 14.1455,
-      "dmgMul": 6.7589
+      "hpMul": 27.3715,
+      "dmgMul": 10.7288
      },
      {
       "key": "nightcap mimic",
       "lvl": 10,
-      "hpMul": 14.1455,
-      "dmgMul": 6.7589
+      "hpMul": 27.3715,
+      "dmgMul": 10.7288
      },
      {
       "key": "bilewretch",
       "lvl": 10,
-      "hpMul": 14.1455,
-      "dmgMul": 6.7589
+      "hpMul": 27.3715,
+      "dmgMul": 10.7288
      },
      {
       "key": "gnashul",
       "lvl": 10,
-      "hpMul": 14.1455,
-      "dmgMul": 6.7589
+      "hpMul": 27.3715,
+      "dmgMul": 10.7288
      }
     ],
     [
      {
       "key": "mudsnap crab",
       "lvl": 10,
-      "hpMul": 16.4439,
-      "dmgMul": 7.8579
+      "hpMul": 31.8189,
+      "dmgMul": 12.4734
      },
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 16.4439,
-      "dmgMul": 7.8579
+      "hpMul": 31.8189,
+      "dmgMul": 12.4734
      },
      {
       "key": "gnashul",
       "lvl": 10,
-      "hpMul": 16.4439,
-      "dmgMul": 7.8579
+      "hpMul": 31.8189,
+      "dmgMul": 12.4734
      },
      {
       "key": "kelp hexer",
       "lvl": 10,
-      "hpMul": 16.4439,
-      "dmgMul": 7.8579
+      "hpMul": 31.8189,
+      "dmgMul": 12.4734
      },
      {
       "key": "bilewretch",
       "lvl": 10,
-      "hpMul": 16.4439,
-      "dmgMul": 7.8579
+      "hpMul": 31.8189,
+      "dmgMul": 12.4734
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1381,
+   "recommendedPower": 37484,
    "dust": 63,
    "glyphFragments": [
     "Green Veilward"
@@ -1074,10 +1121,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 22,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 16,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.35,
+    "wr100": 0.6,
+    "wrPlus5": 0.7,
+    "avgSec": 67.9,
+    "d": 1.935
    }
   },
   {
@@ -1088,63 +1139,63 @@
      {
       "key": "gnashul",
       "lvl": 10,
-      "hpMul": 13.0278,
-      "dmgMul": 6.4583
+      "hpMul": 33.2522,
+      "dmgMul": 12.4446
      },
      {
       "key": "nightcap mimic",
       "lvl": 10,
-      "hpMul": 13.0278,
-      "dmgMul": 6.4583
+      "hpMul": 33.2522,
+      "dmgMul": 12.4446
      },
      {
       "key": "mudsnap crab",
       "lvl": 10,
-      "hpMul": 13.0278,
-      "dmgMul": 6.4583
+      "hpMul": 33.2522,
+      "dmgMul": 12.4446
      },
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 13.0278,
-      "dmgMul": 6.4583
+      "hpMul": 33.2522,
+      "dmgMul": 12.4446
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 10,
-      "hpMul": 15.1442,
-      "dmgMul": 7.5108
+      "hpMul": 38.6541,
+      "dmgMul": 14.4727
      },
      {
       "key": "nightcap mimic",
       "lvl": 10,
-      "hpMul": 15.1442,
-      "dmgMul": 7.5108
+      "hpMul": 38.6541,
+      "dmgMul": 14.4727
      },
      {
       "key": "kelp hexer",
       "lvl": 10,
-      "hpMul": 15.1442,
-      "dmgMul": 7.5108
+      "hpMul": 38.6541,
+      "dmgMul": 14.4727
      },
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 15.1442,
-      "dmgMul": 7.5108
+      "hpMul": 38.6541,
+      "dmgMul": 14.4727
      },
      {
       "key": "gnashul",
       "lvl": 10,
-      "hpMul": 15.1442,
-      "dmgMul": 7.5108
+      "hpMul": 38.6541,
+      "dmgMul": 14.4727
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1482,
+   "recommendedPower": 44065,
    "dust": 68,
    "glyphFragments": [
     "Green Ravager"
@@ -1155,10 +1206,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 23,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 18,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.212,
+    "wr100": 0.475,
+    "wrPlus5": 0.625,
+    "avgSec": 63.7,
+    "d": 2.5524
    }
   },
   {
@@ -1169,58 +1224,58 @@
      {
       "key": "nightcap mimic",
       "lvl": 11,
-      "hpMul": 1.0737,
-      "dmgMul": 1.206
+      "hpMul": 2.3209,
+      "dmgMul": 2.0687
      },
      {
       "key": "mudsnap crab",
       "lvl": 11,
-      "hpMul": 1.0737,
-      "dmgMul": 1.206
+      "hpMul": 2.3209,
+      "dmgMul": 2.0687
      },
      {
       "key": "vineback boar",
       "lvl": 11,
-      "hpMul": 1.0737,
-      "dmgMul": 1.206
+      "hpMul": 2.3209,
+      "dmgMul": 2.0687
      },
      {
       "key": "sludgemaw",
       "lvl": 11,
-      "hpMul": 1.0737,
-      "dmgMul": 1.206
+      "hpMul": 2.3209,
+      "dmgMul": 2.0687
      }
     ],
     [
      {
       "key": "bilewretch",
       "lvl": 11,
-      "hpMul": 1.6105,
-      "dmgMul": 1.5078
+      "hpMul": 3.4813,
+      "dmgMul": 2.5863
      },
      {
       "key": "sludgemaw",
       "lvl": 11,
-      "hpMul": 1.6105,
-      "dmgMul": 1.5078
+      "hpMul": 3.4813,
+      "dmgMul": 2.5863
      },
      {
       "key": "mudsnap crab",
       "lvl": 11,
-      "hpMul": 1.6105,
-      "dmgMul": 1.5078
+      "hpMul": 3.4813,
+      "dmgMul": 2.5863
      },
      {
       "key": "vineback boar",
       "lvl": 11,
-      "hpMul": 1.6105,
-      "dmgMul": 1.5078
+      "hpMul": 3.4813,
+      "dmgMul": 2.5863
      },
      {
       "key": "leviath",
       "lvl": 14,
-      "hpMul": 10.4204,
-      "dmgMul": 6.501,
+      "hpMul": 22.5247,
+      "dmgMul": 11.1512,
       "boss": true
      }
     ]
@@ -1231,7 +1286,7 @@
     "ascended": false,
     "gatekeeper": false
    },
-   "recommendedPower": 2568,
+   "recommendedPower": 45956,
    "dust": 72,
    "glyphFragments": [
     "Green Starfire",
@@ -1243,10 +1298,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 23,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 19,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.275,
+    "wr100": 0.6,
+    "wrPlus5": 0.95,
+    "avgSec": 55.9,
+    "d": 2.1616
    }
   },
   {
@@ -1257,63 +1316,63 @@
      {
       "key": "mudsnap crab",
       "lvl": 12,
-      "hpMul": 16.5488,
-      "dmgMul": 7.8169
+      "hpMul": 27.1185,
+      "dmgMul": 11.0455
      },
      {
       "key": "gnashul",
       "lvl": 12,
-      "hpMul": 16.5488,
-      "dmgMul": 7.8169
+      "hpMul": 27.1185,
+      "dmgMul": 11.0455
      },
      {
       "key": "rotbloom ooze",
       "lvl": 12,
-      "hpMul": 16.5488,
-      "dmgMul": 7.8169
+      "hpMul": 27.1185,
+      "dmgMul": 11.0455
      },
      {
       "key": "nightcap mimic",
       "lvl": 12,
-      "hpMul": 16.5488,
-      "dmgMul": 7.8169
+      "hpMul": 27.1185,
+      "dmgMul": 11.0455
      }
     ],
     [
      {
       "key": "rotbloom ooze",
       "lvl": 12,
-      "hpMul": 19.2458,
-      "dmgMul": 9.0904
+      "hpMul": 31.5381,
+      "dmgMul": 12.845
      },
      {
       "key": "gnashul",
       "lvl": 12,
-      "hpMul": 19.2458,
-      "dmgMul": 9.0904
+      "hpMul": 31.5381,
+      "dmgMul": 12.845
      },
      {
       "key": "kelp hexer",
       "lvl": 12,
-      "hpMul": 19.2458,
-      "dmgMul": 9.0904
+      "hpMul": 31.5381,
+      "dmgMul": 12.845
      },
      {
       "key": "nightcap mimic",
       "lvl": 12,
-      "hpMul": 19.2458,
-      "dmgMul": 9.0904
+      "hpMul": 31.5381,
+      "dmgMul": 12.845
      },
      {
       "key": "sludgemaw",
       "lvl": 12,
-      "hpMul": 19.2458,
-      "dmgMul": 9.0904
+      "hpMul": 31.5381,
+      "dmgMul": 12.845
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1730,
+   "recommendedPower": 39381,
    "dust": 77,
    "glyphFragments": [
     "Green Hawkeye"
@@ -1324,10 +1383,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 24,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 17,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.475,
+    "wrPlus5": 0.6,
+    "avgSec": 61.2,
+    "d": 1.6387
    }
   },
   {
@@ -1338,63 +1401,63 @@
      {
       "key": "kelp hexer",
       "lvl": 12,
-      "hpMul": 20.5131,
-      "dmgMul": 9.1887
+      "hpMul": 37.5533,
+      "dmgMul": 14.0309
      },
      {
       "key": "vineback boar",
       "lvl": 12,
-      "hpMul": 20.5131,
-      "dmgMul": 9.1887
+      "hpMul": 37.5533,
+      "dmgMul": 14.0309
      },
      {
       "key": "mudsnap crab",
       "lvl": 12,
-      "hpMul": 20.5131,
-      "dmgMul": 9.1887
+      "hpMul": 37.5533,
+      "dmgMul": 14.0309
      },
      {
       "key": "bilewretch",
       "lvl": 12,
-      "hpMul": 20.5131,
-      "dmgMul": 9.1887
+      "hpMul": 37.5533,
+      "dmgMul": 14.0309
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 12,
-      "hpMul": 23.855,
-      "dmgMul": 10.6826
+      "hpMul": 43.6713,
+      "dmgMul": 16.3121
      },
      {
       "key": "bilewretch",
       "lvl": 12,
-      "hpMul": 23.855,
-      "dmgMul": 10.6826
+      "hpMul": 43.6713,
+      "dmgMul": 16.3121
      },
      {
       "key": "sludgemaw",
       "lvl": 12,
-      "hpMul": 23.855,
-      "dmgMul": 10.6826
+      "hpMul": 43.6713,
+      "dmgMul": 16.3121
      },
      {
       "key": "mudsnap crab",
       "lvl": 12,
-      "hpMul": 23.855,
-      "dmgMul": 10.6826
+      "hpMul": 43.6713,
+      "dmgMul": 16.3121
      },
      {
       "key": "rotbloom ooze",
       "lvl": 12,
-      "hpMul": 23.855,
-      "dmgMul": 10.6826
+      "hpMul": 43.6713,
+      "dmgMul": 16.3121
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1724,
+   "recommendedPower": 44065,
    "dust": 82,
    "glyphFragments": [
     "Green Lifebloom"
@@ -1405,10 +1468,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 25,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 18,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.4,
+    "wrPlus5": 0.5,
+    "avgSec": 77.1,
+    "d": 1.8307
    }
   },
   {
@@ -1419,63 +1486,63 @@
      {
       "key": "gnashul",
       "lvl": 13,
-      "hpMul": 22.7191,
-      "dmgMul": 9.9729
+      "hpMul": 31.5296,
+      "dmgMul": 12.5444
      },
      {
       "key": "vineback boar",
       "lvl": 13,
-      "hpMul": 22.7191,
-      "dmgMul": 9.9729
+      "hpMul": 31.5296,
+      "dmgMul": 12.5444
      },
      {
       "key": "mudsnap crab",
       "lvl": 13,
-      "hpMul": 22.7191,
-      "dmgMul": 9.9729
+      "hpMul": 31.5296,
+      "dmgMul": 12.5444
      },
      {
       "key": "kelp hexer",
       "lvl": 13,
-      "hpMul": 22.7191,
-      "dmgMul": 9.9729
+      "hpMul": 31.5296,
+      "dmgMul": 12.5444
      }
     ],
     [
      {
       "key": "bilewretch",
       "lvl": 13,
-      "hpMul": 26.4187,
-      "dmgMul": 11.5972
+      "hpMul": 36.6639,
+      "dmgMul": 14.5875
      },
      {
       "key": "rotbloom ooze",
       "lvl": 13,
-      "hpMul": 26.4187,
-      "dmgMul": 11.5972
+      "hpMul": 36.6639,
+      "dmgMul": 14.5875
      },
      {
       "key": "gnashul",
       "lvl": 13,
-      "hpMul": 26.4187,
-      "dmgMul": 11.5972
+      "hpMul": 36.6639,
+      "dmgMul": 14.5875
      },
      {
       "key": "mudsnap crab",
       "lvl": 13,
-      "hpMul": 26.4187,
-      "dmgMul": 11.5972
+      "hpMul": 36.6639,
+      "dmgMul": 14.5875
      },
      {
       "key": "sludgemaw",
       "lvl": 13,
-      "hpMul": 26.4187,
-      "dmgMul": 11.5972
+      "hpMul": 36.6639,
+      "dmgMul": 14.5875
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1812,
+   "recommendedPower": 45956,
    "dust": 87,
    "glyphFragments": [
     "Green Shadepath"
@@ -1486,10 +1553,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 26,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 19,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.45,
+    "wrPlus5": 0.625,
+    "avgSec": 65.4,
+    "d": 1.3878
    }
   },
   {
@@ -1500,63 +1571,63 @@
      {
       "key": "kelp hexer",
       "lvl": 13,
-      "hpMul": 20.2155,
-      "dmgMul": 9.2882
+      "hpMul": 37.0085,
+      "dmgMul": 14.1829
      },
      {
       "key": "bilewretch",
       "lvl": 13,
-      "hpMul": 20.2155,
-      "dmgMul": 9.2882
+      "hpMul": 37.0085,
+      "dmgMul": 14.1829
      },
      {
       "key": "sludgemaw",
       "lvl": 13,
-      "hpMul": 20.2155,
-      "dmgMul": 9.2882
+      "hpMul": 37.0085,
+      "dmgMul": 14.1829
      },
      {
       "key": "vineback boar",
       "lvl": 13,
-      "hpMul": 20.2155,
-      "dmgMul": 9.2882
+      "hpMul": 37.0085,
+      "dmgMul": 14.1829
      }
     ],
     [
      {
       "key": "sludgemaw",
       "lvl": 13,
-      "hpMul": 23.5177,
-      "dmgMul": 10.7977
+      "hpMul": 43.0539,
+      "dmgMul": 16.4878
      },
      {
       "key": "bilewretch",
       "lvl": 13,
-      "hpMul": 23.5177,
-      "dmgMul": 10.7977
+      "hpMul": 43.0539,
+      "dmgMul": 16.4878
      },
      {
       "key": "vineback boar",
       "lvl": 13,
-      "hpMul": 23.5177,
-      "dmgMul": 10.7977
+      "hpMul": 43.0539,
+      "dmgMul": 16.4878
      },
      {
       "key": "mudsnap crab",
       "lvl": 13,
-      "hpMul": 23.5177,
-      "dmgMul": 10.7977
+      "hpMul": 43.0539,
+      "dmgMul": 16.4878
      },
      {
       "key": "rotbloom ooze",
       "lvl": 13,
-      "hpMul": 23.5177,
-      "dmgMul": 10.7977
+      "hpMul": 43.0539,
+      "dmgMul": 16.4878
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 1934,
+   "recommendedPower": 50581,
    "dust": 93,
    "glyphFragments": [
     "Green Sunder"
@@ -1567,10 +1638,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 27,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 21,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.5,
+    "wrPlus5": 0.8,
+    "avgSec": 79.3,
+    "d": 1.8307
    }
   },
   {
@@ -1581,58 +1656,58 @@
      {
       "key": "vineback boar",
       "lvl": 14,
-      "hpMul": 1.4564,
-      "dmgMul": 1.7955
+      "hpMul": 1.6195,
+      "dmgMul": 1.934
      },
      {
       "key": "bilewretch",
       "lvl": 14,
-      "hpMul": 1.4564,
-      "dmgMul": 1.7955
+      "hpMul": 1.6195,
+      "dmgMul": 1.934
      },
      {
       "key": "mudsnap crab",
       "lvl": 14,
-      "hpMul": 1.4564,
-      "dmgMul": 1.7955
+      "hpMul": 1.6195,
+      "dmgMul": 1.934
      },
      {
       "key": "kelp hexer",
       "lvl": 14,
-      "hpMul": 1.4564,
-      "dmgMul": 1.7955
+      "hpMul": 1.6195,
+      "dmgMul": 1.934
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 14,
-      "hpMul": 2.1846,
-      "dmgMul": 2.2446
+      "hpMul": 2.4293,
+      "dmgMul": 2.4178
      },
      {
       "key": "gnashul",
       "lvl": 14,
-      "hpMul": 2.1846,
-      "dmgMul": 2.2446
+      "hpMul": 2.4293,
+      "dmgMul": 2.4178
      },
      {
       "key": "nightcap mimic",
       "lvl": 14,
-      "hpMul": 2.1846,
-      "dmgMul": 2.2446
+      "hpMul": 2.4293,
+      "dmgMul": 2.4178
      },
      {
       "key": "sludgemaw",
       "lvl": 14,
-      "hpMul": 2.1846,
-      "dmgMul": 2.2446
+      "hpMul": 2.4293,
+      "dmgMul": 2.4178
      },
      {
       "key": "magmourn",
       "lvl": 17,
-      "hpMul": 14.1357,
-      "dmgMul": 9.6809,
+      "hpMul": 15.7189,
+      "dmgMul": 10.4277,
       "boss": true
      }
     ]
@@ -1643,7 +1718,7 @@
     "ascended": false,
     "gatekeeper": true
    },
-   "recommendedPower": 5108,
+   "recommendedPower": 52652,
    "dust": 99,
    "glyphFragments": [
     "Green +1 Stoneheart",
@@ -1655,10 +1730,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 28,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 22,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.775,
+    "wrPlus5": 0.975,
+    "avgSec": 63.3,
+    "d": 1.112
    }
   },
   {
