@@ -59,7 +59,7 @@ test('Morvayne: his real kit and the page sites - the heal at the release on the
     const g=VMX('HERO61.aura')(A[1],VMX('units')); near(g,20+2*(lv(L,3)-1),'An Open Gate: 20 + 2 a level of flat Armor');
     near(VMX('unitArmorNow')(A[1]),(A[1].armorRating||0)+g,'no talent: the page adds the aura alone (_moAr unset)',1e-9);
     assert.equal(A[1]._moAr,undefined,'the page field is never written untalented');
-    assert.ok(press(L,'green'),'a cast'); for(let i=0;i<10;i++) V.step(1); v.stunned=1; for(let i=0;i<40;i++) V.step(1); assert.ok(v._pend,'a stun PAUSES his cast in hand (the game: his think returns before castTick)');
+    assert.ok(press(L,'green'),'a cast'); for(let i=0;i<10;i++) V.step(1); v.stunned=1; for(let i=0;i<40;i++) V.step(1); assert.ok(!v._pend,'a stun CANCELS his cast in hand (v1452: the design rule - a stun during a wind-up cancels it; it used to pause)');
     v.stunned=0; for(let i=0;i<60&&v._pend;i++) V.step(1); assert.ok(!v._pend,'and it is released after the stun'); });
   M(['ig_8_4'],{allies:0,foes:1},L=>{ const {v,F}=L; F[0].stunned=1e6; v.atkCd=0; v.hp=0.3*v.maxHp; const h=F[0].hp; for(let i=0;i<120;i++){ V.step(1); } assert.ok(F[0].hp<h,'The Late Watch: the page swings for him at 30% HP (the _moSwing site)'); });
   M(null,{allies:0,foes:1},L=>{ const {v,F}=L; F[0].stunned=1e6; v.atkCd=0; v.hp=0.3*v.maxHp; const h=F[0].hp; for(let i=0;i<120;i++){ V.step(1); } assert.equal(F[0].hp,h,'untalented: no swing below half'); });

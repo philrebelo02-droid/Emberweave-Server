@@ -307,7 +307,7 @@ module.exports={
       if(r.co_13_1&&!(o.cd.lc>0)){ o.gr.add+=2; o.gr.lc=true; } },                                           // The Last Chair: the hold
     grStun(A,T,u,c){ const g=S(T).gr; if(g&&T.s.cur===HOOK&&c.tgt===g.t) g.hit=c.amt||0; },                 // the hook's own stun landed (after the level roll)
     grCast(A,T,u,c){ const r=T.r, o=S(T), E=A.eng(), g=o.gr||{}, t=g.t||c.tgt; o.gr=null; o.ndl=false; if(!t) return;
-      if(g.hit>0&&g.add>0&&t.alive){ const d=Math.min(STUN_TOP,g.hit+g.add*(1-(t.ctrlRes||0))); if(d>(t.stunned||0)) t.stunned=d;
+      if(g.hit>0&&g.add>0&&t.alive){ const d=Math.min(STUN_TOP,Math.max(g.hit,A.stunRoom(t)),g.hit+g.add*(1-(t.ctrlRes||0)));   /* v1452: inside the 4.0 s run */ if(d>(t.stunned||0)) t.stunned=d;
         if(T.on.ccHit&&(r.ss_3_2||r.co_3_1||r.co_11_4||r.co_13_1)) A.setMark(T,u,t,'rfLk',{dur:t.stunned+0.5,longest:true}); }
       if(r.ss_9_4) o.duel=2;                                                                                 // Duel Ready
       if(r.co_7_1&&t.alive&&!t.immovable&&!(t.pass&&(t.pass.unstepped||t.pass.unstoppable))&&!((t._gearImmovableT||0)>0)){   // Last Chair Pulled: all the way back to him

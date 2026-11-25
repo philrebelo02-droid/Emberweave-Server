@@ -6,7 +6,10 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log('  â
 const i = page.indexOf('function tallowEncase('), j = page.indexOf('/* v542', i);
 ok(i > 0 && j > i, 'tallowEncase and waxOnCaster found');
 function run(lv, ctrlRes) {
-  const ctx = { units: [], floatTexts: [], ccDur: x => x, ringBurst() {}, Math };
+  // v1452: the encase rolls to land (ccRoll; equal levels here, so it lands) and is written by ccSet - both from the page
+  const k = page.indexOf('function ccRoll('), k2 = page.indexOf('function ccLand(', k);
+  const ctx = { units: [], floatTexts: [], ccDur: x => x, ringBurst() {}, Math, brnd: () => 0.5, ccChanceFor: () => 1 };
+  if (k > 0 && k2 > k) vm.runInNewContext(page.slice(k, k2) + '\nthis.ccRoll=ccRoll; this.ccSet=ccSet;', ctx);
   vm.runInNewContext(page.slice(i, j) + '\nthis.T=tallowEncase; this.W=waxOnCaster;', ctx);
   const her = { alive: true, team: 'a', pass: { tallow: true }, skillLv: [1, 1, 1, lv] }, c = { alive: true, team: 'b', ctrlRes: ctrlRes || 0 };
   ctx.units.push(her, c); ctx.W(c); ctx.W(c); const before = c.stunned || 0; ctx.W(c);

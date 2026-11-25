@@ -36,7 +36,7 @@
     for(const id of ids){ const rows=M.talents[id]; if(!rows) continue; any=true; if(!has(id)) continue;
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
-    const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
+    const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,drCap:(M.drCap!=null?M.drCap:null),allyDrCap:(M.allyDrCap!=null?M.allyDrCap:null),
       s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],sm:[],lq:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
@@ -405,7 +405,11 @@
 
   /* a control effect a talent states in seconds: shortened / lengthened by the same rows as any other control (ccIn of the one struck, ccOut of the owner),
      cut to the engine's cap, written straight onto the unit, then told to the owner's 'ccHit' rows (a control that landed) */
-  function control(T,u,t,field,secs,asIs){ let d=asIs?secs:cc(u,t,field,secs,true); const cap=E.ccCap(field); if(cap&&d>cap) d=cap; if(!(d>0)) return;   // asIs: seconds copied from a control that already landed (no second pass through ccOut)
+  /* v1452 (lockdown audit T30): the room a talent has to stun a target: 4.0 s of stun IN A ROW in all (the page stamps when the current stun began,
+     t._stunSince). A talent extension or a talent stun never takes a run past it; a skill's own stun is never cut. */
+  const STUN_RUN=4.0;
+  function stunRoom(t){ if(!t) return STUN_RUN; const s=t._stunSince; return (s==null||!((t.stunned||0)>0))?STUN_RUN:Math.max(0,STUN_RUN-((E.now()||0)-s)); }
+  function control(T,u,t,field,secs,asIs){ let d=asIs?secs:cc(u,t,field,secs,true); const cap=E.ccCap(field); if(cap&&d>cap) d=cap; if(field==='stunned') d=Math.min(d,stunRoom(t)); if(!(d>0)) return;   // asIs: seconds copied from a control that already landed (no second pass through ccOut)
     t[field]=Math.max(t[field]||0,d); if(T.on.ccHit) run(T,u,'ccHit',{u,src:u,tgt:t,field,amt:d,talent:true}); }
   function acts(T,u,list,ctx){ for(let i=0;i<list.length;i++){ const a=list[i]; if(a.if&&!ok(T,u,a.if,ctx)) continue; if(act(T,u,a,ctx)===false) break; } }
   const CLEANSE=['stunned','fearT','silencedT','_sleepT','slow'];
@@ -592,7 +596,7 @@
     for(const k in S_MUL){ const nw=Math.max(0,1+(tot[k]||0)), old=ap[k]==null?1:ap[k]; if(nw===old) continue; const f=S_MUL[k];
       if(old===0) u[f]=(z[k]||0)*nw; else if(nw===0){ z[k]=(u[f]||0)/old; u[f]=0; } else u[f]=(u[f]||0)/old*nw; ap[k]=nw; }
     { const nw=Math.max(0.05,1+(tot.aspd||0)), old=ap.aspd==null?1:ap.aspd; if(nw!==old){ u.atkInterval=u.atkInterval*old/nw; ap.aspd=nw; } }
-    for(const k in S_ADD){ const f=S_ADD[k], old=ap[k]||0; let nw=tot[k]||0; if(k==='crit') nw=Math.min(nw,Math.max(0,0.6-((u[f]||0)-old))); if(k==='ctrl') nw=Math.min(nw,Math.max(0,0.85-((u[f]||0)-old))); if(nw!==old){ u[f]=(u[f]||0)-old+nw; ap[k]=nw; } }
+    for(const k in S_ADD){ const f=S_ADD[k], old=ap[k]||0; let nw=tot[k]||0; if(k==='crit') nw=Math.min(nw,Math.max(0,0.05-(u._talCrit0||0)),Math.max(0,0.6-((u[f]||0)-old)));   /* v1452: with the stat talents' crit, at most +5% from talents in all */ if(k==='ctrl') nw=Math.min(nw,Math.max(0,0.85-((u[f]||0)-old))); if(nw!==old){ u[f]=(u[f]||0)-old+nw; ap[k]=nw; } }
     { const nw=!!tot.immovable; if(nw!==!!ap.imm){ if(nw){ ap.immWas=u.immovable; u.immovable=true; } else u.immovable=ap.immWas; ap.imm=nw; } } }
   /* stat rows that sit on OTHER units ({stat, to:<who>, per, if}: an aura, a debuff on marked enemies). Each tick: who is picked now, what they get; a unit
      no longer picked gets its numbers back. T.s.au = [{x: the unit, ap, z, g0, b0}], in the order units were first touched. Taken off when the owner dies. */
@@ -614,9 +618,9 @@
   function out(src,tgt,amt,kind,auto,crit){ const T=src._tal, ctx={u:src,src,tgt,amt,kind,auto:!!auto,crit:!!crit,proc:T.s.d>0}; run(T,src,'out',ctx); return ctx.amt; }
   /* incoming damage: the same place. The target's own rows ('in'), then the rows of talented units watching it ('teamIn': team-wide effects) */
   function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal, a0=amt; let mv=1; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
-    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; lc=ctx.late||null; if(ctx.mv!=null) mv*=ctx.mv; }
+    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); if(T.drCap!=null&&ctx.amt<amt*(1-T.drCap)) ctx.amt=amt*(1-T.drCap); amt=ctx.amt; lc=ctx.late||null; if(ctx.mv!=null) mv*=ctx.mv; }   /* v1452: a hero file's drCap - its talents together never take more than that off a hit */
     const W=tgt._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===tgt||!o.alive||!To||!To.on.teamIn) continue;
-      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }
+      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); if(To.allyDrCap!=null&&ctx.amt<amt*(1-To.allyDrCap)) ctx.amt=amt*(1-To.allyDrCap); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }   /* v1452: allyDrCap - on an ally */
     tgt._talIr=(amt!==a0)?[a0,mv]:null;   // the 95% ceiling (the page's drPreOf): the hit before these rows, and the share of it not moved onto another unit (divert)
     /* a late hit (an 'in' row's {late:secs}, Fritz's Late Blows): what every incoming row and every watcher left of it is taken off now - the page leaves
        the hit as a miss (no damage, no hit / hurt rows) - and it lands `secs` later through damage() (his shield and damage()'s own reductions then).
@@ -795,7 +799,7 @@
      Turned on by wax:true in the hero file. ---- */
   function wax(o,c){ const T=o._tal, ctx={u:o,src:o,tgt:c,unit:c,amt:3}; if(T.on.wax.length) run(T,o,'wax',ctx); return ctx.amt; }
   function encase(o,c,d){ const T=o._tal, ctx={u:o,src:o,tgt:c,unit:c,amt:d}; if(T.on.encase.length) run(T,o,'encase',ctx); let x=Math.max(d,ctx.amt||0);
-    const top=(E.ccCap('stunned')||2.8)/(E.ccDur(1)||1); if(x>top) x=Math.max(d,top);
+    const top=Math.min((E.ccCap('stunned')||2.8)/(E.ccDur(1)||1),stunRoom(c)); if(x>top) x=Math.max(d,top);   /* v1452: and inside the 4.0 s run */
     if(x>d&&c.alive){ c.stunned=Math.max(c.stunned||0,x); c.silencedT=Math.max(c.silencedT||0,x); } if(T.on.encased.length) run(T,o,'encased',Object.assign({},ctx,{amt:x})); }
   /* ---- A PART OF A SKILL that resolves inside the skill or later, on its own clock (Ceraline: each coat Mourning Bell bursts, the seal of Sealing Wax setting, her
      ultimate's wax reaching an enemy, its statue, its effigy bursting). partPre: while it resolves, 'casting' is that part's name (the skill resolving before is
@@ -837,7 +841,7 @@
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
   function cc(by,t,field,dur,tal){ if(t._tal&&t._tal.on.ccIn){ const c={u:t,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(t._tal,t,'ccIn',c); dur=c.amt; }
-    if(by&&by._tal&&by._tal.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; } return dur; }
+    if(by&&by._tal&&by._tal.on.ccOut){ const d0=dur, c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; if(field==='stunned'&&dur>d0) dur=Math.max(d0,Math.min(dur,stunRoom(t))); } return dur; }   /* v1452: a lengthened stun stays inside the 4.0 s run */
   /* a DoT tick: before it (the target's 'dotIn' rows, and a talent DoT's shorter last tick), and after it (the owner's 'dotTick', a kill by the DoT) */
   function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps, p=x; const T=u._tal;   // p: the tick without the target's own DoT rows (the 95% ceiling's reference)
     if(T&&T.on.dotIn){ const ctx={u,src:d.src,tgt:u,amt:x,dot:d}; run(T,u,'dotIn',ctx); x=ctx.amt; }
@@ -935,7 +939,7 @@
           only for a talented unit with 'unmoved' rows that is immovable now: 'unmoved' rows (ctx tgt = unit = the unit that stood, src = who tried, kind = 'pull' |
           'push' | 'knock' | 'charge'). No draw. ---- */
   function unmoved(t,by,kind){ const T=t._tal; if(T.on.unmoved) run(T,t,'unmoved',{u:t,tgt:t,unit:t,src:by||null,kind}); }
-  const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
+  const API={stunRoom,stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
   /* A hook never lets an error out into the fight: it is counted (TalentFx.errors() - the tests require zero) and the hook answers as if the hero
      had no talent row there. An error is as deterministic as anything else here, so device and server still agree. Diagnostics only: nothing in a
      fight reads ERR. */

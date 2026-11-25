@@ -298,7 +298,7 @@ module.exports={
     stunHit(A,T,u,c){ const m=mi(T), P=T.P, x=c.tgt; if(!x) return; m.myS[x.uid]=1; if(c.talent||T.s.cur!==BQ) return;
       const r=m.slp[x.uid]||(m.slp[x.uid]={debt:0,kind:null,mine:false}); r.kind='bq'; r.mine=true;
       const pre=m.bqPre, base=c.amt; let d=base*(1+(P['slp.k']||0))*((pre&&P.preen)?(1+P.preen)*(1+(P['preen.k']||0)):1)+(P['bq.add']||0)+((m.thT===x)?(P['th.add']||0):0);
-      d=Math.min(STUN_TOP,d); if(d>base+1e-9&&x.alive){ x.stunned=Math.max(x.stunned||0,d); x._sleepT=Math.max(x._sleepT||0,d); } },
+      d=Math.min(STUN_TOP,A.stunRoom(x),d); if(d>base+1e-9&&x.alive){ x.stunned=Math.max(x.stunned||0,d); x._sleepT=Math.max(x._sleepT||0,d); } },
     bqKit(A,T,u,c){ const m=mi(T); m.bqPre=false; if(m.f&&m.f.pre&&preOn(m)){ m.bqPre=true; if(!(m.preWin>0)) m.pre=false; m.nh=0; } },
     bqCast(A,T,u,c){ const m=mi(T), P=T.P, E=A.eng(), x=c.tgt;
       if(P.sb){ let s2=null,sv=-1; for(const y of E.units()){ if(!y.alive||y.team===u.team||y===x||y._dropHidden) continue; if((y.energy||0)>sv){ sv=y.energy||0; s2=y; } }   // Second Bouquet: the second-highest energy

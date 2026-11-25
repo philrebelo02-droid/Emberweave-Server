@@ -70,6 +70,7 @@ function afterCoat(A,T,u,m){ const s=T.s.sc||(T.s.sc={}), E=A.eng(); if(T.s.fl&&
 function selfShield(A,T,u,pct,dur){ const x=(u.maxHp||0)*pct*(1+(T.P['sh.me']||0)); if(x>0){ u.shield=(u.shield||0)+x; u.shieldT=Math.max(u.shieldT||0,dur); } }
 module.exports={
   hero:'ceraline',
+  drCap:0.40, allyDrCap:0.25,           // v1452 (lockdown audit T28): her talent reductions together at most 40% off a hit on her, 25% on an ally (her page names no cap: Joss's sustain tree, Mellan's ally cap)
   casting:true,                         // rows ask which of her skills (or which part of one) a hit, a slow or a stun comes from
   points:true,                          // rows read where Mourning Bell rings and where the Final Candle is poured (the 'at' hook)
   wax:true,                             // the Living Tallow hooks: each wax and each encase of her passive

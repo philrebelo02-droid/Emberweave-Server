@@ -339,7 +339,7 @@ module.exports={
     ultCc(A,T,u,c){ const t=c.tgt, r=T.r, Pp=T.P; if(!t||t.team===u.team||!t.alive) return;
       if(c.field==='slow'){ if(Pp.swb) t.slow=Math.max(t.slow||0,Math.min(CAP,c.amt+Pp.swb)); return; }        // Slow Wingbeat: in full on the real 2.1 s
       if(c.field!=='stunned') return;
-      const d=Math.min(CAP,c.amt*(1+(Pp.sb||0))+(Pp.lw||0)); if(d>(t.stunned||0)) t.stunned=d; t._sleepT=Math.max(t._sleepT||0,t.stunned);   // Slow Breathing x the real 2.8 s, + Long Wings
+      const d=Math.min(CAP,Math.max(c.amt,A.stunRoom(t)),c.amt*(1+(Pp.sb||0))+(Pp.lw||0)); if(d>(t.stunned||0)) t.stunned=d;   /* v1452: inside the 4.0 s run */ t._sleepT=Math.max(t._sleepT||0,t.stunned);   // Slow Breathing x the real 2.8 s, + Long Wings
       rec(A,T,u,t,'ult');
       if(r.lm_7_2) dustAdd(A,T,u,t,3); },                                                                      // Snuffed Light
     /* ---------------- Dreamthread ---------------- */

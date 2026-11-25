@@ -287,7 +287,7 @@ test('Ceraline / Blown Out and Snuffer: an ally dropping below 30% in Candleligh
 test('Ceraline / Hearth Wax and The Court Sits (SIGNATURE)',()=>{
   const L=lab(H,S(['ho_13_2','ho_12_2','ho_1_4','ho_1_1']),{foes:3,allies:2,big:true}), {v,F,A}=L; at(L,A[0],2,-3); at(L,A[1],0,-16); V.step(1); at(L,A[0],2,-3);
   V.cast(v,'ult',F[0]); assert.equal(stack(L,'cand'),3,'it lights every candle'); assert.ok(mark(L,A[0],'cs')&&mark(L,v,'cs'),'every ally inside the circle is seated'); assert.ok(!mark(L,A[1],'cs'),'not one outside');
-  assert.ok(mark(L,A[0],'ww'),'with Warm Wax (Hearth Wax: 20% x 5)'); near(hitOn(L,A[0],1000),plainHit(L,()=>hitOn(L,A[0],1000))*0.75*0.91*0.85,'25% less, its Warm Wax 3% x 3 and 3 candles (1% x 5 each)');
+  assert.ok(mark(L,A[0],'ww'),'with Warm Wax (Hearth Wax: 20% x 5)'); near(hitOn(L,A[0],1000),plainHit(L,()=>hitOn(L,A[0],1000))*Math.max(0.75,0.75*0.91*0.85),'25% less, its Warm Wax 3% x 3 and 3 candles (1% x 5 each) - at most 25% off a hit on an ally in all (v1452 cap)');
   A[0].hp=10; V.hit(F[0],A[0],1e12,{kind:'true'}); assert.ok(A[0].alive,'a hit that would kill it snuffs a candle'); near(A[0].hp,1,''); assert.equal(stack(L,'cand'),2,''); assert.ok(A[0]._noTarget,'it cannot be targeted');
   near(hitOn(L,A[0],1e6),0,'or hit for 2 s (the engine untargetable state: no hit reaches it)'); secs(2.1); A[0].hp=10; V.hit(F[0],A[0],1e12,{kind:'true'}); assert.ok(!A[0].alive,'once per ally each fight');
   v.hp=10; V.hit(F[0],v,1e12,{kind:'true'}); assert.ok(v.alive,'her too'); secs(6.2); assert.ok(!mark(L,v,'cs'),'6 s');

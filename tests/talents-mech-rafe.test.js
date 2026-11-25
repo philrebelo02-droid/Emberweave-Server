@@ -36,7 +36,7 @@ const nl=L=>{ for(const f of L.F) f.level=1; };
 /* a hit of his made as the page makes it: inside partPre / part of that part */
 function as(L,cur,t,fn){ if(!L.v._tal) return fn(); FX.partPre(L.v,t,cur); try{ return fn(); } finally{ FX.part(L.v,t,cur); } }
 /* the stun a cast leaves on f (a lab unit is held with a huge stun: it is let go for the cast, and held again after) */
-const stunOf=(f,fn)=>{ f.stunned=0; fn(); const x=f.stunned; f.stunned=1e6; return x; };
+const stunOf=(f,fn)=>{ f.stunned=0; f._stunSince=null; fn(); const x=f.stunned; f.stunned=1e6; return x; };   /* v1452: let go, its stun run (the talents' 4.0 s room) starts afresh */
 const hitAs=(L,cur,t,amt,o)=>lost(t,()=>as(L,cur,t,()=>V.hit(L.v,t,amt||1000,Object.assign({kind:cur===INST?'true':'phys',auto:cur===CUT||cur===SHOT},o||{}))));
 const ratioAs=(L,cur,t,o)=>hitAs(L,cur,t,1000,o)/plainHit(L,()=>hitAs(L,cur,t,1000,o));
 const INST='rfInst', CUT='rfCut', SHOT='rfShot', BUL='rfBullet', DMF='rfDmf';

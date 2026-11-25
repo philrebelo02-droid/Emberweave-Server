@@ -48,7 +48,7 @@ test('Lysara: every talent is accounted for - 9 plain stats, 109 with rows, none
 /* ============================== HER REAL KIT ============================== */
 test('Lysara: her real kit - the ultimate (every enemy, 2.8 s of stun field, _sleepT 5 s, slow 2.1 s, woken by any hit), Dreamthread\'s link (heals, not shields), Moon Cocoon, Powdered Slumber',()=>{
   const L=lab(H,null,{foes:3,allies:2}), {v,F,A}=L; F.forEach(free);
-  ult(L); for(const f of F){ near(f.stunned,V.cap('stunned'),'every enemy: the table\'s 5.0 s x 0.7, cut to the stun ceiling'); near(f._sleepT,5.0,'_sleepT keeps the uncut 5 s'); near(f.slow,2.1,'slowed 3 x 0.7 s'); }
+  ult(L); for(const f of F){ near(f.stunned,3.5,'every enemy: the table\'s 5.0 s x 0.7 = 3.5 s (v1452: the sleep ceiling, not the 2.8 s stun one)'); near(f._sleepT,3.5,'_sleepT the same 3.5 s (v1452: the cast lock ends on waking)'); near(f.slow,2.1,'slowed 3 x 0.7 s'); }
   near(V.cap('stunned'),2.8); for(const a of A.concat([v])){ assert.ok(a.dmgBuffMul>1.3&&a.dmgBuffT===8,'team damage for 8 s'); near(a.hasteMul,1.2); }
   V.hit(A[0],F[0],1,{kind:'true'}); assert.ok(F[0].stunned===0&&F[0]._sleepT===0,'any hit wakes it');
   allyHp(L,[0.4,0.5]); v.hp=v.maxHp; V.cast(v,'green'); assert.ok(A[0]._linkTo===A[1]&&A[1]._linkTo===A[0]&&A[0]._linkT===8,'the two lowest HP shares are linked for 8 s');
@@ -94,7 +94,7 @@ test('Lysara / Sound Sleep (0.2 s x 3: no hit wakes it), Heavy Head (at 4), Wide
 
 test('Lysara / the ultimate made longer: Slow Breathing (x 1.1 on the real 2.8 s), Long Wings (+0.3 s), at most 4.0 s; Slow Wingbeat (+1 s on the real 2.1 s slow); Queen\'s Grace (+5 points), Quiet Court (+0.9 s)',()=>{
   const L=ly(S(['ln_n2','ln_4_3','ln_7_3','sd_10_3','ln_11_2']),{foes:2,allies:1}), {v,F,A}=L, plain=VMX('skLvNum')('quietwings',VMX('ULT_DEF').quietwings,10);
-  ult(L); for(const f of F){ near(f.stunned,2.8*1.1+0.3,'2.8 x 1.10 + 0.3 = 3.38 s'); near(f.slow,2.1+1.0,'2.1 + 0.2 x 5'); assert.ok(asleep(f)); }
+  ult(L); for(const f of F){ near(f.stunned,Math.min(4,3.5*1.1+0.3),'3.5 x 1.10 + 0.3, at most 4.0 s (v1452: the real sleep is 3.5 s)'); near(f.slow,2.1+1.0,'2.1 + 0.2 x 5'); assert.ok(asleep(f)); }
   near(A[0].dmgBuffMul,plain+0.05,'Queen\'s Grace: 5 points on the team damage bonus'); near(A[0].dmgBuffT,8.9); near(A[0].hasteT,8.9,'Quiet Court: 8 + 0.3 x 3');
   F.forEach(free); L.T.P.lw=5; ult(L); near(F[0].stunned,4.0,'an extended sleep is at most 4.0 s'); void v;
 });

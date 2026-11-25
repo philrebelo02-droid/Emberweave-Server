@@ -43,7 +43,7 @@ test('Dandra: her real kit, as the talents read it - Seedlight, Drowsy Sting (st
     const h=a.hots[a.hots.length-1]; near(h.hps*h.remaining,g*0.5,'then half that again over 6 s'); assert.equal(h.remaining,6);
     const f=F[0]; free(f); V.cast(v,'blue',f); near(f._stungT,6,'Drowsy Sting stings for 6 s'); const d=f.dots.find(x=>x.color==='#f2d84a'); assert.ok(d,'and poisons'); assert.equal(d.remaining,4,'for 4 s');
     assert.ok(f._contagion,'with her passive\'s flags');
-    V.cast(v,'blue',f); near(f.stunned,V.cap('stunned'),'stung again: asleep, at the stun ceiling (the sleep table\'s 5 s x 0.7 = 3.5 s, cut to 2.8 s)'); near(V.cap('stunned'),2.8,'',1e-9); near(f._sleepT,5,'(_sleepT keeps the uncut 5 s)');
+    V.cast(v,'blue',f); near(f.stunned,3.5,'stung again: asleep for the sleep table\'s 5 s x 0.7 = 3.5 s (v1452: no longer cut to the 2.8 s stun ceiling)'); near(V.cap('stunned'),2.8,'',1e-9); near(f._sleepT,3.5,'(_sleepT the same 3.5 s: the cast lock ends on waking, v1452)');
     V.hit(v,f,1,{kind:'true'}); assert.equal(f.stunned,0,'any hit wakes it, hers too');
     const b=A[1]; b.hp=b.maxHp*0.5; a.hp=a.maxHp*0.5; const hb=b.hp, ha=a.hp; V.cast(v,'ult'); near(b.hp-hb,callAmt(v,b),'Queen\'s Call heals every ally'); near(a.hp-ha,callAmt(v,a),''); assert.ok(b.energy>=20,'and gives energy');
   });
@@ -214,17 +214,17 @@ test('Dandra / Drowsy Sting: Sharp Stinger, Venom, Angry Hive',()=>{
 test('Dandra / sleep: Heavy Sleep, Buzzing Ears, Sting of Mercy and Deep Sleep',()=>{
   const L=lab(H,S(['tb_1_2','tb_4_1','tb_10_3','gl_7_3','gl_9_3']),{foes:2,big:true}), {v,F}=L, f=F[0]; free(f);
   V.cast(v,'blue',f); const d=f.dots.find(x=>x.color==='#f2d84a'); assert.equal(d.remaining,6,'Sting of Mercy: its poison lasts the whole 6 s it is stung');
-  V.cast(v,'blue',f); near(f.stunned,2.8*1.09+0.3+0.3,'asleep: the real 2.8 s, Buzzing Ears 3% x 3 of it (the enemy has a Bee), Heavy Sleep 0.1 s x 3, Deep Sleep 0.06 s x 5, in full',1e-9);
+  V.cast(v,'blue',f); near(f.stunned,Math.min(4,3.5*1.09+0.3+0.3),'asleep: the real 3.5 s, Buzzing Ears 3% x 3 of it (the enemy has a Bee), Heavy Sleep 0.1 s x 3, Deep Sleep 0.06 s x 5, in full - at most 4.0 s in a row (v1452)',1e-9);
   V.hit(v,f,1,{kind:'true'}); assert.ok(f.stunned>2,'Sting of Mercy: her own hit does not wake it'); V.hit(F[1],f,1,{kind:'true'}); assert.equal(f.stunned,0,'another unit\'s does');
-  const L2=lab(H,S(['tb_4_1']),{foes:2}), g=L2.F[0]; free(g); V.cast(L2.v,'blue',g); V.cast(L2.v,'blue',g); near(g.stunned,2.8+0.3,'Heavy Sleep alone (no Bee, no Buzzing Ears)',1e-9);
+  const L2=lab(H,S(['tb_4_1']),{foes:2}), g=L2.F[0]; free(g); V.cast(L2.v,'blue',g); V.cast(L2.v,'blue',g); near(g.stunned,3.5+0.3,'Heavy Sleep alone (no Bee, no Buzzing Ears; the real sleep 3.5 s since v1452)',1e-9);
   V.hit(L2.v,g,1,{kind:'true'}); assert.equal(g.stunned,0,'without Sting of Mercy her hit wakes it');
-  const L3=lab(H,S(['tb_10_3']),{foes:2}), k=L3.F[0]; free(k); V.cast(L3.v,'blue',k); L3.T.s.bz=[]; V.cast(L3.v,'blue',k); near(k.stunned,2.8,'Buzzing Ears: only on an enemy with a Bee',1e-9); assert.equal(g.dots.find(x=>x.color==='#f2d84a').remaining,4,'and the poison is 4 s');
+  const L3=lab(H,S(['tb_10_3']),{foes:2}), k=L3.F[0]; free(k); V.cast(L3.v,'blue',k); L3.T.s.bz=[]; V.cast(L3.v,'blue',k); near(k.stunned,3.5,'Buzzing Ears: only on an enemy with a Bee (the real sleep 3.5 s since v1452)',1e-9); assert.equal(g.dots.find(x=>x.color==='#f2d84a').remaining,4,'and the poison is 4 s');
 });
 
 test('Dandra / Drowsy Lantern (PICK ONE): the sting goes to the enemy attacking the ally in Lamplight, its sleep 0.6 s longer; Sleep Now',()=>{
   const L=lab(H,S(['gl_5_3','gl_6_3','gl_1_4']),{foes:3,allies:1}), {v,A,F}=L, a=A[0]; a.hp=a.maxHp*0.3; V.step(1); assert.ok(lampOn(L,a)); F[0].target=v; F[1].target=v; F[2].target=a;
   const t=FX.skillTgt(v,'drowsy',F[0],Object.assign({},v.blueAb)); assert.equal(t,F[2],'to the enemy whose target is the ally in Lamplight');
-  const g=F[2]; free(g); g.energy=50; V.cast(v,'blue',g); const e1=g.energy; V.cast(v,'blue',g); near(g.stunned,2.8+0.6,'its sleep 0.6 s longer, in full',1e-9); near(g.energy,e1+(e1-50)-9,'Sleep Now: it loses 3 x 3 energy (beside what the hit gives it)',1e-9);
+  const g=F[2]; free(g); g.energy=50; V.cast(v,'blue',g); const e1=g.energy; V.cast(v,'blue',g); near(g.stunned,Math.min(4,3.5+0.6),'its sleep 0.6 s longer, in full - at most 4.0 s in a row (v1452)',0.01); near(g.energy,e1+(e1-50)-9,'Sleep Now: it loses 3 x 3 energy (beside what the hit gives it)',1e-9);
   for(const f of F){ f._stungT=0; f.stunned=0; } V.step(1); v.target=F[0]; F[0].target=v; F[1].target=v; F[2].target=a; const gh=VMX('groundHazards'); assert.ok(VMX('deliverLaunch')(v,'drowsy',Object.assign({},v.blueAb)),'(the game launches the shot)'); gh[gh.length-1].run();
   assert.ok(F[2]._stungT>0&&!(F[0]._stungT>0),'the own launch of the game sends the shot there (the skillTgt line)'); F[2].stunned=1e6; F[0].stunned=1e6;
   a.hp=a.maxHp; V.step(2); assert.equal(FX.skillTgt(v,'drowsy',F[0],Object.assign({},v.blueAb)),F[0],'nobody in Lamplight: her own target');
@@ -326,7 +326,7 @@ test('Dandra / Queen\'s Lantern and Long Night Light; The Dandelion Opens (SIGNA
 const units=()=>VMX('units');
 test('Dandra: the mechanics act in a live fight, and whole fights are deterministic (twice, through a snap round-trip, both sides)',()=>{
   const list=S(['pb_1_1','pb_2_2','pb_4_4','tb_1_2','tb_2_3','tb_4_4','gl_1_4','gl_2_3','gl_4_1']), TEAM=['vael','sylthaine','vireo','vex','dandra'];
-  const U=V.arena(snaps(TEAM.map(k=>Object.assign(spec(k,100,k===H?list:null),{skillLv:[100,100,100,100]}))),snaps(TEAM.map(k=>Object.assign(spec(k,100),{skillLv:[100,100,100,100]}))),4), s=U.find(u=>u.key===H); assert.ok(s._tal); assert.ok(U.filter(u=>u!==s).every(u=>!u._tal));
+  const U=V.arena(snaps(TEAM.map(k=>Object.assign(spec(k,100,k===H?list:null),{skillLv:[100,100,100,100]}))),snaps(TEAM.map(k=>Object.assign(spec(k,100),{skillLv:[100,100,100,100]}))),5), s=U.find(u=>u.key===H); assert.ok(s._tal); assert.ok(U.filter(u=>u!==s).every(u=>!u._tal));
   const mx={}; let sw=0, warm=0, lamp=false, petal=false, bee=false;
   for(let i=0;i<3000&&!V.ended()&&s.alive;i++){ V.step(1); const T0=s._tal.s; for(const k in T0.k) mx[k]=Math.max(mx[k]||0,T0.k[k].n); if((T0.bz||[]).length) bee=true;
     for(const f of units()){ const o=f._talM&&f._talM[s.uid]; if(!o) continue; if(f.team==='enemy'){ if(o['#sw']&&o['#sw'].until>V.now()) sw=Math.max(sw,o['#sw'].v); } else { if(o['#warm']&&o['#warm'].until>V.now()) warm=Math.max(warm,o['#warm'].v); if(o.lamp) lamp=true; if(o.petal) petal=true; } } }

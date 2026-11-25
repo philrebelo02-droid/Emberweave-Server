@@ -6,6 +6,11 @@
 const assert=require('node:assert/strict'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),SH=require(path.join(root,'server/sim-host.js')),T=require(path.join(root,'talents.js')),FXN=require(path.join(root,'talents-fx.js'));
 const NOW=SH.load(path.join(root,'emberweave-heroes.html')), FX=NOW.sandbox.TalentFx;
+/* v1452: the lockdown fixes made the controls that used to be written straight on (taunts, Hush, ground pools, encase, the spade, gear...) roll to land
+   (ccRoll: 1% less per level the target is above the skill). The lab's heroes cast at skill level 10 on level-100 dummies, so 90% of those would now be
+   resisted at random. These suites test what the TALENTS do with such a control, so in this still field those controls land as they did; ccApply's own
+   roll (which several suites test on purpose) is untouched. tests/test_engine_fixes_1452.js section 4 tests the new roll itself. */
+vm.runInContext('ccRoll=function(){ return true; };', NOW.ctx);
 const V=vm.runInContext(`({
   arena(al,fo,seed){ ended=false; state='battle'; CUR={mode:'replay',seed}; battleTime=0; gameSpeed=1; window._p2win=null; autoUlt=true;
     try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){} waveXfer=null; chapterWaves=1; waveIdx=0; seedBattle(seed); setupMarchTeams(al,fo,false); return units; },
@@ -15,7 +20,12 @@ const V=vm.runInContext(`({
   heal(u,a){ healUnit(u,a); },
   cast(u,slot,tgt){ if(tgt) u.target=tgt; const ult=u.abilityOverride||u.t.ability, ab=slot==='ult'?Object.assign({},ULT_DEF[ult]):(slot==='blue'?u.blueAb:u.greenAb); const type=slot==='ult'?ult:ab.type;
     u._castSlot=slot; u._castLv=(u.skillLv&&u.skillLv[slot==='ult'?0:(slot==='green'?1:2)])||1; u._castSM=skillMul(u._castLv); const o2=(ab&&ab.deliver)?Object.assign({},ab,{_arrived:true,_tgtU:u.target}):ab;   /* a delivered skill: as it lands on its target */
-    try{ doEffect(u,type,o2); } finally{ u._castSM=1; u._castLv=0; } },
+    const n0=groundHazards.length;
+    try{ doEffect(u,type,o2);
+      /* v1452: a projectile skill's hits now wait for the projectile (castLater arrival entries). The lab resolves a cast as it lands, as it does a
+         delivered skill above: those hits are run now, in order, with the cast's own context (tests/test_engine_fixes_1452.js section 15 checks the timing) */
+      for(let i=n0;i<groundHazards.length;i++){ const h=groundHazards[i]; if(h&&h.arrival&&h._castLater){ groundHazards.splice(i--,1); h.run(); } }
+    } finally{ u._castSM=1; u._castLv=0; } },
   cc(by,t,field,dur){ return ccApply(by,t,field,dur); },
   wave(){ resetPerWave(); },
   dot(t,per,dur,iv,src){ pushDot(t,per,dur,iv,'#8f8fa8',src,'true'); },

@@ -21,10 +21,11 @@ const plainHit=(L,fn)=>{ const T0=L.v._tal; L.v._tal=undefined; try{ return fn()
 const setStack=(L,name,n)=>{ L.T.s.k[name]=Object.assign(L.T.s.k[name]||{},{n,t:99,idle:0}); };
 const units=()=>VMX('units');
 const mine=(L,key)=>units().filter(x=>x.alive&&x._summonOwner===L.v&&(!key||x.key===key));
-const spirit=L=>{ const n0=mine(L,'ink spirit').length; V.cast(L.v,'green'); const s=mine(L,'ink spirit'); assert.ok(s.length>n0,'an Ink Spirit came'); return s[s.length-1]; };
-const horror=L=>{ V.cast(L.v,'ult'); const h=mine(L,'ink horror')[0]; assert.ok(h,'the Elder Ink Horror came'); return h; };
+const risen=x=>{ if(x) x._riseT=0; return x; };   /* v1452: a summon cannot be hit while it climbs out (lockdown fix 9); these checks hit it at once, so it is taken as risen */
+const spirit=L=>{ const n0=mine(L,'ink spirit').length; V.cast(L.v,'green'); const s=mine(L,'ink spirit'); assert.ok(s.length>n0,'an Ink Spirit came'); return risen(s[s.length-1]); };
+const horror=L=>{ V.cast(L.v,'ult'); const h=mine(L,'ink horror')[0]; assert.ok(h,'the Elder Ink Horror came'); return risen(h); };
 const hold=x=>{ x.stunned=1e6; x.speed=0; };                                                   // a summon held still (the lab holds only the units it made)
-const kill=f=>{ f.hp=Math.min(f.hp,10); f.shield=0; V.dmg(f,1e6); assert.ok(!f.alive,'it died'); };
+const kill=f=>{ f._riseT=0; f.hp=Math.min(f.hp,10); f.shield=0; V.dmg(f,1e6); assert.ok(!f.alive,'it died'); };
 const ust=(L,t,name)=>{ const o=t._talM&&t._talM[L.v.uid], m=o&&o['#'+name]; return (m&&V.now()<m.until)?m.v:0; };
 const swing=(L,n)=>{ const v=L.v; v.stunned=0; v.greenCd=v.blueCd=1e9; let k=0, was=v.attackAnim||0;   // he really swings (his Living Pages act at the swing)
   for(let i=0;i<4000&&k<n;i++){ v.energy=0; V.step(1); if((v.attackAnim||0)>0.17&&!(was>0.17)) k++; was=v.attackAnim||0; }

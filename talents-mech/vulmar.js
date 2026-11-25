@@ -360,7 +360,7 @@ module.exports={
     wwCast(A,T,u,c){ const v=V(T), P=T.P, E=A.eng(); v.wwId++; const id=v.wwId, W=v.ww; const lifted=[];
       for(const x of E.units()) if(x.alive&&x.team!==u.team&&x._liftBy===u&&(x._liftT||0)>0&&Math.abs((x._liftT||0)-(x._liftL||0))<1e-9) lifted.push(x);
       for(const x of lifted){ const r=rec(T,x); r.lc=id; r.open=(v.openOn&&v.openSk===WW)?1:0; r.ef=(P.efall&&lifted.length>1)?1:0; r.pdN=0; r.pdId=id;
-        let s=(x._liftStun||1.0)*(1+(P.leaden||0))+(v.cdNow?1:0)+(r.ef?0.5:0); x._liftStun=Math.min(STUN_TOP,s); }
+        const b=x._liftStun||1.0; let s=b*(1+(P.leaden||0))+(v.cdNow?1:0)+(r.ef?0.5:0); x._liftStun=Math.max(b,Math.min(STUN_TOP,s,STUN_TOP-(x._liftL||0))); }   /* v1452: the lift holds them too - lift + slam stun at most 4.0 s in a row (it reached 4.62 s); the base 1 s slam is never cut */
       if(P.gkeep&&lifted.length) A.stSet(T,u,'vuMass',Math.min(10,stN(T,'vuMass')+P.gkeep*lifted.length));
       if(P.wcbl&&W) for(const x of E.units()){ if(!x.alive||x.team===u.team||lifted.indexOf(x)>=0) continue; if(Math.hypot(x.x-W.x,x.y-W.y)<W.R) T.fn.blocked(A,T,u,x); }
       v.wwArm={id,W:W?Object.assign({},W):null,done:0};
@@ -404,9 +404,9 @@ module.exports={
     /* ---- HIS CONTROLS. ccOut: (real base x Leaden) + the flat adds (Sure Grip, Measured Sling, Great Fall on the sling's stuns; Deeper Silence and Vow Kept on the
        Vow's silence); an extended stun never past 4.0 s. ccHit: his stun record (the stun-lock rule), Heavy Patience, Sharp Stones. */
     ccOutF(A,T,u,c){ const v=V(T), P=T.P; const sling=(T.s.cur===GS&&!c.talent)||v.ds;
-      if(c.field==='stunned'){ let x=c.amt*(1+(P.leaden||0));
+      if(c.field==='stunned'){ const c0=c.amt; let x=c.amt*(1+(P.leaden||0));
         if(sling){ x+=(P.sg||0)+(P.msl||0); if(P.gfall&&c.tgt&&c.tgt===v.proj&&!v.ds) x+=0.5; }
-        c.amt=Math.min(STUN_TOP,x); }
+        c.amt=Math.min(STUN_TOP,x); if(c.amt>c0) c.amt=Math.max(c0,Math.min(c.amt,A.stunRoom(c.tgt))); }
       else if(c.field==='silencedT'&&T.s.cur===TP&&!c.talent) c.amt+=(P.vsil||0); },
     ccHitF(A,T,u,c){ const v=V(T), P=T.P, t=c.tgt; if(!t||t.team===u.team||c.field!=='stunned'||!(c.amt>0)) return;
       v.cch[t.uid]=1; const r=rec(T,t); r.st=Math.max(r.st,Math.min(c.amt,t.stunned||c.amt));

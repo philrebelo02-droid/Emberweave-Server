@@ -195,6 +195,20 @@
   #ddPop .ddR .ddHead{text-align:right;color:#ffab9a}
   #ddPop .ddList{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;display:flex;flex-direction:column;gap:5px;padding:2px}
   #ddPop .ddRow{flex:none;display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:10px;background:rgba(10,15,26,.82);border:1px solid #3a4a6e}
+  /* v1452 (lockdown audit: on a landscape phone a 3-wave stage showed 5 of its 10 opponent rows): a list that does not fit its column steps down until it
+     does (ddFit): ddD1 compact rows (no heal / taken line), ddD2 the same in two columns, ddD3 the smallest. The numbers stay on every bar. */
+  #ddPop .ddList.ddD1{gap:2px}
+  #ddPop .ddList.ddD1 .ddRow{padding:1px 4px;gap:4px;border-radius:6px}
+  #ddPop .ddList.ddD1 .ddArt{width:24px;height:24px;border-width:1px;border-radius:5px}
+  #ddPop .ddList.ddD1 .ddSub{display:none}
+  #ddPop .ddList.ddD1 .ddName{font-size:10px}
+  #ddPop .ddList.ddD1 .ddTrack{height:12px;margin:1px 0}
+  #ddPop .ddList.ddD1 .ddNum{font-size:10px}
+  #ddPop .ddList.ddD2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;column-gap:4px}
+  #ddPop .ddList.ddD3 .ddArt{width:18px;height:18px}
+  #ddPop .ddList.ddD3 .ddName{font-size:9px}
+  #ddPop .ddList.ddD3 .ddTrack{height:10px;margin:0}
+  #ddPop .ddList.ddD3 .ddNum{font-size:9px}
   #ddPop .ddR .ddRow{flex-direction:row-reverse}
   #ddPop .ddRow.ddMvp{border-color:#ffd45e;box-shadow:inset 0 0 12px rgba(255,212,94,.3)}
   #ddPop .ddArt{flex:none;width:44px;height:44px;border-radius:8px;overflow:hidden;border:2px solid #c8973a;background:#151b2b;box-sizing:border-box}
@@ -6435,7 +6449,46 @@ function fxSheetKeys(keys){ const out=new Set(), F=(typeof FX2_DEF!=='undefined'
     const cb=(typeof CASTER_BALL!=='undefined')&&CASTER_BALL[k]; if(cb&&cb.fx&&(F[cb.fx]||P[cb.fx])) out.add(cb.fx);
     if(cb&&cb.bolt&&typeof BOLT_SHEET!=='undefined'){ if(!F.__fritzbolt) F.__fritzbolt=Object.assign({dur:BOLT_LIFE},BOLT_SHEET); out.add('__fritzbolt'); } });
   if((keys||[]).some(Boolean)&&F.voidzone) out.add('voidzone');
+  /* v1452 BUG FIX (lockdown audit, engine-rest line 18: 59 spell sheets, Ceraline's candle and wax set, Sylthaine's Blizzard, the DoT floor marks, were
+     on no fighter's list and downloaded mid-fight). The list is now DERIVED from what the spells use: (1) every data row the fight reads for the
+     fighter - its kit, its monster kit, its ultimate's ULT_DEF and HERO_ULT_ART rows, its weapon-tip FX, its own-FX names through SKP_OWNFX, the
+     sheets warmed with its figure; (2) the code: every sheet named in the effect cases of its skill types (and its own-FX branch in abilArt), and in
+     the art helpers those cases call (fxCodeSheets); (3) the DoT floor marks (STATUSFX_KEY) any fighter can be carrying. */
+  if((keys||[]).some(Boolean)){ const g=(n)=>{ try{ return (0,eval)('typeof '+n+'!=="undefined"?'+n+':null'); }catch(e){ return null; } };
+    const UD=g('ULT_DEF'), HA=g('HERO_ULT_ART'), TF=g('TIPFX'), OW=g('SKP_OWNFX'), W1=g('FX1115_WARM'), W2=g('FX1123_WARM'), SK=g('STATUSFX_KEY'), HT=g('HERO_TYPES'), MT=g('MONSTER_TYPES'), CI=fxCodeSheets();
+    if(SK) for(const k in SK){ const n=SK[k]; if(F[n]||P[n]) out.add(n); }
+    (keys||[]).filter(Boolean).forEach(k=>{ const t=(HT&&HT[k])||(MT&&MT[k])||{}, ab=t.ability, kit=((typeof KITS!=='undefined')&&KITS[k])||{}, mk=((typeof MONSTER_KITS!=='undefined')&&MONSTER_KITS[k])||{};
+      walk(HA&&HA[k],0); walk(TF&&TF[k],0); walk(W1&&W1[k],0); walk(W2&&W2[k],0); if(ab&&UD) walk(UD[ab],0);
+      const types=new Set(), own=new Set(); if(ab) types.add(ab);
+      for(const K of [kit,mk]) for(const s in K){ const r=K[s]; if(r&&typeof r==='object'){ if(r.type) types.add(r.type); if(r.pass) types.add(r.pass); if(r.ownFx) own.add(r.ownFx); } }
+      if(HA&&HA[k]&&HA[k].ownFx) own.add(HA[k].ownFx);
+      for(const o of own){ if(OW&&OW[o]&&(F[OW[o]]||P[OW[o]])) out.add(OW[o]); for(const n of (CI.own[o]||[])) out.add(n); }
+      for(const ty of types) for(const n of (CI.type[ty]||[])) out.add(n);
+      for(const K of [kit,mk]) for(const s in K){ const r=K[s]; if(r&&r.pass&&CI.passOf) for(const n of CI.passOf(r.pass)) out.add(n); } }); }
   return [...out]; }
+/* v1452: the sheets each skill type's effect code and each own-FX branch names, read once from the code itself (the effect switch in _doEffectCore
+   and abilArt's own-FX branches), with the sheets named by the art helpers those branches call (one level: functions that load sheets). */
+function fxCodeSheets(){ if(fxCodeSheets._m) return fxCodeSheets._m; const m={type:{},own:{}};
+  try{ const F=(typeof FX2_DEF!=='undefined')?FX2_DEF:{}, P=(typeof FX_PLATE_DEF!=='undefined')?FX_PLATE_DEF:{}, isK=n=>!!(F[n]||P[n]);
+    const fnCache={}, fnSheets=name=>{ if(name in fnCache) return fnCache[name]; let s=[]; fnCache[name]=s; try{ const f=(0,eval)('typeof '+name+'==="function"?'+name+':null');
+        if(f){ const src=String(f); if(src.length<40000&&/fx2Tex|FX2_DEF|_fxPlateTex|spawnFxPlate|spawnGroundFx|spawnProjFx|spawnUnitFx/.test(src)) s=lit(src); } }catch(e){} fnCache[name]=s; return s; };
+    const lit=src=>{ const s=new Set(); for(const x of src.matchAll(/'([a-z][a-z0-9_]*)'|FX2_DEF\.([a-z][a-z0-9_]*)/g)){ const n=x[1]||x[2]; if(isK(n)) s.add(n); } return [...s]; };
+    const deep=blk=>{ const s=new Set(lit(blk)); for(const x of blk.matchAll(/\b([A-Za-z_$][\w$]*)\(/g)){ if(/^(if|for|while|switch|return|function|catch)$/.test(x[1])) continue; for(const n of fnSheets(x[1])) s.add(n); } return [...s]; };
+    /* the art the frame draws from a unit's state (Ceraline's wax pool and eruption from _waxCoatT / _wax): every global function that loads a sheet,
+       and the underscore fields it reads; a skill block (or a passive's code) that writes one of those fields brings that function's sheets */
+    const G=(typeof globalThis!=='undefined')?globalThis:window, art=[], all=[];
+    for(const n of Object.getOwnPropertyNames(G)){ let f=null; try{ f=G[n]; }catch(e){} if(typeof f!=='function') continue; let src=''; try{ src=Function.prototype.toString.call(f); }catch(e){} if(!src||/\[native code\]/.test(src)) continue;
+      all.push(src); if(src.length<60000&&/fx2Tex\(|FX2_DEF\[|_fxPlateTex\(/.test(src)) art.push({src,sh:lit(src),fl:new Set([...src.matchAll(/\.(_[A-Za-z]\w{2,})\b/g)].map(x=>x[1]))}); }
+    const fUse={}; for(const a of art) for(const f of a.fl) fUse[f]=(fUse[f]||0)+1;
+    const linked=blk=>{ const s=new Set(); for(const x of blk.matchAll(/\.(_[A-Za-z]\w{2,})\s*=(?!=)/g)){ const f=x[1]; if(!(fUse[f]>0&&fUse[f]<=3)) continue; for(const a of art) if(a.fl.has(f)) a.sh.forEach(n=>s.add(n)); } return [...s]; };
+    m.passOf=p=>{ if(m.pass[p]) return m.pass[p]; const s=new Set(), needle='pass.'+p;
+      for(const src of all){ let i=src.indexOf(needle); while(i>=0){ if(!/\w/.test(src.charAt(i+needle.length))){ const w=src.slice(i,i+1500); deep(w).forEach(n=>s.add(n)); linked(w).forEach(n=>s.add(n)); } i=src.indexOf(needle,i+1); } }
+      return (m.pass[p]=[...s]); };
+    m.pass={};
+    const core=String(_doEffectCore).split(/\n\s*case '/); for(let i=1;i<core.length;i++){ const b=core[i], t=b.slice(0,b.indexOf("'")); if(t) m.type[t]=(m.type[t]||[]).concat(deep(b),linked(b)); }
+    const aa=(typeof abilArt==='function')?String(abilArt).split(/ownFx===?'/):[]; for(let i=1;i<aa.length;i++){ const b=aa[i], t=b.slice(0,b.indexOf("'")); if(t) m.own[t]=(m.own[t]||[]).concat(deep(b.slice(0,4000))); }
+  }catch(e){}
+  fxCodeSheets._m=m; return m; }
 function fxSheetTex(n){ try{ return (typeof FX2_DEF!=='undefined'&&FX2_DEF[n]) ? fx2Tex(n) : _fxPlateTex(n); }catch(e){ return null; } }
 function fxWarmKeys(keys, timeoutMs){
   return new Promise(res=>{
@@ -9100,7 +9153,12 @@ const ACT_ACK_TIMEOUT_MS=3000;
 function actHold(){
   if(_actWait<=0) return false;
   if(_actWaitAt && (Date.now()-_actWaitAt)>ACT_ACK_TIMEOUT_MS){ actGiveUp(); return false; }
-  return simTick>=_actWaitFrom+ACT_INPUT_DELAY_CLIENT;
+  /* v1452 BUG FIX (lockdown audit, engine-rest line 27): when the fight reached the tick a press would land on and the server had not answered, the
+     fight stood still until it did - up to the 3 s timeout (measured: frozen at battle time 1.75 for 3.0 s). It now never stands still: the press
+     is applied on that tick and recorded locally at once, the stream hands over to the local record (the server resolves the fight from the log
+     this fight submits, as after any lost stream) and the same "Connection slow" notice shows. */
+  if(simTick>=_actWaitFrom+ACT_INPUT_DELAY_CLIENT){ actGiveUp(); return false; }
+  return false;
 }
 function actGiveUp(){
   _actStreamOn=false; _actWait=0; _actWaitAt=0;
@@ -13093,6 +13151,10 @@ function makeUnit(key,team,x,y,levelOverride,extra){
      together: 200 points = it fights from 20% further. Melee is unchanged (its reach is its body and weapon). */
   if(!u.melee && (u._rangeRt||1)>1) u.combatDist*=u._rangeRt;
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18*UNIT_SIZE;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
+  /* v1452 BUG FIX (lockdown audit, engine-rest line 10): a boss fights from 1.4x as far, but the line above reset a RANGED boss's range to the row hold
+     every ranged unit has, so Nerissa, Asterion, Nymira, Sable Vesper, Thorneveil, the Nameless Admiral, Wintercrag and Leviath shot from normal
+     distance. Their hold and reach now take the boss x1.4 after that reset (melee bosses and rangeHold bosses already had it - unchanged). */
+  if(boss && !u.melee && !t.rangeHold){ u.combatDist*=1.4; if(u.range<u.combatDist+18*UNIT_SIZE) u.range=u.combatDist+18*UNIT_SIZE; }
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   // ---- Hollow: he does not march in. He waits in the shadow above the field and comes down
   //      behind their back rank once both lines have committed. ----
@@ -13373,6 +13435,7 @@ function ddSrcName(key,l){ if(l==='auto') return ewT('dd.auto');
 function ddFmt(n){ return Math.round(n||0).toLocaleString('en-US'); }
 function ddShowPending(onDone){ const S=DD.snap; if(!DD.pending||!S||typeof document==='undefined'){ DD.pending=false; if(onDone) onDone(); return false; }
   DD.pending=false; ddRender(S,onDone); return true; }
+function ddFit(ov){ try{ for(const L of ov.querySelectorAll('.ddList')){ for(const c of ['ddD1','ddD2','ddD3']){ if(L.scrollHeight<=L.clientHeight+1) break; L.classList.add(c); } } }catch(e){} }   /* v1452: step a list down until it fits its column */
 function ddRender(S,onDone){ const old=document.getElementById('ddPop'); if(old) old.remove();
   const all=S.a.concat(S.e), mx=Math.max(1,...all.map(g=>g.dealt)), mvp=(S.a[0]&&S.a[0].dealt>0)?S.a[0]:null;
   const row=(g,i,side)=>{ const pct=Math.max(0,Math.min(100,g.dealt/mx*100)), inside=pct>=34, art=mcardArt(g.key), nm=mcardName(g.key)+(g.n>1?' x'+g.n:''), p=pct.toFixed(2);
@@ -13386,6 +13449,7 @@ function ddRender(S,onDone){ const old=document.getElementById('ddPop'); if(old)
     +`<div class="ddCol ddR"><div class="ddHead">${escapeHTML(ewT('dd.opponents'))}</div><div class="ddList">${S.e.map((g,i)=>row(g,i,'e')).join('')}</div></div>`
     +`</div><button class="ddGo" type="button">${escapeHTML(ewT('common.continue'))}</button><div class="ddTip" hidden></div></div>`;
   document.body.appendChild(ov); requestAnimationFrame(()=>ov.classList.add('on'));
+  ddFit(ov);   /* v1452: every row on screen, no scrolling */
   const card=ov.querySelector('.ddCard'), tip=ov.querySelector('.ddTip'); let tipFor=null;
   const R=el=>(el.ewGameRect?el.ewGameRect():el.getBoundingClientRect());
   const hide=()=>{ tip.hidden=true; tipFor=null; };
@@ -14775,10 +14839,6 @@ function shotSpark(key,e){ if(!e||typeof spawnGroundFx!=='function'||!FX2_DEF[ke
   try{ window._fxTgtH=e.sprH||null; window._fxTgtU=null; window._fxAboveBar=false; _fxAllow=true; const fo=spawnGroundFx(key,e.x,e.y,1.2*METER,FX2_DEF[key].dur);   /* chest height, where the tracer lands: a unit sprite is a camera-facing billboard, so its height runs along CAMERA up (the v493 trap) */
     if(fo&&fo.m&&typeof camera!=='undefined'){ fo.m.position.set(wx(e.x),0.05,wz(e.y)); fo.m.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar((e.sprH||3.9)*0.62)); fo.m.renderOrder=2; }   /* in front of the body it hits */ }catch(err){}
   finally{ _fxAllow=false; window._fxTgtH=null; } }
-/* v1452 BUG FIX (skills audit line 6): a hit that waits for its projectile. The effect runs `delay` seconds later (an arrival entry, as every
-   delivered cast) with the cast's own slot, level and multiplier restored for that moment, so it counts as the same skill hit it was. */
-function castLater(u,delay,fn){ const cs=u._castSlot, lv=u._castLv, sm=u._castSM;
-  groundHazards.push({arrival:true,delay:Math.max(0,delay),run:function(){ const p0=u._castSlot,p1=u._castLv,p2=u._castSM; u._castSlot=cs; u._castLv=lv; u._castSM=sm; try{ fn(); } finally{ u._castSlot=p0; u._castLv=p1; u._castSM=p2; } }}); }
 function abilShot(u,o,e,color,onHit){
   if(o && o.pfx && FX2_DEF[o.pfx] && typeof spawnProjFx==='function'){
     try{ const co=castOrigin(u,e.x,e.y); window._projTgtU=e; window._fxCaster=u; spawnProjFx(o.pfx,co.x,co.y,e.x,e.y,o.pscale||2.6,o.pdur||0.30,onHit,co.h); return true; }catch(err){}
@@ -14786,6 +14846,13 @@ function abilShot(u,o,e,color,onHit){
   try{ spawnShot(u,e,color); }catch(err){}
   if(onHit)onHit(); return false;
 }
+/* v1452 BUG FIX (skills audit line 6): a hit that waits for its projectile. The effect runs `delay` seconds later (an arrival entry, as every
+   delivered cast) with the cast's own slot, level and multiplier restored for that moment, so it counts as the same skill hit it was. */
+function castLater(u,delay,fn,type,tgt){ const cs=u._castSlot, lv=u._castLv, sm=u._castSM;   /* type / tgt: a talented caster's rows see the hit as that skill's, landing (TalentFx landPre / land, as every later-landing hit) */
+  u._clN=(u._clN||0)+1; u._clThis=true;   /* the skill's talent 'cast' end waits for its last hit (_clEnd, set at the cast hook) */
+  groundHazards.push({arrival:true,_castLater:true,delay:Math.max(0,delay),run:function(){ const p0=u._castSlot,p1=u._castLv,p2=u._castSM, tl=!!(u._tal&&type); u._castSlot=cs; u._castLv=lv; u._castSM=sm;
+    if(tl) TalentFx.landPre(u,tgt,type); try{ fn(); } finally{ if(tl) TalentFx.land(u,tgt,type); u._castSlot=p0; u._castLv=p1; u._castSM=p2;
+      u._clN=Math.max(0,(u._clN||0)-1); if(!u._clN&&u._clEnd){ const f=u._clEnd; u._clEnd=null; try{ f(); }catch(e){} } } }}); }
 /* v1452 BUG FIX (skills audit line 8): body points and pairwise midpoints miss some best circles (7 of 150 AUTO casts caught one enemy fewer).
    The best circle of radius R can always be moved until two bodies sit on its rim, so the two centres through each close pair are added;
    a spot from them is taken only when it catches MORE enemies (equal counts keep the old choice). reach > 0: every candidate is pulled
@@ -15164,7 +15231,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(u.pass&&u.pass.arsenal){ const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).filter(e=>e.alive);
         const prime=(tgt&&tgt.alive)?tgt:(es[0]||null); if(!prime)break; const pm=(u.passMul||1);
         const _aD=dB*(o.mul||1.8)*rm, _aT=k=>((ARSENAL[k%6]||{}).dur||0.25);   /* v1452: each round's damage lands when that round arrives (its flight time, ARSENAL[i].dur), not at the release */
-        es.slice(0,o.n||5).forEach((e,k)=>castLater(u,_aT(k),function(){ if(e.alive) dealDamage(u,e,_aD,'#ffe08a'); }));
+        es.slice(0,o.n||5).forEach((e,k)=>castLater(u,_aT(k),function(){ if(e.alive) dealDamage(u,e,_aD,'#ffe08a'); },type,e));
         for(let i=0;i<6;i++){ const e=es[i%Math.max(1,es.length)]||prime; const ex=e.x, ey=e.y;
           try{ spawnArsenalShot(u,e,i,()=>arsenalImpact(i,ex,ey)); }catch(err){} }
         // and every rider at once, on the primary - when the first round reaches it (v1452)
@@ -15173,7 +15240,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         ccApply(u,prime,'slow',1.5*pm);
         pushDot(prime,_sD*0.18*pm,3,1,'#c0392b',u);
         enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm,'#ffa657'); });
-        dealDamage(u,prime,_sD*0.40*pm,'#ffe08a'); });
+        dealDamage(u,prime,_sD*0.40*pm,'#ffe08a'); },type,prime);
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
       if(o.evadeEva){ const _add=Math.max(0,Math.min(o.evadeEva,0.75-(u.evaStat||0))); u.evaStat=(u.evaStat||0)+_add; u._miragEva=(u._miragEva||0)+_add;
@@ -15603,7 +15670,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         break; }
       const _ptD=dB*(o.mul||1.6)*rm, _ptT=o.pdur||0.30;   /* v1452: Volt Pike, Golden Quill, Featherfang - each enemy is hit when the throw (abilShot, pdur) reaches it */
       foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>len+24)return;
-        if(Math.abs(rx*uy-ry*ux)<=W) castLater(u,_ptT*Math.max(0,Math.min(1,proj/len)),function(){ if(e.alive) (o.frost?dealFrostDamage:dealDamage)(u,e,_ptD,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); }); });
+        if(Math.abs(rx*uy-ry*ux)<=W) castLater(u,_ptT*Math.max(0,Math.min(1,proj/len)),function(){ if(e.alive) (o.frost?dealFrostDamage:dealDamage)(u,e,_ptD,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); },type,e); });
       abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
     case 'warcry':{ u.dmgBuffMul=(o.mul||1.4)+(o.mulPerLv||0)*vaelSteps(u._castLv); u.dmgBuffT=o.dur||6;   /* v1024 (Phil): Vael +10% +0.2% per skill level */   // self attack buff + a brief fear (short stun) on nearby heroes
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
@@ -16067,7 +16134,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         if(along<-12||along>len+24||Math.abs(rx*uy-ry*ux)>W)return;
         castLater(u,_foT*Math.max(0,Math.min(1,along/len)),function(){ if(!e.alive) return;
         dealFrostDamage(u,e,_foD,'#9fe0ff','magic'); ccApply(u,e,'slow',2.5); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */
-        burstAt(e.x,e.y,0xcfeeff,8); });
+        burstAt(e.x,e.y,0xcfeeff,8); },type,e);
       });
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
@@ -16189,7 +16256,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
   if(_debuffArt){ try{ debuffArtAll(u,o,tgt,aimCtr,type,_debuffSnap); }catch(e){} }   /* v595 */
   if(_gearSpellCrit)u._gearSpellCrit=false;
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
-  if(u._tal&&u._tal.on.cast) TalentFx.cast(u,type,o);   /* TALENT HOOK cast: after the skill resolved */
+  { const _cl=u._clThis; u._clThis=false;
+    if(u._tal&&u._tal.on.cast){ if(_cl&&u._clN>0){ const _ty=type,_oo=o; u._clEnd=()=>TalentFx.cast(u,_ty,_oo); if(u._tal.s) u._tal.s.cur=null; } else TalentFx.cast(u,type,o); } }   /* TALENT HOOK cast: after the skill resolved */   /* v1452: a projectile skill resolves when its last hit lands (castLater) - its talent rows' end of cast runs then */
 }
 /* v552: one buff plate per affected unit, hung above that unit's health bar and following it. 'Affected' = any buff field
    changed by the cast (hp, shield, ward, haste, damage buff, DR, HoT count, lifesteal, cleanse, bulwark, regen). If the cast
@@ -18287,7 +18355,8 @@ function think(u,dt){
      Blizzard (Sylthaine, Vaelora) and Thunder Shower (Fritz, Calypsa) tick below the stun and fear returns, so a stun only paused them
      (every tick still landed afterwards) and silence did nothing. A stun, fear, silence or sleep now ends the storm. */
   if(((u._blizzT||0)>0||(u._stormT||0)>0)&&((u.stunned>0)||((u.fearT||0)>0)||((u.silencedT||0)>0))){ u._blizzT=0; u._stormT=0; u._ultRootT=0; }
-  if(u.stunned>0){const _sk=dt*(1+2*(u.ctrlRes||0)); u.stunned-=_sk; if((u._stunNS||0)>0) u._stunNS-=_sk; return;}   // Control Resist shortens stuns (AUDIT C6)
+  if(u.stunned>0){const _sk=dt*(1+2*(u.ctrlRes||0)); if(u._stunSince==null) u._stunSince=battleTime; u.stunned-=_sk; if((u._stunNS||0)>0) u._stunNS-=_sk; return;}   // Control Resist shortens stuns (AUDIT C6)   /* v1452: _stunSince - when this stun run began (the talents' 4.0 s run ceiling) */
+  u._stunSince=null;
   if((u._sleepT||0)>0) u._sleepT=0;   /* v1452: awake - a sleep never outlasts the stun that holds it (its cast lock ends on waking) */
   if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null;
     /* v1027 (Phil 4 Oct: "the monsters should fear in terror as in run away for the time"): a feared unit RUNS from whoever feared it
