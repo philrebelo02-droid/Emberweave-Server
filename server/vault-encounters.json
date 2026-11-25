@@ -792,58 +792,58 @@
      {
       "key": "cindertusk",
       "lvl": 8,
-      "hpMul": 3.2036,
-      "dmgMul": 2.7715
+      "hpMul": 2.8544,
+      "dmgMul": 2.5564
      },
      {
       "key": "skulk",
       "lvl": 8,
-      "hpMul": 3.2036,
-      "dmgMul": 2.7715
+      "hpMul": 2.8544,
+      "dmgMul": 2.5564
      },
      {
       "key": "grushak",
       "lvl": 8,
-      "hpMul": 3.2036,
-      "dmgMul": 2.7715
+      "hpMul": 2.8544,
+      "dmgMul": 2.5564
      },
      {
       "key": "sootwing imp",
       "lvl": 8,
-      "hpMul": 3.2036,
-      "dmgMul": 2.7715
+      "hpMul": 2.8544,
+      "dmgMul": 2.5564
      }
     ],
     [
      {
       "key": "shellwark",
       "lvl": 8,
-      "hpMul": 4.8061,
-      "dmgMul": 3.4644
+      "hpMul": 4.2822,
+      "dmgMul": 3.1955
      },
      {
       "key": "ooznik",
       "lvl": 8,
-      "hpMul": 4.8061,
-      "dmgMul": 3.4644
+      "hpMul": 4.2822,
+      "dmgMul": 3.1955
      },
      {
       "key": "grushak",
       "lvl": 8,
-      "hpMul": 4.8061,
-      "dmgMul": 3.4644
+      "hpMul": 4.2822,
+      "dmgMul": 3.1955
      },
      {
       "key": "cindertusk",
       "lvl": 8,
-      "hpMul": 4.8061,
-      "dmgMul": 3.4644
+      "hpMul": 4.2822,
+      "dmgMul": 3.1955
      },
      {
       "key": "voraxis",
       "lvl": 11,
-      "hpMul": 31.0986,
-      "dmgMul": 14.9413,
+      "hpMul": 27.7089,
+      "dmgMul": 13.7817,
       "boss": true
      }
     ]
@@ -869,11 +869,12 @@
     "level": 16,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.25,
-    "wr100": 0.7,
+    "wr85": 0.313,
+    "wr100": 0.8,
     "wrPlus5": 1.0,
-    "avgSec": 76.3,
-    "d": 2.6978
+    "avgSec": 75,
+    "d": 2.404,
+    "refit": "N=8 re-confirm 0.150 -> re-fit x0.891 on committed waves (Kimi 25 Nov)"
    }
   },
   {
