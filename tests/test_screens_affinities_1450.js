@@ -92,16 +92,22 @@ async function ruleCards(pg,tag,touch,en){
   const keys=await pg.evaluate(()=>[...document.querySelectorAll('#affOv .affHit')].map(h=>h.dataset.k)); const got={};
   for(const k of keys){
     const p=await pg.evaluate(k=>{ const h=document.querySelector('#affOv .affHit[data-k="'+k+'"]'); const r=h.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; },k);
-    if(touch) await pg.tap('#affOv .affHit[data-k="'+k+'"]'); else { await pg.mouse.move(2,2); await pg.mouse.move(p.x,p.y,{steps:3}); }
+    let diag=null;
+    if(touch){ diag=await pg.evaluate(([x,y,k])=>{ const e=document.elementFromPoint(x,y); return {ov:!!document.getElementById('affOv'),atCentre:e?(e.className||e.id||e.tagName)+(e.dataset&&e.dataset.k?':'+e.dataset.k:''):null,
+        zoom:getComputedStyle(document.body).zoom,dpr:devicePixelRatio,vv:window.visualViewport?Math.round(visualViewport.width)+'x'+Math.round(visualViewport.height)+' s'+visualViewport.scale:null}; },[p.x,p.y,k]);
+      await pg.evaluate(()=>{ window.__affEv=[]; const ov=document.getElementById('affOv'); if(ov) ['pointerdown','pointerup','touchstart','touchend','mouseenter','click','mouseleave'].forEach(t=>ov.addEventListener(t,e=>window.__affEv.push(t+':'+((e.target&&e.target.dataset&&e.target.dataset.k)||e.target.id||e.target.tagName)),true)); });
+      await pg.tap('#affOv .affHit[data-k="'+k+'"]'); }
+    else { await pg.mouse.move(2,2); await pg.mouse.move(p.x,p.y,{steps:3}); }
     await H.wait(200);
+    if(touch){ diag.after=await pg.evaluate(()=>({ov:!!document.getElementById('affOv'),tip:(document.getElementById('affTip')||{style:{}}).style.display,events:(window.__affEv||[]).join(' ')})); }
     const t=await pg.evaluate(k=>{ const tip=document.getElementById('affTip'), box=document.getElementById('affBox').getBoundingClientRect(); if(!tip||tip.style.display==='none') return {shown:false};
       const r=tip.getBoundingClientRect(); const want=affTip(k);
       return {shown:true,title:tip.querySelector('b').textContent,text:tip.textContent.slice(tip.querySelector('b').textContent.length),want,inside:r.left>=box.left-1&&r.right<=box.right+1&&r.top>=box.top-1&&r.bottom<=box.bottom+1}; },k);
     got[k]=t;
     const n=nums(t.text), need=en?NUMS[k]:nums(en?'':(await enTip(pg,k)));
-    const hasNums=en?need.every(x=>n.includes(x)):JSON.stringify(n)===JSON.stringify(need);
+    const hasNums=need.every(x=>n.includes(x))&&(!en||true);   /* every number of the rule is on the card (ja adds a '2' for 'these 2 elements') */
     C.ok(t.shown&&t.inside&&t.title===t.want[0]&&t.text===t.want[1]&&hasNums,tag+' '+(touch?'tap':'hover')+' '+k+': its rule card shows inside the chart with the numbers '+JSON.stringify(n),
-      {title:t.title,text:String(t.text||'').slice(0,140)});
+      Object.assign({title:t.title,text:String(t.text||'').slice(0,140)},diag&&!t.shown?{diag}:{}));
   }
   return got;
 }
