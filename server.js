@@ -11506,7 +11506,12 @@ async function api(req,res,url){
        the time it takes is set by the guild's levels. Was 400,000 x 1.28^(tier-1): tier 1 fell in hours and tier 36+ passed 2^31 (the
        fight then ended at once and booked 1 damage). Every value stays far under 2^31; tiers past 40 grow 5% each, capped at 2,000,000,000. */
     const RAID_HP=[5510000,5960000,6140000,6330000,6520000,7540000,8230000,8480000,10100000,10500000,13300000,13900000,16000000,16600000,20500000,22600000,24000000,24800000,29700000,30600000,41100000,45400000,46800000,48300000,49800000,51700000,55100000,58800000,63200000,73100000,84100000,93300000,96800000,106000000,125000000,139000000,155000000,173000000,193000000,215000000];
-    const bossMax=lvl=>{ const t=Math.max(1,lvl|0); return t<=RAID_HP.length ? RAID_HP[t-1] : Math.min(2000000000, Math.round(RAID_HP[RAID_HP.length-1]*Math.pow(1.05,t-RAID_HP.length))); };
+    /* v1450 (Phil 25 Nov: "Guild raid is 90 seconds"): RAID_HP was measured from 180 s assaults. A 90 s assault does 0.22 of a
+       180 s one (measured 25 Nov: 85%-built ladder squads, 4 line-ups x 2 seeds, 12 tiers, the same squads and seeds on both builds;
+       the ratio was 0.19-0.26 on every tier but one), so every boss carries 0.22 of the 180 s health and still falls in about three
+       days for a guild at its level. A guild part-way through a boss keeps its share (ensureRaid rescales hp with max). */
+    const RAID_TIME_SCALE=0.22;
+    const bossMax=lvl=>{ const t=Math.max(1,lvl|0); const full=t<=RAID_HP.length ? RAID_HP[t-1] : Math.min(2000000000, Math.round(RAID_HP[RAID_HP.length-1]*Math.pow(1.05,t-RAID_HP.length))); return Math.max(1,Math.round(full*RAID_TIME_SCALE)); };
     /* v668 — HIS HIDE. Measured, not guessed (see the header of raid668.py): at 14,000 a level-7
        squad in green gear does ~900 in a whole 90-second fight while a geared level-50 squad does
        ~35,000, because mitigation is def/(def+K) and penetration is flat. It thickens 12% a tier. */

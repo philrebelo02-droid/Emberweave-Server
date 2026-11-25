@@ -34,12 +34,12 @@ const LINE='The next raid boss arrives at the daily reset.';
   for(const [roster,n] of [['cmdlevel',60],['herolevel',60],['gear',0]]) await J('/api/admin/led-grant',{roster,n},L.token);
   const g=await J('/api/guild/create',{name:'Raid Time Guild'},L.token); ok(!!(g&&!g.error),'fixture: guild created '+JSON.stringify(g&&g.error||'ok'));
   const v1=(await J('/api/guild/raid',null,L.token)).raid||{};
-  ok(v1.level===1&&v1.max===5510000&&v1.hp===5510000,'tier 1 is sized to the time standard: '+v1.hp+' / '+v1.max+' (was 400,000)');
+  ok(v1.level===1&&v1.max===1212200&&v1.hp===1212200,'tier 1 is sized to the time standard for 90 s assaults (v1450: 0.22 x 5,510,000): '+v1.hp+' / '+v1.max+' (was 400,000)');
   // a kill: leave tier 1 a sliver, fight
   await editRaid(r=>{ r.hp=50; });
   const s1=await J('/api/guild/raid/start',{heroIds:SQUAD,requestId:'rt-s1'},L.token);
   const r1=s1&&s1.attemptId?await J('/api/guild/raid/resolve',{attemptId:s1.attemptId,inputLog:AUTO,requestId:'rt-r1'},L.token):{};
-  ok(r1.ok===true&&r1.killed===true&&r1.raid&&r1.raid.level===2&&r1.raid.max===5960000,'the kill puts tier 2 up at '+(r1.raid&&r1.raid.max)+' '+JSON.stringify(r1.error||''));
+  ok(r1.ok===true&&r1.killed===true&&r1.raid&&r1.raid.level===2&&r1.raid.max===1311200,'the kill puts tier 2 up at '+(r1.raid&&r1.raid.max)+' '+JSON.stringify(r1.error||''));
   ok(r1.raid&&r1.raid.nextAtReset===true,'the view says the next boss arrives at the daily reset (nextAtReset '+(r1.raid&&r1.raid.nextAtReset)+')');
   const s2=await J('/api/guild/raid/start',{heroIds:SQUAD,requestId:'rt-s2'},L.token);
   ok(s2&&s2.error===LINE,'the same day a start is refused: '+JSON.stringify(s2&&s2.error));
@@ -55,7 +55,7 @@ const LINE='The next raid boss arrives at the daily reset.';
   // an old-curve guild mid-boss keeps its fraction
   await editRaid(r=>{ r.level=10; r.max=3689349; r.hp=Math.round(3689349*0.4); r.contrib={}; delete r.killDay; });
   const v10=(await J('/api/guild/raid',null,L.token)).raid||{};
-  ok(v10.level===10&&v10.max===10500000&&Math.abs(v10.hp/v10.max-0.4)<0.001,'a guild part-way through tier 10 keeps its 40% left on the new size ('+v10.hp+' / '+v10.max+')');
+  ok(v10.level===10&&v10.max===2310000&&Math.abs(v10.hp/v10.max-0.4)<0.001,'a guild part-way through tier 10 keeps its 40% left on the new size ('+v10.hp+' / '+v10.max+')');
   // the overflow tiers fight for real
   const want={36:139000000, 60:Math.min(2000000000,Math.round(215000000*Math.pow(1.05,20)))};   // the table's tier 36; tiers past 40 grow 5% a tier
   for(const t of [36,60]){
