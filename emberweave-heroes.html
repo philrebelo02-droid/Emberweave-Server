@@ -13465,7 +13465,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
   if(_talHd&&u.alive&&u.hp>0) TalentFx.held(u);   /* TALENT HOOK held (2 of 2): it held (Joss's Kept Word: his Sanctuary Guard kept an ally from falling) */
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
-  if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
+  if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0; if(u._pend){ u._pend=null; u._castNow=0; }   /* v1452: death cancels a wind-up (a revived caster never fires a spell it began before it fell) */burstAt(u.x,u.y,u.t.color,20);
     if(GSPLIT.active) BoonFx.fell(u,_bnK);   /* BOON HOOK death: a kill's boons (Pyre, Rising, Accreting ...) and a fallen hero's (Vengeance, Inheritance) */
     if(u._tal||u._talW) TalentFx.death(u);   /* TALENT HOOK death */
     if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
@@ -18254,6 +18254,11 @@ function think(u,dt){
   if((u._qPass||0)>0 && (u._animLockT||0)<=0 && (u._abilHold||0)<=0){
     const _qh=u._qPass; u._qPass=0;
     u._abilPri=4; u._abilAnim='passive'; u._abilHold=_qh; u._lockPri=4; u._animLockT=_qh; }
+  /* v1452 BUG FIX (design v796/v797: "anything that stuns, fears, silences, sleeps or kills the caster during the wind-up cancels the
+     ability outright"): castTick runs below the stun and fear returns, so a stunned, feared or sleeping caster only PAUSED its wind-up
+     and the spell fired when the control ended (Sylthaine's Frozen Orb stunned 0.6 s into its 1 s cast still fired at 2.46 s). The
+     control now cancels it here, the tick it lands; the cooldown / energy stay spent. (Silence reaches castTick and cancels there.) */
+  if(u._pend&&((u.stunned>0)||((u.fearT||0)>0))) castCancel(u);
   if(u.stunned>0){const _sk=dt*(1+2*(u.ctrlRes||0)); u.stunned-=_sk; if((u._stunNS||0)>0) u._stunNS-=_sk; return;}   // Control Resist shortens stuns (AUDIT C6)
   if((u._sleepT||0)>0) u._sleepT=0;   /* v1452: awake - a sleep never outlasts the stun that holds it (its cast lock ends on waking) */
   if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null;

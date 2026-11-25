@@ -181,4 +181,21 @@ console.log('== 9. a summon is untargetable and unhittable while it climbs out =
   R('updateBattle=window.__ubR; window.__RZ=null');
   ok(agg.ticks > 50 && agg.dmg === 0 && agg.tgt === 0, '2 x 60 s fights (Hurne, Aldren, Zahri vs Hollow, Umbris): ' + agg.ticks + ' rising-summon ticks, ' + agg.tgt + ' targeted, ' + agg.dmg + ' damaged (was 550 targeted, 3 to 6 hits a fight)'); }
 
+console.log('== 10. a stun, fear, silence, sleep or death during a wind-up cancels the skill (cost and cooldown stay spent) ==');
+{ for (const f of ['stunned', 'fearT', 'silencedT', 'sleep', 'death']) {
+    setup([spec('quorrel', 30)], [spec('sylthaine', 30)], 7, (a, b) => a.concat(b).forEach(s => { s.ctrlRes = 0; }));
+    R(`__freeze(); window.A=U('quorrel'); window.B=U('sylthaine'); B.x=500; B.y=300; A.x=500; A.y=900; B.greenAb=KITS.sylthaine.green; B.greenCd=0; B.atkCd=1e9; B.target=A; A._castLv=30;
+       window.__FIRE=0; window.__de0=_doEffectCore; _doEffectCore=function(u,type,o){ if(u&&u.key==='sylthaine') window.__FIRE++; return window.__de0.apply(this,arguments); };`);
+    const ctl = f === 'sleep' ? 'sleepApply(A,B,2.0)' : f === 'death' ? "(B._wardT=0, dealDamage(A,B,1e12,'#fff','true'), B.alive=false, B.hp=0)" : 'ccApply(A,B,"' + f + '",2.0)';
+    const r = J(`(function(){ let at=null,cd=null; for(let i=0;i<160;i++){ updateBattle(SIM_STEP); if(B._pend&&at==null&&B._pend.t<0.4){ at=battleTime; cd=B.greenCd; ${ctl}; } }
+      if('${f}'==='death'){ B.alive=true; B.hp=B.maxHp; for(let i=0;i<60;i++) updateBattle(SIM_STEP); }   /* a revive: the old wind-up must not fire */
+      _doEffectCore=window.__de0; return {at,cd,fired:window.__FIRE,pend:!!B._pend}; })()`);
+    ok(r.at != null && r.fired === 0 && !r.pend, f + ' 0.6 s into Frozen Orb\'s 1 s wind-up: the spell never fires (was: it fired when a stun or fear ended)');
+    ok(r.cd > 0, f + ': the cooldown stays spent (' + (+r.cd).toFixed(2) + ' s left at the cancel)'); }
+  // CONTROL: with no control the spell fires once
+  setup([spec('quorrel', 30)], [spec('sylthaine', 30)], 7, (a, b) => a.concat(b).forEach(s => { s.ctrlRes = 0; }));
+  R(`__freeze(); window.A=U('quorrel'); window.B=U('sylthaine'); B.x=500; B.y=300; A.x=500; A.y=900; B.greenAb=KITS.sylthaine.green; B.greenCd=0; B.atkCd=1e9; B.target=A;
+     window.__FIRE=0; window.__de0=_doEffectCore; _doEffectCore=function(u,type,o){ if(u&&u.key==='sylthaine') window.__FIRE++; return window.__de0.apply(this,arguments); };`);
+  ok(J('(function(){ for(let i=0;i<160;i++) updateBattle(SIM_STEP); _doEffectCore=window.__de0; return window.__FIRE; })()') === 1, 'CONTROL: uninterrupted, Frozen Orb fires exactly once'); }
+
 console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;
