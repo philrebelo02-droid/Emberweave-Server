@@ -18,7 +18,8 @@ const LIMIT=180;
 const num=re=>{ const m=html.match(re); assert(m,'not found: '+re); return +m[1]; };
 ok(num(/\nconst BATTLE_TIME_LIMIT=(\d+);/)===LIMIT, 'BATTLE_TIME_LIMIT = 180 (every mode that runs updateBattle)');
 ok(num(/\nconst SKY_FIGHT_CAP_S\s*=\s*(\d+);/)===LIMIT, 'SKY_FIGHT_CAP_S = 180 (Skyfall lane fights on the board)');
-ok(num(/ED_FIGHT_LIMIT = (\d+), ED_OVERTIME/)===LIMIT, 'ED_FIGHT_LIMIT = 180 (Emberdraft)');
+ok(num(/ED_FIGHT_LIMIT = (\d+), ED_OVERTIME/)===90, 'ED_FIGHT_LIMIT = 90 (Emberdraft - v1450, Phil 25 Nov: "Only 90 seconds")');
+ok(num(/ED_FIGHT_LIMIT = \d+, ED_OVERTIME = (\d+)/)===30, 'Emberdraft attack-speed ramp = its last 30 s');
 ok(/if\(battleTime>=ED_FIGHT_LIMIT\) return endBattle\('draw'\);/.test(html), 'Emberdraft ends its fight at ED_FIGHT_LIMIT');
 ok(/if\(!ended && CUR\.mode!=='online' && CUR\.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT\)\{ endBattle\(false\); return; \}/.test(html),
   'one time-out check for every mode but Emberdraft (its own) and live PvP rooms (none, as before)');

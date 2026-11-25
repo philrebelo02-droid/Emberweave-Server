@@ -9180,8 +9180,8 @@ function pumpInputs(){
 }
 /* v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every wave every battle" / "every single battle mode"): 90 -> 180. ONE clock for every wave of every mode that runs updateBattle - campaign / elite / veteran, province, Well, Vault,
    arena and every replay, the guild raid, Training / bonus roads (GSPLIT, per-road clock), world map fights and the server's replays of all of them
-   (server/sim-host.js runs this page). Emberdraft keeps its own ED_FIGHT_LIMIT (also 180), Skyfall's board SKY_FIGHT_CAP_S (180), the World Tree
-   resolver reads this constant (server/world-tree-battle.js). tests/test_battle_limit_1399.js holds them all at 180. */
+   (server/sim-host.js runs this page). Emberdraft keeps its own ED_FIGHT_LIMIT (90 since v1450), Skyfall's board SKY_FIGHT_CAP_S (180), the World Tree
+   resolver reads this constant (server/world-tree-battle.js). tests/test_battle_limit_1399.js holds them all at 180, Emberdraft at 90. */
 const BATTLE_TIME_LIMIT=180;                // Battle countdown shown in the top banner (display) - per wave
 /* v1399: how many fixed ticks a headless run may take before it stops looking for the end. It was a flat 14400 (~393 s of battle time),
    which at 180 s a wave is under three full waves: a long multi-wave fight the player won live would have been cut off on the server and
@@ -39100,7 +39100,7 @@ const ED_TIER_OPEN = 5;             // Rank I / II / III — "rank", because sta
 const ED_POOL_COPIES = {1:48, 2:37, 3:30};   /* v654 (Phil: "bigger pool follow the same style as a standard auto-battler pool"): the genre's usual 29/22/18 x ~1.65 - a 4 star (27 copies) is now reachable at every cost */         // copies of each hero in the shared pool, by cost
 const ED_ODDS = {3:[75,25,0],4:[60,35,5],5:[45,40,15],6:[35,40,25],7:[25,40,35],8:[20,37,43],9:[15,35,50]};
 const ED_XP_NEED = {3:6, 4:10, 5:20, 6:36, 7:56, 8:80};
-const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles are 2x too wide" -> "14 tiles, every tile a spot"): 4 x 14 half-width tiles per side */  ED_FIGHT_LIMIT = 180, ED_OVERTIME = 30,   /* v639 (Phil: "The matches are too fast. Should be 90 seconds, then the last 30 seconds is the attack speed increase stage"). v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every wave every battle" / "every single battle mode"): 180 s, the attack speed ramp still the last 30 s */ ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
+const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles are 2x too wide" -> "14 tiles, every tile a spot"): 4 x 14 half-width tiles per side */  ED_FIGHT_LIMIT = 90, ED_OVERTIME = 30,   /* v1450 (Phil 25 Nov: "Emberdraft shouldn't be 3 minute fights" / "Only 90 seconds"): back to 90 s, the attack speed ramp its last 30 s; every other mode keeps 180 s. v639 (Phil: "The matches are too fast. Should be 90 seconds, then the last 30 seconds is the attack speed increase stage"). v1399 (Phil 17 Nov: "all battles should be 3 minutes to time out now, not 90 seconds" / "every wave every battle" / "every single battle mode"): 180 s, the attack speed ramp still the last 30 s */ ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
 /* v605 (Phil, 18 Sep 2026) - the painted Emberdraft arenas: "8 different maps so that each player fights on a different map",
    "16 per side" bench pads, "there shouldnt be wasted space on the screen", "Let the entire thing be animated".
    Every arena is described in IMAGE fractions (0..1), measured off the 2560x1440 art (projects/EMBERDRAFT maps 18 Sep 2026,
@@ -39118,7 +39118,7 @@ const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than th
    an Emberdraft fight's clock runs 0:30 -> 0:00 and every unit's attack speed rises +5% per second of fight, +150% at the end.
    [v639: the fight is 90 s and the ramp runs only in its last 30 s - see edAtkRamp. v1399: the fight is 180 s, the ramp still its last 30 s] */
 function edAtkRamp(){ if(!(typeof CUR!=='undefined'&&CUR&&CUR.mode==='emberdraft')) return 1;
-  const into=Math.max(0, Math.min(ED_OVERTIME, (battleTime||0)-(ED_FIGHT_LIMIT-ED_OVERTIME)));   // v639: 0:00-1:00 normal speed (v1399: 0:00-2:30); the LAST 30 s ramp +5%/s to +150% at the buzzer
+  const into=Math.max(0, Math.min(ED_OVERTIME, (battleTime||0)-(ED_FIGHT_LIMIT-ED_OVERTIME)));   // v639: 0:00-1:00 normal speed (v1399: 0:00-2:30; v1450: 0:00-1:00 again); the LAST 30 s ramp +5%/s to +150% at the buzzer
   return 1+0.05*into; }
 function edFig(h){ return ED_FIG_SCALE*(1+0.15*Math.max(0,((h&&h.rank)|0)-1)); }   // v642 (Phil: "the hero size increase isnt enough per tier. try 15% increase in size per tier"): flat +15% of normal per rank, not compounding - x1, x1.15, x1.30, big star x1.45 (v635 was +10%)
 const ED_ARENAS = [
