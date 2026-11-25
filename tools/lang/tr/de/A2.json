@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"Linie {n} von 3 · kämpft, wenn Linie 1 fällt · bis zu {k} Helden",
 "roster.wall_sub_last":"Linie {n} von 3 · kämpft zuletzt · bis zu {k} Helden",
 "roster.vault_sub":"Die ersten {n} kämpfen – der Rest springt ein, wenn ein Kämpfer fällt (bis zu {m} insgesamt)",
-"roster.raid_sub":"Die ersten {n} kämpfen gegen den Boss – der Rest springt ein, wenn sie fallen · 180 Sekunden · jeder Schaden zählt",
+"roster.raid_sub":"Die ersten {n} kämpfen gegen den Boss – der Rest springt ein, wenn sie fallen · 90 Sekunden · jeder Schaden zählt",
 "roster.prov_title":"{name} – ABSCHNITT {n}",
 "roster.prov_sub":"Boss: {boss} · 3 Wellen · Belohnung {reward} · eine Niederlage kostet nichts",
 "roster.well_title":"DER STERNLOSE BRUNNEN – KARTE {n}",

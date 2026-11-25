@@ -18,10 +18,12 @@ const LIMIT=180;
 const num=re=>{ const m=html.match(re); assert(m,'not found: '+re); return +m[1]; };
 ok(num(/\nconst BATTLE_TIME_LIMIT=(\d+);/)===LIMIT, 'BATTLE_TIME_LIMIT = 180 (every mode that runs updateBattle)');
 ok(num(/\nconst SKY_FIGHT_CAP_S\s*=\s*(\d+);/)===LIMIT, 'SKY_FIGHT_CAP_S = 180 (Skyfall lane fights on the board)');
+ok(num(/\nconst GRAID_TIME_LIMIT=(\d+);/)===90, 'GRAID_TIME_LIMIT = 90 (guild raid - v1450, Phil 25 Nov: "Guild raid is 90 seconds")');
+ok(/function battleLimit\(\)\{ return \(typeof CUR!=='undefined'&&CUR&&CUR\.mode==='graid'\)\?GRAID_TIME_LIMIT:BATTLE_TIME_LIMIT; \}/.test(html), 'battleLimit(): the guild raid 90 s, every other battle 180 s');
 ok(num(/ED_FIGHT_LIMIT = (\d+), ED_OVERTIME/)===90, 'ED_FIGHT_LIMIT = 90 (Emberdraft - v1450, Phil 25 Nov: "Only 90 seconds")');
 ok(num(/ED_FIGHT_LIMIT = \d+, ED_OVERTIME = (\d+)/)===30, 'Emberdraft attack-speed ramp = its last 30 s');
 ok(/if\(battleTime>=ED_FIGHT_LIMIT\) return endBattle\('draw'\);/.test(html), 'Emberdraft ends its fight at ED_FIGHT_LIMIT');
-ok(/if\(!ended && CUR\.mode!=='online' && CUR\.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT\)\{ endBattle\(false\); return; \}/.test(html),
+ok(/if\(!ended && CUR\.mode!=='online' && CUR\.mode!=='emberdraft' && battleTime>=battleLimit\(\)\)\{ endBattle\(false\); return; \}/.test(html),
   'one time-out check for every mode but Emberdraft (its own) and live PvP rooms (none, as before)');
 ok(!/battleTime\s*(>=|>|<|<=)\s*(90|45)\b/.test(html), 'no fight in the page compares battleTime to a hard-coded 90 or 45');
 /* the Skyfall board maps the server's rounds onto 20 s .. SKY_FIGHT_CAP_S */
@@ -37,7 +39,7 @@ const host=require(path.join(root,'server/sim-host.js')).load(path.join(root,'em
 const X=code=>vm.runInContext(code,host.ctx);
 X(`window.__endT=null; const __eb0=endBattle; endBattle=function(){ if(window.__endT==null) window.__endT=battleTime; return __eb0.apply(this,arguments); };`);
 const endT=()=>{ const t=X('window.__endT'); X('window.__endT=null'); return t; };
-const near=(t,m)=>ok(typeof t==='number' && t>=LIMIT && t<LIMIT+0.05, m+' (ended at '+(t==null?'never':t.toFixed(3))+' s)');
+const near=(t,m)=>ok(typeof t==='number' && t>=LIMIT && t<LIMIT+0.05, m+' (ended at '+(t==null?'never':t.toFixed(3))+' s)'); const nearT=(t,L,m)=>ok(typeof t==='number' && t>=L && t<L+0.05, m+' (ended at '+(t==null?'never':t.toFixed(3))+' s)');
 const TEAM=['vael','gruel','sylthaine','vireo','vex'], FOES=['tharl','hobb','rhukk','aureth','calypsa'];
 const immortal=keys=>host.snapSquad(keys).map(s=>Object.assign(s,{maxHp:1e12,hp:1e12}));
 const SIM_STEP=X('SIM_STEP');
@@ -48,7 +50,7 @@ for(const mode of ['campaign','province','well','vault']){
   const r=host.campaign(immortal(TEAM),[WALL,WALL,WALL],11,[[0,'auto',-1,1,null,null]],mode);
   near(endT(),mode+' (simCampaignReplay): the first wave nobody can win times out at 180 s');
   ok(r.won===false && JSON.parse(r.digest).wave===0, mode+': a loss on wave 1'); }
-{ const sn=immortal(TEAM); host.raid(sn,{key:'wintercrag',lvl:15,hp:2e9,def:0,dmgMul:0.001,tier:1},5,[]); near(endT(),'guild raid boss (simRaidReplay): the attempt lasts 180 s'); }   /* hp is read hp|0: 2e9 is the most a boss can carry */
+{ const sn=immortal(TEAM); host.raid(sn,{key:'wintercrag',lvl:15,hp:2e9,def:0,dmgMul:0.001,tier:1},5,[]); nearT(endT(),90,'guild raid boss (simRaidReplay): the attempt lasts 90 s (v1450, Phil 25 Nov: "Guild raid is 90 seconds")'); }   /* hp is read hp|0: 2e9 is the most a boss can carry */
 for(let w=1;w<=8;w++) ok(X('simTickCap('+w+')')*SIM_STEP>=w*(LIMIT+30), 'a '+w+'-wave headless run has room for every wave at 180 s (+30 s walk-on each)');
 ok(X('simTickCap(1)')===14400, 'a one-wave run keeps the old 14400-tick bound (every earlier fight ends on the same tick)');
 ok(/for\(let i=0, _cap=simTickCap\(chapterWaves\);i<_cap && !ended;i\+\+\) updateBattle\(SIM_STEP\);/.test(html), 'simCampaignReplay runs to simTickCap(chapterWaves)');
@@ -66,6 +68,6 @@ ok(!/[<>(,]45000\b|\b90\/SIM_STEP|battleTime<90\b/.test(wtSrc+wtcSrc), 'no 45,00
 /* 4. what the player reads */
 for(const f of fs.readdirSync(path.join(root,'lang')).filter(f=>/^[a-zA-Z-]+\.json$/.test(f))){
   const j=JSON.parse(fs.readFileSync(path.join(root,'lang',f),'utf8')); if(!j['roster.raid_sub']) continue;
-  ok(/180/.test(j['roster.raid_sub']) && !/\b90\b/.test(j['roster.raid_sub']), f+': the guild raid line says 180 seconds'); }
-ok(html.includes('"roster.raid_sub":"First {n} fight the boss — the rest step in as they fall · 180 seconds · all damage counts"'), "the page's own English copy says 180 seconds");
+  ok(/90/.test(j['roster.raid_sub']) && !/180/.test(j['roster.raid_sub']), f+': the guild raid line says 90 seconds'); }
+ok(html.includes('"roster.raid_sub":"First {n} fight the boss — the rest step in as they fall · 90 seconds · all damage counts"'), "the page's own English copy says 90 seconds");
 console.log('test_battle_limit_1399: '+pass+' checks passed');

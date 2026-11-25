@@ -77,7 +77,7 @@
   "roster.wall_sub_second": "Line {n} of 3 · fights if line 1 falls · up to {k} heroes",
   "roster.wall_sub_last": "Line {n} of 3 · fights last · up to {k} heroes",
   "roster.vault_sub": "First {n} fight — the rest step in when a fighter falls (up to {m} total)",
-  "roster.raid_sub": "First {n} fight the boss — the rest step in as they fall · 180 seconds · all damage counts",
+  "roster.raid_sub": "First {n} fight the boss — the rest step in as they fall · 90 seconds · all damage counts",
   "roster.prov_title": "{name} — STAGE {n}",
   "roster.prov_sub": "Boss: {boss} · 3 waves · reward {reward} · a loss costs nothing",
   "roster.well_title": "THE STARLESS WELL — MAP {n}",

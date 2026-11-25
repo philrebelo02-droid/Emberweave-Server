@@ -346,7 +346,7 @@
 "roster.wall_sub_second":"Hat {n} / 3 · 1. hat düşerse savaşır · en fazla {k} kahraman",
 "roster.wall_sub_last":"Hat {n} / 3 · en son savaşır · en fazla {k} kahraman",
 "roster.vault_sub":"İlk {n} savaşır — bir savaşçı düşünce diğerleri girer (toplam en fazla {m})",
-"roster.raid_sub":"İlk {n} patronla savaşır — düştükçe diğerleri girer · 180 saniye · tüm hasar sayılır",
+"roster.raid_sub":"İlk {n} patronla savaşır — düştükçe diğerleri girer · 90 saniye · tüm hasar sayılır",
 "roster.prov_title":"{name} — AŞAMA {n}",
 "roster.prov_sub":"Patron: {boss} · 3 dalga · ödül {reward} · kaybetmenin bedeli yok",
 "roster.well_title":"YILDIZSIZ KUYU — HARİTA {n}",
