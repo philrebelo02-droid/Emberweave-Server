@@ -190,8 +190,8 @@ console.log('== 10. a stun, fear, silence, sleep or death during a wind-up cance
     const r = J(`(function(){ let at=null,cd=null; for(let i=0;i<160;i++){ updateBattle(SIM_STEP); if(B._pend&&at==null&&B._pend.t<0.4){ at=battleTime; cd=B.greenCd; ${ctl}; } }
       if('${f}'==='death'){ B.alive=true; B.hp=B.maxHp; for(let i=0;i<60;i++) updateBattle(SIM_STEP); }   /* a revive: the old wind-up must not fire */
       _doEffectCore=window.__de0; return {at,cd,fired:window.__FIRE,pend:!!B._pend}; })()`);
-    ok(r.at != null && r.fired === 0 && !r.pend, f + ' 0.6 s into Frozen Orb\'s 1 s wind-up: the spell never fires (was: it fired when a stun or fear ended)');
-    ok(r.cd > 0, f + ': the cooldown stays spent (' + (+r.cd).toFixed(2) + ' s left at the cancel)'); }
+    ok(!!r && r.at != null && r.fired === 0 && !r.pend, f + ' 0.6 s into Frozen Orb\'s 1 s wind-up: the spell never fires (was: it fired when a stun or fear ended)');
+    ok(!!r && r.cd > 0, f + ': the cooldown stays spent (' + (r ? +r.cd : 0).toFixed(2) + ' s left at the cancel)'); }
   // CONTROL: with no control the spell fires once
   setup([spec('quorrel', 30)], [spec('sylthaine', 30)], 7, (a, b) => a.concat(b).forEach(s => { s.ctrlRes = 0; }));
   R(`__freeze(); window.A=U('quorrel'); window.B=U('sylthaine'); B.x=500; B.y=300; A.x=500; A.y=900; B.greenAb=KITS.sylthaine.green; B.greenCd=0; B.atkCd=1e9; B.target=A;
@@ -210,5 +210,19 @@ console.log('== 11. the Range rating works for ranged heroes (10 points = 1%, ca
   const shots = pts => { setup([bare('meridian', 30, { range: pts })], [bare('grosk', 30)], 3);
     return J(`(function(){ const m=U('meridian'), g=U('grosk','enemy'); m.speed=0; m.greenAb=null; m.blueAb=null; autoUlt=false; g.speed=0; g.atkCd=1e9; g.greenAb=null; g.blueAb=null; g.maxHp=1e9; g.hp=1e9; m.x=500; m.y=1200; g.x=500; g.y=1200-Math.round(813.45*1.1); const h0=g.hp; for(let i=0;i<200;i++) updateBattle(SIM_STEP); return g.hp<h0; })()`); };
   ok(!shots(0) && shots(200), 'a rooted Meridian does not shoot an enemy 10% past her 25 m hold without the rating, and does with 200 Range points'); }
+
+console.log("== 12. Brannus's Arena Lock card says what it does: every enemy (the design gives it no radius) ==");
+{ const NEW = 'Plants the wheel and forces every enemy to attack him.', OLD = 'Plants the wheel and forces nearby enemies to attack him.';
+  ok(J('KITS.brannus.blue.desc') === NEW && !J('KITS.brannus.blue.radius||0'), 'the card reads "' + NEW + '" and the skill has no radius (18 - Battle Engine: taunts with no radius, Arena Lock among them, reach every enemy)');
+  setup(['brannus'].map(k => spec(k, 30)), ['rhukk', 'carn', 'meridian', 'astra'].map(k => spec(k, 30)), 131);
+  R(`__freeze(); window.Br=U('brannus'); Br.x=100; Br.y=1300; units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=500; e.y=700-i*100; });`);
+  const hit = J(`(function(){ Br._castSlot='blue'; Br._castSM=1; Br._castLv=30; doEffect(Br,'taunt',Object.assign({},KITS.brannus.blue)); Br._castSlot=null; return units.filter(u=>u.team==='enemy').map(e=>[+(dist(Br,e)/METER).toFixed(1),e.forcedTarget===Br]); })()`);
+  ok(hit.every(h => h[1]) && Math.min(...hit.map(h => h[0])) > 15, 'cast at the same level it taunts every enemy, ' + hit.map(h => h[0]).join(' / ') + ' m away');
+  const crypto = require('crypto'); const CV = JSON.parse(html.match(/\nconst EW_LANG_CV=(\{.*?\});/)[1]);
+  const en = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'lang', 'content', 'en.json'), 'utf8'));
+  ok(NEW in en && !(OLD in en), 'tools/lang/content/en.json carries the new template, not the old one');
+  for (const c of ['es', 'pt-BR', 'fr', 'de', 'it', 'nl', 'ru', 'tr', 'ja', 'ko', 'zh-Hans', 'zh-Hant', 'th', 'id', 'hi', 'en-XA']) {
+    const raw = fs.readFileSync(path.join(root, 'lang', c + '.content.json'), 'utf8'), j = JSON.parse(raw);
+    ok(typeof j[NEW] === 'string' && j[NEW].length > 5 && !(OLD in j) && crypto.createHash('sha1').update(raw).digest('hex').slice(0, 8) === CV[c === 'en-XA' ? 'qps' : c], c + ': the new card text is translated ("' + j[NEW] + '") and the pack hash in the page matches'); } }
 
 console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;
