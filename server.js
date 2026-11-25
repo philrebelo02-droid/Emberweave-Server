@@ -11505,13 +11505,14 @@ async function api(req,res,url){
        floor: the next boss arrives at the daily reset); below the level 4+. Damage depends on the player's level, hardly on the tier, so
        the time it takes is set by the guild's levels. Was 400,000 x 1.28^(tier-1): tier 1 fell in hours and tier 36+ passed 2^31 (the
        fight then ended at once and booked 1 damage). Every value stays far under 2^31; tiers past 40 grow 5% each, capped at 2,000,000,000. */
-    const RAID_HP=[5510000,5960000,6140000,6330000,6520000,7540000,8230000,8480000,10100000,10500000,13300000,13900000,16000000,16600000,20500000,22600000,24000000,24800000,29700000,30600000,41100000,45400000,46800000,48300000,49800000,51700000,55100000,58800000,63200000,73100000,84100000,93300000,96800000,106000000,125000000,139000000,155000000,173000000,193000000,215000000];
-    /* v1450 (Phil 25 Nov: "Guild raid is 90 seconds"): RAID_HP was measured from 180 s assaults. A 90 s assault does 0.22 of a
-       180 s one (measured 25 Nov: 85%-built ladder squads, 4 line-ups x 2 seeds, 12 tiers, the same squads and seeds on both builds;
-       the ratio was 0.19-0.26 on every tier but one), so every boss carries 0.22 of the 180 s health and still falls in about three
-       days for a guild at its level. A guild part-way through a boss keeps its share (ensureRaid rescales hp with max). */
-    const RAID_TIME_SCALE=0.22;
-    const bossMax=lvl=>{ const t=Math.max(1,lvl|0); const full=t<=RAID_HP.length ? RAID_HP[t-1] : Math.min(2000000000, Math.round(RAID_HP[RAID_HP.length-1]*Math.pow(1.05,t-RAID_HP.length))); return Math.max(1,Math.round(full*RAID_TIME_SCALE)); };
+    const RAID_HP=[1850000,1970000,2050000,2360000,2450000,2650000,3060000,3810000,4280000,4810000,6960000,7400000,7760000,8140000,8690000,9320000,9690000,10100000,12000000,12500000,13000000,13800000,15000000,15600000,16200000,16800000,17500000,18200000,18900000,19700000,21000000,21800000,22700000,23600000,24500000,25500000,26500000,27600000,28700000,29800000];
+    /* v1450 (Phil 25 Nov: "Guild raid is 90 seconds" / "guild raid boss 1 shouldn't be killable by a guild pre 20 pretty much. But
+       level 30s maybe would be fine for 3 days" / "Basically should take an average geared guild of 20 players 3 days to kill raid
+       boss 1" / "And climb from there"). RAID_HP is MEASURED for 90 s assaults: tier t is sized for an average-geared (85% build)
+       guild of 20 fifteen levels above the boss (tier 1 = level 30, capped at 90) - health = 180 assaults (20 x 3 a day x 3 days) x
+       one 90 s assault's damage against that boss (4 line-ups x 2 seeds, the campaign re-tune ladder), then held to climb at least
+       4% a tier. A level 15 guild needs about 6 days for boss 1. A guild part-way through a boss keeps its share (ensureRaid). */
+    const bossMax=lvl=>{ const t=Math.max(1,lvl|0); return t<=RAID_HP.length ? RAID_HP[t-1] : Math.min(2000000000, Math.round(RAID_HP[RAID_HP.length-1]*Math.pow(1.05,t-RAID_HP.length))); };
     /* v668 — HIS HIDE. Measured, not guessed (see the header of raid668.py): at 14,000 a level-7
        squad in green gear does ~900 in a whole 90-second fight while a geared level-50 squad does
        ~35,000, because mitigation is def/(def+K) and penetration is flat. It thickens 12% a tier. */
