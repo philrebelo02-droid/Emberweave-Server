@@ -622,7 +622,8 @@
   "err.at_most_heroes_on_one_road": "At most {n} heroes on one road.",
   "err.at_most_heroes": "At most {n} heroes.",
   "err.the_aether_vault_climbs_on": "The Aether Vault climbs on its own ladder.",
-  "err.result_must_be_true_or_false": "Result must be true or false."
+  "err.result_must_be_true_or_false": "Result must be true or false.",
+  "err.raid_next_boss_at_reset": "The next raid boss arrives at the daily reset."
  },
  "edits": []
 }

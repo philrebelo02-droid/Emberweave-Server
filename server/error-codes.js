@@ -333,6 +333,7 @@ const EXACT=[
   ["the_tower_of_trials_climbs_on","The Tower of Trials climbs on its own ladder."],
   ["the_aether_vault_climbs_on","The Aether Vault climbs on its own ladder."],
   ["result_must_be_true_or_false","Result must be true or false."],
+  ["raid_next_boss_at_reset","The next raid boss arrives at the daily reset."],
   ["clear_the_previous_floor_first","Clear the previous floor first."],
   ["unknown_quest","Unknown quest."],
   ["quest_not_complete","Quest not complete."],

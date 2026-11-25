@@ -11454,7 +11454,16 @@ async function api(req,res,url){
     /* v670 (Phil: "a guild shouldnt be able to get the first boss down on day 1"). Measured: an
        8-member guild in light gear at 3 fights a day does ~180k against tier 1, so 400,000 takes
        them about two days, and a longer haul for a weaker guild. */
-    const bossMax=lvl=>Math.round(400000*Math.pow(1.28,(lvl||1)-1));
+    /* v1447 (Phil 24 Nov 2026: "check magic rush for their standard of time" / "fix it to their standard of time killed"). Magic Rush's
+       Team Raid: 2 attempts a day, one stage a day at most (the next opens the following day), a bonus for a clear inside 4 days - so a
+       top alliance clears a stage in about a day and a middling one in 2-4. Here each tier's health is sized from MEASURED damage (helper-pc
+       /srv/claude-sims/guildraid, 1,260 fights: one assault's damage at each level, 85% build) at the tier's own level (raidBossLvl): a
+       guild of 20 at that level and 85% build, 3 attempts a day, needs about 3 days; fully built about 2; well above the level 1 day (the
+       floor: the next boss arrives at the daily reset); below the level 4+. Damage depends on the player's level, hardly on the tier, so
+       the time it takes is set by the guild's levels. Was 400,000 x 1.28^(tier-1): tier 1 fell in hours and tier 36+ passed 2^31 (the
+       fight then ended at once and booked 1 damage). Every value stays far under 2^31; tiers past 40 grow 5% each, capped at 2,000,000,000. */
+    const RAID_HP=[5510000,5960000,6140000,6330000,6520000,7540000,8230000,8480000,10100000,10500000,13300000,13900000,16000000,16600000,20500000,22600000,24000000,24800000,29700000,30600000,41100000,45400000,46800000,48300000,49800000,51700000,55100000,58800000,63200000,73100000,84100000,93300000,96800000,106000000,125000000,139000000,155000000,173000000,193000000,215000000];
+    const bossMax=lvl=>{ const t=Math.max(1,lvl|0); return t<=RAID_HP.length ? RAID_HP[t-1] : Math.min(2000000000, Math.round(RAID_HP[RAID_HP.length-1]*Math.pow(1.05,t-RAID_HP.length))); };
     /* v668 — HIS HIDE. Measured, not guessed (see the header of raid668.py): at 14,000 a level-7
        squad in green gear does ~900 in a whole 90-second fight while a geared level-50 squad does
        ~35,000, because mitigation is def/(def+K) and penetration is flat. It thickens 12% a tier. */
@@ -11490,7 +11499,7 @@ async function api(req,res,url){
         pct: gd>0 ? Math.round(1000*dmg/gd)/10 : 0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,10);
       const bb=raidBossFor(r.level);
       return { level:r.level, max:r.max, hp:r.hp, kills:r.kills, yourDmg:r.contrib[me.id]||0, guildDmg:gd,
-        attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:bb.name, bossKey:bb.key, attemptsMax:RAID_ATT }; }
+        attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:bb.name, bossKey:bb.key, attemptsMax:RAID_ATT, nextAtReset:!!(r.killDay&&r.killDay===nyDayKey()) }; }
     // ---- shared Guild War helpers (REAL guild-vs-guild, weekly matchmaking) ----
     // A war is a shared DB.wars object referenced by BOTH guilds (g.war={week,id}). Each guild's
     // members duel the opposing guild's real member squads; wins score war points for their side.
@@ -11743,6 +11752,7 @@ async function api(req,res,url){
       // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.
       if(me.raidDay && me.raidDay.d===r.day && (me.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       if(r.hp<=0) return send(res,400,{error:'This boss is already down — the next tier is spawning.'});
+      if(r.killDay&&r.killDay===nyDayKey()) return send(res,400,{error:'The next raid boss arrives at the daily reset.'});   /* v1447 */
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad.'});
       const led=ensureLedger(me);
@@ -11763,6 +11773,7 @@ async function api(req,res,url){
         const rr=ensureRaid(gg); rr.att=rr.att||{};
         if(((rr.used[du.id])||0)>=RAID_ATT || (du.raidDay && du.raidDay.d===rr.day && (du.raidDay.n|0)>=RAID_ATT)) return { ok:false, none:true, raid:raidView(gg) };
         if(rr.hp<=0) return {ok:false,error:'This boss is already down — the next tier is spawning.'};
+        if(rr.killDay&&rr.killDay===nyDayKey()) return {ok:false,error:'The next raid boss arrives at the daily reset.'};   /* v1447 */
         rr.used[du.id]=((rr.used[du.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
         du.raidDay={ d:rr.day, n:((du.raidDay&&du.raidDay.d===rr.day)?(du.raidDay.n|0):0)+1 };
         rr.att[du.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
@@ -11822,7 +11833,7 @@ async function api(req,res,url){
         if(r.hp<=0){ killed=true; const lv=r.level;
           gg.exp=(gg.exp||0)+250; while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1; gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); guildLogCap(gg); }
           if((gg.level||1)>=GMAXLVL) gg.exp=0;
-          r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
+          r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={}; r.killDay=nyDayKey();   /* v1447: the next boss arrives at the daily reset (Magic Rush: one stage a day) */
           gg.log=gg.log||[]; gg.log.push({sys:1,tx:du.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(gg.log.length>100)gg.log=gg.log.slice(-100);
           /* v1445 (Phil 24 Nov: "When you kill a boss it shouldnt say no damage"): the killing assault is paid for the damage it dealt
              like every other assault AND gets the kill package on top (it used to get the package INSTEAD - a big last hit paid
