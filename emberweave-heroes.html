@@ -28904,10 +28904,17 @@ function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'
    bonus stages go through campaign/bonus resolve - that loses its reply because the server is off
    waits for the server (resultWaitServer) and re-sends the SAME request. Only a request with a requestId (receipt-safe) is ever re-sent. */
 const BATTLE_RESULT_ROUTES=/^\/api\/(campaign\/resolve|bonus\/resolve|dungeon\/resolve-battle|elite\/resolve|province\/resolve|tower\/(ascend|tribute)|trial\/resolve|well\/resolve|arena\/result|emberdraft\/(result|round)|guild\/raid\/resolve|guild\/war\/attack|world\/mine\/resolve|world\/siege\/resolve|pvp\/attack(-report)?)$/;
-async function api(path,method,bodyObj){ const r=await _apiRaw(path,method,bodyObj);
+async function api(path,method,bodyObj){ let r=await _apiRaw(path,method,bodyObj);
   if(method==='POST'&&bodyObj&&bodyObj.requestId&&BATTLE_RESULT_ROUTES.test(String(path))&&resultReplyLost(r)&&r&&r.error==='offline'&&!api._waiting)
-    { api._waiting=true; try{ return await resultWaitServer(()=>_apiRaw(path,method,bodyObj),r); } finally{ api._waiting=false; } }
+    { api._waiting=true; try{ r=await resultWaitServer(()=>_apiRaw(path,method,bodyObj),r); } finally{ api._waiting=false; } }
+  if(method==='POST'&&r&&!r.error&&BATTLE_RESULT_ROUTES.test(String(path))) glyphAfterFight();   /* v1452: a fight result may have paid fragments */
   return r; }
+/* v1452 BUG FIX (lockdown audit, glyphs line 12): every fragment a fight pays bumps the server's glyph revision, but the page re-read glyph state only after
+   a sweep, a Drill win, the Bag or its own glyph actions. After a normal Campaign, Vault or Arena fight the first Quick Slot tap did nothing (409 STALE,
+   no message), ASCEND said "Refreshed - try again", and a board the fight made affordable kept its "+", Quick Slot and the hero's red dot grey. Every
+   fight result now re-reads glyph state (as the gear tab re-reads its own), and the glyph tab re-draws if it is open. */
+function glyphAfterFight(){ try{ if(typeof glyphV2Sync!=='function'||!ACC||!ACC.token||typeof RUNE2==='undefined') return;
+  setTimeout(()=>{ Promise.resolve(glyphV2Sync()).then(()=>{ try{ if(typeof heroTab!=='undefined'&&heroTab==='glyphs'&&typeof detailHero!=='undefined'&&detailHero&&document.getElementById('heroDetail')) renderHeroDetail(); }catch(e){} }).catch(()=>{}); },0); }catch(e){} }
 async function _apiRaw(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; const _tok=ACC.token; if(_tok)h['x-token']=_tok;
   const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); const j=await r.json(); try{ langErrNote(j); }catch(_){}
   // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
@@ -33227,7 +33234,9 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
   RUNE2.st=st;
   try{ if(!G.glyphRank)G.glyphRank={}; HERO_KEYS.forEach(k=>{ const b=st.boards&&st.boards[k]; G.glyphRank[k]=Math.max(0,Math.min(GMAX_RANK,(b&&b.ascensionIndex)||0)); }); }catch(e){}   // offline cache of the server rank
   if(!RUNE2.cat){ const c=await api('/api/glyphs/catalog'); if(c&&c.defs){ c.byId={}; c.defs.forEach(d=>c.byId[d.id]=d); RUNE2.cat=c; } else RUNE2.syncErr=true; } }   /* v1200: a missing catalog re-synced in a loop */
-function g2FragmentName(key){ const name=RUNE2.cat?.fragmentNames?.[key]; if(!name) return escapeHTML(key); return escapeHTML(langDesc(name)+' · '+key.slice(key.lastIndexOf(' ')+1)); }
+function g2FragmentName(key){ const name=RUNE2.cat?.fragmentNames?.[key]; if(!name) return escapeHTML(key); return escapeHTML(langDesc(name)); }   /* v1452 (glyphs line 31): the English family word is no longer appended - every fragment kind has its own translated name */
+function g2StatLabel(stat){ const key=GLYPH_STAT_LABEL_KEYS[stat]; return key?ewT('gear.stat_'+key):String(stat); }   /* v1452: a glyph stat's name as the glyph cards show it */
+function g2Num(v){ try{ return new Intl.NumberFormat(LANG.cur==='en'?'en-US':LANG.cur,{maximumFractionDigits:20}).format(+v); }catch(e){ return String(v); } }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
@@ -33255,7 +33264,9 @@ async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true
   /* v996: with a requestId the SAME payload is re-sent on a lost reply / refused save (the server keeps a receipt per id) */
   if(payload.requestId) for(let t=1;t<3&&r&&(r.error==='offline'||r.storageFailed);t++){ await new Promise(z=>setTimeout(z,1500*t)); r=await api(path,'POST',payload); }
   RUNE2.busy=false;
-  if(r&&r.error==='STALE'){ await glyphV2Sync(); renderHeroDetail(); bannerMsg(ewT('hero.refreshed_retry')); return null; }
+  if(r&&r.error==='STALE'){ await glyphV2Sync();   /* v1452: a stale revision is re-read and the same press sent once more with it, so the first tap works */
+    if(!g2post._again){ g2post._again=true; try{ const p2=Object.assign({},payload); delete p2.expectedRevision; if(p2.requestId) p2.requestId=uid8(); return await g2post(path,p2); } finally{ g2post._again=false; } }
+    renderHeroDetail(); bannerMsg(ewT('hero.refreshed_retry')); return null; }
   if(r&&r.error){ bannerMsg(escapeHTML(langMsg(r.error))); await glyphV2Sync(); renderHeroDetail(); return null; }
   await glyphV2Sync(); renderHeroDetail(); return r; }
 /* Correction Spec v1: a Glyph is BUILT directly into a chosen slot and locked forever.
@@ -33269,10 +33280,12 @@ async function g2buildOpen(slot){ if(RUNE2.busy) return;
   RUNE2.build={slot, loading:false, data:r, stack:[], alloc:{}}; renderHeroDetail(); }
 function g2buildCancel(){ RUNE2.build=null; renderHeroDetail(); g2RenderOverlays(); }
 async function g2buildAll(){ if(RUNE2.busy) return; RUNE2.busy=true;
-  const r=await api('/api/glyphs/build-all','POST',{ heroKey:detailHero,
+  let r=await api('/api/glyphs/build-all','POST',{ heroKey:detailHero,
     expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
+  if(r&&r.error==='STALE'){ await glyphV2Sync();   /* v1452: re-read and send the same Quick Slot once more (the first tap after a fight used to do nothing) */
+    r=await api('/api/glyphs/build-all','POST',{ heroKey:detailHero, expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() }); }
   RUNE2.busy=false;
-  if(r&&r.error==='STALE'){ await glyphV2Sync(); if(RUNE2.build) g2buildOpen(RUNE2.build.slot); return; }
+  if(r&&r.error==='STALE'){ await glyphV2Sync(); if(RUNE2.build) g2buildOpen(RUNE2.build.slot); renderHeroDetail(); bannerMsg(ewT('hero.refreshed_retry')); return; }
   if(!r||r.error){ bannerMsg(escapeHTML(langMsg((r&&r.error))||'')||ewT('hero.could_not_build')); await glyphV2Sync(); renderHeroDetail(); return; }
   const n=(r.built||[]).length;
   RUNE2.build=null; g2RenderOverlays();
@@ -33439,7 +33452,7 @@ function glyphStatText(stat){
   const label=key?ewT('gear.stat_'+key):stat.stat;   // ewT: built key (tests list literal t() keys only)
   const locale=LANG.cur==='en'?'en-US':LANG.cur;
   const value=new Intl.NumberFormat(locale,{maximumFractionDigits:20}).format(stat.val);
-  return label+' +'+value+(stat.pct?'%':'');
+  return label+' +'+value;   /* v1452 BUG FIX (glyphs line 26): glyph stats are RATINGS (20 points = 1%, HP regen 100 points = 1%); the "%" promised 20x the effect ("Crit Chance +2.1%" is 0.1%). Shown as rating points, as gear shows them */
 }
 function g2info(slot){ const bd=g2board(detailHero); const so=bd.slots[slot]; if(!so) return;
   bannerMsg(hudIcon('lock')+' <b style="color:'+g2col(so.quality)+'">'+escapeHTML(langDesc(so.name))+'</b> — '+escapeHTML((so.stats||[]).map(glyphStatText).join(' · '))); }
@@ -33463,7 +33476,8 @@ const _g2missing={};
 function g2miss(img){ const src=img.getAttribute('src')||''; if(!_g2missing[src]){ _g2missing[src]=1; try{console.warn('[glyph-art MISSING]',src);}catch(e){} } img.onerror=null; img.src=G2_FALLBACK; }
 function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v3/${g2qdir(q)}/${type}-${slot}.webp?v=1" style="width:${px}px;height:${px}px;object-fit:contain;${extra||'display:block;margin:0 auto'}" draggable="false" onerror="g2miss(this)">`; }
 function g2artDef(d,px,extra){ return g2art('finished',d.quality,g2slotOfFam(d.family),px,extra); }
-function g2parseKey(k){ const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
+function g2parseKey(k){ k=String(k==null?'':k).replace(/^(?:Rare|Superior|Mythic)\s+/,''); if(/^Worldfire\s/.test(k)) k='Orange'+k.slice(9);   /* v1452 BUG FIX (glyphs line 30): "Rare / Superior / Mythic <quality> ..." and "Worldfire ..." cores looked for art folders that do not exist (grey placeholder); the grade word is not a quality and Worldfire is Orange, as the server names them (glyphSubName) */
+  const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
 function g2artKey(type,k,px){ const p=g2parseKey(k); return g2art(type,p.q,g2slotOfFam(p.fam),px,'display:inline-block;vertical-align:-4px'); }
 /* 27 Aug (Phil): board ＋ affordability — server-authoritative canBuild per (hero,slot), cached by
    glyph revision; renders grey until the answer arrives, then re-renders green when buildable. */
@@ -33543,14 +33557,14 @@ function glyphV2Tab(key){
   const lvLine=lvOk?'' :`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:6px">${hudIcon('lock')} ${ewT('hero.glyphs_need_level',{q,b1:'<b>',b2:'</b>',n:lvNeed,hero:(HERO_TYPES[key]||{}).name||key,h:lvHave})}</div>`;
   const canAll=!full&&lvOk&&g2CanSlotAll(key)===true;   // v246 (Phil): "Quick Slot" slots ALL glyphs at once — lit only when affordable
   const bonus=b.nextAscensionBonus;
-  const bonusText=bonus?` · ${ewT('hero.bonus',{n:bonus.amount,stat:bonus.stat})}`:'';
+  const bonusText=bonus?` · ${ewT('hero.bonus',{n:g2Num(bonus.amount),stat:g2StatLabel(bonus.stat)})}`:'';   /* v1452: the stat name and number in the player's language */
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>${lvLine}
     ${full?'':`<button class="btn" style="width:100%;margin-top:8px;${canAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${canAll?'':'disabled'} onclick="g2buildAll()">${statusIcon('energy')} ${ewT('hero.quick_slot')}</button>`}
-    <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>${uiIcon('level-up')} ${ewT('hero.ascend_to',{q:cat.ladder[idx+1]||ewT('hero.max'),bonus:bonusText})}</button>`;
+    <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>${uiIcon('level-up')} ${ewT('hero.ascend_to',{q:(cat.ladder[idx+1]?g2QualName(cat.ladder[idx+1]):ewT('hero.max')),bonus:bonusText})}</button>`;
   // (27 Aug, Phil: the Fragments strip lives in the Bag — not on the hero card)
   const fragHtml='';
   const asc=Object.entries(b.ascended||{});
-  const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">${ewT('hero.ascended_bonuses')}</b> ${asc.map(([k,v])=>k+' +'+v.val+('')).join(' · ')}</div>`:'';
+  const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">${ewT('hero.ascended_bonuses')}</b> ${asc.map(([k,v])=>glyphStatText({stat:k,val:v.val})).join(' · ')}</div>`:'';
   return `<div class="panel">${head}
     ${board}${fragHtml}${ascLine}</div>`;
 }

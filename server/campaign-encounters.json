@@ -4525,9 +4525,9 @@
           "possible": true
         },
         {
-          "fragmentId": "blue-bastion",
-          "key": "Blue Bastion",
-          "displayName": "Blue Bastion Fragment",
+          "fragmentId": "blue-veilward",
+          "key": "Blue Veilward",
+          "displayName": "Blue Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -5513,9 +5513,9 @@
           "possible": true
         },
         {
-          "fragmentId": "blue-plus-1-bastion",
-          "key": "Blue +1 Bastion",
-          "displayName": "Blue +1 Bastion Fragment",
+          "fragmentId": "blue-plus-1-veilward",
+          "key": "Blue +1 Veilward",
+          "displayName": "Blue +1 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -6431,9 +6431,9 @@
           "possible": true
         },
         {
-          "fragmentId": "blue-plus-1-bastion",
-          "key": "Blue +1 Bastion",
-          "displayName": "Blue +1 Bastion Fragment",
+          "fragmentId": "blue-plus-1-veilward",
+          "key": "Blue +1 Veilward",
+          "displayName": "Blue +1 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -7491,9 +7491,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "blue-plus-2-bastion",
-          "key": "Blue +2 Bastion",
-          "displayName": "Blue +2 Bastion Fragment",
+          "fragmentId": "blue-plus-2-sunder",
+          "key": "Blue +2 Sunder",
+          "displayName": "Blue +2 Sunder Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -7604,7 +7604,7 @@
     "baselineHp": 10.3077,
     "baselineDmg": 6.1921,
     "portalMode": "normal",
-    "farmFragment": "blue-plus-2-bastion",
+    "farmFragment": "blue-plus-2-sunder",
     "realEngineTuned": true,
     "chapterName": "The Molten Keep",
     "comps": "v337",
@@ -8116,9 +8116,9 @@
           "possible": true
         },
         {
-          "fragmentId": "blue-plus-2-bastion",
-          "key": "Blue +2 Bastion",
-          "displayName": "Blue +2 Bastion Fragment",
+          "fragmentId": "blue-plus-2-veilward",
+          "key": "Blue +2 Veilward",
+          "displayName": "Blue +2 Veilward Fragment",
           "quantity": 1,
           "possible": true
         }
@@ -8522,9 +8522,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "purple-bastion",
-          "key": "Purple Bastion",
-          "displayName": "Purple Bastion Fragment",
+          "fragmentId": "purple-veilward",
+          "key": "Purple Veilward",
+          "displayName": "Purple Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -8659,7 +8659,7 @@
     "baselineHp": 14.0274,
     "baselineDmg": 7.8781,
     "portalMode": "normal",
-    "farmFragment": "purple-bastion",
+    "farmFragment": "purple-veilward",
     "realEngineTuned": true,
     "chapterName": "Stormcrag Summit",
     "comps": "v337",
@@ -9453,9 +9453,9 @@
           "possible": true
         },
         {
-          "fragmentId": "purple-bastion",
-          "key": "Purple Bastion",
-          "displayName": "Purple Bastion Fragment",
+          "fragmentId": "purple-veilward",
+          "key": "Purple Veilward",
+          "displayName": "Purple Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -10492,9 +10492,9 @@
           "possible": true
         },
         {
-          "fragmentId": "purple-plus-1-bastion",
-          "key": "Purple +1 Bastion",
-          "displayName": "Purple +1 Bastion Fragment",
+          "fragmentId": "purple-plus-1-veilward",
+          "key": "Purple +1 Veilward",
+          "displayName": "Purple +1 Veilward Fragment",
           "quantity": 1,
           "possible": true
         }
@@ -11662,9 +11662,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "purple-plus-2-bastion",
-          "key": "Purple +2 Bastion",
-          "displayName": "Purple +2 Bastion Fragment",
+          "fragmentId": "purple-plus-2-veilward",
+          "key": "Purple +2 Veilward",
+          "displayName": "Purple +2 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -11793,7 +11793,7 @@
     "baselineHp": 35.3525,
     "baselineDmg": 16.2244,
     "portalMode": "normal",
-    "farmFragment": "purple-plus-2-bastion",
+    "farmFragment": "purple-plus-2-veilward",
     "realEngineTuned": true,
     "chapterName": "Voidmere Depths",
     "comps": "v337",
@@ -12600,9 +12600,9 @@
           "possible": true
         },
         {
-          "fragmentId": "purple-plus-2-bastion",
-          "key": "Purple +2 Bastion",
-          "displayName": "Purple +2 Bastion Fragment",
+          "fragmentId": "purple-plus-2-veilward",
+          "key": "Purple +2 Veilward",
+          "displayName": "Purple +2 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -13209,9 +13209,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "purple-plus-3-bastion",
-          "key": "Purple +3 Bastion",
-          "displayName": "Purple +3 Bastion Fragment",
+          "fragmentId": "purple-plus-3-veilward",
+          "key": "Purple +3 Veilward",
+          "displayName": "Purple +3 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -13340,7 +13340,7 @@
     "baselineHp": 54.9013,
     "baselineDmg": 22.8861,
     "portalMode": "normal",
-    "farmFragment": "purple-plus-3-bastion",
+    "farmFragment": "purple-plus-3-veilward",
     "realEngineTuned": true,
     "chapterName": "The Ossuary March",
     "comps": "v337",
@@ -14147,9 +14147,9 @@
           "possible": true
         },
         {
-          "fragmentId": "purple-plus-3-bastion",
-          "key": "Purple +3 Bastion",
-          "displayName": "Purple +3 Bastion Fragment",
+          "fragmentId": "purple-plus-3-veilward",
+          "key": "Purple +3 Veilward",
+          "displayName": "Purple +3 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -14744,9 +14744,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "gold-bastion",
-          "key": "Gold Bastion",
-          "displayName": "Gold Bastion Fragment",
+          "fragmentId": "gold-veilward",
+          "key": "Gold Veilward",
+          "displayName": "Gold Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -14875,7 +14875,7 @@
     "baselineHp": 85.26,
     "baselineDmg": 32.2831,
     "portalMode": "normal",
-    "farmFragment": "gold-bastion",
+    "farmFragment": "gold-veilward",
     "realEngineTuned": true,
     "chapterName": "The Mirrorspire",
     "comps": "v337",
@@ -15053,9 +15053,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-dawnshield",
-          "key": "Gold Dawnshield",
-          "displayName": "Gold Dawnshield Fragment",
+          "fragmentId": "gold-veilward",
+          "key": "Gold Veilward",
+          "displayName": "Gold Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -15694,9 +15694,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-bastion",
-          "key": "Gold Bastion",
-          "displayName": "Gold Bastion Fragment",
+          "fragmentId": "gold-veilward",
+          "key": "Gold Veilward",
+          "displayName": "Gold Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -16297,9 +16297,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "gold-plus-1-bastion",
-          "key": "Gold +1 Bastion",
-          "displayName": "Gold +1 Bastion Fragment",
+          "fragmentId": "gold-plus-1-veilward",
+          "key": "Gold +1 Veilward",
+          "displayName": "Gold +1 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -16428,7 +16428,7 @@
     "baselineHp": 132.4062,
     "baselineDmg": 45.5385,
     "portalMode": "normal",
-    "farmFragment": "gold-plus-1-bastion",
+    "farmFragment": "gold-plus-1-veilward",
     "realEngineTuned": true,
     "chapterName": "The Drowned Bloom",
     "comps": "v337",
@@ -16612,9 +16612,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-1-dawnshield",
-          "key": "Gold +1 Dawnshield",
-          "displayName": "Gold +1 Dawnshield Fragment",
+          "fragmentId": "gold-plus-1-veilward",
+          "key": "Gold +1 Veilward",
+          "displayName": "Gold +1 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -17253,9 +17253,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-1-bastion",
-          "key": "Gold +1 Bastion",
-          "displayName": "Gold +1 Bastion Fragment",
+          "fragmentId": "gold-plus-1-veilward",
+          "key": "Gold +1 Veilward",
+          "displayName": "Gold +1 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -17862,9 +17862,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "gold-plus-2-bastion",
-          "key": "Gold +2 Bastion",
-          "displayName": "Gold +2 Bastion Fragment",
+          "fragmentId": "gold-plus-2-veilward",
+          "key": "Gold +2 Veilward",
+          "displayName": "Gold +2 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -17993,7 +17993,7 @@
     "baselineHp": 205.6227,
     "baselineDmg": 64.2366,
     "portalMode": "normal",
-    "farmFragment": "gold-plus-2-bastion",
+    "farmFragment": "gold-plus-2-veilward",
     "realEngineTuned": true,
     "chapterName": "The Hourless Wastes",
     "comps": "v337",
@@ -18189,9 +18189,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-2-dawnshield",
-          "key": "Gold +2 Dawnshield",
-          "displayName": "Gold +2 Dawnshield Fragment",
+          "fragmentId": "gold-plus-2-veilward",
+          "key": "Gold +2 Veilward",
+          "displayName": "Gold +2 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -18818,9 +18818,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-2-bastion",
-          "key": "Gold +2 Bastion",
-          "displayName": "Gold +2 Bastion Fragment",
+          "fragmentId": "gold-plus-2-veilward",
+          "key": "Gold +2 Veilward",
+          "displayName": "Gold +2 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -19427,9 +19427,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "gold-plus-3-bastion",
-          "key": "Gold +3 Bastion",
-          "displayName": "Gold +3 Bastion Fragment",
+          "fragmentId": "gold-plus-3-veilward",
+          "key": "Gold +3 Veilward",
+          "displayName": "Gold +3 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -19558,7 +19558,7 @@
     "baselineHp": 319.3258,
     "baselineDmg": 90.612,
     "portalMode": "normal",
-    "farmFragment": "gold-plus-3-bastion",
+    "farmFragment": "gold-plus-3-veilward",
     "realEngineTuned": true,
     "chapterName": "Thornveil Grove",
     "comps": "v337",
@@ -19742,9 +19742,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-3-dawnshield",
-          "key": "Gold +3 Dawnshield",
-          "displayName": "Gold +3 Dawnshield Fragment",
+          "fragmentId": "gold-plus-3-veilward",
+          "key": "Gold +3 Veilward",
+          "displayName": "Gold +3 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -20377,9 +20377,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-3-bastion",
-          "key": "Gold +3 Bastion",
-          "displayName": "Gold +3 Bastion Fragment",
+          "fragmentId": "gold-plus-3-veilward",
+          "key": "Gold +3 Veilward",
+          "displayName": "Gold +3 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -20980,9 +20980,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "gold-plus-4-bastion",
-          "key": "Gold +4 Bastion",
-          "displayName": "Gold +4 Bastion Fragment",
+          "fragmentId": "gold-plus-4-veilward",
+          "key": "Gold +4 Veilward",
+          "displayName": "Gold +4 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -21111,7 +21111,7 @@
     "baselineHp": 495.9032,
     "baselineDmg": 127.8172,
     "portalMode": "normal",
-    "farmFragment": "gold-plus-4-bastion",
+    "farmFragment": "gold-plus-4-veilward",
     "realEngineTuned": true,
     "chapterName": "The Emberweave Heart",
     "comps": "v337",
@@ -21289,9 +21289,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-4-dawnshield",
-          "key": "Gold +4 Dawnshield",
-          "displayName": "Gold +4 Dawnshield Fragment",
+          "fragmentId": "gold-plus-4-veilward",
+          "key": "Gold +4 Veilward",
+          "displayName": "Gold +4 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -21924,9 +21924,9 @@
           "possible": true
         },
         {
-          "fragmentId": "gold-plus-4-bastion",
-          "key": "Gold +4 Bastion",
-          "displayName": "Gold +4 Bastion Fragment",
+          "fragmentId": "gold-plus-4-veilward",
+          "key": "Gold +4 Veilward",
+          "displayName": "Gold +4 Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -22369,9 +22369,9 @@
           "possible": true
         },
         {
-          "fragmentId": "orange-dawnshield",
-          "key": "Orange Dawnshield",
-          "displayName": "Orange Dawnshield Fragment",
+          "fragmentId": "orange-ironwall",
+          "key": "Orange Ironwall",
+          "displayName": "Orange Ironwall Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -23009,16 +23009,16 @@
           "possible": true
         },
         {
-          "fragmentId": "orange-voidbind",
-          "key": "Orange Voidbind",
-          "displayName": "Orange Voidbind Fragment",
+          "fragmentId": "orange-starfire",
+          "key": "Orange Starfire",
+          "displayName": "Orange Starfire Fragment",
           "quantity": 1,
           "possible": true
         },
         {
-          "fragmentId": "orange-bastion",
-          "key": "Orange Bastion",
-          "displayName": "Orange Bastion Fragment",
+          "fragmentId": "orange-veilward",
+          "key": "Orange Veilward",
+          "displayName": "Orange Veilward Fragment",
           "quantity": 1,
           "possible": true
         }
@@ -23273,9 +23273,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "orange-bastion",
-          "key": "Orange Bastion",
-          "displayName": "Orange Bastion Fragment",
+          "fragmentId": "orange-veilward",
+          "key": "Orange Veilward",
+          "displayName": "Orange Veilward Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -23386,7 +23386,7 @@
     "baselineHp": 959.7128,
     "baselineDmg": 214.1384,
     "portalMode": "normal",
-    "farmFragment": "orange-bastion",
+    "farmFragment": "orange-veilward",
     "realEngineTuned": true,
     "chapterName": "The World-Tree Crown",
     "comps": "v337",
@@ -23421,9 +23421,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "orange-dawnshield",
-          "key": "Orange Dawnshield",
-          "displayName": "Orange Dawnshield Fragment",
+          "fragmentId": "orange-ironwall",
+          "key": "Orange Ironwall",
+          "displayName": "Orange Ironwall Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -23435,9 +23435,9 @@
           "possible": true
         },
         {
-          "fragmentId": "orange-cataclysm",
-          "key": "Orange Cataclysm",
-          "displayName": "Orange Cataclysm Fragment",
+          "fragmentId": "orange-sunder",
+          "key": "Orange Sunder",
+          "displayName": "Orange Sunder Fragment",
           "quantity": 1,
           "possible": true
         },
@@ -23552,7 +23552,7 @@
     "baselineHp": 1002.8999,
     "baselineDmg": 221.6333,
     "portalMode": "normal",
-    "farmFragment": "orange-dawnshield",
+    "farmFragment": "orange-ironwall",
     "realEngineTuned": true,
     "chapterName": "The World-Tree Crown",
     "comps": "v337",
@@ -23587,9 +23587,9 @@
       "playerXpRepeat": 6,
       "glyphFragments": [
         {
-          "fragmentId": "orange-bastion",
-          "key": "Orange Bastion",
-          "displayName": "Orange Bastion Fragment",
+          "fragmentId": "orange-veilward",
+          "key": "Orange Veilward",
+          "displayName": "Orange Veilward Fragment",
           "quantity": 1,
           "possible": true
         }
@@ -23687,7 +23687,7 @@
     "baselineHp": 1131.8729,
     "baselineDmg": 240.8599,
     "portalMode": "normal",
-    "farmFragment": "orange-bastion",
+    "farmFragment": "orange-veilward",
     "realEngineTuned": true,
     "chapterName": "The World-Tree Crown",
     "comps": "v337",

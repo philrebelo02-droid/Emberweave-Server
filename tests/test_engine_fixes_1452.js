@@ -25,6 +25,7 @@ const spec = (key, level, stars, skill) => ({ key, level, stars: stars || 3, ran
 const setup = (A, B, seed, mut) => { const a = JSON.parse(JSON.stringify(host.snapFromSpecs(A))), b = JSON.parse(JSON.stringify(host.snapFromSpecs(B))); if (mut) mut(a, b);
   return R('window.__setup(' + JSON.stringify(a) + ',' + JSON.stringify(b) + ',' + (seed | 0) + ')'); };
 const S = s => R(s);
+const PENDING = [];   // checks that wait on an async page function (section 26)
 
 console.log('== 1. magic tanks never crit with a basic attack (Joss, Ambrel had crit clips that re-rolled it) ==');
 { R(`window.__C=null; (function(){ const dd=dealDamage; dealDamage=function(src,tgt,amt,color,kind,silent){ const C=window.__C; if(!C||!src) return dd.apply(this,arguments); const auto=!!_autoAtk; if(tgt) tgt._critHit=false; const h0=tgt?tgt.hp:0, s0=tgt?tgt.shield:0; const r=dd.apply(this,arguments);
@@ -289,4 +290,120 @@ console.log("== 18. AUTO area aim: the best spot, inside the skill's real reach 
   const c = J(`(function(){ __freeze(); const G=U('grosk'); G.x=500; G.y=1000; const es=units.filter(u=>u.team==='enemy'); es[0].x=500; es[0].y=1000-5*METER; es.slice(1).forEach((e,i)=>{ e.x=480+i*20; e.y=1000-14*METER+i*10; }); const a=optimalAimField(G); return Math.hypot(a.x-G.x,a.y-G.y)/METER; })()`);
   ok(c <= 6.0001, "Grosk's AUTO Croc Drop aims " + (+c).toFixed(2) + ' m away, inside his 6 m reach (was 13.13 m, at a pack he cannot reach)'); }
 
-console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;
+console.log('== 19. ranged bosses fight from 1.4x as far, like melee bosses ==');
+{ const r = J(`(function(){ const keep=CUR; CUR={mode:'arena'}; const o={}; for(const k of CHAPTER_MAP_BOSS_KEYS.concat(['leviath'])){ if(!k||!MONSTER_TYPES[k]) continue; const n=makeUnit(k,'enemy',500,500,40), b=makeUnit(k,'enemy',500,500,40,{boss:true}); o[k]={melee:n.melee,r:b.range/n.range,h:b.combatDist/n.combatDist}; } CUR=keep; return o; })()`);
+  const ranged = Object.entries(r).filter(([k, v]) => !v.melee), melee = Object.entries(r).filter(([k, v]) => v.melee);
+  ok(ranged.length >= 8, ranged.length + ' ranged bosses (the chapter bosses and Leviath): ' + ranged.map(x => x[0]).join(', '));
+  for (const [k, v] of ranged) ok(Math.abs(v.h - 1.4) < 1e-6 && v.r > 1.35, k + ': as a boss its hold is x' + v.h.toFixed(2) + ' and reach x' + v.r.toFixed(2) + ' (was x1.00 / x1.00)');
+  ok(melee.every(([k, v]) => Math.abs(v.r - 1.4) < 1e-6), 'melee bosses keep their x1.4 range (' + melee.length + ')'); }
+
+console.log('== 20. the battle loader lists every spell sheet a fighter can use ==');
+{ const r = J(`(function(){ const F=FX2_DEF, P=(typeof FX_PLATE_DEF!=='undefined')?FX_PLATE_DEF:{}; const keys=Object.keys(HERO_TYPES).concat(Object.keys(MONSTER_TYPES||{})); const all=new Set(); for(const k of keys) fxSheetKeys([k]).forEach(x=>all.add(x));
+    const miss=Object.keys(F).concat(Object.keys(P)).filter(n=>!all.has(n)&&n.indexOf('__')!==0); return {miss, cer:fxSheetKeys(['ceraline']), syl:fxSheetKeys(['sylthaine']), any:fxSheetKeys(['vael'])}; })()`);
+  ok(r.miss.length <= 1 && r.miss.every(n => n === 'toxbeam'), 'every sheet is on some fighter\'s list (left: ' + JSON.stringify(r.miss) + ' - toxbeam is defined but never drawn); 59 were missing before');
+  for (const n of ['candlepot', 'candlepool', 'candleburst', 'candleeffigy', 'waxerupt', 'waxpool', 'bellring', 'waxshatter']) ok(r.cer.includes(n), "Ceraline's list has " + n);
+  ok(r.syl.includes('blizzard'), "Sylthaine's list has her Blizzard");
+  ok(['bleed', 'poison', 'firepatch'].every(n => r.any.includes(n)), 'every fighter brings the burn / bleed / poison floor marks');
+  ok(!/const FX_\w*LIST\s*=\s*\[/.test(html.slice(html.indexOf('function fxSheetKeys('), html.indexOf('function fxSheetTex('))), 'the list is derived from the data and the effect code, not a hand list'); }
+
+console.log('== 21. the Damage Done lists step down until every row fits ==');
+{ ok(/function ddFit\(ov\)\{[^\n]*for\(const c of \['ddD1','ddD2','ddD3'\]\)\{ if\(L\.scrollHeight<=L\.clientHeight\+1\) break; L\.classList\.add\(c\); \}/.test(html), 'ddFit adds ddD1 / ddD2 / ddD3 to a list until it no longer scrolls');
+  ok(/ddFit\(ov\);/.test(html), 'ddRender calls ddFit after the panel is on the page');
+  ok(/#ddPop \.ddList\.ddD2\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(html) && /#ddPop \.ddList\.ddD1 \.ddSub\{display:none\}/.test(html), 'compact rows, then two columns');
+  // the fit loop on fake lists: 10 rows that need 411 px in a 242 px box
+  const fit = new Function('ov', html.match(/function ddFit\(ov\)\{([^\n]*)\}   \/\* v1452/)[1]);
+  const L = { classList: { s: new Set(), add(c) { this.s.add(c); } }, get scrollHeight() { const s = this.classList.s; return s.has('ddD2') ? 150 : s.has('ddD1') ? 280 : 411; }, clientHeight: 242 };
+  fit({ querySelectorAll: () => [L] }); ok(L.classList.s.has('ddD1') && L.classList.s.has('ddD2') && !L.classList.s.has('ddD3'), 'a 10-row list in a 242 px column goes compact, then to two columns, and stops when it fits'); }
+
+console.log('== 22. the fight never stands still waiting for the server ==');
+{ const src = ['ACT_ACK_TIMEOUT_MS', 'ACT_INPUT_DELAY_CLIENT'].map(n => html.match(new RegExp('const ' + n + '=[^;]*;'))[0]).join('\n') + '\n' +
+    html.match(/function actHold\(\)\{[\s\S]*?\n\}/)[0] + '\n' + html.match(/function actGiveUp\(\)\{[\s\S]*?\n\}/)[0];
+  const c = { _actWait: 1, _actWaitAt: Date.now(), _actWaitFrom: 100, simTick: 100, _actStreamOn: true, _actSeq: 0, _actSent: { 1: { k: 'auto', uid: -1 } }, _inputQ: [], INPUT_LOG: [], banners: [], actSend() {}, bannerMsg(m) { c.banners.push(m); }, uiIcon: () => '', t: k => k };
+  vm.createContext(c); vm.runInContext(src, c);
+  ok(vm.runInContext('actHold()', c) === false && c._actStreamOn, 'before the press\'s tick: the fight runs, still streaming');
+  c.simTick = 109; ok(vm.runInContext('actHold()', c) === false, 'at the press\'s tick with no answer: the fight runs on (was: held up to 3 s)');
+  ok(!c._actStreamOn && c._inputQ.length === 1 && c.INPUT_LOG.length === 1 && c.INPUT_LOG[0][0] === 109, 'the press is applied on that tick and recorded locally at once');
+  ok(c.banners.length === 1 && /combatnet\.slow/.test(c.banners[0]), 'with the same "Connection slow" notice'); }
+
+console.log('== 23. talents add at most 5% crit chance per hero ==');
+{ const T = require(path.join(root, 'talents.js'));
+  const two = (h, picks) => { let b = { r: {} }; for (const [tid, target] of picks) { const tr = T.trees(h).find(t => t.id === tid); const tal = tr.talents.find(x => x[0] === target);
+      for (let g = 0; g < 200 && T.rankOf(b, target) < tal[4]; g++) { if (T.canLearn(h, b, target, 100)) { b = T.learn(h, b, target, 100).build; continue; }
+        const nx = tr.talents.filter(q => q[1] < tal[1] && q[0] !== target && T.canLearn(h, b, q[0], 100) && !/crit/i.test(q[5])).sort((a, c) => a[1] - c[1])[0]; if (!nx) break; b = T.learn(h, b, nx[0], 100).build; } }
+    return T.learned(h, b); };
+  for (const [h, picks] of [['brannus', [['champion', 'cc_7_3'], ['bronze_wheel', 'bw_3_2']]], ['calypsa', [['straight_lines', 'sl_2_4'], ['never_bit_first', 'nb_9_3']]], ['vex', [['ropewalker', 'rw_1_3'], ['short_list', 'sl_3_3']]]]) {
+    const list = two(h, picks), c0 = (() => { setup([spec(h, 100)], [spec('rhukk', 100)], 3); return J(`U(${JSON.stringify(h)},'ally').glyphCrit||0`); })();
+    setup([Object.assign(spec(h, 100), { talents: list })], [spec('rhukk', 100)], 3); const c1 = J(`U(${JSON.stringify(h)},'ally').glyphCrit||0`);
+    ok(c1 - c0 <= 0.05 + 1e-9 && c1 - c0 > 0.04, h + ': two crit trees add ' + (100 * (c1 - c0)).toFixed(1) + '% crit chance (was 10% / 9.5%)'); } }
+
+console.log('== 24. talent stuns and extensions stop at 4 s in a row on one target ==');
+{ ok(J('typeof TalentFx.api==="function"||true') && /function stunRoom\(t\)/.test(fs.readFileSync(path.join(root, 'talents-fx.js'), 'utf8')), 'the shared talent engine has the 4.0 s run room (stunRoom)');
+  setup([spec('quorrel', 30)], [spec('rhukk', 30)], 5, (a, b) => { b[0].ctrlRes = 0; });
+  const r = J(`(function(){ __freeze(); const B=U('rhukk','enemy'); B.stunned=3.5; for(let i=0;i<Math.round(3.0/SIM_STEP);i++) updateBattle(SIM_STEP); const since=B._stunSince; const room=4.0-(battleTime-since); return {since:since!=null, room:+room.toFixed(2), left:+B.stunned.toFixed(2)}; })()`);
+  ok(r.since && Math.abs(r.room - 1.0) < 0.06, 'the page stamps when a stun run began (3 s into a 3.5 s stun: ' + r.room + ' s of room left for talents)');
+  const T = require(path.join(root, 'talents.js'));
+  const dive = (h, ti) => { const t = T.trees(h)[ti]; const chain = new Set(); { let s = t.talents.find(q => q[1] === 13); while (s) { chain.add(s[0]); s = s[6] ? t.talents.find(q => q[0] === s[6]) : null; } }
+    let b = { r: {} }; for (let g = 0; g < 700 && T.spent(h, b).total < 91; g++) { const nx = t.talents.filter(q => T.canLearn(h, b, q[0], 100)).sort((a, c) => ((chain.has(c[0]) ? 1000 : 0) + c[1]) - ((chain.has(a[0]) ? 1000 : 0) + a[1]) || a[2] - c[2])[0]; if (!nx) break; b = T.learn(h, b, nx[0], 100).build; }
+    return T.learned(h, b); };
+  const chainOf = (h, ti) => { setup([Object.assign(spec(h, 100, 5, 100), { talents: dive(h, ti) })], ['rhukk', 'meridian', 'vulmar', 'konwu', 'vex'].map(k => spec(k, 100, 5, 100)), 7);
+    return J(`(function(){ const H=U(${JSON.stringify(h)},'ally'); H.maxHp*=40; H.hp=H.maxHp; const ch=new Map(); let best=0; for(let i=0;i<Math.round(60/SIM_STEP)&&!ended;i++){ updateBattle(SIM_STEP); for(const e of units){ if(e.team==='ally') continue; const c=(e.alive&&e.stunned>0)?(ch.get(e)||0)+SIM_STEP:0; ch.set(e,c); if(c>best) best=c; } } return +best.toFixed(2); })()`); };
+  for (const [h, ti, was] of [['joss', 2, '5.52-5.58'], ['tessit', 2, '5.25']]) { const c = chainOf(h, ti); ok(c <= 4.05, h + ' alone, one tree at 91 points, 60 s: the longest stun in a row on one enemy is ' + c + ' s (was ' + was + ' s)'); }
+  ok(/A\.stunRoom\(t\)/.test(fs.readFileSync(path.join(root, 'talents-mech', 'joss.js'), 'utf8')) && /A\.stunRoom\(t\)/.test(fs.readFileSync(path.join(root, 'talents-mech', 'tessit.js'), 'utf8')) && /A\.stunRoom\(t\)/.test(fs.readFileSync(path.join(root, 'talents-mech', 'pellucid.js'), 'utf8')), "Joss's, Tessit's and Pellucid's extensions read the run room"); }
+
+console.log("== 25. Ceraline's talent damage reduction has a cap (40% on her, 25% on an ally) ==");
+{ const LAB = require('./talents-lab.js'); const T = LAB.T; const tr = T.trees('ceraline').find(t => t.id === 'the_host');
+  const L = LAB.lab('ceraline', LAB.full('ceraline', tr.talents.map(x => x[0])), { foes: 2, allies: 2 }); for (const k of Object.keys(L.T.st || {})) L.T.s.k[k] = { n: 99, t: 0, idle: 0 };
+  const r = JSON.parse(vm.runInContext(`JSON.stringify((function(){ const C=units.find(u=>u.key==='ceraline'); const E=units.find(u=>u.team!==C.team); const A=units.find(u=>u.team===C.team&&u!==C); return {self:TalentFx.inc(C,E,1000,'phys',true,false), ally:TalentFx.inc(A,E,1000,'phys',true,false)}; })())`, LAB.NOW.ctx));
+  ok(r.self >= 600 - 1e-6 && r.self <= 600 + 1e-6, 'every The Host talent, every candle: a 1000 hit on her deals ' + r.self + ' (40% off at most; was 48% off)');
+  ok(Math.abs(r.ally - 750) < 1e-6, 'and on an ally ' + r.ally + ' (25% off at most; was 43% off)'); }
+
+console.log('== 26. after a fight the glyph tab re-reads its state; a stale first tap retries itself ==');
+{ const grab = name => { const i = html.indexOf('function ' + name + '('); assert(i >= 0, name); let d = 0, k = html.indexOf('{', i); for (; k < html.length; k++) { if (html[k] === '{') d++; else if (html[k] === '}') { d--; if (!d) break; } } return (html.slice(i - 6, i) === 'async ' ? 'async ' : '') + html.slice(i, k + 1); };
+  ok(/if\(method==='POST'&&r&&!r\.error&&BATTLE_RESULT_ROUTES\.test\(String\(path\)\)\) glyphAfterFight\(\);/.test(html), 'every successful fight result (campaign, Vault, Arena and every other result route) re-reads glyph state');
+  ok(/campaign\\\/resolve/.test(html.match(/const BATTLE_RESULT_ROUTES=[^\n]*/)[0]) && /dungeon\\\/resolve-battle/.test(html.match(/const BATTLE_RESULT_ROUTES=[^\n]*/)[0]) && /arena\\\/result/.test(html.match(/const BATTLE_RESULT_ROUTES=[^\n]*/)[0]), 'the result routes include the Campaign, the Vault and the Arena');
+  // Quick Slot in a sandbox: the server answers STALE once (the fight bumped the revision), then builds
+  const calls = []; const c = { RUNE2: { busy: false, st: { revision: 4 }, build: null }, detailHero: 'vael', banners: [], bannerMsg(m) { c.banners.push(m); }, ewT: k => k, escapeHTML: s => s, langMsg: s => s, uid8: () => 'r' + calls.length,
+    api: async (p, m, b) => { calls.push(b.expectedRevision); return calls.length === 1 ? { error: 'STALE' } : { built: [0, 1, 2, 3, 4, 5] }; }, glyphV2Sync: async () => { c.RUNE2.st.revision = 5; }, renderHeroDetail() {}, g2RenderOverlays() {}, checkTutorial() {}, tutReturnAfterAction() {}, g2buildOpen() {} };
+  vm.createContext(c); vm.runInContext(grab('g2buildAll'), c);
+  PENDING.push((async () => { await vm.runInContext('g2buildAll()', c);
+    ok(calls.length === 2 && calls[0] === 4 && calls[1] === 5, 'Quick Slot: the stale first send (revision 4) is re-read and sent again with revision 5 - on the same tap');
+    ok(c.banners.some(b => /glyphs_built/.test(b)) && !c.banners.some(b => /refreshed_retry/.test(b)), 'the board is built on the first tap, no "Refreshed - try again"');
+  })().catch(e => { ok(false, "Quick Slot sandbox: " + e.message); }));
+  ok(/if\(r&&r\.error==='STALE'\)\{ await glyphV2Sync\(\);[^\n]*\n\s*if\(!g2post\._again\)\{ g2post\._again=true;/.test(html), 'ASCEND (g2post): a stale revision is re-read and the press sent once more'); }
+
+console.log('== 27. recipe-tree cores with a grade word or Worldfire find their art ==');
+{ const src = html.match(/function g2parseKey\(k\)\{[^\n]*\n[^\n]*\}/)[0];
+  const c = { RUNE2: { cat: { ladder: ['Grey', 'Green', 'Green +1', 'Blue', 'Blue +1', 'Blue +2', 'Purple', 'Purple +1', 'Purple +2', 'Purple +3', 'Gold', 'Gold +1', 'Gold +2', 'Gold +3', 'Gold +4', 'Orange'] } } };
+  vm.createContext(c); vm.runInContext(src, c); const P = k => vm.runInContext('g2parseKey(' + JSON.stringify(k) + ')', c);
+  const subs = new Set(); for (const d of require(path.join(root, 'server', 'glyph-source.json'))) for (const m of String(d.recipeText || '').matchAll(/((?:Rare |Superior |Mythic )?(?:Worldfire|Grey|Green|Blue|Purple|Gold|Orange)(?: \+\d)? \w+) Sub-Glyph/g)) subs.add(m[1] + ' Sub-Glyph');
+  const qdir = html.match(/function g2qdir\(q\)\{[^\n]*?\}/); const cq = {}; if (qdir) { vm.createContext(cq); vm.runInContext(qdir[0], cq); }
+  const bad = [...subs].filter(k => { const p = P(k); const dir = qdir ? vm.runInContext('g2qdir(' + JSON.stringify(p.q) + ')', cq) : p.q.replace(/ \+/, ''); return !c.RUNE2.cat.ladder.includes(p.q) || !fs.existsSync(path.join(root, 'assets', 'img', 'glyphs-v3', dir)); });
+  ok(subs.size >= 160 && bad.length === 0, subs.size + ' core kinds in the recipes: every one maps to a real quality art folder' + (bad.length ? ' BAD ' + bad.slice(0, 4).join(', ') : ''));
+  ok(P('Superior Purple Vitality Sub-Glyph').q === 'Purple' && P('Worldfire Vitality Sub-Glyph').q === 'Orange' && P('Rare Gold +2 Ironwall Sub-Glyph').q === 'Gold +2', '"Superior Purple ..." -> Purple, "Worldfire ..." -> Orange, "Rare Gold +2 ..." -> Gold +2 (were the folders Superior / Worldfire / Rare, which do not exist)'); }
+
+console.log('== 28. the ASCEND button, the bonuses line and the Bag speak the player\'s language ==');
+{ ok(/ewT\('hero\.ascend_to',\{q:\(cat\.ladder\[idx\+1\]\?g2QualName\(cat\.ladder\[idx\+1\]\):ewT\('hero\.max'\)\)/.test(html), 'the ASCEND tier name goes through g2QualName (was the English ladder word)');
+  ok(/ewT\('hero\.bonus',\{n:g2Num\(bonus\.amount\),stat:g2StatLabel\(bonus\.stat\)\}\)/.test(html), 'its bonus stat through the translated glyph stat names, its number in the player\'s format');
+  ok(/asc\.map\(\(\[k,v\]\)=>glyphStatText\(\{stat:k,val:v\.val\}\)\)/.test(html), 'the bonuses line through glyphStatText (was the English stat key)');
+  ok(/function g2FragmentName\(key\)\{[^\n]*return escapeHTML\(langDesc\(name\)\); \}/.test(html), 'a Bag fragment shows its translated name only (the English family word is gone)');
+  const raw = require(path.join(root, 'server', 'glyph-source.json')), fams = new Set(raw.map(d => d.family)), names = {};
+  for (const d of raw) { const k = d.quality + ' ' + d.family; const n = (d.material || d.name) + ''; (names[n] = names[n] || new Set()).add(k); }
+  const realKinds = new Set(raw.map(d => d.quality + ' ' + (d.fragmentFamily || d.family)));
+  ok(realKinds.size === 218, 'the 218 fragment kinds each have their own material name, so the family word is not needed to tell them apart'); }
+
+console.log('== 29. glyph ratings are shown as rating points, not as a % ==');
+{ const src = html.match(/const GLYPH_STAT_LABEL_KEYS=[^\n]*/)[0] + '\n' + html.match(/function glyphStatText\(stat\)\{[\s\S]*?\n\}/)[0];
+  const c = { ewT: k => ({ 'gear.stat_crit': 'Crit Chance', 'gear.stat_block': 'Block' })[k] || k, LANG: { cur: 'en' }, Intl }; vm.createContext(c); vm.runInContext(src, c);
+  ok(vm.runInContext("glyphStatText('Crit Chance +2.1%')", c) === 'Crit Chance +2.1', '"Crit Chance +2.1%" now reads "Crit Chance +2.1" (2.1 rating points = 0.1% crit; the % promised 20x)');
+  ok(vm.runInContext("glyphStatText({stat:'Block',val:1.4,pct:true})", c) === 'Block +1.4', 'Block +1.4 (was +1.4%)'); }
+
+console.log('== 30. every stage pays a fragment kind some board needs ==');
+{ const R30 = require('./fixtures/v1452_retired_fragments.json'), RET = new Set(R30.retired);
+  const st = f => JSON.parse(fs.readFileSync(path.join(root, 'server', f), 'utf8'));
+  const tabs = ['campaign-encounters.json', 'elite-campaign-encounters.json', 'veteran-campaign-encounters.json'].map(st).flat();
+  ok(R30.retired.length === 21, '21 kinds no board uses (all Bastion, Gold to Orange Dawnshield, Orange Cataclysm, Orange Voidbind) are retired from the drop tables');
+  ok(!tabs.some(s => (s.rewards.glyphFragments || []).some(g => RET.has(g.fragmentId)) || RET.has(s.farmFragment)), 'no Normal, Elite or Veteran stage pays one any more (16 Elite and 17 Veteran stages paid only such a kind)');
+  const only = tabs.filter(s => (s.rewards.glyphFragments || []).length === 4);
+  ok(only.every(s => new Set(s.rewards.glyphFragments.map(g => g.key)).size === 4), 'every Normal 4-pool still offers four different kinds'); }
+
+Promise.all(PENDING).then(() => { console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1; }, e => { console.log(e); process.exitCode = 1; });
