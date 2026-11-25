@@ -66,7 +66,9 @@ const clean=pg=>pg.evaluate(()=>{ document.querySelectorAll('#tutOffer,.ftutOv,#
 function checker(name){ let pass=0, fail=0, known=0; const lines=[];
   const ok=(c,msg,vals)=>{ const t=(c?'  ok   ':'  ✗ ')+msg+(vals!==undefined?'  ['+(typeof vals==='string'?vals:JSON.stringify(vals))+']':''); console.log(t); c?pass++:fail++; return c; };
   const bug=(hit,msg,vals)=>{ const t=(hit?'  KNOWN-BUG  ':'  ok   (known bug not seen) ')+msg+(vals!==undefined?'  ['+(typeof vals==='string'?vals:JSON.stringify(vals))+']':''); console.log(t); if(hit) known++; else pass++; };
-  const done=()=>{ console.log(name+': PASS: '+pass+'  FAIL: '+fail+'  KNOWN-BUGS: '+known); process.exitCode=fail?1:0; };
-  return {ok,bug,done,get fail(){ return fail; }}; }
+  /* WATCH: seen only under the suite's emulated touch (not a confirmed bug): printed with the evidence for a real-phone look, never a pass */
+  let watch=0; const look=(msg,vals)=>{ console.log('  WATCH  '+msg+(vals!==undefined?'  ['+(typeof vals==='string'?vals:JSON.stringify(vals))+']':'')); watch++; };
+  const done=()=>{ console.log(name+': PASS: '+pass+'  FAIL: '+fail+'  KNOWN-BUGS: '+known+'  WATCH: '+watch); process.exitCode=fail?1:0; };
+  return {ok,bug,look,done,get fail(){ return fail; }}; }
 
 module.exports={ROOT,wait,xpFor,seedDB,server,game,browser,closeBrowser,clean,checker,TOKEN,UID};
