@@ -40658,7 +40658,7 @@ function edTick(dt){
   if(!ED.fighting||ended) return;
   for(const u of (ED.decor||[])){ try{ syncMesh(u,dt); }catch(e){} }
   for(const u of units){ if(!u.alive) continue;
-    if(u._edLeap && battleTime>0.4){ u._edLeap=false; const foes=enemiesOf(u); /* v644: was every live foe, including a Hollow parked off-field */ if(foes.length){ const back=foes.reduce((a,b)=>(u.team==='ally'?(b.y<a.y?b:a):(b.y>a.y?b:a))); u.x=back.x+(Math.random()<0.5?-30:30); u.y=back.y+(u.team==='ally'?-30:30); u.px=u.x; u.py=u.y; u.target=back; } }
+    if(u._edLeap && battleTime>0.4){ u._edLeap=false; const foes=enemiesOf(u); /* v644: was every live foe, including a Hollow parked off-field */ if(foes.length){ const back=foes.reduce((a,b)=>(u.team==='ally'?(b.y<a.y?b:a):(b.y>a.y?b:a))); u.x=back.x+(brnd()<0.5?-30:30)   /* v1450 lockdown audit: the leap's side came from Math.random - a replay of the same seed could land it on the other side; now the fight's seeded roll */; u.y=back.y+(u.team==='ally'?-30:30); u.px=u.x; u.py=u.y; u.target=back; } }
     /* v644: castGearSkill only marks an active used when it really casts. This used to mark it used anyway, so Heartward
        Pendant ("below 35% health") was tried at 2.5 s at full health and never fired, and a hero stunned at its item time lost
        the active. Now every unused active is tried each tick once the hero's next cast time is reached; the first that fires
