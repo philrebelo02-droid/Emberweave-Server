@@ -10227,7 +10227,7 @@ const BoonFx=(function(){
       src._bnChain=0;
       if((c=n(src,'critstack'))){ if(wasCrit){ if(src._bnCs){ src.glyphCrit=Math.max(0,(src.glyphCrit||0)-src._bnCs); src._bnCs=0; } }
         else { const add=P.critstack*c; src.glyphCrit=(src.glyphCrit||0)+add; src._bnCs=(src._bnCs||0)+add; } }   /* Sharpening */
-      if((c=n(src,'lifesteal'))&&tgt!==src&&src.alive&&hpLost>0) healUnit(src,hpLost*P.lifesteal*c);   /* Siphoning */
+      if((c=n(src,'lifesteal'))&&tgt!==src&&src.alive&&hpLost>0) healUnit(src,Math.max(0,hpLost+Math.min(0,tgt.hp))*P.lifesteal*c);   /* Siphoning */   /* v1452: lifesteal off health actually removed, not overkill */
       if(isAuto){
         if(src._bnApAdd){ src.apow=Math.max(0,(src.apow||0)-src._bnApAdd); src._bnApAdd=0; }   /* Rhythm resets on an auto */
         if(src._bnCh){ src._bnCh=0; src.castT=0; src.castMul=1; }   /* Fluent resets on an auto */
@@ -14442,7 +14442,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk,
     else if(_edge==='Mage'&&kind!=='phys'&&!_isAuto){ tgt._hexUntil=battleTime+EDGE.hexDur; }   /* v1376 (Phil 12 Nov: "Change the movement speed to 20%"): Hex slows movement 20% (EDGE.hexMove) on its own timer, not the generic 45% slow */   /* through ccApply: CC_NERF / CC_DUR_MAX like every other control */
     else if(_edge==='Assassin'){ tgt._healCutUntil=battleTime+EDGE.healCutDur; }
   }catch(_e){} }
- const _hpLost=Math.max(0,_hpBefore-tgt.hp); if(_isAuto&&(tgt._digHealT||0)>0&&tgt.alive&&src&&src.team!==tgt.team) healUnit(tgt,tgt.maxHp*(tgt._digHealPct||0));   /* v1308 Dig In: 1% max HP per enemy basic attack that lands */ 
+ const _hpLost=Math.max(0,_hpBefore-tgt.hp); const _hpLs=Math.max(0,Math.max(0,_hpBefore)-Math.max(0,tgt.hp));   /* v1452 BUG FIX (lockdown audit): lifesteal heals off the health actually removed - a killing blow counts only the health the target had left (1000 on a 300 HP enemy at 20% healed 200, now 60) */ if(_isAuto&&(tgt._digHealT||0)>0&&tgt.alive&&src&&src.team!==tgt.team) healUnit(tgt,tgt.maxHp*(tgt._digHealPct||0));   /* v1308 Dig In: 1% max HP per enemy basic attack that lands */ 
   /* v1367 Riposte - after this hit's HP loss is counted (safety sweep 11 Nov) */
   if(AFFINITIES_LIVE&&src&&tgt&&src.team!==tgt.team&&tgt.alive&&src.alive&&unitClass(src)==='Assassin'&&unitClass(tgt)==='Bruiser'&&(tgt._ripReady||0)<=battleTime&&!tgt.stunned){   /* v1367 Riposte */
     tgt._ripReady=battleTime+EDGE.riposteCd; try{ floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'RIPOSTE',t:.7,color:'#ffb347',vy:1,sz:12}); }catch(_e){}
@@ -14452,11 +14452,11 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk,
   if((tgt._thornT||0)>0&&src&&src.alive&&src.team!==tgt.team&&!tgt._ctring){ tgt._ctring=1;
     try{ dealDamage(tgt,src,tgt.dmg*(tgt._thornMul||0.55),'#8fd0ff'); }catch(e){}
     tgt._ctring=0; }
-  if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.2);
-  if((src.lifestealStat||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*src.lifestealStat);   // v247: Lifesteal stat
-  if((src._gearVampT||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._gearVampPct||0));
-  if(src.pass&&src.pass.notthere&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.10);   // the smaller Bloodletter that survived the rework
-  if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
+  if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLs*0.2);
+  if((src.lifestealStat||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLs*src.lifestealStat);   // v247: Lifesteal stat
+  if((src._gearVampT||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLs*(src._gearVampPct||0));
+  if(src.pass&&src.pass.notthere&&tgt!==src&&src.alive) healUnit(src,_hpLs*0.10);   // the smaller Bloodletter that survived the rework
+  if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLs*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a',src);
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
   if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4',src);   /* v1112: 10% + 0.1 pt a level */
@@ -18358,7 +18358,7 @@ function think(u,dt){
          plays from the first frame; dealDamage takes the pre-rolled result on the fuse instead of rolling again. Heroes
          without a crit clip roll exactly where they always did, so their fights replay byte-identical. */
       let _swCrit=null; if(u.t && u.t.role==='Tank' && u.t.damageProfile==='Magic') _swCrit=false;   /* v1032 (Phil 4 Oct: "he is a magic tank so he cannot melee crit" / "his spells can crit though"): a magic tank's basic attack never crits; its spells roll as before */
-      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0)+((u._critBuffT||0)>0?(u._critBuffPct||0):0); _swCrit=!!(_forced||(_cc&&brnd()<Math.max(0,_cc-((t&&t.defenseStat)||0))));   /* Academy v2: the target's Defense comes off the crit chance; same RNG draws as before */
+      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0)+((u._critBuffT||0)>0?(u._critBuffPct||0):0); const _mtNo=(_swCrit===false); _swCrit=!!(_forced||(_cc&&brnd()<Math.max(0,_cc-((t&&t.defenseStat)||0)))); if(_mtNo) _swCrit=false;   /* Academy v2: the target's Defense comes off the crit chance; same RNG draws as before */   /* v1452 BUG FIX (lockdown audit): the crit-clip roll re-rolled the crit right after the magic-tank rule turned it off, so Joss and Ambrel crit on autos (58% / 50% at 50% crit); a magic tank's auto now stays a plain hit (the roll is still drawn, so the fight's RNG sequence is unchanged) */
       u._atkClip=_swCrit?'crit':null; }
       /* v1150 (Phil 15 Oct: Aureth's autos alternate arms - LIGHT, DARK, LIGHT, DARK - one swing per clip; his crit is the both-swords X slice).
          A per-unit counter, no RNG, so the client and the server replay pick the same arm. A crit spends its arm's turn and plays the crit clip;
