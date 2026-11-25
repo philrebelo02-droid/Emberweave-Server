@@ -4479,7 +4479,7 @@ body:has(#vtInfoPop) #mcLayer{z-index:20060}   /* the enemy card opens above the
 <script src="/talents-data.js?v=r1396-tree-summaries"></script>
 <script src="/talents-tree-element.js?v=v1421-tree-types"></script>
 <script src="/talents.js?v=r1396-l10n1"></script>
-<script src="/talents-fx.js?v=r1398"></script>
+<script src="/talents-fx.js?v=r1452"></script>
 <script src="/talents-power.js?v=r1396"></script>
 <script src="/server/temple-of-ash.js?v=r1433"></script>
 <script src="/server/patron-benefits.js?v=r1256"></script>
@@ -10268,7 +10268,7 @@ const BoonFx=(function(){
   /* review fix: a boon's control lands the way a hero's skill lands it - through ccApply (every control 30% shorter, the per-kind ceiling,
      the level resist roll, the talents' rows), cut by the target's Control Resist, and never on a unit that is immune to stuns (bosses).
      stunOk: one enemy cannot be stunned by a boon again within BOON_K.stunGapSec of the last boon stun (measured: see the review test). */
-  function ctl(src,t,field,sec){ if(!t||!t.alive) return false; if(t.stunImmune&&(field==='stunned'||field==='fearT')) return false; return ccApply(src,t,field,sec*(1-(t.ctrlRes||0))); }
+  function ctl(src,t,field,sec){ if(!t||!t.alive) return false; if(t.stunImmune&&(field==='stunned'||field==='fearT')) return false; return ccApply(src,t,field,sec); }   /* v1452 (Claude): Control Resist applies ONCE - as the control runs (stuns/fears since AUDIT C6, the rest since core rule 28); this landing cut made it twice */
   function stunOk(t){ return !(K.stunGapSec>0)||t._bnStunAt==null||(battleTime||0)-t._bnStunAt>=K.stunGapSec||(battleTime||0)<t._bnStunAt; }
   function dodge(tgt){ const c=n(tgt,'blinkdodge'); if(c&&roll(P.blinkdodge*c)){ say(tgt,'blinkdodge'); return true; } return false; }   /* Slipstream */
   function crit(src,pre){ const B=src._bn, L=cur(); if(!B) return pre;
@@ -10299,7 +10299,7 @@ const BoonFx=(function(){
           if((c=n(src,'mortalhit'))&&roll(P.mortalhit*c)){ tgt._bnNoHealT=Math.max(tgt._bnNoHealT||0,(battleTime||0)+K.mortalSec); tgt.mortalT=Math.max(tgt.mortalT||0,K.mortalSec); say(tgt,'mortalhit'); }
           if((c=n(src,'slowfield'))&&roll(P.slowfield*c)&&ctl(src,tgt,'slow',K.slowSec)){ tgt.slowMul=Math.min(tgt.slowMul==null?1:tgt.slowMul,K.slowMul); say(tgt,'slowfield'); }
           if((c=n(src,'burnproc'))&&roll(P.burnproc*c)){ pushDot(tgt,Math.max(src.dmg||0,src.apow||0)*K.burnShare,K.burnSec,1,'#ff6a3a',src); say(tgt,'burnproc'); }
-          if((c=n(src,'taunthit'))&&roll(P.taunthit*c)&&ccRoll(src,tgt)){ tgt.forcedTarget=src; tgt.forcedTargetT=Math.max(tgt.forcedTargetT||0,ccDur(K.tauntSec*(1-(tgt.ctrlRes||0)))+edgeTauntPlus(src,tgt)); say(tgt,'taunthit'); }   /* a taunt as the heroes' own taunts set it, shortened like every control */
+          if((c=n(src,'taunthit'))&&roll(P.taunthit*c)&&ccRoll(src,tgt)){ tgt.forcedTarget=src; tgt.forcedTargetT=Math.max(tgt.forcedTargetT||0,ccDur(K.tauntSec)+edgeTauntPlus(src,tgt)); say(tgt,'taunthit'); }   /* a taunt as the heroes' own taunts set it, shortened like every control */
           if((c=n(src,'sleepproc'))&&roll(P.sleepproc*c)&&stunOk(tgt)&&ctl(src,tgt,'stunned',K.sleepSec)){ tgt._bnStunAt=battleTime||0; tgt._sleepT=Math.min(tgt.stunned||0,ccDur(K.sleepSec)); tgt._bnSleep=1; say(tgt,'sleepproc'); }   /* the fight's own sleep, its usual length: it ends early on any damage (a hit, or a burn tick - damage()) */
           if((c=n(src,'doublestrike'))&&!src._bnTwin&&roll(P.doublestrike*c)){ src._bnTwin=1; say(src,'doublestrike');   /* Twinned: the same blow again */
             const _p=_preCrit, _q=_autoAtk; _preCrit=null; _autoAtk=1; try{ dealDamage(src,tgt,raw,color,kind); } finally{ _preCrit=_p; _autoAtk=_q; src._bnTwin=0; } }
@@ -15708,7 +15708,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'knockstun':{ if(!tgt)break;                               // "stunning ... and pushing it backward"
       dealDamage(u,tgt,dB*(o.mul||1.4)*rm,o.color||'#ffd08a');
-      ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
+      ccApply(u,tgt,'stunned',(o.stun||1.0));   /* v1452 (Claude): Control Resist applies ONCE - as the control runs (stuns/fears since AUDIT C6, the rest since core rule 28); this landing cut made it twice */
       if(tgt&&tgt._tal&&tgt._tal.on.unmoved&&tgt.immovable) TalentFx.unmoved(tgt,u,'push'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v1389: immovable holds (Pellucid) */
         const dx=(tgt.x-u.x)||1, L=Math.abs(dx)||1, push=o.push||(1.6*METER);
         tgt.x+=Math.sign(dx)*push; tgt._ax=tgt.x; tgt._airT=Math.max(tgt._airT||0,0.35); }
@@ -15742,7 +15742,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(u._tal&&u._tal.on.skillTgt) best=TalentFx.skillTgt(u,'atkcrush',best,o)||best;   /* TALENT HOOK skillTgt: Radiant Hammer's victim (Joss's Hammer Between Them may choose another; his rows see it) */
       dealDamage(u,best,dB*(o.mul||1.5)*rm,o.color||'#ff9a6a');
       best._atkDnPct=Math.max(best._atkDnPct||0,o.pct||0.35); best._atkDnT=Math.max(best._atkDnT||0,o.dur||5);
-      ccApply(u,best,'stunned',(o.stun||0.5)*(1-(best.ctrlRes||0)));
+      ccApply(u,best,'stunned',(o.stun||0.5));   /* v1452 (Claude): Control Resist applies ONCE - as the control runs (stuns/fears since AUDIT C6, the rest since core rule 28); this landing cut made it twice */
       floatTexts.push({x:best.x,y:best.y-8,txt:'−attack',t:.9,color:'#ff9a6a',vy:1.2,sz:12});
       ringBurst(best.x,best.y,0xff9a6a,12); break; }
 
@@ -15927,7 +15927,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const _mu=noxSpendKeys(u);   // v529: "when Master-Unlocked, the locks cannot be resisted and allied Ultimates are empowered"
       let pool=0;
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
-        const lock=(o.lock||1.6)*(_mu?1:(1-(e.ctrlRes||0)));
+        const lock=(o.lock||1.6);   /* v1452 (Claude): Control Resist applies ONCE - as the control runs (stuns/fears since AUDIT C6, the rest since core rule 28); this landing cut made it twice */
         ccApply(u,e,'stunned',lock); ccApply(u,e,'silencedT',lock);
         const take=Math.min(e.energy||0,o.steal||35); e.energy=Math.max(0,(e.energy||0)-take); pool+=take;
         ringBurst(e.x,e.y,0x6b3f8f,12); });
@@ -16003,7 +16003,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       if(tgt&&tgt._tal&&tgt._tal.on.unmoved&&tgt.immovable) TalentFx.unmoved(tgt,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
         const dx=u.x-tgt.x, dy=u.y-tgt.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.75,o.pull||5*METER);
         tgt.x+=dx/L*pull; tgt.y+=dy/L*pull; tgt._ax=tgt.x; tgt._ay=tgt.y; tgt.pullT=Math.max(tgt.pullT||0,0.35); }
-      ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
+      ccApply(u,tgt,'stunned',(o.stun||1.0));   /* v1452 (Claude): Control Resist applies ONCE - as the control runs (stuns/fears since AUDIT C6, the rest since core rule 28); this landing cut made it twice */
       if(u.range>60)spawnShot(u,tgt,u.t.color);
       floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'HOOKED',t:.9,color:'#d8b06a',vy:1.2,sz:12}); break; }
 
@@ -16579,7 +16579,7 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
   c._waxT=4; c._wax=(c._wax||0)+1;
   const _wxO=foes[0], _wxN=(_wxO._tal&&_wxO._tal.on.wax)?TalentFx.wax(_wxO,c):3;   /* TALENT HOOK wax: a Living Tallow wax landed (her rows: more wax, longer wax, encased sooner); 3 untalented */
   if(c._wax>=_wxN){ c._wax=0; c._waxT=0;
-    const dur=tallowEncase(_tlv)*(1-(c.ctrlRes||0));
+    const dur=tallowEncase(_tlv);   /* v1452 (Claude): Control Resist applies ONCE - as the control runs (stuns/fears since AUDIT C6, the rest since core rule 28); this landing cut made it twice */
     if(ccRoll(_wxO,c,_tlv)){   /* v1452: the encase rolls to land (Living Tallow's level) */
     ccSet(c,'stunned',ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
     if(_wxO._tal&&_wxO._tal.on.wax) TalentFx.encase(_wxO,c,ccDur(dur)); }   /* TALENT HOOK encase: the encase as it landed (her rows may lengthen it, then act on it) */
@@ -18553,7 +18553,7 @@ function think(u,dt){
           if(u._lhN===0&&t){ const suit=Math.floor(brnd()*4)%4;
             firePassiveFx(u,t);
             if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',img:'fx-heart',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
-            else if(suit===1){ ccLand(u,t,'stunned',ccDur(0.5*(1-(t.ctrlRes||0))),ccLvOf(u,3));   /* v1452: the spade's stun rolls to land */ floatTexts.push({x:t.x,y:t.y-8,txt:'♠',img:'fx-spade',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
+            else if(suit===1){ ccLand(u,t,'stunned',ccDur(0.5),ccLvOf(u,3));   /* v1452 (Claude): Control Resist once, as it runs */   /* v1452: the spade's stun rolls to land */ floatTexts.push({x:t.x,y:t.y-8,txt:'♠',img:'fx-spade',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
             else if(suit===2){ t._shredPct=Math.max(t._shredPct||0,0.25*_pm); t._shredT=Math.max(t._shredT||0,4); floatTexts.push({x:t.x,y:t.y-8,txt:'♦',img:'fx-diamond',t:.8,color:'#e0a83a',vy:1.2,sz:14}); }
             else { healUnit(u,dmg*0.5*_pm); floatTexts.push({x:t.x,y:t.y-8,txt:'♣',img:'fx-club',t:.8,color:'#8fe0a0',vy:1.2,sz:14}); } } }
         // Powdered Slumber (Lysara): her attacks gradually blind what she hits.
@@ -19623,7 +19623,7 @@ function _updateBattleCore(dt){
            still inside the lane behind her, is hit once. */
         const near=dist(u,e)<=u._stampW+bodyR(u)+bodyR(e);
         if(near || (tt<=along+8 && tt>=-8 && Math.abs(side)<=u._stampW)){ u._stampHit.add(e);
-          dealDamage(u,e,u._stampDmg,'#ffcf40'); ccLand(u,e,'stunned',ccDur((u._stampStun||1)*(1-(e.ctrlRes||0))),u._stampLv||0);   /* v1452: the stampede's stun rolls to land */
+          dealDamage(u,e,u._stampDmg,'#ffcf40'); ccLand(u,e,'stunned',ccDur((u._stampStun||1)),u._stampLv||0);   /* v1452 (Claude): Control Resist once, as it runs */   /* v1452: the stampede's stun rolls to land */
           if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'charge'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const s=side>=0?1:-1;   /* v1389: immovable holds (Pellucid) */
             e.x+=(-u._stampUY)*s*u._stampPush; e.y+=(u._stampUX)*s*u._stampPush;
             e.x=Math.max(40,Math.min(FW-40,e.x)); e.y=Math.max(90,Math.min(FD-40,e.y)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.35); }
