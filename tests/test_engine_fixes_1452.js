@@ -151,4 +151,13 @@ console.log('== 7. a resisted slow does nothing ==');
   ok(r.res > 300 && r.deep === 0, r.res + ' resisted level-60 slows on a level-100 target: ' + r.deep + ' deepened the slow it had (was every one)');
   ok(r.landed > 0 && r.deepL === r.landed, 'CONTROL: the ' + r.landed + ' that landed did deepen it to the level-60 strength'); }
 
+console.log('== 8. immovable units ignore every push, including bodies (charges, leaps, dashes) ==');
+{ const run = (k, imm) => { setup([spec(k, 40, 5, 30)], [spec('rhukk', 40)], 171, (a, b) => { b[0].ctrlRes = 0; });
+    return J(`(function(){ const t=U('rhukk','enemy'); t.speed=0; t.atkCd=1e9; t.greenAb=null; t.blueAb=null; t.energy=0; t.maxHp=1e9; t.hp=1e9; t.immovable=${imm}; t._talUltT=1e9; t.x=500; t.y=500; t.homeX=500; t.homeY=500;
+      const h=units.find(u=>u.team==='ally'); h.x=500; h.y=1000; h.maxHp=1e9; h.hp=1e9; let mx=0; for(let i=0;i<Math.round(20/SIM_STEP)&&!ended;i++){ updateBattle(SIM_STEP); mx=Math.max(mx,Math.hypot(t.x-500,t.y-500)); } return +(mx/METER).toFixed(2); })()`); };
+  for (const k of ['rhukk', 'korvux', 'askel', 'grosk', 'vex']) { const mv = run(k, false), im = run(k, true);
+    ok(im < 0.05, k + ': an immovable target moved ' + im + ' m in 20 s (was up to 6.5 m: Korvux 6.46, Rhukk 3.49, Askel 3.51, Grosk 2.01, Vex 1.05)');
+    ok(mv > 0.5, 'CONTROL: ' + k + ' still moves a normal target (' + mv + ' m)'); }
+  ok(J("bodyFixed({pass:{unstepped:true}})&&bodyFixed({immovable:true})&&bodyFixed({_gearImmovableT:1})&&!bodyFixed({})"), 'the body test is the same immovable test pushes and pulls use (immovable, Unstepped / unstoppable, a gear hold)'); }
+
 console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;
