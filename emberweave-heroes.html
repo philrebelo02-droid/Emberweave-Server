@@ -13422,7 +13422,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
   if(u.drT>0)a*=u.drMul;                 // active damage-reduction cooldown (Shield Wall etc.)
   if(u.glyphDR)a*=(1-u.glyphDR);          // Armor / Magic Resist glyphs
   if(u._bnIn!=null)a*=u._bnIn;   /* BOON HOOK in: a bonus-stage boon's share of every hit, DoT tick and hazard tick this hero takes (Warded, Bulwark Oath, Shieldwall, Glass Oath's cost ...; only BoonFx.tick sets _bnIn) - before the 95% ceiling below, so it counts */
-  if(u._bnSleep&&a>0){ u._bnSleep=0; if((u._sleepT||0)>0){ u._sleepT=0; u.stunned=0; } }   /* BOON HOOK: Lulling's sleep ends on ANY damage, a burn tick included (only BoonFx sets _bnSleep) */
+  if(u._bnSleep&&a>0){ u._bnSleep=0; if((u._sleepT||0)>0) sleepWake(u); }   /* BOON HOOK: Lulling's sleep ends on ANY damage, a burn tick included (only BoonFx sets _bnSleep) */
   if(u.pass&&u.pass.bulwark)a*=(1-0.18*(u.passMul||1));   // passive mitigation (scales with skill level)
   if(u.pass&&u.pass.warden&&u.wardenStk)a*=(1-wardenCut(u));   /* v1112: the cap grows 20% -> 29.9% */   // Adamant Discipline: stacking armour/MR
   /* v894 - Unmovable Mass: every 3 direct hits build a molten-armour stack (max 5), and the stacks cut damage taken */
@@ -14337,7 +14337,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk,
   if(tgt&&(tgt._mwDrT||0)>0&&tgt._mwDrSrc&&tgt._mwDrSrc.alive&&src&&src.team!==tgt.team){ amt*=1-(tgt._mwDrPct||0.20); _drF*=1-(tgt._mwDrPct||0.20); }
   // Drowsy (Dandra): sleep breaks the moment they're hit.
   if(tgt&&tgt._talSlW&&(tgt._sleepT||0)>0){ tgt._talSlH=src; tgt._talSlT=battleTime; }   /* TALENT HOOK (stamp): this hit reaches a sleeper before the line below wakes it (Mirelle's Dream Debt, Sleepwalker's Bruise, Courage in a Dream; only her talents set _talSlW) */
-  if(tgt&&(tgt._sleepT||0)>0&&!(src&&src._tal&&tgt._talZz===src&&battleTime<tgt._talZzT)&&!(battleTime<(tgt._talZzA||0))){ tgt._sleepT=0; tgt.stunned=0; }   /* TALENT HOOK (guard): Dandra's Sting of Mercy - her own hits do not wake an enemy her sting put to sleep (only her talent sets _talZz); Lysara's Sound Sleep - no hit wakes it before _talZzA (only her talent sets it) */
+  if(tgt&&(tgt._sleepT||0)>0&&!(src&&src._tal&&tgt._talZz===src&&battleTime<tgt._talZzT)&&!(battleTime<(tgt._talZzA||0))){ sleepWake(tgt); }   /* v1452: waking ends the sleep only (was: stunned=0, which also removed any other stun) */   /* TALENT HOOK (guard): Dandra's Sting of Mercy - her own hits do not wake an enemy her sting put to sleep (only her talent sets _talZz); Lysara's Sound Sleep - no hit wakes it before _talZzA (only her talent sets it) */
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
@@ -14943,13 +14943,26 @@ function ccChanceFor(u, t){
    3s single freeze as well as a 3.5s single stun. */
 const CC_DUR_MAX={ stunned:4.0, fearT:4.5, _sleepT:5.5, silencedT:5.5, slow:3.5 };
 for(const _f in CC_DUR_MAX) CC_DUR_MAX[_f]=+(CC_DUR_MAX[_f]*CC_NERF).toFixed(3);   /* v818: the ceilings drop with the controls */
+/* v1452 BUG FIX (lockdown audit, Mirelle / Dandra / Lysara): THE SLEEP. A sleep is the stun field (the unit cannot act, and every rule
+   that asks "is it stunned" sees it) plus _sleepT (a hit wakes it, a cast in progress is cancelled). Before: the stun ceiling cut every
+   sleep to 2.8 s (the table says 5.0 x 0.7 = 3.5 s), _sleepT was set to a raw 5.0 s with no roll, so a unit that woke still could not
+   cast for 2.2 s more, and the hit that woke it also removed any separate stun it had. Now one roll (ccApply, RESIST on a miss), the
+   table's length with the sleep ceiling, _sleepT = the same length (it ends when the unit wakes), and waking ends only the sleep. */
+let _ccSleep=false, _ccLastDur=0;
+function sleepApply(u,t,sec){
+  if(!t || !(sec>0)) return false;
+  let ok=false; _ccSleep=true; try{ ok=ccApply(u,t,'stunned',sec); } finally{ _ccSleep=false; }
+  if(ok) t._sleepT=Math.max(t._sleepT||0,_ccLastDur);
+  return ok;
+}
+function sleepWake(t){ t._sleepT=0; t.stunned=Math.min(t.stunned||0,Math.max(0,t._stunNS||0)); }   /* v1452: waking ends the sleep only - any other stun runs on */
 function ccApply(u, t, field, dur){
   if(!t || !(dur > 0)) return false;
   if(field==='stunned' && u && u._holdFx && t!==u){ try{ holdUnder(u._holdFx,t); }catch(e){} }   /* v829: bind/freeze - the held unit draws behind its spell */
   dur=ccDur(dur);   /* v818: every control 30% shorter - the one place they all land */
   if((t._tal&&t._tal.on.ccIn)||(u&&u._tal&&u._tal.on.ccOut)) dur=TalentFx.cc(u,t,field,dur);   /* TALENT HOOK cc: seconds of a control effect */
   if(t._talS) dur=TalentFx.sCc(u,t,field,dur);   /* TALENT HOOK sCc: a control on a talented hero's summon (his rows may shorten it) */
-  { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
+  { const cap=CC_DUR_MAX[(_ccSleep&&field==='stunned')?'_sleepT':field]; if(cap && dur>cap) dur=cap; }   /* v1452: a sleep (sleepApply) is held by the stun field but keeps the SLEEP ceiling (3.85 s), not the stun one (2.8 s) */
   /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
      deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
   if(field==='slow'){ const m=slowMulFor((u&&u._castLv)||(u&&u.level)||1);
@@ -14958,7 +14971,10 @@ function ccApply(u, t, field, dur){
     try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
     return false;
   }
-  t[field] = Math.max(t[field] || 0, dur);
+  const _ccPre=t[field]||0; t[field] = Math.max(_ccPre, dur); _ccLastDur=dur;
+  /* v1452: _stunNS = the part of `stunned` that is NOT a sleep. Set when a stun lands on an awake unit (what it had before - a sleep that
+     follows keeps it), raised by a stun that lands on a sleeper. A hit that wakes a sleeper leaves this much stun (sleepWake). */
+  if(field==='stunned'){ if(!((t._sleepT||0)>0)) t._stunNS=_ccPre; else if(!_ccSleep) t._stunNS=Math.max(t._stunNS||0,dur); }
   if(u&&u._tal&&u._tal.on.ccHit) TalentFx.ccHit(u,t,field,dur);   /* TALENT HOOK ccHit: a control effect landed (after the resist roll) */
   if(t._talW) TalentFx.teamCc(t,u,field,dur);   /* TALENT HOOK teamCc: a control landed on a unit a talented hero watches */
   return true;
@@ -15388,8 +15404,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     // ---- Dandra: the sting slows their hands. Sting an already-stung foe and they SLEEP. ----
     case 'drowsy':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||0.5)*rm,'#f2d84a','magic');
-      if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; ccApply(u,tgt,'stunned',sl); tgt._sleepT=sl; tgt._stungT=0;
-        burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'ASLEEP',t:1.2,color:'#f2d84a',vy:1,sz:13}); }
+      if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; const _slOk=sleepApply(u,tgt,sl); tgt._stungT=0;   /* v1452: the sleep (one roll, the table's 3.5 s) */
+        if(_slOk){ burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'ASLEEP',t:1.2,color:'#f2d84a',vy:1,sz:13}); } }
       else { tgt._stungT=o.stung||6;
         /* v1376 (Phil 12 Nov: "Drowsy string should also slow their attack or cast speed 20% level 1 going to 35% at 100") */
         const _slow=(o.slowLo!=null)?lvRange(o.slowLo,o.slowHi,(u.skillLv&&u.skillLv[2])||_kLv):(o.slowPct||0.3);
@@ -15671,7 +15687,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'sleepbouquet':{                                           // "puts the highest-energy enemy to sleep"
       let best=(o._tgtU&&o._tgtU.alive)?o._tgtU:null,bv=-1; if(!best) enemiesOf(u).forEach(e=>{ if(!e.alive)return; if((e.energy||0)>bv){bv=e.energy||0;best=e;} });   /* v935: the enemy the shot reached */
       if(!best)break;
-      best._sleepT=o.sleep||2.0; ccApply(u,best,'stunned',(o.sleep||2.0)*(1-(best.ctrlRes||0)));
+      sleepApply(u,best,o.sleep||2.0);   /* v1452: the sleep (one roll, the table's 3.5 s; Control Resist shortens it once, as it runs) */
       ccApply(u,best,'slow',o.slow||2);
       floatTexts.push({x:best.x,y:best.y-10,txt:'ASLEEP',t:1.1,color:'#c9b6ff',vy:1,sz:13});
       ringBurst(best.x,best.y,0x9b7fd0,12); break; }
@@ -15776,8 +15792,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
 
     case 'quietwings':{                                             // ULT: "putting enemies to sleep while empowering allies"
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
-        const sl=(o.sleep||2.2)*(1-(e.ctrlRes||0));
-        e._sleepT=sl; ccApply(u,e,'stunned',sl); ccApply(u,e,'slow',3);
+        const sl=o.sleep||2.2;
+        sleepApply(u,e,sl); ccApply(u,e,'slow',3);   /* v1452: the sleep (one roll, the table's 3.5 s; Control Resist shortens it once, as it runs) */
         burstAt(e.x,e.y,0x9b7fd0,10); });
       alliesOf(u).forEach(a=>{ if(!a.alive)return;
         a.dmgBuffMul=Math.max(a.dmgBuffMul||1,skLvNum('quietwings',o,_kLv)); a.dmgBuffT=Math.max(a.dmgBuffT||0,o.dur||8);
@@ -18205,7 +18221,8 @@ function think(u,dt){
   if((u._qPass||0)>0 && (u._animLockT||0)<=0 && (u._abilHold||0)<=0){
     const _qh=u._qPass; u._qPass=0;
     u._abilPri=4; u._abilAnim='passive'; u._abilHold=_qh; u._lockPri=4; u._animLockT=_qh; }
-  if(u.stunned>0){u.stunned-=dt*(1+2*(u.ctrlRes||0));return;}   // Control Resist shortens stuns (AUDIT C6)
+  if(u.stunned>0){const _sk=dt*(1+2*(u.ctrlRes||0)); u.stunned-=_sk; if((u._stunNS||0)>0) u._stunNS-=_sk; return;}   // Control Resist shortens stuns (AUDIT C6)
+  if((u._sleepT||0)>0) u._sleepT=0;   /* v1452: awake - a sleep never outlasts the stun that holds it (its cast lock ends on waking) */
   if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null;
     /* v1027 (Phil 4 Oct: "the monsters should fear in terror as in run away for the time"): a feared unit RUNS from whoever feared it
        (the nearest enemy when that unit is gone) at its own move speed for the whole fear, then comes back to fight. It still cannot attack or cast. */
