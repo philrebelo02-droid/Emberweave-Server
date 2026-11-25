@@ -11468,7 +11468,7 @@ async function api(req,res,url){
     }
     // ---- reads ----
     // ---- shared Guild Raid boss helpers ----
-    const RAID_ATT=3;   /* v666 (Phil): a raid attempt is now a real 90-second fight, so 3 a day */
+    const RAID_ATT=2;   /* v666 (Phil): a raid attempt is a real 90-second fight. v1453 (Phil 25 Nov: "2 attacks a day"): 2 a day */
     /* v666 — THE RAID BOSSES ARE THE GAME'S OWN BOSSES, one per tier, in this order, fought with
        their own art and kit. Phil's standing rule is that only in-game names exist, so the seven
        invented names that used to live here are gone. Adding a boss later is one line. */
@@ -11505,7 +11505,12 @@ async function api(req,res,url){
        floor: the next boss arrives at the daily reset); below the level 4+. Damage depends on the player's level, hardly on the tier, so
        the time it takes is set by the guild's levels. Was 400,000 x 1.28^(tier-1): tier 1 fell in hours and tier 36+ passed 2^31 (the
        fight then ended at once and booked 1 damage). Every value stays far under 2^31; tiers past 40 grow 5% each, capped at 2,000,000,000. */
-    const RAID_HP=[1850000,1970000,2050000,2360000,2450000,2650000,3060000,3810000,4280000,4810000,6960000,7400000,7760000,8140000,8690000,9320000,9690000,10100000,12000000,12500000,13000000,13800000,15000000,15600000,16200000,16800000,17500000,18200000,18900000,19700000,21000000,21800000,22700000,23600000,24500000,25500000,26500000,27600000,28700000,29800000];
+    /* v1453 (Phil 25 Nov 2026: "why would the bosses be that tanky" / "2 attacks a day" / "just raise its spell power"): measured
+       again with the bosses' spells (raidSpellMul), the lower hide (10,000) and the RIGHT boss per tier (20 bosses - the v1450 sizing
+       cycled 16): health = 120 attacks (20 members x 2 a day x 3 days) of an 85%-built squad 15 levels above the boss (tier 1 = level 30,
+       capped at 90), each tier at least 2% above the one before so the climb never dips; 5 heroes + 5 substitutes, spells x1.2 (a level 30
+       squad loses ~2-7 heroes an attack). Tier 1 2.77M (was 1.85M). */
+    const RAID_HP=[2770000,2830000,2890000,2950000,3060000,3120000,3180000,3240000,3300000,3700000,4630000,4880000,6170000,6290000,6420000,6550000,6680000,6810000,7640000,7790000,7950000,8110000,8270000,8840000,9660000,9850000,10710000,10920000,11140000,11360000,11590000,11820000,12060000,13640000,14310000,14600000,14890000,15190000,15490000,15800000];
     /* v1450 (Phil 25 Nov: "Guild raid is 90 seconds" / "guild raid boss 1 shouldn't be killable by a guild pre 20 pretty much. But
        level 30s maybe would be fine for 3 days" / "Basically should take an average geared guild of 20 players 3 days to kill raid
        boss 1" / "And climb from there"). RAID_HP is MEASURED for 90 s assaults: tier t is sized for an average-geared (85% build)
@@ -11516,7 +11521,19 @@ async function api(req,res,url){
     /* v668 — HIS HIDE. Measured, not guessed (see the header of raid668.py): at 14,000 a level-7
        squad in green gear does ~900 in a whole 90-second fight while a geared level-50 squad does
        ~35,000, because mitigation is def/(def+K) and penetration is flat. It thickens 12% a tier. */
-    const bossHide=lvl=>Math.round(30000*Math.pow(1.12,(lvl||1)-1));
+    const bossHide=lvl=>Math.round(10000*Math.pow(1.12,(lvl||1)-1));   /* v1453 (Phil 25 Nov: "i meant lessen it"): a third of the old 30,000, so strong squads hurt him */
+    /* v1453 (Phil 25 Nov: "just raise its spell power" / "not flat damage" / "magical beasts should do their damage with spells"):
+       his spells hit harder (his basic attacks are unchanged). Measured on boss 1 (x30): a level 20 squad ends a 90 s attack at ~21% health,
+       a level 30 squad at ~56%, a level 73 squad at ~97%. The bosses' kits differ ~3x in spell danger, so each boss has his own
+       multiplier, measured so a level 30 squad against him at level 15 ends at about that same 56% (Magmourn and Maelvara already
+       cast hard; Sylphice's spells barely land). Then x1.2 on every boss (Phil 25 Nov: "if no one dies from a level 1 boss it means
+       its not doing enough damage"): a level 30 squad of 5 + 5 substitutes now loses ~3.4 heroes an attack on boss 1 (was ~1.1) and
+       its substitutes come in; a level 73 squad still loses none. */
+    const RAID_SPELL_MUL={'wintercrag':36,'magmourn':12,'voraxis':50,'grommash':54,'leviath':16,'vharok':47,'nerissa':30,'barrowmaw':31,'asterion':38,'maelvara':14,'brukk':26,'nymira':28,'irix':23,'hourglass sentinel':50,'sylphice':120,'miregor':30,'sable vesper':10,'orryx':19,'thorneveil':58,'nameless admiral':38};
+    /* v1453 (Phil 25 Nov: "yes fix those then ship it" - the tiers a right-level guild took 4-7 days on): a per-TIER factor on
+       his spells, measured so the guild 15 levels above the boss clears that tier's health in about 3 days (1 = unchanged). */
+    const RAID_SPELL_TIER=[1,1,0.8,1,1,0.8,0.8,0.5,0.4,1,1,1,1,0.8,1,0.5,1,0.4,1,0.65,0.65,0.65,0.65,1,1,1,1,0.4,0.3,0.65,0.5,0.65,1,1,1,0.3,0.5,0.3,0.4,0.2];
+    const raidSpellMul=(key,tier)=>Math.round((RAID_SPELL_MUL[key]||36)*(RAID_SPELL_TIER[Math.max(1,tier|0)-1]||1)*100)/100;
     /* v670 (Phil): the boss's own level is 15 at tier 1 and climbs by 4 a tier, stopping at 65. */
     /* v670 (Phil) — THE LADDER.
          Tiers 1-20  : the twenty bosses. Level 15 at tier 1, +4 a tier, stopping at 65.
@@ -11796,7 +11813,7 @@ async function api(req,res,url){
          the open fight, so "your attempt is kept" after an unverified result was not true. The squad is the open fight's. */
       if(open && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps, heroIds:open.heroIds,
-          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, max:bossMax(open.tier), lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, max:bossMax(open.tier), lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier), spellMul:raidSpellMul(open.bossKey,open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.
       if(me.raidDay && me.raidDay.d===r.day && (me.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
@@ -11828,7 +11845,7 @@ async function api(req,res,url){
         rr.att[du.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
           startedAt:Date.now(), reqId, tier:rr.level, bossKey:bb.key, bossHp:rr.hp, bossLvl };
         return { ok:true, attemptId:rr.att[du.id].id, seed, snaps:fightSnaps, engine:rr.att[du.id].engine,
-          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, max:rr.max, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level)}, raid:raidView(gg) };   /* v1445: max = his full health, so the fight's bar opens where the last fight left it */
+          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, max:rr.max, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level), spellMul:raidSpellMul(bb.key,rr.level)}, raid:raidView(gg) };   /* v1445: max = his full health, so the fight's bar opens where the last fight left it */
       },{fields:['guilds']});
       if(out&&out.none) return send(res,200,{ none:true, raid:out.raid });
       return send(res, out&&out.storageFailed?503:((out&&out.ok)?200:400), out); }
@@ -11846,7 +11863,7 @@ async function api(req,res,url){
       /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
          the frozen squad, seed and boss with the game's own battle code (sim-host). */
       const host=simHost(); let dmg0=null, incident=null;
-      const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1)};
+      const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1), spellMul:raidSpellMul(a.bossKey,a.tier||1)};
       if(host && a.snaps && typeof host.raid==='function'){
         try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
         catch(e){ incident='raid-replay-error: '+e.message; }
