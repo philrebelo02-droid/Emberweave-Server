@@ -6678,58 +6678,58 @@
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 31.7063,
-      "dmgMul": 17.9995
+      "hpMul": 29.9688,
+      "dmgMul": 19.388
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 31.7063,
-      "dmgMul": 17.9995
+      "hpMul": 29.9688,
+      "dmgMul": 19.388
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 31.7063,
-      "dmgMul": 17.9995
+      "hpMul": 29.9688,
+      "dmgMul": 19.388
      },
      {
       "key": "rustclank",
       "lvl": 50,
-      "hpMul": 31.7063,
-      "dmgMul": 17.9995
+      "hpMul": 29.9688,
+      "dmgMul": 19.388
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 47.5601,
-      "dmgMul": 22.5007
+      "hpMul": 44.9538,
+      "dmgMul": 24.2365
      },
      {
       "key": "bitwraith",
       "lvl": 50,
-      "hpMul": 47.5601,
-      "dmgMul": 22.5007
+      "hpMul": 44.9538,
+      "dmgMul": 24.2365
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 47.5601,
-      "dmgMul": 22.5007
+      "hpMul": 44.9538,
+      "dmgMul": 24.2365
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 47.5601,
-      "dmgMul": 22.5007
+      "hpMul": 44.9538,
+      "dmgMul": 24.2365
      },
      {
       "key": "orryx",
       "lvl": 53,
-      "hpMul": 307.7445,
-      "dmgMul": 17.8643,
+      "hpMul": 290.8801,
+      "dmgMul": 19.2424,
       "boss": true
      }
     ]
@@ -6755,11 +6755,20 @@
     "level": 68,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.35,
-    "wr100": 0.7,
-    "wrPlus5": 0.7,
-    "avgSec": 129.8,
-    "d": 0.4337
+    "wr85": 0.325,
+    "wr100": 0.675,
+    "wrPlus5": 0.725,
+    "avgSec": 124.3,
+    "d": 1.112,
+    "shapeFix": {
+     "hpTrim": 0.85,
+     "bossTrim": 1.0,
+     "d": 1.112,
+     "wr85": 0.325,
+     "wr100": 0.675,
+     "wrPlus5": 0.725,
+     "avgSec": 124.3
+    }
    }
   },
   {
@@ -8442,58 +8451,58 @@
      {
       "key": "bonepike guard",
       "lvl": 60,
-      "hpMul": 141.7356,
-      "dmgMul": 85.8544
+      "hpMul": 149.12,
+      "dmgMul": 88.9616
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 141.7356,
-      "dmgMul": 85.8544
+      "hpMul": 149.12,
+      "dmgMul": 88.9616
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 141.7356,
-      "dmgMul": 85.8544
+      "hpMul": 149.12,
+      "dmgMul": 88.9616
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 141.7356,
-      "dmgMul": 85.8544
+      "hpMul": 149.12,
+      "dmgMul": 88.9616
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 212.6145,
-      "dmgMul": 107.3142
+      "hpMul": 223.6917,
+      "dmgMul": 111.198
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 212.6145,
-      "dmgMul": 107.3142
+      "hpMul": 223.6917,
+      "dmgMul": 111.198
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 212.6145,
-      "dmgMul": 107.3142
+      "hpMul": 223.6917,
+      "dmgMul": 111.198
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 212.6145,
-      "dmgMul": 107.3142
+      "hpMul": 223.6917,
+      "dmgMul": 111.198
      },
      {
       "key": "irix",
       "lvl": 60,
-      "hpMul": 481.5021,
-      "dmgMul": 22.2088,
+      "hpMul": 506.5884,
+      "dmgMul": 23.0126,
       "boss": true
      }
     ]
@@ -8519,10 +8528,10 @@
     "level": 86,
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
-    "wr85": 0.325,
-    "wr100": 0.65,
-    "wrPlus5": 0.725,
-    "avgSec": 128.2,
+    "wr85": 0.275,
+    "wr100": 0.6,
+    "wrPlus5": 0.6,
+    "avgSec": 130.7,
     "d": 1.0521,
     "shapeFix": {
      "hpTrim": 0.7,
