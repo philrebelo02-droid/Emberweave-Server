@@ -19246,7 +19246,7 @@ function endBattle(won){
                  +`<div style="margin-top:3px">${hudIcon('gold')} ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · ${hudIcon('gem')} ${((r.reward&&r.reward.gems)|0)} · ${uiIcon('res-guild-coins')} ${((r.reward&&r.reward.guildCoins)|0)}</div>`
              :`<div style="margin-top:2px">${uiIcon('res-guild-coins')} ${ewT('result.guild_coins',{n:((r.reward&&r.reward.guildCoins)|0)})}</div>`)
           /* v1445: after a kill the board below is the NEXT boss's - name him, or "Boss at 512,000 / 512,000 HP" reads as the one just felled */
-          +((fell&&r.raid&&r.raid.name)?`<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-top:8px">${escapeHTML(graidBossLabel(r.raid.name))} · ${ewT('result.tier_caps',{n:r.raid.level|0})}</div>`:'')
+          +(((fell||r.earlierTier)&&r.raid&&r.raid.name)?`<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-top:8px">${escapeHTML(graidBossLabel(r.raid.name))} · ${ewT('result.tier_caps',{n:r.raid.level|0})}</div>`:'')
           +(graidAdopt(r.raid)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:${fell?2:6}px">${ewT('result.raid_boss_hp',{hp:(r.raid.hp|0).toLocaleString(),max:(r.raid.max|0).toLocaleString(),n:(r.raid.attemptsLeft|0)})}</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">${ewT('result.run_not_counted')}</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error&&langMsg(r.error))||ewT('result.no_realm')))}</span>`;
       document.getElementById('resultHint').textContent='';

@@ -11803,6 +11803,19 @@ async function api(req,res,url){
         const r=ensureRaid(gg); r.att=r.att||{};
         const sa=r.att[du.id]; if(!sa || sa.id!==a.id) return {ok:false, error:'No matching raid battle.', raid:raidView(gg)};
         delete r.att[du.id];
+        /* v1446 (review of v1445): a fight that ends after another member felled ITS boss (or after the raid reset) fought a boss
+           who is gone. Its damage used to come off the NEXT boss's fresh pool and count in his contribution board. Now it touches
+           the current boss not at all: the player is paid guild coins for the damage dealt to their own boss (never more than he
+           had left when the fight began), with no kill package - that kill was someone else's. */
+        if(sa.tier!=null && (sa.tier|0)!==(r.level|0)){   /* an open fight saved before tiers were stored keeps the old booking */
+          const dmgOld=Math.max(0, Math.min(dmg0, sa.bossHp|0));
+          const rewardOld={ guildCoins:Math.round(dmgOld/50) };
+          { const led=ensureLedger(du); const before=led.guildCoins|0;
+            led.guildCoins=before+Math.min(rewardOld.guildCoins,Math.max(0,ECON_CAP.guildCoins-before));
+            rewardOld.guildCoins=led.guildCoins-before; ledTx(du,'guild-raid',rewardOld); }
+          heroUsageNote(du,'raid',sa.heroIds,false);
+          return { ok:true, dmg:dmgOld, killed:false, earlierTier:sa.tier|0, reward:rewardOld, incident, raid:raidView(gg), ledger:ledgerView(du) };
+        }
         const dmg=Math.min(dmg0, r.hp);
         r.hp=Math.max(0, r.hp-dmg); r.contrib[du.id]=(r.contrib[du.id]||0)+dmg;
         let killed=false, reward=null;
