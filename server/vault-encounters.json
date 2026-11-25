@@ -3357,63 +3357,63 @@
      {
       "key": "wispweaver shade",
       "lvl": 27,
-      "hpMul": 35.7483,
-      "dmgMul": 16.3367
+      "hpMul": 24.148,
+      "dmgMul": 12.4137
      },
      {
       "key": "nightgloom",
       "lvl": 27,
-      "hpMul": 35.7483,
-      "dmgMul": 16.3367
+      "hpMul": 24.148,
+      "dmgMul": 12.4137
      },
      {
       "key": "trapjaw",
       "lvl": 27,
-      "hpMul": 35.7483,
-      "dmgMul": 16.3367
+      "hpMul": 24.148,
+      "dmgMul": 12.4137
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 27,
-      "hpMul": 35.7483,
-      "dmgMul": 16.3367
+      "hpMul": 24.148,
+      "dmgMul": 12.4137
      }
     ],
     [
      {
       "key": "skyroot dryad",
       "lvl": 27,
-      "hpMul": 41.5728,
-      "dmgMul": 18.9976
+      "hpMul": 28.0824,
+      "dmgMul": 14.4357
      },
      {
       "key": "trapjaw",
       "lvl": 27,
-      "hpMul": 41.5728,
-      "dmgMul": 18.9976
+      "hpMul": 28.0824,
+      "dmgMul": 14.4357
      },
      {
       "key": "wispweaver shade",
       "lvl": 27,
-      "hpMul": 41.5728,
-      "dmgMul": 18.9976
+      "hpMul": 28.0824,
+      "dmgMul": 14.4357
      },
      {
       "key": "nightgloom",
       "lvl": 27,
-      "hpMul": 41.5728,
-      "dmgMul": 18.9976
+      "hpMul": 28.0824,
+      "dmgMul": 14.4357
      },
      {
       "key": "mourn moth",
       "lvl": 27,
-      "hpMul": 41.5728,
-      "dmgMul": 18.9976
+      "hpMul": 28.0824,
+      "dmgMul": 14.4357
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 4742,
+   "recommendedPower": 92280,
    "dust": 372,
    "glyphFragments": [
     "Purple Stoneheart"
@@ -3424,10 +3424,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 48,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 34,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.825,
+    "wrPlus5": 0.9,
+    "avgSec": 84.9,
+    "d": 0.6755
    }
   },
   {
@@ -3438,63 +3442,63 @@
      {
       "key": "wispweaver shade",
       "lvl": 27,
-      "hpMul": 33.0055,
-      "dmgMul": 15.5377
+      "hpMul": 29.4079,
+      "dmgMul": 14.3318
      },
      {
       "key": "skyroot dryad",
       "lvl": 27,
-      "hpMul": 33.0055,
-      "dmgMul": 15.5377
+      "hpMul": 29.4079,
+      "dmgMul": 14.3318
      },
      {
       "key": "nightgloom",
       "lvl": 27,
-      "hpMul": 33.0055,
-      "dmgMul": 15.5377
+      "hpMul": 29.4079,
+      "dmgMul": 14.3318
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 27,
-      "hpMul": 33.0055,
-      "dmgMul": 15.5377
+      "hpMul": 29.4079,
+      "dmgMul": 14.3318
      }
     ],
     [
      {
       "key": "whisp",
       "lvl": 27,
-      "hpMul": 38.3705,
-      "dmgMul": 18.0653
+      "hpMul": 34.1881,
+      "dmgMul": 16.6632
      },
      {
       "key": "nightgloom",
       "lvl": 27,
-      "hpMul": 38.3705,
-      "dmgMul": 18.0653
+      "hpMul": 34.1881,
+      "dmgMul": 16.6632
      },
      {
       "key": "trapjaw",
       "lvl": 27,
-      "hpMul": 38.3705,
-      "dmgMul": 18.0653
+      "hpMul": 34.1881,
+      "dmgMul": 16.6632
      },
      {
       "key": "riftling spider",
       "lvl": 27,
-      "hpMul": 38.3705,
-      "dmgMul": 18.0653
+      "hpMul": 34.1881,
+      "dmgMul": 16.6632
      },
      {
       "key": "mourn moth",
       "lvl": 27,
-      "hpMul": 38.3705,
-      "dmgMul": 18.0653
+      "hpMul": 34.1881,
+      "dmgMul": 16.6632
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 4833,
+   "recommendedPower": 94245,
    "dust": 396,
    "glyphFragments": [
     "Purple Ironwall"
@@ -3505,10 +3509,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 49,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 35,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.8,
+    "wrPlus5": 0.9,
+    "avgSec": 60.7,
+    "d": 0.891
    }
   },
   {
@@ -3519,63 +3527,63 @@
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 29.3055,
-      "dmgMul": 14.3757
+      "hpMul": 32.5877,
+      "dmgMul": 15.4847
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 29.3055,
-      "dmgMul": 14.3757
+      "hpMul": 32.5877,
+      "dmgMul": 15.4847
      },
      {
       "key": "trapjaw",
       "lvl": 28,
-      "hpMul": 29.3055,
-      "dmgMul": 14.3757
+      "hpMul": 32.5877,
+      "dmgMul": 15.4847
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 29.3055,
-      "dmgMul": 14.3757
+      "hpMul": 32.5877,
+      "dmgMul": 15.4847
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 34.077,
-      "dmgMul": 16.7169
+      "hpMul": 37.8936,
+      "dmgMul": 18.0065
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 34.077,
-      "dmgMul": 16.7169
+      "hpMul": 37.8936,
+      "dmgMul": 18.0065
      },
      {
       "key": "trapjaw",
       "lvl": 28,
-      "hpMul": 34.077,
-      "dmgMul": 16.7169
+      "hpMul": 37.8936,
+      "dmgMul": 18.0065
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 34.077,
-      "dmgMul": 16.7169
+      "hpMul": 37.8936,
+      "dmgMul": 18.0065
      },
      {
       "key": "wispweaver shade",
       "lvl": 28,
-      "hpMul": 34.077,
-      "dmgMul": 16.7169
+      "hpMul": 37.8936,
+      "dmgMul": 18.0065
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 5005,
+   "recommendedPower": 101112,
    "dust": 422,
    "glyphFragments": [
     "Purple Veilward"
@@ -3586,10 +3594,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 50,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 36,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.675,
+    "wrPlus5": 0.85,
+    "avgSec": 93.7,
+    "d": 1.112
    }
   },
   {
@@ -3600,63 +3612,63 @@
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 46.0262,
-      "dmgMul": 18.8881
+      "hpMul": 34.7314,
+      "dmgMul": 15.5092
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 46.0262,
-      "dmgMul": 18.8881
+      "hpMul": 34.7314,
+      "dmgMul": 15.5092
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 46.0262,
-      "dmgMul": 18.8881
+      "hpMul": 34.7314,
+      "dmgMul": 15.5092
      },
      {
       "key": "whisp",
       "lvl": 28,
-      "hpMul": 46.0262,
-      "dmgMul": 18.8881
+      "hpMul": 34.7314,
+      "dmgMul": 15.5092
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 53.5195,
-      "dmgMul": 21.9602
+      "hpMul": 40.3858,
+      "dmgMul": 18.0318
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 53.5195,
-      "dmgMul": 21.9602
+      "hpMul": 40.3858,
+      "dmgMul": 18.0318
      },
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 53.5195,
-      "dmgMul": 21.9602
+      "hpMul": 40.3858,
+      "dmgMul": 18.0318
      },
      {
       "key": "whisp",
       "lvl": 28,
-      "hpMul": 53.5195,
-      "dmgMul": 21.9602
+      "hpMul": 40.3858,
+      "dmgMul": 18.0318
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 53.5195,
-      "dmgMul": 21.9602
+      "hpMul": 40.3858,
+      "dmgMul": 18.0318
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 5157,
+   "recommendedPower": 105323,
    "dust": 449,
    "glyphFragments": [
     "Purple Ravager"
@@ -3667,10 +3679,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 51,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 38,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.313,
+    "wr100": 0.6,
+    "wrPlus5": 0.9,
+    "avgSec": 83.6,
+    "d": 0.7546
    },
    "wallFixes": [
     {
@@ -3689,58 +3705,58 @@
      {
       "key": "whisp",
       "lvl": 29,
-      "hpMul": 3.2953,
-      "dmgMul": 3.3335
+      "hpMul": 2.6283,
+      "dmgMul": 2.8454
      },
      {
       "key": "trapjaw",
       "lvl": 29,
-      "hpMul": 3.2953,
-      "dmgMul": 3.3335
+      "hpMul": 2.6283,
+      "dmgMul": 2.8454
      },
      {
       "key": "wispweaver shade",
       "lvl": 29,
-      "hpMul": 3.2953,
-      "dmgMul": 3.3335
+      "hpMul": 2.6283,
+      "dmgMul": 2.8454
      },
      {
       "key": "riftling spider",
       "lvl": 29,
-      "hpMul": 3.2953,
-      "dmgMul": 3.3335
+      "hpMul": 2.6283,
+      "dmgMul": 2.8454
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 29,
-      "hpMul": 4.9434,
-      "dmgMul": 4.167
+      "hpMul": 3.9429,
+      "dmgMul": 3.5569
      },
      {
       "key": "nightgloom",
       "lvl": 29,
-      "hpMul": 4.9434,
-      "dmgMul": 4.167
+      "hpMul": 3.9429,
+      "dmgMul": 3.5569
      },
      {
       "key": "skyroot dryad",
       "lvl": 29,
-      "hpMul": 4.9434,
-      "dmgMul": 4.167
+      "hpMul": 3.9429,
+      "dmgMul": 3.5569
      },
      {
       "key": "trapjaw",
       "lvl": 29,
-      "hpMul": 4.9434,
-      "dmgMul": 4.167
+      "hpMul": 3.9429,
+      "dmgMul": 3.5569
      },
      {
       "key": "nymira",
       "lvl": 32,
-      "hpMul": 31.9838,
-      "dmgMul": 17.9679,
+      "hpMul": 25.5103,
+      "dmgMul": 15.3372,
       "boss": true
      }
     ]
@@ -3751,7 +3767,7 @@
     "ascended": false,
     "gatekeeper": false
    },
-   "recommendedPower": 8703,
+   "recommendedPower": 116445,
    "dust": 479,
    "glyphFragments": [
     "Purple Starfire",
@@ -3763,10 +3779,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 52,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 40,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.237,
+    "wr100": 0.75,
+    "wrPlus5": 0.95,
+    "avgSec": 94.0,
+    "d": 0.7976
    }
   },
   {
@@ -3777,63 +3797,63 @@
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 43.0684,
-      "dmgMul": 19.1366
+      "hpMul": 45.3123,
+      "dmgMul": 19.8292
      },
      {
       "key": "whisp",
       "lvl": 30,
-      "hpMul": 43.0684,
-      "dmgMul": 19.1366
+      "hpMul": 45.3123,
+      "dmgMul": 19.8292
      },
      {
       "key": "trapjaw",
       "lvl": 30,
-      "hpMul": 43.0684,
-      "dmgMul": 19.1366
+      "hpMul": 45.3123,
+      "dmgMul": 19.8292
      },
      {
       "key": "wispweaver shade",
       "lvl": 30,
-      "hpMul": 43.0684,
-      "dmgMul": 19.1366
+      "hpMul": 45.3123,
+      "dmgMul": 19.8292
      }
     ],
     [
      {
       "key": "trapjaw",
       "lvl": 30,
-      "hpMul": 50.0778,
-      "dmgMul": 22.2493
+      "hpMul": 52.6869,
+      "dmgMul": 23.0545
      },
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 50.0778,
-      "dmgMul": 22.2493
+      "hpMul": 52.6869,
+      "dmgMul": 23.0545
      },
      {
       "key": "mourn moth",
       "lvl": 30,
-      "hpMul": 50.0778,
-      "dmgMul": 22.2493
+      "hpMul": 52.6869,
+      "dmgMul": 23.0545
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 30,
-      "hpMul": 50.0778,
-      "dmgMul": 22.2493
+      "hpMul": 52.6869,
+      "dmgMul": 23.0545
      },
      {
       "key": "whisp",
       "lvl": 30,
-      "hpMul": 50.0778,
-      "dmgMul": 22.2493
+      "hpMul": 52.6869,
+      "dmgMul": 23.0545
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 5543,
+   "recommendedPower": 105323,
    "dust": 510,
    "glyphFragments": [
     "Purple Hawkeye"
@@ -3844,10 +3864,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 53,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 38,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.575,
+    "wrPlus5": 0.775,
+    "avgSec": 67.6,
+    "d": 1.0521
    }
   },
   {
@@ -3858,63 +3882,63 @@
      {
       "key": "whisp",
       "lvl": 30,
-      "hpMul": 41.1441,
-      "dmgMul": 18.6292
+      "hpMul": 40.9548,
+      "dmgMul": 18.5692
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 30,
-      "hpMul": 41.1441,
-      "dmgMul": 18.6292
+      "hpMul": 40.9548,
+      "dmgMul": 18.5692
      },
      {
       "key": "wispweaver shade",
       "lvl": 30,
-      "hpMul": 41.1441,
-      "dmgMul": 18.6292
+      "hpMul": 40.9548,
+      "dmgMul": 18.5692
      },
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 41.1441,
-      "dmgMul": 18.6292
+      "hpMul": 40.9548,
+      "dmgMul": 18.5692
      }
     ],
     [
      {
       "key": "whisp",
       "lvl": 30,
-      "hpMul": 47.8389,
-      "dmgMul": 21.6623
+      "hpMul": 47.6188,
+      "dmgMul": 21.5925
      },
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 47.8389,
-      "dmgMul": 21.6623
+      "hpMul": 47.6188,
+      "dmgMul": 21.5925
      },
      {
       "key": "trapjaw",
       "lvl": 30,
-      "hpMul": 47.8389,
-      "dmgMul": 21.6623
+      "hpMul": 47.6188,
+      "dmgMul": 21.5925
      },
      {
       "key": "nightgloom",
       "lvl": 30,
-      "hpMul": 47.8389,
-      "dmgMul": 21.6623
+      "hpMul": 47.6188,
+      "dmgMul": 21.5925
      },
      {
       "key": "wispweaver shade",
       "lvl": 30,
-      "hpMul": 47.8389,
-      "dmgMul": 21.6623
+      "hpMul": 47.6188,
+      "dmgMul": 21.5925
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 5636,
+   "recommendedPower": 107368,
    "dust": 543,
    "glyphFragments": [
     "Purple Lifebloom"
@@ -3925,10 +3949,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 54,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 39,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.65,
+    "wrPlus5": 0.9,
+    "avgSec": 62.3,
+    "d": 0.9954
    }
   },
   {
@@ -3939,63 +3967,63 @@
      {
       "key": "nightgloom",
       "lvl": 31,
-      "hpMul": 36.102,
-      "dmgMul": 17.0908
+      "hpMul": 44.8495,
+      "dmgMul": 19.8939
      },
      {
       "key": "whisp",
       "lvl": 31,
-      "hpMul": 36.102,
-      "dmgMul": 17.0908
+      "hpMul": 44.8495,
+      "dmgMul": 19.8939
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 36.102,
-      "dmgMul": 17.0908
+      "hpMul": 44.8495,
+      "dmgMul": 19.8939
      },
      {
       "key": "mourn moth",
       "lvl": 31,
-      "hpMul": 36.102,
-      "dmgMul": 17.0908
+      "hpMul": 44.8495,
+      "dmgMul": 19.8939
      }
     ],
     [
      {
       "key": "mourn moth",
       "lvl": 31,
-      "hpMul": 41.9854,
-      "dmgMul": 19.8703
+      "hpMul": 52.1585,
+      "dmgMul": 23.1293
      },
      {
       "key": "trapjaw",
       "lvl": 31,
-      "hpMul": 41.9854,
-      "dmgMul": 19.8703
+      "hpMul": 52.1585,
+      "dmgMul": 23.1293
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 31,
-      "hpMul": 41.9854,
-      "dmgMul": 19.8703
+      "hpMul": 52.1585,
+      "dmgMul": 23.1293
      },
      {
       "key": "riftling spider",
       "lvl": 31,
-      "hpMul": 41.9854,
-      "dmgMul": 19.8703
+      "hpMul": 52.1585,
+      "dmgMul": 23.1293
      },
      {
       "key": "nightgloom",
       "lvl": 31,
-      "hpMul": 41.9854,
-      "dmgMul": 19.8703
+      "hpMul": 52.1585,
+      "dmgMul": 23.1293
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 5815,
+   "recommendedPower": 116445,
    "dust": 578,
    "glyphFragments": [
     "Purple Bastion"
@@ -4006,12 +4034,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 55,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1
+    "level": 40,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.35,
+    "wr100": 0.7,
+    "wrPlus5": 0.85,
+    "avgSec": 69.3,
+    "d": 1.2423
    }
   },
   {
@@ -4022,63 +4052,63 @@
      {
       "key": "trapjaw",
       "lvl": 31,
-      "hpMul": 33.7729,
-      "dmgMul": 21.4744
+      "hpMul": 28.4706,
+      "dmgMul": 19.0546
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 33.7729,
-      "dmgMul": 21.4744
+      "hpMul": 28.4706,
+      "dmgMul": 19.0546
      },
      {
       "key": "wispweaver shade",
       "lvl": 31,
-      "hpMul": 33.7729,
-      "dmgMul": 21.4744
+      "hpMul": 28.4706,
+      "dmgMul": 19.0546
      },
      {
       "key": "whisp",
       "lvl": 31,
-      "hpMul": 33.7729,
-      "dmgMul": 21.4744
+      "hpMul": 28.4706,
+      "dmgMul": 19.0546
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 31,
-      "hpMul": 39.2759,
-      "dmgMul": 24.9706
+      "hpMul": 33.1096,
+      "dmgMul": 22.1569
      },
      {
       "key": "whisp",
       "lvl": 31,
-      "hpMul": 39.2759,
-      "dmgMul": 24.9706
+      "hpMul": 33.1096,
+      "dmgMul": 22.1569
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 39.2759,
-      "dmgMul": 24.9706
+      "hpMul": 33.1096,
+      "dmgMul": 22.1569
      },
      {
       "key": "wispweaver shade",
       "lvl": 31,
-      "hpMul": 39.2759,
-      "dmgMul": 24.9706
+      "hpMul": 33.1096,
+      "dmgMul": 22.1569
      },
      {
       "key": "nightgloom",
       "lvl": 31,
-      "hpMul": 39.2759,
-      "dmgMul": 24.9706
+      "hpMul": 33.1096,
+      "dmgMul": 22.1569
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 6068,
+   "recommendedPower": 120757,
    "dust": 616,
    "glyphFragments": [
     "Purple Bloodroot"
@@ -4089,12 +4119,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 56,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1.376
+    "level": 42,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.362,
+    "wr100": 0.6,
+    "wrPlus5": 0.975,
+    "avgSec": 46.8,
+    "d": 0.843
    },
    "wallFixes": [
     {
@@ -4113,58 +4145,58 @@
      {
       "key": "graveclaw ghoul",
       "lvl": 32,
-      "hpMul": 3.4373,
-      "dmgMul": 4.1118
+      "hpMul": 3.4215,
+      "dmgMul": 4.0986
      },
      {
       "key": "nightgloom",
       "lvl": 32,
-      "hpMul": 3.4373,
-      "dmgMul": 4.1118
+      "hpMul": 3.4215,
+      "dmgMul": 4.0986
      },
      {
       "key": "mourn moth",
       "lvl": 32,
-      "hpMul": 3.4373,
-      "dmgMul": 4.1118
+      "hpMul": 3.4215,
+      "dmgMul": 4.0986
      },
      {
       "key": "skyroot dryad",
       "lvl": 32,
-      "hpMul": 3.4373,
-      "dmgMul": 4.1118
+      "hpMul": 3.4215,
+      "dmgMul": 4.0986
      }
     ],
     [
      {
       "key": "wispweaver shade",
       "lvl": 32,
-      "hpMul": 5.1557,
-      "dmgMul": 5.1394
+      "hpMul": 5.132,
+      "dmgMul": 5.1228
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 32,
-      "hpMul": 5.1557,
-      "dmgMul": 5.1394
+      "hpMul": 5.132,
+      "dmgMul": 5.1228
      },
      {
       "key": "mourn moth",
       "lvl": 32,
-      "hpMul": 5.1557,
-      "dmgMul": 5.1394
+      "hpMul": 5.132,
+      "dmgMul": 5.1228
      },
      {
       "key": "trapjaw",
       "lvl": 32,
-      "hpMul": 5.1557,
-      "dmgMul": 5.1394
+      "hpMul": 5.132,
+      "dmgMul": 5.1228
      },
      {
       "key": "nerissa",
       "lvl": 35,
-      "hpMul": 33.3612,
-      "dmgMul": 22.1647,
+      "hpMul": 33.2077,
+      "dmgMul": 22.0933,
       "boss": true
      }
     ]
@@ -4175,7 +4207,7 @@
     "ascended": false,
     "gatekeeper": true
    },
-   "recommendedPower": 15463,
+   "recommendedPower": 135805,
    "dust": 656,
    "glyphFragments": [
     "Purple Shadepath",
@@ -4187,10 +4219,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 57,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 44,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.3,
+    "wr100": 0.85,
+    "wrPlus5": 0.925,
+    "avgSec": 82.6,
+    "d": 0.9954
    }
   },
   {
@@ -4201,63 +4237,63 @@
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 69.4078,
-      "dmgMul": 27.4069
+      "hpMul": 52.3751,
+      "dmgMul": 22.5041
      },
      {
       "key": "cinder skulk",
       "lvl": 33,
-      "hpMul": 69.4078,
-      "dmgMul": 27.4069
+      "hpMul": 52.3751,
+      "dmgMul": 22.5041
      },
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 69.4078,
-      "dmgMul": 27.4069
+      "hpMul": 52.3751,
+      "dmgMul": 22.5041
      },
      {
       "key": "magma hound",
       "lvl": 33,
-      "hpMul": 69.4078,
-      "dmgMul": 27.4069
+      "hpMul": 52.3751,
+      "dmgMul": 22.5041
      }
     ],
     [
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 80.6925,
-      "dmgMul": 31.8684
+      "hpMul": 60.8906,
+      "dmgMul": 26.1675
      },
      {
       "key": "ashen",
       "lvl": 33,
-      "hpMul": 80.6925,
-      "dmgMul": 31.8684
+      "hpMul": 60.8906,
+      "dmgMul": 26.1675
      },
      {
       "key": "basalt mauler",
       "lvl": 33,
-      "hpMul": 80.6925,
-      "dmgMul": 31.8684
+      "hpMul": 60.8906,
+      "dmgMul": 26.1675
      },
      {
       "key": "furnace gnawer",
       "lvl": 33,
-      "hpMul": 80.6925,
-      "dmgMul": 31.8684
+      "hpMul": 60.8906,
+      "dmgMul": 26.1675
      },
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 80.6925,
-      "dmgMul": 31.8684
+      "hpMul": 60.8906,
+      "dmgMul": 26.1675
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 6468,
+   "recommendedPower": 120757,
    "dust": 699,
    "glyphFragments": [
     "Purple +2 Stoneheart"
@@ -4268,10 +4304,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 58,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 42,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.263,
+    "wr100": 0.575,
+    "wrPlus5": 0.775,
+    "avgSec": 68.3,
+    "d": 0.7546
    }
   },
   {
@@ -4282,63 +4322,63 @@
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 60.4377,
-      "dmgMul": 24.994
+      "hpMul": 53.85,
+      "dmgMul": 23.0542
      },
      {
       "key": "ashen",
       "lvl": 33,
-      "hpMul": 60.4377,
-      "dmgMul": 24.994
+      "hpMul": 53.85,
+      "dmgMul": 23.0542
      },
      {
       "key": "magma hound",
       "lvl": 33,
-      "hpMul": 60.4377,
-      "dmgMul": 24.994
+      "hpMul": 53.85,
+      "dmgMul": 23.0542
      },
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 60.4377,
-      "dmgMul": 24.994
+      "hpMul": 53.85,
+      "dmgMul": 23.0542
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 70.2781,
-      "dmgMul": 29.0667
+      "hpMul": 62.6178,
+      "dmgMul": 26.8108
      },
      {
       "key": "grundle",
       "lvl": 33,
-      "hpMul": 70.2781,
-      "dmgMul": 29.0667
+      "hpMul": 62.6178,
+      "dmgMul": 26.8108
      },
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 70.2781,
-      "dmgMul": 29.0667
+      "hpMul": 62.6178,
+      "dmgMul": 26.8108
      },
      {
       "key": "basalt mauler",
       "lvl": 33,
-      "hpMul": 70.2781,
-      "dmgMul": 29.0667
+      "hpMul": 62.6178,
+      "dmgMul": 26.8108
      },
      {
       "key": "furnace gnawer",
       "lvl": 33,
-      "hpMul": 70.2781,
-      "dmgMul": 29.0667
+      "hpMul": 62.6178,
+      "dmgMul": 26.8108
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 6644,
+   "recommendedPower": 128212,
    "dust": 744,
    "glyphFragments": [
     "Purple +2 Ironwall"
@@ -4349,10 +4389,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 59,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 43,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.287,
+    "wr100": 0.675,
+    "wrPlus5": 0.725,
+    "avgSec": 72.8,
+    "d": 0.891
    }
   },
   {
@@ -4363,63 +4407,63 @@
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 63.0239,
-      "dmgMul": 29.8154
+      "hpMul": 53.1291,
+      "dmgMul": 26.4557
      },
      {
       "key": "basalt mauler",
       "lvl": 34,
-      "hpMul": 63.0239,
-      "dmgMul": 29.8154
+      "hpMul": 53.1291,
+      "dmgMul": 26.4557
      },
      {
       "key": "grundle",
       "lvl": 34,
-      "hpMul": 63.0239,
-      "dmgMul": 29.8154
+      "hpMul": 53.1291,
+      "dmgMul": 26.4557
      },
      {
       "key": "cinder skulk",
       "lvl": 34,
-      "hpMul": 63.0239,
-      "dmgMul": 29.8154
+      "hpMul": 53.1291,
+      "dmgMul": 26.4557
      }
     ],
     [
      {
       "key": "basalt mauler",
       "lvl": 34,
-      "hpMul": 73.2841,
-      "dmgMul": 34.6688
+      "hpMul": 61.7785,
+      "dmgMul": 30.7623
      },
      {
       "key": "crucible acolyte",
       "lvl": 34,
-      "hpMul": 73.2841,
-      "dmgMul": 34.6688
+      "hpMul": 61.7785,
+      "dmgMul": 30.7623
      },
      {
       "key": "sootwing imp",
       "lvl": 34,
-      "hpMul": 73.2841,
-      "dmgMul": 34.6688
+      "hpMul": 61.7785,
+      "dmgMul": 30.7623
      },
      {
       "key": "magma hound",
       "lvl": 34,
-      "hpMul": 73.2841,
-      "dmgMul": 34.6688
+      "hpMul": 61.7785,
+      "dmgMul": 30.7623
      },
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 73.2841,
-      "dmgMul": 34.6688
+      "hpMul": 61.7785,
+      "dmgMul": 30.7623
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 6771,
+   "recommendedPower": 135805,
    "dust": 793,
    "glyphFragments": [
     "Purple +2 Veilward"
@@ -4430,12 +4474,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 60,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1.153
+    "level": 44,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.8,
+    "wrPlus5": 0.8,
+    "avgSec": 71.3,
+    "d": 0.843
    }
   },
   {
@@ -4446,63 +4492,63 @@
      {
       "key": "crucible acolyte",
       "lvl": 34,
-      "hpMul": 72.1574,
-      "dmgMul": 28.565
+      "hpMul": 64.2922,
+      "dmgMul": 26.3481
      },
      {
       "key": "sootwing imp",
       "lvl": 34,
-      "hpMul": 72.1574,
-      "dmgMul": 28.565
+      "hpMul": 64.2922,
+      "dmgMul": 26.3481
      },
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 72.1574,
-      "dmgMul": 28.565
+      "hpMul": 64.2922,
+      "dmgMul": 26.3481
      },
      {
       "key": "cinder skulk",
       "lvl": 34,
-      "hpMul": 72.1574,
-      "dmgMul": 28.565
+      "hpMul": 64.2922,
+      "dmgMul": 26.3481
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 34,
-      "hpMul": 83.9029,
-      "dmgMul": 33.2188
+      "hpMul": 74.7575,
+      "dmgMul": 30.6407
      },
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 83.9029,
-      "dmgMul": 33.2188
+      "hpMul": 74.7575,
+      "dmgMul": 30.6407
      },
      {
       "key": "magma hound",
       "lvl": 34,
-      "hpMul": 83.9029,
-      "dmgMul": 33.2188
+      "hpMul": 74.7575,
+      "dmgMul": 30.6407
      },
      {
       "key": "sootwing imp",
       "lvl": 34,
-      "hpMul": 83.9029,
-      "dmgMul": 33.2188
+      "hpMul": 74.7575,
+      "dmgMul": 30.6407
      },
      {
       "key": "ashen",
       "lvl": 34,
-      "hpMul": 83.9029,
-      "dmgMul": 33.2188
+      "hpMul": 74.7575,
+      "dmgMul": 30.6407
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 6798,
+   "recommendedPower": 140170,
    "dust": 844,
    "glyphFragments": [
     "Purple +2 Ravager"
@@ -4513,12 +4559,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 61,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1
+    "level": 46,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.55,
+    "wrPlus5": 1.0,
+    "avgSec": 62.1,
+    "d": 0.891
    }
   },
   {
@@ -4529,58 +4577,58 @@
      {
       "key": "crucible acolyte",
       "lvl": 35,
-      "hpMul": 3.7582,
-      "dmgMul": 3.8398
+      "hpMul": 3.6387,
+      "dmgMul": 3.7539
      },
      {
       "key": "sootwing imp",
       "lvl": 35,
-      "hpMul": 3.7582,
-      "dmgMul": 3.8398
+      "hpMul": 3.6387,
+      "dmgMul": 3.7539
      },
      {
       "key": "grundle",
       "lvl": 35,
-      "hpMul": 3.7582,
-      "dmgMul": 3.8398
+      "hpMul": 3.6387,
+      "dmgMul": 3.7539
      },
      {
       "key": "basalt mauler",
       "lvl": 35,
-      "hpMul": 3.7582,
-      "dmgMul": 3.8398
+      "hpMul": 3.6387,
+      "dmgMul": 3.7539
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 35,
-      "hpMul": 5.6368,
-      "dmgMul": 4.7998
+      "hpMul": 5.4575,
+      "dmgMul": 4.6924
      },
      {
       "key": "basalt mauler",
       "lvl": 35,
-      "hpMul": 5.6368,
-      "dmgMul": 4.7998
+      "hpMul": 5.4575,
+      "dmgMul": 4.6924
      },
      {
       "key": "grundle",
       "lvl": 35,
-      "hpMul": 5.6368,
-      "dmgMul": 4.7998
+      "hpMul": 5.4575,
+      "dmgMul": 4.6924
      },
      {
       "key": "sootwing imp",
       "lvl": 35,
-      "hpMul": 5.6368,
-      "dmgMul": 4.7998
+      "hpMul": 5.4575,
+      "dmgMul": 4.6924
      },
      {
       "key": "thorneveil",
       "lvl": 38,
-      "hpMul": 36.4726,
-      "dmgMul": 20.6977,
+      "hpMul": 35.3128,
+      "dmgMul": 20.2347,
       "boss": true
      }
     ]
@@ -4591,7 +4639,7 @@
     "ascended": true,
     "gatekeeper": false
    },
-   "recommendedPower": 11559,
+   "recommendedPower": 144481,
    "dust": 899,
    "glyphFragments": [
     "Purple +2 Starfire",
@@ -4603,10 +4651,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 62,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 48,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.338,
+    "wr100": 0.65,
+    "wrPlus5": 1.0,
+    "avgSec": 105.1,
+    "d": 0.9682
    }
   },
   {
@@ -4617,63 +4669,63 @@
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 61.6193,
-      "dmgMul": 25.8119
+      "hpMul": 64.8297,
+      "dmgMul": 26.7461
      },
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 61.6193,
-      "dmgMul": 25.8119
+      "hpMul": 64.8297,
+      "dmgMul": 26.7461
      },
      {
       "key": "magma hound",
       "lvl": 36,
-      "hpMul": 61.6193,
-      "dmgMul": 25.8119
+      "hpMul": 64.8297,
+      "dmgMul": 26.7461
      },
      {
       "key": "furnace gnawer",
       "lvl": 36,
-      "hpMul": 61.6193,
-      "dmgMul": 25.8119
+      "hpMul": 64.8297,
+      "dmgMul": 26.7461
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 36,
-      "hpMul": 71.6611,
-      "dmgMul": 30.0173
+      "hpMul": 75.3946,
+      "dmgMul": 31.1037
      },
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 71.6611,
-      "dmgMul": 30.0173
+      "hpMul": 75.3946,
+      "dmgMul": 31.1037
      },
      {
       "key": "basalt mauler",
       "lvl": 36,
-      "hpMul": 71.6611,
-      "dmgMul": 30.0173
+      "hpMul": 75.3946,
+      "dmgMul": 31.1037
      },
      {
       "key": "magma hound",
       "lvl": 36,
-      "hpMul": 71.6611,
-      "dmgMul": 30.0173
+      "hpMul": 75.3946,
+      "dmgMul": 31.1037
      },
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 71.6611,
-      "dmgMul": 30.0173
+      "hpMul": 75.3946,
+      "dmgMul": 31.1037
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 7351,
+   "recommendedPower": 140170,
    "dust": 957,
    "glyphFragments": [
     "Purple +2 Hawkeye"
@@ -4684,10 +4736,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 63,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 46,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.25,
+    "wr100": 0.6,
+    "wrPlus5": 1.0,
+    "avgSec": 67.8,
+    "d": 1.0521
    }
   },
   {
@@ -4698,63 +4754,63 @@
      {
       "key": "basalt mauler",
       "lvl": 36,
-      "hpMul": 51.9422,
-      "dmgMul": 23.0048
+      "hpMul": 62.767,
+      "dmgMul": 26.2643
      },
      {
       "key": "crucible acolyte",
       "lvl": 36,
-      "hpMul": 51.9422,
-      "dmgMul": 23.0048
+      "hpMul": 62.767,
+      "dmgMul": 26.2643
      },
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 51.9422,
-      "dmgMul": 23.0048
+      "hpMul": 62.767,
+      "dmgMul": 26.2643
      },
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 51.9422,
-      "dmgMul": 23.0048
+      "hpMul": 62.767,
+      "dmgMul": 26.2643
      }
     ],
     [
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 60.3914,
-      "dmgMul": 26.7489
+      "hpMul": 72.977,
+      "dmgMul": 30.5389
      },
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 60.3914,
-      "dmgMul": 26.7489
+      "hpMul": 72.977,
+      "dmgMul": 30.5389
      },
      {
       "key": "furnace gnawer",
       "lvl": 36,
-      "hpMul": 60.3914,
-      "dmgMul": 26.7489
+      "hpMul": 72.977,
+      "dmgMul": 30.5389
      },
      {
       "key": "magma hound",
       "lvl": 36,
-      "hpMul": 60.3914,
-      "dmgMul": 26.7489
+      "hpMul": 72.977,
+      "dmgMul": 30.5389
      },
      {
       "key": "crucible acolyte",
       "lvl": 36,
-      "hpMul": 60.3914,
-      "dmgMul": 26.7489
+      "hpMul": 72.977,
+      "dmgMul": 30.5389
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 7422,
+   "recommendedPower": 142207,
    "dust": 1020,
    "glyphFragments": [
     "Purple +2 Lifebloom"
@@ -4765,12 +4821,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 64,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1
+    "level": 47,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.263,
+    "wr100": 0.625,
+    "wrPlus5": 1.0,
+    "avgSec": 67.0,
+    "d": 1.2084
    }
   },
   {
@@ -4781,63 +4839,63 @@
      {
       "key": "cinder skulk",
       "lvl": 37,
-      "hpMul": 74.2778,
-      "dmgMul": 29.6772
+      "hpMul": 62.6162,
+      "dmgMul": 26.3331
      },
      {
       "key": "furnace gnawer",
       "lvl": 37,
-      "hpMul": 74.2778,
-      "dmgMul": 29.6772
+      "hpMul": 62.6162,
+      "dmgMul": 26.3331
      },
      {
       "key": "basalt mauler",
       "lvl": 37,
-      "hpMul": 74.2778,
-      "dmgMul": 29.6772
+      "hpMul": 62.6162,
+      "dmgMul": 26.3331
      },
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 74.2778,
-      "dmgMul": 29.6772
+      "hpMul": 62.6162,
+      "dmgMul": 26.3331
      }
     ],
     [
      {
       "key": "ashen",
       "lvl": 37,
-      "hpMul": 86.3588,
-      "dmgMul": 34.5114
+      "hpMul": 72.8005,
+      "dmgMul": 30.6226
      },
      {
       "key": "furnace gnawer",
       "lvl": 37,
-      "hpMul": 86.3588,
-      "dmgMul": 34.5114
+      "hpMul": 72.8005,
+      "dmgMul": 30.6226
      },
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 86.3588,
-      "dmgMul": 34.5114
+      "hpMul": 72.8005,
+      "dmgMul": 30.6226
      },
      {
       "key": "grundle",
       "lvl": 37,
-      "hpMul": 86.3588,
-      "dmgMul": 34.5114
+      "hpMul": 72.8005,
+      "dmgMul": 30.6226
      },
      {
       "key": "sootwing imp",
       "lvl": 37,
-      "hpMul": 86.3588,
-      "dmgMul": 34.5114
+      "hpMul": 72.8005,
+      "dmgMul": 30.6226
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 7771,
+   "recommendedPower": 144481,
    "dust": 1086,
    "glyphFragments": [
     "Purple +2 Bastion"
@@ -4848,10 +4906,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 65,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364"
+    "level": 48,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.7,
+    "wrPlus5": 1.0,
+    "avgSec": 72.6,
+    "d": 0.843
    }
   },
   {
@@ -4862,63 +4924,63 @@
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 72.3578,
-      "dmgMul": 29.9303
+      "hpMul": 109.1228,
+      "dmgMul": 39.9036
      },
      {
       "key": "basalt mauler",
       "lvl": 37,
-      "hpMul": 72.3578,
-      "dmgMul": 29.9303
+      "hpMul": 109.1228,
+      "dmgMul": 39.9036
      },
      {
       "key": "grundle",
       "lvl": 37,
-      "hpMul": 72.3578,
-      "dmgMul": 29.9303
+      "hpMul": 109.1228,
+      "dmgMul": 39.9036
      },
      {
       "key": "ashen",
       "lvl": 37,
-      "hpMul": 72.3578,
-      "dmgMul": 29.9303
+      "hpMul": 109.1228,
+      "dmgMul": 39.9036
      }
     ],
     [
      {
       "key": "grundle",
       "lvl": 37,
-      "hpMul": 84.1419,
-      "dmgMul": 34.8011
+      "hpMul": 126.8944,
+      "dmgMul": 46.3974
      },
      {
       "key": "sootwing imp",
       "lvl": 37,
-      "hpMul": 84.1419,
-      "dmgMul": 34.8011
+      "hpMul": 126.8944,
+      "dmgMul": 46.3974
      },
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 84.1419,
-      "dmgMul": 34.8011
+      "hpMul": 126.8944,
+      "dmgMul": 46.3974
      },
      {
       "key": "magma hound",
       "lvl": 37,
-      "hpMul": 84.1419,
-      "dmgMul": 34.8011
+      "hpMul": 126.8944,
+      "dmgMul": 46.3974
      },
      {
       "key": "basalt mauler",
       "lvl": 37,
-      "hpMul": 84.1419,
-      "dmgMul": 34.8011
+      "hpMul": 126.8944,
+      "dmgMul": 46.3974
      }
     ]
    ],
    "bossRule": null,
-   "recommendedPower": 7974,
+   "recommendedPower": 195852,
    "dust": 1157,
    "glyphFragments": [
     "Purple +2 Bloodroot"
@@ -4929,12 +4991,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 66,
-    "target": 0.35,
-    "bossX": 1,
-    "model": "realboard-v364",
-    "cliffHpScale": 1,
-    "cliffDmgScale": 1.023
+    "level": 50,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.325,
+    "wr100": 0.8,
+    "wrPlus5": 0.775,
+    "avgSec": 88.0,
+    "d": 1.5081
    }
   },
   {
@@ -4945,58 +5009,58 @@
      {
       "key": "magma hound",
       "lvl": 38,
-      "hpMul": 2.7325,
-      "dmgMul": 3.6854
+      "hpMul": 10.278,
+      "dmgMul": 9.316
      },
      {
       "key": "basalt mauler",
       "lvl": 38,
-      "hpMul": 2.7325,
-      "dmgMul": 3.6854
+      "hpMul": 10.278,
+      "dmgMul": 9.316
      },
      {
       "key": "crucible acolyte",
       "lvl": 38,
-      "hpMul": 2.7325,
-      "dmgMul": 3.6854
+      "hpMul": 10.278,
+      "dmgMul": 9.316
      },
      {
       "key": "sootwing imp",
       "lvl": 38,
-      "hpMul": 2.7325,
-      "dmgMul": 3.6854
+      "hpMul": 10.278,
+      "dmgMul": 9.316
      }
     ],
     [
      {
       "key": "cinder skulk",
       "lvl": 38,
-      "hpMul": 4.0986,
-      "dmgMul": 4.6066
+      "hpMul": 15.4165,
+      "dmgMul": 11.6446
      },
      {
       "key": "ashen",
       "lvl": 38,
-      "hpMul": 4.0986,
-      "dmgMul": 4.6066
+      "hpMul": 15.4165,
+      "dmgMul": 11.6446
      },
      {
       "key": "grundle",
       "lvl": 38,
-      "hpMul": 4.0986,
-      "dmgMul": 4.6066
+      "hpMul": 15.4165,
+      "dmgMul": 11.6446
      },
      {
       "key": "basalt mauler",
       "lvl": 38,
-      "hpMul": 4.0986,
-      "dmgMul": 4.6066
+      "hpMul": 15.4165,
+      "dmgMul": 11.6446
      },
      {
       "key": "sable vesper",
       "lvl": 41,
-      "hpMul": 26.5203,
-      "dmgMul": 5.5004,
+      "hpMul": 99.7535,
+      "dmgMul": 13.904,
       "boss": true
      }
     ]
@@ -5007,7 +5071,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 22345,
+   "recommendedPower": 200499,
    "dust": 1232,
    "glyphFragments": [
     "Purple +2 Shadepath",
@@ -5019,10 +5083,14 @@
    ],
    "realEngineTuned": true,
    "tunedFor": {
-    "level": 67,
-    "target": 0.2,
-    "bossX": 3,
-    "model": "realboard-v364"
+    "level": 52,
+    "target": 0.3,
+    "model": "kimi-vault-ladder-24NOV2026",
+    "wr85": 0.388,
+    "wr100": 1.0,
+    "wrPlus5": 1.0,
+    "avgSec": 110.9,
+    "d": 3.7614
    }
   },
   {
