@@ -160,4 +160,25 @@ console.log('== 8. immovable units ignore every push, including bodies (charges,
     ok(mv > 0.5, 'CONTROL: ' + k + ' still moves a normal target (' + mv + ' m)'); }
   ok(J("bodyFixed({pass:{unstepped:true}})&&bodyFixed({immovable:true})&&bodyFixed({_gearImmovableT:1})&&!bodyFixed({})"), 'the body test is the same immovable test pushes and pulls use (immovable, Unstepped / unstoppable, a gear hold)'); }
 
+console.log('== 9. a summon is untargetable and unhittable while it climbs out ==');
+{ setup(['hurne', 'sylthaine'].map(k => spec(k, 50, 5)), [spec('hollow', 50)], 151);
+  const r = J(`(function(){ const h=U('hollow','enemy'); h._dropHidden=false; h.x=500; h.y=900; const o=U('hurne'); const sh=summonUnit(o,'boar shaman',18,{backRow:true});
+    const rising=sh._riseT>0, pick=nearestEnemy(h); const h0=sh.hp; dealDamage(h,sh,100,'#fff','true'); const afterHit=sh.hp; damage(sh,100,'#fff',true); const afterRaw=sh.hp;
+    groundHazards.push({x:sh.x,y:sh.y,r:200,dmg:100,team:'enemy',src:h,owner:h,interval:0.001,acc:0.01,life:0.02}); updateBattle(SIM_STEP); const afterPool=sh.hp;
+    let t=0; while(sh._riseT>0&&t<200){ updateBattle(SIM_STEP); t++; } const risen=!(sh._riseT>0); const r0=sh.hp; dealDamage(h,sh,100,'#fff','true');
+    return {rising,pick:pick&&pick.key,pickRising:!!(pick&&pick._riseT>0),h0,afterHit,afterRaw,afterPool,risen,hitAfterRise:r0-sh.hp}; })()`);
+  ok(r.rising, 'the boar shaman is rising (the case that broke)');
+  ok(!r.pickRising && r.pick !== 'boar shaman', "Hollow's back-line hunt picks " + r.pick + ', not the rising shaman (was the shaman, score 303.6 vs 300.9)');
+  ok(r.afterHit === r.h0, 'a direct hit on the rising shaman does nothing (was -100 HP)');
+  ok(r.afterRaw === r.h0 && r.afterPool === r.h0, 'raw damage and a ground pool tick do nothing while it rises');
+  ok(r.risen && r.hitAfterRise > 0, 'CONTROL: once risen it takes the hit (' + r.hitAfterRise + ')');
+  // whole fights: no rising summon is targeted or damaged
+  R(`window.__RZ=null; (function(){ const ub=updateBattle; window.__ubR=ub; updateBattle=function(dt){ const Z=window.__RZ; const pre=Z?units.filter(u=>u._summon&&u.alive&&u._riseT>0).map(u=>[u,u.hp]):null; const r=ub.apply(this,arguments);
+    if(Z) pre.forEach(([u,h])=>{ Z.ticks++; if(u.alive&&u.hp<h-1e-9) Z.dmg++;   /* (a summon whose owner fell is removed by killSummon - not damage) */ if(units.some(o=>o.alive&&o.team!==u.team&&o.target===u)) Z.tgt++; }); return r; }; })()`);
+  const agg = { ticks: 0, dmg: 0, tgt: 0 };
+  for (const seed of [141, 142]) { R('window.__RZ={ticks:0,dmg:0,tgt:0}'); setup(['hurne', 'aldren', 'zahri', 'vireo', 'rhukk'].map(k => spec(k, 50, 5)), ['fritz', 'astra', 'umbris', 'hollow', 'sylthaine'].map(k => spec(k, 50)), seed);
+    R('window.__step(Math.round(60/SIM_STEP))'); const z = J('window.__RZ'); agg.ticks += z.ticks; agg.dmg += z.dmg; agg.tgt += z.tgt; }
+  R('updateBattle=window.__ubR; window.__RZ=null');
+  ok(agg.ticks > 50 && agg.dmg === 0 && agg.tgt === 0, '2 x 60 s fights (Hurne, Aldren, Zahri vs Hollow, Umbris): ' + agg.ticks + ' rising-summon ticks, ' + agg.tgt + ' targeted, ' + agg.dmg + ' damaged (was 550 targeted, 3 to 6 hits a fight)'); }
+
 console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;

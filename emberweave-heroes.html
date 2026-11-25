@@ -13297,7 +13297,7 @@ function nearestEnemy(u){let b=null,bd=1e9;
   // Hollow hunts the BACK line: casters and support first, and he ignores the front rank
   // entirely while anything softer is still standing.
   if(u._backHunter){ let best=null,bs=-1e9;
-    for(const o of units){ if(!o.alive||o.team===u.team||o._dropHidden||o._noTarget)continue;
+    for(const o of units){ if(!o.alive||o.team===u.team||o._dropHidden||o._noTarget||(o._riseT>0))continue;   /* v1452 BUG FIX (core rule 38): Hollow's back-line hunt skips a summon still climbing out, as every other target pick does */
       if(o._talHide&&TalentFx.hideFrom(u,o))continue;   /* TALENT HOOK hideFrom: u has Forgotten o (only a talented Hollow sets _talHide) */
       const depth=(typeof _laneDepthOf==='function')?_laneDepthOf(o.key):1;
       const sc=depth*100 - dist(u,o)*0.05 - (o.hp/o.maxHp)*20;
@@ -13418,6 +13418,7 @@ const DR_FLOOR=0.05;
 let _drPre=-1, _bnSrc=null;   /* v1443 _bnSrc: who dealt the blow damage() is about to take (dealDamage, a DoT tick) - read once there, for the bonus-stage boons that act on a kill */
 function drPreOf(t,amt,f){ let a=amt; const ir=t._talIr; if(ir){ t._talIr=null; a=Math.max(amt,ir[0]*ir[1]); } return f>0?a/f:a; }   /* the talents' incoming rows: _talIr = [the hit before them, the share not moved away] (talents-mech/_engine.js inc) */
 function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1; const _bnK=_bnSrc; _bnSrc=null;
+  if(u&&(u._riseT||0)>0&&a>0) return;   /* v1452 BUG FIX (core rule 38): a summon is untouchable while it rises - no hit, ground pool or damage over time reaches it (rising summons took 3 to 6 hits a fight) */
   if(HERO61.immune(u,battleTime))return;
   if(DEV.god && u.team==='ally'){ return; }   // dev god-mode: your team takes no damage
   if(u.drT>0)a*=u.drMul;                 // active damage-reduction cooldown (Shield Wall etc.)
@@ -14315,7 +14316,8 @@ const EDGE={ armorIgnore:0.5, healBonus:0.20, block:0.25, tauntPlus:1, drain:10,
 function edgeTauntPlus(taunter,victim){ return AFFINITIES_LIVE&&(unitClass(taunter)==='Tank'&&unitClass(victim)==='Marksman')?EDGE.tauntPlus:0; }
 function dealDamage(src,tgt,amt,color,kind,silent){ if(!DD.on) return _dealDamageCore(src,tgt,amt,color,kind,silent);   /* v1388 Damage Done: who hit, with what (bookkeeping only) */
   const _p=DD.hit; DD.hit={src,l:ddLbl(src)}; DD.depth++; try{ return _dealDamageCore(src,tgt,amt,color,kind,silent); } finally{ DD.depth--; DD.hit=_p; } }
-function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk, _bnRaw=amt; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
+function _dealDamageCore(src,tgt,amt,color,kind,silent){ if(tgt&&(tgt._riseT||0)>0){ _autoAtk=0; return; }   /* v1452: a rising summon cannot be hit (no damage, no on-hit effects) */
+  const _isAuto=_autoAtk, _bnRaw=amt; _autoAtk=0; amt*=elemMul(src,tgt); const _edge=classEdge(src,tgt);
   if(AFFINITIES_LIVE&&_edge===''&&unitClass(src)==='Marksman'&&unitClass(tgt)==='Tank'&&src.team!==tgt.team&&_isAuto&&kind!=='true'&&brnd()<EDGE.block){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.6,color:'#9fb7d8',vy:1,sz:12}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'wall');   /* TALENT HOOK foiled: a hit of a talented unit was stopped by the shield wall (Meridian's Windage) */ return; }   /* Shield wall: the Tank is the one being shot */
  if(typeof SFX!=='undefined'&&SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
