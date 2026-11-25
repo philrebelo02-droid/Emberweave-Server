@@ -10239,12 +10239,12 @@ const BoonFx=(function(){
           if((c=n(src,'mortalhit'))&&roll(P.mortalhit*c)){ tgt._bnNoHealT=Math.max(tgt._bnNoHealT||0,(battleTime||0)+K.mortalSec); tgt.mortalT=Math.max(tgt.mortalT||0,K.mortalSec); say(tgt,'mortalhit'); }
           if((c=n(src,'slowfield'))&&roll(P.slowfield*c)&&ctl(src,tgt,'slow',K.slowSec)){ tgt.slowMul=Math.min(tgt.slowMul==null?1:tgt.slowMul,K.slowMul); say(tgt,'slowfield'); }
           if((c=n(src,'burnproc'))&&roll(P.burnproc*c)){ pushDot(tgt,Math.max(src.dmg||0,src.apow||0)*K.burnShare,K.burnSec,1,'#ff6a3a',src); say(tgt,'burnproc'); }
-          if((c=n(src,'taunthit'))&&roll(P.taunthit*c)){ tgt.forcedTarget=src; tgt.forcedTargetT=Math.max(tgt.forcedTargetT||0,ccDur(K.tauntSec*(1-(tgt.ctrlRes||0)))+edgeTauntPlus(src,tgt)); say(tgt,'taunthit'); }   /* a taunt as the heroes' own taunts set it, shortened like every control */
+          if((c=n(src,'taunthit'))&&roll(P.taunthit*c)&&ccRoll(src,tgt)){ tgt.forcedTarget=src; tgt.forcedTargetT=Math.max(tgt.forcedTargetT||0,ccDur(K.tauntSec*(1-(tgt.ctrlRes||0)))+edgeTauntPlus(src,tgt)); say(tgt,'taunthit'); }   /* a taunt as the heroes' own taunts set it, shortened like every control */
           if((c=n(src,'sleepproc'))&&roll(P.sleepproc*c)&&stunOk(tgt)&&ctl(src,tgt,'stunned',K.sleepSec)){ tgt._bnStunAt=battleTime||0; tgt._sleepT=Math.min(tgt.stunned||0,ccDur(K.sleepSec)); tgt._bnSleep=1; say(tgt,'sleepproc'); }   /* the fight's own sleep, its usual length: it ends early on any damage (a hit, or a burn tick - damage()) */
           if((c=n(src,'doublestrike'))&&!src._bnTwin&&roll(P.doublestrike*c)){ src._bnTwin=1; say(src,'doublestrike');   /* Twinned: the same blow again */
             const _p=_preCrit, _q=_autoAtk; _preCrit=null; _autoAtk=1; try{ dealDamage(src,tgt,raw,color,kind); } finally{ _preCrit=_p; _autoAtk=_q; src._bnTwin=0; } }
         }
-      } else if(src._bnCastSil&&tgt&&tgt.alive&&tgt.team!==src.team){ tgt.silencedT=Math.max(tgt.silencedT||0,K.silenceSec); }   /* Hushing */
+      } else if(src._bnCastSil&&tgt&&tgt.alive&&tgt.team!==src.team){ ccLand(src,tgt,'silencedT',K.silenceSec); }   /* v1452: rolls to land */   /* Hushing */
     }
     if(tgt&&tgt._bn&&tgt.alive&&isHero(tgt)&&src&&src.team!==tgt.team){
       if(n(tgt,'shieldproc')&&roll(K.shieldprocChance)){ shieldAdd(tgt,tgt._bn.shieldproc.v); say(tgt,'shieldproc'); } }   /* Bulwarked */
@@ -14422,7 +14422,7 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ const _isAuto=_autoAtk,
   else if(kind!=='true'){ const _dm=defMul(src,tgt,'phys'); amt*=_dm; _drF*=_dm; // Armor vs Armor Pen
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; _drF*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); if(src&&src._tal&&src._tal.on.foiled) TalentFx.foiled(src,tgt,'block');   /* TALENT HOOK foiled: a hit of a talented unit was halved by Block (Meridian's Windage) */ } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
-  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
+  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ ccLand(src,tgt,'stunned',ccDur(src._gearNextStun)); src._gearNextStun=0;   /* v1452: rolls to land */ floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   let _talPc; if(src&&src._tal&&src._tal.on.crit){ _talPc=[_preCrit]; _preCrit=TalentFx.crit(src,tgt,_preCrit,kind,_isAuto); }   /* TALENT HOOK crit: a learned talent may force this hit's crit */
   let _bnPc; if(src&&src._bn){ _bnPc=[_preCrit]; _preCrit=BoonFx.crit(src,_preCrit); }   /* BOON HOOK crit: First Blood, Momentum, Fateful may make this hit a critical */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0)+((src&&src._wpnCrit)||0);   /* v1137: + Rivet's revolver (15% on that hit; 0 on every other unit) */   // Crit passive + Crit / Crit tech
@@ -14949,6 +14949,32 @@ for(const _f in CC_DUR_MAX) CC_DUR_MAX[_f]=+(CC_DUR_MAX[_f]*CC_NERF).toFixed(3);
    cast for 2.2 s more, and the hit that woke it also removed any separate stun it had. Now one roll (ccApply, RESIST on a miss), the
    table's length with the sleep ceiling, _sleepT = the same length (it ends when the unit wakes), and waking ends only the sleep. */
 let _ccSleep=false, _ccLastDur=0;
+/* v1452 BUG FIX (lockdown audit, core rule 26 "a control has to land"): about ten controls were written straight onto the target and
+   never rolled, so they always landed whatever the level gap and never showed RESIST (Lumi's Hush landed 6 of 6 on level-100 enemies
+   at 1% odds). They now take the same landing roll as ccApply: chance = 1 - 1% per level the target is above the SKILL's level
+   (lv: the level of the slot that made it - a passive's, a channel's, a ground pool's - else the caster's own level, as ccApply).
+   ccRoll draws the seeded roll only when there is a level gap, so a fight with no gap plays exactly as before.
+   ccSet = the write itself (keeps the longer control, tracks the stun that is not a sleep); ccLand = roll + write, and a slow also
+   takes its STRENGTH from that level (slowMulFor), as ccApply's slows do. */
+function ccLvOf(u,i){ return (u&&!(u.t&&u.t.monster)&&u.skillLv&&(u.skillLv[i]|0))||0; }   /* a hero's slot level; 0 = use the caster's own level (monsters, gear) */
+function ccRoll(u,t,lv){
+  if(!t) return false;
+  const c=(lv>0)?ccChanceFor({_castLv:lv|0},t):ccChanceFor(u,t);
+  if(c>=1) return true;
+  if(brnd()>=c){ try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){} return false; }
+  return true;
+}
+function ccSet(t,field,dur){ if(!t||!(dur>0)) return; const pre=t[field]||0; t[field]=Math.max(pre,dur);
+  if(field==='stunned'){ if(!((t._sleepT||0)>0)) t._stunNS=pre; else t._stunNS=Math.max(t._stunNS||0,dur); } }
+function ccLand(u,t,field,dur,lv){
+  if(!t || !(dur>0) || !ccRoll(u,t,lv)) return false;
+  ccSet(t,field,dur);
+  if(field==='slow'){ const m=slowMulFor((lv>0?lv:0)||(u&&u._castLv)||(u&&u.level)||1); t.slowMul=Math.min(t.slowMul==null?1:t.slowMul, m); }
+  return true;
+}
+/* v1452 BUG FIX (core rule 31): a ground pool's slow had no strength (always 45%) and its controls no level. A hazard made by a cast
+   carries the level of the slot that made it (_ccLv), stamped when doEffect returns. */
+function hzStampLv(u,n0){ if(!u) return; const lv=(u._castLv|0)||0; for(let i=n0;i<groundHazards.length;i++){ const h=groundHazards[i]; if(h&&h._ccLv==null) h._ccLv=lv; } }
 function sleepApply(u,t,sec){
   if(!t || !(sec>0)) return false;
   let ok=false; _ccSleep=true; try{ ok=ccApply(u,t,'stunned',sec); } finally{ _ccSleep=false; }
@@ -14965,12 +14991,14 @@ function ccApply(u, t, field, dur){
   { const cap=CC_DUR_MAX[(_ccSleep&&field==='stunned')?'_sleepT':field]; if(cap && dur>cap) dur=cap; }   /* v1452: a sleep (sleepApply) is held by the stun field but keeps the SLEEP ceiling (3.85 s), not the stun one (2.8 s) */
   /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
      deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
-  if(field==='slow'){ const m=slowMulFor((u&&u._castLv)||(u&&u.level)||1);
-    t.slowMul=Math.min(t.slowMul==null?1:t.slowMul, m); }
   if(brnd() >= ccChanceFor(u, t)){   /* v823: the SEEDED battle roll - Math.random made the server replay disagree with the fight */
     try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
     return false;
   }
+  /* v1452 BUG FIX (core rule 31): the strength is written only once the slow LANDS - a resisted slow does nothing (it was written before
+     the roll, so 773 of 773 resisted slows still deepened the target's slow). */
+  if(field==='slow'){ const m=slowMulFor((u&&u._castLv)||(u&&u.level)||1);
+    t.slowMul=Math.min(t.slowMul==null?1:t.slowMul, m); }
   const _ccPre=t[field]||0; t[field] = Math.max(_ccPre, dur); _ccLastDur=dur;
   /* v1452: _stunNS = the part of `stunned` that is NOT a sleep. Set when a stun lands on an awake unit (what it had before - a sleep that
      follows keeps it), raised by a stun that lands on a sleeper. A hit that wakes a sleeper leaves this much stun (sleepWake). */
@@ -15016,7 +15044,8 @@ function startAbilityClip(u,type){
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
 }
 /* v1138 sound: the spell's own code runs inside its sound context (render only - the core below is the effect, unchanged) */
-function doEffect(u,type,o){ if(!DD.on||!u||!u._castSlot) return _doEffectSfx.apply(this,arguments);   /* v1388 Damage Done: label this cast's hits (bookkeeping only) */
+function doEffect(u,type,o){ const _hz0=groundHazards.length; try{ return _doEffectDD.apply(this,arguments); } finally{ hzStampLv(u,_hz0); } }   /* v1452: a ground pool keeps its cast's skill level (hzStampLv) */
+function _doEffectDD(u,type,o){ if(!DD.on||!u||!u._castSlot) return _doEffectSfx.apply(this,arguments);   /* v1388 Damage Done: label this cast's hits (bookkeeping only) */
   const l=u._castSlot, p=DD.ctx, n0=groundHazards.length, f0=u._fuse?u._fuse.length:0; DD.ctx={src:u,l}; DD.last.set(u,{l,t:battleTime});
   try{ return _doEffectSfx.apply(this,arguments); } finally{ DD.ctx=p; ddTagFrom(u,l,n0,f0); } }
 function _doEffectSfx(u,type,o){ if(typeof SFX==='undefined'||!SFX.loop||!u||!u._castSlot) return _doEffectCore.apply(this,arguments);
@@ -15534,7 +15563,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const len=Math.hypot(ex-u.x,ey-u.y)||1;
       u._stampX0=u.x; u._stampY0=u.y; u._stampX1=ex; u._stampY1=ey; u._stampUX=(ex-u.x)/len; u._stampUY=(ey-u.y)/len;
       u._stampLen=len; u._stampT=len/(o.speed||9*METER); u._stampDur=u._stampT; u._stampW=W; u._stampDmg=dB*(o.mul||1.8)*rm;
-      u._stampPush=o.push||2.0*METER; u._stampStun=o.stun||1.0; u._stampHit=new Set(); u._stampFoes=foes.slice();
+      u._stampPush=o.push||2.0*METER; u._stampStun=o.stun||1.0; u._stampLv=(u._castLv|0)||0; u._stampHit=new Set(); u._stampFoes=foes.slice();
       u._abilHold=Math.max(u._abilHold||0,u._stampT+0.3);   // the ult clip rides the whole run
       if(typeof spawnStampTrail==='function') spawnStampTrail(u);   /* v1072: display only */
       ringBurst(u.x,u.y,0xffcf40,14); burstAt(u.x,u.y,0xff8844,12);
@@ -15560,7 +15589,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
     case 'firstspring':{ /* v369 (Phil): click-to-heal — the spring rises under the ally you aimed at (auto: the most-hurt ally) and heals every ally within 20 m of it */
       const R=o.radius||20*METER; let c=aimCtr; if(!c){ let w=null,ws=2; alliesOf(u).forEach(a=>{ const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} }); c=w?{x:w.x,y:w.y}:{x:u.x,y:u.y}; }
       spawnGroundFx('firstspring',c.x,c.y,3.2*METER,2.2); alliesOf(u).forEach(a=>{ if(Math.hypot(a.x-c.x,a.y-c.y)>R) return; healFrom(u,a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(c.x,c.y,0x5ee89b,24); burstAt(c.x,c.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
-    case 'taunt':{const _tR=o.radius||0;enemiesOf(u).forEach(e=>{if(_tR&&dist(u,e)>_tR)return;e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,(o.dur||3)+edgeTauntPlus(u,e));});u.drMul=1-tauntDrOf(o,_kLv);u.drT=o.dur||3;if(o.hitHeal){u._digHealT=o.dur||3;u._digHealPct=o.hitHeal;}   /* v1308 (Phil 7 Nov: "heals for 1% of his health per auto attack that hits him during that 3 seconds") */   /* v1112 nerf: 40% + 0.2 pt a level (59.8% at 100; was 1-0.4 x sm = 85% from level 89) */burstAt(u.x,u.y,0x6ea8ff,12);break;}
+    case 'taunt':{const _tR=o.radius||0;enemiesOf(u).forEach(e=>{if(_tR&&dist(u,e)>_tR)return;if(!ccRoll(u,e))return;   /* v1452: a taunt rolls to land like every control */e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,(o.dur||3)+edgeTauntPlus(u,e));});u.drMul=1-tauntDrOf(o,_kLv);u.drT=o.dur||3;if(o.hitHeal){u._digHealT=o.dur||3;u._digHealPct=o.hitHeal;}   /* v1308 (Phil 7 Nov: "heals for 1% of his health per auto attack that hits him during that 3 seconds") */   /* v1112 nerf: 40% + 0.2 pt a level (59.8% at 100; was 1-0.4 x sm = 85% from level 89) */burstAt(u.x,u.y,0x6ea8ff,12);break;}
     /* v1376 (Phil 12 Nov, Queen's Call): heal 5% of each hero's max HP at level 1 -> 15% at 100, + 30% of her Ability Power;
        energy 20 -> 35; attack speed AND cast speed +5% -> +20%, for 5 s */
     case 'rally':{ const _ul=(u.skillLv&&u.skillLv[0])||_kLv, _en=Math.round(lvRange(20,35,_ul)), _hs=1+lvRange(0.05,0.20,_ul), _pc=lvRange(0.05,0.15,_ul);
@@ -15919,7 +15948,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
       const _psC=(o.at==='target'&&aimCtr)?aimCtr:u, _psE=(o.at==='target');   /* v1391 (Phil 14 Nov: "center the back row skills on the target"): Grimsby's Ledger Slam lands around his target (to the body edge); the drag, silence and taunt are unchanged (toward him, as Grosk's) */
-      enemiesOf(u).forEach(e=>{ if(_psE?(dist(_psC,e)-bodyR(e)<=R):(dist(u,e)<=R)){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,(dur)+edgeTauntPlus(u,e)); if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
+      enemiesOf(u).forEach(e=>{ if(_psE?(dist(_psC,e)-bodyR(e)<=R):(dist(u,e)<=R)){ if(ccApply(u,e,'silencedT',dur)){ e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,(dur)+edgeTauntPlus(u,e)); }   /* v1452: the taunt and its silence are one control - one roll */ if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'pull'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
       /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX ... i asked you to use
          her own"). This burst was hardcoded gold-brown, which is Grosk's palette — he is the other
          hero on `pullsilence` — so Void Weaver's Gravity Knot painted his colours over her own
@@ -15939,14 +15968,14 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         o.hitTimes.slice(0,o.hits||o.hitTimes.length).forEach(_ht=>{ groundHazards.push({arrival:true,delay:Math.max(0.01,_ht*_clk-_ct),run:function(){
           const _pg=(u._tal&&u._tal.on.skillTgt&&u.alive&&!tg.alive)?(TalentFx.skillTgt(u,'punch',tg,o)||tg):tg;   /* TALENT HOOK skillTgt: a punch whose target has fallen (Grosk's Three Bites) */
           if(!u.alive||!_pg.alive)return; if(u._tal) TalentFx.partPre(u,_pg,'punch');   /* TALENT HOOK partPre: a Hammer Fists punch (its hit, its taunt and silence) */ dealDamage(u,_pg,_D,'#e0b070'); if(o.magicRider&&_pg.alive) dealDamage(u,_pg,_D*o.magicRider,'#b79bff','magic');
-          if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ _pg.forcedTarget=u; _pg.forcedTargetT=Math.max(_pg.forcedTargetT||0,(o.tauntDur||2)+edgeTauntPlus(u,_pg)); ccApply(u,_pg,'silencedT',o.tauntDur||2); }
+          if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ if(ccApply(u,_pg,'silencedT',o.tauntDur||2)){ _pg.forcedTarget=u; _pg.forcedTargetT=Math.max(_pg.forcedTargetT||0,(o.tauntDur||2)+edgeTauntPlus(u,_pg)); } }   /* v1452: one roll for the taunt-silence */
           if(u._tal) TalentFx.part(u,_pg,'punch');   /* TALENT HOOK part: the punch is over */
           burstAt(_pg.x,_pg.y,0xe0b070,10); if(o.ownFx==='gfist'){ try{ groskFistFx(u); }catch(_e){} } }}); });   /* v1217 Hammer Fists: the burst on his fist as this punch lands (display only) */
         u.attackAnim=.2; break; }
       const _pfD=((o.armorMul!=null)?unitArmorNow(u)*punchArmorPct(o,_kLv)*(u.dmgBuffT>0?u.dmgBuffMul:1):dB*(o.mul||0.30))*rm;   /* v1308: an armour flurry (Hammer Fists) */
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,_pfD,'#e0b070');
         if(o.magicRider&&tg.alive) dealDamage(u,tg,_pfD*o.magicRider,'#b79bff','magic');   /* v1292 (Phil 6 Nov: Maelvara's green "does magic damage also. 30% extra damage per strike as magical") */
-        if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,(o.tauntDur||2)+edgeTauntPlus(u,tg)); ccApply(u,tg,'silencedT',o.tauntDur||2); } }
+        if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ if(ccApply(u,tg,'silencedT',o.tauntDur||2)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,(o.tauntDur||2)+edgeTauntPlus(u,tg)); } } }   /* v1452: one roll for the taunt-silence */
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
     // ---- Vulmar (gravity) ----
     case 'abyssalundertow':   /* v1391: Veyr's Abyssal Undertow - its own code, the same singularity with a slow (und, below) */
@@ -15959,7 +15988,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
       const und=(type==='abyssalundertow');   /* v1391: decided by the effect code, not the hero key. v1136 Abyssal Undertow (Phil 14 Oct "rename and change veyrs"): Veyr's own version - the same drag and damage, but the
          collapse SLOWS 2 s instead of silencing (Absalie keeps Event Horizon: silence). Same mul/radius/pull, so his power is unchanged. */
-      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil,slow:und?(o.undertowSlow||2/0.7):0};   /* v1137 (Phil 15 Oct "make it a full 2 seconds"): 2 s AFTER ccDur's 30% cut, like Vael's Warcry fear */
+      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil,lv:(u._castLv|0)||0,slow:und?(o.undertowSlow||2/0.7):0};   /* v1137 (Phil 15 Oct "make it a full 2 seconds"): 2 s AFTER ccDur's 30% cut, like Vael's Warcry fear */
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'worldweight':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER, L=o.lift||2.0;   /* v920 Weight of the World (Phil): lift 2 s, slam, stun 1 s - not a pull */
       if(u._tal&&u._tal.on.at) TalentFx.at(u,type,ctr,o,dB*(o.mul||2.0)*rm);   /* TALENT HOOK at: the ultimate's centre and radius (Vulmar's The Pressed District, Avalanche Field, What Cannot Be Lifted) */
@@ -16016,7 +16045,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
       dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,tgt);   /* TALENT HOOK chill */ } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
-    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm;   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
+    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm; u._blizzLv=(u._castLv|0)||0;   /* v1452: the freeze rolls at the ult's level */   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
@@ -16456,8 +16485,9 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
   const _wxO=foes[0], _wxN=(_wxO._tal&&_wxO._tal.on.wax)?TalentFx.wax(_wxO,c):3;   /* TALENT HOOK wax: a Living Tallow wax landed (her rows: more wax, longer wax, encased sooner); 3 untalented */
   if(c._wax>=_wxN){ c._wax=0; c._waxT=0;
     const dur=tallowEncase(_tlv)*(1-(c.ctrlRes||0));
-    c.stunned=Math.max(c.stunned||0,ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
-    if(_wxO._tal&&_wxO._tal.on.wax) TalentFx.encase(_wxO,c,ccDur(dur));   /* TALENT HOOK encase: the encase as it landed (her rows may lengthen it, then act on it) */
+    if(ccRoll(_wxO,c,_tlv)){   /* v1452: the encase rolls to land (Living Tallow's level) */
+    ccSet(c,'stunned',ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
+    if(_wxO._tal&&_wxO._tal.on.wax) TalentFx.encase(_wxO,c,ccDur(dur)); }   /* TALENT HOOK encase: the encase as it landed (her rows may lengthen it, then act on it) */
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
     floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(foes[0],'tallow'); }
   else floatTexts.push({x:c.x,y:c.y-8,txt:'wax x'+c._wax,t:.7,color:'#e8d8b0',vy:1,sz:10}); }
@@ -18154,7 +18184,7 @@ function think(u,dt){
   if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; if(typeof SFX!=='undefined'&&SFX.loop) sfxMoment(u,'ult',sfxTickT(u._voidLandT,true),'deliver'); } } }   /* v1138 sound: the orb lands (counted down below this tick) */
   if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */ if(typeof SFX!=='undefined'&&SFX.log) sfxArrive(u,H);
       if(u._tal) TalentFx.landPre(u,null,H.slow?'abyssalundertow':'eventhorizon');   /* TALENT HOOK landPre: while the collapse resolves, its hits are that skill's */
-      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,H.slow?'#5fa8ff':'#9b5cff'); if(H.slow) e.slow=Math.max(e.slow||0,ccDur(H.slow)); else e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null;
+      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,H.slow?'#5fa8ff':'#9b5cff'); if(H.slow) ccLand(u,e,'slow',ccDur(H.slow),H.lv||0); else ccLand(u,e,'silencedT',ccDur(H.sil),H.lv||0);   /* v1452: the collapse's control rolls to land; its slow is as strong as its level */ e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null;
         if(!H.slow&&e.alive&&u._tal&&(u._tal.on.ccHit||u._tal.on.ccOut)) TalentFx.ccHit(u,e,'silencedT',ccDur(H.sil),true); });   /* TALENT HOOK ccHit (direct): the collapse writes its silence without ccApply */
       if(u._tal) TalentFx.land(u,null,H.slow?'abyssalundertow':'eventhorizon');   /* TALENT HOOK land: the collapse has resolved */
       ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
@@ -18304,7 +18334,7 @@ function think(u,dt){
     return; }
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
     if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=(u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzR',8*METER):8*METER   /* TALENT HOOK num: Blizzard's radius (and its tick) */, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._blizzSM||1);
-      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */ if(brnd()<((u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzFreeze',0.10,e):0.10)   /* TALENT HOOK num: the freeze chance (the draw itself is unchanged); e: the enemy it is rolled for (Vaelora's Winter Hunt and her stun limits) */){ e.stunned=Math.max(e.stunned||0,ccDur(1.2)); if(u._tal&&(u._tal.on.ccHit||u._tal.on.ccOut)) TalentFx.ccHit(u,e,'stunned',ccDur(1.2),true);   /* TALENT HOOK ccHit: a freeze written without ccApply */ if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
+      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */ if(brnd()<((u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzFreeze',0.10,e):0.10)   /* TALENT HOOK num: the freeze chance (the draw itself is unchanged); e: the enemy it is rolled for (Vaelora's Winter Hunt and her stun limits) */&&ccLand(u,e,'stunned',ccDur(1.2),u._blizzLv||0)){ if(u._tal&&(u._tal.on.ccHit||u._tal.on.ccOut)) TalentFx.ccHit(u,e,'stunned',ccDur(1.2),true);   /* TALENT HOOK ccHit: a freeze written without ccApply */ if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
   if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
@@ -18318,7 +18348,7 @@ function think(u,dt){
     return; }   // rooted: cannot auto-attack or cast during the channel (Static Veil grants 30% dodge throughout)
   /* v790 (Phil: "and slow speed for slows") - the slow's STRENGTH comes from the skill that cast
      it, not a constant. This was 0.55 for every slow in the game from every hero at every level. */
-  if(u.slow>0)u.slow-=dt; else if(u.slowMul!=null) u.slowMul=null;
+  if(u.slow>0)u.slow-=dt*(1+2*(u.ctrlRes||0)); else if(u.slowMul!=null) u.slowMul=null;   /* v1452: Control Resist shortens a slow */
   const spd=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*(((u._hexUntil||0)>battleTime)?EDGE.hexMove:1)*MOVE_MUL*(((u._chaseT||0)>0)?(u._chaseMul||1):1);   // v309: +20% travel to match the stride; v1044 KonWu's chase after Phantom Step
   /* v542 (Phil, 9 Sep): "while a heroes ult animation is going on, they cannot use other animations including walk
      — unless CC'd then it breaks animation — since they cannot walk animation it also means they cannot move
@@ -18417,7 +18447,7 @@ function think(u,dt){
           if(u._lhN===0&&t){ const suit=Math.floor(brnd()*4)%4;
             firePassiveFx(u,t);
             if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',img:'fx-heart',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
-            else if(suit===1){ t.stunned=Math.max(t.stunned||0,ccDur(0.5*(1-(t.ctrlRes||0)))); floatTexts.push({x:t.x,y:t.y-8,txt:'♠',img:'fx-spade',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
+            else if(suit===1){ ccLand(u,t,'stunned',ccDur(0.5*(1-(t.ctrlRes||0))),ccLvOf(u,3));   /* v1452: the spade's stun rolls to land */ floatTexts.push({x:t.x,y:t.y-8,txt:'♠',img:'fx-spade',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
             else if(suit===2){ t._shredPct=Math.max(t._shredPct||0,0.25*_pm); t._shredT=Math.max(t._shredT||0,4); floatTexts.push({x:t.x,y:t.y-8,txt:'♦',img:'fx-diamond',t:.8,color:'#e0a83a',vy:1.2,sz:14}); }
             else { healUnit(u,dmg*0.5*_pm); floatTexts.push({x:t.x,y:t.y-8,txt:'♣',img:'fx-club',t:.8,color:'#8fe0a0',vy:1.2,sz:14}); } } }
         // Powdered Slumber (Lysara): her attacks gradually blind what she hits.
@@ -19486,7 +19516,7 @@ function _updateBattleCore(dt){
            still inside the lane behind her, is hit once. */
         const near=dist(u,e)<=u._stampW+bodyR(u)+bodyR(e);
         if(near || (tt<=along+8 && tt>=-8 && Math.abs(side)<=u._stampW)){ u._stampHit.add(e);
-          dealDamage(u,e,u._stampDmg,'#ffcf40'); e.stunned=Math.max(e.stunned||0,ccDur((u._stampStun||1)*(1-(e.ctrlRes||0))));
+          dealDamage(u,e,u._stampDmg,'#ffcf40'); ccLand(u,e,'stunned',ccDur((u._stampStun||1)*(1-(e.ctrlRes||0))),u._stampLv||0);   /* v1452: the stampede's stun rolls to land */
           if(e&&e._tal&&e._tal.on.unmoved&&e.immovable) TalentFx.unmoved(e,u,'charge'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const s=side>=0?1:-1;   /* v1389: immovable holds (Pellucid) */
             e.x+=(-u._stampUY)*s*u._stampPush; e.y+=(u._stampUX)*s*u._stampPush;
             e.x=Math.max(40,Math.min(FW-40,e.x)); e.y=Math.max(90,Math.min(FD-40,e.y)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.35); }
@@ -19505,7 +19535,7 @@ function _updateBattleCore(dt){
     if((u._wardT||0)>0) u._wardT-=dt;
     if((u._devourT||0)>0){ u._devourT-=dt; if(u._devourT<=0)u._devourBonus=0; }
     if((u._stungT||0)>0) u._stungT-=dt;
-    if((u._sleepT||0)>0) u._sleepT-=dt;
+    if((u._sleepT||0)>0) u._sleepT-=dt*(1+2*(u.ctrlRes||0));   /* v1452: Control Resist shortens a sleep as it does a stun */
     if((u._blT||0)>0){ u._blT-=dt; if(u._blT<=0)u._blStk=0; }
     // Vesper "The Annotator"'s pages coming back down the lane
     if(u._pageBack){ u._pageBack.t-=dt; if(u._pageBack.t<=0){ const pb=u._pageBack; u._pageBack=null;
@@ -19638,7 +19668,7 @@ function _updateBattleCore(dt){
     if(u.pass.hush){ const _huP=(u._tal&&u._tal.on.num)?TalentFx.num(u,'hushP',5):5;   /* TALENT HOOK num: Hush's period (Lumi's Early Hours; The Street at Dawn: every second); 5 untalented */
       u._hushT=(u._hushT||0)+dt; if(u._hushT>=_huP){ u._hushT-=_huP; const foes=enemiesOf(u).filter(e=>e.alive);
       if(foes.length){ let e=foes[Math.floor(brnd()*foes.length)%foes.length]; if(u._tal&&u._tal.on.skillTgt) e=TalentFx.skillTgt(u,'hush',e,{list:foes})||e;   /* TALENT HOOK skillTgt: whom Hush silences (Lumi's One Voice, Sun in the Eyes); the seeded draw is made as before */
-        e.silencedT=Math.max(e.silencedT||0,(u._tal&&u._tal.on.num)?TalentFx.num(u,'hushD',ccDur(1*(u.passMul||1)),e):ccDur(1*(u.passMul||1)));   // v268: seeded, not frame-count-derived   /* TALENT HOOK num: Hush's silence (Lumi's Early Quiet, One Voice, Lingering Hush) */
+        ccLand(u,e,'silencedT',(u._tal&&u._tal.on.num)?TalentFx.num(u,'hushD',ccDur(1*(u.passMul||1)),e):ccDur(1*(u.passMul||1)),ccLvOf(u,3));   /* v1452: Hush rolls to land (its passive's level) */   // v268: seeded, not frame-count-derived   /* TALENT HOOK num: Hush's silence (Lumi's Early Quiet, One Voice, Lingering Hush) */
         if(u._tal&&u._tal.on.pass) TalentFx.pass(u,e,'hush');   /* TALENT HOOK pass: Hush has silenced e (Lumi's Voices, Muffled, Quiet Courage, Stolen Breath, Swallowed Word, Many Voices) */
         /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
@@ -19655,7 +19685,7 @@ function _updateBattleCore(dt){
         if(u._tal&&u._tal.on.pass) TalentFx.pass(u,a,'unwind');   /* TALENT HOOK pass 'unwind': Unwind has lifted one effect (Tessit's Burden, Clear, Kind Hands, Careful / Wide Hand) */
         firePassiveFx(u,a,{aboveBar:true});
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); if(typeof SFX!=='undefined'&&SFX.loop) sfxPassive(u,'unwind'); } } }
-    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); firePassiveFx(u,e,{aboveBar:true}); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
+    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; ccLand(u,e,'stunned',ccDur(1.2),ccLvOf(u,3)); firePassiveFx(u,e,{aboveBar:true});   /* v1452: rolls to land */ burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
   });
   if(DD.on){ DD.ctx=null; DD.actor=null; }
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=ddHp(u,Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt),u); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
@@ -19665,10 +19695,10 @@ function _updateBattleCore(dt){
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; const _talH=h._talU?TalentFx.hotPre(u,h):null;   /* TALENT HOOK hot tick (before): only a heal over time a talented healer's rows made hers */ if(DD.on){ const _g=DD.tag.get(h), _p=DD.healBy; DD.healBy=_g?_g.src:null; try{ healUnit(u,h.hps); } finally{ DD.healBy=_p; } } else healUnit(u,h.hps); if(_talH) TalentFx.hotPost(u,h,_talH);   /* TALENT HOOK hot tick (after) */ h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=u._bnSh||0;}   /* v1443: a boon's shield does not run out with a skill's timer (_bnSh: only BoonFx sets it) */
-    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ if(u.dmgBuffT>0){u.dmgBuffT-=dt; if(u.dmgBuffT<=0)u.dmgBuffMul=1;} if(u.drT>0){u.drT-=dt; if(u.drT<=0)u.drMul=1;}   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): an expired buff's multiplier no longer seeds the next one */ if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._talDisarmT>0)u._talDisarmT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
+    if(u.hasteT>0){u.hasteT-=dt; if(u.hasteT<=0)u.hasteMul=1;} if((u.castT||0)>0){u.castT-=dt; if(u.castT<=0)u.castMul=1;}   /* v1376 cast speed */ if(u.dmgBuffT>0){u.dmgBuffT-=dt; if(u.dmgBuffT<=0)u.dmgBuffMul=1;} if(u.drT>0){u.drT-=dt; if(u.drT<=0)u.drMul=1;}   /* v1311 audit (Phil 8 Nov: "effects accidentally earning multiple gains"): an expired buff's multiplier no longer seeds the next one */ if(u._digHealT>0)u._digHealT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt*(1+2*(u.ctrlRes||0));   /* v1452: Control Resist shortens a taunt */ if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._talDisarmT>0)u._talDisarmT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
     if(u._gearDelayedHeals&&u._gearDelayedHeals.length){ for(let i=u._gearDelayedHeals.length-1;i>=0;i--){ const h=u._gearDelayedHeals[i]; h.t-=dt; if(h.t<=0){ healUnit(u,h.amt); u._gearDelayedHeals.splice(i,1); } } }
-    if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
-    if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
+    if(u.silencedT>0)u.silencedT-=dt*(1+2*(u.ctrlRes||0));   // Grosk silence   /* v1452 BUG FIX (core rule 28): Control Resist shortens EVERY control with a length, not only stuns and fears - silence, slow, sleep, taunt (roots and freezes are stuns) */
+    if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt*(1+2*(u.ctrlRes||0)); if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
     if(u.pullT>0){ u.pullT-=dt; const p=(u.immovable||(u._gearImmovableT||0)>0)?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22*UNIT_SIZE)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null||u._pullGhost){ u.pullStop=null; u.pullSpeed=null; u._pullGhost=false; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe right up to Vulmar, phasing through bodies.
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
@@ -19692,7 +19722,7 @@ function _updateBattleCore(dt){
       if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
       if(_chO) TalentFx.part(_chO,h,'chant');   /* TALENT HOOK part: the circle has mended its side this second */
       const _hzO=(h._talZ&&h._talZ._tal&&h._talZ._tal.on.num)?h._talZ:null; if(_hzO) TalentFx.partPre(_hzO,h,'hz');   /* TALENT HOOK partPre: this tick is a talented hero's own water (Orryn's whirlpool and flood: only his rows set h._talZ) */
-      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,_hzO?TalentFx.num(_hzO,'hzTick',h.dmg,e,h):((h._talH&&h._talH._tal)?TalentFx.num(h._talH,'hzTick',h.dmg,e):h.dmg),h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true);   /* TALENT HOOK num 'hzTick' (Orryn: his own water, h._talZ, first):  a tick of a hazard a talented hero's rows made his (h._talH: Korvux's Falling Star crater; unit = the enemy) */ if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,(h.choir&&h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirSil',ccDur(h.silence),e):ccDur(h.silence));   /* TALENT HOOK num: the Choir's silence on e (Nerisse's Choir of Warnings, Long Silence, Echo) */
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,dotTickAmt(h.src,e,_hzO?TalentFx.num(_hzO,'hzTick',h.dmg,e,h):((h._talH&&h._talH._tal)?TalentFx.num(h._talH,'hzTick',h.dmg,e):h.dmg),h.src?dotDmgKind(h.src,h.color,h.kind):null),h.color,true);   /* TALENT HOOK num 'hzTick' (Orryn: his own water, h._talZ, first):  a tick of a hazard a talented hero's rows made his (h._talH: Korvux's Falling Star crater; unit = the enemy) */ if(h.slow) ccLand(h.src||h.owner,e,'slow',ccDur(h.slow),h._ccLv||0);   /* v1452: a pool's slow rolls to land and slows by its skill level (45% at 1 -> 70% at 100), not always 45% */ if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence) ccLand(h.src||h.owner,e,'silencedT',(h.choir&&h.owner&&h.owner._tal&&h.owner._tal.on.num)?TalentFx.num(h.owner,'choirSil',ccDur(h.silence),e):ccDur(h.silence),h._ccLv||0);   /* v1452: rolls to land */   /* TALENT HOOK num: the Choir's silence on e (Nerisse's Choir of Warnings, Long Silence, Echo) */
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;
             const _d=Math.hypot(a.x-e.x,a.y-e.y); if(_d<_bd){_bd=_d;_b=a;} }
@@ -21772,9 +21802,9 @@ function castGearSkill(u,_fromTick){
   switch(ty){
     case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&t&&t._tal&&t._tal.on.unmoved&&t.immovable) TalentFx.unmoved(t,u,'knock'); /* TALENT HOOK unmoved: a displacement his immovability refuses (Pellucid's Unmoved) */ if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
     case 'stun': { const ts=p.target==='caster' ? [_gsNearCaster(u)||_gsNearFoe(u)].filter(Boolean) : _gsFoes(u,p.target==='aoe'?'aoe':'near',p.target==='aoe'?3:1);   /* v646: Static Crown stuns the nearest CASTER */
-      ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,ccDur(p.dur||0.75)); }); break; }
-    case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,ccDur(p.dur||1.25)); break; }
-    case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ t.slow=Math.max(t.slow||0,ccDur(p.dur||2)); if((p.pct||0)>=0.9) t.stunned=Math.max(t.stunned||0,ccDur((p.dur||1.25)*0.6)); }); break; }
+      ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); ccLand(u,t,'stunned',ccDur(p.dur||0.75)); }); break; }   /* v1452: gear controls roll to land (the hero's level) */
+    case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) ccLand(u,t,'silencedT',ccDur(p.dur||1.25)); break; }
+    case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ if(ccLand(u,t,'slow',ccDur(p.dur||2))&&(p.pct||0)>=0.9) ccSet(t,'stunned',ccDur((p.dur||1.25)*0.6)); }); break; }
     case 'shield': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.ap?Math.round((u.apow||u.dmg)*(p.ap||1)):Math.round(w.maxHp*(p.pct||0.1)); w.shield=(w.shield||0)+amt; w.shieldT=Math.max(w.shieldT||0,p.dur||5); if(p.energy) w.energy=Math.min(100,w.energy+p.energy); }); break; }
     case 'heal': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.missing?Math.round((w.maxHp-w.hp)*p.missing):Math.round(w.maxHp*(p.pct||0.1));
       if(p.delay){ (w._gearDelayedHeals||(w._gearDelayedHeals=[])).push({t:p.delay,amt}); }
@@ -21794,8 +21824,8 @@ function castGearSkill(u,_fromTick){
       if(p.blinkBack){ const f=_gsNearFoe(u); if(f){ const dx=u.x-f.x,dy=u.y-f.y,dd=Math.hypot(dx,dy)||1; u.x+=dx/dd*60; u.y+=dy/dd*60; u._ax=u.x; u._ay=u.y; } }
       if(p.who==='nearAllies'){ _gsAllies(u,'allies').forEach(w=>{ if(p.as){ w.hasteT=Math.max(w.hasteT||0,p.dur||3); w.hasteMul=Math.max(w.hasteMul||1,p.as); } }); } break; }
     case 'mark': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':(p.target==='far'?'far':'near'),5);
-      ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,ccDur(p.dur||2)); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
-    case 'taunt': { const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,(p.dur||1.5)+edgeTauntPlus(u,t)); }); break; }
+      ts.forEach(t=>{ if(p.kind==='asDebuff'){ ccLand(u,t,'slow',ccDur(p.dur||2)); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
+    case 'taunt': { const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ if(!ccRoll(u,t)) return; t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,(p.dur||1.5)+edgeTauntPlus(u,t)); }); break; }
     case 'cleanse': { _gsAllies(u,p.who||'allies').forEach(w=>{ w.stunned=0; w.fearT=0; w.slow=0; w.silencedT=0; }); break; }
     case 'untarget': { if(p.ccImmune){ u._gearImmovableT=Math.max(u._gearImmovableT||0,p.ccImmune); } else { u._noTarget=true; u._noTargetT=(p.dur||1.5); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); } break; }   // v268: SIM-TIME countdown (was a wall-clock setTimeout that ignored pause, speed and the skip loop)
     case 'ward': { const w=_gsAllies(u,p.who||'lowest')[0]||u; w._wardT=Math.max(w._wardT||0,p.dur||2); break; }
@@ -41342,7 +41372,7 @@ if(!window._ewBackWired){ window._ewBackWired=true; let _leaving=false, depth=0,
 /* Bruiser (was Brute) synergy: a chance to stun on hit (wraps the engine's dealDamage only while a match is being fought) */
 (function(){ if(typeof dealDamage!=='function') return; const _dd=dealDamage;
   dealDamage=function(src,tgt,amt,color,kind,silent){ const r=_dd.apply(this,arguments);
-    try{ if(ED.fighting && src && src._edStun && tgt && tgt.alive && tgt.team!==src.team && brnd()<src._edStun) tgt.stunned=Math.max(tgt.stunned||0,ccDur(0.6)); }catch(e){}
+    try{ if(ED.fighting && src && src._edStun && tgt && tgt.alive && tgt.team!==src.team && brnd()<src._edStun) ccLand(src,tgt,'stunned',ccDur(0.6));   /* v1452: rolls to land */ }catch(e){}
     return r; }; })();
 </script>
 
