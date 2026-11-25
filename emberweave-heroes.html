@@ -7346,7 +7346,8 @@ function ultTargetOK(u,ab,o){ const mode=ultAimMode(ab), D=ULT_DEF[ab]||{}; if(!
   if(mode==='self') return o===u;
   if(mode==='summon') return o.team===u.team && !!o._summon && o._summonOwner===u;
   return true; }
-const HEALER_ULT_HITS=new Set(['symphony','sunburst','hivemind']);   /* v1103: healer ults that also damage enemies - AUTO fires them as soon as they are full */
+const HEALER_ULT_HITS=new Set(['symphony','sunburst','hivemind']);
+const HEAL_ONLY_ULTS=new Set(['rewind']);   /* v1452 BUG FIX (skills audit line 10): Linnet's Rewind only heals and revives, but her hero entry is not a healer, so AUTO spent it the instant she was full with nobody hurt; it now waits for the first ally damage (or a fallen ally) like First Spring and Rally */   /* v1103: healer ults that also damage enemies - AUTO fires them as soon as they are full */
 function ultBlockedReason(u){ const ab=u.abilityOverride||u.t.ability, mode=ultAimMode(ab), D=ULT_DEF[ab]||{};
   if(mode==='summon' && !units.some(o=>o.alive&&o._summon&&o._summonOwner===u)) return 'no summoned creature to feed on';
   if(mode==='target' && D.range && !units.some(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&dist(u,o)<=D.range)) return ewT('bat2.no_enemy_within',{n:Math.round(D.range/METER)});
@@ -7944,12 +7945,12 @@ function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuha]:[
    hit off Ability Power (doEffect: heroScaleMode 'ap' -> dB=apB) and an Attack hero's off Attack ('ad' -> apB=dB), but the readouts
    multiplied Attack for most skills and drew the attack swords on every damage number. The readout now uses the stat the fight uses,
    and an Ability Power hero's damage numbers carry the Ability Power icon (buff lines like 'team +30%' keep theirs). */
-function skillEffectStr(key,idx,atk,hp){ const r=_skillEffectStrRaw(key,idx,atk,hp), d=(HERO_TYPES[key]||{}).damageProfile;
+function skillEffectStr(key,idx,atk,hp,ap){ const r=_skillEffectStrRaw(key,idx,atk,hp,ap), d=(HERO_TYPES[key]||{}).damageProfile;
   const o=((d==='Magic'||d==='Healer')&&typeof r==='string')?r.replace(/\{i:s:attack\}(?= \d)/g,'{i:t:apow}'):r;
   return (typeof o==='string'&&o)?langDesc(o):o; }   /* v1271 LANGUAGES: the effect line in the player's language (lang/<code>.content.json; display only) */
-function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv), _atkRaw=atk;   /* v1112: the evade counter swings off raw Attack (damage(): tgt.dmg) */
+function _skillEffectStrRaw(key,idx,atk,hp,ap){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv), _atkRaw=atk;   /* v1112: the evade counter swings off raw Attack (damage(): tgt.dmg) */
   if(key===HERO61.KEY){if(idx===0)return '4s all-damage immunity';if(idx===3)return '+'+(20+2*(lv-1))+' team Armor';const blue=idx===2;return (((blue?.18:.06)+(blue?.0009:.0003)*(lv-1))*100).toFixed(2)+'% target max HP + '+(blue?'200':'50')+'% AP';}
-  let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
+  let apw=(ap>0)?Math.round(ap):Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display   /* v1452 BUG FIX (skills audit line 13): the caller passes the hero's REAL Ability Power (the Stats tab's, the one the fight uses) - the estimate from Attack put Glacial Prison at 104 when it hits for 295 */
   if(!apw) apw=atk;
   { const _dp=t.damageProfile; if(_dp==='Magic'||_dp==='Healer') atk=apw; else if(_dp==='Attack') apw=atk; }   /* v1101: the stat the fight uses */   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
   if(idx===0){ const d=heroUltDisp(key,ULT_DEF[t.ability]||{},lv);   /* v1311: ULT_HERO_MUL */
@@ -13470,7 +13471,7 @@ function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1
   if(_talHd&&u.alive&&u.hp>0) TalentFx.held(u);   /* TALENT HOOK held (2 of 2): it held (Joss's Kept Word: his Sanctuary Guard kept an ally from falling) */
   if(u.hp<=0&&u.alive&&u._tal&&u._tal.on.lethal) TalentFx.lethal(u);   /* TALENT HOOK lethal: a learned talent may keep the unit at 1 HP */
   if(u.hp<=0&&u.alive&&u._talW) TalentFx.teamLethal(u,a);   /* TALENT HOOK teamLethal: a talented unit watching it may keep it at 1 HP (a = the killing hit as it took the HP: Grosk's Never Left Behind takes it) */
-  if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0; if(u._pend){ u._pend=null; u._castNow=0; }   /* v1452: death cancels a wind-up (a revived caster never fires a spell it began before it fell) */burstAt(u.x,u.y,u.t.color,20);
+  if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0; if(u._pend){ u._pend=null; u._castNow=0; } u._blizzT=0; u._stormT=0;   /* v1452: death ends a channel too */   /* v1452: death cancels a wind-up (a revived caster never fires a spell it began before it fell) */burstAt(u.x,u.y,u.t.color,20);
     if(GSPLIT.active) BoonFx.fell(u,_bnK);   /* BOON HOOK death: a kill's boons (Pyre, Rising, Accreting ...) and a fallen hero's (Vengeance, Inheritance) */
     if(u._tal||u._talW) TalentFx.death(u);   /* TALENT HOOK death */
     if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
@@ -14774,6 +14775,10 @@ function shotSpark(key,e){ if(!e||typeof spawnGroundFx!=='function'||!FX2_DEF[ke
   try{ window._fxTgtH=e.sprH||null; window._fxTgtU=null; window._fxAboveBar=false; _fxAllow=true; const fo=spawnGroundFx(key,e.x,e.y,1.2*METER,FX2_DEF[key].dur);   /* chest height, where the tracer lands: a unit sprite is a camera-facing billboard, so its height runs along CAMERA up (the v493 trap) */
     if(fo&&fo.m&&typeof camera!=='undefined'){ fo.m.position.set(wx(e.x),0.05,wz(e.y)); fo.m.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar((e.sprH||3.9)*0.62)); fo.m.renderOrder=2; }   /* in front of the body it hits */ }catch(err){}
   finally{ _fxAllow=false; window._fxTgtH=null; } }
+/* v1452 BUG FIX (skills audit line 6): a hit that waits for its projectile. The effect runs `delay` seconds later (an arrival entry, as every
+   delivered cast) with the cast's own slot, level and multiplier restored for that moment, so it counts as the same skill hit it was. */
+function castLater(u,delay,fn){ const cs=u._castSlot, lv=u._castLv, sm=u._castSM;
+  groundHazards.push({arrival:true,delay:Math.max(0,delay),run:function(){ const p0=u._castSlot,p1=u._castLv,p2=u._castSM; u._castSlot=cs; u._castLv=lv; u._castSM=sm; try{ fn(); } finally{ u._castSlot=p0; u._castLv=p1; u._castSM=p2; } }}); }
 function abilShot(u,o,e,color,onHit){
   if(o && o.pfx && FX2_DEF[o.pfx] && typeof spawnProjFx==='function'){
     try{ const co=castOrigin(u,e.x,e.y); window._projTgtU=e; window._fxCaster=u; spawnProjFx(o.pfx,co.x,co.y,e.x,e.y,o.pscale||2.6,o.pdur||0.30,onHit,co.h); return true; }catch(err){}
@@ -14781,6 +14786,14 @@ function abilShot(u,o,e,color,onHit){
   try{ spawnShot(u,e,color); }catch(err){}
   if(onHit)onHit(); return false;
 }
+/* v1452 BUG FIX (skills audit line 8): body points and pairwise midpoints miss some best circles (7 of 150 AUTO casts caught one enemy fewer).
+   The best circle of radius R can always be moved until two bodies sit on its rim, so the two centres through each close pair are added;
+   a spot from them is taken only when it catches MORE enemies (equal counts keep the old choice). reach > 0: every candidate is pulled
+   inside the reach first, so the spot judged is the spot the skill really lands on. */
+function aimCandsExact(foes,R){ const out=[]; for(let i=0;i<foes.length;i++)for(let j=i+1;j<foes.length;j++){ const a=foes[i],b=foes[j], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy);
+    if(!(d>0)||d>2*R) continue; const h=Math.sqrt(Math.max(0,R*R-d*d/4))*0.999, mx=(a.x+b.x)/2, my=(a.y+b.y)/2, px=-dy/d, py=dx/d;
+    out.push({x:mx+px*h,y:my+py*h},{x:mx-px*h,y:my-py*h}); } return out; }
+function aimClampTo(u,c,reach){ if(!(reach>0)) return c; const d=Math.hypot(c.x-u.x,c.y-u.y); return d>reach?{x:u.x+(c.x-u.x)/d*reach,y:u.y+(c.y-u.y)/d*reach}:c; }
 function densestEnemyCluster(u,R){ const foes=enemiesOf(u); if(!foes.length) return null;
   // A body position plus pairwise midpoints finds a circle covering the most bodies.
   // Returning a centroid can put the spell on empty floor and miss the very pack it selected.
@@ -14790,6 +14803,7 @@ function densestEnemyCluster(u,R){ const foes=enemiesOf(u); if(!foes.length) ret
   let best=null,bn=-1,bhp=-1,bd=Infinity;
   for(const c of centers){let n=0,hp=0; for(const e of foes){if(dist(c,e)<=R){n++;hp+=e.hp||0;}}
     const d=dist(u,c); if(n>bn||(n===bn&&(hp>bhp||(hp===bhp&&d<bd)))){best=c;bn=n;bhp=hp;bd=d;}}
+  for(const c of aimCandsExact(foes,R)){ let n=0; for(const e of foes) if(dist(c,e)<=R) n++; if(n>bn){ best=c; bn=n; } }   /* v1452 */
   return best?{x:best.x,y:best.y,n:bn}:null; }
 /* v579 (Phil, 12 Sep 2026: "boar shamans cast ability seems to not land on enemy or allies, its
    meant to heal or damage but it lands in a random place").
@@ -15149,15 +15163,17 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       // rounds leave together, each landing with its own effect on top of the volley damage.
       if(u.pass&&u.pass.arsenal){ const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).filter(e=>e.alive);
         const prime=(tgt&&tgt.alive)?tgt:(es[0]||null); if(!prime)break; const pm=(u.passMul||1);
-        es.slice(0,o.n||5).forEach(e=>dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffe08a'));
+        const _aD=dB*(o.mul||1.8)*rm, _aT=k=>((ARSENAL[k%6]||{}).dur||0.25);   /* v1452: each round's damage lands when that round arrives (its flight time, ARSENAL[i].dur), not at the release */
+        es.slice(0,o.n||5).forEach((e,k)=>castLater(u,_aT(k),function(){ if(e.alive) dealDamage(u,e,_aD,'#ffe08a'); }));
         for(let i=0;i<6;i++){ const e=es[i%Math.max(1,es.length)]||prime; const ex=e.x, ey=e.y;
           try{ spawnArsenalShot(u,e,i,()=>arsenalImpact(i,ex,ey)); }catch(err){} }
-        // and every rider at once, on the primary
+        // and every rider at once, on the primary - when the first round reaches it (v1452)
+        castLater(u,_aT(0),function(){ if(!prime.alive) return;
         ccApply(u,prime,'stunned',0.4*pm);
         ccApply(u,prime,'slow',1.5*pm);
         pushDot(prime,_sD*0.18*pm,3,1,'#c0392b',u);
         enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm,'#ffa657'); });
-        dealDamage(u,prime,_sD*0.40*pm,'#ffe08a');
+        dealDamage(u,prime,_sD*0.40*pm,'#ffe08a'); });
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
       if(o.evadeEva){ const _add=Math.max(0,Math.min(o.evadeEva,0.75-(u.evaStat||0))); u.evaStat=(u.evaStat||0)+_add; u._miragEva=(u._miragEva||0)+_add;
@@ -15585,8 +15601,9 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>_lnE||Math.abs(rx*uy-ry*ux)>W)return;
           groundHazards.push({arrival:true,delay:Math.max(0.05,proj/_spd),run:function(){ if(!e.alive)return; if(u._tal) TalentFx.landPre(u,e,type);   /* TALENT HOOK landPre: the hit that follows is the line's */ dealDamage(u,e,_D,'#5ed0e8'); if(u._tal) TalentFx.land(u,e,type);   /* TALENT HOOK land: the sabers have cut this enemy */ burstAt(e.x,e.y,0x5ed0e8,8); }}); });
         break; }
+      const _ptD=dB*(o.mul||1.6)*rm, _ptT=o.pdur||0.30;   /* v1452: Volt Pike, Golden Quill, Featherfang - each enemy is hit when the throw (abilShot, pdur) reaches it */
       foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>len+24)return;
-        if(Math.abs(rx*uy-ry*ux)<=W) (o.frost?dealFrostDamage:dealDamage)(u,e,dB*(o.mul||1.6)*rm,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); });
+        if(Math.abs(rx*uy-ry*ux)<=W) castLater(u,_ptT*Math.max(0,Math.min(1,proj/len)),function(){ if(e.alive) (o.frost?dealFrostDamage:dealDamage)(u,e,_ptD,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); }); });
       abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
     case 'warcry':{ u.dmgBuffMul=(o.mul||1.4)+(o.mulPerLv||0)*vaelSteps(u._castLv); u.dmgBuffT=o.dur||6;   /* v1024 (Phil): Vael +10% +0.2% per skill level */   // self attack buff + a brief fear (short stun) on nearby heroes
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
@@ -15801,7 +15818,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         _rw.push(a);
         if(a.alive){ if(h>a.hp){ healFrom(u,a,h-a.hp); burstAt(a.x,a.y,0xf0c86a,12); } }
         else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*skLvNum('rewind',o,_kLv))); if(DD.on) ddHeal(a,a.hp,u);   /* v1112: 40% + 0.15 pt a level */
-          a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0;
+          a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0; a._pend=null; a._castNow=0; a._sleepT=0; a._blizzT=0; a._stormT=0;   /* v1452 BUG FIX (skills audit line 4): the cast he died in is gone - a revived hero never finishes it (its cost stays spent) */
           ringBurst(a.x,a.y,0xf0c86a,20);
           floatTexts.push({x:a.x,y:a.y-18,txt:'REWOVEN',t:1.4,color:'#f0c86a',vy:1,sz:14}); } });
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.25);
@@ -16045,10 +16062,12 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       const inRange=foes.filter(e=>dist(u,e)<=reach); if(!inRange.length)break;
       const tg2=inRange.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const dx=tg2.x-u.x, dy=tg2.y-u.y, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len, W=o.width||34*UNIT_SIZE;
+      const _foD=apB*(o.mul||1.1)*rm, _foT=o.pdur||0.9;   /* v1452: each enemy is hit when the orb reaches it (it flies to tg2 in pdur), not at the release */
       inRange.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, along=rx*ux+ry*uy;
         if(along<-12||along>len+24||Math.abs(rx*uy-ry*ux)>W)return;
-        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',2.5); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */
-        burstAt(e.x,e.y,0xcfeeff,8);
+        castLater(u,_foT*Math.max(0,Math.min(1,along/len)),function(){ if(!e.alive) return;
+        dealFrostDamage(u,e,_foD,'#9fe0ff','magic'); ccApply(u,e,'slow',2.5); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */
+        burstAt(e.x,e.y,0xcfeeff,8); });
       });
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
@@ -18264,6 +18283,10 @@ function think(u,dt){
      and the spell fired when the control ended (Sylthaine's Frozen Orb stunned 0.6 s into its 1 s cast still fired at 2.46 s). The
      control now cancels it here, the tick it lands; the cooldown / energy stay spent. (Silence reaches castTick and cancels there.) */
   if(u._pend&&((u.stunned>0)||((u.fearT||0)>0))) castCancel(u);
+  /* v1452 BUG FIX (skills audit line 5; design: a channelled skill stops when its caster is controlled or dies, as Nerisse's choir does):
+     Blizzard (Sylthaine, Vaelora) and Thunder Shower (Fritz, Calypsa) tick below the stun and fear returns, so a stun only paused them
+     (every tick still landed afterwards) and silence did nothing. A stun, fear, silence or sleep now ends the storm. */
+  if(((u._blizzT||0)>0||(u._stormT||0)>0)&&((u.stunned>0)||((u.fearT||0)>0)||((u.silencedT||0)>0))){ u._blizzT=0; u._stormT=0; u._ultRootT=0; }
   if(u.stunned>0){const _sk=dt*(1+2*(u.ctrlRes||0)); u.stunned-=_sk; if((u._stunNS||0)>0) u._stunNS-=_sk; return;}   // Control Resist shortens stuns (AUDIT C6)
   if((u._sleepT||0)>0) u._sleepT=0;   /* v1452: awake - a sleep never outlasts the stun that holds it (its cast lock ends on waking) */
   if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null;
@@ -18381,7 +18404,8 @@ function think(u,dt){
     /* v1103 (Phil 9 Oct, Emberdraft: "they dont auto ult. i still have to click" - "it was vireo"): a healer's ult waits for the first point of
        ally damage, but Vireo's Grand Symphony also hits every enemy - with an untouched team she sat full until clicked. An ult that deals damage fires at once. */
     const _ultDmg=HEALER_ULT_HITS.has(u.abilityOverride||u.t.ability);   // Symphony (Vireo), Sunburst (Lumi), Hive Mind (Mellan); First Spring and Rally only heal - they still wait
-    if(auto && !ultBlockedReason(u) && (!u.t.healer||_ultDmg||alliesOf(u).some(a=>a.hp<a.maxHp))){
+    const _healOnly=!!u.t.healer||HEAL_ONLY_ULTS.has(u.abilityOverride||u.t.ability);
+    if(auto && !ultBlockedReason(u) && (!_healOnly||_ultDmg||alliesOf(u).some(a=>a.hp<a.maxHp)||(HEAL_ONLY_ULTS.has(u.abilityOverride||u.t.ability)&&units.some(a=>!a.alive&&a.team===u.team&&!a._summon&&!a._wasSummon&&!a._dropHidden)))){
       // Every healer ult waits for the FIRST point of ally damage, then fires this tick.
       // AUTO is immediate timing, not a healer/rally strategy planner. A ready ult may
       // cut short a Green/Blue cast, as the ult priority already promises.
@@ -33850,7 +33874,7 @@ function renderHeroDetail(){ try{ setTimeout(()=>ftutCheck('heroDetail'),350); }
         <span style="width:10px;height:10px;border-radius:50%;background:${s.col};flex:none"></span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px"><b>${s.name}</b> <span style="font-size:10px;color:${s.col}">${s.tier}</span>${on?'':' '+hudIcon('lock')}${hasClip?' <span style="font-size:9px;color:#6ea8ff">'+uiIcon('play')+' '+ewT('hero.clip')+'</span>':''}</div>
-          <div style="font-size:11px;color:#c3ccd8;font-weight:600">${on?iconize(skillEffectStr(key,s.idx,S_ATK,S_HP)):ewT('common.locked')}</div>
+          <div style="font-size:11px;color:#c3ccd8;font-weight:600">${on?iconize(skillEffectStr(key,s.idx,S_ATK,S_HP,S_APOW)):ewT('common.locked')}</div>
         </div>
         ${on?`<div style="display:flex;align-items:center;gap:7px;flex:none">
           <span style="font-size:10px;color:#ffd45e;border:1px solid #4a4020;border-radius:5px;padding:1px 6px;background:#241f10">${ewT('hero.lv',{n:lv})}</span>
@@ -37339,7 +37363,7 @@ function ewcCardExtras(slot,u){ try{
 }catch(e){} }
 function hpFmt(v){ v=Math.max(0,Math.ceil(v)); return v>=10000?Math.round(v/1000)+'k':(v>=1000?(v/1000).toFixed(1)+'k':''+v); }
 function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KITS[u.key]||{};
-  const eff=(typeof skillEffectStr==='function')?skillEffectStr(u.key,0,Math.round(u.dmg),Math.round(u.maxHp)):'';
+  const eff=(typeof skillEffectStr==='function')?skillEffectStr(u.key,0,Math.round(u.dmg),Math.round(u.maxHp),Math.round(u.apow||0)):'';
   let h=`<b>${iconize('{i:s:energy}')}${escapeHTML(skillDisplayName(t.abilityName))}</b> <span style="color:#8b98a9">· ${ewT('skdesc.ultimate')}${eff?' · '+iconize(eff):''}</span><br>${langDesc(HERO_ULT_DESC[u.key]||ULT_DESC[ab]||'')}`;
   if(kit.green) h+=`<div class="atSub"><i class="kitDot" style="background:#5ee89b"></i><b style="color:#5ee89b">${escapeHTML(skillDisplayName(kit.green.name))}</b> — ${langDesc(kit.green.desc||KIT_DESC[kit.green.type]||'')}</div>`;
   if(kit.blue)  h+=`<div class="atSub"><i class="kitDot" style="background:#6ea8ff"></i><b style="color:#6ea8ff">${escapeHTML(skillDisplayName(kit.blue.name))}</b> — ${langDesc(kit.blue.desc||KIT_DESC[kit.blue.type]||'')}</div>`;
@@ -37765,14 +37789,16 @@ function optimalAimField(u){
   }
   // radius: place the circle where it covers the most enemies. Every foe is a candidate centre,
   // plus the pairwise midpoints, which is what catches a two-cluster line-up the single points miss.
-  const cands=foes.map(o=>({x:o.x,y:o.y}));
+  const _AR=D.aimRange||0;   /* v1452: Croc Drop (6 m): a spot beyond the reach is judged where the leap really lands */
+  const cands=foes.map(o=>aimClampTo(u,{x:o.x,y:o.y},_AR));
   for(let i=0;i<foes.length;i++)for(let j=i+1;j<foes.length;j++)
-    cands.push({x:(foes[i].x+foes[j].x)/2,y:(foes[i].y+foes[j].y)/2});
+    cands.push(aimClampTo(u,{x:(foes[i].x+foes[j].x)/2,y:(foes[i].y+foes[j].y)/2},_AR));
   let best=null,bn=-1,bhp=-1,bd=Infinity;
   for(const c of cands){ let n=0,hp=0;
     for(const o of foes){ if(Math.hypot(o.x-c.x,o.y-c.y)<=R){ n++; hp+=o.hp||0; } }
     const d=Math.hypot(c.x-u.x,c.y-u.y);
     if(n>bn||(n===bn&&(hp>bhp||(hp===bhp&&d<bd)))){bn=n;bhp=hp;bd=d;best=c;} }
+  for(const c0 of aimCandsExact(foes,R)){ const c=aimClampTo(u,c0,_AR); let n=0; for(const o of foes) if(Math.hypot(o.x-c.x,o.y-c.y)<=R) n++; if(n>bn){ bn=n; best=c; } }   /* v1452: the exact rim centres, taken only for MORE enemies */
   if(!best) return null;
   let tgt=null,td=1e9;
   for(const o of foes){ const d=Math.hypot(o.x-best.x,o.y-best.y); if(d<td){td=d;tgt=o;} }

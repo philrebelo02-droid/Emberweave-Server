@@ -217,12 +217,76 @@ console.log("== 12. Brannus's Arena Lock card says what it does: every enemy (th
   setup(['brannus'].map(k => spec(k, 30)), ['rhukk', 'carn', 'meridian', 'astra'].map(k => spec(k, 30)), 131);
   R(`__freeze(); window.Br=U('brannus'); Br.x=100; Br.y=1300; units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=500; e.y=700-i*100; });`);
   const hit = J(`(function(){ Br._castSlot='blue'; Br._castSM=1; Br._castLv=30; doEffect(Br,'taunt',Object.assign({},KITS.brannus.blue)); Br._castSlot=null; return units.filter(u=>u.team==='enemy').map(e=>[+(dist(Br,e)/METER).toFixed(1),e.forcedTarget===Br]); })()`);
-  ok(hit.every(h => h[1]) && Math.min(...hit.map(h => h[0])) > 15, 'cast at the same level it taunts every enemy, ' + hit.map(h => h[0]).join(' / ') + ' m away');
+  ok(!!hit && hit.every(h => h[1]) && Math.min(...hit.map(h => h[0])) > 15, 'cast at the same level it taunts every enemy, ' + (hit || []).map(h => h[0]).join(' / ') + ' m away');
   const crypto = require('crypto'); const CV = JSON.parse(html.match(/\nconst EW_LANG_CV=(\{.*?\});/)[1]);
   const en = JSON.parse(fs.readFileSync(path.join(root, 'tools', 'lang', 'content', 'en.json'), 'utf8'));
   ok(NEW in en && !(OLD in en), 'tools/lang/content/en.json carries the new template, not the old one');
   for (const c of ['es', 'pt-BR', 'fr', 'de', 'it', 'nl', 'ru', 'tr', 'ja', 'ko', 'zh-Hans', 'zh-Hant', 'th', 'id', 'hi', 'en-XA']) {
     const raw = fs.readFileSync(path.join(root, 'lang', c + '.content.json'), 'utf8'), j = JSON.parse(raw);
     ok(typeof j[NEW] === 'string' && j[NEW].length > 5 && !(OLD in j) && crypto.createHash('sha1').update(raw).digest('hex').slice(0, 8) === CV[c === 'en-XA' ? 'qps' : c], c + ': the new card text is translated ("' + j[NEW] + '") and the pack hash in the page matches'); } }
+
+console.log('== 13. a revived hero never finishes the cast he died in ==');
+{ for (const slot of ['green', 'ult']) { setup(['vulmar', 'linnet'].map(k => spec(k, 40)), [spec('rhukk', 40)], 31, (a, b) => a.concat(b).forEach(s => { s.ctrlRes = 0; }));
+    const r = J(`(function(){ __freeze(); const V=U('vulmar','ally'), LN=U('linnet','ally'), T0=U('rhukk','enemy'); V.greenAb=KITS.vulmar.green; T0.x=V.x+300; T0.y=V.y; let F=0; const de=_doEffectCore; _doEffectCore=function(u){ if(u===V) F++; return de.apply(this,arguments); };
+      try{ for(let i=0;i<20;i++) updateBattle(SIM_STEP); ${slot === 'green' ? 'V._castSM=skillMul(V.skillLv[1]); V._castLv=V.skillLv[1]; castKit(V,V.greenAb); V._castSM=1; V._castLv=0; V.greenCd=99;' : 'V.energy=100; V.target=T0; castAbility(V);'}
+        const pend=!!V._pend; for(let i=0;i<22;i++) updateBattle(SIM_STEP); V._wardT=0; dealDamage(T0,V,1e13,'#fff','true'); for(let i=0;i<10;i++) updateBattle(SIM_STEP); LN.energy=100; castAbility(LN); for(let i=0;i<150;i++) updateBattle(SIM_STEP);
+        return {pend,revived:V.alive,fired:F,pendAfter:!!V._pend}; } finally{ _doEffectCore=de; } })()`);
+    ok(!!r && r.pend && r.revived && r.fired === 0, 'Vulmar dies 0.6 s into his ' + slot + " wind-up, Linnet's Rewind brings him back: the old cast never goes off (was: it fired at 3.14 s) " + JSON.stringify(r)); }
+  ok(/a\._pend=null; a\._castNow=0;[^\n]*a\._blizzT=0; a\._stormT=0;/.test(html), 'the revive itself clears the pending cast and any channel'); }
+
+console.log('== 14. Blizzard and Thunder Shower stop when the caster is stunned, feared, silenced, put to sleep or killed ==');
+{ for (const hero of ['sylthaine', 'fritz']) for (const kind of ['none', 'stun', 'fear', 'silence', 'sleep', 'death']) {
+    setup([spec(hero, 40)], ['rhukk', 'grosk', 'carn'].map(k => spec(k, 40)), 41, (a, b) => a.concat(b).forEach(s => { s.ctrlRes = 0; }));
+    const n = J(`(function(){ __freeze(); const C=U('${hero}','ally'); units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=C.x+260+i*30; e.y=C.y+i*40; }); for(let i=0;i<10;i++) updateBattle(SIM_STEP);
+      const TK=[]; const dd=dealDamage; dealDamage=function(s){ if(s===C) TK.push(battleTime); return dd.apply(this,arguments); };
+      try{ C.energy=100; C.target=units.find(u=>u.team==='enemy'); castAbility(C); for(let i=0;i<Math.round(1.6/SIM_STEP);i++) updateBattle(SIM_STEP); const at=battleTime; const E=units.find(u=>u.team==='enemy');
+        const k='${kind}'; if(k==='stun') C.stunned=1; if(k==='fear'){ C.fearT=1; C._fearFrom=E; } if(k==='silence') C.silencedT=1; if(k==='sleep') sleepApply(E,C,1.0); if(k==='death'){ C._wardT=0; dd(E,C,1e13,'#fff','true'); }
+        for(let i=0;i<Math.round(5/SIM_STEP);i++) updateBattle(SIM_STEP); return TK.filter(t=>t>at+1e-3).length; } finally{ dealDamage=dd; } })()`);
+    if (kind === 'none') ok(n >= 8, 'CONTROL: ' + hero + "'s storm uncontrolled lands " + n + ' more ticks after 1.6 s');
+    else ok(n === 0, hero + ': ' + kind + ' 1.6 s into the storm ends it - ' + n + ' ticks after (was 12 / 10: a stun only delayed them, silence did nothing)'); } }
+
+console.log('== 15. Frozen Orb, Volt Pike, Golden Quill, Featherfang and Full Arsenal hit when the projectile arrives ==');
+{ for (const [hero, slot, lag] of [['sylthaine', 'green', [0.8, 0.95]], ['iver', 'green', [0.2, 0.35]], ['meridian', 'green', [0.2, 0.35]], ['vaelora', 'green', [0.2, 0.35]], ['rivet', 'ult', [0.1, 0.35]]]) {
+    setup([spec(hero, 40)], [spec('rhukk', 40)], 7, (a, b) => a.concat(b).forEach(s => { s.ctrlRes = 0; }));
+    const r = J(`(function(){ __freeze(); const C=U('${hero}'), T=U('rhukk','enemy'); C.greenAb=KITS['${hero}'].green; C.x=500; C.y=900; T.x=500; T.y=900-14*METER; C.target=T; for(let i=0;i<5;i++) updateBattle(SIM_STEP);
+      let rel=null, hit=null; const h0=T.hp; const de=_doEffectCore; _doEffectCore=function(u){ if(u===C&&rel==null) rel=battleTime; return de.apply(this,arguments); };
+      try{ if('${slot}'==='ult'){ C.energy=100; castAbility(C); } else { C._castSM=1; C._castLv=40; castKit(C,C.greenAb); C._castSM=1; C._castLv=0; }
+        for(let i=0;i<200&&hit==null;i++){ updateBattle(SIM_STEP); if(T.hp<h0) hit=battleTime; } } finally{ _doEffectCore=de; } return {rel,hit,ty:'${slot}'==='ult'?C.t.ability:C.greenAb.type}; })()`);
+    const l = r ? r.hit - r.rel : NaN; ok(!!r && r.rel != null && r.hit != null && l >= lag[0] && l <= lag[1], hero + ' ' + (r && r.ty) + ': the hit lands ' + (+l).toFixed(3) + ' s after the release, with the art (was 0, at the release)'); } }
+
+console.log("== 16. Linnet's AUTO Rewind waits for the first ally damage ==");
+{ setup(['linnet', 'rhukk'].map(k => spec(k, 40)), [spec('grosk', 40)], 9);
+  const r = J(`(function(){ __freeze(); autoUlt=true; const L=U('linnet'), K=U('rhukk','ally'), G=U('grosk','enemy'); units.forEach(u=>{ u.maxHp=1e5; u.hp=1e5; }); G.x=900; G.y=100;
+    let fired=null; const ca=castAbility; castAbility=function(u){ if(u===L&&fired==null) fired=battleTime; return ca.apply(this,arguments); };
+    try{ for(let i=0;i<110;i++){ L.energy=Math.max(L.energy,100); updateBattle(SIM_STEP); } const idle=fired; K.hp=K.maxHp*0.5; for(let i=0;i<10;i++) updateBattle(SIM_STEP); return {idle,after:fired}; } finally{ castAbility=ca; } })()`);
+  ok(!!r && r.idle === null, 'full energy for 3 s with nobody hurt: Rewind is held (was cast at 0.03 s)');
+  ok(!!r && r.after != null, 'the first ally damage: Rewind goes off');
+  setup(['linnet', 'rhukk'].map(k => spec(k, 40)), [spec('grosk', 40)], 9);
+  ok(J(`(function(){ __freeze(); autoUlt=true; const L=U('linnet'), K=U('rhukk','ally'); units.forEach(u=>{ u.maxHp=1e5; u.hp=1e5; }); K.alive=false; K.hp=0; let f=false; const ca=castAbility; castAbility=function(u){ if(u===L) f=true; return ca.apply(this,arguments); }; try{ L.energy=100; for(let i=0;i<5;i++) updateBattle(SIM_STEP); } finally{ castAbility=ca; } return f; })()`), 'a fallen ally (the revive) also releases it');
+  ok(J("HEALER_ULT_HITS.has('symphony')&&!HEAL_ONLY_ULTS.has('symphony')"), 'CONTROL: ults that also damage (Symphony, Sunburst, Hive Mind) still fire at once'); }
+
+console.log("== 17. Magic and Healer skill cards show the real number (the hero's own Ability Power) ==");
+{ setup([spec('sylthaine', 40)], [spec('rhukk', 40)], 5);
+  const r = J(`(function(){ __freeze(); const S=U('sylthaine'), T=U('rhukk','enemy'); T.armorRating=0; T.mrRating=0; T.glyphDR=0; const card=skillEffectStr('sylthaine',2,Math.round(S.dmg),Math.round(S.maxHp),Math.round(S.apow));
+    const eM=elemMul, cE=classEdge; elemMul=()=>1; classEdge=()=>''; const h0=T.hp; try{ S._castSlot='blue'; S._castSM=skillMul(skillLevel('sylthaine',2)); S._castLv=skillLevel('sylthaine',2); S.target=T; _doEffectCore(S,'freeze',Object.assign({},KITS.sylthaine.blue,{_arrived:true})); } finally{ S._castSlot=null; elemMul=eM; classEdge=cE; } return {card,hit:h0-T.hp}; })()`);
+  const num = +(((r && r.card) || '').replace(/\{[^}]*\}/g, '').match(/\d+/) || [0])[0];
+  ok(!!r && Math.abs(num - r.hit) <= 1, "Sylthaine's Glacial Prison card says " + num + ', the hit is ' + (r ? r.hit.toFixed(1) : '?') + ' (was 102 against 273.6)');
+  const heroes = J(`Object.keys(HERO_TYPES).filter(k=>KITS[k]&&k!==HERO61.KEY&&!HERO_TYPES[k].monster&&['Magic','Healer'].includes(HERO_TYPES[k].damageProfile))`);
+  let n = 0; const bad = [];
+  for (const k of heroes) for (const idx of [0, 1, 2]) { const a = J(`skillEffectStr(${JSON.stringify(k)},${idx},50,3000,300)`), b = J(`skillEffectStr(${JSON.stringify(k)},${idx},50,3000,600)`);
+    const na = String(a).replace(/\{[^}]*\}/g, '').match(/\d+/g) || [], nb = String(b).replace(/\{[^}]*\}/g, '').match(/\d+/g) || [];
+    if (a === b || na.length !== nb.length) continue; n++; na.forEach((x, i) => { if (x !== nb[i] && Math.abs(+nb[i] - 2 * +x) > 2) bad.push(k + ':' + idx); }); }
+  ok(heroes.length >= 28 && n >= 30 && !bad.length, heroes.length + ' Magic / Healer heroes: ' + n + ' AP-scaled card numbers follow the Ability Power given (double AP = double number)' + (bad.length ? ' BAD ' + bad.join(',') : ''));
+  ok(/iconize\(skillEffectStr\(key,s\.idx,S_ATK,S_HP,S_APOW\)\)/.test(html) && /skillEffectStr\(u\.key,0,Math\.round\(u\.dmg\),Math\.round\(u\.maxHp\),Math\.round\(u\.apow\|\|0\)\)/.test(html), "the Skills tab passes the Stats tab's Ability Power, the battle portrait the unit's own"); }
+
+console.log("== 18. AUTO area aim: the best spot, inside the skill's real reach ==");
+{ setup([spec('fritz', 40)], ['rhukk', 'grosk', 'carn', 'meridian', 'astra', 'lumi'].map(k => spec(k, 40)), 11);
+  const r = J(`(function(){ __freeze(); const F=U('fritz'); let s=12345; const rnd=()=>{ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; }; const R=3*METER; let worse=0,n=0;
+    const es=units.filter(u=>u.team==='enemy'); for(let k=0;k<200;k++){ es.forEach(e=>{ e.x=300+rnd()*400; e.y=300+rnd()*400; }); const c=densestEnemyCluster(F,R); const got=es.filter(e=>dist(c,e)<=R).length;
+      let bestG=0; for(let x=250;x<=750;x+=5) for(let y=250;y<=750;y+=5){ let m=0; for(const e of es) if(Math.hypot(e.x-x,e.y-y)<=R) m++; if(m>bestG) bestG=m; } n++; if(got<bestG) worse++; } return {n,worse}; })()`);
+  ok(r.worse === 0, r.n + ' random layouts of 6 enemies: the AUTO circle never catches fewer than a 5-unit grid search (' + r.worse + ' did; was 24 of 300 one fewer)');
+  setup([spec('grosk', 40)], ['rhukk', 'carn', 'meridian', 'astra', 'lumi'].map(k => spec(k, 40)), 12);
+  const c = J(`(function(){ __freeze(); const G=U('grosk'); G.x=500; G.y=1000; const es=units.filter(u=>u.team==='enemy'); es[0].x=500; es[0].y=1000-5*METER; es.slice(1).forEach((e,i)=>{ e.x=480+i*20; e.y=1000-14*METER+i*10; }); const a=optimalAimField(G); return Math.hypot(a.x-G.x,a.y-G.y)/METER; })()`);
+  ok(c <= 6.0001, "Grosk's AUTO Croc Drop aims " + (+c).toFixed(2) + ' m away, inside his 6 m reach (was 13.13 m, at a pack he cannot reach)'); }
 
 console.log(''); console.log('test_engine_fixes_1452.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : '')); if (fail) process.exitCode = 1;
