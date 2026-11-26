@@ -74,8 +74,8 @@ async function fight(pg,F,S){
   const ld=await pg.evaluate(async()=>{ const need=()=>{ const s=new Set(); units.forEach(u=>{ const Hh=SFX_DATA.heroes[u.key]; if(Hh) sfxFiles(Hh).forEach(n=>{ const Fd=SFX_DATA.files[n]; if(Fd) s.add(Fd[0]); }); }); return [...s]; };
     let miss=[]; for(let i=0;i<200;i++){ window.__sndFill(); miss=need().filter(f=>!SND.buf[f]); if(!miss.length) break; await new Promise(r=>setTimeout(r,100)); }
     return {files:need().length,missing:miss.length,missSample:miss.slice(0,3)}; });
-  const go=await pg.evaluate(sp=>{ SFX.log=[]; SFX.last={}; window.__fr=[]; let last=performance.now(); window.__frOn=true;
-    const tick=t=>{ if(!window.__frOn) return; window.__fr.push(t-last); last=t; requestAnimationFrame(tick); }; requestAnimationFrame(tick);
+  const go=await pg.evaluate(sp=>{ SFX.log=[]; SFX.last={}; window.__fr=[]; window.__fa=[]; let last=performance.now(); window.__frOn=true;
+    const tick=t=>{ if(!window.__frOn) return; window.__fr.push(t-last); last=t; window.__fa.push([+t.toFixed(2),+SND.ctx.currentTime.toFixed(4)]); requestAnimationFrame(tick); }; requestAnimationFrame(tick);   /* each frame: its time + the audio clock, to find the hitches */
     autoUlt=true; gameSpeed=sp; paused=false; try{ refreshCtrlBtns(); }catch(e){} return {state,speed:gameSpeed,units:units.length,ctx:SND.ctx.state,live:SFX.loop}; },F.speed);
   const shots=[]; let pauseWin=null; const t0=Date.now(); let shotAt=4000;
   for(;;){ await wait(100);
@@ -90,12 +90,15 @@ async function fight(pg,F,S){
     const T={}; keys.forEach(k=>{ const Hh=SFX_DATA.heroes[k]; if(!Hh) return; const rows={}; ['green','blue','ult','passive'].forEach(sl=>{ rows[sl]=(Hh[sl]||[]).map(r=>({id:r.id,f:r.f})); });
       T[k]={atk:Hh.atk||null,melee:Hh.melee||null,arm:Hh.arm||null,rows}; });
     const fused={}; Object.values(T).forEach(t=>{ [t.atk,t.melee].concat(t.arm?Object.values(t.arm):[]).forEach(n=>{ if(n&&SFX_DATA.fused&&SFX_DATA.fused[n]) fused[n]=SFX_DATA.fused[n]; }); });
-    return {log:SFX.log||[],ended,bt:battleTime,speed:gameSpeed,rate:sfxRate(),ctx:SND.ctx.state,frames:fr.length,med:q(.5),p90:q(.9),T,fused,snd:window.__snd}; },F.ally.concat(F.foe));
+    return {fa:window.__fa||[],log:SFX.log||[],ended,bt:battleTime,speed:gameSpeed,rate:sfxRate(),ctx:SND.ctx.state,frames:fr.length,med:q(.5),p90:q(.9),T,fused,snd:window.__snd}; },F.ally.concat(F.foe));
   await pg.evaluate(()=>{ try{ show('home'); }catch(e){} SFX.log=null; }); await wait(600);
   return Object.assign(out,{ld,go,pauseWin,shots}); }
 
-/* test_combat_sfx_1138's timing rule: each play matched to the frame its moment is drawn on */
-function timing(L){ let maxErr=0, worst=null, matched=0, unmatched=0, entered=0; const kinds={};
+/* a hitch = a frame gap over 50 ms (the loop's clamp): the game's own rule (sfxFrame) is that a one-off hitch cannot be foreseen, so a sound whose
+   window - from the frame it was handed to the audio clock (its play note) to the frame its blow is drawn on - holds a hitch is reported apart */
+function hitchIn(FA,lo,hi){ for(let i=1;i<FA.length;i++){ const a=FA[i][1]; if(a>lo-5e-4&&a<=hi+5e-4&&FA[i][0]-FA[i-1][0]>50) return +(FA[i][0]-FA[i-1][0]).toFixed(1); } return 0; }
+/* test_combat_sfx_1138's timing rule: each play matched to the frame its moment is drawn on (P: a pause window - sounds whose window spans it are reported apart) */
+function timing(L,FA,P){ let matched=0, unmatched=0, entered=0; const kinds={}, clean=[], hitched=[], spanned=[];
   const moments=L.filter(e=>e.k==='blow'||e.k==='fire'||e.k==='arrive');
   L.filter(e=>e.k==='play').forEach(e=>{ kinds[e.kind||'?']=(kinds[e.kind||'?']||0)+1; });
   L.filter(e=>e.k==='play'&&e.due!=null&&(e.kind==='attack'||e.kind==='release'||e.kind==='land'||e.kind==='hit')).forEach(e=>{ let m=null;
@@ -104,8 +107,14 @@ function timing(L){ let maxErr=0, worst=null, matched=0, unmatched=0, entered=0;
     else if(e.why==='instant'||e.why==='window'||e.why==='strike') m={rt:e.rt};
     else m=moments.find(q=>q.k==='arrive'&&q.hero===e.hero&&Math.abs(q.due-e.due)<1e-3&&Math.abs(q.bt-e.due)<1e-3);
     if(!m){ unmatched++; return; } matched++; if(e.off>0) entered++;
-    const err=e.peakAt-m.rt; if(Math.abs(err)>Math.abs(maxErr)){ maxErr=err; worst={hero:e.hero,id:e.id,name:e.name,kind:e.kind,bt:e.bt,peakAt:e.peakAt,frame:m.rt}; } });
-  return {matched,unmatched,entered,maxErrMs:+(maxErr*1000).toFixed(1),worst,kinds,misses:L.filter(e=>e.k==='miss').length,missNames:[...new Set(L.filter(e=>e.k==='miss').map(e=>e.name))].slice(0,6),drops:L.filter(e=>e.k==='drop').length}; }
+    const lo=Math.min(e.rt,m.rt), hi=Math.max(e.rt,m.rt), row={hero:e.hero,name:e.name,kind:e.kind,why:e.why,bt:e.bt,handed:e.rt,peakAt:e.peakAt,frame:m.rt,errMs:+((e.peakAt-m.rt)*1000).toFixed(1)};
+    if(P&&lo<P.p1&&hi>P.p0){ spanned.push(row); return; }
+    const hz=hitchIn(FA||[],lo,hi); if(hz){ row.hitchMs=hz; hitched.push(row); return; } clean.push(row); });
+  const byErr=a=>a.slice().sort((x,y)=>Math.abs(y.errMs)-Math.abs(x.errMs));
+  const worst=byErr(clean), wh=byErr(hitched), ws=byErr(spanned);
+  return {matched,clean:clean.length,unmatched,entered,maxErrMs:worst.length?worst[0].errMs:0,worst10:worst.slice(0,10),
+    hitched:hitched.length,hitchWorst:wh[0]||null,spanned:spanned.length,spanWorst:ws[0]||null,kinds,
+    misses:L.filter(e=>e.k==='miss').length,missNames:[...new Set(L.filter(e=>e.k==='miss').map(e=>e.name))].slice(0,6),drops:L.filter(e=>e.k==='drop').length}; }
 
 /* the right file for the moment: attack = the hero's weapon / swing (+ its fused copies); a spell = a file of that spell's own row */
 function files(R){ let ok=0; const bad=[];
@@ -123,27 +132,34 @@ async function sizeRun(port,S){
     C.ok(wrapped&&snd.state==='running'&&!snd.splash&&!snd.gated,S.tag+' Sound matches the animation: the page\'s real audio context runs (silent rig), the splash is gone',
       {wrapped,snd,note:'decoded for real: '+snd.real+', given a silent buffer of the manifest length (this Chromium cannot decode them): '+snd.filled});
     for(const F of FIGHTS){
-      try{ const R=await fight(pg,F,S); R.F=F; R.tm=timing(R.log); R.fl=files(R); res.push(R);
+      try{ const R=await fight(pg,F,S); R.F=F; R.tm=timing(R.log,R.fa,R.pauseWin); R.fl=files(R); res.push(R);
         console.log('  INFO   '+S.tag+' '+F.tag+': '+R.log.filter(e=>e.k==='play').length+' sounds played, kinds '+JSON.stringify(R.tm.kinds)+', ended '+R.ended+' at battle '+R.bt.toFixed(1)+' s, speed '+R.speed+
           ', frames '+R.frames+' (median '+R.med+' ms, p90 '+R.p90+' ms), loaded '+JSON.stringify(R.ld)+', decode '+JSON.stringify(R.snd));
+        console.log('  INFO   '+S.tag+' '+F.tag+' timing: '+R.tm.matched+' matched; '+R.tm.clean+' with no hitch in their window (checked); '+R.tm.hitched+' left out for a frame hitch over 50 ms between hand-over and blow frame (worst of those '+JSON.stringify(R.tm.hitchWorst)+')'+
+          (R.pauseWin?'; '+R.tm.spanned+' whose window spans the pause (worst '+JSON.stringify(R.tm.spanWorst)+')':''));
+        console.log('  INFO   '+S.tag+' '+F.tag+' the 10 worst checked sounds: '+JSON.stringify(R.tm.worst10));
       }catch(e){ C.ok(false,S.tag+' '+(F.speed===2||F.pause?'Speed independent':'Sound matches the animation')+': '+F.tag+' ran to the end',String(e&&e.stack||e).slice(0,500)); } }
     const one=res.find(r=>r.F===FIGHTS[0]), two=res.find(r=>r.F===FIGHTS[1]), three=res.find(r=>r.F===FIGHTS[2]);
     if(one){ const t=one.tm;
-      C.ok(t.matched>=30&&Math.abs(t.maxErrMs)<=FRAME*1000+1e-6&&one.ctx==='running',S.tag+' Sound matches the animation: '+t.matched+' sounds matched to the frame their blow / release / arrival is drawn on, worst peak-vs-frame '+t.maxErrMs+' ms (limit one 30 fps frame, 33.3 ms)',
-        {matched:t.matched,unmatched:t.unmatched,entered:t.entered,worst:t.worst,misses:t.misses,missNames:t.missNames,drops:t.drops,frameMed:one.med,frameP90:one.p90,shots:one.shots});
+      C.ok(t.clean>=30&&Math.abs(t.maxErrMs)<=FRAME*1000+1e-6&&one.ctx==='running',S.tag+' Sound matches the animation: '+t.clean+' sounds with no frame hitch in their window meet the frame their blow / release / arrival is drawn on, worst peak-vs-frame '+t.maxErrMs+' ms (limit one 30 fps frame, 33.3 ms; '+t.hitched+' left out for a hitch)',
+        {checked:t.clean,hitched:t.hitched,hitchWorst:t.hitchWorst,worst10:t.worst10,matched:t.matched,unmatched:t.unmatched,entered:t.entered,misses:t.misses,missNames:t.missNames,drops:t.drops,frameMed:one.med,frameP90:one.p90,shots:one.shots});
       C.ok(one.fl.ok>=30&&one.fl.bad.length===0,S.tag+' Sound matches the animation: the right file plays on each moment ('+one.fl.ok+' sounds: attacks play the hero\'s own weapon / swing file or one of its fused copies, spells a file of that spell\'s own row)',
         {ok:one.fl.ok,wrong:one.fl.bad.slice(0,8),wrongCount:one.fl.bad.length,shots:one.shots}); }
     if(two){ const t=two.tm;
-      C.ok(two.speed===2&&t.matched>=20&&Math.abs(t.maxErrMs)<=FRAME*1000+1e-6,S.tag+' Speed independent: at 2x speed '+t.matched+' sounds matched to their frames, worst '+t.maxErrMs+' ms (limit 33.3 ms)',
-        {speed:two.speed,rate:two.rate,matched:t.matched,unmatched:t.unmatched,worst:t.worst,misses:t.misses,frameMed:two.med,frameP90:two.p90,shots:two.shots});
+      C.ok(two.speed===2&&t.clean>=30&&Math.abs(t.maxErrMs)<=FRAME*1000+1e-6,S.tag+' Speed independent: at 2x speed '+t.clean+' sounds with no frame hitch in their window meet their frames, worst '+t.maxErrMs+' ms (limit 33.3 ms; '+t.hitched+' left out for a hitch)',
+        {checked:t.clean,hitched:t.hitched,hitchWorst:t.hitchWorst,worst10:t.worst10,speed:two.speed,rate:two.rate,matched:t.matched,unmatched:t.unmatched,misses:t.misses,frameMed:two.med,frameP90:two.p90,shots:two.shots});
       C.ok(two.fl.bad.length===0&&two.fl.ok>=20,S.tag+' Speed independent: at 2x speed the right file still plays on each moment ('+two.fl.ok+' sounds)',{wrong:two.fl.bad.slice(0,8),wrongCount:two.fl.bad.length}); }
     if(three){ const t=three.tm, P=three.pauseWin, L=three.log.filter(e=>e.k==='play');
-      const during=P?L.filter(e=>e.rt>P.p0+1e-4&&e.rt<P.p1-1e-4):[], startIn=P?L.filter(e=>e.st>P.p0+1e-4&&e.st<P.p1-1e-4):[], after=P?L.filter(e=>e.rt>=P.p1):[];
+      const inP=x=>!!P&&x>P.p0+1e-4&&x<P.p1-1e-4;
+      const during=P?L.filter(e=>inP(e.rt)):[], before=P?L.filter(e=>e.rt<=P.p0+1e-4&&(inP(e.st)||inP(e.peakAt))):[], after=P?L.filter(e=>e.rt>=P.p1):[];
       C.ok(!!P&&P.casting.length>0&&Math.abs(P.b1-P.b0)<1e-9,S.tag+' Speed independent: the fight was paused with the Pause button while a hero cast, and the battle clock stood still',{pause:P});
-      C.ok(!!P&&during.length===0&&startIn.length===0&&after.length>0,S.tag+' Speed independent: no sound was handed to the audio clock or started inside the '+(P?((P.p1-P.p0).toFixed(2)):'?')+' s pause, and sound goes on after Resume',
-        {handedDuring:during.slice(0,5).map(e=>[e.name,e.rt,e.st]),startedDuring:startIn.slice(0,5).map(e=>[e.name,e.kind,e.rt,e.st,e.peakAt]),startedDuringCount:startIn.length,afterResume:after.length,pause:P,shots:three.shots});
-      C.ok(t.matched>=20&&Math.abs(t.maxErrMs)<=FRAME*1000+1e-6&&three.fl.bad.length===0,S.tag+' Speed independent: across the pause '+t.matched+' sounds matched to their frames, worst '+t.maxErrMs+' ms (limit 33.3 ms), right files',
-        {matched:t.matched,worst:t.worst,wrong:three.fl.bad.slice(0,5),misses:t.misses,frameMed:three.med,frameP90:three.p90}); }
+      C.ok(!!P&&during.length===0&&after.length>0,S.tag+' Speed independent: no sound was handed to the audio clock during the '+(P?((P.p1-P.p0).toFixed(2)):'?')+' s pause, and sound goes on after Resume',
+        {handedDuring:during.slice(0,5).map(e=>({name:e.name,handed:e.rt,st:e.st})),handedDuringCount:during.length,afterResume:after.length,pause:P,shots:three.shots});
+      C.ok(!!P&&before.length===0,S.tag+' Speed independent: no sound handed out just before the pause starts or peaks inside it (Pause stops what is already scheduled)',
+        {inside:before.slice(0,8).map(e=>({name:e.name,kind:e.kind,hero:e.hero,handed:e.rt,start:e.st,peakAt:e.peakAt,pauseStart:P.p0,pauseEnd:P.p1})),count:before.length});
+      C.ok(t.clean>=20&&Math.abs(t.maxErrMs)<=FRAME*1000+1e-6&&three.fl.bad.length===0,S.tag+' Speed independent: around the pause '+t.clean+' sounds (window not spanning the pause, no hitch) meet their frames, worst '+t.maxErrMs+' ms (limit 33.3 ms), right files',
+        {checked:t.clean,spanned:t.spanned,spanWorst:t.spanWorst,hitched:t.hitched,hitchWorst:t.hitchWorst,worst10:t.worst10,
+        matched:t.matched,wrong:three.fl.bad.slice(0,5),misses:t.misses,frameMed:three.med,frameP90:three.p90}); }
     C.ok(pg._errs.length===0,S.tag+' no page errors (fights)',pg._errs.slice(0,3));
   }
   return {pg}; }
@@ -159,16 +175,23 @@ async function music(pg,S){
       let st=null; for(let i=0;i<120;i++){ await wait(100); st=await pg.evaluate(()=>{ const L=MUS.lanes.battle, s=L&&L.slot; return {cur:MUS.cur,f:s&&s.song&&s.song.f,t:s&&s.el.currentTime,paused:s&&s.el.paused,err:s&&s.el.error&&s.el.error.code,ready:s&&s.el.readyState}; });
         if(st.cur==='battle'&&st.f===song.f&&!st.paused&&st.t>song.start) break; }
       const r=await pg.evaluate(async()=>{ const W=ms=>new Promise(r=>setTimeout(r,ms)), L=MUS.lanes.battle, out=[]; MUS.log.length=0;
-        for(let rep=0;rep<2;rep++){ const s=L.slot; if(!s){ out.push({noSlot:true}); break; } const sg=s.song; s.el.currentTime=sg.loopEnd-2.2;
-          for(let i=0;i<60&&L.slot===s;i++) await W(100);
+        /* every timer armed while the seam is watched: when it was armed and its delay, so the seam timer's lateness can be read */
+        const ST=window.setTimeout, armed=new Map(); window.setTimeout=function(fn,d,...a){ const id=ST.call(window,fn,d,...a); armed.set(id,{at:performance.now(),d:+d||0,ct:(L.slot&&L.slot.el)?L.slot.el.currentTime:null}); return id; };
+        try{
+        for(let rep=0;rep<2;rep++){ const s=L.slot; if(!s){ out.push({noSlot:true}); break; } const sg=s.song; s.el.currentTime=sg.loopEnd-2.2; let sid=0;
+          for(let i=0;i<600&&L.slot===s;i++){ if(!sid&&L.seamT) sid=L.seamT; await W(10); }
           await W(400); const n=L.slot, seams=MUS.log.filter(x=>x[0]==='seam');
-          out.push({moved:n!==s,same:!!n&&n.song===sg,t:n?+n.el.currentTime.toFixed(3):null,playing:!!n&&!n.el.paused,loopStart:sg.loopStart,loopEnd:sg.loopEnd,seam:seams[seams.length-1]||null,seams:seams.length,oldFree:!s.lane}); }
+          const A=sid?armed.get(sid):null, sm=seams[seams.length-1], due=A?A.at+A.d:null;
+          const timer=A?{armedAt:+A.at.toFixed(1),delayMs:+A.d.toFixed(1),songAtArm:A.ct==null?null:+A.ct.toFixed(3),firedAt:sm?sm[3]:null,lateMs:sm&&due!=null?+(sm[3]-due).toFixed(1):null}:{found:false};
+          out.push({timer,moved:n!==s,same:!!n&&n.song===sg,t:n?+n.el.currentTime.toFixed(3):null,playing:!!n&&!n.el.paused,loopStart:sg.loopStart,loopEnd:sg.loopEnd,seam:seams[seams.length-1]||null,seams:seams.length,oldFree:!s.lane}); }
+        } finally { window.setTimeout=ST; }
         return {out,heal:MUS.log.filter(x=>x[0]==='heal'),seams:MUS.log.filter(x=>x[0]==='seam').length,log:MUS.log.slice(-10)}; });
+      console.log('  INFO   '+S.tag+' Battle music loops '+nm+' seam timers (performance.now at the seam vs armed + delay): '+JSON.stringify(r.out.map(o=>o.timer)));
       const sh=await shot(pg,S.tag+' Battle music loops '+nm);
       const loops=r.out.map(o=>{ const outT=o.seam?o.seam[1]:null; return Object.assign(o,{outT,leaveErrMs:outT==null?null:+((outT-o.loopEnd)*1000).toFixed(1),
         ok:!!(o.moved&&o.same&&o.playing&&o.seam&&Math.abs(outT-o.loopEnd)<=0.05&&o.t>=o.loopStart&&o.t<o.loopStart+1.2&&o.oldFree)}); });
       C.ok(st&&st.f===song.f&&loops.length===2&&loops.every(o=>o.ok)&&r.heal.length===0&&r.seams===2,S.tag+' Battle music loops: '+nm+' loops twice on its seam (old element leaves within 50 ms of loopEnd '+song.loopEnd+', the same song plays on from loopStart '+song.loopStart+', no heal)',
-        {start:st,loops:loops.map(o=>({leaveAt:o.outT,leaveErrMs:o.leaveErrMs,newAt:o.t,same:o.same,playing:o.playing,oldFree:o.oldFree})),seams:r.seams,heal:r.heal,log:r.log,shot:sh});
+        {start:st,loops:loops.map(o=>({timer:o.timer,leaveAt:o.outT,leaveErrMs:o.leaveErrMs,newAt:o.t,same:o.same,playing:o.playing,oldFree:o.oldFree})),seams:r.seams,heal:r.heal,log:r.log,shot:sh});
     }catch(e){ C.ok(false,S.tag+' Battle music loops: '+nm+' ran to the end',String(e&&e.stack||e).slice(0,500)); } }
   await pg.evaluate(()=>{ try{ show('home'); }catch(e){} });
 }
