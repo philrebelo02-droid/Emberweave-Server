@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "SATU DARI {m}",
+ "stage.split_frags": "Salah satu dari {m} fragmen ini jatuh, peluang masing-masing {p}:",
+ "well.tent_pick": "Pilih pahlawan untuk dipinjam selama perjalanan ini",
+ "well.loan_up": "Ditingkatkan ke {q}",
+ "well.loan_buff": "{hp} nyawa, {atk} kerusakan",
+ "well.loan_dupe": "salinan yang lebih kuat dari milikmu",
+ "battle.x2_vip_raid": "Kecepatan x2 di serbuan guild khusus VIP (EGP 1 ke atas)."
+}

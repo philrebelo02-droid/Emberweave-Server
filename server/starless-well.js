@@ -87,7 +87,7 @@ function genMap(seed, map, path, heroKeys) {
       const roll = r();
       col[row] = fightCol || roll < 0.40 ? { type: 'fight' }
         : roll < 0.62 ? { type: 'chest', big: r() < 0.25 }
-        : roll < 0.82 ? { type: 'tent', hero: heroKeys[Math.floor(r() * heroKeys.length)] }
+        : roll < 0.82 ? tentSquare(seed, c, row, heroKeys[Math.floor(r() * heroKeys.length)], heroKeys)
         : { type: 'spring' };
     }
     grid.push(col);
@@ -97,8 +97,27 @@ function genMap(seed, map, path, heroKeys) {
   return grid;
 }
 
+/* v1457 (Phil 26 Nov 2026, lockdown answer 3: "it should offer always a highly buffed hero, often to the next quality upgraded so yes it can
+   give a 2nd of the hero you have, borrow tent should have 3 options"). A tent offers TENT_OPTIONS heroes; the player borrows one.
+   - Every loan is the hero maxed for your level (as before: your level, 5 stars, skills at your level, your strongest hero's board and gear -
+     or the hero's own, if yours is stronger) and then BUFFED for the run: +LOAN_BUFF.hp health, +LOAN_BUFF.atk attack damage and ability power.
+   - An UPGRADED loan (each option LOAN_UP_CHANCE, at least one per tent) is also one glyph quality step above that board (the next quality:
+     a Blue +2 board lends as Purple, which opens the hero's Purple skill) and gets LOAN_UP_BUFF instead.
+   - A hero you own can be on offer: borrowing it fields the buffed copy for this run in place of yours (one copy per squad - the same hero
+     cannot fight twice); your own hero is untouched and the loan is gone when the run ends, like every loan.
+   The first option is the hero the map seed always picked (r() is drawn exactly as before, so the map layout never moves); the other two and
+   the upgrade marks come from a second stream seeded by the square, so the tent is fixed for the cycle. */
+const TENT_OPTIONS = 3, LOAN_UP_CHANCE = 0.6;
+const LOAN_BUFF = { hp: 0.30, atk: 0.20 }, LOAN_UP_BUFF = { hp: 0.45, atk: 0.30 };
+function tentSquare(seed, c, row, first, heroKeys) {
+  const tr = rng((seed ^ Math.imul(c * 3 + row + 1, 0x9E3779B1)) >>> 0), heroes = first ? [first] : [];
+  for (let guard = 0; heroes.length < Math.min(TENT_OPTIONS, heroKeys.length) && guard < 200; guard++) { const k = heroKeys[Math.floor(tr() * heroKeys.length)]; if (heroes.indexOf(k) < 0) heroes.push(k); }
+  const up = heroes.map(() => tr() < LOAN_UP_CHANCE); if (heroes.length && !up.some(Boolean)) up[Math.floor(tr() * heroes.length)] = true;
+  return { type: 'tent', hero: first, heroes, up }; }
+function tentOptions(sq) { return Array.isArray(sq && sq.heroes) && sq.heroes.length ? sq.heroes : (sq && sq.hero ? [sq.hero] : []); }
+function loanBuffOf(up) { return up ? LOAN_UP_BUFF : LOAN_BUFF; }
 /* ---- state ---- */
-function fresh(cyc) { return { cycle: cyc, level: 0, map: 1, path: null, pos: { col: 0, row: 1 }, heroes: {}, loans: [], buffs: [], offer: null,
+function fresh(cyc) { return { cycle: cyc, level: 0, map: 1, path: null, pos: { col: 0, row: 1 }, heroes: {}, loans: [], loanUp: {}, buffs: [], offer: null,
   resUsed: 0, done: false, att: null, prizes: [], started: false }; }
 function well(led) { const c = cycleOf(); const W = led.well2 = led.well2 || {};
   if (!W.run || W.run.cycle !== c) W.run = fresh(c);
@@ -149,13 +168,34 @@ function creditEndXP(ctx, mode) {
 }
 
 /* ---- the squad: own heroes + loans, with carried HP/energy and the run's buffs ---- */
-function loanSpec(ctx, key) {   // "tent heroes are loaned maxed for your level": your level, 5 stars, your best hero's board/gear totals, full skills
-  const lvl = ctx.playerLevel(); let best = null;
-  for (const k of Object.keys(ctx.led.unlocked || {})) { const s = ctx.campaignHeroSpec(ctx.me, k); if (s && (!best || (s.tt.hp + s.tt.atk * 6) > (best.tt.hp + best.tt.atk * 6))) best = s; }
-  const base = ctx.SIM.HERO_BASE[key]; if (!base || !best) return null;
-  const loan = Object.assign({}, best, { key, level: lvl, stars: 5, pips: 0, skillLv: [lvl, lvl, lvl, lvl], gearSkill: null });
-  delete loan.talents;   /* 14 Nov 2026 talents: `best` is ANOTHER hero's spec - its learned talents are that hero's ids and are not lent (tests/talents-line.test.js) */
+function bestOwnedSpec(ctx) { let best = null;   // the strongest board the account owns (the loan template)
+  for (const k of Object.keys(ctx.led.unlocked || {})) { if (!ctx.led.unlocked[k]) continue; const s = ctx.campaignHeroSpec(ctx.me, k); if (s && (!best || (s.tt.hp + s.tt.atk * 6) > (best.tt.hp + best.tt.atk * 6))) best = s; }
+  return best; }
+function ownsKey(ctx, key) { return !!(ctx.led.unlocked && Object.prototype.hasOwnProperty.call(ctx.led.unlocked, key) && ctx.led.unlocked[key]); }
+function loanSpec(ctx, key, up, bestIn) {   // "tent heroes are loaned maxed for your level": your level, 5 stars, the strongest board/gear totals, full skills
+  const lvl = ctx.playerLevel(), best = bestIn || bestOwnedSpec(ctx);
+  const own = ownsKey(ctx, key) ? ctx.campaignHeroSpec(ctx.me, key) : null;
+  const base = ctx.SIM.HERO_BASE[key]; if (!base || !(best || own)) return null;
+  const sc = s => (s.fHp || 0) + 6 * ((s.fAtk || 0) + (s.fApow || 0));
+  const src = (own && (!best || sc(own) >= sc(best))) ? own : best;   /* v1457: a hero you own lends from its own copy when that one is the stronger - a loan is never below your own */
+  const rank = Math.max(src.glyphRank | 0, own ? own.glyphRank | 0 : 0);
+  const loan = Object.assign({}, src, { key, level: lvl, stars: 5, pips: 0, skillLv: [lvl, lvl, lvl, lvl], gearSkill: src === own ? own.gearSkill : null,
+    glyphRank: Math.min(16, rank + (up ? 1 : 0)) });   /* v1457: an upgraded loan is one glyph quality step above */
+  if (src !== own) delete loan.talents;   /* 14 Nov 2026 talents: `best` is ANOTHER hero's spec - its learned talents are that hero's ids and are not lent (tests/talents-line.test.js); v1457: your own hero's copy keeps its own */
   return loan; }
+/* v1457: the loan's run buff on the fight snapshot (before the run's boons and carried HP) - the server builds it, the page plays the same snapshot */
+function applyLoanBuff(R, snaps) {
+  for (const s of snaps) { if (!s || R.loans.indexOf(s.key) < 0) continue; const b = loanBuffOf(!!(R.loanUp && R.loanUp[s.key]));
+    s.maxHp = Math.round(s.maxHp * (1 + b.hp)); s.dmg = Math.round(s.dmg * (1 + b.atk)); if (s.apow) s.apow = Math.round(s.apow * (1 + b.atk));
+    if (s.atk) s.atk = Math.round(s.atk * (1 + b.atk)); if (s.atkP) s.atkP = Math.round(s.atkP * (1 + b.atk)); if (s.atkM) s.atkM = Math.round(s.atkM * (1 + b.atk)); }
+  return snaps; }
+/* v1457: what a tent option / a loan shows - its glyph quality and its power (the stronger of your copy and your strongest hero, times the buff) */
+function loanCard(ctx, key, up, memo) {
+  if (!memo.best) memo.best = bestOwnedSpec(ctx) || {};
+  const sp = loanSpec(ctx, key, up, memo.best.tt ? memo.best : null); if (!sp) return null;
+  const pw = k => { if (!(k in memo.pw)) { let p = 0; try { p = typeof ctx.heroCardPower === 'function' ? (ctx.heroCardPower(ctx.me, k) | 0) : 0; } catch (e) { p = 0; } memo.pw[k] = p; } return memo.pw[k]; };
+  const owned = ownsKey(ctx, key), b = loanBuffOf(up), mine = owned ? pw(key) : 0, top = memo.best.key ? pw(memo.best.key) : 0;
+  return { key, up: !!up, quality: sp.glyphRank | 0, level: sp.level | 0, owned, ownPower: mine, power: Math.round(Math.max(mine, top) * (1 + (b.hp + b.atk) / 2)), hp: b.hp, atk: b.atk }; }
 function applyRun(ctx, R, snaps) {
   for (const s of snaps) { const cls = CLASS_OF[(ctx.SIM.HERO_BASE[s.key] || {}).role] || 'Bruiser';
     let hp = 0, atk = 0, def = 0;
@@ -167,10 +207,12 @@ function applyRun(ctx, R, snaps) {
   return snaps; }
 
 /* ---- the view the client draws ---- */
-function view(ctx, W) { const R = W.run, lvl = ctx.playerLevel(), dev = ctx.isDev(ctx.me), grid = mapOf(ctx, W);
-  const g = grid.map((col, c) => col.map(s => s && Object.assign({}, s, (s.type === 'fight' || s.type === 'boss') ? { prize: prizeFor(ctx, W, s, c) } : {})));
+function view(ctx, W) { const R = W.run, lvl = ctx.playerLevel(), dev = ctx.isDev(ctx.me), grid = mapOf(ctx, W), memo = { pw: {} };
+  const g = grid.map((col, c) => col.map(s => s && Object.assign({}, s, (s.type === 'fight' || s.type === 'boss') ? { prize: prizeFor(ctx, W, s, c) }
+    : (s.type === 'tent' && c > R.pos.col) ? { options: tentOptions(s).map((k, i) => loanCard(ctx, k, !!(s.up && s.up[i]), memo)).filter(Boolean) } : {})));   /* v1457: a tent still ahead shows its 3 loans */
+  const loanInfo = {}; for (const k of R.loans) { const lc = loanCard(ctx, k, !!(R.loanUp && R.loanUp[k]), memo); if (lc) loanInfo[k] = lc; }
   return { ok: true, cycle: R.cycle, endsAt: cycleEnds(R.cycle), playerLevel: lvl, open: dev || lvl >= OPEN.normal, hardOpen: dev || lvl >= OPEN.hard,
-    opensAt: OPEN, map: R.map, path: R.path, pos: R.pos, grid: g, heroes: R.heroes, loans: R.loans, buffs: R.buffs.map(id => BUFF[id]).filter(Boolean),
+    opensAt: OPEN, map: R.map, path: R.path, pos: R.pos, grid: g, heroes: R.heroes, loans: R.loans, loanInfo, buffs: R.buffs.map(id => BUFF[id]).filter(Boolean),
     offer: R.offer ? R.offer.map(id => BUFF[id]) : null, portals: portalsOf(R), resUsed: R.resUsed, resCost: R.resUsed ? RES_COST : 0, done: R.done,
     canSweep: !R.started && !R.done && Object.keys(W.cleared).length > 0, cleared: W.cleared, endXP: { normal: endXP(ctx, 'normal'), hard: endXP(ctx, 'hard') },
     prizes: R.prizes }; }
@@ -199,6 +241,9 @@ async function handle(p, method, ctx) {
       const col = b.col | 0, row = b.row | 0, sq = grid[col] && grid[col][row];
       if (!sq || !reach(R, col, row)) return no('You can only step to a square next to you in the next column.');
       if (sq.type === 'fight' || sq.type === 'boss') return no('That square is guarded - fight it.');
+      /* v1457: a tent is 3 heroes to choose from - the pick is checked before anything moves (an old page that sends none borrows the first) */
+      const tentPick = sq.type === 'tent' ? (b.hero != null ? String(b.hero) : tentOptions(sq)[0]) : null;
+      if (sq.type === 'tent' && tentOptions(sq).indexOf(tentPick) < 0) return no('Unknown hero.');
       /* 3 Oct audit F2: a fight held open while stepping on the chest/tent/spring beside it paid BOTH squares of the column.
          Stepping away abandons the held fight (nothing was spent), so its result can never pay afterwards. */
       R.att = null;
@@ -206,7 +251,11 @@ async function handle(p, method, ctx) {
       let got = null;
       // v1110 (Phil 10 Oct: "there should also be chests that offer some diamonds"): a small chest 5 diamonds (was 0), a big one 15 (was 10)
       if (sq.type === 'chest') { const pr = { gold: Math.round((400 + R.level * 60) * (sq.big ? 2 : 1)), gems: sq.big ? 15 : 5, potions: sq.big ? 2 : 1 }; got = payPrize(ctx, W, pr, R.cycle + ':' + R.map + ':' + col + ':' + row); }
-      else if (sq.type === 'tent') { if (sq.hero && R.loans.indexOf(sq.hero) < 0 && !ctx.led.unlocked[sq.hero]) R.loans.push(sq.hero); got = { loan: sq.hero }; }
+      else if (sq.type === 'tent') { const up = !!(sq.up && sq.up[tentOptions(sq).indexOf(tentPick)]);
+        /* v1457: a hero you own may be borrowed too (the buffed copy fights for this run); borrowing it again from a later tent can only upgrade it */
+        if (R.loans.indexOf(tentPick) < 0) R.loans.push(tentPick);
+        R.loanUp = R.loanUp || {}; if (up) R.loanUp[tentPick] = 1;
+        got = { loan: tentPick, up: !!R.loanUp[tentPick], card: loanCard(ctx, tentPick, !!R.loanUp[tentPick], { pw: {} }) }; }
       else if (sq.type === 'spring') { for (const k of Object.keys(R.heroes)) { const h = R.heroes[k]; if (!h.dead) h.hpFrac = Math.min(1, h.hpFrac + 0.5); } got = { healed: 0.5 }; }
       ctx.ledTx(ctx.me, 'well2:move:' + sq.type, {}); ctx.writeDB();
       return { status: 200, body: Object.assign(view(ctx, W), { got }) };
@@ -258,10 +307,11 @@ async function handle(p, method, ctx) {
       const own = (o, k) => !!o && Object.prototype.hasOwnProperty.call(o, k), owns = k => own(ctx.led.unlocked, k) && !!ctx.led.unlocked[k], nm = k => (ctx.heroDisplayName ? ctx.heroDisplayName(k) : k);
       for (const k of ids) { if (!own(ctx.SIM.HERO_BASE, k) || !(owns(k) || R.loans.indexOf(k) >= 0)) return no('You do not have ' + nm(k) + ' in this run.');
         if (own(R.heroes, k) && R.heroes[k].dead) return no(nm(k) + ' has fallen - resurrect them first.'); }
-      const specs = ids.map(k => owns(k) ? ctx.campaignHeroSpec(ctx.me, k) : loanSpec(ctx, k));
+      const _best = ids.some(k => R.loans.indexOf(k) >= 0) ? bestOwnedSpec(ctx) : null;
+      const specs = ids.map(k => R.loans.indexOf(k) >= 0 ? loanSpec(ctx, k, !!(R.loanUp && R.loanUp[k]), _best) : ctx.campaignHeroSpec(ctx.me, k));   /* v1457: a borrowed hero fights as the loan, owned or not */
       if (specs.some(x => !x)) return no('Unknown hero.');
       const host = ctx.simHost(); let snaps = null;
-      if (host) { try { snaps = applyRun(ctx, R, host.snapFromSpecs(specs)); } catch (e) { console.error('sim-host snapFromSpecs failed (well2):', e.message); } }
+      if (host) { try { snaps = applyRun(ctx, R, applyLoanBuff(R, host.snapFromSpecs(specs))); } catch (e) { console.error('sim-host snapFromSpecs failed (well2):', e.message); } }
       const waves = fightWaves(sq.mode, sq.idx, R.level, sq.foes), seed = (ctx.crypto.randomBytes(4).readUInt32BE(0)) >>> 0;
       R.att = { id: ctx.uid(), col, row, heroIds: ids, snaps, seed, waves, engine: (host && host.buildVersion) || null, startedAt: Date.now(), reqId };
       R.started = true; ctx.writeDB();
@@ -331,4 +381,5 @@ async function handle(p, method, ctx) {
   });
 }
 
-module.exports = { handle, genMap, poolFor, sweepPrize, fightWaves, foesFor, rng, BUFFS, cycleOf, OPEN, PCT, RES_COST, loanSpec };
+module.exports = { handle, genMap, poolFor, sweepPrize, fightWaves, foesFor, rng, BUFFS, cycleOf, OPEN, PCT, RES_COST, loanSpec, applyLoanBuff, loanCard, tentOptions,
+  TENT_OPTIONS, LOAN_BUFF, LOAN_UP_BUFF, LOAN_UP_CHANCE };

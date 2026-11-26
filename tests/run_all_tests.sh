@@ -663,6 +663,8 @@ note "test_lockdown_guild_1455.js (v1455 lockdown audit Guild fixes: Skyfall res
 node tests/test_lockdown_guild_1455.js || FAILED=1
 note "test_lockdown_wall_watch_1455.js (v1455 lockdown audit City Wall / Watch Tower / Well / Arena fixes: RESET on the wall line editor, Voidglass not crystal, siege site names, tent loans in the Well Heroes window, arena coins + glyph fragments on the result line)"
 node tests/test_lockdown_wall_watch_1455.js || FAILED=1
+note "test_phil_answers_1457.js (v1457 Phil's lockdown answers 26 Nov: the 17 orphan glyph fragments drop again with the stage drop split evenly + a real boot check, no Arena hero XP, a 3-hero buffed Well tent, red/green teleport tint, no guild raid Skip)"
+node tests/test_phil_answers_1457.js || FAILED=1
 note "test_lockdown_forge_pool_market_1455.js (v1455 lockdown audit Forge / Wishing Pool / Market fixes: Forge routes need level 25, a hero wears only its own nine items, Diamond card odds from the server table in 16 languages, the Market restock countdown ticks and restocks)"
 node tests/test_lockdown_forge_pool_market_1455.js || FAILED=1
 note "test_lockdown_mail_feedback_1455.js (v1455 lockdown audit Mail / Quests / Feedback fixes: flags never evict player reports, satellite report outbox with retry + chat reports, 200 war reports kept, Make a Name needs a rename, replay disagreements filed as desync, claim notices, already-claimed compensation, X-Forwarded-For only from our proxy, empty Inbox text in 16 languages)"

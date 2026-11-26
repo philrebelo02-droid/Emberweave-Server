@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "{m}选1",
+ "stage.split_frags": "以下{m}种碎片掉落其一,每种{p}几率:",
+ "well.tent_pick": "选择一名英雄,在本次探索中借用",
+ "well.loan_up": "已提升至{q}",
+ "well.loan_buff": "生命{hp},伤害{atk}",
+ "well.loan_dupe": "你的英雄的更强复制",
+ "battle.x2_vip_raid": "公会突袭的2倍速仅限VIP(EGP 1及以上)。"
+}

@@ -175,7 +175,7 @@ function load(htmlPath){
        never the one the browser claimed. */
     raid(allySnaps, bossSpec, seed, inputLog){
       const dmg=sandbox.simRaidReplay(allySnaps, bossSpec, seed>>>0, inputLog||[], true);
-      return { dmg:Math.max(0, Math.round(Number(dmg)||0)), digest:sandbox._p2digest||null };
+      return { dmg:Math.max(0, Math.round(Number(dmg)||0)), digest:sandbox._p2digest||null, t:+(sandbox._p2raidT||0) };   /* v1457: the fight's length in seconds (the server refuses a skipped raid) */
     },
     auto(allySnaps, foeTeam, seed){
       const won=sandbox.simFightResult(allySnaps, foeTeam, seed>>>0);

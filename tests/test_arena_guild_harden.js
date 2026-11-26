@@ -1,3 +1,4 @@
+process.env.RAID_MIN_WATCH_MUL = process.env.RAID_MIN_WATCH_MUL || '0';   // v1457: this test resolves guild raid fights at machine speed; the skipped-raid refusal is proven in tests/test_phil_answers_1457.js
 // 3 Oct 2026 Arena+Campaign and Guild audits (v974), real server on a free port + temp DB:
 //  - /api/elite/resolve is retired (410), it paid fragments for a server-decided fight;
 //  - a campaign sweep with the same hero five times pays that hero ONE share of hero XP;

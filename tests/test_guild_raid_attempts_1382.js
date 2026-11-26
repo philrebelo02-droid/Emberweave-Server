@@ -1,3 +1,4 @@
+process.env.RAID_MIN_WATCH_MUL = process.env.RAID_MIN_WATCH_MUL || '0';   // v1457: this test resolves guild raid fights at machine speed; the skipped-raid refusal is proven in tests/test_phil_answers_1457.js
 const fs=require('fs'),os=require('os'),path=require('path'),net=require('net');
 const {spawn}=require('child_process');
 const ROOT=process.env.EW_ROOT?path.resolve(process.env.EW_ROOT):path.join(__dirname,'..');

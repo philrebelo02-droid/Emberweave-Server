@@ -1,3 +1,4 @@
+process.env.RAID_MIN_WATCH_MUL = process.env.RAID_MIN_WATCH_MUL || '0';   // v1457: this test resolves guild raid fights at machine speed; the skipped-raid refusal is proven in tests/test_phil_answers_1457.js
 // v1447 (Phil 24 Nov 2026: "check magic rush for their standard of time" / "fix it to their standard of time killed").
 // The guild raid boss is sized so a guild of 20 at the tier's level (85% build, 3 attempts a day) needs about 3 days, and like Magic Rush's
 // Team Raid the next boss arrives at the daily reset (one boss a day at most). Also: no tier's health passes 2^31 (tier 36+ used to end the

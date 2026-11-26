@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "UNO DE {m}",
+ "stage.split_frags": "Cae uno de estos {m} fragmentos, {p} de probabilidad cada uno:",
+ "well.tent_pick": "Elige un héroe para tomar prestado en esta incursión",
+ "well.loan_up": "Mejorado a {q}",
+ "well.loan_buff": "{hp} de salud, {atk} de daño",
+ "well.loan_dupe": "una copia más fuerte del tuyo",
+ "battle.x2_vip_raid": "La velocidad x2 en las incursiones de gremio es para VIP (EGP 1 o más)."
+}

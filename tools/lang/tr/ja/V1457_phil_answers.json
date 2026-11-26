@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "{m}種から1つ",
+ "stage.split_frags": "この{m}種のうち1つがドロップ(各{p}):",
+ "well.tent_pick": "この挑戦で借りる英雄を選んでください",
+ "well.loan_up": "{q}に強化",
+ "well.loan_buff": "体力{hp}、ダメージ{atk}",
+ "well.loan_dupe": "あなたの英雄の強化版",
+ "battle.x2_vip_raid": "ギルドレイドの2倍速はVIP限定です(EGP 1以上)。"
+}

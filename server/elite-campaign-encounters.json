@@ -2333,6 +2333,20 @@
      "displayName": "Blue Shadepath Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-shadepath",
+     "key": "Blue Shadepath",
+     "displayName": "Blue Shadepath Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "blue-bastion",
+     "key": "Blue Bastion",
+     "displayName": "Blue Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -3043,6 +3057,14 @@
      "displayName": "Blue Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-hawkeye",
+     "key": "Blue Hawkeye",
+     "displayName": "Blue Hawkeye Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -3143,6 +3165,20 @@
      "fragmentId": "blue-ravager",
      "key": "Blue Ravager",
      "displayName": "Blue Ravager Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-ravager",
+     "key": "Blue Ravager",
+     "displayName": "Blue Ravager Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "blue-lifebloom",
+     "key": "Blue Lifebloom",
+     "displayName": "Blue Lifebloom Fragment",
      "quantity": 2
     }
    ]
@@ -3534,6 +3570,20 @@
      "fragmentId": "blue-plus-1-windstep",
      "key": "Blue +1 Windstep",
      "displayName": "Blue +1 Windstep Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-plus-1-windstep",
+     "key": "Blue +1 Windstep",
+     "displayName": "Blue +1 Windstep Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "blue-plus-1-bastion",
+     "key": "Blue +1 Bastion",
+     "displayName": "Blue +1 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -4417,6 +4467,20 @@
      "displayName": "Blue +1 Stoneheart Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-plus-1-stoneheart",
+     "key": "Blue +1 Stoneheart",
+     "displayName": "Blue +1 Stoneheart Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "blue-plus-1-ravager",
+     "key": "Blue +1 Ravager",
+     "displayName": "Blue +1 Ravager Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -4655,6 +4719,14 @@
      "displayName": "Blue +1 Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-plus-1-starfire",
+     "key": "Blue +1 Starfire",
+     "displayName": "Blue +1 Starfire Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -4801,6 +4873,20 @@
      "fragmentId": "blue-plus-2-veilward",
      "key": "Blue +2 Veilward",
      "displayName": "Blue +2 Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-plus-2-veilward",
+     "key": "Blue +2 Veilward",
+     "displayName": "Blue +2 Veilward Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "blue-plus-2-bastion",
+     "key": "Blue +2 Bastion",
+     "displayName": "Blue +2 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -5204,6 +5290,14 @@
      "fragmentId": "blue-plus-2-veilward",
      "key": "Blue +2 Veilward",
      "displayName": "Blue +2 Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-plus-2-sunder",
+     "key": "Blue +2 Sunder",
+     "displayName": "Blue +2 Sunder Fragment",
      "quantity": 2
     }
    ]
@@ -5732,6 +5826,20 @@
      "displayName": "Blue +2 Hawkeye Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "blue-plus-2-hawkeye",
+     "key": "Blue +2 Hawkeye",
+     "displayName": "Blue +2 Hawkeye Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "blue-plus-2-voidbind",
+     "key": "Blue +2 Voidbind",
+     "displayName": "Blue +2 Voidbind Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -6142,6 +6250,20 @@
      "displayName": "Purple Voidbind Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-voidbind",
+     "key": "Purple Voidbind",
+     "displayName": "Purple Voidbind Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-bastion",
+     "key": "Purple Bastion",
+     "displayName": "Purple Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -6263,6 +6385,20 @@
      "fragmentId": "purple-veilward",
      "key": "Purple Veilward",
      "displayName": "Purple Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-veilward",
+     "key": "Purple Veilward",
+     "displayName": "Purple Veilward Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-hawkeye",
+     "key": "Purple Hawkeye",
+     "displayName": "Purple Hawkeye Fragment",
      "quantity": 2
     }
    ]
@@ -6668,6 +6804,20 @@
      "displayName": "Purple Stoneheart Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-stoneheart",
+     "key": "Purple Stoneheart",
+     "displayName": "Purple Stoneheart Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-lifebloom",
+     "key": "Purple Lifebloom",
+     "displayName": "Purple Lifebloom Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -6924,6 +7074,14 @@
      "displayName": "Purple Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-shadepath",
+     "key": "Purple Shadepath",
+     "displayName": "Purple Shadepath Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -7063,6 +7221,20 @@
      "fragmentId": "purple-ravager",
      "key": "Purple Ravager",
      "displayName": "Purple Ravager Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-ravager",
+     "key": "Purple Ravager",
+     "displayName": "Purple Ravager Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-sunder",
+     "key": "Purple Sunder",
+     "displayName": "Purple Sunder Fragment",
      "quantity": 2
     }
    ]
@@ -7457,6 +7629,20 @@
      "displayName": "Purple +1 Bloodroot Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-1-bloodroot",
+     "key": "Purple +1 Bloodroot",
+     "displayName": "Purple +1 Bloodroot Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-1-bastion",
+     "key": "Purple +1 Bastion",
+     "displayName": "Purple +1 Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -7602,6 +7788,20 @@
      "fragmentId": "purple-plus-1-stoneheart",
      "key": "Purple +1 Stoneheart",
      "displayName": "Purple +1 Stoneheart Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-1-stoneheart",
+     "key": "Purple +1 Stoneheart",
+     "displayName": "Purple +1 Stoneheart Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-1-sunder",
+     "key": "Purple +1 Sunder",
+     "displayName": "Purple +1 Sunder Fragment",
      "quantity": 2
     }
    ]
@@ -8001,6 +8201,20 @@
      "displayName": "Purple +1 Ravager Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-1-ravager",
+     "key": "Purple +1 Ravager",
+     "displayName": "Purple +1 Ravager Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-1-voidbind",
+     "key": "Purple +1 Voidbind",
+     "displayName": "Purple +1 Voidbind Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -8396,6 +8610,20 @@
      "fragmentId": "purple-plus-1-hawkeye",
      "key": "Purple +1 Hawkeye",
      "displayName": "Purple +1 Hawkeye Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-1-hawkeye",
+     "key": "Purple +1 Hawkeye",
+     "displayName": "Purple +1 Hawkeye Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-1-tidecall",
+     "key": "Purple +1 Tidecall",
+     "displayName": "Purple +1 Tidecall Fragment",
      "quantity": 2
     }
    ]
@@ -8796,6 +9024,20 @@
      "displayName": "Purple +2 Starfire Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-2-starfire",
+     "key": "Purple +2 Starfire",
+     "displayName": "Purple +2 Starfire Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-2-stoneheart",
+     "key": "Purple +2 Stoneheart",
+     "displayName": "Purple +2 Stoneheart Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -8917,6 +9159,20 @@
      "fragmentId": "purple-plus-2-windstep",
      "key": "Purple +2 Windstep",
      "displayName": "Purple +2 Windstep Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-2-windstep",
+     "key": "Purple +2 Windstep",
+     "displayName": "Purple +2 Windstep Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-2-ironwall",
+     "key": "Purple +2 Ironwall",
+     "displayName": "Purple +2 Ironwall Fragment",
      "quantity": 2
     }
    ]
@@ -9304,6 +9560,20 @@
      "displayName": "Purple +2 Shadepath Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-2-shadepath",
+     "key": "Purple +2 Shadepath",
+     "displayName": "Purple +2 Shadepath Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-2-ravager",
+     "key": "Purple +2 Ravager",
+     "displayName": "Purple +2 Ravager Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -9681,6 +9951,20 @@
      "fragmentId": "purple-plus-2-veilward",
      "key": "Purple +2 Veilward",
      "displayName": "Purple +2 Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-2-veilward",
+     "key": "Purple +2 Veilward",
+     "displayName": "Purple +2 Veilward Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-2-bastion",
+     "key": "Purple +2 Bastion",
+     "displayName": "Purple +2 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -10075,6 +10359,20 @@
      "displayName": "Purple +3 Ravager Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-3-ravager",
+     "key": "Purple +3 Ravager",
+     "displayName": "Purple +3 Ravager Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-3-stoneheart",
+     "key": "Purple +3 Stoneheart",
+     "displayName": "Purple +3 Stoneheart Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -10214,6 +10512,20 @@
      "fragmentId": "purple-plus-3-starfire",
      "key": "Purple +3 Starfire",
      "displayName": "Purple +3 Starfire Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-3-starfire",
+     "key": "Purple +3 Starfire",
+     "displayName": "Purple +3 Starfire Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-3-ironwall",
+     "key": "Purple +3 Ironwall",
+     "displayName": "Purple +3 Ironwall Fragment",
      "quantity": 2
     }
    ]
@@ -10605,6 +10917,20 @@
      "fragmentId": "purple-plus-3-lifebloom",
      "key": "Purple +3 Lifebloom",
      "displayName": "Purple +3 Lifebloom Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-3-lifebloom",
+     "key": "Purple +3 Lifebloom",
+     "displayName": "Purple +3 Lifebloom Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-3-bastion",
+     "key": "Purple +3 Bastion",
+     "displayName": "Purple +3 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -11020,6 +11346,20 @@
      "fragmentId": "purple-plus-3-voidbind",
      "key": "Purple +3 Voidbind",
      "displayName": "Purple +3 Voidbind Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "purple-plus-3-voidbind",
+     "key": "Purple +3 Voidbind",
+     "displayName": "Purple +3 Voidbind Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "purple-plus-3-bloodroot",
+     "key": "Purple +3 Bloodroot",
+     "displayName": "Purple +3 Bloodroot Fragment",
      "quantity": 2
     }
    ]
@@ -11438,6 +11778,20 @@
      "displayName": "Gold Stoneheart Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-stoneheart",
+     "key": "Gold Stoneheart",
+     "displayName": "Gold Stoneheart Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-dawnshield",
+     "key": "Gold Dawnshield",
+     "displayName": "Gold Dawnshield Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -11583,6 +11937,20 @@
      "fragmentId": "gold-ironwall",
      "key": "Gold Ironwall",
      "displayName": "Gold Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-ironwall",
+     "key": "Gold Ironwall",
+     "displayName": "Gold Ironwall Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-bastion",
+     "key": "Gold Bastion",
+     "displayName": "Gold Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -11976,6 +12344,20 @@
      "displayName": "Gold Starfire Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-starfire",
+     "key": "Gold Starfire",
+     "displayName": "Gold Starfire Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-voidbind",
+     "key": "Gold Voidbind",
+     "displayName": "Gold Voidbind Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -12123,6 +12505,20 @@
      "fragmentId": "gold-windstep",
      "key": "Gold Windstep",
      "displayName": "Gold Windstep Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-windstep",
+     "key": "Gold Windstep",
+     "displayName": "Gold Windstep Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-tidecall",
+     "key": "Gold Tidecall",
+     "displayName": "Gold Tidecall Fragment",
      "quantity": 2
     }
    ]
@@ -12391,6 +12787,20 @@
      "displayName": "Gold Lifebloom Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-lifebloom",
+     "key": "Gold Lifebloom",
+     "displayName": "Gold Lifebloom Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-bloodroot",
+     "key": "Gold Bloodroot",
+     "displayName": "Gold Bloodroot Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -12526,6 +12936,20 @@
      "fragmentId": "gold-shadepath",
      "key": "Gold Shadepath",
      "displayName": "Gold Shadepath Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-shadepath",
+     "key": "Gold Shadepath",
+     "displayName": "Gold Shadepath Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-keenmind",
+     "key": "Gold Keenmind",
+     "displayName": "Gold Keenmind Fragment",
      "quantity": 2
     }
    ]
@@ -12801,6 +13225,20 @@
      "displayName": "Gold +1 Bloodroot Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-1-bloodroot",
+     "key": "Gold +1 Bloodroot",
+     "displayName": "Gold +1 Bloodroot Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-bastion",
+     "key": "Gold +1 Bastion",
+     "displayName": "Gold +1 Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -12940,6 +13378,20 @@
      "fragmentId": "gold-plus-1-keenmind",
      "key": "Gold +1 Keenmind",
      "displayName": "Gold +1 Keenmind Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-1-keenmind",
+     "key": "Gold +1 Keenmind",
+     "displayName": "Gold +1 Keenmind Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-dawnshield",
+     "key": "Gold +1 Dawnshield",
+     "displayName": "Gold +1 Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -13339,6 +13791,20 @@
      "displayName": "Gold +1 Ironwall Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-1-lifebloom",
+     "key": "Gold +1 Lifebloom",
+     "displayName": "Gold +1 Lifebloom Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-shadepath",
+     "key": "Gold +1 Shadepath",
+     "displayName": "Gold +1 Shadepath Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -13486,6 +13952,20 @@
      "fragmentId": "gold-plus-1-veilward",
      "key": "Gold +1 Veilward",
      "displayName": "Gold +1 Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-1-veilward",
+     "key": "Gold +1 Veilward",
+     "displayName": "Gold +1 Veilward Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-sunder",
+     "key": "Gold +1 Sunder",
+     "displayName": "Gold +1 Sunder Fragment",
      "quantity": 2
     }
    ]
@@ -13760,6 +14240,20 @@
      "displayName": "Gold +1 Starfire Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-1-starfire",
+     "key": "Gold +1 Starfire",
+     "displayName": "Gold +1 Starfire Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-voidbind",
+     "key": "Gold +1 Voidbind",
+     "displayName": "Gold +1 Voidbind Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -13901,6 +14395,20 @@
      "fragmentId": "gold-plus-1-windstep",
      "key": "Gold +1 Windstep",
      "displayName": "Gold +1 Windstep Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-1-windstep",
+     "key": "Gold +1 Windstep",
+     "displayName": "Gold +1 Windstep Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-tidecall",
+     "key": "Gold +1 Tidecall",
+     "displayName": "Gold +1 Tidecall Fragment",
      "quantity": 2
     }
    ]
@@ -14176,6 +14684,20 @@
      "displayName": "Gold +2 Voidbind Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-2-voidbind",
+     "key": "Gold +2 Voidbind",
+     "displayName": "Gold +2 Voidbind Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-dawnshield",
+     "key": "Gold +2 Dawnshield",
+     "displayName": "Gold +2 Dawnshield Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -14315,6 +14837,20 @@
      "fragmentId": "gold-plus-2-veilward",
      "key": "Gold +2 Veilward",
      "displayName": "Gold +2 Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-2-veilward",
+     "key": "Gold +2 Veilward",
+     "displayName": "Gold +2 Veilward Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-starfire",
+     "key": "Gold +2 Starfire",
+     "displayName": "Gold +2 Starfire Fragment",
      "quantity": 2
     }
    ]
@@ -14720,6 +15256,20 @@
      "displayName": "Gold +2 Keenmind Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-2-keenmind",
+     "key": "Gold +2 Keenmind",
+     "displayName": "Gold +2 Keenmind Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-windstep",
+     "key": "Gold +2 Windstep",
+     "displayName": "Gold +2 Windstep Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -14867,6 +15417,20 @@
      "fragmentId": "gold-plus-2-ironwall",
      "key": "Gold +2 Ironwall",
      "displayName": "Gold +2 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-2-ironwall",
+     "key": "Gold +2 Ironwall",
+     "displayName": "Gold +2 Ironwall Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-bastion",
+     "key": "Gold +2 Bastion",
+     "displayName": "Gold +2 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -15141,6 +15705,20 @@
      "displayName": "Gold +2 Ironwall Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-2-hawkeye",
+     "key": "Gold +2 Hawkeye",
+     "displayName": "Gold +2 Hawkeye Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-lifebloom",
+     "key": "Gold +2 Lifebloom",
+     "displayName": "Gold +2 Lifebloom Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -15276,6 +15854,20 @@
      "fragmentId": "gold-plus-2-veilward",
      "key": "Gold +2 Veilward",
      "displayName": "Gold +2 Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-2-shadepath",
+     "key": "Gold +2 Shadepath",
+     "displayName": "Gold +2 Shadepath Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-sunder",
+     "key": "Gold +2 Sunder",
+     "displayName": "Gold +2 Sunder Fragment",
      "quantity": 2
     }
    ]
@@ -15563,6 +16155,20 @@
      "displayName": "Gold +3 Lifebloom Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-3-lifebloom",
+     "key": "Gold +3 Lifebloom",
+     "displayName": "Gold +3 Lifebloom Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-dawnshield",
+     "key": "Gold +3 Dawnshield",
+     "displayName": "Gold +3 Dawnshield Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -15702,6 +16308,20 @@
      "fragmentId": "gold-plus-3-shadepath",
      "key": "Gold +3 Shadepath",
      "displayName": "Gold +3 Shadepath Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-3-shadepath",
+     "key": "Gold +3 Shadepath",
+     "displayName": "Gold +3 Shadepath Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-ravager",
+     "key": "Gold +3 Ravager",
+     "displayName": "Gold +3 Ravager Fragment",
      "quantity": 2
     }
    ]
@@ -16113,6 +16733,20 @@
      "displayName": "Gold +3 Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-3-veilward",
+     "key": "Gold +3 Veilward",
+     "displayName": "Gold +3 Veilward Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-starfire",
+     "key": "Gold +3 Starfire",
+     "displayName": "Gold +3 Starfire Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -16260,6 +16894,20 @@
      "fragmentId": "gold-plus-3-tidecall",
      "key": "Gold +3 Tidecall",
      "displayName": "Gold +3 Tidecall Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-3-tidecall",
+     "key": "Gold +3 Tidecall",
+     "displayName": "Gold +3 Tidecall Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-windstep",
+     "key": "Gold +3 Windstep",
+     "displayName": "Gold +3 Windstep Fragment",
      "quantity": 2
     }
    ]
@@ -16528,6 +17176,20 @@
      "displayName": "Gold +3 Keenmind Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-3-keenmind",
+     "key": "Gold +3 Keenmind",
+     "displayName": "Gold +3 Keenmind Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-hawkeye",
+     "key": "Gold +3 Hawkeye",
+     "displayName": "Gold +3 Hawkeye Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -16663,6 +17325,20 @@
      "fragmentId": "gold-plus-3-ironwall",
      "key": "Gold +3 Ironwall",
      "displayName": "Gold +3 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-3-ironwall",
+     "key": "Gold +3 Ironwall",
+     "displayName": "Gold +3 Ironwall Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-bastion",
+     "key": "Gold +3 Bastion",
+     "displayName": "Gold +3 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -16936,6 +17612,20 @@
      "fragmentId": "gold-plus-4-starfire",
      "key": "Gold +4 Starfire",
      "displayName": "Gold +4 Starfire Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-4-starfire",
+     "key": "Gold +4 Starfire",
+     "displayName": "Gold +4 Starfire Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-4-stoneheart",
+     "key": "Gold +4 Stoneheart",
+     "displayName": "Gold +4 Stoneheart Fragment",
      "quantity": 2
     }
    ]
@@ -18466,6 +19156,14 @@
      "displayName": "Gold +4 Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-4-dawnshield",
+     "key": "Gold +4 Dawnshield",
+     "displayName": "Gold +4 Dawnshield Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -18857,6 +19555,14 @@
      "displayName": "Gold +4 Ironwall Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "gold-plus-4-bastion",
+     "key": "Gold +4 Bastion",
+     "displayName": "Gold +4 Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -19004,6 +19710,20 @@
      "fragmentId": "orange-shadepath",
      "key": "Orange Shadepath",
      "displayName": "Orange Shadepath Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "orange-shadepath",
+     "key": "Orange Shadepath",
+     "displayName": "Orange Shadepath Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "orange-voidbind",
+     "key": "Orange Voidbind",
+     "displayName": "Orange Voidbind Fragment",
      "quantity": 2
     }
    ]
@@ -19960,6 +20680,20 @@
      "displayName": "Orange Stoneheart Fragment",
      "quantity": 2
     }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "orange-stoneheart",
+     "key": "Orange Stoneheart",
+     "displayName": "Orange Stoneheart Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "orange-bastion",
+     "key": "Orange Bastion",
+     "displayName": "Orange Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -20095,6 +20829,14 @@
      "fragmentId": "orange-ironwall",
      "key": "Orange Ironwall",
      "displayName": "Orange Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "orange-bloodroot",
+     "key": "Orange Bloodroot",
+     "displayName": "Orange Bloodroot Fragment",
      "quantity": 2
     }
    ]
@@ -20242,6 +20984,14 @@
      "fragmentId": "orange-veilward",
      "key": "Orange Veilward",
      "displayName": "Orange Veilward Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "orange-dawnshield",
+     "key": "Orange Dawnshield",
+     "displayName": "Orange Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -20486,6 +21236,14 @@
      "fragmentId": "orange-starfire",
      "key": "Orange Starfire",
      "displayName": "Orange Starfire Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "orange-worldheart",
+     "key": "Orange Worldheart",
+     "displayName": "Orange Worldheart Fragment",
      "quantity": 2
     }
    ]
@@ -20871,6 +21629,20 @@
      "fragmentId": "orange-lifebloom",
      "key": "Orange Lifebloom",
      "displayName": "Orange Lifebloom Fragment",
+     "quantity": 2
+    }
+   ],
+   "fragmentKinds": [
+    {
+     "fragmentId": "orange-lifebloom",
+     "key": "Orange Lifebloom",
+     "displayName": "Orange Lifebloom Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "orange-cataclysm",
+     "key": "Orange Cataclysm",
+     "displayName": "Orange Cataclysm Fragment",
      "quantity": 2
     }
    ]

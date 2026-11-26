@@ -1916,10 +1916,20 @@ function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.l
   for(const it of list){ const q=Math.max(1,it.quantity|0); g.fragments[it.key]=(g.fragments[it.key]||0)+q;
     receipt.push({ fragmentId:glyphFragSlug(it.key), key:it.key, displayName:glyphFragName(it.key), quantity:q }); }   /* v1141: key rides along so the result art uses the real quality, not the display name */
   g.revision++; return receipt; }
+/* v1457 (Phil 26 Nov 2026, lockdown answer 1: "add them to existing stages and add a chance they drop, cutting the other fragments chances,
+   if 2 are on the same stage is 50% if 3 are on one is 33%"). A stage's fragment drop is split EVENLY between the kinds on it:
+   - an ordinary Normal stage (fragmentRolls 2) pays 2 distinct kinds of its 4 or 5, so each kind drops 2/4 = 50% or 2/5 = 40% of runs;
+   - any other stage pays its whole drop (the same quantity as before) as ONE of its kinds, each kind 1/k of runs (2 kinds 50%, 3 kinds 33%).
+   The total amount a run pays never changes. campaignFragChance is the one number the stage panel shows. */
+function campaignFragChance(st){ const list=(st&&st.rewards&&st.rewards.glyphFragments)||[]; if(!list.length) return 0;
+  return ((st.rewards.fragmentRolls|0)===2&&list.length>=2)?2/list.length:1/list.length; }
 function campaignGlyphDrops(st,runs,seed){
   const list=(st&&st.rewards&&st.rewards.glyphFragments)||[], n=Math.max(1,runs|0);
-  if(!st||!st.rewards||(st.rewards.fragmentRolls|0)!==2||list.length<2) return list.map(f=>({key:f.key,quantity:(f.quantity|0||1)*n}));
   let x=(seed>>>0)||0x9e3779b9; const next=()=>{ x^=x<<13; x^=x>>>17; x^=x<<5; return x>>>0; };
+  if(!st||!st.rewards||list.length<2) return list.map(f=>({key:f.key,quantity:(f.quantity|0||1)*n}));
+  if((st.rewards.fragmentRolls|0)!==2){ const qty={};   /* v1457: one kind per run, even split */
+    for(let r=0;r<n;r++){ const f=list[next()%list.length]; qty[f.key]=(qty[f.key]||0)+(f.quantity|0||1); }
+    return Object.keys(qty).map(key=>({key,quantity:qty[key]})); }
   const qty={};
   for(let r=0;r<n;r++){ const a=next()%list.length; let b=next()%(list.length-1); if(b>=a)b++;
     qty[list[a].key]=(qty[list[a].key]||0)+1; qty[list[b].key]=(qty[list[b].key]||0)+1; }
@@ -5997,6 +6007,14 @@ async function playCreditSaved(){
   if(typeof _inflight!=='undefined')for(const b of _inflight)waits.add(b.promise);
   return (await Promise.all(waits)).every(ok=>ok===true);
 }
+/* v1457 (Phil 26 Nov 2026: "no skip button allowed for guild raid" / "guild raids should have x2 button for vips"): the shortest time a guild
+   raid fight of fightSec seconds can be watched - at the fastest speed THIS player's page offers in a raid (x2 for a VIP, EGP 1+ or prestiged,
+   read from the server's own ledger; x1 for everyone else), 80% of it, less 3 s for clocks and the request. A result sooner was skipped. */
+const RAID_MAX_SPEED=2;
+function raidVip(u){ try{ const L=patronLevels(ensureLedger(u)); return !!(L.prestiged||L.egp>=1); }catch(e){ return false; } }
+function raidMinWatchMs(fightSec, vip){ const s=Number(fightSec), e=process.env.RAID_MIN_WATCH_MUL, mul=(e!=null&&e!==''&&Number.isFinite(+e))?Math.max(0,+e):1;   /* RAID_MIN_WATCH_MUL=0: tests that resolve a raid at machine speed */
+  return (Number.isFinite(s)&&s>0)?Math.max(0, Math.round((s*1000/(vip?RAID_MAX_SPEED:1)*0.8-3000)*mul)):0; }
+function raidSkipped(fightSec, elapsedMs, vip){ return Number(elapsedMs) < raidMinWatchMs(fightSec, vip); }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"): 16 chapters x 10 fixed stages
 /* Glyph Fragment Farm Map. Ordinary Normal stages each advertise four fixed possibilities and pay
@@ -6032,10 +6050,23 @@ function portalCompile(){
     for(const e of raw){
       if(!e.id||!(e.node>=1)) throw new Error(mode+' portal: stage record missing id/node');
       if(!Array.isArray(e.waves)||!e.waves.length) throw new Error(mode+' '+e.id+': no waves');
-      const gf=e.rewards&&e.rewards.glyphFragments;
+      let gf=e.rewards&&e.rewards.glyphFragments;
       const ordinaryNormal=mode==='normal'&&!isHeroRewardStageSrv(e.node), expected=ordinaryNormal?4:1;
       if(!Array.isArray(gf)||gf.length!==expected) throw new Error(mode+' '+e.id+': expected '+expected+' glyph fragment possibilities');
       if(ordinaryNormal&&((e.rewards.fragmentRolls|0)!==2||new Set(gf.map(f=>f.key)).size!==4)) throw new Error(mode+' '+e.id+': ordinary stage must roll 2 from 4 distinct fragments');
+      /* v1457 (Phil 26 Nov 2026: "add them to existing stages and add a chance they drop, cutting the other fragments chances, if 2 are on the
+         same stage is 50% if 3 are on one is 33%", then "each glyph should have 1-2 stages per normal, elite, and veteran"). A stage's v1457 list
+         is rewards.fragmentKinds - a field of its own, so glyphFragments above (and every older build's boot check that reads it) stays as it
+         was - and it replaces the stage's list HERE: an ordinary Normal stage offers 2-5 kinds of its band and still pays 2 distinct a run (both
+         of 2, 67% of 3, 50% of 4, 40% of 5); any other stage offers 1-3 kinds of one quantity and pays that quantity as one of them
+         (campaignGlyphDrops - an even split, 50% / 33%). Every route, sweep and screen reads the replaced list. */
+      const fk=e.rewards.fragmentKinds;
+      if(fk!=null){
+        const lo=ordinaryNormal?2:1, hi=ordinaryNormal?5:3, q0=gf[0].key.slice(0,gf[0].key.lastIndexOf(' '));
+        if(!Array.isArray(fk)||fk.length<lo||fk.length>hi) throw new Error(mode+' '+e.id+': fragmentKinds must name '+lo+'-'+hi+' kinds');
+        if(new Set(fk.map(f=>f&&f.key)).size!==fk.length) throw new Error(mode+' '+e.id+': fragment kinds must be distinct');
+        if(fk.some(f=>!f||!f.key||f.quantity!==gf[0].quantity||f.key.slice(0,f.key.lastIndexOf(' '))!==q0)) throw new Error(mode+' '+e.id+': every kind shares the stage quality and quantity');
+        gf=e.rewards.glyphFragments=fk.map(f=>Object.assign({},f)); delete e.rewards.fragmentKinds; }
       if(mode==='elite'){
         const final=e.waves[e.waves.length-1]||[];
         if(gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Elite stage must pay two Glyph Fragments');
@@ -6052,9 +6083,30 @@ function portalCompile(){
     }
     PORTALS[mode]={ byNode, list:raw };
   }
+  /* v1457 (lockdown audit campaign-01 "Every fragment farmable"; Phil 26 Nov: "yes give orange normal stages too" / "each glyph should have
+     1-2 stages per normal, elite, and veteran"): this line used to SAY that every type had an ordinary Normal source, without checking it.
+     It is a real check now, and the server does not start unless: every fragment kind a glyph recipe names drops from an ORDINARY Normal stage
+     (the unlimited farm), and from 1-2 stages in each of Normal, Elite and Veteran - wherever that mode has a stage of the kind's quality
+     (Elite starts at Green and Veteran at Green +1, so their Grey / Green kinds have no band there). */
+  const r=fragSourceCheck(); if(r.problems.length) throw new Error('glyph fragment sources ('+r.problems.length+'): '+r.problems.slice(0,12).join('; '));
   console.log('Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
-    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; every type has an ordinary Normal source.');
+    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; all '+r.need+' recipe fragment kinds drop from an ordinary Normal stage and from 1-2 stages per portal'
+    +' ('+r.noBand.length+' kind-portal pairs have no stage of their quality: '+r.noBandSummary+').');
 }
+function fragSourceCheck(){ const need=fragKindsNeeded(), problems=[], noBand=[], qOf=k=>k.slice(0,k.lastIndexOf(' '));
+  const ordN=new Set(PORTALS.normal.list.filter(e=>!isHeroRewardStageSrv(e.node)).map(e=>e.id));
+  const bands={}; for(const m of PORTAL_MODES) bands[m]=new Set(PORTALS[m].list.map(e=>qOf(e.rewards.glyphFragments[0].key)));
+  for(const k of need){ const src=FRAG_SOURCES[glyphFragSlug(k)]||[];
+    if(!src.some(s=>s.mode==='normal'&&ordN.has(s.stageId))) problems.push(k+': no ordinary Normal stage');
+    for(const m of PORTAL_MODES){ const n=src.filter(s=>s.mode===m).length;
+      if(!bands[m].has(qOf(k))){ if(n) problems.push(k+': '+m+' has no '+qOf(k)+' band'); else noBand.push(m+' '+k); continue; }
+      if(n<1||n>2) problems.push(k+': '+n+' '+m+' stages'); } }
+  const sum={}; for(const x of noBand){ const [m,...r]=x.split(' '), key=m+' '+qOf(r.join(' ')); sum[key]=(sum[key]||0)+1; }
+  return { need:need.length, problems, noBand, noBandSummary:Object.entries(sum).map(([k,v])=>k+' x'+v).join(', ') }; }
+/* v1457: every fragment kind a glyph recipe names (the 218 '<Quality> <Family>' keys) */
+function fragKindsNeeded(){ const s=new Set(); if(!GLYPHS||!Array.isArray(GLYPHS.raw)) return [];
+  for(const d of GLYPHS.raw) for(const g of (d.ing||[])) if(g.kind==='frag') s.add(g.key);
+  return [...s].sort(); }
 /* the one visible source of a fragment, as the ancestry tree and inventory show it:
    "Farm: Normal Portal 1-9" — and enough data to deep-link straight to that stage. */
 function portalSourcesFor(key){ const id=glyphFragSlug(key);
@@ -9676,7 +9728,7 @@ async function api(req,res,url){
     const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await WELL2.handle(p, req.method, { me, led, heroUsageNote, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
-      feedbackCheatSignal, feedbackDesyncSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev,
+      feedbackCheatSignal, feedbackDesyncSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev, heroCardPower,   /* v1457: a tent loan's shown power */
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
     if(out&&out.storageFailed) return send(res, 503, out);   /* 3 Oct audit: durable idem refused a failed save */
     if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
@@ -11962,10 +12014,10 @@ async function api(req,res,url){
       if(Date.now()-(a.startedAt||0) > RAID_SESSION_MS){ delete r0.att[me.id]; writeDB(); return send(res,200,{ok:false, expired:true, error:'That raid fight expired.', raid:raidView(g)}); }
       /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
          the frozen squad, seed and boss with the game's own battle code (sim-host). */
-      const host=simHost(); let dmg0=null, incident=null;
+      const host=simHost(); let dmg0=null, incident=null, fightSec=NaN;
       const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1), ...raidBossMuls(a.bossKey,a.tier||1)};
       if(host && a.snaps && typeof host.raid==='function'){
-        try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
+        try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); fightSec=Number(rr.t); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
         catch(e){ incident='raid-replay-error: '+e.message; }
       } else incident='raid-replay-unavailable';
       if(dmg0==null){
@@ -11974,6 +12026,14 @@ async function api(req,res,url){
            forced that path on purpose. Now nothing moves, the attempt stays open, and the incident is filed for review. */
         try{ devReport(me,'raid-replay-failed',0,{incident,tier:a.tier,claim:Math.round(Number(b.dmg)||0)}); }catch(e){}
         return send(res,200,{ok:false, unverified:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)});
+      }
+      /* v1457 (Phil 26 Nov 2026, lockdown answer 5: "no skip button allowed for guild raid"). The page has no Skip in a raid; this is the server
+         half: a result that came back sooner than the replayed fight can be WATCHED (its length at the fastest speed the page offers, with
+         slack for clocks) was skipped or fast-forwarded, and is refused. Nothing moves and the attempt stays open, as for an unchecked fight. */
+      const _vip=raidVip(me);
+      if(raidSkipped(fightSec, Date.now()-(a.startedAt||0), _vip)){
+        try{ devReport(me,'raid-skipped',0,'guild raid result after '+(Date.now()-(a.startedAt||0))+' ms for a '+(Math.round(fightSec*10)/10)+' s fight (shortest watch '+raidMinWatchMs(fightSec,_vip)+' ms'+(_vip?', VIP x2':', x1')+'), tier '+(a.tier|0)+' - refused, attempt kept'); }catch(e){}
+        return send(res,200,{ok:false, unverified:true, skipped:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)});
       }
       const out=durableCommit(me,rkey,(du,staged)=>{
         const gg=Object.values(staged.guilds||{}).find(x=>x&&x.id===g.id); if(!gg) return {ok:false, error:'You are not in a guild.'};

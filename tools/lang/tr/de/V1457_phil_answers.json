@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "EINES VON {m}",
+ "stage.split_frags": "Eines dieser {m} Fragmente fällt, je {p} Chance:",
+ "well.tent_pick": "Wähle einen Helden, den du für diesen Lauf ausleihst",
+ "well.loan_up": "Aufgewertet auf {q}",
+ "well.loan_buff": "{hp} Leben, {atk} Schaden",
+ "well.loan_dupe": "eine stärkere Kopie deines Helden",
+ "battle.x2_vip_raid": "x2-Tempo in Gildenraids gibt es nur für VIPs (EGP 1 und höher)."
+}

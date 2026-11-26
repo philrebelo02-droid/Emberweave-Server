@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "UN SUR {m}",
+ "stage.split_frags": "L'un de ces {m} fragments tombe, {p} de chance chacun :",
+ "well.tent_pick": "Choisissez un héros à emprunter pour cette expédition",
+ "well.loan_up": "Amélioré en {q}",
+ "well.loan_buff": "{hp} de santé, {atk} de dégâts",
+ "well.loan_dupe": "une copie plus forte du vôtre",
+ "battle.x2_vip_raid": "La vitesse x2 dans les raids de guilde est réservée aux VIP (EGP 1 et plus)."
+}

@@ -1,0 +1,9 @@
+{
+ "stage.one_of": "EEN VAN {m}",
+ "stage.split_frags": "Een van deze {m} fragmenten valt, elk {p} kans:",
+ "well.tent_pick": "Kies een held om te lenen voor deze tocht",
+ "well.loan_up": "Opgewaardeerd naar {q}",
+ "well.loan_buff": "{hp} gezondheid, {atk} schade",
+ "well.loan_dupe": "een sterkere kopie van de jouwe",
+ "battle.x2_vip_raid": "x2-snelheid in gildenraids is voor VIP's (EGP 1 en hoger)."
+}

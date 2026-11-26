@@ -355,7 +355,7 @@
     "name": "Platewall Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +8; Block +2.1%; Defense +8.6",
-    "recipeText": "4 × Blue Ironwall Fragments + Rustguard Glyph + Spellember Glyph",
+    "recipeText": "3 × Blue Ironwall Fragments + 1 × Blue Bastion Fragments + Rustguard Glyph + Spellember Glyph",
     "subGlyph": "Yes",
     "material": "Keen Iron"
   },
@@ -499,7 +499,7 @@
     "name": "Bracemail Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +9; Block +2.1%; Defense +9.7",
-    "recipeText": "4 × Blue +1 Ironwall Fragments + Rustguard Glyph + Starchant Glyph",
+    "recipeText": "3 × Blue +1 Ironwall Fragments + 1 × Blue +1 Bastion Fragments + Rustguard Glyph + Starchant Glyph",
     "subGlyph": "Yes",
     "material": "Fine Iron"
   },
@@ -643,7 +643,7 @@
     "name": "Shieldbone Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +11; Block +2.8%; Defense +11.8",
-    "recipeText": "5 × Blue +2 Ironwall Fragments + Steelblock Glyph + Arcflare Glyph",
+    "recipeText": "4 × Blue +2 Ironwall Fragments + 1 × Blue +2 Bastion Fragments + Steelblock Glyph + Arcflare Glyph",
     "subGlyph": "Yes",
     "material": "Pure Iron"
   },
@@ -787,7 +787,7 @@
     "name": "Adamantguard Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +12; Block +2.8%; Defense +12.9",
-    "recipeText": "2 × Purple Ironwall Fragments + Purple Ironwall Sub-Glyph + Platewall Glyph + Maulclaw Glyph",
+    "recipeText": "1 × Purple Ironwall Fragments + 1 × Purple Bastion Fragments + Purple Ironwall Sub-Glyph + Platewall Glyph + Maulclaw Glyph",
     "subGlyph": "Yes",
     "material": "Deep Iron"
   },
@@ -955,7 +955,7 @@
     "name": "Unbreakable Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +13; Block +3.5%; Defense +14",
-    "recipeText": "5 × Purple +1 Ironwall Fragments + Purple +1 Ironwall Sub-Glyph + Bracemail Glyph + Gorefang Glyph",
+    "recipeText": "4 × Purple +1 Ironwall Fragments + 1 × Purple +1 Bastion Fragments + Purple +1 Ironwall Sub-Glyph + Bracemail Glyph + Gorefang Glyph",
     "subGlyph": "Yes",
     "material": "Rich Iron"
   },
@@ -1123,7 +1123,7 @@
     "name": "Fortressborn Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +15; Block +3.5%; Defense +16.1",
-    "recipeText": "9 × Purple +2 Ironwall Fragments + Purple +2 Ironwall Sub-Glyph + Shieldbone Glyph + Savagery Glyph",
+    "recipeText": "7 × Purple +2 Ironwall Fragments + 2 × Purple +2 Bastion Fragments + Purple +2 Ironwall Sub-Glyph + Shieldbone Glyph + Savagery Glyph",
     "subGlyph": "Yes",
     "material": "Royal Iron"
   },
@@ -1291,7 +1291,7 @@
     "name": "Ironclad Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +17; Block +4.2%; Defense +18.3",
-    "recipeText": "15 × Purple +3 Ironwall Fragments + Purple +3 Ironwall Sub-Glyph + Adamantguard Glyph + Ruinmaw Glyph",
+    "recipeText": "11 × Purple +3 Ironwall Fragments + 4 × Purple +3 Bastion Fragments + Purple +3 Ironwall Sub-Glyph + Adamantguard Glyph + Ruinmaw Glyph",
     "subGlyph": "Yes",
     "material": "Sovereign Iron"
   },
@@ -1459,7 +1459,7 @@
     "name": "Bulwarking Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +19; Block +4.9%; Defense +20.4",
-    "recipeText": "47 × Gold Ironwall Fragments + Gold Ironwall Sub-Glyph + Adamantguard Glyph + Ruinmaw Glyph + Spellhide Glyph",
+    "recipeText": "23 × Gold Ironwall Fragments + 12 × Gold Bastion Fragments + 12 × Gold Dawnshield Fragments + Gold Ironwall Sub-Glyph + Adamantguard Glyph + Ruinmaw Glyph + Spellhide Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Iron"
   },
@@ -1651,7 +1651,7 @@
     "name": "Talos Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +21; Block +5.6%; Defense +22.6",
-    "recipeText": "33 × Gold +1 Ironwall Fragments + Gold +1 Ironwall Sub-Glyph + Unbreakable Glyph + Devourer Glyph + Nullweave Glyph",
+    "recipeText": "17 × Gold +1 Ironwall Fragments + 8 × Gold +1 Bastion Fragments + 8 × Gold +1 Dawnshield Fragments + Gold +1 Ironwall Sub-Glyph + Unbreakable Glyph + Devourer Glyph + Nullweave Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Iron"
   },
@@ -1843,7 +1843,7 @@
     "name": "Vulcan Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +24; Block +6.3%; Defense +25.8",
-    "recipeText": "35 × Gold +2 Ironwall Fragments + Gold +2 Ironwall Sub-Glyph + Fortressborn Glyph + Carnage Glyph + Willward Glyph",
+    "recipeText": "17 × Gold +2 Ironwall Fragments + 9 × Gold +2 Bastion Fragments + 9 × Gold +2 Dawnshield Fragments + Gold +2 Ironwall Sub-Glyph + Fortressborn Glyph + Carnage Glyph + Willward Glyph",
     "subGlyph": "Yes",
     "material": "Imperial Iron"
   },
@@ -2035,7 +2035,7 @@
     "name": "Andvaranaut Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +27; Block +7%; Defense +29",
-    "recipeText": "47 × Gold +3 Ironwall Fragments + Gold +3 Ironwall Sub-Glyph + Ironclad Glyph + Bloodcrown Glyph + Unshaken Glyph",
+    "recipeText": "23 × Gold +3 Ironwall Fragments + 12 × Gold +3 Bastion Fragments + 12 × Gold +3 Dawnshield Fragments + Gold +3 Ironwall Sub-Glyph + Ironclad Glyph + Bloodcrown Glyph + Unshaken Glyph",
     "subGlyph": "Yes",
     "material": "Deathless Iron"
   },
@@ -2227,7 +2227,7 @@
     "name": "Svalinn Glyph",
     "statFocus": "Armor / Block / Defense",
     "passiveStats": "Armor +31; Block +7.7%; Defense +33.3",
-    "recipeText": "62 × Gold +4 Ironwall Fragments + Gold +4 Ironwall Sub-Glyph + Bulwarking Glyph + Beastking Glyph + Runeshield Glyph",
+    "recipeText": "30 × Gold +4 Ironwall Fragments + 16 × Gold +4 Bastion Fragments + 16 × Gold +4 Dawnshield Fragments + Gold +4 Ironwall Sub-Glyph + Bulwarking Glyph + Beastking Glyph + Runeshield Glyph",
     "subGlyph": "Yes",
     "material": "Astral Iron"
   },
