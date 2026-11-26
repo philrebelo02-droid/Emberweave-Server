@@ -191,6 +191,10 @@ process.on('exit', () => { for (const f of made) { try { fs.unlinkSync(f); } cat
 /* v1357 (flakes): several SWAPS carry \r\n. On the cluster's LF tree they were not found, the guard did not match either, and the back-out was
    skipped without a word - test_debuff_feet_1141 and test_nox_grimsby_anims failed there in every run. Page, needles and guards are compared in LF. */
 const _LF = x => String(x).replace(/\r\n/g, '\n');
+/* v1452 (lockdown audit engine fixes, tests/test_engine_fixes_1452.js): the 80 engine edits are taken back out first (newest first), so the older
+   fixed fights these pages replay keep testing what they were written for; a page without them (older, or already undone) is left as it is. */
+const V1452_BACK = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'v1452_engine_back.json'), 'utf8'));
+function v1452Back(s) { s = _LF(s); if (s.indexOf('v1452') < 0) return s; for (const [n, o] of V1452_BACK) { if (s.split(n).length === 2) s = s.replace(n, () => o); } return s; }
 /* v1376/v1377 (Phil 12 Nov: Bruisers x1.1, Assassins 95-100, Carn 72->80): the older BASE fights put every hero's move speed back */
 const SPEED_BACK = {konwu:70,tick:72,aureth:67,hurne:62,quorrel:67,korvux:70,hobb:70,deepcleft:67,zahri:74,carn:72,grimsby:62,iver:67,tolley:65,sorrel:77,veyr:86,vex:86,hollow:89,seyla:89,nox:92,kharos:94};
 function speedBack(s) { for (const k in SPEED_BACK) s = s.replace(new RegExp('(\\n\\s*' + k + ':\\s*\\{name:[^\\n]*?speed:)\\d+'), '$1' + SPEED_BACK[k]); return s; }
@@ -208,7 +212,7 @@ function swapAll(s, list) {
     s = s.replace(from, to); }
   return s; }
 function undoText(s) {
-  s = swapAll(speedBack(_LF(s)), SWAPS);
+  s = swapAll(speedBack(v1452Back(s)), SWAPS);
   // v1306 (Phil 7 Nov "Aldren isnt anchored he slides"): Aldren's hit / green / passive clips gained per-frame anchor tables (render data only);
   // taken back out so the older every-other-hero BATTLE_ANIM == BASE checks keep testing what they were written for (tests/test_aldren_anchor_1306.js checks v1306)
   s = s.replace(/(aldren_(?:hit|green|passive)\.webp\?v=3'[^\n]*?),ax:\[[-\d,]+\]/g, '$1');
@@ -225,7 +229,7 @@ function page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-global1260-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, undoText(fs.readFileSync(htmlPath, 'utf8'))); made.push(out); return out; }
 /* v1377: the Dandra rework alone undone (spec tests of other heroes / skill levels that run the rest live) */
-function dandraBack(s) { return swapAll(_LF(s), DANDRA_SWAPS); }
+function dandraBack(s) { return swapAll(v1452Back(s), DANDRA_SWAPS); }
 function dandraPage(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-dandra1376-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, dandraBack(fs.readFileSync(htmlPath, 'utf8'))); made.push(out); return out; }
@@ -234,12 +238,12 @@ function speedPage(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-speed1376-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, speedBack(_LF(fs.readFileSync(htmlPath, 'utf8')))); made.push(out); return out; }
 /* v1391: only the skill reach fixes undone (tests of a fix of their own that compare whole fights with a BASE from before v1391) */
-function reach1391Back(s) { return swapAll(_LF(s), REACH1391_SWAPS); }
+function reach1391Back(s) { return swapAll(v1452Back(s), REACH1391_SWAPS); }
 function reach1391Page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-reach1391-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, reach1391Back(fs.readFileSync(htmlPath, 'utf8'))); made.push(out); return out; }
 /* v1397: only the HP rule undone (base x2, +1000 by Lv 100 for non-Tanks) - for tests that put back just one other change (test_size_1258 with speedPage) */
-function hp1397Back(s) { return swapAll(_LF(s), HP1397_SWAPS); }
+function hp1397Back(s) { return swapAll(v1452Back(s), HP1397_SWAPS); }
 function speedHp1397Page(htmlPath) {
   const out = path.join(path.dirname(htmlPath), '.test-speedhp1397-page-' + process.pid + '-' + made.length + '.html');
   fs.writeFileSync(out, hp1397Back(speedBack(_LF(fs.readFileSync(htmlPath, 'utf8'))))); made.push(out); return out; }

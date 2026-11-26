@@ -461,7 +461,9 @@ node tests/test_combat_sfx_1138.js || FAILED=1
 note "test_front_door_1130.js (v1130: new players go to the next server - S1 below 1500 -> S1, at 1500 -> S2, hysteresis to 1300, S1 down -> S2, a stale count is unknown, existing accounts never move, the list still joins a busy S1; real servers + the page in Chromium; controls)"
 node tests/test_front_door_1130.js || FAILED=1
 note "test_won_never_defeat_1145.js (v1145: a campaign fight the PLAYER WON never shows DEFEAT - a reply of No matching campaign battle / 429 / 500 / 413 / auth / empty body is NOT COUNTED; 500 or empty then the receipt -> VICTORY with the SAME requestId; controls: a real win VICTORY, a real loss DEFEAT, a front-door 503 NOT COUNTED)"
-node tests/test_won_never_defeat_1145.js || FAILED=1
+EW_PART=1/3 node tests/test_won_never_defeat_1145.js || FAILED=1
+EW_PART=2/3 node tests/test_won_never_defeat_1145.js || FAILED=1
+EW_PART=3/3 node tests/test_won_never_defeat_1145.js || FAILED=1
 note "test_results_retry_1151.js (v1151: Trials (Training Province, Tower), the legacy dungeon trial, the Elite screen, the Vault and the Gauntlet are safe against a lost reply - live server: the SAME requestId pays once per mode (Gauntlet /api/bonus/resolve now takes one; an old client without one still resolves); real page: a lost first reply then the receipt shows the mode's win title with ONE requestId, an error on a win is NOT COUNTED in plain words (never DEFEAT, never 'offline'), a Vault win whose reply is lost says 'Victory saved', a real loss is DEFEAT; control: the same test against v1150 fails)"
 node tests/test_results_retry_1151.js || FAILED=1
 note "test_sylthaine_ult_passive.js (v1137 Sylthaine ULT Blizzard contained snow + PASSIVE Cold Snap - new ?v=1137 sheets from the clean H3 exports, 48 @24 on an 8 x 6 grid under 4096, frame-0 plate-pose anchors, flip:false; timing data = BASE (clipDur 2.0 = the sim-side ult root, apex 31), kit identical; control: scripted swings, Blizzard/green/blue casts (cast tick, root, hold, every unit 7 s), a timed-passive lock and whole fights (Sylthaine both sides, heroes carry BATTLE_ANIM as the server replay) on BASE land on the same ticks; Blizzard starts on cast cell 20 (rig), hold apex 31, Cold Snap contact 9; controls: a 40-cell ult moves the root, a moved swing diverges the fights, a slower passive changes its lock, a broken grid fails)"
@@ -641,6 +643,16 @@ node tests/test_hero61_art.js || FAILED=1
 node tests/test_hero61_fx.js || FAILED=1
 note "test_battle_limit_1399.js (v1399, Phil 17 Nov: \"all battles should be 3 minutes to time out now\" / \"every single battle mode\" - every mode's limit is 180 s, page and server)"
 node tests/test_battle_limit_1399.js || FAILED=1
+note "test_raid_spells_1453.js (v1453, Phil 25 Nov: \"just raise its spell power\" / \"magical beasts should do their damage with spells\" / \"2 attacks a day\" / \"lessen\" the armour)"
+node tests/test_raid_spells_1453.js || FAILED=1
+note "test_campaign_retune_1414.js (registered 25 Nov 2026 - it existed but never ran in the suite)"
+node tests/test_campaign_retune_1414.js || FAILED=1
+note "test_controls_fix_1451.js (registered 25 Nov 2026 - it existed but never ran in the suite)"
+node tests/test_controls_fix_1451.js || FAILED=1
+note "test_arena_one_fight_1450.js (registered 25 Nov 2026 - it existed but never ran in the suite)"
+node tests/test_arena_one_fight_1450.js || FAILED=1
+note "test_engine_fixes_1452.js (v1452 lockdown audit engine fixes 1-30: crit / lifesteal / sleep / control rolls and Control Resist / slows / immovable / summons / wind-ups / range / skills / talents caps / glyph re-read / spell sheets within the phone memory budget / drop tables)"
+node tests/test_engine_fixes_1452.js || FAILED=1
 note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Irix +20% health and damage in that fight only; City Wall art in view; Cauldron \"Full in\")"
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"

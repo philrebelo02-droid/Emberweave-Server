@@ -78,7 +78,7 @@ test('Vex / Blindside: Blindside, Shadow Step, Knife in the Dark, Through the Ga
   near(lost(F[0],()=>V.hit(v,F[0],1000,{crit:true})),crit*1.12*1.06,'Last Look: a Blindside crit 2% x 3 more critical damage');
   v.hp=v.maxHp*0.5; const h=v.hp, l=lost(F[0],()=>V.hit(v,F[0],1000)); near(v.hp-h,l*0.10,'Unseen: 2% x 5 lifesteal on Blindside hits');
   v.greenCd=5; V.hit(v,F[0],10); near(v.greenCd,5-0.4,'Closing the Distance: 0.2 s x 2 off Hookline for each Blindside hit');
-  v.target=F[0]; V.step(1); near(v.glyphCrit,0.15,'Knife in the Dark: 3% x 5 crit chance while her target is Blindsided'); v.target=F[1]; V.step(1); near(v.glyphCrit,0,'');
+  v.target=F[0]; V.step(1); near(v.glyphCrit,0.05,'Knife in the Dark: 3% x 5 crit chance while her target is Blindsided - at most 5% from talents in all (v1452)'); v.target=F[1]; V.step(1); near(v.glyphCrit,0,'');
   secs(4.6); assert.ok(!mark(L,F[0],'blind'),'it ends'); near(lost(F[0],()=>V.hit(v,F[0],1000)),base,'');
   home(L); F[2].hp=10; V.hit(v,F[2],1000); assert.ok(!F[2].alive); assert.ok(mark(L,F[0],'blind'),'Second Shadow: a kill gives her Blindside on the nearest enemy (F0, 4.5 m)'); assert.ok(!mark(L,F[1],'blind'));
 });
@@ -236,7 +236,7 @@ test('Vex / dodges: Slip Aside, Sidestep, Last Reflex, Read Them Coming, Quick S
   near(v._talDodge,0.13,'Sidestep: 1% x 3 more'); v.hp=v.maxHp*0.35; V.step(1); near(v._talDodge,0.18,'Last Reflex: below 40% HP 1% x 5 more'); v.hp=v.maxHp; V.step(1);
   v.greenCd=5; near(dodged(L,()=>lost(v,()=>V.hit(F[0],v,1000))),0,'a dodged attack deals no damage'); near(v.greenCd,5,'Bolt Hole: not above 30% HP');
   V.step(1); near(v.atkInterval,ai/1.09,'Quick Study: 3% x 3 attack speed for 3 s'); near(v._talDodge,0.13+0.10+0.01,'Read Them Coming 2% x 5 for 2 s; Always Laughing 0.2% x 5 per Patter');
-  near(v.glyphCrit,0.20,'Make Them Miss: the counter-cut has 4% x 5 more crit chance');
+  near(v.glyphCrit,0.05,'Make Them Miss: the counter-cut has 4% x 5 more crit chance - at most 5% from talents in all (v1452)');
   near(lost(F[1],()=>V.hit(v,F[1],1000,{crit:true})),bC*1.025*1.15,'Last Laugh: her first hit after a dodge 5% x 3 more critical damage (Patter: 0.5% x 5 for the 1 dodge)');
   near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),bA*1.30*1.025,'Counter-Cut: her next basic attack after a dodge 30% more'); near(lost(F[1],()=>V.hit(v,F[1],1000,{auto:true})),bA*1.025,'only the next');
   secs(2.05); near(v._talDodge,0.14); secs(1.05); near(v.atkInterval,ai);

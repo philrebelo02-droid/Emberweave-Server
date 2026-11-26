@@ -1584,7 +1584,7 @@
 "Pistol Barrage":"skill_name",
 "Plants his banner to grant nearby allies armor, attack speed, and control resistance.":"skill",
 "Plants his banner to grant nearby allies armor, attack speed, and control resistance. Rallied allies take {0}% less damage.":"skill",
-"Plants the wheel and forces nearby enemies to attack him.":"skill",
+"Plants the wheel and forces every enemy to attack him.":"skill",
 "Plate Glyph":"glyph_name",
 "Platewall Glyph":"glyph_name",
 "Player-aimed ultimate — Oakmir calls the first bloom of spring under an ally you choose. Every ally within {0} metres of that bloom is instantly healed for half their maximum health and wrapped in a lingering regrowth.":"skill",

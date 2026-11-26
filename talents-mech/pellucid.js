@@ -295,7 +295,7 @@ module.exports={
     stunHit(A,T,u,c){ const o=S(T), P=T.P, t=c.tgt, cur=T.s.cur; if(!t||!t.alive||t.team===u.team||!(c.amt>0)) return;
       const chk=any(T,CHK), had=chk&&!!A.markOf(u,t,'peChk');
       if(!c.talent){ let x=0; if(cur===MK) x+=(P['mk.ext']||0)+((P.perp&&had)?0.5:0); if(cur===CL) x+=(P['cl.ext']||0)+(P.opens?P.opens*(o.sp||0):0);
-        if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,t.stunned+x)); }
+        if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,A.stunRoom(t),t.stunned+x)); }   /* v1452: his talent extensions never take a run past 4.0 s; his base kit's own re-stuns are left as they are (not a talent) */
       if(chk&&!c.talent&&cur===MK) T.fn.check(A,T,u,t,4+(P['chk.dur']||0)+(o.mkFirst?(P['chk.first']||0):0));
       if(P.cw&&!c.talent&&cur==='wb2') T.fn.check(A,T,u,t,4+(P['chk.dur']||0));                                      // Castling Wall: the third slam's staggers go into Check
       if(P['dr.sf']) A.setMark(T,u,t,'peStn',{dur:(t.stunned||0)+3,longest:true});                                  // Stand Fast: until 3 s after the stun ends

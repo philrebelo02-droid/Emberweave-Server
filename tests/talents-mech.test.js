@@ -119,7 +119,7 @@ test('stats while a condition holds and per stack: exact size, on and off, and t
   const {v,F}=L, b={dmg:v.dmg,ar:v.armorRating,mr:v.mrRating,ai:v.atkInterval,cr:v.glyphCrit,ls:v.lifestealStat||0,sp:v.speed};
   V.hit(v,F[0],1); V.hit(v,F[0],1); V.hit(v,F[0],1); V.step(1);
   near(v.dmg,b.dmg*1.3,'attack: 3 stacks x 5% x rank 2'); near(v.armorRating,b.ar*1.6,'armor'); near(v.mrRating,b.mr*1.6,'magic resist'); near(v.atkInterval,b.ai/1.6,'attack speed');
-  near(v.glyphCrit,b.cr+0.06,'crit chance'); near(v.lifestealStat,b.ls+0.12,'lifesteal'); near(v.speed,b.sp*1.18,'move speed');
+  near(v.glyphCrit,b.cr+0.05,'crit chance (6% asked: at most 5% from talents in all, v1452)'); near(v.lifestealStat,b.ls+0.12,'lifesteal'); near(v.speed,b.sp*1.18,'move speed');
   v.dmg*=2;                                                         // the engine changes the number for its own reasons
   v.hp=v.maxHp*0.4; V.step(1); near(v.dmg,b.dmg*2*1.8,'both rows add: +30% and +50%');
   secs(1.1); near(v.dmg,b.dmg*2*1.5,'stacks expired: only the health row is left'); near(v.armorRating,b.ar,'armor is back'); near(v.atkInterval,b.ai,'attack speed is back'); near(v.glyphCrit,b.cr,'crit is back');
@@ -317,7 +317,7 @@ test('Vael / Quarry: Mark the Quarry, Long Hunt, Hunter\'s Read, Close the Dista
   v._tal=undefined; const base=lost(F[1],()=>V.hit(v,F[1],1000)), crit=lost(F[1],()=>V.hit(v,F[1],1000,{crit:true})); v._tal=T0; const b={cr:v.glyphCrit,sp:v.speed,dmg:v.dmg,ls:v.lifestealStat||0};
   near(lost(F[0],()=>V.hit(v,F[0],1000)),base,'the first hit of the wave marks the Quarry (and is not yet boosted)'); assert.equal(L.T.s.m.quarry,F[0]);
   near(lost(F[0],()=>V.hit(v,F[0],1000)),base*1.10,'+2% x 5 to the Quarry'); near(lost(F[1],()=>V.hit(v,F[1],1000)),base,'not to anyone else'); assert.equal(L.T.s.m.quarry,F[0],'only the first enemy hit each wave');
-  v.target=F[0]; V.step(1); v.target=F[0]; V.step(1); near(v.glyphCrit,b.cr+0.10,'Hunter\'s Read: +2% x 5 crit while the Quarry is his target'); near(v.speed,b.sp*1.12,'Close the Distance: +4% x 3');
+  v.target=F[0]; V.step(1); v.target=F[0]; V.step(1); near(v.glyphCrit,b.cr+0.05,'Hunter\'s Read: +2% x 5 crit while the Quarry is his target - at most 5% from talents in all (v1452)'); near(v.speed,b.sp*1.12,'Close the Distance: +4% x 3');
   v.target=F[1]; V.step(1); assert.equal(v.target,F[1]); near(v.glyphCrit,b.cr,'off against another target'); near(v.speed,b.sp,'');
   secs(6.1); near(lost(F[0],()=>V.hit(v,F[0],1000)),base*1.10*1.10,'Long Hunt: 2 steps of 3 s x 1% x 5'); secs(12); near(lost(F[0],()=>V.hit(v,F[0],1000)),base*1.10*1.25,'capped at 5 steps');
   F[0].hp=F[0].maxHp*0.4; V.step(1); assert.ok(F[0].slow>0); near(F[0].slowMul,0.85,'No Escape: the Quarry below 50% HP is slowed 5% x 3'); assert.ok(!(F[1].slow>0));

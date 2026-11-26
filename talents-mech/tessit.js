@@ -287,7 +287,7 @@ module.exports={
     /* a stun of hers landed: Hourglass's own is lengthened (Second Shatter, Sorrow Glass, The Sand Runs Out: in full, at most 4.0 s in all); every stun of hers
        sets the stun-lock mark (0.5 s after it ends) */
     ccHit(A,T,u,c){ const t=c.tgt, Pm=T.P, s=T.s; if(c.field!=='stunned'||!t||c.talent) return; const h=s.tsHg;
-      if(h&&s.cur==='aoeStun'){ let x=(Pm['hg.st']||0)+(Pm.hog?(Pm['hog.st']||0):0)+(Pm.tsro?1:0); if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_MAX,(c.amt||0)+x)); if(h.st.indexOf(t)<0) h.st.push(t); }
+      if(h&&s.cur==='aoeStun'){ let x=(Pm['hg.st']||0)+(Pm.hog?(Pm['hog.st']||0):0)+(Pm.tsro?1:0); if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_MAX,A.stunRoom(t),(c.amt||0)+x));   /* v1452: never a run past 4.0 s (it reached 5.25 s) */ if(h.st.indexOf(t)<0) h.st.push(t); }
       A.setMark(T,u,t,'tsLk',{dur:(t.stunned||0)+0.5}); },
     /* after the skill */
     cast(A,T,u,c){ const s=T.s, Pm=T.P, E=A.eng();

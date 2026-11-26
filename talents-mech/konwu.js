@@ -241,7 +241,7 @@ module.exports={
        Ringing Ears (his skills' stuns 0.06 s a rank longer; his talent stuns get it in tstun), Echo of the Fall (the slam), all cut at 4.0 s in all ---- */
     stunHit(A,T,u,c){ const t=c.tgt, P=T.P, o=S(T), E=A.eng(), now=E.now(); if(!t||!t.alive||t.team===u.team||!(c.amt>0)) return;
       const slam=T.s.cur===SL&&!c.talent;
-      if(!c.talent){ let x=(P.re||0)+(slam?(P.echo||0):0); if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,t.stunned+x)); }
+      if(!c.talent){ let x=(P.re||0)+(slam?(P.echo||0):0); if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,A.stunRoom(t),t.stunned+x)); }
       A.setMark(T,u,t,'kwLk',{dur:(t.stunned||0)+0.5,longest:true});
       if(INS.some(id=>T.r[id])) T.fn.insult(A,T,u,t);
       if(slam&&FLT.some(id=>T.r[id])) A.setMark(T,u,t,'kwFlt',{dur:8+(P['flt.dur']||0),longest:true});
@@ -266,7 +266,7 @@ module.exports={
     ssLand(A,T,u,c){ const t=c.tgt; if(!t) return; if(!t.alive){ u.blueCd=Math.max(0,(u.blueCd||0)-3); return; } A.setMark(T,u,t,'kwSs',{dur:3}); },
     sigStun(A,T,u,c){ const o=S(T), t=c.tgt; if(o.kk&&o.kk.sig&&t===o.kk.t&&((t.stunned||0)>0||mk(u,t,'kwLk',A.eng().now()))) c.amt=0; },
     kickEnd(A,T,u,c){ const o=S(T), t=c.tgt, P=T.P, E=A.eng(), kk=o.kk; o.kk=null; if(!kk||kk.t!==t||!t.alive) return;
-      if(kk.n>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,t.stunned+0.1*kk.n));          // Landslide: 0.1 s a Greystone spent
+      if(kk.n>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,A.stunRoom(t),t.stunned+0.1*kk.n));          // Landslide: 0.1 s a Greystone spent
       if(P['ch.add']&&(u._chaseT||0)>0) u._chaseT+=P['ch.add'];                                                   // Long Pursuit
       o.hsDone=false; o.hsA=0;                                                                                     // Head Start: this chase gathers it
       if(HL.some(id=>T.r[id])) A.acts(T,u,[{after:0.35,do:[{fn:'hlLand'}]}],Object.assign({},c,{kk}));            // Hard Landing: the mark comes down 0.35 s later

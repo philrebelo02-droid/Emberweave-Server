@@ -349,7 +349,7 @@ test('Rivet / the caps: damage reduction one group at most 35% (an ally 20%), cr
 
 test('Rivet: the mechanics act in a live fight, and whole fights are deterministic (twice, through a snap round-trip, both sides)',()=>{
   const list=S(['lw_1_1','lw_1_4','lw_4_1','cw_1_1','cw_1_4','nc_1_1','nc_1_4','lw_11_2']), TEAM=['vael','sylthaine','vireo','vex','rivet'];
-  const U=V.arena(snaps(TEAM.map(k=>Object.assign(spec(k,100,k===H?list:null),{skillLv:[100,100,100,100]}))),snaps(['vael','sylthaine','vireo','vex','konwu'].map(k=>spec(k,100))),4), s=U.find(u=>u.key===H);
+  const U=V.arena(snaps(TEAM.map(k=>Object.assign(spec(k,100,k===H?list:null),{skillLv:[100,100,100,100]}))),snaps(['vael','sylthaine','vireo','vex','konwu'].map(k=>spec(k,100))),7), s=U.find(u=>u.key===H);   /* v1452: seed 7 - the v1452 control rules changed this seeded fight; seed 4 no longer has a Full Rack in it (seed 7 has). Checked (Claude 25 Nov): not a lost mechanic - on v1451 seed 4's first Full Rack came at 54.7 s; with v1452's control rules that fight ends at 44.8 s, before it */
   assert.ok(s._tal); assert.ok(U.filter(u=>u!==s).every(u=>!u._tal));
   let full=0, si=0, tq=0, ck=0, pin=0, fr0=false;
   for(let i=0;i<2600&&!V.ended()&&s.alive;i++){ V.step(1); const o=s._tal.s.rv; if(!o) continue; if(o.full&&!fr0) full++; fr0=o.full; tq=Math.max(tq,(s._tal.s.k.rvTq||{}).n||0);

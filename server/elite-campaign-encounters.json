@@ -2688,7 +2688,7 @@
   "qualityMinHeroLevel": 18,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "blue-bastion",
+  "farmFragment": "blue-veilward",
   "rewards": {
    "firstGold": 1344,
    "repeatGold": 1216,
@@ -2698,9 +2698,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "blue-bastion",
-     "key": "Blue Bastion",
-     "displayName": "Blue Bastion Fragment",
+     "fragmentId": "blue-veilward",
+     "key": "Blue Veilward",
+     "displayName": "Blue Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -4279,7 +4279,7 @@
   "qualityMinHeroLevel": 24,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "blue-plus-1-bastion",
+  "farmFragment": "blue-plus-1-veilward",
   "rewards": {
    "firstGold": 1968,
    "repeatGold": 1840,
@@ -4289,9 +4289,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-1-bastion",
-     "key": "Blue +1 Bastion",
-     "displayName": "Blue +1 Bastion Fragment",
+     "fragmentId": "blue-plus-1-veilward",
+     "key": "Blue +1 Veilward",
+     "displayName": "Blue +1 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -4788,7 +4788,7 @@
   "qualityMinHeroLevel": 30,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "blue-plus-2-bastion",
+  "farmFragment": "blue-plus-2-veilward",
   "rewards": {
    "firstGold": 2160,
    "repeatGold": 2032,
@@ -4798,9 +4798,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-bastion",
-     "key": "Blue +2 Bastion",
-     "displayName": "Blue +2 Bastion Fragment",
+     "fragmentId": "blue-plus-2-veilward",
+     "key": "Blue +2 Veilward",
+     "displayName": "Blue +2 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -6250,7 +6250,7 @@
   "qualityMinHeroLevel": 36,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "purple-bastion",
+  "farmFragment": "purple-veilward",
   "rewards": {
    "firstGold": 2688,
    "repeatGold": 2560,
@@ -6260,9 +6260,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "purple-bastion",
-     "key": "Purple Bastion",
-     "displayName": "Purple Bastion Fragment",
+     "fragmentId": "purple-veilward",
+     "key": "Purple Veilward",
+     "displayName": "Purple Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -9668,7 +9668,7 @@
   "qualityMinHeroLevel": 50,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "purple-plus-2-bastion",
+  "farmFragment": "purple-plus-2-veilward",
   "rewards": {
    "firstGold": 3936,
    "repeatGold": 3808,
@@ -9678,9 +9678,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-bastion",
-     "key": "Purple +2 Bastion",
-     "displayName": "Purple +2 Bastion Fragment",
+     "fragmentId": "purple-plus-2-veilward",
+     "key": "Purple +2 Veilward",
+     "displayName": "Purple +2 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -11150,7 +11150,7 @@
   "qualityMinHeroLevel": 57,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "purple-plus-3-bastion",
+  "farmFragment": "purple-plus-3-veilward",
   "rewards": {
    "firstGold": 4464,
    "repeatGold": 4336,
@@ -11160,9 +11160,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-3-bastion",
-     "key": "Purple +3 Bastion",
-     "displayName": "Purple +3 Bastion Fragment",
+     "fragmentId": "purple-plus-3-veilward",
+     "key": "Purple +3 Veilward",
+     "displayName": "Purple +3 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -13064,7 +13064,7 @@
   "qualityMinHeroLevel": 72,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-1-dawnshield",
+  "farmFragment": "gold-plus-1-ironwall",
   "rewards": {
    "firstGold": 6083,
    "repeatGold": 5898,
@@ -13074,9 +13074,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-1-dawnshield",
-     "key": "Gold +1 Dawnshield",
-     "displayName": "Gold +1 Dawnshield Fragment",
+     "fragmentId": "gold-plus-1-ironwall",
+     "key": "Gold +1 Ironwall",
+     "displayName": "Gold +1 Ironwall Fragment",
      "quantity": 2
     }
    ]
@@ -14302,7 +14302,7 @@
   "qualityMinHeroLevel": 79,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-2-bastion",
+  "farmFragment": "gold-plus-2-veilward",
   "rewards": {
    "firstGold": 7259,
    "repeatGold": 7034,
@@ -14312,9 +14312,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-bastion",
-     "key": "Gold +2 Bastion",
-     "displayName": "Gold +2 Bastion Fragment",
+     "fragmentId": "gold-plus-2-veilward",
+     "key": "Gold +2 Veilward",
+     "displayName": "Gold +2 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -14854,7 +14854,7 @@
   "qualityMinHeroLevel": 79,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-2-dawnshield",
+  "farmFragment": "gold-plus-2-ironwall",
   "rewards": {
    "firstGold": 7597,
    "repeatGold": 7371,
@@ -14864,9 +14864,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-dawnshield",
-     "key": "Gold +2 Dawnshield",
-     "displayName": "Gold +2 Dawnshield Fragment",
+     "fragmentId": "gold-plus-2-ironwall",
+     "key": "Gold +2 Ironwall",
+     "displayName": "Gold +2 Ironwall Fragment",
      "quantity": 2
     }
    ]
@@ -16098,7 +16098,7 @@
   "qualityMinHeroLevel": 86,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-3-bastion",
+  "farmFragment": "gold-plus-3-veilward",
   "rewards": {
    "firstGold": 9067,
    "repeatGold": 8795,
@@ -16108,9 +16108,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-bastion",
-     "key": "Gold +3 Bastion",
-     "displayName": "Gold +3 Bastion Fragment",
+     "fragmentId": "gold-plus-3-veilward",
+     "key": "Gold +3 Veilward",
+     "displayName": "Gold +3 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -16650,7 +16650,7 @@
   "qualityMinHeroLevel": 86,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-3-dawnshield",
+  "farmFragment": "gold-plus-3-ironwall",
   "rewards": {
    "firstGold": 9475,
    "repeatGold": 9203,
@@ -16660,9 +16660,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-dawnshield",
-     "key": "Gold +3 Dawnshield",
-     "displayName": "Gold +3 Dawnshield Fragment",
+     "fragmentId": "gold-plus-3-ironwall",
+     "key": "Gold +3 Ironwall",
+     "displayName": "Gold +3 Ironwall Fragment",
      "quantity": 2
     }
    ]
@@ -17894,7 +17894,7 @@
   "qualityMinHeroLevel": 93,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-4-bastion",
+  "farmFragment": "gold-plus-4-veilward",
   "rewards": {
    "firstGold": 11312,
    "repeatGold": 10984,
@@ -17904,9 +17904,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-4-bastion",
-     "key": "Gold +4 Bastion",
-     "displayName": "Gold +4 Bastion Fragment",
+     "fragmentId": "gold-plus-4-veilward",
+     "key": "Gold +4 Veilward",
+     "displayName": "Gold +4 Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -18842,7 +18842,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "gold-plus-4-dawnshield",
+  "farmFragment": "gold-plus-4-ironwall",
   "rewards": {
    "firstGold": 13210,
    "repeatGold": 12813,
@@ -18852,9 +18852,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-4-dawnshield",
-     "key": "Gold +4 Dawnshield",
-     "displayName": "Gold +4 Dawnshield Fragment",
+     "fragmentId": "gold-plus-4-ironwall",
+     "key": "Gold +4 Ironwall",
+     "displayName": "Gold +4 Ironwall Fragment",
      "quantity": 2
     }
    ]
@@ -19263,7 +19263,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "orange-voidbind",
+  "farmFragment": "orange-starfire",
   "rewards": {
    "firstGold": 13654,
    "repeatGold": 13259,
@@ -19273,9 +19273,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-voidbind",
-     "key": "Orange Voidbind",
-     "displayName": "Orange Voidbind Fragment",
+     "fragmentId": "orange-starfire",
+     "key": "Orange Starfire",
+     "displayName": "Orange Starfire Fragment",
      "quantity": 2
     }
    ]
@@ -19400,7 +19400,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "orange-bastion",
+  "farmFragment": "orange-veilward",
   "rewards": {
    "firstGold": 13803,
    "repeatGold": 13406,
@@ -19410,9 +19410,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-bastion",
-     "key": "Orange Bastion",
-     "displayName": "Orange Bastion Fragment",
+     "fragmentId": "orange-veilward",
+     "key": "Orange Veilward",
+     "displayName": "Orange Veilward Fragment",
      "quantity": 2
     }
    ]
@@ -19808,7 +19808,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "elite",
-  "farmFragment": "orange-dawnshield",
+  "farmFragment": "orange-ironwall",
   "rewards": {
    "firstGold": 14248,
    "repeatGold": 13853,
@@ -19818,9 +19818,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-dawnshield",
-     "key": "Orange Dawnshield",
-     "displayName": "Orange Dawnshield Fragment",
+     "fragmentId": "orange-ironwall",
+     "key": "Orange Ironwall",
+     "displayName": "Orange Ironwall Fragment",
      "quantity": 2
     }
    ]

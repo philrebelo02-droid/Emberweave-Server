@@ -13,13 +13,14 @@
     return out; }
   /* The stat talents on a finished real-engine unit (called once, at the end of makeUnit). "N% more" multiplies the finished number;
      crit chance is added (the engine's 60% cap stays); critical damage multiplies the whole critical hit. */
+  const TAL_CRIT_CAP=0.05;   /* v1452 (lockdown audit T29): every hero's talents together add at most 5% crit chance (stat talents + crit rows) */
   function applyStats(u,hero,list){ const T=totals(hero,list);
     if(T.hp){ const k=Math.max(0.05,1+T.hp); u.maxHp*=k; u.hp=u.maxHp; }
     if(T.atk) u.dmg*=Math.max(0.05,1+T.atk);
     if(T.apow) u.apow=(u.apow||0)*Math.max(0.05,1+T.apow);
     if(T.armor) u.armorRating=(u.armorRating||0)*Math.max(0,1+T.armor);
     if(T.mr) u.mrRating=(u.mrRating||0)*Math.max(0,1+T.mr);
-    if(T.crit) u.glyphCrit=Math.max(0,Math.min(0.6,(u.glyphCrit||0)+T.crit));
+    if(T.crit){ const c=Math.min(TAL_CRIT_CAP,T.crit); u._talCrit0=c; u.glyphCrit=Math.max(0,Math.min(0.6,(u.glyphCrit||0)+c)); }   /* v1452: talent crit chance at most +5% in all (Phil: "crit rate shouldn't be more than 5%"); the mechanics' crit rows get what is left (setStats) */
     if(T.critDmg) u.critDmg=(1+(u.critDmg||0.6))*Math.max(0.05,1+T.critDmg)-1;
     if(T.aspd) u.atkInterval=u.atkInterval/Math.max(0.05,1+T.aspd);
     if(T.heal) u.healPowMul=(u.healPowMul||1)*Math.max(0.05,1+T.heal);
@@ -43,7 +44,7 @@
     if(T.apow){ const k=Math.max(0.05,1+T.apow); u.atkM=Math.round((u.atkM||0)*k); if(u.heal) u.heal=Math.round(u.heal*k); }
     if(T.armor) u.armor=(u.armor||0)*Math.max(0,1+T.armor);
     if(T.mr) u.mr=(u.mr||0)*Math.max(0,1+T.mr);
-    if(T.crit) u.crit=Math.max(0,Math.min(0.6,(u.crit||0)+T.crit));
+    if(T.crit) u.crit=Math.max(0,Math.min(0.6,(u.crit||0)+Math.min(TAL_CRIT_CAP,T.crit)));   /* v1452: the same +5% talent crit cap on the line model */
     if(T.critDmg) u.critDmg=(1+(u.critDmg||0.6))*Math.max(0.05,1+T.critDmg)-1;
     if(T.aspd) u.speed=(u.speed||1)*Math.max(0.05,1+T.aspd);
     if(T.heal) u.healPow=(1+(u.healPow||0))*Math.max(0.05,1+T.heal)-1;
@@ -2881,6 +2882,7 @@ function afterCoat(A,T,u,m){ const s=T.s.sc||(T.s.sc={}), E=A.eng(); if(T.s.fl&&
 function selfShield(A,T,u,pct,dur){ const x=(u.maxHp||0)*pct*(1+(T.P['sh.me']||0)); if(x>0){ u.shield=(u.shield||0)+x; u.shieldT=Math.max(u.shieldT||0,dur); } }
 module.exports={
   hero:'ceraline',
+  drCap:0.40, allyDrCap:0.25,           // v1452 (lockdown audit T28): her talent reductions together at most 40% off a hit on her, 25% on an ally (her page names no cap: Joss's sustain tree, Mellan's ally cap)
   casting:true,                         // rows ask which of her skills (or which part of one) a hit, a slow or a stun comes from
   points:true,                          // rows read where Mourning Bell rings and where the Final Candle is poured (the 'at' hook)
   wax:true,                             // the Living Tallow hooks: each wax and each encase of her passive
@@ -3509,7 +3511,8 @@ module.exports={
        all in full (not cut at the stun ceiling). Sleep Now: the attacker of the Lamplight ally loses energy. Sting of Mercy: her own hits will not wake it */
     sleep(A,T,u,c){ const E=A.eng(), Pp=T.P, r=T.r, t=c.tgt; if(!t||!(c.amt>0)) return; const base=c.amt;
       let d=base*(1+((Pp['sleep.bee']&&hasBee(T,t))?Pp['sleep.bee']:0))+(Pp['sleep.add']||0)+(r.gl_7_3?(Pp['sleep.mercy']||0):0);
-      t.stunned=Math.max(t.stunned||0,d);
+      d=Math.max(base,Math.min(d,A.stunRoom(t)));   /* v1452 (lockdown audit T30): her sleep's extensions keep a stun run on one enemy inside 4.0 s (the sleep is 3.5 s since v1452) */
+      t.stunned=Math.max(t.stunned||0,d); t._sleepT=Math.max(t._sleepT||0,d);
       if(Pp['sleep.nrg']&&T.s.dlT===t) t.energy=Math.max(0,(t.energy||0)-Pp['sleep.nrg']);
       if(r.gl_7_3){ const z=T.s.zz||(T.s.zz={}); z[t.uid]={t,until:E.now()+d}; t._talZz=u; t._talZzT=E.now()+d; } },
     /* Sting of Mercy: the poison this sting put on lasts the whole 6 s the enemy is stung (not 4 s) */
@@ -7339,7 +7342,7 @@ module.exports={
     ext(A,T,u,c){ const t=c.tgt, s=T.s, P=T.P; if(!t||!t.alive) return; let x=P['ext.all']||0;
       if(s.cur===DJ) x+=P['ext.dj']||0;
       else if(s.cur===RH&&t===s.joRhV){ if(s.joHbt===t) x+=0.3; if(P.knee&&s.joKnee) x+=0.5; if(s.joSen===t) x+=1.5; }
-      if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_TOP,(c.amt||0)+x)); },
+      if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_TOP,A.stunRoom(t),(c.amt||0)+x)); },   /* v1452: and never a run of his stuns past 4.0 s (it reached 5.5 s) */
     seRec(A,T,u,c){ const t=c.tgt; if(!t) return; const m=T.s.joSE||(T.s.joSE={}); m[t.uid]=A.eng().now()+(t.stunned||0); },
     stunOk(A,T,u,t){ const m=T.s.joSE||{}; return !((t.stunned||0)>0)&&!(A.eng().now()<(m[t.uid]||-1)+LOCK); },
     /* ---- UNBROKEN DAWN: the tick the game's passive triggers (it sets _ubUsed), event jDawn. Second Morning: at 20 Dawnlight, after the first dawn, the
@@ -8018,7 +8021,7 @@ module.exports={
        Ringing Ears (his skills' stuns 0.06 s a rank longer; his talent stuns get it in tstun), Echo of the Fall (the slam), all cut at 4.0 s in all ---- */
     stunHit(A,T,u,c){ const t=c.tgt, P=T.P, o=S(T), E=A.eng(), now=E.now(); if(!t||!t.alive||t.team===u.team||!(c.amt>0)) return;
       const slam=T.s.cur===SL&&!c.talent;
-      if(!c.talent){ let x=(P.re||0)+(slam?(P.echo||0):0); if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,t.stunned+x)); }
+      if(!c.talent){ let x=(P.re||0)+(slam?(P.echo||0):0); if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,A.stunRoom(t),t.stunned+x)); }
       A.setMark(T,u,t,'kwLk',{dur:(t.stunned||0)+0.5,longest:true});
       if(INS.some(id=>T.r[id])) T.fn.insult(A,T,u,t);
       if(slam&&FLT.some(id=>T.r[id])) A.setMark(T,u,t,'kwFlt',{dur:8+(P['flt.dur']||0),longest:true});
@@ -8043,7 +8046,7 @@ module.exports={
     ssLand(A,T,u,c){ const t=c.tgt; if(!t) return; if(!t.alive){ u.blueCd=Math.max(0,(u.blueCd||0)-3); return; } A.setMark(T,u,t,'kwSs',{dur:3}); },
     sigStun(A,T,u,c){ const o=S(T), t=c.tgt; if(o.kk&&o.kk.sig&&t===o.kk.t&&((t.stunned||0)>0||mk(u,t,'kwLk',A.eng().now()))) c.amt=0; },
     kickEnd(A,T,u,c){ const o=S(T), t=c.tgt, P=T.P, E=A.eng(), kk=o.kk; o.kk=null; if(!kk||kk.t!==t||!t.alive) return;
-      if(kk.n>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,t.stunned+0.1*kk.n));          // Landslide: 0.1 s a Greystone spent
+      if(kk.n>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,A.stunRoom(t),t.stunned+0.1*kk.n));          // Landslide: 0.1 s a Greystone spent
       if(P['ch.add']&&(u._chaseT||0)>0) u._chaseT+=P['ch.add'];                                                   // Long Pursuit
       o.hsDone=false; o.hsA=0;                                                                                     // Head Start: this chase gathers it
       if(HL.some(id=>T.r[id])) A.acts(T,u,[{after:0.35,do:[{fn:'hlLand'}]}],Object.assign({},c,{kk}));            // Hard Landing: the mark comes down 0.35 s later
@@ -9657,7 +9660,7 @@ module.exports={
     ultCc(A,T,u,c){ const t=c.tgt, r=T.r, Pp=T.P; if(!t||t.team===u.team||!t.alive) return;
       if(c.field==='slow'){ if(Pp.swb) t.slow=Math.max(t.slow||0,Math.min(CAP,c.amt+Pp.swb)); return; }        // Slow Wingbeat: in full on the real 2.1 s
       if(c.field!=='stunned') return;
-      const d=Math.min(CAP,c.amt*(1+(Pp.sb||0))+(Pp.lw||0)); if(d>(t.stunned||0)) t.stunned=d; t._sleepT=Math.max(t._sleepT||0,t.stunned);   // Slow Breathing x the real 2.8 s, + Long Wings
+      const d=Math.min(CAP,Math.max(c.amt,A.stunRoom(t)),c.amt*(1+(Pp.sb||0))+(Pp.lw||0)); if(d>(t.stunned||0)) t.stunned=d;   /* v1452: inside the 4.0 s run */ t._sleepT=Math.max(t._sleepT||0,t.stunned);   // Slow Breathing x the real 2.8 s, + Long Wings
       rec(A,T,u,t,'ult');
       if(r.lm_7_2) dustAdd(A,T,u,t,3); },                                                                      // Snuffed Light
     /* ---------------- Dreamthread ---------------- */
@@ -11223,7 +11226,7 @@ module.exports={
     stunHit(A,T,u,c){ const m=mi(T), P=T.P, x=c.tgt; if(!x) return; m.myS[x.uid]=1; if(c.talent||T.s.cur!==BQ) return;
       const r=m.slp[x.uid]||(m.slp[x.uid]={debt:0,kind:null,mine:false}); r.kind='bq'; r.mine=true;
       const pre=m.bqPre, base=c.amt; let d=base*(1+(P['slp.k']||0))*((pre&&P.preen)?(1+P.preen)*(1+(P['preen.k']||0)):1)+(P['bq.add']||0)+((m.thT===x)?(P['th.add']||0):0);
-      d=Math.min(STUN_TOP,d); if(d>base+1e-9&&x.alive){ x.stunned=Math.max(x.stunned||0,d); x._sleepT=Math.max(x._sleepT||0,d); } },
+      d=Math.min(STUN_TOP,A.stunRoom(x),d); if(d>base+1e-9&&x.alive){ x.stunned=Math.max(x.stunned||0,d); x._sleepT=Math.max(x._sleepT||0,d); } },
     bqKit(A,T,u,c){ const m=mi(T); m.bqPre=false; if(m.f&&m.f.pre&&preOn(m)){ m.bqPre=true; if(!(m.preWin>0)) m.pre=false; m.nh=0; } },
     bqCast(A,T,u,c){ const m=mi(T), P=T.P, E=A.eng(), x=c.tgt;
       if(P.sb){ let s2=null,sv=-1; for(const y of E.units()){ if(!y.alive||y.team===u.team||y===x||y._dropHidden) continue; if((y.energy||0)>sv){ sv=y.energy||0; s2=y; } }   // Second Bouquet: the second-highest energy
@@ -13326,7 +13329,7 @@ module.exports={
     stunHit(A,T,u,c){ const o=S(T), P=T.P, t=c.tgt, cur=T.s.cur; if(!t||!t.alive||t.team===u.team||!(c.amt>0)) return;
       const chk=any(T,CHK), had=chk&&!!A.markOf(u,t,'peChk');
       if(!c.talent){ let x=0; if(cur===MK) x+=(P['mk.ext']||0)+((P.perp&&had)?0.5:0); if(cur===CL) x+=(P['cl.ext']||0)+(P.opens?P.opens*(o.sp||0):0);
-        if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,t.stunned+x)); }
+        if(x>0&&(t.stunned||0)>0) t.stunned=Math.max(t.stunned,Math.min(STUN_TOP,A.stunRoom(t),t.stunned+x)); }   /* v1452: his talent extensions never take a run past 4.0 s; his base kit's own re-stuns are left as they are (not a talent) */
       if(chk&&!c.talent&&cur===MK) T.fn.check(A,T,u,t,4+(P['chk.dur']||0)+(o.mkFirst?(P['chk.first']||0):0));
       if(P.cw&&!c.talent&&cur==='wb2') T.fn.check(A,T,u,t,4+(P['chk.dur']||0));                                      // Castling Wall: the third slam's staggers go into Check
       if(P['dr.sf']) A.setMark(T,u,t,'peStn',{dur:(t.stunned||0)+3,longest:true});                                  // Stand Fast: until 3 s after the stun ends
@@ -14454,7 +14457,7 @@ module.exports={
       if(r.co_13_1&&!(o.cd.lc>0)){ o.gr.add+=2; o.gr.lc=true; } },                                           // The Last Chair: the hold
     grStun(A,T,u,c){ const g=S(T).gr; if(g&&T.s.cur===HOOK&&c.tgt===g.t) g.hit=c.amt||0; },                 // the hook's own stun landed (after the level roll)
     grCast(A,T,u,c){ const r=T.r, o=S(T), E=A.eng(), g=o.gr||{}, t=g.t||c.tgt; o.gr=null; o.ndl=false; if(!t) return;
-      if(g.hit>0&&g.add>0&&t.alive){ const d=Math.min(STUN_TOP,g.hit+g.add*(1-(t.ctrlRes||0))); if(d>(t.stunned||0)) t.stunned=d;
+      if(g.hit>0&&g.add>0&&t.alive){ const d=Math.min(STUN_TOP,Math.max(g.hit,A.stunRoom(t)),g.hit+g.add);   /* v1452 (Claude): Control Resist once, as the stun runs - not again on the added seconds */   /* v1452: inside the 4.0 s run */ if(d>(t.stunned||0)) t.stunned=d;
         if(T.on.ccHit&&(r.ss_3_2||r.co_3_1||r.co_11_4||r.co_13_1)) A.setMark(T,u,t,'rfLk',{dur:t.stunned+0.5,longest:true}); }
       if(r.ss_9_4) o.duel=2;                                                                                 // Duel Ready
       if(r.co_7_1&&t.alive&&!t.immovable&&!(t.pass&&(t.pass.unstepped||t.pass.unstoppable))&&!((t._gearImmovableT||0)>0)){   // Last Chair Pulled: all the way back to him
@@ -17008,7 +17011,7 @@ module.exports={
     /* a stun of hers landed: Hourglass's own is lengthened (Second Shatter, Sorrow Glass, The Sand Runs Out: in full, at most 4.0 s in all); every stun of hers
        sets the stun-lock mark (0.5 s after it ends) */
     ccHit(A,T,u,c){ const t=c.tgt, Pm=T.P, s=T.s; if(c.field!=='stunned'||!t||c.talent) return; const h=s.tsHg;
-      if(h&&s.cur==='aoeStun'){ let x=(Pm['hg.st']||0)+(Pm.hog?(Pm['hog.st']||0):0)+(Pm.tsro?1:0); if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_MAX,(c.amt||0)+x)); if(h.st.indexOf(t)<0) h.st.push(t); }
+      if(h&&s.cur==='aoeStun'){ let x=(Pm['hg.st']||0)+(Pm.hog?(Pm['hog.st']||0):0)+(Pm.tsro?1:0); if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_MAX,A.stunRoom(t),(c.amt||0)+x));   /* v1452: never a run past 4.0 s (it reached 5.25 s) */ if(h.st.indexOf(t)<0) h.st.push(t); }
       A.setMark(T,u,t,'tsLk',{dur:(t.stunned||0)+0.5}); },
     /* after the skill */
     cast(A,T,u,c){ const s=T.s, Pm=T.P, E=A.eng();
@@ -21134,7 +21137,7 @@ module.exports={
     wwCast(A,T,u,c){ const v=V(T), P=T.P, E=A.eng(); v.wwId++; const id=v.wwId, W=v.ww; const lifted=[];
       for(const x of E.units()) if(x.alive&&x.team!==u.team&&x._liftBy===u&&(x._liftT||0)>0&&Math.abs((x._liftT||0)-(x._liftL||0))<1e-9) lifted.push(x);
       for(const x of lifted){ const r=rec(T,x); r.lc=id; r.open=(v.openOn&&v.openSk===WW)?1:0; r.ef=(P.efall&&lifted.length>1)?1:0; r.pdN=0; r.pdId=id;
-        let s=(x._liftStun||1.0)*(1+(P.leaden||0))+(v.cdNow?1:0)+(r.ef?0.5:0); x._liftStun=Math.min(STUN_TOP,s); }
+        const b=x._liftStun||1.0; let s=b*(1+(P.leaden||0))+(v.cdNow?1:0)+(r.ef?0.5:0); x._liftStun=Math.max(b,Math.min(STUN_TOP,s,STUN_TOP-(x._liftL||0))); }   /* v1452: the lift holds them too - lift + slam stun at most 4.0 s in a row (it reached 4.62 s); the base 1 s slam is never cut */
       if(P.gkeep&&lifted.length) A.stSet(T,u,'vuMass',Math.min(10,stN(T,'vuMass')+P.gkeep*lifted.length));
       if(P.wcbl&&W) for(const x of E.units()){ if(!x.alive||x.team===u.team||lifted.indexOf(x)>=0) continue; if(Math.hypot(x.x-W.x,x.y-W.y)<W.R) T.fn.blocked(A,T,u,x); }
       v.wwArm={id,W:W?Object.assign({},W):null,done:0};
@@ -21178,9 +21181,9 @@ module.exports={
     /* ---- HIS CONTROLS. ccOut: (real base x Leaden) + the flat adds (Sure Grip, Measured Sling, Great Fall on the sling's stuns; Deeper Silence and Vow Kept on the
        Vow's silence); an extended stun never past 4.0 s. ccHit: his stun record (the stun-lock rule), Heavy Patience, Sharp Stones. */
     ccOutF(A,T,u,c){ const v=V(T), P=T.P; const sling=(T.s.cur===GS&&!c.talent)||v.ds;
-      if(c.field==='stunned'){ let x=c.amt*(1+(P.leaden||0));
+      if(c.field==='stunned'){ const c0=c.amt; let x=c.amt*(1+(P.leaden||0));
         if(sling){ x+=(P.sg||0)+(P.msl||0); if(P.gfall&&c.tgt&&c.tgt===v.proj&&!v.ds) x+=0.5; }
-        c.amt=Math.min(STUN_TOP,x); }
+        c.amt=Math.min(STUN_TOP,x); if(c.amt>c0) c.amt=Math.max(c0,Math.min(c.amt,A.stunRoom(c.tgt))); }
       else if(c.field==='silencedT'&&T.s.cur===TP&&!c.talent) c.amt+=(P.vsil||0); },
     ccHitF(A,T,u,c){ const v=V(T), P=T.P, t=c.tgt; if(!t||t.team===u.team||c.field!=='stunned'||!(c.amt>0)) return;
       v.cch[t.uid]=1; const r=rec(T,t); r.st=Math.max(r.st,Math.min(c.amt,t.stunned||c.amt));
@@ -22151,7 +22154,7 @@ return module.exports;})();
     for(const id of ids){ const rows=M.talents[id]; if(!rows) continue; any=true; if(!has(id)) continue;
       for(const row of rows) if(row.param&&live(row)) P[row.param]=(P[row.param]||0)+rv(row.add,r[id],{},r); }
     if(!any) return null;
-    const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,
+    const T={hero,r,pts,P,on:{},stats:[],auras:[],st:{},fn:M.fn||{},watch:false,drCap:(M.drCap!=null?M.drCap:null),allyDrCap:(M.allyDrCap!=null?M.allyDrCap:null),
       s:{k:{},w:{},lim:{},m:{},ml:{},roll:{},ap:{},z:{},zn:{},tm:[],au:[],later:[],pt:{},dq:[],sm:[],lq:[],cur:null,wave:0,undy:0,d:0,fresh:true,moved:false}};
     for(const k in (M.states||{})) T.st[k]=rv(M.states[k],0,P,r);
     const add=(id,row,i,rank)=>{ if(row.param||!live(row)) return; const c=rv(row,rank,P,r); c.key=id+'#'+i; c.id=id;
@@ -22520,7 +22523,11 @@ return module.exports;})();
 
   /* a control effect a talent states in seconds: shortened / lengthened by the same rows as any other control (ccIn of the one struck, ccOut of the owner),
      cut to the engine's cap, written straight onto the unit, then told to the owner's 'ccHit' rows (a control that landed) */
-  function control(T,u,t,field,secs,asIs){ let d=asIs?secs:cc(u,t,field,secs,true); const cap=E.ccCap(field); if(cap&&d>cap) d=cap; if(!(d>0)) return;   // asIs: seconds copied from a control that already landed (no second pass through ccOut)
+  /* v1452 (lockdown audit T30): the room a talent has to stun a target: 4.0 s of stun IN A ROW in all (the page stamps when the current stun began,
+     t._stunSince). A talent extension or a talent stun never takes a run past it; a skill's own stun is never cut. */
+  const STUN_RUN=4.0;
+  function stunRoom(t){ if(!t) return STUN_RUN; const s=t._stunSince; return (s==null||!((t.stunned||0)>0))?STUN_RUN:Math.max(0,STUN_RUN-((E.now()||0)-s)); }
+  function control(T,u,t,field,secs,asIs){ let d=asIs?secs:cc(u,t,field,secs,true); const cap=E.ccCap(field); if(cap&&d>cap) d=cap; if(field==='stunned') d=Math.min(d,stunRoom(t)); if(!(d>0)) return;   // asIs: seconds copied from a control that already landed (no second pass through ccOut)
     t[field]=Math.max(t[field]||0,d); if(T.on.ccHit) run(T,u,'ccHit',{u,src:u,tgt:t,field,amt:d,talent:true}); }
   function acts(T,u,list,ctx){ for(let i=0;i<list.length;i++){ const a=list[i]; if(a.if&&!ok(T,u,a.if,ctx)) continue; if(act(T,u,a,ctx)===false) break; } }
   const CLEANSE=['stunned','fearT','silencedT','_sleepT','slow'];
@@ -22707,7 +22714,7 @@ return module.exports;})();
     for(const k in S_MUL){ const nw=Math.max(0,1+(tot[k]||0)), old=ap[k]==null?1:ap[k]; if(nw===old) continue; const f=S_MUL[k];
       if(old===0) u[f]=(z[k]||0)*nw; else if(nw===0){ z[k]=(u[f]||0)/old; u[f]=0; } else u[f]=(u[f]||0)/old*nw; ap[k]=nw; }
     { const nw=Math.max(0.05,1+(tot.aspd||0)), old=ap.aspd==null?1:ap.aspd; if(nw!==old){ u.atkInterval=u.atkInterval*old/nw; ap.aspd=nw; } }
-    for(const k in S_ADD){ const f=S_ADD[k], old=ap[k]||0; let nw=tot[k]||0; if(k==='crit') nw=Math.min(nw,Math.max(0,0.6-((u[f]||0)-old))); if(k==='ctrl') nw=Math.min(nw,Math.max(0,0.85-((u[f]||0)-old))); if(nw!==old){ u[f]=(u[f]||0)-old+nw; ap[k]=nw; } }
+    for(const k in S_ADD){ const f=S_ADD[k], old=ap[k]||0; let nw=tot[k]||0; if(k==='crit') nw=Math.min(nw,Math.max(0,0.05-(u._talCrit0||0)),Math.max(0,0.6-((u[f]||0)-old)));   /* v1452: with the stat talents' crit, at most +5% from talents in all */ if(k==='ctrl') nw=Math.min(nw,Math.max(0,0.85-((u[f]||0)-old))); if(nw!==old){ u[f]=(u[f]||0)-old+nw; ap[k]=nw; } }
     { const nw=!!tot.immovable; if(nw!==!!ap.imm){ if(nw){ ap.immWas=u.immovable; u.immovable=true; } else u.immovable=ap.immWas; ap.imm=nw; } } }
   /* stat rows that sit on OTHER units ({stat, to:<who>, per, if}: an aura, a debuff on marked enemies). Each tick: who is picked now, what they get; a unit
      no longer picked gets its numbers back. T.s.au = [{x: the unit, ap, z, g0, b0}], in the order units were first touched. Taken off when the owner dies. */
@@ -22729,9 +22736,9 @@ return module.exports;})();
   function out(src,tgt,amt,kind,auto,crit){ const T=src._tal, ctx={u:src,src,tgt,amt,kind,auto:!!auto,crit:!!crit,proc:T.s.d>0}; run(T,src,'out',ctx); return ctx.amt; }
   /* incoming damage: the same place. The target's own rows ('in'), then the rows of talented units watching it ('teamIn': team-wide effects) */
   function inc(tgt,src,amt,kind,auto,crit){ const T=tgt._tal, a0=amt; let mv=1; if(tgt._talW&&src&&src.team!==tgt.team) tgt._talBy=src;   // a watched unit remembers the enemy that last hit it
-    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); amt=ctx.amt; lc=ctx.late||null; if(ctx.mv!=null) mv*=ctx.mv; }
+    let lc=null; if(T&&T.on.in&&src&&src.team!==tgt.team){ const ctx={u:tgt,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(T,tgt,'in',ctx); if(T.drCap!=null&&ctx.amt<amt*(1-T.drCap)) ctx.amt=amt*(1-T.drCap); amt=ctx.amt; lc=ctx.late||null; if(ctx.mv!=null) mv*=ctx.mv; }   /* v1452: a hero file's drCap - its talents together never take more than that off a hit */
     const W=tgt._talW; if(W) for(let i=0;i<W.length;i++){ const o=W[i], To=o._tal; if(o===tgt||!o.alive||!To||!To.on.teamIn) continue;
-      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }
+      const ctx={u:o,src,tgt,amt,kind,auto:!!auto,crit:!!crit}; run(To,o,'teamIn',ctx); if(To.allyDrCap!=null&&ctx.amt<amt*(1-To.allyDrCap)) ctx.amt=amt*(1-To.allyDrCap); amt=ctx.amt; if(ctx.mv!=null) mv*=ctx.mv; }   /* v1452: allyDrCap - on an ally */
     tgt._talIr=(amt!==a0)?[a0,mv]:null;   // the 95% ceiling (the page's drPreOf): the hit before these rows, and the share of it not moved onto another unit (divert)
     /* a late hit (an 'in' row's {late:secs}, Fritz's Late Blows): what every incoming row and every watcher left of it is taken off now - the page leaves
        the hit as a miss (no damage, no hit / hurt rows) - and it lands `secs` later through damage() (his shield and damage()'s own reductions then).
@@ -22910,7 +22917,7 @@ return module.exports;})();
      Turned on by wax:true in the hero file. ---- */
   function wax(o,c){ const T=o._tal, ctx={u:o,src:o,tgt:c,unit:c,amt:3}; if(T.on.wax.length) run(T,o,'wax',ctx); return ctx.amt; }
   function encase(o,c,d){ const T=o._tal, ctx={u:o,src:o,tgt:c,unit:c,amt:d}; if(T.on.encase.length) run(T,o,'encase',ctx); let x=Math.max(d,ctx.amt||0);
-    const top=(E.ccCap('stunned')||2.8)/(E.ccDur(1)||1); if(x>top) x=Math.max(d,top);
+    const top=Math.min((E.ccCap('stunned')||2.8)/(E.ccDur(1)||1),stunRoom(c)); if(x>top) x=Math.max(d,top);   /* v1452: and inside the 4.0 s run */
     if(x>d&&c.alive){ c.stunned=Math.max(c.stunned||0,x); c.silencedT=Math.max(c.silencedT||0,x); } if(T.on.encased.length) run(T,o,'encased',Object.assign({},ctx,{amt:x})); }
   /* ---- A PART OF A SKILL that resolves inside the skill or later, on its own clock (Ceraline: each coat Mourning Bell bursts, the seal of Sealing Wax setting, her
      ultimate's wax reaching an enemy, its statue, its effigy bursting). partPre: while it resolves, 'casting' is that part's name (the skill resolving before is
@@ -22952,7 +22959,7 @@ return module.exports;})();
   function cd(u,slot,v){ const ctx={u,slot,skill:slot,amt:v}; run(u._tal,u,'cd',ctx); return Math.max(0,ctx.amt); }
   /* a control effect is being applied by `by` to `t`: seconds in, seconds out */
   function cc(by,t,field,dur,tal){ if(t._tal&&t._tal.on.ccIn){ const c={u:t,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(t._tal,t,'ccIn',c); dur=c.amt; }
-    if(by&&by._tal&&by._tal.on.ccOut){ const c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; } return dur; }
+    if(by&&by._tal&&by._tal.on.ccOut){ const d0=dur, c={u:by,src:by,tgt:t,field,amt:dur,talent:!!tal}; run(by._tal,by,'ccOut',c); dur=c.amt; if(field==='stunned'&&dur>d0) dur=Math.max(d0,Math.min(dur,stunRoom(t))); } return dur; }   /* v1452: a lengthened stun stays inside the 4.0 s run */
   /* a DoT tick: before it (the target's 'dotIn' rows, and a talent DoT's shorter last tick), and after it (the owner's 'dotTick', a kill by the DoT) */
   function dotPre(u,d){ const keep=[d.dps,u.hp,u.shield||0]; let x=d.dps, p=x; const T=u._tal;   // p: the tick without the target's own DoT rows (the 95% ceiling's reference)
     if(T&&T.on.dotIn){ const ctx={u,src:d.src,tgt:u,amt:x,dot:d}; run(T,u,'dotIn',ctx); x=ctx.amt; }
@@ -23050,7 +23057,7 @@ return module.exports;})();
           only for a talented unit with 'unmoved' rows that is immovable now: 'unmoved' rows (ctx tgt = unit = the unit that stood, src = who tried, kind = 'pull' |
           'push' | 'knock' | 'charge'). No draw. ---- */
   function unmoved(t,by,kind){ const T=t._tal; if(T.on.unmoved) run(T,t,'unmoved',{u:t,tgt:t,unit:t,src:by||null,kind}); }
-  const API={stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
+  const API={stunRoom,stGet,stSet,stMax,winOn,markOf,setMark,clearMark,endMark,inZone,zoneOn,hasDot,countDots,pick,amtOf,cnt,hurt,control,run,acts,gap,buffOn,mineOf,ustGet,ustPut,eng:()=>E};
   /* A hook never lets an error out into the fight: it is counted (TalentFx.errors() - the tests require zero) and the hook answers as if the hero
      had no talent row there. An error is as deterministic as anything else here, so device and server still agree. Diagnostics only: nothing in a
      fight reads ERR. */

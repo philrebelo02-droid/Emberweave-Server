@@ -358,7 +358,8 @@ module.exports={
        all in full (not cut at the stun ceiling). Sleep Now: the attacker of the Lamplight ally loses energy. Sting of Mercy: her own hits will not wake it */
     sleep(A,T,u,c){ const E=A.eng(), Pp=T.P, r=T.r, t=c.tgt; if(!t||!(c.amt>0)) return; const base=c.amt;
       let d=base*(1+((Pp['sleep.bee']&&hasBee(T,t))?Pp['sleep.bee']:0))+(Pp['sleep.add']||0)+(r.gl_7_3?(Pp['sleep.mercy']||0):0);
-      t.stunned=Math.max(t.stunned||0,d);
+      d=Math.max(base,Math.min(d,A.stunRoom(t)));   /* v1452 (lockdown audit T30): her sleep's extensions keep a stun run on one enemy inside 4.0 s (the sleep is 3.5 s since v1452) */
+      t.stunned=Math.max(t.stunned||0,d); t._sleepT=Math.max(t._sleepT||0,d);
       if(Pp['sleep.nrg']&&T.s.dlT===t) t.energy=Math.max(0,(t.energy||0)-Pp['sleep.nrg']);
       if(r.gl_7_3){ const z=T.s.zz||(T.s.zz={}); z[t.uid]={t,until:E.now()+d}; t._talZz=u; t._talZzT=E.now()+d; } },
     /* Sting of Mercy: the poison this sting put on lasts the whole 6 s the enemy is stung (not 4 s) */

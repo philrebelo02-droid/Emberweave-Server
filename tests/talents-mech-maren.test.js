@@ -58,7 +58,7 @@ test('Maren: his real kit, as the talents read it - Tide Pool, Tsunami, Maelstro
     near(KO('green').radius/V.METER,3,'Tide Pool: 3 m'); near(KO('green').dur,4,'4 s'); near(KO('green').slow,3,'its slow from the control table: 3.0 s');
     castTP(P,F[0]); const h=pools(P)[0]; assert.ok(h,'Tide Pool is a ground hazard of his'); near(Math.hypot(h.x-F[0].x,h.y-F[0].y),0,'it lands where his target stands');
     near(h.r/V.METER,3); near(h.life,4); assert.equal(h.interval,0.5,'it ticks every 0.5 s'); const h0=F[0].hp; secs(0.55); assert.ok(F[0].hp<h0,'and strikes the enemy inside it'); });
-  plain({foes:3,freeF:true},P=>{ const {v,F}=P; castTP(P,F[1]); secs(0.55); near(F[1].slow,3*ccNerf(),'the pool\'s slow: 2.1 s (3.0 s cut)',0.05); assert.equal(F[1].slowMul,undefined,'with no strength of its own (the engine\'s default 45%)'); });
+  plain({foes:3,freeF:true},P=>{ const {v,F}=P; castTP(P,F[1]); secs(0.55); near(F[1].slow,3*ccNerf(),'the pool\'s slow: 2.1 s (3.0 s cut)',0.05); assert.ok(F[1].slowMul>0&&F[1].slowMul<=0.55,'as strong as its skill level (v1452: ground pools slow by level, 45% at 1 to 70% at 100; it used to have no strength of its own)'); });
   /* talents-fix1: since v1391 Tsunami breaks on his TARGET and reaches every enemy whose body is within 3.4 m of it; it shoves them away from that spot
      (the target itself stands on the spot and is not moved) */
   plain({foes:3,freeF:true},P=>{ const {v,F}=P; tsAt(P,F); at(P,F[2],8.2,0); const c0={x:F[0].x,y:F[0].y}, gap=f=>Math.hypot(f.x-c0.x,f.y-c0.y)/V.METER, x1=gap(F[1]), h0=F.map(f=>f.hp);

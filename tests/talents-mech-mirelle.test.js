@@ -49,7 +49,7 @@ test('Mirelle: her real kit, as the talents read it - Scent of Courage, Trail of
     weak(A[1],0.4); const sh=A[1].shield||0, hp=A[1].hp; sc(P); assert.ok(A[1].hp>hp,'the lowest HP share is healed'); near(A[1].dmgBuffMul,1.28); assert.equal(A[1]._buffedT,0.5,'Trail of Splendor is told');
     V.step(1); near((A[1].shield||0)-sh,A[1].maxHp*0.04*v.passMul,'Trail of Splendor: a shield of 4% x passive strength of its max HP'); near(A[1].shieldT,5,'for 5 s',0.01);
     A[1]._buffedT=0.5; V.step(1); near((A[1].shield||0)-sh,2*A[1].maxHp*0.04*v.passMul,'it stacks (any buff: _buffedT)');
-    const f=F[0]; free(f); V.cast(v,'blue',f); near(f._sleepT,5,'the sleep flag 5 s'); near(f.stunned,V.cap('stunned'),'held 2.8 s (the stun ceiling)'); assert.ok(f.slow>0,'and slowed');
+    const f=F[0]; free(f); V.cast(v,'blue',f); near(f._sleepT,3.5,'the sleep flag 3.5 s (v1452: as long as the sleep)'); near(f.stunned,3.5,'held 3.5 s (v1452: the sleep table, not the 2.8 s stun ceiling)'); assert.ok(f.slow>0,'and slowed');
     free(f); sleepOn(f); V.hit(F[1],f,1,{kind:'true'}); assert.equal(f._sleepT,0,'any hit wakes it'); assert.equal(f.stunned,0); hold(f);
     for(const x of F){ x._shredPct=0; x._atkDnPct=0; } A[0].shield=0; ult(P); for(const x of F){ assert.ok(x._shredPct>=0.3,'Imperial Plumage lowers EVERY enemy\'s guard (no radius)'); near(x._atkDnPct,0.2,'its attack 20%'); near(x._shredT,6); }
     near(A[0].shield,A[0].maxHp*0.10*SM(10),'shields each ally 10% x skill level of its max HP'); assert.ok(!('charmed' in F[0])&&!('_charmT' in F[0]),'nothing is charmed: there is no charm in the game'); });
@@ -194,13 +194,13 @@ test('Mirelle / Courage in a Dream (LINK): an ally with 5 Mettle hits sleepers a
 
 test('Mirelle / Soporific Bouquet: Strong Bouquet, Breathing It In, Night Blossom, Deep Slumber, Second Bouquet, Heavier Bouquet, Lily Scent, Gentle Throw',()=>{
   const L=lab(H,S(['lp_4_1','lp_6_4','lp_5_2','lp_1_2','lp_2_2','lp_3_2','lp_7_3','lp_9_3','lp_3_1','lp_2_4']),{foes:3,big:true}), {v,F}=L, f=F[0];
-  free(f); F[1].energy=40; F[2].energy=20; bq(L,f); near(f.stunned,V.cap('stunned')*1.08+0.3,'what it really lasts (2.8 s) x Breathing It In 4% x 2, + Strong Bouquet 0.1 s x 3 (past the 2.8 s ceiling)'); near(f._sleepT,5);
+  free(f); F[1].energy=40; F[2].energy=20; bq(L,f); near(f.stunned,Math.min(4,3.5*1.08+0.3),'what it really lasts (3.5 s since v1452) x Breathing It In 4% x 2, + Strong Bouquet 0.1 s x 3, at most 4.0 s'); near(f._sleepT,Math.min(4,3.5*1.08+0.3));
   assert.equal(ust(L,F[1],'lang'),3,'Second Bouquet: the second-highest-energy enemy gains 3 Languor');
   f.stunned=0; f._sleepT=0; V.step(1); assert.equal(ust(L,f,'lang'),5,'Deep Slumber: it wakes with 5 Languor'); assert.equal(f.stunned,0,'(the 0.5 s lock)'); secs(0.55); assert.ok(f.stunned>0,'then it naps');
   secs(8.8); assert.equal(ust(L,F[1],'lang'),3,'Heavier Bouquet: they last 5 s + Slow Poppy 1 s x 3 + 0.4 s x 5'); secs(1.0); assert.equal(ust(L,F[1],'lang'),0);
   near(FX.cd(v,'blue',10),9.25,'Night Blossom: 0.15 s x 5 sooner'); near(ratio(L,v,F[2],{kind:'magic'}),1.10,'Lily Scent: 2% x 5 more magic damage');
   const P0=lab(H,null,{foes:1}).v.range; const L2=lab(H,S(['lp_2_4']),{foes:1}); near(L2.v.range/P0,1.09,'Gentle Throw: 3% x 3 longer range');
-  const B=lab(H,S(['lp_4_1']),{foes:2,big:true}); free(B.F[0]); bq(B,B.F[0]); near(B.F[0].stunned,V.cap('stunned')+0.3,'Strong Bouquet alone: + 0.3 s');
+  const B=lab(H,S(['lp_4_1']),{foes:2,big:true}); free(B.F[0]); bq(B,B.F[0]); near(B.F[0].stunned,3.5+0.3,'Strong Bouquet alone: + 0.3 s (on the real 3.5 s sleep since v1452)');
 });
 
 test('Mirelle / Lull: Heavy Air, Thick Air, Lullaby, Unbothered, Yawn, Dressed for Court, Rest Easy, Sound Sleep, Drowsy Court, Sleep It Off',()=>{
@@ -256,7 +256,7 @@ test('Mirelle / Preen: A Moment to Primp, Primped, Fresh Powder, Heavy Jewels, L
   near(A[0].dmgBuffMul,1+0.28*k,'and its bonus'); near(v.hp-hv,v.maxHp*0.025,'Fresh Powder: she heals 0.5% x 5 of her max HP'); near(A[1].dmgBuffMul,1+0.28*k*0.6,'Fair Copy: the second-weakest gets a mist at 20% x 3');
   assert.ok(!L.T.s.mi.pre,'spent'); weak(A[0],0.3); weak(A[1],0.5); sc(L); near(A[0].dmgBuffMul,1+0.28*k,'(the slot keeps the stronger)'); assert.ok(!(L.T.s.mi.prS));
   const s0=lab(H,null,{foes:1}).v.speed, B=lab(H,S(['he_6_1']),{foes:1}); near(B.v.speed/s0,0.90,'Heavy Jewels: 5% x 2 slower');
-  const C=lab(H,S(['he_4_1']),{foes:2,big:true}), f=C.F[0]; free(f); secs(4.1); bq(C,f); near(f.stunned,V.cap('stunned')*1.15,'a Preened Bouquet: its sleep 15% longer');
+  const C=lab(H,S(['he_4_1']),{foes:2,big:true}), f=C.F[0]; free(f); secs(4.1); bq(C,f); near(f.stunned,Math.min(4,3.5*1.15),'a Preened Bouquet: its sleep 15% longer (3.5 s since v1452, at most 4.0 s)');
 });
 
 test('Mirelle / Admirers: Smitten, Lovestruck, Admired, Vain Strength, Center of the Room, Bright Plumes, Showstopper, Season\'s Display',()=>{
@@ -283,7 +283,7 @@ test('Mirelle / Grace (PICK ONE) and Swan\'s Bearing; Vanity (PICK ONE) and Mirr
 test('Mirelle / Turned Heads and Captivated; Velvet Voice, Unruffled, Fan of Eyes',()=>{
   const L=lab(H,S(['he_7_3','he_9_3','he_7_4','he_11_1','he_5_4']),{foes:3,big:true,allies:1}), {v,F,A}=L;
   V.hit(F[2],v,1,{kind:'true'}); V.hit(F[2],v,1,{kind:'true'}); V.hit(F[1],v,1,{kind:'true'}); assert.equal(FX.skillTgt(v,'sleepbouquet',F[0],{}),F[2],'Turned Heads: the enemy that opened the most Eyes this wave');
-  const f=F[2]; free(f); V.cast(v,'blue',f); near(f.stunned,V.cap('stunned')+0.4,'Captivated: its sleep 0.08 s x 5 longer'); assert.ok(mark(L,f,'adm'),'and it becomes an Admirer');
+  const f=F[2]; free(f); V.cast(v,'blue',f); near(f.stunned,3.5+0.4,'Captivated: its sleep 0.08 s x 5 longer (3.5 s since v1452)'); assert.ok(mark(L,f,'adm'),'and it becomes an Admirer');
   near(FX.cd(v,'blue',10),9.25,'Velvet Voice: 0.15 s x 5 sooner'); near(inRatio(L,F[0],{kind:'magic'}),1-0.075,'Unruffled: 1.5% x 5 less magic damage'); near(inRatio(L,F[0],{kind:'phys'}),1);
   A[0].shield=0; scentOn(L,A[0]); V.step(1); near(A[0].shield,A[0].maxHp*0.04*v.passMul*1.15,'Fan of Eyes: Trail of Splendor shields 3% x 5 larger');
 });
@@ -415,7 +415,9 @@ test('Mirelle: the longest sleep chain on one enemy in seeded fights, and no tal
   VMX('var __sc={naps:0,sig:0,bad:0,run:{},max:0}; var __scU=_updateBattleCore;'+
     '_updateBattleCore=function(dt){ const r=__scU.apply(this,arguments); for(const u of units){ if(u.key!=="mirelle"||!u._tal||!u._tal.s.mi) continue; const m=u._tal.s.mi;'+
     '  for(const e of units){ if(e.team===u.team) continue; const k=e.uid; if(e.alive&&(e.stunned||0)>0&&m.myS[k]){ __sc.run[k]=(__sc.run[k]||0)+dt; if(__sc.run[k]>__sc.max) __sc.max=__sc.run[k]; } else if(!((e.stunned||0)>0)) __sc.run[k]=0; } } return r; };');
-  try{ const sn=snaps(['vael','sylthaine','vireo','vex','mirelle'].map(k=>Object.assign(spec(k,100,k===H?list:null),{skillLv:[100,100,100,100]})));
+  /* v1452: her sleep is the table's 3.5 s now, so a teammate's stun landing on it can make a run longer than 4 s that is no talent's doing; the team keeps
+     no other hero that stuns (Meridian for Sylthaine) so the run measured is hers */
+  try{ const sn=snaps(['vael','meridian','vireo','vex','mirelle'].map(k=>Object.assign(spec(k,100,k===H?list:null),{skillLv:[100,100,100,100]})));
     for(const [node,seed] of [[34,11],[60,90210],[90,424242],[120,7]]) campaign(sn,node,seed);
     const foe=snaps(['vex','nox','rafe','sloe','carn'].map(k=>Object.assign(spec(k,100),{skillLv:[100,100,100,100]})));
     for(const seed of [3,5,8,13]) NOW.auto(JSON.parse(JSON.stringify(sn)),JSON.parse(JSON.stringify(foe)),seed);

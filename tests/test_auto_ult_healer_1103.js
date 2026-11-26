@@ -7,16 +7,20 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log('  â
 const set = page.match(/const HEALER_ULT_HITS=new Set\((\[[^\]]*\])\)/);
 ok(set && JSON.stringify(JSON.parse(set[1].replace(/'/g, '"')).sort()) === JSON.stringify(['hivemind', 'sunburst', 'symphony']), 'the healer ults that also hit enemies: Symphony, Sunburst, Hive Mind');
 // the real condition line, run with stub units
-const line = page.match(/\n(\s*const _ultDmg=HEALER_ULT_HITS\.has\(u\.abilityOverride\|\|u\.t\.ability\);[^\n]*)\n\s*if\(auto && !ultBlockedReason\(u\) && \((!u\.t\.healer\|\|_ultDmg\|\|alliesOf\(u\)\.some\(a=>a\.hp<a\.maxHp\))\)\)\{/);
+// v1452: the condition also reads HEAL_ONLY_ULTS (Linnet's Rewind waits like the other heal-only ults; a fallen ally releases it) - the line
+// is matched in its new shape and run with that set too (tests/test_engine_fixes_1452.js section 16 checks Rewind in a real fight)
+const line = page.match(/\n(\s*const _ultDmg=HEALER_ULT_HITS\.has\(u\.abilityOverride\|\|u\.t\.ability\);[^\n]*\n\s*const _healOnly=[^\n]*)\n\s*if\(auto && !ultBlockedReason\(u\) && \((!_healOnly\|\|_ultDmg\|\|alliesOf\(u\)\.some\(a=>a\.hp<a\.maxHp\)[^\n]*?)\)\)\{/);
+const only = page.match(/const HEAL_ONLY_ULTS=new Set\((\[[^\]]*\])\)/);
 ok(!!line, 'the AUTO condition reads the set');
 if (line) {
-  const fires = (ability, healer, hurt) => vm.runInNewContext('const HEALER_ULT_HITS=new Set(' + set[1] + ');' + line[1] + '\n; (' + line[2] + ')',
-    { u: { t: { ability, healer } }, alliesOf: () => [{ hp: hurt ? 50 : 100, maxHp: 100 }] });
+  const fires = (ability, healer, hurt) => vm.runInNewContext('const HEALER_ULT_HITS=new Set(' + set[1] + '); const HEAL_ONLY_ULTS=new Set(' + (only ? only[1] : '[]') + ');' + line[1] + '\n; (' + line[2] + ')',
+    { u: { t: { ability, healer }, team: 'ally' }, units: [], alliesOf: () => [{ hp: hurt ? 50 : 100, maxHp: 100 }] });
   ok(fires('symphony', true, false), 'Vireo (Symphony) fires with nobody hurt');
   ok(fires('sunburst', true, false) && fires('hivemind', true, false), 'Lumi (Sunburst) and Mellan (Hive Mind) fire with nobody hurt');
   ok(!fires('firstspring', true, false) && !fires('rally', true, false), 'control: Oakmir (First Spring) and Dandra (Rally) still wait while nobody is hurt');
   ok(fires('firstspring', true, true), 'control: a heal-only ult fires once an ally is hurt');
   ok(fires('worldweight', false, false), 'a non-healer fires as before');
+  ok(!fires('rewind', false, false) && fires('rewind', false, true), "v1452: Linnet's Rewind (not a healer entry) waits while nobody is hurt, fires once an ally is");
 }
 console.log('test_auto_ult_healer_1103.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
 process.exit(fail ? 1 : 0);

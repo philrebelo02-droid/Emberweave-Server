@@ -38,7 +38,7 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   const rf=await call('/api/guild/raid/start',{heroIds:['vael'],requestId:'rs-1'});
   ok(rf.status===503&&rf.data.storageFailed===true,'raid start: a failed save answers 503 (got '+rf.status+' '+JSON.stringify(rf.data).slice(0,80)+')');
   const rv=(await call('/api/guild/raid')).data.raid||{};
-  ok((rv.attemptsLeft|0)===3,'raid start: no attempt spent ('+rv.attemptsLeft+' left)');
+  ok((rv.attemptsLeft|0)===2,'raid start: no attempt spent (2 a day since v1453; '+rv.attemptsLeft+' left)');
   fs.unlinkSync(flag);
   const rs=await call('/api/guild/raid/start',{heroIds:['vael'],requestId:'rs-1'});
   ok(rs.status===200&&rs.data.ok===true&&rs.data.attemptId,'raid start: with the disk back it opens the fight ('+(rs.data.error||'ok')+')');

@@ -149,7 +149,7 @@ test('Vaelora / Featherfang: Cold Ring (slow 4% a rank, 2 s), Biting Ring, Wide 
   const th=Tw.F.map(f=>f.hp); castFF(Tw); const td=Tw.F.map((f,i)=>th[i]-f.hp);
   near(td[1],p*0.6,'Twin Rings: the first ring 60%'); near(td[3],p*0.6,'the second ring 15 degrees off the first, toward the side with more enemies, 60%',1e-6); assert.equal(td[4],0,'(nothing on the other side)');
   const Fi=lab(H,S(['tw_7_1']),{foes:3,big:true}), f=Fi.F; f[0].hp=10; f[0].shield=0; f[2].hp=5e8; const fh=f.map(x=>x.hp); castFF(Fi); assert.ok(!f[0].alive,'Featherfang kills');
-  const d1=fh[2]-f[2].hp; V.step(1); const d2=fh[2]-f[2].hp-d1; near(d2,p,'Finishing Ring: thrown again at once at the enemy with the lowest HP (F2), a full Featherfang',1e-6);
+  const d1=fh[2]-f[2].hp; V.step(14); /* v1452: the re-throw is thrown at once and its hit lands with the throw (0.27 s, tests/test_engine_fixes_1452.js section 15) */ const d2=fh[2]-f[2].hp-d1; near(d2,p,'Finishing Ring: thrown again at once at the enemy with the lowest HP (F2), a full Featherfang',1e-6);
   V.step(3); near(fh[2]-f[2].hp,d1+d2,'(once per cast)');
 });
 

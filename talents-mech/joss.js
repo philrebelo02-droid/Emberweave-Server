@@ -258,7 +258,7 @@ module.exports={
     ext(A,T,u,c){ const t=c.tgt, s=T.s, P=T.P; if(!t||!t.alive) return; let x=P['ext.all']||0;
       if(s.cur===DJ) x+=P['ext.dj']||0;
       else if(s.cur===RH&&t===s.joRhV){ if(s.joHbt===t) x+=0.3; if(P.knee&&s.joKnee) x+=0.5; if(s.joSen===t) x+=1.5; }
-      if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_TOP,(c.amt||0)+x)); },
+      if(x>0) t.stunned=Math.max(t.stunned||0,Math.min(STUN_TOP,A.stunRoom(t),(c.amt||0)+x)); },   /* v1452: and never a run of his stuns past 4.0 s (it reached 5.5 s) */
     seRec(A,T,u,c){ const t=c.tgt; if(!t) return; const m=T.s.joSE||(T.s.joSE={}); m[t.uid]=A.eng().now()+(t.stunned||0); },
     stunOk(A,T,u,t){ const m=T.s.joSE||{}; return !((t.stunned||0)>0)&&!(A.eng().now()<(m[t.uid]||-1)+LOCK); },
     /* ---- UNBROKEN DAWN: the tick the game's passive triggers (it sets _ubUsed), event jDawn. Second Morning: at 20 Dawnlight, after the first dawn, the

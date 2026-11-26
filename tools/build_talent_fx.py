@@ -119,13 +119,14 @@ js = r'''/* Talents in a fight: shared by the page and the server's battle host 
     return out; }
   /* The stat talents on a finished real-engine unit (called once, at the end of makeUnit). "N% more" multiplies the finished number;
      crit chance is added (the engine's 60% cap stays); critical damage multiplies the whole critical hit. */
+  const TAL_CRIT_CAP=0.05;   /* v1452 (lockdown audit T29): every hero's talents together add at most 5% crit chance (stat talents + crit rows) */
   function applyStats(u,hero,list){ const T=totals(hero,list);
     if(T.hp){ const k=Math.max(0.05,1+T.hp); u.maxHp*=k; u.hp=u.maxHp; }
     if(T.atk) u.dmg*=Math.max(0.05,1+T.atk);
     if(T.apow) u.apow=(u.apow||0)*Math.max(0.05,1+T.apow);
     if(T.armor) u.armorRating=(u.armorRating||0)*Math.max(0,1+T.armor);
     if(T.mr) u.mrRating=(u.mrRating||0)*Math.max(0,1+T.mr);
-    if(T.crit) u.glyphCrit=Math.max(0,Math.min(0.6,(u.glyphCrit||0)+T.crit));
+    if(T.crit){ const c=Math.min(TAL_CRIT_CAP,T.crit); u._talCrit0=c; u.glyphCrit=Math.max(0,Math.min(0.6,(u.glyphCrit||0)+c)); }   /* v1452: talent crit chance at most +5% in all (Phil: "crit rate shouldn't be more than 5%"); the mechanics' crit rows get what is left (setStats) */
     if(T.critDmg) u.critDmg=(1+(u.critDmg||0.6))*Math.max(0.05,1+T.critDmg)-1;
     if(T.aspd) u.atkInterval=u.atkInterval/Math.max(0.05,1+T.aspd);
     if(T.heal) u.healPowMul=(u.healPowMul||1)*Math.max(0.05,1+T.heal);
@@ -149,7 +150,7 @@ js = r'''/* Talents in a fight: shared by the page and the server's battle host 
     if(T.apow){ const k=Math.max(0.05,1+T.apow); u.atkM=Math.round((u.atkM||0)*k); if(u.heal) u.heal=Math.round(u.heal*k); }
     if(T.armor) u.armor=(u.armor||0)*Math.max(0,1+T.armor);
     if(T.mr) u.mr=(u.mr||0)*Math.max(0,1+T.mr);
-    if(T.crit) u.crit=Math.max(0,Math.min(0.6,(u.crit||0)+T.crit));
+    if(T.crit) u.crit=Math.max(0,Math.min(0.6,(u.crit||0)+Math.min(TAL_CRIT_CAP,T.crit)));   /* v1452: the same +5% talent crit cap on the line model */
     if(T.critDmg) u.critDmg=(1+(u.critDmg||0.6))*Math.max(0.05,1+T.critDmg)-1;
     if(T.aspd) u.speed=(u.speed||1)*Math.max(0.05,1+T.aspd);
     if(T.heal) u.healPow=(1+(u.healPow||0))*Math.max(0.05,1+T.heal)-1;

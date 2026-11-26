@@ -68,7 +68,7 @@ const STAGE = (r, s) => J(r, `(()=>{ ${RESET} const S=${JSON.stringify(s)};
   as.forEach((a,i)=>{ const p=pre[i]; if((a.drMul||1)!==p[0]||(a.hasteMul||1)!==p[1]||(a.drT||0)>p[2]) ally.add(i); });
   es.forEach((e,i)=>{ if(e.hp<e.maxHp) hit.add(i); }); const tgt=(S.t!=null)?es[S.t]:null;
   return JSON.stringify({hit:[...hit].filter(i=>i>=0).sort(), ally:[...ally].filter(i=>i>=0).sort(), aimAfter:(h._aimWX===aim0)?'same':(h._aimWX==null?'none':'moved'),
-    tedge0:_st.te0, mv:es.map((e,i)=>+((dist(_st.T0,e)-_st.d0[i])/METER).toFixed(2)), ctl:es.map(e=>({sil:silOn.has(e), forced:e.forcedTarget===h})),
+    tedge0:_st.te0, mv:es.map((e,i)=>+((dist(_st.T0,e)-_st.d0[i])/METER).toFixed(2)), ctl:es.map(e=>({sil:silOn.has(e), forced:e.forcedTarget===h, landed:(e.silencedT||0)>0})),
     edge:es.map(e=>+((dist(h,e)-bodyR(e))/METER).toFixed(2)), cc:es.map(e=>+(dist(h,e)/METER).toFixed(2)), body:es.map(e=>+(bodyR(e)/METER).toFixed(2)),
     aedge:as.map(a=>+((dist(h,a)-bodyR(a))/METER).toFixed(2)), tedge:tgt?es.map(e=>+((dist(tgt,e)-bodyR(e))/METER).toFixed(2)):null}); })()`);
 const fmt = x => 'hit [' + x.hit.join(',') + ']' + (x.ally.length ? ' allies [' + x.ally.join(',') + ']' : '');
@@ -168,7 +168,7 @@ try {
   { const a = STAGE(run, CST('pyroclast', 'blue', 2.8 - IN));
     ck('C Blazing Orbit repels the enemy beside the target from it (' + a.mv[1] + ' m)', a.mv[1] > 0.5, JSON.stringify(a)); }
   { const a = STAGE(run, CST('grimsby', 'blue', 4 - IN, { secs: 1.3 }));   // read inside the 2 s silence
-    ck('C Ledger Slam: the enemies around the target are silenced and must attack Grimsby, as before (' + JSON.stringify(a.ctl) + ')', a.ctl.every(c => c.sil && c.forced), JSON.stringify(a)); }
+    ck('C Ledger Slam: the enemies around the target are silenced and must attack Grimsby, as before (' + JSON.stringify(a.ctl) + ')', a.ctl.every(c => c.sil && c.forced === c.landed) && a.ctl.some(c => c.forced), JSON.stringify(a)); }   /* v1452: the taunt-silence is one control with one landing roll (skill level 1 vs these enemies): each enemy is silenced AND taunted, or resisted both */
   { const S = (r, e) => J(r, `(()=>{ ${RESET} const h=makeUnit('rivet','ally',500,700,30,{owned:false,rank:3}); const t=makeUnit('grosk','enemy',500+11*METER,700,30,{owned:false,rank:3}); const n=makeUnit('vael','enemy',t.x,t.y+${e}*METER+0,30,{owned:false,rank:3});
       units=[h,t,n]; ${HOLD} n.y=t.y+${e}*METER+bodyR(n); h.target=t; const D=new Map(); const _dd=dealDamage; dealDamage=function(s,x,a){ if(s===h) D.set(x.key,(D.get(x.key)||0)+a); return _dd.apply(this,arguments); };
       try{ h._castSM=1; h._castLv=1; h._castSlot='green'; doEffect(h,'spread',Object.assign({},KITS.rivet.green)); } finally{ dealDamage=_dd; h._castSlot=null; }

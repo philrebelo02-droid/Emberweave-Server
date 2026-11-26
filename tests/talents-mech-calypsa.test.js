@@ -276,7 +276,7 @@ test('Calypsa / the storm: Gathering Storm, Wider Storm, Five Clear Blades, Temp
   near(skillRatio(L,F[2],'thundershower','true',{tz:{}}),1.15*1.20,'Gathering Storm 3% x 5; Five Clear Blades: the first strike on each enemy 4% x 5'); unsoak(L,F[2]);
   near(skillRatio(L,F[2],'thundershower','true',{tz:{[F[2].uid]:1}}),1.15,'not the second'); unsoak(L,F[2]);
   setMk(L,F[2],'soak',9); near(skillRatio(L,F[2],'thundershower','true',{tz:{[F[2].uid]:1}}),1.15*1.25,'Tempest Soak: on a Soaked enemy 25% more'); unsoak(L,F[2]);
-  V.cast(v,'ult',F[1]); go(L); V.step(1); near(v._stormR,6*V.METER*1.2,'Wider Storm: 4% x 5',1e-9); near((v.glyphCrit||0)-c0,0.10,'Stinging Spray: 2% x 5 critical chance while it lasts',1e-9);
+  V.cast(v,'ult',F[1]); go(L); V.step(1); near(v._stormR,6*V.METER*1.2,'Wider Storm: 4% x 5',1e-9); near((v.glyphCrit||0)-c0,0.05,'Stinging Spray: 2% x 5 critical chance while it lasts - at most 5% from talents in all (v1452, the owner\'s crit ruling)',1e-9);
   secs(1.05); for(const i of [0,1,2,3]) assert.ok(!mark(L,F[i],'dazz'),'2 strikes: not yet'); secs(0.5); for(const i of [0,1,2,3]) assert.ok(mark(L,F[i],'dazz'),'3 strikes of one storm: Dazzled, F'+i); assert.ok(mark(L,F[0],'soak'),'(its strikes Soak: her water)');
   V.step(1); near(v.apow,ap0*(1+0.04*3+0.05*4),'Liked It (2% x 2, up to 3) and Gasp (1% x 5 each Dazzled)');
   near(hitOn(L,v,1000,{src:F[0]}),plainHit(L,()=>hitOn(L,v,1000,{src:F[0]}))*0.91,'Trailing Rainbows: a Dazzled enemy deals 3% x 3 less'); near(hitOn(L,A[0],1000,{src:F[0]}),plainHit(L,()=>hitOn(L,A[0],1000,{src:F[0]}))*0.91,'to anyone');

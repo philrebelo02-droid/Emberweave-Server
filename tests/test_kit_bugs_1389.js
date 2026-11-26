@@ -57,7 +57,7 @@ try {
   const DM = [3, 5.5, 8, 12];   // enemies at these distances (m) from the caster
   const TAUNT = (r, hk, slotExpr) => J(r, `(()=>{ ${RESET} const g=makeUnit('${hk}','ally',400,700,30,{owned:false,rank:3});
     const es=${JSON.stringify(DM)}.map((d,i)=>makeUnit(['vael','askel','sylthaine','grosk'][i],'enemy',400+d*METER,700,30,{owned:false,rank:3}));
-    units=[g,...es]; ${HOLD} g._castSM=1; g._castLv=1; g._castSlot='${slotExpr[0]}'; doEffect(g,'taunt',${slotExpr[1]});
+    units=[g,...es]; ${HOLD} g._castSM=1; g._castLv=30; /* v1452: a taunt rolls to land like every control (skill level vs target level); cast at the enemies' level 30 so this check still reads the radius alone */ g._castSlot='${slotExpr[0]}'; doEffect(g,'taunt',${slotExpr[1]});
     return JSON.stringify({forced:es.map(e=>e.forcedTarget===g?1:0), t:es.map(e=>+(e.forcedTargetT||0).toFixed(2)), dr:+g.drMul.toFixed(3), R:+(((${slotExpr[1]}).radius||0)/METER).toFixed(2)}); })()`);
   const ULTO = "Object.assign({},ULT_DEF.taunt,(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART.gruel)||{})";
   const r1 = TAUNT(run, 'gruel', ['ult', ULTO]), r0 = TAUNT(R0, 'gruel', ['ult', ULTO]);

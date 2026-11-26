@@ -43,7 +43,7 @@ const A = probe(path.join(ROOT, 'emberweave-heroes.html'));
 ok(A.past.onAt === 50 && A.past.pending === null, 'answer names tick 44, the fight is on tick 50: AUTO comes on at tick ' + A.past.onAt + ' (the button leaves "switching")');
 ok(JSON.stringify(A.past.log) === JSON.stringify([[50, 'auto', -1, 1, null, null]]), 'the record holds AUTO on the tick it was really applied: ' + JSON.stringify(A.past.log));
 ok(A.past.filed.indexOf(44) < 0 && A.past.left === 0 && A.past.stream === false && A.past.wait === 0, 'nothing is left under the past tick; the fight hands over to its own log (stream off)');
-ok(A.hold.kinds === 'speed:2,auto:3' && A.hold.wait === 1 && A.hold.held === true, 'speed then AUTO on a live stream: the answer to the speed change does not release the hold - the fight still waits for the tick of AUTO (sent ' + A.hold.kinds + ')');
+ok(A.hold.kinds === 'speed:2,auto:3' && A.hold.wait === 1 && A.hold.held === false && A.hold.log >= 1, 'speed then AUTO on a live stream: the answer to the speed change does not settle AUTO (still awaited), and at the tick of AUTO the fight does not stand still - v1452: AUTO is applied and recorded locally at once (sent ' + A.hold.kinds + ')');
 ok(A.future.onAt === 53 && JSON.stringify(A.future.log) === JSON.stringify([[53, 'auto', -1, 1, null, null]]) && A.future.stream === true, 'an answer naming a coming tick (53) is applied on that tick and the stream stays on, as before');
 
 const ctl = fs.mkdtempSync(path.join(os.tmpdir(), 'ack1441-'));

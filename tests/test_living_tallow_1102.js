@@ -6,7 +6,10 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log('  â
 const i = page.indexOf('function tallowEncase('), j = page.indexOf('/* v542', i);
 ok(i > 0 && j > i, 'tallowEncase and waxOnCaster found');
 function run(lv, ctrlRes) {
-  const ctx = { units: [], floatTexts: [], ccDur: x => x, ringBurst() {}, Math };
+  // v1452: the encase rolls to land (ccRoll; equal levels here, so it lands) and is written by ccSet - both from the page
+  const k = page.indexOf('function ccRoll('), k2 = page.indexOf('function ccLand(', k);
+  const ctx = { units: [], floatTexts: [], ccDur: x => x, ringBurst() {}, Math, brnd: () => 0.5, ccChanceFor: () => 1 };
+  if (k > 0 && k2 > k) vm.runInNewContext(page.slice(k, k2) + '\nthis.ccRoll=ccRoll; this.ccSet=ccSet;', ctx);
   vm.runInNewContext(page.slice(i, j) + '\nthis.T=tallowEncase; this.W=waxOnCaster;', ctx);
   const her = { alive: true, team: 'a', pass: { tallow: true }, skillLv: [1, 1, 1, lv] }, c = { alive: true, team: 'b', ctrlRes: ctrlRes || 0 };
   ctx.units.push(her, c); ctx.W(c); ctx.W(c); const before = c.stunned || 0; ctx.W(c);
@@ -16,7 +19,10 @@ const a = run(1), b = run(11), z = run(1, 0.5);
 ok(Math.abs(a.T(1) - 1.0) < 1e-9 && Math.abs(a.T(2) - 1.015) < 1e-9 && Math.abs(a.T(11) - 1.15) < 1e-9, 'encase time: 1.0 s at level 1, +0.015 s per level (1.15 s at level 11)');
 ok(a.before === 0 && Math.abs(a.stun - 1.0) < 1e-9 && Math.abs(a.sil - 1.0) < 1e-9, 'level 1: the third coat stuns and silences for 1.0 s (control: the first two do not)');
 ok(Math.abs(b.stun - 1.15) < 1e-9, 'level 11: 1.15 s');
-ok(Math.abs(z.stun - 0.5) < 1e-9, 'control resistance still shortens it (50 % -> 0.5 s)');
+// v1452 (Control Resist applies ONCE, as the control runs): the encase lands at its full 1.0 s and the page's own stun tick runs it down faster
+{ const m = page.match(/u\.stunned>0\)\{const _sk=(dt\*\(1\+2\*\(u\.ctrlRes\|\|0\)\));/), step = 1 / 60;
+  let left = z.stun, t = 0; if (m) { const f = new Function('u', 'dt', 'return ' + m[1]); while (left > 1e-9 && t < 5) { left -= f({ ctrlRes: 0.5 }, step); t += step; } }
+  ok(!!m && Math.abs(z.stun - 1.0) < 1e-9 && Math.abs(t - 0.5) <= step + 1e-9, 'control resistance still shortens it (50 % -> 0.5 s: lands 1.0 s, runs out in ' + t.toFixed(3) + ' s)'); }
 ok(/tallow:'\{i:s:stun\} '\+\(\+tallowEncase\(lv\)\.toFixed\(3\)\)/.test(page), 'the skill card shows the same number the fight uses');
 console.log('test_living_tallow_1102.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
 process.exit(fail ? 1 : 0);
