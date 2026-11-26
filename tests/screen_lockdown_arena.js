@@ -6,7 +6,7 @@
      (phone, Fold, tablet, desktop, pop-out, full screen).
    - Arena Shop screen: painted title, framed items, price buttons (painted rail), coin balance, at desktop / tablet / phone.
    One screenshot per check per size (SHOT64 lines). Every check prints what it measured. Exit 0 = all passed. */
-const H=require('./helpers/screens-lockdown.js');
+const fs=require('fs'), H=require('./helpers/screens-lockdown.js');
 const TEST='screen_lockdown_arena.js', C=H.checker(TEST), shot=H.shooter(TEST);
 const KEYS=['vael','aureth','sylthaine','vireo','brannus','lumi','umbris','grosk'];
 const HEROES={}; KEYS.forEach(k=>HEROES[k]=40);
@@ -32,6 +32,7 @@ async function title(pg,S,how){
 }
 
 async function board(pg,S,how){
+  await pg.waitForFunction(()=>document.querySelectorAll('#arenaOpps .arOpp').length>0,null,{timeout:30000}).catch(()=>{}); await H.wait(400);
   const r=await pg.evaluate(()=>{ const q=s=>[...document.querySelectorAll('#arena '+s)];
     const parts={medal:q('.arMedal'),dayRail:q('.arDay'),defenders:q('.arDef'),defenderSlots:q('.arDefRow>.arHero'),tabs:q('.arTabs>button'),opponents:q('#arenaOpps .arOpp'),challenge:q('#arenaOpps .arOpp .btn')};
     const out={}, bad=[];
@@ -40,7 +41,7 @@ async function board(pg,S,how){
     const scr=SL.scrolls(document.getElementById('arena')), body=SL.scrolls(document.getElementById('arenaBody')), doc=SL.scrolls(document.scrollingElement);
     return {counts:out,bad,scroll:scr,body,doc,view:SL.V(),boxes:{medal:SL.R('#arena .arMedal'),def:SL.R('#arena .arDef'),tabs:SL.R('#arena .arTabs'),opps:SL.R('#arenaOpps')}}; });
   const s=await shot(pg,S.tag+' One-screen board');
-  C.ok(!r.bad.length&&r.counts.defenderSlots===5&&r.counts.tabs===4&&r.counts.opponents>=1&&!r.scroll.y&&!r.scroll.x&&!r.doc.y,
+  C.ok(!r.bad.length&&r.counts.defenderSlots===5&&r.counts.tabs===4&&r.counts.opponents>=1&&!r.scroll.y&&!r.scroll.x&&!r.doc.y&&!r.doc.x,
     S.tag+' One-screen board: medal rail, defenders (5), the 4 tabs and '+r.counts.opponents+' opponents with Challenge all on one screen, not covered, no scroll [opened by '+how+']',
     {problems:r.bad.slice(0,8),counts:r.counts,scroll:r.scroll,doc:r.doc,view:r.view,boxes:r.boxes,shot:s});
 }
@@ -73,6 +74,8 @@ async function shop(pg,S){
 
 (async()=>{
   const {file}=H.seedDB(HEROES,u=>{ u.team=KEYS.slice(0,5); u.arenaDef=KEYS.slice(0,5); u.coins=COINS; });
+  /* the live ladder has 5,000 bot players; the server seeds them on boot when the DB carries no seed version */
+  { const db=JSON.parse(fs.readFileSync(file,'utf8')); delete db.seeded; delete db.seedVersion; fs.writeFileSync(file,JSON.stringify(db)); }
   const s=await H.server(file); let pg=null;
   const PLAN=[['desktop',{title:1,board:1,shop:1}],['popout',{board:1}],['full',{board:1}],['tablet',{title:1,board:1,shop:1}],['fold',{board:1}],['phone',{title:1,board:1,shop:1}]];
   try{
@@ -85,7 +88,7 @@ async function shop(pg,S){
         if(do_.shop) await shop(pg,S);
       }catch(e){ C.ok(false,S.tag+' ran to the end',String(e&&e.stack||e).slice(0,500)); }
       C.ok(pg._errs.length===0,S.tag+' no page errors',pg._errs.slice(0,3));
-      await pg._ctx.close(); pg=null; }
+      await pg._ctx.close(); pg=null; await H.closeBrowser(); }
   }catch(e){ C.ok(false,'the test ran to the end',String(e&&e.stack||e).slice(0,600)); }
   finally{ if(pg) try{ await pg._ctx.close(); }catch(_){} await H.closeBrowser(); await s.stop(); }
   C.done();
