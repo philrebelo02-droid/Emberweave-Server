@@ -34,6 +34,10 @@ const CASES = [
   ['CONTROL won + one lost reply, then the receipt -> VICTORY', true, [[503, { error: 'Server 1 is down right now - your other servers are still open.', serverDown: 1 }], [200, WIN]], 'VICTORY'],
 ];
 
+/* 25 Nov 2026 (Claude, suite speed): EW_PART=k/N runs every N-th case from case k (the 15 cases ~40 s each made this one job 595 s, the
+   suite's floor). No EW_PART = every case, as before. The 'no page errors' check runs in every part. */
+const _PM = /^(\d+)\/(\d+)$/.exec(process.env.EW_PART || ''), _PK = _PM ? +_PM[1] : 1, _PN = _PM ? +_PM[2] : 1;
+const RUN_CASES = CASES.filter((_, i) => i % _PN === _PK - 1);
 (async () => {
   const port = await freePort(), dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew1145-'));
   const env = { ...process.env, DATABASE_URL: '', PORT: String(port), DB_FILE: path.join(dir, 'db.json'), SIM_WORKERS: '0', NODE_ENV: '' }; delete env.CLOCK_FILE;
@@ -51,7 +55,7 @@ const CASES = [
     await pg.waitForFunction(() => typeof endBattle === 'function' && typeof api === 'function', null, { timeout: 60000 });
     await delay(1500);
     console.log('== v1145: a won campaign fight never shows DEFEAT ==');
-    for (const [name, won, replies, expect] of CASES) {
+    for (const [name, won, replies, expect] of RUN_CASES) {
       const got = await pg.evaluate(async ({ won, replies }) => {
         // the resolve route answers with the scripted replies (the last one repeats); everything else is the real server
         let n = 0; const rids = []; const _f = window.__realFetch || (window.__realFetch = window.fetch);
