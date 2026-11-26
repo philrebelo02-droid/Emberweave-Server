@@ -679,6 +679,8 @@ note "screen_lockdown_vault.js (lockdown 25 Nov round 2, needs playwright: Vault
 node tests/screen_lockdown_vault.js || FAILED=1
 note "screen_lockdown_arena.js (lockdown 25 Nov round 2, needs playwright: Arena painted title beside Base, one-screen board at every size, Arena Shop painted title / framed items / price buttons / coin balance)"
 node tests/screen_lockdown_arena.js || FAILED=1
+note "screen_lockdown_well.js (lockdown 25 Nov round 2, needs playwright: Starless Well plaque title, painted back button, gold buttons; phone and Fold: every next square on screen and tappable, the title bar does nothing)"
+node tests/screen_lockdown_well.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
