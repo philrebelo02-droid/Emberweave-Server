@@ -12986,7 +12986,7 @@ function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
   const keep=REPLAY_IN;
   ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
   const B=bossSpec||{};
-  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1), spellMul:(+B.spellMul>0?+B.spellMul:1)}]],
+  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1), spellMul:(+B.spellMul>0?+B.spellMul:1), atkMul:(+B.atkMul>0?+B.atkMul:1)}]],
        raid:{key:B.key, tier:B.tier|0, hp:Math.max(1,B.hp|0)},
        backups:allySnaps.slice(TEAM_SIZE).map(s=>s.key), backupSnaps:allySnaps.slice(TEAM_SIZE),
        manualReplay:!!manual, headless:true};
@@ -13329,6 +13329,9 @@ function campEnemyUnit(m,x,y,mode,preview){
      a raid boss's spec may carry spellMul - a multiplier on EVERY one of his spells (doEffect: direct hits and ground spells alike);
      his basic attacks stay as they are. Only the guild raid sends it, so campaign bosses are untouched. */
   if(+m.spellMul>0) u._spellMul=+m.spellMul;
+  /* v1456 (Phil 25 Nov: "this is magic damage bosses only, attack damage [ones] should do higher attack damage and also his abilities scale off AD"):
+     an ATTACK-damage raid boss gets atkMul on his attack damage instead - his basic hits AND his abilities (they scale off attack damage) rise. */
+  if(+m.atkMul>0) u.dmg*=(+m.atkMul);
   return u; }
 function buildEnemyWave(){ resetPerWave();
   if(CUR.mode==='vault'){   // The Vault: monsters are PRE-DETERMINED per floor by the server — same lineup every attempt, beatable by practice
@@ -21704,7 +21707,7 @@ async function raidLaunch(){
          /* v1445 (Phil 24 Nov: "when you do damage to a boss, the next time you face it, it should have the same hp bar it had the fight before"):
             his FULL health, for the bars only. From the fight's own boss, or (an older server) from the raid view when it is the same tier. */
          max:Math.max(1,B.hp|0, Math.round(+B.max>0?+B.max:((st.raid&&(st.raid.level|0)===(B.tier|0))?(+st.raid.max||0):0)))},
-       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1), spellMul:(+B.spellMul>0?+B.spellMul:1)}]], engine:st.engine||null};
+       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1), spellMul:(+B.spellMul>0?+B.spellMul:1), atkMul:(+B.atkMul>0?+B.atkMul:1)}]], engine:st.engine||null};
   startBattle();
 }
 /* The damage this fight has done to the raid boss: what he came in with, minus what he has left.

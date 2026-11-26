@@ -11534,6 +11534,14 @@ async function api(req,res,url){
        his spells, measured so the guild 15 levels above the boss clears that tier's health in about 3 days (1 = unchanged). */
     const RAID_SPELL_TIER=[1,1,0.8,1,1,0.8,0.8,0.5,0.4,1,1,1,1,0.8,1,0.5,1,0.4,1,0.65,0.65,0.65,0.65,1,1,1,1,0.4,0.3,0.65,0.5,0.65,1,1,1,0.3,0.5,0.3,0.4,0.2];
     const raidSpellMul=(key,tier)=>Math.round((RAID_SPELL_MUL[key]||36)*(RAID_SPELL_TIER[Math.max(1,tier|0)-1]||1)*100)/100;
+    /* v1456 (Phil 25 Nov: "this is magic damage bosses only, attack damage [ones] should do higher attack damage and also his abilities scale off AD"):
+       the 8 ATTACK-damage raid bosses get RAID_ATK_MUL on their attack damage (hits and abilities); the 12 MAGIC bosses keep the spell boost.
+       Measured per tier like the spells (raidAtkMul = per boss x per tier). */
+    const RAID_AD_BOSSES=new Set(['voraxis','grommash','vharok','barrowmaw','brukk','hourglass sentinel','miregor','orryx']);
+    const RAID_ATK_MUL={'voraxis':1,'grommash':1,'vharok':1,'barrowmaw':1,'brukk':1,'hourglass sentinel':1,'miregor':1,'orryx':1};
+    const RAID_ATK_TIER=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+    const raidAtkMul=(key,tier)=>RAID_AD_BOSSES.has(key)?Math.round((RAID_ATK_MUL[key]||1)*(RAID_ATK_TIER[Math.max(1,tier|0)-1]||1)*100)/100:1;
+    const raidBossMuls=(key,tier)=>RAID_AD_BOSSES.has(key)?{spellMul:1, atkMul:raidAtkMul(key,tier)}:{spellMul:raidSpellMul(key,tier), atkMul:1};
     /* v670 (Phil): the boss's own level is 15 at tier 1 and climbs by 4 a tier, stopping at 65. */
     /* v670 (Phil) — THE LADDER.
          Tiers 1-20  : the twenty bosses. Level 15 at tier 1, +4 a tier, stopping at 65.
@@ -11813,7 +11821,7 @@ async function api(req,res,url){
          the open fight, so "your attempt is kept" after an unverified result was not true. The squad is the open fight's. */
       if(open && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps, heroIds:open.heroIds,
-          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, max:bossMax(open.tier), lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier), spellMul:raidSpellMul(open.bossKey,open.tier)}, engine:open.engine, raid:raidView(g) });
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, max:bossMax(open.tier), lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier), ...raidBossMuls(open.bossKey,open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.
       if(me.raidDay && me.raidDay.d===r.day && (me.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
@@ -11845,7 +11853,7 @@ async function api(req,res,url){
         rr.att[du.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
           startedAt:Date.now(), reqId, tier:rr.level, bossKey:bb.key, bossHp:rr.hp, bossLvl };
         return { ok:true, attemptId:rr.att[du.id].id, seed, snaps:fightSnaps, engine:rr.att[du.id].engine,
-          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, max:rr.max, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level), spellMul:raidSpellMul(bb.key,rr.level)}, raid:raidView(gg) };   /* v1445: max = his full health, so the fight's bar opens where the last fight left it */
+          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, max:rr.max, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level), ...raidBossMuls(bb.key,rr.level)}, raid:raidView(gg) };   /* v1445: max = his full health, so the fight's bar opens where the last fight left it */
       },{fields:['guilds']});
       if(out&&out.none) return send(res,200,{ none:true, raid:out.raid });
       return send(res, out&&out.storageFailed?503:((out&&out.ok)?200:400), out); }
@@ -11863,7 +11871,7 @@ async function api(req,res,url){
       /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
          the frozen squad, seed and boss with the game's own battle code (sim-host). */
       const host=simHost(); let dmg0=null, incident=null;
-      const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1), spellMul:raidSpellMul(a.bossKey,a.tier||1)};
+      const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1), ...raidBossMuls(a.bossKey,a.tier||1)};
       if(host && a.snaps && typeof host.raid==='function'){
         try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
         catch(e){ incident='raid-replay-error: '+e.message; }
