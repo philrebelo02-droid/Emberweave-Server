@@ -677,6 +677,8 @@ note "screen_lockdown_watchtower.js (lockdown 25 Nov round 2, needs playwright: 
 node tests/screen_lockdown_watchtower.js || FAILED=1
 note "screen_lockdown_campaign.js (lockdown 25 Nov round 2, needs playwright: Campaign footer tabs, top bar, painted map on all 16 chapters, no-wide-art fallback, opens on your stage, Guardian and boss plates, 44 px tap boxes, stage panel buttons, Restart screenshot)"
 node tests/screen_lockdown_campaign.js || FAILED=1
+note "screen_lockdown_bonus.js (lockdown 25 Nov round 2, needs playwright: Bonus stages labels + roof taps, plates never cover stages, phone place screen, small-scale battle bars/numbers/Blizzard, big ults as badges, fallen road burns)"
+node tests/screen_lockdown_bonus.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
