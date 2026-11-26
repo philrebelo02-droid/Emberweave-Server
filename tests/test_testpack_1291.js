@@ -2,13 +2,14 @@
 // not free so I can buy it myself and see if it goes to my bank"): the 'testpack' offer is real money only. It is listed at $1.00
 // with real:true, the free pre-beta claim and the dev/test grant both refuse it, and Google Play refuses it while no Play key is
 // configured. Every other pack stays free. Control: AUD_SERVER=<the v1290 server.js copied into the repo root> must FAIL.
+// v1461: the TEST PACK is a dev-only offer - a dev account (ADMIN_IDS) sees and tests it; a player is never shown it and cannot claim it.
 const assert = require('assert'), fs = require('fs'), os = require('os'), path = require('path'), net = require('net'), { spawn } = require('child_process');
 const root = path.join(__dirname, '..'), srvFile = process.env.AUD_SERVER || 'server.js', dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-testpack-'));
-let port, base, child, token, pass = 0, missed = [];
+let port, base, child, token, admin = '', pass = 0, missed = [];
 const ok = (c, m) => { if (process.env.AUD_SERVER && !c) { missed.push(m); return; } assert(c, m); pass++; };
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
-async function start() { const env = { ...process.env, ALLOW_NEW_GUESTS: '1', DATABASE_URL: '', PORT: String(port), DB_FILE: path.join(dir, 'db.json'), SHOP_TEST_PURCHASES: '1' };
+async function start() { const env = { ...process.env, ALLOW_NEW_GUESTS: '1', DATABASE_URL: '', PORT: String(port), DB_FILE: path.join(dir, 'db.json'), SHOP_TEST_PURCHASES: '1', ADMIN_IDS: admin };
   delete env.GOOGLE_PLAY_SA_KEY; delete env.SHOP_FREE_PACKS;
   child = spawn(process.execPath, [srvFile], { cwd: root, env, stdio: 'ignore', windowsHide: true });
   for(const _t0=Date.now();Date.now()-_t0<60000&&!(child&&child.exitCode!==null);) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); }   /* 11 Nov: a 60 s deadline, not an iteration count */ throw Error('no start'); }
@@ -17,7 +18,14 @@ async function call(route, data) { const r = await fetch(base + route, { method:
   let j = {}; try { j = await r.json(); } catch (_) {} return { status: r.status, data: j }; }
 (async () => { try {
   port = await freePort(); base = 'http://127.0.0.1:' + port; await start();
+  const dev = (await call('/api/register', { name: 'tpDev' + (Date.now() % 100000), pass: 'password1' })).data; admin = dev.profile.id;
+  await stop(); await start();   // the dev account is in ADMIN_IDS from here on
   const g = await call('/api/guest', { deviceId: 'testpack-' + Date.now() }); token = g.data.token; await call('/api/ledger');
+  const pOffers = (await call('/api/shop/offers')).data;
+  ok(pOffers.ok && !(pOffers.offers || []).some(o => o.id === 'testpack' || o.real), 'a player is not shown the TEST PACK (v1461 dev-only)');
+  const pFree = await call('/api/shop/purchase', { offerId: 'testpack', provider: 'prebeta', requestId: 'tpp1' });
+  ok(pFree.status === 400 && /unknown offer/i.test(pFree.data.error || ''), 'a player claiming it is told the offer does not exist (' + JSON.stringify(pFree.data).slice(0, 90) + ')');
+  token = (await call('/api/login', { name: dev.profile.name, pass: 'password1' })).data.token; await call('/api/ledger');
   const offers = (await call('/api/shop/offers')).data;
   const tp = (offers.offers || []).find(o => o.id === 'testpack');
   ok(tp && tp.price === '$1.00' && tp.real === true && tp.name === 'TEST PACK (REAL PURCHASE DONT CLICK)', 'the $1 TEST PACK is listed as real (' + JSON.stringify(tp) + ')');

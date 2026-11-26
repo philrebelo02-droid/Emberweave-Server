@@ -8918,13 +8918,16 @@ async function api(req,res,url){
     console.log('[play] recover',me.id,'build',String(b.build||'').slice(0,20),'owned',JSON.stringify(owned),b.error?'error='+String(b.error).slice(0,200):'');
     return send(res,200,{ok:true}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
-    return send(res,200,{ ok:true, freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), playBillingReal:PLAY_BILLING.enabled(), offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null,real:!!o.real})),
+    return send(res,200,{ ok:true, freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), playBillingReal:PLAY_BILLING.enabled(), offers:SHOP_OFFERS.filter(o=>!o.real||isDev(me)).map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null,real:!!o.real})),   /* v1461: the $1 TEST PACK is Phil's bank test - dev accounts only */
       plans:plansView(led) }); }
   if((p==='/api/shop/purchase'||p==='/api/shop/buy') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); req._shopBody=b;
     if(p==='/api/shop/purchase'||b.provider==='play'){
     const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const offer=SHOP_OFFER_BY_ID[String(b.provider==='play'?b.sku:b.offerId||'')]; if(!offer) return send(res,400,{error:'Unknown offer.'});
+    /* v1461: the TEST PACK (real:true) is a dev-only offer - a player is told it does not exist. A Google Play receipt is the one exception: Google has
+       already taken that money, so a paid receipt is always verified and credited, never refused for who holds it. */
+    if(offer.real&&!isDev(me)&&b.provider!=='play') return send(res,400,{error:'Unknown offer.'});
     if(b.provider==='play'&&typeof b.purchaseToken==='string'){
       const hash=PLAY_TOKENS.tokenHash(b.purchaseToken);
       if(PLAY_TOKENS.usedToken(DB.users,hash)){ console.log('[play] buy',me.id,offer.id,'token',hash.slice(0,10),'ALREADY BOOKED - consume retried');
