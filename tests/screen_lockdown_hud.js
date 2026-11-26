@@ -79,7 +79,7 @@ async function commander(pg,S){ await goHome(pg); await prep(pg);
       frameArt:frameArt?frameArt.url.replace(location.origin,'')+(frameArt.ok?' ok':' NOT LOADED'):null,frameOk:!!(frameArt&&frameArt.ok&&/hud2\/commander-ring/.test(frameArt.url)),
       plateArt:plateArt.map(x=>x.url.replace(location.origin,'')+(x.ok?' ok':' NOT LOADED')),plateOk:plateArt.some(x=>x.ok&&/hud2\/commander-plate/.test(x.url)),
       xp,want,ringBg:rcs?String(rcs.backgroundImage).slice(0,120):null,name:SL.txt('#resName'),
-      badgeFront:SL.front(P.badge),badgeWho:SL.whoAt(P.badge),plateFront:pname?SL.front(pname):false,nameFront:SL.front('#resName'),nameWho:SL.whoAt('#resName'),ringOff}; });
+      badgeFront:SL.front(P.badge),badgeWho:SL.whoAt(P.badge),plateFront:pname?SL.front(pname):false,...(()=>{ /* the name plate takes no taps (pointer-events none), so a tap probe falls through it: switch taps on for the probe only, then read what is drawn on top */ const ns=[...document.querySelectorAll('#pfName,#pfName .pname,#resName')], sv=ns.map(n=>n.style.pointerEvents); ns.forEach(n=>n.style.pointerEvents='auto'); const o={nameFront:SL.front('#resName'),nameWho:SL.whoAt('#resName')}; ns.forEach((n,i)=>n.style.pointerEvents=sv[i]); return o; })(),ringOff}; });
   if(!r.plateFront) console.log('  INFO   '+S.tag+' Commander group (top left): the plate centre is under the ring art (design); the name text is checked instead');
   const s=await shot(pg,S.tag+' commander group');
   const f=r.frame, u=r.uni, topLeft=!!u&&(u.x-f.x)<=f.w*0.3&&(u.y-f.y)<=f.h*0.3;
