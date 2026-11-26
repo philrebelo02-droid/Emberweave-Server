@@ -43,8 +43,8 @@ const c = run(0);
 ok(Math.abs(per(c, 'spell') - per(a, 'spell')) < 1e-9 && Math.abs(c.ground - a.ground) < 1e-9, 'no spellMul (every other mode): the boss is exactly as before');
 
 ok(/if\(\+m\.spellMul>0\) u\._spellMul=\+m\.spellMul;/.test(html), 'campEnemyUnit reads the spec\'s spellMul');
-ok((html.match(/spellMul:\(\+B\.spellMul>0\?\+B\.spellMul:1\)\}\]\],/g) || []).length === 2, 'the live raid fight and the headless replay both pass spellMul to the boss');
-ok((srv.match(/spellMul:raidSpellMul\((open\.bossKey,open\.tier|bb\.key,rr\.level|a\.bossKey,a\.tier\|\|1)\)\}/g) || []).length === 3, 'the server sends spellMul with all three raid boss specs (fight start, rejoin, replay check)');
+ok((html.match(/spellMul:\(\+B\.spellMul>0\?\+B\.spellMul:1\), atkMul:\(\+B\.atkMul>0\?\+B\.atkMul:1\)\}\]\],/g) || []).length === 2, 'the live raid fight and the headless replay both pass spellMul and atkMul to the boss');
+ok((srv.match(/\.\.\.raidBossMuls\((open\.bossKey,open\.tier|bb\.key,rr\.level|a\.bossKey,a\.tier\|\|1)\)\}/g) || []).length === 3, 'the server sends spellMul + atkMul (raidBossMuls) with all three raid boss specs (fight start, rejoin, replay check)');
 { const m = srv.match(/const RAID_SPELL_MUL=(\{[^}]*\});/); let M = null; try { M = m && (new Function('return ' + m[1]))(); } catch (e) {}
   ok(!!M && Object.keys(M).length === 20 && M.wintercrag === 36 && Object.values(M).every(v => v >= 5 && v <= 150), 'every one of the 20 raid bosses has his own spell power (boss 1 x36, all between x5 and x150)'); }
 ok(/const bossHide=lvl=>Math\.round\(10000\*Math\.pow\(1\.12,\(lvl\|\|1\)-1\)\);/.test(srv), 'the hide is lowered to a third (10,000 at boss 1), not removed');
@@ -52,5 +52,35 @@ ok(/const RAID_ATT=2;/.test(srv), '2 raid attempts a day');
 
 { const m = srv.match(/const RAID_SPELL_TIER=(\[[^\]]*\]);/); const A = m ? JSON.parse(m[1]) : null;
   ok(!!A && A.length === 40 && A.every(v => v > 0 && v <= 1), 'a per-tier spell factor for all 40 tiers, never above 1 (' + (A && A.join(',')) + ')'); }
+// v1456 (Phil 25 Nov: "this is magic damage bosses only, attack damage [ones] should do higher attack damage and also his abilities scale off AD"):
+// the 8 attack-damage bosses get atkMul on their attack damage and NO spell boost; the 12 magic bosses keep their spell boost and get no atkMul.
+const AD = ['voraxis', 'grommash', 'vharok', 'barrowmaw', 'brukk', 'hourglass sentinel', 'miregor', 'orryx'];
+const BOSSES = ['wintercrag','magmourn','voraxis','grommash','leviath','vharok','nerissa','barrowmaw','asterion','maelvara','brukk','nymira','irix','hourglass sentinel','sylphice','miregor','sable vesper','orryx','thorneveil','nameless admiral'];
+let muls = null;
+{ const g = n => { const m = srv.match(new RegExp('const ' + n + '=([^;]*);')); return m && m[1]; };
+  try { muls = (new Function('const RAID_SPELL_MUL=' + g('RAID_SPELL_MUL') + '; const RAID_SPELL_TIER=' + g('RAID_SPELL_TIER') + '; const raidSpellMul=' + g('raidSpellMul') +
+    '; const RAID_AD_BOSSES=' + g('RAID_AD_BOSSES') + '; const RAID_ATK_MUL=' + g('RAID_ATK_MUL') + '; const RAID_ATK_TIER=' + g('RAID_ATK_TIER') +
+    '; const raidAtkMul=' + g('raidAtkMul') + '; const raidBossMuls=' + g('raidBossMuls') + '; return raidBossMuls;'))(); } catch (e) { console.log('  (could not read raidBossMuls: ' + e.message + ')'); } }
+ok(!!muls, 'raidBossMuls reads from server.js');
+if (muls) {
+  const adT = [], mgT = [];
+  for (let t = 1; t <= 40; t++) { const k = BOSSES[(t - 1) % 20], m = muls(k, t); (AD.includes(k) ? adT : mgT).push({ t, k, m }); }
+  ok(adT.length === 16 && adT.every(x => x.m.spellMul === 1 && x.m.atkMul > 1), 'all 16 attack-damage boss tiers: spellMul 1 and atkMul above 1 (' + adT.map(x => x.t + ':' + x.m.atkMul).join(' ') + ')');
+  ok(mgT.length === 24 && mgT.every(x => x.m.atkMul === 1 && x.m.spellMul > 1), 'all 24 magic boss tiers: atkMul 1, spell boost kept');
+  ok(muls('wintercrag', 1).spellMul === 36, 'magic boss 1 (Wintercrag) still x36 spells');
+}
+// in the fight: an AD boss's basic hit rises with atkMul; a magic boss's does not (the server never sends him one)
+function runBoss(key, extra) {
+  X('window.__bh={}; window.__gh=0;');
+  host.raid(tough(), Object.assign({ key, lvl: 15, hp: 2e9, def: 0, dmgMul: 1, tier: 1 }, extra || {}), 5, []);
+  return { hits: JSON.parse(X('JSON.stringify(window.__bh)')), ground: X('window.__gh') };
+}
+{ const m = muls ? muls('voraxis', 3) : { spellMul: 1, atkMul: 16 }, p0 = runBoss('voraxis'), p1 = runBoss('voraxis', m);
+  ok(per(p0, 'auto') > 0 && per(p1, 'auto') > per(p0, 'auto') * m.atkMul * 0.8,
+    'attack boss Voraxis: his basic hit rises with atkMul x' + m.atkMul + ' (' + per(p0, 'auto').toFixed(1) + ' -> ' + per(p1, 'auto').toFixed(1) + ' a hit)'); }
+{ const m = muls ? muls('wintercrag', 1) : { spellMul: 36, atkMul: 1 }, w0 = runBoss('wintercrag'), w1 = runBoss('wintercrag', m);
+  ok(per(w0, 'auto') > 0 && Math.abs(per(w1, 'auto') - per(w0, 'auto')) < 1e-6 * per(w0, 'auto') + 1e-9 && m.atkMul === 1,
+    'magic boss Wintercrag: his basic hit is unchanged with his server spec (' + per(w0, 'auto').toFixed(1) + ' vs ' + per(w1, 'auto').toFixed(1) + ' a hit)'); }
+ok(/if\(\+m\.atkMul>0\) u\.dmg\*=\(\+m\.atkMul\);/.test(html), 'campEnemyUnit applies the spec\'s atkMul to his attack damage');
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

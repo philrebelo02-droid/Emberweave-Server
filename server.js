@@ -11536,10 +11536,11 @@ async function api(req,res,url){
     const raidSpellMul=(key,tier)=>Math.round((RAID_SPELL_MUL[key]||36)*(RAID_SPELL_TIER[Math.max(1,tier|0)-1]||1)*100)/100;
     /* v1456 (Phil 25 Nov: "this is magic damage bosses only, attack damage [ones] should do higher attack damage and also his abilities scale off AD"):
        the 8 ATTACK-damage raid bosses get RAID_ATK_MUL on their attack damage (hits and abilities); the 12 MAGIC bosses keep the spell boost.
-       Measured per tier like the spells (raidAtkMul = per boss x per tier). */
+       Measured per tier like the spells (raidAtkMul = per boss x per tier): a squad 15 levels above the boss (85% built, 5 + 5 substitutes, 90 s)
+       loses ~2-4 heroes an attack and clears the tier's health in ~3-3.6 days (v1456 blueprint, 06 - Guild Hall). */
     const RAID_AD_BOSSES=new Set(['voraxis','grommash','vharok','barrowmaw','brukk','hourglass sentinel','miregor','orryx']);
-    const RAID_ATK_MUL={'voraxis':1,'grommash':1,'vharok':1,'barrowmaw':1,'brukk':1,'hourglass sentinel':1,'miregor':1,'orryx':1};
-    const RAID_ATK_TIER=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+    const RAID_ATK_MUL={'voraxis':20,'grommash':16,'vharok':28,'barrowmaw':10,'brukk':16,'hourglass sentinel':28,'miregor':13,'orryx':9};
+    const RAID_ATK_TIER=[1,1,0.8,1,1,1,1,1,1,1,1,1,1,0.86,1,1,1,1,1,1,1,1,1,1,1,1,1,0.8,1,1,1,1,1,1,1,0.54,1,0.44,1,1];
     const raidAtkMul=(key,tier)=>RAID_AD_BOSSES.has(key)?Math.round((RAID_ATK_MUL[key]||1)*(RAID_ATK_TIER[Math.max(1,tier|0)-1]||1)*100)/100:1;
     const raidBossMuls=(key,tier)=>RAID_AD_BOSSES.has(key)?{spellMul:1, atkMul:raidAtkMul(key,tier)}:{spellMul:raidSpellMul(key,tier), atkMul:1};
     /* v670 (Phil): the boss's own level is 15 at tier 1 and climbs by 4 a tier, stopping at 65. */
