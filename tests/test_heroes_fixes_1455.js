@@ -137,6 +137,74 @@ console.log('== 9. Morvayne\'s lore has his title ==');
   ok(t61 === 'The Open Gate' && t61 === sub, 'Morvayne: "' + t61 + '" = his approved title in hero61.js (IDENTITY.subname, Phil 4 Nov)');
   ok(CODES.every(c => typeof pack(c)['The Open Gate'] === 'string' && pack(c)['The Open Gate'] !== 'The Open Gate'), 'the title is translated in all 15 content packs'); }
 
+// ---------------------------------------------------------------------------------------------------------------
+// v1455 part 2 (heroes-C-every-unit FAILs): each skill card says what the fight does. Fights run headless the way the
+// server replay builds them; amounts are read at dealDamage (before armour), so they compare with the card's % of the stat.
+R(`window.__setup=function(al,fo,seed){ ended=false; state='battle'; CUR={mode:'replay',seed,manualReplay:false}; battleTime=0; gameSpeed=1; window._p2win=null; autoUlt=true;
+  try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){} waveXfer=null; chapterWaves=1; waveIdx=0;
+  window._p2guard=true; seedBattle(seed); setupMarchTeams(al,fo,false); units.forEach(u=>{ u.anim=BATTLE_ANIM[u.key]||null; }); ddReset(); return units.length; };
+window.U=function(k,team){ return units.find(x=>x.key===k&&(!team||x.team===team)); };
+window.__freeze=function(){ autoUlt=false; units.forEach(u=>{ u.speed=0; u.atkCd=1e9; u.greenAb=null; u.blueAb=null; u.energy=0; u.gearSkill=null; u.ctrlRes=0; u.maxHp=1e9; u.hp=1e9; u.critChance=0; u.glyphCrit=0; }); };
+window.__hits=function(key,steps,fn){ const out=[]; const dd=dealDamage; dealDamage=function(s,t,a){ if(s&&s.key===key&&t&&t.team!==s.team) out.push({t:+battleTime.toFixed(2),a:+a}); return dd.apply(this,arguments); };
+  try{ fn(); for(let i=0;i<steps;i++) updateBattle(SIM_STEP); } finally{ dealDamage=dd; } return out; };`);
+const spec2 = key => ({ key, level: 40, stars: 3, rank: 3, pips: 0, ref: 0, glyphRank: 0, tt: {}, ex: {}, fAtk: 0, fHp: 0, fApow: 0, apMul: 1, skillLv: [1, 1, 1, 1] });
+const setup2 = (A, B, seed) => { const a = JSON.parse(JSON.stringify(host.snapFromSpecs(A.map(spec2)))), b = JSON.parse(JSON.stringify(host.snapFromSpecs(B.map(spec2))));
+  a.concat(b).forEach(s => { s.ctrlRes = 0; }); return R('window.__setup(' + JSON.stringify(a) + ',' + JSON.stringify(b) + ',' + (seed | 0) + ')'); };
+const meta = (k, i) => J(`abilityMeta(${JSON.stringify(k)},${i})`) || '';
+const pctOf = (m, stat) => { const x = new RegExp('(\\d+)%' + (stat === 'ps' ? '/s' : '') + ' of (Attack|Ability Power)').exec(m); return x ? +x[1] : null; };
+const cast = (k, slot, type, extra) => `(function(){ const A=U(${JSON.stringify(k)},'ally'), B=units.filter(u=>u.team==='enemy'); A.target=B[0]; A._castSlot=${JSON.stringify(slot)}; A._castLv=1; A._castSM=1;
+  const o=Object.assign({}, ${slot === 'ult' ? `ULT_DEF[${JSON.stringify(type)}], (HERO_ULT_ART[${JSON.stringify(k)}]||{})` : `KITS[${JSON.stringify(k)}].${slot}`}, {_arrived:true,_tgtU:B[0]} ${extra ? ',' + extra : ''}); _doEffectCore(A,${JSON.stringify(type)},o); A._castSlot=null; })()`;
+
+console.log('== 10. KonWu Phantom Step and Vex Hookline: the card % is the strike that lands ==');
+for (const [k, type, card0] of [['konwu', 'blink', 200], ['vex', 'hookline', 160]]) {
+  setup2([k], ['carn', 'rhukk'], 11); R('__freeze()'); R(`(function(){ const A=U(${JSON.stringify(k)}); A.x=500; A.y=1000; units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=480+i*60; e.y=700; e.atkCd=1e9; }); })()`);
+  const st = J(`U(${JSON.stringify(k)}).dmg`);
+  const h = J(`__hits(${JSON.stringify(k)},Math.round(3/SIM_STEP),function(){ ${cast(k, type === 'blink' ? 'blue' : 'green', type)} })`) || [];
+  const big = Math.max(0, ...h.map(x => x.a)), card = pctOf(meta(k, type === 'blink' ? 2 : 1));
+  ok(h.length > 0 && Math.abs(big / st * 100 - card) <= 3 && card !== card0, k + ' ' + type + ': card ' + card + '% of Attack, the fight lands ' + (big / st * 100).toFixed(1) + '% (card said ' + card0 + '%)'); }
+
+console.log('== 11. Yenna Crescent Stampede: the card is the whole ricochet (900%, 4-8 hits) ==');
+{ setup2(['yenna'], ['carn', 'rhukk', 'grosk'], 12); R('__freeze()'); R(`(function(){ const A=U('yenna'); A.x=500; A.y=1000; units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=420+i*80; e.y=800; }); })()`);
+  const st = J(`U('yenna').dmg`), h = J(`__hits('yenna',Math.round(3/SIM_STEP),function(){ ${cast('yenna', 'ult', 'multiShot')} })`) || [];
+  const tot = h.reduce((s, x) => s + x.a, 0) / st * 100, m = meta('yenna', 0), card = pctOf(m);
+  ok(h.length >= 4 && h.length <= 8 && Math.abs(tot - card) <= 3 && /split over 4-8 hits/.test(m), 'card "' + m.slice(3, 60) + '...": ' + h.length + ' hops dealing ' + tot.toFixed(0) + '% of Attack in all (card said 180%)'); }
+
+console.log('== 12. the pools: no landing hit on the ashfall ults, and the card % a second is the 0.5 s ticks x 2 ==');
+for (const [k, slot, type, idx, stat] of [['korvux', 'ult', 'ashfall', 0, 'dmg'], ['tolley', 'ult', 'ashfall', 0, 'dmg'], ['orryn', 'ult', 'ashfall', 0, 'apow'], ['orryn', 'blue', 'ashfall', 2, 'apow'], ['maren', 'green', 'ashfall', 1, 'apow'], ['vesper', 'green', 'erratafield', 1, 'apow']]) {
+  setup2([k], ['carn', 'rhukk'], 13); R('__freeze()'); R(`(function(){ const A=U(${JSON.stringify(k)}); A.x=500; A.y=1000; units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=490+i*30; e.y=800; }); })()`);
+  const st = J(`U(${JSON.stringify(k)}).${stat}`);
+  // a pool's ticks go through damage() (not dealDamage): read the pool the cast made, and count the ticks that reach the first enemy in 2 s
+  const r = J(`(function(){ const A=U(${JSON.stringify(k)},'ally'), B=units.filter(u=>u.team==='enemy')[0]; let ticks=0; const dm=damage; damage=function(t){ if(t===B) ticks++; return dm.apply(this,arguments); };
+    let hz=null, direct=[]; try{ direct=__hits(${JSON.stringify(k)},Math.round(2.05/SIM_STEP),function(){ ${cast(k, slot, type)}; hz=groundHazards.filter(h=>h.src===A&&h.interval).map(h=>({dmg:h.dmg,iv:h.interval}))[0]||null; }); } finally{ damage=dm; } return {hz,ticks,direct}; })()`) || {};
+  const ps = r.hz ? r.hz.dmg / r.hz.iv / st * 100 : 0, card = pctOf(meta(k, idx), 'ps');
+  ok(!!r.hz && r.hz.iv === 0.5 && r.ticks >= (slot === 'blue' && k === 'orryn' ? 2 : 4) && Math.abs(ps - card) <= 1, k + ' ' + slot + ' (' + type + '): the pool ticks ' + (r.hz ? (r.hz.dmg / st * 100).toFixed(0) : '?') + '% every 0.5 s (' + r.ticks + ' ticks on one enemy in 2 s) = ' + ps.toFixed(0) + '%/s; card ' + card + '%/s');
+  if (slot === 'ult') ok(!/\d+% of (Attack|Ability Power) \+/.test(meta(k, 0)) && !(r.direct || []).length, k + ': no landing hit in the fight (' + (r.direct || []).length + ' direct hits) and none on the card (' + meta(k, 0).slice(3, 40) + ')'); }
+
+console.log('== 13. controls: Rift Puncture, Blizzard freeze, the three sleeps ==');
+{ setup2(['vesper'], ['carn'], 14); R('__freeze()');
+  const r = J(`(function(){ const B=U('carn','enemy'); ${cast('vesper', 'ult', 'riftpuncture')}; let st=0,si=0,n=0; while(n<300){ updateBattle(SIM_STEP); n++; if(B.stunned>0) st=n; if(B.silencedT>0) si=n; } return {st:+(st*SIM_STEP).toFixed(2),si:+(si*SIM_STEP).toFixed(2)}; })()`) || {};
+  const m = meta('vesper', 0), mf = +((/Freeze ([\d.]+)s/.exec(m) || [])[1]), ms = +((/Silence ([\d.]+)s/.exec(m) || [])[1]);
+  const d = J(`skillDesc('vesper',0)`) || '';
+  ok(Math.abs(r.st - mf) < 0.06 && Math.abs((r.si - r.st) - ms) < 0.06 && d.includes(mf + ' seconds') && d.includes(ms + ' seconds'), 'Rift Puncture: frozen ' + r.st + ' s, then silenced ' + (r.si - r.st).toFixed(2) + ' s more; card Freeze ' + mf + 's / Silence ' + ms + 's and the sentence says so (was "1 second" / Silence 2.1s)'); }
+for (const k of ['sylthaine', 'vaelora']) {
+  setup2([k], ['carn'], 15); R('__freeze()'); R(`(function(){ const A=U(${JSON.stringify(k)}), B=U('carn','enemy'); A.x=500; A.y=1000; B.x=500; B.y=850; })()`);
+  const f = J(`(function(){ const B=U('carn','enemy'); const br=brnd; brnd=function(){ return 0; }; let mx=0; try{ ${cast(k, 'ult', 'blizzard')}; for(let i=0;i<Math.round(1.2/SIM_STEP);i++){ updateBattle(SIM_STEP); mx=Math.max(mx,B.stunned||0); } } finally{ brnd=br; } return +mx.toFixed(2); })()`);
+  const mf = +((/Freeze ([\d.]+)s/.exec(meta(k, 0)) || [])[1]);
+  ok(Math.abs(f - mf) < 0.05 && mf === 1.05, k + ' Blizzard: a freeze lasts ' + f + ' s = the card ' + mf + ' s (was 0.84 s)'); }
+for (const [k, type, slot, pre, idx] of [['mirelle', 'sleepbouquet', 'blue', '', 2], ['dandra', 'drowsy', 'blue', 'B._stungT=5;', 2], ['lysara', 'quietwings', 'ult', '', 0]]) {
+  setup2([k], ['carn'], 16); R('__freeze()');
+  const s = J(`(function(){ const A=U(${JSON.stringify(k)}), B=U('carn','enemy'); A.x=500;A.y=900;B.x=500;B.y=700; ${pre} ${cast(k, slot, type)}; let n=0,act=0,cs=0; while(n<400){ updateBattle(SIM_STEP); n++; if((B.stunned||0)>0) act=n; if((B._sleepT||0)>0) cs=n; } return {act:+(act*SIM_STEP).toFixed(2),cs:+(cs*SIM_STEP).toFixed(2)}; })()`) || {};
+  const ms = +((/Sleep ([\d.]+)s/.exec(meta(k, idx)) || [])[1]);
+  ok(Math.abs(s.act - ms) < 0.06 && Math.abs(s.cs - s.act) < 0.06, k + ' ' + type + ': asleep ' + s.act + ' s, no casting ' + s.cs + ' s = the card ' + ms + ' s (already right since v1452 - re-checked)'); }
+
+console.log('== 14. the Boar Shaman casts Bone Chant and Pyre Grunt ==');
+{ const C = {}; for (const seed of [7, 8]) { setup2(['hurne', 'rhukk', 'vael'], ['grosk', 'carn', 'meridian'], seed);
+    const c = J(`(function(){ const C={}; const de=_doEffectCore; _doEffectCore=function(u,type){ if(u&&u.key==='boar shaman') C[type]=(C[type]||0)+1; return de.apply(this,arguments); }; try{ for(let i=0;i<Math.round(90/SIM_STEP)&&!ended;i++) updateBattle(SIM_STEP); } finally{ _doEffectCore=de; } return C; })()`) || {};
+    for (const t in c) C[t] = (C[t] || 0) + c[t]; }
+  ok((C.chantzone || 0) > 0 && (C.aoedot || 0) > 0, 'two 90 s Hurne fights: the shamans cast Bone Chant ' + (C.chantzone || 0) + ' and Pyre Grunt ' + (C.aoedot || 0) + ' times (was 0 and 0)');
+  const lk = J(`(function(){ const A=BATTLE_ANIM['boar shaman'].attack; const u=makeUnit('boar shaman','enemy',0,0,20,{owned:false}); return {fz:+(clipDur(A)*0.5*BATTLE_PACE+0.05).toFixed(2), ai:+u.atkInterval.toFixed(2)}; })()`) || {};
+  ok(lk.fz > lk.ai, 'CONTROL: its attack sheet alone would lock ' + lk.fz + ' s per ' + lk.ai + ' s swing (why it never cast)'); }
+
 (module.exports.__serverPromise || Promise.resolve()).then(() => {
   console.log((SOFT ? 'SOFT ' : '') + 'test_heroes_fixes_1455.js: ' + pass + ' passed' + (SOFT ? ', ' + fail + ' failed' : ''));
   process.exit(SOFT && fail ? 1 : 0); }, e => { console.error(e && e.stack || e); process.exit(1); });
