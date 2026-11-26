@@ -3,5 +3,9 @@
  "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} {0}से पहले का टीम स्वास्थ्य + {1}% पर पुनर्जीवन",
  "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} हर {0}वाँ हमला एक पत्ता खींचता है",
  "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {1}मी में {0}से मौन, हर {2}से फिर गाया जाता है, {3}से तक · {i:s:heal} हर मौन दुश्मन अपने सबसे पास के साथी को हर सेकंड {4} ठीक करता है · कोई क्षति नहीं",
- "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0}से निशाने से बाहर → {i:s:attack} {1}"
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0}से निशाने से बाहर → {i:s:attack} {1}",
+ "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "परम कौशल — समानांतर अंतरिक्ष को चीरता है: हर दुश्मन {0} सेकंड जम जाता है, फिर जमाव से निकलकर {1} सेकंड मौन रहता है।",
+ "split over {0}-{1} hits": "{0}-{1} प्रहारों में बँटा",
+ "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · {1}-{2} प्रहारों में बँटा",
+ "{0}%/s of Attack": "आक्रमण का {0}%/से"
 }

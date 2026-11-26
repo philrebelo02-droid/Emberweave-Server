@@ -3,5 +3,9 @@
  "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} Team-Leben von vor {0}s + Wiederbelebung mit {1}%",
  "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} jeder {0}. Angriff zieht eine Farbe",
  "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {0}s Stille in {1}m, alle {2}s für {3}s neu gesungen · {i:s:heal} jeder verstummte Feind heilt den ihm nächsten Verbündeten um {4} pro Sekunde · kein Schaden",
- "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0}s nicht anvisierbar → {i:s:attack} {1}"
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0}s nicht anvisierbar → {i:s:attack} {1}",
+ "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "Ultimative – reißt durch den Parallelraum: Jeder Feind erstarrt {0} Sekunden und ist danach {1} Sekunden zum Schweigen gebracht.",
+ "split over {0}-{1} hits": "verteilt auf {0}-{1} Treffer",
+ "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · verteilt auf {1}-{2} Treffer",
+ "{0}%/s of Attack": "{0}%/s des Angriffs"
 }

@@ -2778,7 +2778,7 @@
 "Ultimate — slams the scales down: every nearby enemy is forced to attack him while he takes {0}% less damage.":"skill",
 "Ultimate — spins the staff overhead then slams it down where he stands, dealing {0}% ATK and stunning every enemy within {1} metres of him for {2} seconds.":"skill",
 "Ultimate — spins with limbs extended, striking every enemy around him.":"skill",
-"Ultimate — tears through parallel space: every enemy freezes for {0} second, then comes out of the freeze silenced for {1} second.":"skill",
+"Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.":"skill",
 "Ultimate — the whole team is healed for {0}% of their max health, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.":"skill",
 "Ultimate — the whole team is healed, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.":"skill",
 "Umbral Cataclysm":"skill_name",
@@ -3404,5 +3404,8 @@
 "Witches Hut: the Cauldron tab now counts down until the brew is full.":"patch_notes",
 "A tougher Irix":"patch_notes",
 "Irix, the Sky-Shard Roc, now has {0}% more health and deals {1}% more damage than his original strength in the {2}-{3} boss fight (Normal, Elite and Veteran). This replaces the {4}% from the last update.":"patch_notes",
-"In Normal {0}-{1} the hero at Irix's side is now Rhukk, a tank who shields him. Clearing the stage still gives the same hero fragments as before.":"patch_notes"
+"In Normal {0}-{1} the hero at Irix's side is now Rhukk, a tank who shields him. Clearing the stage still gives the same hero fragments as before.":"patch_notes",
+"split over {0}-{1} hits":"skill",
+"{i:s:attack} {0} · split over {1}-{2} hits":"skill",
+"{0}%/s of Attack":"skill"
 }

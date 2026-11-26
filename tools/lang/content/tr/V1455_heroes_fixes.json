@@ -3,5 +3,9 @@
  "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} takımın canı {0} sn önceki haline döner + %{1} ile diriliş",
  "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} her {0}. saldırı bir kart serisi çeker",
  "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {1} m içinde {0} sn susturma, {3} sn boyunca her {2} sn'de yeniden söylenir · {i:s:heal} susturulan her düşman kendisine en yakın müttefiki saniyede {4} iyileştirir · hasar yok",
- "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0} sn hedef alınamaz → {i:s:attack} {1}"
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0} sn hedef alınamaz → {i:s:attack} {1}",
+ "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "Ulti — paralel uzayı yırtar: her düşman {0} saniye donar, sonra donmadan çıkınca {1} saniye susturulur.",
+ "split over {0}-{1} hits": "{0}-{1} vuruşa bölünür",
+ "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · {1}-{2} vuruşa bölünür",
+ "{0}%/s of Attack": "%{0}/sn Saldırı"
 }

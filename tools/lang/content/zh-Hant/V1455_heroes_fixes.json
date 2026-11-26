@@ -3,5 +3,9 @@
  "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} 隊伍生命值回溯至{0}秒前 + 以{1}%復活",
  "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} 每第{0}次攻擊抽取一種花色",
  "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {1}米內沉默{0}秒，每{2}秒重唱一次，持續{3}秒 · {i:s:heal} 每名被沉默的敵人每秒為離它最近的友軍治療{4} · 無傷害",
- "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} 無法被選取{0}秒 → {i:s:attack} {1}"
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} 無法被選取{0}秒 → {i:s:attack} {1}",
+ "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "終極技能——撕裂平行空間：所有敵人冰凍{0}秒，解凍後沉默{1}秒。",
+ "split over {0}-{1} hits": "分攤到{0}-{1}次命中",
+ "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · 分攤到{1}-{2}次命中",
+ "{0}%/s of Attack": "{0}%/秒攻擊"
 }

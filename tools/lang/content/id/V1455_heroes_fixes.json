@@ -3,5 +3,9 @@
  "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} HP tim kembali seperti {0} dtk lalu + bangkit dengan {1}%",
  "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} setiap serangan ke-{0} menarik satu jenis kartu",
  "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} bisu {0} dtk dalam {1} m, dinyanyikan ulang setiap {2} dtk selama {3} dtk · {i:s:heal} setiap musuh yang terbisu menyembuhkan sekutu terdekatnya {4} per detik · tanpa kerusakan",
- "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} tak bisa ditarget {0} dtk → {i:s:attack} {1}"
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} tak bisa ditarget {0} dtk → {i:s:attack} {1}",
+ "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "Pamungkas — merobek ruang paralel: setiap musuh membeku selama {0} detik, lalu keluar dari beku dalam keadaan bisu selama {1} detik.",
+ "split over {0}-{1} hits": "dibagi ke {0}-{1} serangan",
+ "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · dibagi ke {1}-{2} serangan",
+ "{0}%/s of Attack": "{0}%/dtk Serangan"
 }
