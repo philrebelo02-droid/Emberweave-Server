@@ -8016,12 +8016,23 @@ function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuha]:[
    hit off Ability Power (doEffect: heroScaleMode 'ap' -> dB=apB) and an Attack hero's off Attack ('ad' -> apB=dB), but the readouts
    multiplied Attack for most skills and drew the attack swords on every damage number. The readout now uses the stat the fight uses,
    and an Ability Power hero's damage numbers carry the Ability Power icon (buff lines like 'team +30%' keep theirs). */
-function skillEffectStr(key,idx,atk,hp,ap){ const r=_skillEffectStrRaw(key,idx,atk,hp,ap), d=(HERO_TYPES[key]||{}).damageProfile;
-  const o=((d==='Magic'||d==='Healer')&&typeof r==='string')?r.replace(/\{i:s:attack\}(?= \d)/g,'{i:t:apow}'):r;
-  return (typeof o==='string'&&o)?langDesc(o):o; }   /* v1271 LANGUAGES: the effect line in the player's language (lang/<code>.content.json; display only) */
+function skillEffectStr(key,idx,atk,hp,ap){ const r=_skillEffectStrRaw(key,idx,atk,hp,ap), d=(HERO_TYPES[key]||{}).damageProfile, mag=(d==='Magic'||d==='Healer')&&typeof r==='string';
+  const o=mag?r.replace(/\{i:s:attack\}(?= \d)/g,'{i:t:apow}'):r;
+  const s=(typeof o==='string'&&o)?langDesc(o):o;
+  return (mag&&typeof s==='string')?skillApDmgIcon(o,s):s; }
+/* v1455 (lockdown audit 25 Nov, Heroes Panel "Ability Power icon on caster numbers"): a caster damage number that starts with a status
+   icon (Sylthaine's slow, Bloatus's poison / root, Fritz's energy, the burn and slow lines of Maren, Orryn, Vaelora, Vesper) kept only that
+   icon. It now carries the Ability Power icon after it: "{i:s:slow} {i:t:apow} 28/tick". The English line decides which icons get it (a
+   number right after the icon, not seconds or a percent); the icon is added to the translated line, so the content packs keep their keys. */
+const SKILL_AP_DMG_TOK=/\{i:s:(slow|poison|root|energy|burn)\}/g;
+function skillApDmgIcon(en,out){ const hit={}, seen={};
+  String(en).replace(SKILL_AP_DMG_TOK,(m,k,off)=>{ const n=seen[k]=(seen[k]||0)+1; if(/^ \d+(?:\.\d+)?(?![\d.]*[s%])/.test(en.slice(off+m.length))) (hit[k]=hit[k]||{})[n]=1; return m; });
+  if(!Object.keys(hit).length) return out; const seen2={};
+  return String(out).replace(SKILL_AP_DMG_TOK,(m,k,off,all)=>{ const n=seen2[k]=(seen2[k]||0)+1; return (hit[k]&&hit[k][n]&&all.slice(off+m.length,off+m.length+11)!==' {i:t:apow}')?m+' {i:t:apow}':m; }); }   /* v1271 LANGUAGES: the effect line in the player's language (lang/<code>.content.json; display only) */
+function skillSheetApow(key){ const t=HERO_TYPES[key]||{}; try{ return Math.round(heroStat(key,t.apow||0,'apow'))+heroFlatApow(key)+((t.apow||0)>0?techFlat('ap'):0); }catch(e){ return Math.round(t.apow||0); } }   /* the Stats tab's S_APOW, the fight's apow */
 function _skillEffectStrRaw(key,idx,atk,hp,ap){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv), _atkRaw=atk;   /* v1112: the evade counter swings off raw Attack (damage(): tgt.dmg) */
   if(key===HERO61.KEY){if(idx===0)return '4s all-damage immunity';if(idx===3)return '+'+(20+2*(lv-1))+' team Armor';const blue=idx===2;return (((blue?.18:.06)+(blue?.0009:.0003)*(lv-1))*100).toFixed(2)+'% target max HP + '+(blue?'200':'50')+'% AP';}
-  let apw=(ap>0)?Math.round(ap):Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display   /* v1452 BUG FIX (skills audit line 13): the caller passes the hero's REAL Ability Power (the Stats tab's, the one the fight uses) - the estimate from Attack put Glacial Prison at 104 when it hits for 295 */
+  let apw=(ap>0)?Math.round(ap):skillSheetApow(key);   /* v1455 (lockdown audit 25 Nov, "Current effect readout"): the readout always uses the hero's REAL Ability Power (the Stats tab's, the fight's): the caller passes it, and with none passed it is read here - the old estimate from Attack put Sylthaine L30 at 87 against her real 56 */   /* v1452 BUG FIX (skills audit line 13): the caller passes the hero's REAL Ability Power (the Stats tab's, the one the fight uses) - the estimate from Attack put Glacial Prison at 104 when it hits for 295 */
   if(!apw) apw=atk;
   { const _dp=t.damageProfile; if(_dp==='Magic'||_dp==='Healer') atk=apw; else if(_dp==='Attack') apw=atk; }   /* v1101: the stat the fight uses */   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
   if(idx===0){ const d=heroUltDisp(key,ULT_DEF[t.ability]||{},lv);   /* v1311: ULT_HERO_MUL */
