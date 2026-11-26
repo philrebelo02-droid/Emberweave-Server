@@ -22739,6 +22739,7 @@ async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
   else if(r.captured){ bannerMsg(uiIcon('surrender-flag')+' '+t('skyfall.captured')); }
   else bannerMsg(r.won?(uiIcon('trophy')+' '+t('skyfall.bridge_victory')+(r.citadelFell?'\n'+statusIcon('crit-burst')+' '+t('skyfall.citadel_falls'):'')) : statusIcon('death')+' '+t('skyfall.driven_back'));
   if(r&&r.finished) bannerMsg(uiIcon('crown')+' '+t('skyfall.guild_wins'));
+  SKYFALL_VIEW=null;   /* v1458 - the board redraws from the new status, so this march plays on it */
   await skyStatus(); renderGuild();
 }
 async function skyClaim(){ const r=await apiOnce('skyclaim','/api/guild-war/claim-reward',{}); if(r&&r.busy) return;   /* v1009: one claim at a time, one requestId */
@@ -22926,15 +22927,19 @@ function skyBoardHTML(r, opts){
      is empty, and skyLineAlive counts every line in it as alive - which is `fresh`, arrived at
      honestly. A tower is drawn fallen only when the log says its last line is dead, so a line that
      is out on the road still holds its tower (Phil's v677 rule, and his own correction). */
-  const atCut=(c,lane)=>{ try{
-      const tal=skyLiveTally(r, skyLaneCutoff(r, lane|0));
+  const atCut=(c,lane,foeSide)=>{ try{
+      const cut=skyLaneCutoff(r, lane|0);
+      const tal=skyLiveTally(r, cut);
       const defs=(c&&c.defenders)||[];
       let al=0; for(const d of defs) if(skyLineAlive(d, tal)) al++;
-      return { ...c, alive:al, destroyed:(defs.length>0 && al===0) };
+      /* v1458 - an empty tower taken by a march: captured in a fight already played */
+      let taken=false; for(let k=0;k<=cut && k<((r&&r.log)||[]).length;k++){ const e=r.log[k];
+        if(e && e.captured && (e.lane|0)===(lane|0) && ((e.side==='A')===!!foeSide)) taken=true; }
+      return { ...c, alive:al, destroyed:(defs.length>0 && al===0) || taken };
     }catch(e){ return c; } };
   const live=!!opts.live;
-  const you=live?you0.map(atCut):(opts.fresh?you0.map(fresh):you0);
-  const foe=live?foe0.map(atCut):(opts.fresh?foe0.map(fresh):foe0);
+  const you=live?you0.map((c,l)=>atCut(c,l,false)):(opts.fresh?you0.map(fresh):you0);
+  const foe=live?foe0.map((c,l)=>atCut(c,l,true)):(opts.fresh?foe0.map(fresh):foe0);
   const marches=(r&&r.log&&r.log.length)|0;
   /* v700: while a simulation is running the HUD carries ITS controls - the speed bar and End -
      in place of the live-war buttons. Everything else on the board is identical, which is what
@@ -23069,22 +23074,81 @@ function renderSkyfall(data){
   const b=document.getElementById('skyfallBody'); if(!b) return;
   const st=(typeof SKY!=='undefined'&&SKY.st)||{};
   const m=st.match||null;
+  /* v1458 (Phil: "fix that" - lockdown guild-06 "Skyfall war plays no fights") - THE REAL BOARD CARRIES THE REAL FIGHTS.
+     The match view sends `log`, every real march in the simulator's own shape, so the lanes, Records, the live fight and
+     Watch read a real war exactly as they read a simulated one. `real` marks it; skyWarData() hands it to the panels. */
   const r = data || SKYFALL_VIEW || {
-    you:{citadels:(m&&m.you&&m.you.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))},
-    foe:{citadels:(m&&m.foe&&m.foe.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))},
-    log:[]
+    real:!!m, matchId:(m&&m.id)||null, state:(m&&m.state)||null,
+    you:Object.assign({},(m&&m.you)||{},{citadels:(m&&m.you&&m.you.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))}),
+    foe:Object.assign({},(m&&m.foe)||{},{citadels:(m&&m.foe&&m.foe.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))}),
+    log:(m&&Array.isArray(m.log))?m.log.slice():[]
   };
   /* v741 - anything drawn while no sim is running is the REAL board, so the simulator's leftovers
      go before it is built. This is the belt to skyStageNow's braces: it stops a stale flag reaching
      `isPrep` on the tower panel, which was silently refusing tower moves on a war in prep. */
   if(!skySimSandbox()){ try{ SKYSIM.marching=false; SKYSIM.marched=false; }catch(e){} }
   SKYFALL_VIEW=r;
+  /* v1458 - a real war with fights is drawn at the point THIS DEVICE has played to, like a running replay */
+  const realPlay=skyRealPrime(r);
   /* v777 - `live`, not `fresh`. A running replay draws at its own point; `fresh` was resetting
      every disc to a full garrison on every rebuild. */
-  b.innerHTML=skyBoardHTML(r, {live: !!(SKYSIM && SKYSIM.running)});
+  b.innerHTML=skyBoardHTML(r, {live: !!(SKYSIM && SKYSIM.running) || realPlay});
   const stage=b.querySelector('#skyStage');
   skyWireBoard(stage, r);
+  if(realPlay) skyRealStart(r, stage);
 }
+/* v1458 - THE REAL WAR, PLAYED. Fights already played on this device stay played (kept per match, per lane, by fight
+   number); the first time a war is opened mid-way, the last two fights of each lane play and the rest are already history
+   (Records holds every one). New fights are fetched every 30 s while the board is open on a live war and walk out on
+   their own lanes, five at once, through the simulator's own lane player (skySimReplay with real:true). */
+const SKYREAL={ on:false, tok:0, mid:null, seen:null, queues:null, poll:null, live:false };
+function skyWarData(){
+  try{ if(!skySimSandbox() && SKYFALL_VIEW && SKYFALL_VIEW.real) return SKYFALL_VIEW; }catch(e){}
+  try{ return SKYSIM.view||SKYSIM.r||null; }catch(e){ return null; } }
+function skyRealSeenLoad(mid){
+  let all=null; try{ all=JSON.parse(localStorage.getItem('ew.skyseen')||'null'); }catch(e){ all=null; }
+  return (all && all.mid===mid && Array.isArray(all.lanes)) ? all.lanes.map(x=>x|0) : null; }
+function skyRealSeenSave(){
+  try{ localStorage.setItem('ew.skyseen', JSON.stringify({mid:SKYREAL.mid, lanes:SKYREAL.seen})); }catch(e){} }
+function skyRealSeen(e){ try{ const l=e.lane|0; if((e.n|0)>(SKYREAL.seen[l]|0)){ SKYREAL.seen[l]=e.n|0; skyRealSeenSave(); } }catch(err){} }
+function skyRealUnseen(e){ try{ return (e.n|0)>(SKYREAL.seen[e.lane|0]|0); }catch(err){ return false; } }
+function skyRealPrime(r){
+  SKYREAL.tok++;   /* any lane player from an earlier board stops */
+  SKYREAL.on=false;
+  try{ if(SKYREAL.poll){ clearInterval(SKYREAL.poll); SKYREAL.poll=null; } }catch(e){}
+  if(!r || !r.real || skySimSandbox() || !Array.isArray(r.log) || !r.log.length){ return false; }
+  if(SKYREAL.mid!==r.matchId || !Array.isArray(SKYREAL.seen)){
+    SKYREAL.mid=r.matchId;
+    SKYREAL.seen=skyRealSeenLoad(r.matchId);
+    if(!SKYREAL.seen){ SKYREAL.seen=[0,0,0,0,0];
+      for(let l=0;l<5;l++){ const mineL=r.log.filter(e=>(e.lane|0)===l); const k=mineL[mineL.length-3]; if(k) SKYREAL.seen[l]=k.n|0; }
+      skyRealSeenSave(); } }
+  /* each lane's cursor sits on the last fight it has played, so the discs, the towers and the panels all read that point */
+  SKYSIM.laneCur={}; SKYSIM.laneDone={}; SKYSIM.laneStart={}; SKYSIM.cur=-1; SKYSIM.curDone=true;
+  r.log.forEach((e,idx)=>{ if(!skyRealUnseen(e)){ SKYSIM.laneCur[e.lane|0]=idx; SKYSIM.laneDone[e.lane|0]=true; if(idx>SKYSIM.cur) SKYSIM.cur=idx; } });
+  SKYREAL.live=(r.state==='live');
+  SKYREAL.on=true;
+  return true; }
+function skyRealStart(r, stage){
+  if(!SKYREAL.on || !stage) return;
+  const tok=SKYREAL.tok;
+  skySimReplay(r, {real:true, stage, tok}).catch(()=>{});
+  if(r.state==='live') SKYREAL.poll=setInterval(()=>{ skyRealPoll(r, tok); }, 30000); }
+async function skyRealPoll(r, tok){
+  if(tok!==SKYREAL.tok){ return; }
+  const st=document.getElementById('skyStage');
+  if(!st){ try{ clearInterval(SKYREAL.poll); }catch(e){} SKYREAL.poll=null; return; }
+  if(document.hidden) return;
+  try{ await skyStatus(); }catch(e){ return; }
+  if(tok!==SKYREAL.tok) return;
+  const m=(SKY.st&&SKY.st.match)||null;
+  if(!m || m.id!==r.matchId || m.state!==r.state){ SKYFALL_VIEW=null; try{ renderSkyfall(null); }catch(e){} return; }
+  const last=r.log.length?(r.log[r.log.length-1].n|0):0;
+  for(const e of (m.log||[])){ if((e.n|0)<=last) continue;
+    const idx=r.log.length; r.log.push(e);
+    if(SKYREAL.queues) SKYREAL.queues[Math.max(0,Math.min(4,e.lane|0))].push({e,idx}); }
+  /* the towers' own counts move with the war too (their panels read the log; this keeps totals and names current) */
+  try{ for(const sd of ['you','foe']) if(m[sd]&&m[sd].citadels&&r[sd]) r[sd].citadels=m[sd].citadels; }catch(e){} }
 let SKYFALL_VIEW=null;
 const WAR_LANE_NAMES=['Iron Gate','Storm Watch','Crown Spire','Verdant Sanctuary','Rift Tower'];
 /* v804 (Phil: "place lines here now just closes the tower, doesnt place heroes just closes the
@@ -24228,6 +24292,7 @@ function skyLineAlive(d, tally){
   const t=tally && tally[d&&d.name];
   if(t) return !t.dead;
   try{ if(SKYSIM && SKYSIM.running) return true; }catch(e){}
+  try{ if(SKYREAL.on && SKYFALL_VIEW && SKYFALL_VIEW.real) return true; }catch(e){}   /* v1458: every death is in the real log */
   return d ? (d.alive!==false) : true;
 }
 function skyLaneCutoff(r, lane){
@@ -24244,6 +24309,7 @@ function skyLaneCutoff(r, lane){
      running that lane's cutoff is -1; only outside a replay, where there is no march to follow, is
      the full log the right answer. */
   try{ if(SKYSIM && SKYSIM.running) return -1; }catch(e){}
+  try{ if(SKYREAL.on && r && r.real) return -1; }catch(e){}   /* v1458: a real lane that has played nothing yet has seen nothing */
   try{ return (((r&&r.log)||[]).length-1); }
   catch(e){ return -1; }
 }
@@ -24471,7 +24537,7 @@ function skyLiveTally(r, upto){
       if(e.dDown) x.dead=true; } }
   return t; }
 function skyHubRender(){
-  const hub=document.getElementById('skyHub'), r=SKYSIM.view||SKYSIM.r; if(!hub||!r) return;
+  const hub=document.getElementById('skyHub'), r=skyWarData(); if(!hub||!r) return;   /* v1458: a real war too */
   const tab=SKYSIM.hubTab||'live';
   /* v715 (Phil: "each sword should have its own lane report") - the hub belongs to whichever lane's
      swords were tapped. Everything below is filtered to it: its fights, its records, and the lines
@@ -24527,7 +24593,7 @@ function skyHubRender(){
     const foeName  = yoursAttacked ? e.d : e.a, foeTeam  = yoursAttacked ? e.dTeam : e.aTeam;
     const left =boutSide('mine', yourName, yourTeam, topLv(yourTeam));
     const right=boutSide('foe',  foeName,  foeTeam,  topLv(foeTeam));
-    const canWatch=!e.captured;
+    const canWatch=!e.captured && !e.overrun;
     const mid='<div class="skyBoutMid">'
       +'<span class="skyBoutNo">#'+e.n+'</span>'
       +'<span class="skyBoutVerdict '+(youWon?'win':'loss')+'">'+(youWon?ewT('skyhub.victory'):ewT('skyhub.defeat'))+'</span>'
@@ -24553,7 +24619,7 @@ function skyHubRender(){
         +' \u00b7 '+ewT('skyhub.kills',{a:(e.aKills|0)+'/'+MAXF,d:(e.dKills|0)+'/'+MAXF})
         +((e.aRetired||e.dRetired)?' \u00b7 <span style="color:#ffd45e">'+ewT('skyhub.retires')+'</span>':''))+'</div>'
       +(e.captured?'<div style="font-size:10px;color:#8b98a9">'+ewT('skyhub.nothing_defended')+'</div>'
-        :'<button class="btn sm" style="width:100%" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 '+ewT('skyhub.play_fight')+'</button>')
+        :e.overrun?'':'<button class="btn sm" style="width:100%" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 '+ewT('skyhub.play_fight')+'</button>')
       +'</div>'; };
 
   let body='';
@@ -24659,7 +24725,7 @@ function skyHubRender(){
           /* v753b - the fight you are looking at is the one you could not open until now. The
              replay is deterministic: the server re-runs that march from the same seed and hands
              back the two lines as they stood when they met, so this is the fight that happened. */
-          +(e.captured?'':'<button class="skyLFWatch" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 '+ewT('skyhub.watch')+'</button>')
+          +((e.captured||e.overrun)?'':'<button class="skyLFWatch" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 '+ewT('skyhub.watch')+'</button>')
         +'</div>'
         +'<div class="skyLFSide foe">'+who(foName,foTeam,foPow)+cards(foTeam)+'</div>'
       +'</div>';
@@ -24714,7 +24780,7 @@ function skyHubRender(){
   }
   /* the board carries no lane names any more, so the title is where you find out which lane you
      tapped - and whether it is still fighting. */
-  const live=!!SKYSIM.marching && LANE!==null && laneLog.some(e=>r.log.indexOf(e)>i);
+  const live=(!!SKYSIM.marching || (!!r.real && SKYREAL.on && SKYREAL.live)) && LANE!==null && laneLog.some(e=>r.log.indexOf(e)>i);
   /* v720 - the shell (title, tabs) is built once per lane+tab; after that only the BODY changes.
      Rebuilding the whole panel destroyed the tab buttons under the finger reaching for them, and it
      happens on every march start - which since v714 is five lanes at once. The body's scroll is
@@ -24753,14 +24819,16 @@ function skyHubRender(){
    It is: the same seed and the same parameters re-run the identical war on the server, which hands
    back only THAT march's two lines as they stood when they met. The client then plays them. */
 async function skySimWatch(n){
-  const r=SKYSIM.view||SKYSIM.r; if(!r) return;
+  const r=skyWarData(); if(!r) return;   /* v1458: a real war's march too */
   /* v759 (Phil: "should keep going while im in") - the war is LEFT RUNNING. It must not touch
      skipReplay, which is the abort flag - stopped() reads it and every lane's loop returns, which
      is what used to end the war the moment you watched one march - and it no longer pauses either.
      The lanes keep marching behind the battle screen, and v758 stops the board being rebuilt
      underneath them, so you come back to the war as it now stands. */
   bannerMsg('\u25b6 '+ewT('skyhub.loading_march',{n}));
-  const q=await api('/api/guild-war/sim','POST',Object.assign({seed:r.seed,captureN:n},SKYSIM.p));
+  /* v1458 - a REAL march is fetched as it was stored: the seed and both lines as they met, in the capture's own shape */
+  const q=r.real ? await api('/api/guild-war/fight','POST',{n})
+                 : await api('/api/guild-war/sim','POST',Object.assign({seed:r.seed,captureN:n},SKYSIM.p));
   if(!q||q.error||!q.fight){ bannerMsg(langMsg(q&&q.error)||ewT('skyhub.fight_load_failed')); return; }
   const f=q.fight;
   /* v756 - THE HEALTH THEY ARRIVED WITH. The capture records each line's hpState as it stood when
@@ -24792,7 +24860,7 @@ async function skySimWatch(n){
       skyClockStart();
     }catch(e){ show('guild'); renderGuild(); } };
   watchBattle({ v:2, seed:(f.seed>>>0), mineSnap, foe:foeSnap, won:!!q.won,
-    oppName:f.d.name||ewT('skyhub.enemy_line'), engine:BUILD_ID }); }   /* v1391: re-simulated just now, not a stored fight */
+    oppName:f.d.name||ewT('skyhub.enemy_line'), engine:BUILD_ID }); }   /* v1391: the sim re-simulates its war; v1458: a real march plays its stored seed and lines */
 function skySimSetSpeed(v){ SKYSIM.speed=v;
   const bar=document.getElementById('skySpeedBar'); if(!bar) return;
   bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on', (+b.dataset.sp)===v)); }
@@ -24867,15 +24935,26 @@ async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRend
    to arithmetic. This replay is presentation-only: the server still resolves every march first and
    returns the authoritative log. We then play that exact log through planning, marching and clash
    beats before revealing the existing detailed result. Skip only skips presentation. */
-async function skySimReplay(r){
-  const card=document.getElementById('skySimCard'); if(!card||!r||!Array.isArray(r.log)) return;
+async function skySimReplay(r, opts){
+  /* v1458 - real:true is a REAL war's lane player: the board is already drawn (renderSkyfall), the cursors already sit
+     where this device has played to (skyRealPrime), and only the fights it has not played walk out. Everything else is
+     the simulator's own player, so a real war plays exactly like a simulated one. */
+  opts=opts||{}; const REAL=!!opts.real;
+  const card=document.getElementById('skySimCard'); if((!REAL&&!card)||!r||!Array.isArray(r.log)) return;
+  if(REAL){ SKYSIM.sel=null; SKYSIM.openLine=null; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null; SKYSIM.paused=false; }
+  else{
+  SKYREAL.tok++; SKYREAL.on=false;               /* v1458 - the simulator owns the board now */
   SKYSIM.skipReplay=false; SKYSIM.sel=null; SKYSIM.view=r; SKYSIM.speed=SKYSIM.speed||1;
   SKYSIM.marched=false;                          /* v722 - a new war has not marched yet */
   SKYSIM.cur=-1; SKYSIM.curDone=true; SKYSIM.openLine=null; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null;
   SKYSIM.laneCur={}; SKYSIM.laneDone={}; SKYSIM.laneStart={}; SKYSIM.paused=false;
   const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
   card.style.maxWidth='920px';
+  }
   const you=(r.you&&r.you.citadels)||[], foe=(r.foe&&r.foe.citadels)||[];
+  let stage;
+  if(REAL){ stage=opts.stage; if(!stage) return; }
+  else{
   /* v700 - no modal. The war plays on the Skyfall SCREEN, so there is exactly one #skyStage and the
      board fits the phone because the screen does. */
   SKYSIM.running = true;
@@ -24885,11 +24964,12 @@ async function skySimReplay(r){
   await new Promise(res=>setTimeout(res, 120));
   /* v776 - a LET. Moving lines between towers in prep calls renderSkyfall, which replaces this
      element; holding the one we started with is how the war ended up playing on a detached board. */
-  let stage = document.getElementById('skyStage');
+  stage = document.getElementById('skyStage');
   if(!stage){ SKYSIM.running=false; return; }
   skyLayoutBoard(stage);
+  }
 
-  const stopped=()=>SKYSIM.skipReplay||!document.getElementById('skyStage');
+  const stopped=()=>REAL ? (opts.tok!==SKYREAL.tok || !stage.isConnected) : (SKYSIM.skipReplay||!document.getElementById('skyStage'));
   /* v713 - THE PAUSE READS THE SPEED LIVE, AND THIS TIME IT MEANS IT. The old one divided by the
      speed once, when it scheduled its timeout; with v711's real fight lengths that left a single
      pause running up to 90 seconds at whatever speed it started at, so pressing 20x did nothing
@@ -24917,7 +24997,7 @@ async function skySimReplay(r){
     if(step) step(1);
   };
 
-  if((SKYSIM.p.stage||'prep')==='prep'){
+  if(!REAL && (SKYSIM.p.stage||'prep')==='prep'){
     /* v703 (Phil): Begin the march is centred on the bottom edge of the board, not tucked into the
        running-commentary line in the corner. */
     const ev=document.getElementById('skyEvent'); if(ev) ev.textContent='';
@@ -24947,7 +25027,7 @@ async function skySimReplay(r){
   }
   if(stopped()) return;
   const ph=document.getElementById('skyPhase');
-  if(ph){ ph.textContent='\uD83D\uDEA9 MARCH \u2014 the towers send their lines to the bridge'; }
+  if(ph && !REAL){ ph.textContent='\uD83D\uDEA9 MARCH \u2014 the towers send their lines to the bridge'; }
 
   /* v712: the clash that lights up is the one on THIS lane's bridge, not a single one in the
      middle of the stage. */
@@ -24971,14 +25051,19 @@ async function skySimReplay(r){
      exactly the server's; across lanes nothing is synchronised, so a lane that draws three grinds
      falls behind a lane that draws three routs. The war ends when the last lane does. */
   const queues=[[],[],[],[],[]];
-  r.log.forEach((e,idx)=>{ queues[Math.max(0,Math.min(4,e.lane|0))].push({e,idx}); });
+  r.log.forEach((e,idx)=>{ if(REAL && !skyRealUnseen(e)) return; queues[Math.max(0,Math.min(4,e.lane|0))].push({e,idx}); });
+  if(REAL) SKYREAL.queues=queues;   /* v1458 - the 30 s fetch deals new real fights straight onto these */
 
   const runLane = async (i)=>{
     /* v751 (Phil: "if a players line didnt die, you dont need to send another walking hero to
        fight. its line is still at the fight spot fighting") - who is STANDING at this lane's centre
        on each side. A line that won is still out there; only a side whose line changed walks. */
     const atCentre={you:null, foe:null};
-    for(const {e,idx} of queues[i]){
+    for(let qi=0;;qi++){
+      /* v1458 - a real lane waits on its war: new fights arrive from the 30 s fetch while the war is live */
+      while(REAL && qi>=queues[i].length && SKYREAL.live && !stopped()) await new Promise(d=>setTimeout(d, 1000));
+      if(qi>=queues[i].length) break;
+      const {e,idx}=queues[i][qi];
       if(stopped()) return;
       const mine=e.side==='A';
       const LN=skyLanes()[i]||{a:{x:20,y:50},b:{x:80,y:50},mid:{x:50,y:50}};
@@ -25018,7 +25103,9 @@ async function skySimReplay(r){
       if(youWalks){ const ml=lineOf('you', i); if(ml) ml.classList.add('skyHot'); }
       if(foeWalks){ const ml=lineOf('foe', i); if(ml) ml.classList.add('skyHot'); }
       const ev=document.getElementById('skyEvent');
-      if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
+      if(ev) ev.textContent=REAL
+        ? '#'+e.n+' \u00b7 '+langDesc(e.laneName||'')+' \u00b7 '+(e.captured?ewT('skyhub.walks_open',{name:e.a||''}):((e.a||'')+' '+ewT('areport.vs',{name:e.d||''})))
+        : '#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
       /* the hub follows whichever fight started most recently; a lane's own battles are read by
          tapping that lane's swords. */
       /* v747/v748 - the fight has STARTED, not finished. Until its pause returns the Live panel
@@ -25033,7 +25120,7 @@ async function skySimReplay(r){
          dies rather than when the panel is next opened. */
       { const op=stage.querySelector('.skyTowerPanel');
         if(op && op.dataset.key){ const kp=op.dataset.key.split(':');
-          skyTowerPanel(stage, kp[0], kp[1]|0, r, {canMove:false, live:false}); } }
+          skyTowerPanel(stage, kp[0], kp[1]|0, r, {canMove:false, live:REAL}); } }
       await pause(WALKMS, t=>{
         for(const m2 of marchers){
           m2.el.style.left=(m2.from.x+(to.x-m2.from.x)*t)+'%';
@@ -25054,13 +25141,14 @@ async function skySimReplay(r){
       /* The swords are still crossed. This is the fight itself, and it has to be over before
          anything is reported: no line comes off a count and no tower is touched until this
          returns. */
-      if(ev && !e.captured) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+' vs '+e.d
+      if(ev && !e.captured && !REAL) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+' vs '+e.d
         +' \u00b7 ' + Math.round(FIGHT/1000) + 's';
       await pause(Math.max(0, FIGHT-WALKMS));
       if(stopped()) return;
       /* v747/v748 - the fighting is over, so the verdict may be shown now and not before. */
       SKYSIM.curDone=true;
       SKYSIM.laneDone=SKYSIM.laneDone||{}; SKYSIM.laneDone[i]=true;
+      if(REAL) skyRealSeen(e);   /* v1458 - played on this device: it will not walk out again */
       if(SKYSIM.hubOn) skyHubRender();
       /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and
          a tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early:
@@ -25103,6 +25191,7 @@ async function skySimReplay(r){
     }
   };
   await Promise.all([0,1,2,3,4].map(runLane));
+  if(REAL){ if(!stopped()){ SKYSIM.laneDone={0:true,1:true,2:true,3:true,4:true}; if(SKYSIM.hubOn) skyHubRender(); } return; }
   stage.querySelectorAll('.skyLaneClash.skyHot,.skyMarchLine.skyHot').forEach(el=>el.classList.remove('skyHot'));
   const ph2=document.getElementById('skyPhase');
   if(ph2){ const won=r.winner==='A';

@@ -3797,6 +3797,56 @@ function chatFindMsg(mid, me){ mid=String(mid||''); if(!mid) return null;
    events the view carries (lock-time STANDING_LANE / LATE_LINE rows and every ASSAULT filled those 30). Every fall row (at most 10 citadels) + the two counts. */
 function warSummaryOf(m){ const L=(m&&m.eventLog)||[], fell=L.filter(e=>e&&(e.e==='CITADEL_FELL'||e.e==='CITADEL_CAPTURED')), as=L.filter(e=>e&&e.e==='ASSAULT');
   return { fell, assaults:as.length, assaultsWon:as.filter(e=>e.won).length }; }
+/* v1458 (Phil 26 Nov, lockdown guild-06 "Skyfall war plays no fights": "fix that") - A REAL WAR KEEPS ITS FIGHTS.
+   Every real march (fight, overrun or capture) is written onto the match as it is played: who marched (guild, member, line),
+   who met it, the result the fight already produced, and what Watch needs to play it again - the seed and both lines' health
+   as they walked in (the line-ups themselves are the frozen lineSnapshot already on the board, so they are not copied).
+   FIGHT RULE: nothing here decides anything; the record is written after the march has been settled.
+   BOUNDED: at most SKY_FIGHTS_MAX per war (a fight kills a line, so a war has fewer fights than lines - 2 x 60 players x 7
+   lines tops out near 840; past the cap rows stop being kept, the war itself is unaffected), about 0.4 KB each. Old wars go:
+   a match whose reports have come down (resultsUntil) drops its fights, and the whole tournament is let go weekly (v799).
+   It lives on the match in DB.tournaments, so it is saved, survives a restart and is in every backup. */
+const SKY_FIGHTS_MAX=Math.max(50,+(process.env.SKY_FIGHTS_MAX||900));
+function warHpIn(st){ return (st||[]).map(x=>({hp:Math.max(0,Math.round(+(x&&x.hp)||0)),energy:Math.max(0,Math.round(+(x&&x.energy)||0))})); }
+function warHpPct(state){ let hp=0,max=0; for(const x of (state||[])){ max+=Math.max(0,+x.maxHp||0); if(x.alive!==false) hp+=Math.max(0,+x.hp||0); } return Math.round(100*hp/Math.max(1,max)); }
+function warPruneFights(t,keep){ try{ const now=warNow();
+    for(const id of Object.keys((t&&t.matches)||{})){ const m2=t.matches[id]; if(!m2||m2===keep||!m2.fights) continue;
+      const until=((t.schedule||[])[m2.roundIndex|0]||{}).resultsUntil||0;
+      if(m2.state==='finished' && until && now>=until){ delete m2.fights; } } }catch(e){} }
+function warRecordFight(t,m,rec){ if(!m) return null;
+  m.fights=m.fights||[]; m.fightN=(m.fightN|0)+1;
+  const e=Object.assign({n:m.fightN, t:warNow()}, rec);
+  if(m.fights.length<SKY_FIGHTS_MAX) m.fights.push(e);
+  warPruneFights(t,m);
+  return e; }
+function warDefIndex(m){ const ix=new Map();
+  for(const gid of Object.keys(m.sides||{})) for(const c of (m.sides[gid].citadels||[])) for(const d of (c.defenders||[])) ix.set(gid+'|'+d.memberId+'|'+(d.line|0), d);
+  return ix; }
+function warDefName(d){ return d?(d.name||nameOfUser(d.memberId)):'?'; }
+/* The board's log, in the SIMULATOR's shape field for field (the client was built on it): side 'A' is the viewer's guild. */
+function warFightLogView(m,meGid,meId){ const F=(m&&m.fights)||[]; if(!F.length) return [];
+  const ix=warDefIndex(m), gids=Object.keys(m.sides||{});
+  const team=d=>((d&&d.lineSnapshot)||[]).slice(0,5).map(h=>({k:h.key,l:h.level|0,s:h.stars|0}));
+  const mine=id=>meId!=null&&String(id)===String(meId);
+  return F.map(f=>{ const dg=gids.find(g=>g!==f.ag), A=ix.get(f.ag+'|'+f.am+'|'+(f.al|0)), D=f.captured?null:ix.get(dg+'|'+f.dm+'|'+(f.dl|0));
+    const lane=f.lane|0, o={ n:f.n, t:f.t, real:true, side:(f.ag===meGid)?'A':'B', lane, laneName:(WAR_LANES[lane]||{}).name||('Lane '+(lane+1)),
+      a:warDefName(A), aPower:warDefPower(A), you:mine(f.am)||(!f.captured&&mine(f.dm)) };
+    if(f.captured){ o.captured=true; return o; }
+    Object.assign(o,{ d:warDefName(D), dPower:warDefPower(D), won:!!f.won, rounds:f.rounds|0, aHp:f.aHp|0, dHp:f.dHp|0,
+      fell:!!f.fell, aFell:!!f.aFell, aKills:f.aKills|0, dKills:f.dKills|0,
+      aRetired:(f.aKills|0)>=WAR_KILL_CAP, dRetired:(f.dKills|0)>=WAR_KILL_CAP, aDown:!!f.aDown, dDown:!!f.dDown });
+    if(f.overrun) o.overrun=true; else { o.aTeam=team(A); o.dTeam=team(D); }
+    return o; }); }
+/* What Watch plays: the simulator's capture shape ({seed, a:{snaps,hp}, d:{snaps,hp}}), read off the stored fight. */
+function warFightCapture(m,n,meGid,meId){ const f=((m&&m.fights)||[]).find(x=>x&&x.n===n);
+  if(!f||f.captured||f.overrun||!Array.isArray(f.ah)||!Array.isArray(f.dh)) return null;
+  const ix=warDefIndex(m), dg=Object.keys(m.sides||{}).find(g=>g!==f.ag), A=ix.get(f.ag+'|'+f.am+'|'+(f.al|0)), D=ix.get(dg+'|'+f.dm+'|'+(f.dl|0));
+  if(!A||!D||!Array.isArray(A.lineSnapshot)||!Array.isArray(D.lineSnapshot)) return null;
+  const mine=id=>meId!=null&&String(id)===String(meId), lane=f.lane|0;
+  return { fight:{ n:f.n, seed:f.seed>>>0, lane, laneName:(WAR_LANES[lane]||{}).name, side:(f.ag===meGid)?'A':'B', real:true,
+      a:{ name:warDefName(A), you:mine(f.am), power:warDefPower(A), snaps:A.lineSnapshot, hp:f.ah },
+      d:{ name:warDefName(D), you:mine(f.dm), power:warDefPower(D), snaps:D.lineSnapshot, hp:f.dh } },
+    won:!!f.won, rounds:f.rounds|0 }; }
 function warMatchView(t,m,meGid,meId){
   const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (v728: Tue+ 02:00 ET)
   const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
@@ -3807,7 +3857,8 @@ function warMatchView(t,m,meGid,meId){
     resultsUntil:((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
     nextPrepOpensAt:((t.schedule[(m.roundIndex|0)+1]||{}).planningOpensAt)||((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
     you:warSideView(m,meGid,false,meId), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
-    lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30), summary:warSummaryOf(m) };
+    lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30), summary:warSummaryOf(m),
+    log:(preReveal||m.state==='planning')?[]:warFightLogView(m,meGid,meId) };   /* v1458: the real fights, played on the board */
   /* v770 (Phil: "still cannot place my lines in a tower") - YOUR OWN LINES, wherever they are.
      Built from the ENTRANT - the registered lines the lock will hydrate - rather than from what
      happens to be on the board, because a line that has never been placed is on no citadel at all;
@@ -7863,6 +7914,8 @@ async function api(req,res,url){
         if(spent){ spent.alive=false; m.assaults[me.id]=(m.assaults[me.id]||0)+1; attacker.fights=(attacker.fights|0)+1;
           let fell=false; if(!foe.defenders.some(warStanding)){ foe.destroyed=true; fell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
           m.eventLog.push({t:warNow(),e:'OVERRUN',lane,a:me.id,d:spent.memberId});
+          warRecordFight(t,m,{ ag:myGid, lane, am:attacker.memberId, al:attacker.line|0, dm:spent.memberId, dl:spent.line|0, overrun:true, won:true,
+            aKills:attacker.kills|0, dKills:spent.kills|0, dDown:true, fell });   /* v1458 */
           if(keepMarch({ ok:true, won:true, overrun:true, citadelFell:fell, finished:false })) return;
           return send(res,200,{ ok:true, won:true, overrun:true, citadelFell:fell, finished:false, match:warMatchView(t,m,myGid,me.id) }); } }
       /* v1129: the fight first - before this march changes anything (simRunLive may stop here and run the route again) */
@@ -7873,12 +7926,14 @@ async function api(req,res,url){
       attacker.fights=(attacker.fights|0)+1;
       if(!defender){ // undefended citadel: the march captures it without a fight (still costs an order)
         foe.destroyed=true; m.eventLog.push({t:warNow(),e:'CITADEL_CAPTURED',lane,by:me.id});
+        warRecordFight(t,m,{ ag:myGid, lane, am:attacker.memberId, al:attacker.line|0, captured:true, won:true, fell:true });   /* v1458 */
         /* v676: the war does NOT end the moment a third tower falls - "to include if 3 towers already
            go down". Every lane keeps fighting to the bell, and the towers are counted there. */
         if(keepMarch({ ok:true, won:true, captured:true, citadelFell:true, finished:false })) return;
         return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
       // persist survivor HP/energy on BOTH lines (keyed back to snapshot order)
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+      const aIn=warHpIn(attacker.hpState), dIn=warHpIn(defender.hpState);   /* v1458: Watch replays from the health they walked in with */
       attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
       defender.hpState=mapBack(defender.lineSnapshot, r.bState);
       // A guild-war assault is a world fight for both real owners. Match HP alone
@@ -7902,6 +7957,10 @@ async function api(req,res,url){
       if(!mine.destroyed && !mine.defenders.some(warStanding)){ mine.destroyed=true; yourCitadelFell=true;
         m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:null}); }
       m.eventLog.push({t:warNow(),e:'ASSAULT',lane,a:me.id,d:defender.memberId,won:r.won});
+      warRecordFight(t,m,{ ag:myGid, lane, am:attacker.memberId, al:attacker.line|0, dm:defender.memberId, dl:defender.line|0,
+        won:!!r.won, rounds:r.rounds|0, aHp:warHpPct(r.aState), dHp:warHpPct(r.bState), fell:citadelFell, aFell:yourCitadelFell,
+        aKills:attacker.kills|0, dKills:defender.kills|0, aDown:attacker.alive===false, dDown:defender.alive===false,
+        seed:seed>>>0, ah:aIn, dh:dIn });   /* v1458: recorded after the fight settled it - never decides */
       const finished=false;                      /* v676: only the bell finishes a war */
       if(keepMarch({ ok:true, won:r.won, citadelFell, finished },[me.id,attacker.memberId,defender.memberId].filter(Boolean))) return;   // v1124: both line owners' Witch's Hut wounds
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
@@ -7912,6 +7971,13 @@ async function api(req,res,url){
       if(_out&&_out.busy){ res.setHeader('Retry-After',String(Math.ceil(_out.retryAfterMs/1000))); return send(res,503,_out); }
       return _out;
     }
+    /* v1458 - WATCH A REAL MARCH. The stored fight of the caller's own match: both lines as they stood when they met, the seed,
+       and the result that was played. The client plays it exactly as it plays a simulator capture. */
+    if(p==='/api/guild-war/fight'){ const m=myGid?warMatchOfGuild(t,myGid):null;
+      if(!m||!m.sides||!m.sides[myGid]) return send(res,404,{error:'No live match.'});
+      const cap=warFightCapture(m,parseInt(b.n,10),myGid,me.id);
+      if(!cap) return send(res,404,{error:'That march is not in this war.'});
+      return send(res,200,Object.assign({ok:true},cap)); }
     if(p==='/api/guild-war/claim-reward'){
       /* v1009 (re-audit Guild #7): a lost reply used to answer the retry "Nothing to claim" though the coins were paid; the same
          requestId now answers its receipt, and the claim is on disk before it is acknowledged */

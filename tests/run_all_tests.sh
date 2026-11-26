@@ -679,6 +679,8 @@ note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Ir
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"
 node tests/test_irix_final_boss_1430.js || FAILED=1
+note "test_skyfall_real_fights_1458.js (v1458 Phil 26 Nov 'fix that': a real Skyfall war records every march on the match - result, seed, entry health - sends it with the match view, Watch serves the stored fight, it survives a restart, capped per war and dropped when the reports come down; the board plays it through the simulator lane player)"
+node tests/test_skyfall_real_fights_1458.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json

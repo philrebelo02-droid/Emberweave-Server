@@ -28,7 +28,7 @@ const run = (async () => {
   { const sum = typeof S.warSummaryOf === 'function' ? S.warSummaryOf({ eventLog: LOG }) : null;
     ok(!!sum && sum.fell.length === 2 && sum.assaults === 40 && sum.assaultsWon === 25, 'server summary of a 53-event war: ' + (sum ? sum.fell.length + ' citadels, ' + sum.assaultsWon + '/' + sum.assaults + ' assaults' : 'none') + ' (want 2, 25/40)');
     const src = fs.readFileSync(process.env.LF_SERVER || path.join(root, 'server.js'), 'utf8');
-    ok(/eventLog:\(m\.eventLog\|\|\[\]\)\.slice\(-30\), summary:warSummaryOf\(m\) \};/.test(src), 'warMatchView sends the summary beside the last 30 events');
+    ok(/eventLog:\(m\.eventLog\|\|\[\]\)\.slice\(-30\), summary:warSummaryOf\(m\)(?: \};|,)/.test(src), 'warMatchView sends the summary beside the last 30 events');   /* v1458: the real fight log follows it */
     const m = { eventLog: LOG.slice(-30), summary: sum || undefined, you: { guildId: 'g1' }, foe: { guildId: 'g2' }, winnerGuildId: 'g1', lanes: [] };
     host.ctx.__M = m; const h = J('skyWarSummaryHTML(__M)') || '';
     const cit = (/<b style="color:#ffd45e">(\d+)<\/b> citadel/.exec(h) || [])[1], as = /<b style="color:#8fe3ff">(\d+)<\/b>\/(\d+) assaults/.exec(h) || [];
