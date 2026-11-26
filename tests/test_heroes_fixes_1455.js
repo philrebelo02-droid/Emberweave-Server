@@ -151,7 +151,7 @@ const spec2 = key => ({ key, level: 40, stars: 3, rank: 3, pips: 0, ref: 0, glyp
 const setup2 = (A, B, seed) => { const a = JSON.parse(JSON.stringify(host.snapFromSpecs(A.map(spec2)))), b = JSON.parse(JSON.stringify(host.snapFromSpecs(B.map(spec2))));
   a.concat(b).forEach(s => { s.ctrlRes = 0; }); return R('window.__setup(' + JSON.stringify(a) + ',' + JSON.stringify(b) + ',' + (seed | 0) + ')'); };
 const meta = (k, i) => J(`abilityMeta(${JSON.stringify(k)},${i})`) || '';
-const pctOf = (m, stat) => { const x = new RegExp('(\\d+)%' + (stat === 'ps' ? '/s' : '') + ' of (Attack|Ability Power)').exec(m); return x ? +x[1] : null; };
+const pctOf = (m, stat) => { const x = (stat === 'ps' ? /(\d+)%\/s/ : /(\d+)% of (Attack|Ability Power)/).exec(m); return x ? +x[1] : null; };   // 'ps': the per-second part ("160%/s of ..." or "140% of Attack + 160%/s")
 const cast = (k, slot, type, extra) => `(function(){ const A=U(${JSON.stringify(k)},'ally'), B=units.filter(u=>u.team==='enemy'); A.target=B[0]; A._castSlot=${JSON.stringify(slot)}; A._castLv=40; A._castSM=1;   /* level 40 = the enemies' level: a control rolls to land against the target's level (v1452); damage uses _castSM 1 = the card's skill level 1 */
   const o=Object.assign({}, ${slot === 'ult' ? `ULT_DEF[${JSON.stringify(type)}], (HERO_ULT_ART[${JSON.stringify(k)}]||{})` : `KITS[${JSON.stringify(k)}].${slot}`}, {_arrived:true,_tgtU:B[0]} ${extra ? ',' + extra : ''}); _doEffectCore(A,${JSON.stringify(type)},o); A._castSlot=null; })()`;
 
