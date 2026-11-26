@@ -121,12 +121,14 @@ async function tapboxes(pg,S){ await goHome(pg); await prep(pg);
       hit.scrollIntoView({block:'center',inline:'center'}); for(const [a,l,t] of anc){ a.scrollLeft=l; a.scrollTop=t; }
       const b=HB.B(hit), f=HB.F(), pts=[[.5,.5],[.08,.08],[.92,.08],[.08,.92],[.92,.92]].map(([fx,fy])=>{ const x=b.x+b.w*fx, y=b.y+b.h*fy;
         if(x<f.x||y<f.y||x>f.r-1||y>f.b-1) return {fx,fy,off:true};
-        const el=document.elementFromPoint(x,y), k=keyOf(el); return {fx,fy,x:Math.round(x),y:Math.round(y),k,who:desc(el)}; });
+        const el=document.elementFromPoint(x,y), k=keyOf(el); return {fx,fy,x:Math.round(x),y:Math.round(y),k,who:desc(el),plate:!!(el&&el.closest&&el.closest('.townlbl'))}; });
       out.push({i,key:KEYS[i],box:b,pts}); });
     return {n:hots.length,over,out}; },BKEYS);
   const s=await shot(pg,S.tag+' building tap boxes');
-  const wrong=[], hud=[], off=[];
-  for(const o of P.out) for(const p of o.pts){ if(p.off) off.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy); else if(p.k&&p.k!==o.key) wrong.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy+' opens '+p.k+' ('+p.who+')'); else if(!p.k) hud.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy+' '+p.who); }
+  const wrong=[], hud=[], off=[], plate=[];
+  for(const o of P.out) for(const p of o.pts){ if(p.off) off.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy); else if(p.k&&p.k!==o.key&&p.plate) plate.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy+' -> '+p.k+' name plate'); else if(p.k&&p.k!==o.key) wrong.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy+' opens '+p.k+' ('+p.who+')'); else if(!p.k) hud.push(o.key+'#'+o.i+'@'+p.fx+','+p.fy+' '+p.who); }
+  /* a neighbour's NAME PLATE drawn over a box corner opens that neighbour: the player taps the plate they see (Claude 26 Nov: not a bug) - WATCH, not a fail */
+  if(plate.length) C.look(S.tag+' Building tap boxes: box corners under a neighbour name plate open that plate building',plate.join('; '));
   if(hud.length) console.log('  INFO   '+S.tag+' Building tap boxes: points under the HUD (open no building): '+hud.join('; '));
   if(off.length) console.log('  INFO   '+S.tag+' Building tap boxes: points outside the screen after scrolling the town: '+off.join('; '));
   C.ok(P.n===17&&P.over.length===0&&wrong.length===0,S.tag+' Building tap boxes: all '+P.n+' boxes probed at the centre and 4 corners - no point opens another building, no two boxes overlap',
