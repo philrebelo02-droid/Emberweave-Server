@@ -68,7 +68,9 @@ async function runOn(dir, seed) {
     const st = (await S.req('GET', '/api/dev/save-stats', null, A)).body;
     await S.kill();
     const w = WS.readWorld(db), accounts = {};
-    for (const p of P) { const u = w.users[p.id]; accounts[p.id] = { led: u.led, witch: u.witch, worldCityMarches: u.worldCityMarches, worldWars: u.worldWars, pvpMail: u.pvpMail, pvpDay: u.pvpDay, gainLog: u.gainLog, wall: u.wall, team: u.team }; }
+    for (const p of P) { const u = w.users[p.id]; accounts[p.id] = { led: u.led, witch: u.witch, worldCityMarches: u.worldCityMarches, worldWars: u.worldWars, pvpMail: (u.pvpMail || []).slice(-20), pvpDay: u.pvpDay, gainLog: u.gainLog, wall: u.wall, team: u.team }; }
+    // v1455 (065f739d2, lockdown Mail fixes "No lost reports"): a player keeps 200 war reports (PVP_MAIL_KEEP, was 20), so this tree still holds the
+    // 20 seeded notes that 59eaefba drops - only the newest 20 (the ones both trees keep) are compared
     const sizes = P.slice(0, 16).map(p => JSON.stringify(w.users[p.id]).length);
     return { replies, accounts, copy: st.attackCopy || null, sizes };
   } finally { await S.kill(); }
