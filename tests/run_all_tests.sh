@@ -643,6 +643,8 @@ note "test_battle_limit_1399.js (v1399, Phil 17 Nov: \"all battles should be 3 m
 node tests/test_battle_limit_1399.js || FAILED=1
 note "test_raid_spells_1453.js (v1453, Phil 25 Nov: \"just raise its spell power\" / \"magical beasts should do their damage with spells\" / \"2 attacks a day\" / \"lessen\" the armour)"
 node tests/test_raid_spells_1453.js || FAILED=1
+note "test_engine_fixes_1452.js (v1452 lockdown audit engine fixes 1-30: crit / lifesteal / sleep / control rolls and Control Resist / slows / immovable / summons / wind-ups / range / skills / talents caps / glyph re-read / spell sheets within the phone memory budget / drop tables)"
+node tests/test_engine_fixes_1452.js || FAILED=1
 note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Irix +20% health and damage in that fight only; City Wall art in view; Cauldron \"Full in\")"
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"
