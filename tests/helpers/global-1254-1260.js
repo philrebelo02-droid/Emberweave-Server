@@ -28,6 +28,9 @@ const HP1397_SWAPS = [
 ];
 const SWAPS = [
   ...HP1397_SWAPS,
+  // v1456 (Phil 26 Nov: "make sure all of umbris's abilities scale properly"): Creeping Rot's rot (Umbris; Pyroclast's Ember Lash) reads apB - a damage buff and
+  //   Rising Heat now reach it - put back to raw Ability Power x skill level for the older BASE fights (tests/test_umbris_scaling_1456.js checks v1456 itself)
+  ["_pd=((type==='creeprot')?apB:_sD*sm)*(o.dps||.5); plagueDot(tgt,_pd,o.dur||4,o.interval||1,_pc,u);   /* v1456 (Phil 26 Nov: \"make sure all of umbris's abilities scale properly\"): Creeping Rot's rot (Umbris; Pyroclast's Ember Lash) reads apB - Ability Power x skill level x a running damage buff (and Rising Heat), as its own hit and Shadeburst's rot do; it read raw Ability Power x skill level, so a damage buff never reached it. The plain 'dot' type (Vex, monsters) is unchanged */", "_pd=_sD*(o.dps||.5)*sm; plagueDot(tgt,_pd,o.dur||4,o.interval||1,_pc,u);", /_pd=\(\(type==='creeprot'\)\?apB:_sD\*sm\)\*\(o\.dps\|\|\.5\);/],
   // v1391 (Phil 14 Nov: "buff vulmars passive, give it 5% increase ability power + .05 per skill level"): Vulmar's Unstepped Ability Power off for the older
   //   BASE fights (tests/test_vulmar_passive_1391.js checks v1391 itself)
   ["\n    if(kit.purple.apPct!=null) u.apow*=passApMul(kit.purple,u.skillLv[3]); }   /* v1391: Vulmar's Unstepped also raises his finished Ability Power (= server/sim.js PURPLE_AP) */", " }", /if\(kit\.purple\.apPct!=null\) u\.apow\*=passApMul/],

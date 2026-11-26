@@ -82,7 +82,7 @@ try {
   const kit = run('JSON.stringify(KITS.umbris)'), M = run('METER');
   ck('Shadeburst / Creeping Rot / Lingering Dark numbers unchanged', kit === JSON.stringify({
     green: { deliver: 'form', name: 'Shadeburst', type: 'shadeburst', at: 'cluster', dps: 0.3, dur: 6, radius: 7 * M, cd: 7, gfx: 'umbris_green', noArt: true, gdur: 5.88 },
-    blue: { name: 'Creeping Rot', type: 'creeprot', mul: 0.5, dps: 0.6, dur: 5, color: '#8a5cff', foot: true, handglow: true, cd: 6, gfx: 'umbris_blue', gfxR: 3 * M, gdur: 5.38 },
+    blue: { name: 'Creeping Rot', type: 'creeprot', mul: 0.5, dps: 0.6, dur: 5, color: '#8a5cff', foot: true, handglow: true, cd: 6, gfx: 'umbris_blue', gfxR: 1.2 * M, gdur: 5.38 },   // v1456 (a1a8514a0, Phil 26 Nov): the Hailuo remake draws Creeping Rot hero-sized on its target (gfxR 3 m -> 1.2 m, art only)
     purple: { name: 'Lingering Dark', pass: 'contagion', desc: run('KITS.umbris.purple.desc') } }), kit);
   ck('Umbral Cataclysm numbers unchanged (1.6 x AP, 6.8 m, 0.6 AP/s for 5 s)', run('JSON.stringify(ULT_DEF.umbralcata)') === JSON.stringify({ mul: 1.6, radius: 6.8 * M, dps: 0.6, dur: 5 }));
   ck('skill-tab previews use the new ult / green / blue sheets (v1164: read from the fight - skillPreviewPlan; the passive slot only with a passive clip)', run("[0,1,2].map(i=>skillPreviewPlan('umbris',i).clips[0].A.u).join()") === ['ult', 'green', 'blue'].map(s => G[s].u).join() && run("(p=>p?p.clips[0].A.u:null)(skillPreviewPlan('umbris',3))") === (G.passive ? G.passive.u : null));
