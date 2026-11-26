@@ -741,6 +741,10 @@ note "screen_lockdown_mail.js (lockdown 26 Nov round 4, needs playwright: Start 
 node tests/screen_lockdown_mail.js || FAILED=1
 note "screen_lockdown_sound.js (lockdown 26 Nov round 4, needs playwright: Sound - real-page fights on a silent real audio context: every sound peak within 33 ms of its blow/release/arrival frame and the right file per hero/spell at 1x, 2x and across a Pause mid-cast; all 10 battle songs loop twice on their seam within 50 ms of loopEnd with no heal; every sfx file within 2 LU of -16 LUFS-M + offset)"
 node tests/screen_lockdown_sound.js || FAILED=1
+note "test_skyfall_real_fights_1458.js (v1458 Phil 26 Nov 'fix that': a real Skyfall war records every march on the match - result, seed, entry health - sends it with the match view, Watch serves the stored fight, it survives a restart, capped per war and dropped when the reports come down; the board plays it through the simulator lane player)"
+node tests/test_skyfall_real_fights_1458.js || FAILED=1
+note "test_vault_enrage_1458.js (v1458 Phil 26 Nov 'they all need their own enrage type that fits their abilities': one enrage per Vault boss, 20 ids and 20 effect types, the server's bossRule is the boss's own enrage, each effect checked on a live board, real Vault fights enrage at their line, only in the Vault, all 15 packs + en-XA re-hashed)"
+node tests/test_vault_enrage_1458.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json

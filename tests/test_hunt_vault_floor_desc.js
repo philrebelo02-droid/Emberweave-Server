@@ -40,8 +40,10 @@ async function boot(){ const port=await freePort(),base='http://127.0.0.1:'+port
 const finish=(name)=>{ console.log(name+': '+(checks-fails)+'/'+checks+' checks passed, '+fails+' failed'); if(fails) process.exitCode=1; };
 const cleanup=async()=>{ if(browser) await browser.close().catch(()=>{}); if(child) child.kill(); try{fs.rmSync(temp,{recursive:true,force:true});}catch(e){} };
 /* the boss buff of a floor, worked out here (not read off the page): every 5th floor is a boss floor, the rules cycle */
-const RULES=['stoneguard_barrier','bloodfire_enrage','broodcall','riftblade_leap','blight_aura','storm_chain','ironwall_challenge','voidstep','cinderbrand','vault_warden'];
-const buffName=f=>f%5?null:RULES[(f/5-1)%RULES.length].replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+/* v1458: a boss floor's buff is its boss's own enrage (VAULT_ENRAGES in the page, keyed by the boss of the floor's last wave) */
+const ENR=JSON.parse(/\/\*VAULT_ENRAGES_JSON\*\/([\s\S]*?)\/\*END_VAULT_ENRAGES_JSON\*\//.exec(fs.readFileSync(path.join(__dirname,'..','emberweave-heroes.html'),'utf8'))[1]);
+const VFL=JSON.parse(fs.readFileSync(path.join(__dirname,'..','server','vault-encounters.json'),'utf8')).floors;
+const buffName=f=>{ if(f%5) return null; const w=VFL[f-1].waves, b=(w[w.length-1].find(m=>m.boss)||{}).key; return (ENR[b]||{}).name||null; };
 (async()=>{ try{
   const {page,errs}=await boot();
   await page.evaluate(async()=>{ const ks=Object.keys(HERO_TYPES); await api('/api/admin/led-grant','POST',{unlock:ks,campCleared:45,stamina:300}); if(typeof ledgerSync==='function') await ledgerSync(); });
