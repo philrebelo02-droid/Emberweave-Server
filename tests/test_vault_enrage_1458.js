@@ -213,7 +213,7 @@ function ccDurOf(d){ return +(d*0.7).toFixed(3); }
 { // 70 Barrowmaw - +70% damage to heroes under 60%... (the table's numbers)
   const e=E.barrowmaw, R=prove('barrowmaw',`const h=hs[0]; const hit=f=>{ __clean(h); h.hp=h.maxHp*f; const h0=h.hp; dealDamage(b,h,500,'#f00','true'); return h0-h.hp; };
     b.hp=b.maxHp; R.hi0=hit(0.9); R.lo0=hit(${(E.barrowmaw.below-0.1).toFixed(2)}); R.tr=__trigger(b); R.hi1=hit(0.9); R.lo1=hit(${(E.barrowmaw.below-0.1).toFixed(2)}); R.P=[];`);
-  const ok=near(R.hi1/R.hi0,1,1e-3)&&near(R.lo1/R.lo0,1+e.pct,1e-3);
+  const ok=e.below===0.6&&near(R.hi1/R.hi0,1,1e-3)&&near(R.lo1/R.lo0,1+e.pct,1e-3);   /* Phil's approved chart: heroes under 60% */
   ck('Barrowmaw: a hero under '+pct(e.below)+' takes x'+(R.lo1/R.lo0).toFixed(2)+', a healthy one x'+(R.hi1/R.hi0).toFixed(2), trigOK(R,e)&&ok, JSON.stringify(R));
   row('Barrowmaw (70)',trigTxt(R,e),(ok?'OK':'FAIL')+' (hero at '+pct(E.barrowmaw.below-0.1)+': x'+(R.lo1/R.lo0).toFixed(2)+'; hero at 90%: x'+(R.hi1/R.hi0).toFixed(2)+')','stays on OK'); }
 { // 75 Maelvara - every 4 s lightning hits 4 heroes for 15% max HP
