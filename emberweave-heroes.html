@@ -41250,6 +41250,7 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .hit{position:absolute;inset:0;pointer-events:auto}
 #edRoot .bar{position:absolute;pointer-events:auto}
 #edRoot .topb{top:max(4px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));right:max(6px,env(safe-area-inset-right));display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#edRoot .bar.topb{pointer-events:none}#edRoot .bar.topb>*{pointer-events:auto}#edRoot .topb>.ready{margin-left:auto}   /* v1461 (844x390 phone): when the bar wraps, Fight goes to the RIGHT end of its second row (it sat at the left, under the item bench), and the bar's empty full-width box no longer takes taps meant for the bench under it; the side panel and its tabs already start below the bar's real bottom (fix 7) */
 #edRoot .pill{background:rgba(14,20,33,.86);border:1px solid #2b3a55;border-radius:999px;padding:3px 9px;white-space:nowrap;font-variant-numeric:tabular-nums}
 #edRoot .gold{color:#ffd45e;font-weight:800} #edRoot .hp{color:#ff8b8b;font-weight:800}
 #edRoot .btnx{background:#24324d;border:1px solid #3a4f78;color:#e8edf3;border-radius:9px;padding:5px 10px;cursor:pointer;font:inherit;font-weight:700}
