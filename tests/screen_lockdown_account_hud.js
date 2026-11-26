@@ -268,7 +268,7 @@ async function glossary(pg,S){
       all[tab]={r,s};
       /* Runic Automaton: its card follows Phil's hand-set framing (GL_FRAME "head top of frame", top 0.05), so its eyes sit ~9% from the top -
          by design (Claude 26 Nov); printed as WATCH with its numbers, any other creature's crop still fails */
-      const HAND=['runic automaton'], badAll=r.cards.filter(x=>!x.ok), bad=badAll.filter(x=>HAND.indexOf(String(x.id).toLowerCase())<0), noArt=r.cards.filter(x=>!x.art);
+      const HAND=[],   /* v1465: the Runic Automaton crop was fixed (GL_FRAME top 0.05 -> 0.0, eyes ~15% from the top), so no card is exempt */ badAll=r.cards.filter(x=>!x.ok), bad=badAll.filter(x=>HAND.indexOf(String(x.id).toLowerCase())<0), noArt=r.cards.filter(x=>!x.art);
       if(badAll.length>bad.length) C.look(S.tag+' All creatures: '+tab+' - hand-framed card(s) with the eyes near the top edge (Phil GL_FRAME head-top rule)',badAll.filter(x=>bad.indexOf(x)<0));
       const kharos=r.cards.filter(x=>/kharos|hourglass/i.test(x.id+' '+x.name));
       C.ok(r.cards.length===r.list&&r.cards.length>0&&!noArt.length&&!bad.length,S.tag+' All creatures: Glossary > '+tab+' - '+r.cards.length+' painted cards, every image loaded, every face inside the card (eyes near the centre, head not cut off)',
