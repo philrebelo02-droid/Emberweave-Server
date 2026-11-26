@@ -26081,6 +26081,7 @@ function startCampaignIdleNodes(){
 function cnodeSpreadPlates(root){
   const nodes=[...root.querySelectorAll('.cnode')]; if(nodes.length<2) return;
   const W=root.offsetWidth, H=root.offsetHeight; if(!(W>0&&H>0)) return;
+  root.dataset.spreadWh=W+'x'+H;   /*DIAG1465 temp*/
   const P=nodes.map(n=>{ if(n.dataset.nx==null){ n.dataset.nx=n.style.left; n.dataset.ny=n.style.top; }
     n.style.left=n.dataset.nx; n.style.top=n.dataset.ny;
     const e=n.classList.contains('elite'), hw=Math.max(e?24:22,(n.offsetWidth||0)/2), hh=Math.max(e?32:22,(n.offsetHeight||0)/2), ay=parseFloat(n.dataset.ny)/100*H;   /* v1465: the plate's own box when it is bigger than the 44 px tap minimum (screen run 1126-165957: x-2's box still took x-1's corner on chapters 10-15) */
@@ -38797,6 +38798,17 @@ function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); buyGemOffer(+el.dataset.i); } }); });
   body.querySelectorAll('.st2-tab').forEach(t=>t.onclick=(e)=>{ e.stopPropagation(); if(st2Tab!==t.dataset.tab){ st2Tab=t.dataset.tab; renderGemShop(); } });
   const sb=body.querySelector('.st2-body'); if(sb) sb.addEventListener('wheel',e=>{ if(sb.scrollWidth>sb.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){ sb.scrollLeft+=e.deltaY; e.preventDefault(); } },{passive:false});
+  /* v1465 (lockdown screens 26 Nov, tablet 1024x768): a sideways finger swipe on the cards did not move the row. The browser took the swipe
+     (pointercancel, a non-cancelable touchstart) but its own scroll landed on no box - not one scroll event, scrollLeft stayed 0 of 151 - while the
+     same swipe scrolled natively on the 844x390 phone. The row now follows the finger itself, but only when the browser's own scroll did not move
+     it by the second move of the swipe, so a phone that scrolls natively is left alone (no double speed) and the PC mouse wheel above is untouched. */
+  if(sb){ let d=null;
+    sb.addEventListener('touchstart',e=>{ const t=e.touches.length===1&&e.touches[0]; d=t?{x:t.clientX,y:t.clientY,l:sb.scrollLeft,n:0,on:false,off:false,set:0}:null; },{passive:true});
+    sb.addEventListener('touchmove',e=>{ if(!d||d.off||e.touches.length!==1) return; const t=e.touches[0], dx=t.clientX-d.x, dy=t.clientY-d.y;
+      if(!d.on){ if(++d.n<2||Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)) return; if(Math.abs(sb.scrollLeft-d.l)>0.5){ d.off=true; return; } d.on=true; }
+      else if(Math.abs(sb.scrollLeft-d.set)>0.5){ d.off=true; return; }   /* the browser's own scroll started late: hand the swipe back to it */
+      sb.scrollLeft=d.l-dx; d.set=sb.scrollLeft; },{passive:true});
+    for(const ev of ['touchend','touchcancel']) sb.addEventListener(ev,()=>{ d=null; },{passive:true}); }
   const x=body.querySelector('#sfClose'); if(x) x.onclick=(e)=>{ e.stopPropagation(); closeHudShop(); };
   st2FitNames(body); requestAnimationFrame(()=>st2FitNames(body)); setTimeout(()=>st2FitNames(body),350); }
 /* v1461 (lockdown screens 26 Nov): "TEST PACK (REAL PURCHASE DONT CLICK)" ran off its name plate (one line, cut by the plate's overflow:hidden) on desktop,
