@@ -6007,6 +6007,12 @@ async function playCreditSaved(){
   if(typeof _inflight!=='undefined')for(const b of _inflight)waits.add(b.promise);
   return (await Promise.all(waits)).every(ok=>ok===true);
 }
+/* v1457 (Phil 26 Nov 2026: "no skip button allowed for guild raid"): the shortest time a guild raid fight of fightSec seconds can be watched -
+   at the fastest battle speed the page offers (x2), 80% of it, less 3 s for clocks and the request. A result sooner than that was skipped. */
+const RAID_MAX_SPEED=2;
+function raidMinWatchMs(fightSec){ const s=Number(fightSec), e=process.env.RAID_MIN_WATCH_MUL, mul=(e!=null&&e!==''&&Number.isFinite(+e))?Math.max(0,+e):1;   /* RAID_MIN_WATCH_MUL=0: tests that resolve a raid at machine speed */
+  return (Number.isFinite(s)&&s>0)?Math.max(0, Math.round((s*1000/RAID_MAX_SPEED*0.8-3000)*mul)):0; }
+function raidSkipped(fightSec, elapsedMs){ return Number(elapsedMs) < raidMinWatchMs(fightSec); }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"): 16 chapters x 10 fixed stages
 /* Glyph Fragment Farm Map. Ordinary Normal stages each advertise four fixed possibilities and pay
@@ -11995,10 +12001,10 @@ async function api(req,res,url){
       if(Date.now()-(a.startedAt||0) > RAID_SESSION_MS){ delete r0.att[me.id]; writeDB(); return send(res,200,{ok:false, expired:true, error:'That raid fight expired.', raid:raidView(g)}); }
       /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
          the frozen squad, seed and boss with the game's own battle code (sim-host). */
-      const host=simHost(); let dmg0=null, incident=null;
+      const host=simHost(); let dmg0=null, incident=null, fightSec=NaN;
       const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1), ...raidBossMuls(a.bossKey,a.tier||1)};
       if(host && a.snaps && typeof host.raid==='function'){
-        try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
+        try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); fightSec=Number(rr.t); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
         catch(e){ incident='raid-replay-error: '+e.message; }
       } else incident='raid-replay-unavailable';
       if(dmg0==null){
@@ -12007,6 +12013,13 @@ async function api(req,res,url){
            forced that path on purpose. Now nothing moves, the attempt stays open, and the incident is filed for review. */
         try{ devReport(me,'raid-replay-failed',0,{incident,tier:a.tier,claim:Math.round(Number(b.dmg)||0)}); }catch(e){}
         return send(res,200,{ok:false, unverified:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)});
+      }
+      /* v1457 (Phil 26 Nov 2026, lockdown answer 5: "no skip button allowed for guild raid"). The page has no Skip in a raid; this is the server
+         half: a result that came back sooner than the replayed fight can be WATCHED (its length at the fastest speed the page offers, with
+         slack for clocks) was skipped or fast-forwarded, and is refused. Nothing moves and the attempt stays open, as for an unchecked fight. */
+      if(raidSkipped(fightSec, Date.now()-(a.startedAt||0))){
+        try{ devReport(me,'raid-skipped',0,'guild raid result after '+(Date.now()-(a.startedAt||0))+' ms for a '+(Math.round(fightSec*10)/10)+' s fight (shortest watch '+raidMinWatchMs(fightSec)+' ms), tier '+(a.tier|0)+' - refused, attempt kept'); }catch(e){}
+        return send(res,200,{ok:false, unverified:true, skipped:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)});
       }
       const out=durableCommit(me,rkey,(du,staged)=>{
         const gg=Object.values(staged.guilds||{}).find(x=>x&&x.id===g.id); if(!gg) return {ok:false, error:'You are not in a guild.'};

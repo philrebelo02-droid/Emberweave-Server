@@ -1,3 +1,4 @@
+process.env.RAID_MIN_WATCH_MUL = process.env.RAID_MIN_WATCH_MUL || '0';   // v1457: this test resolves guild raid fights at machine speed; the skipped-raid refusal is proven in tests/test_phil_answers_1457.js
 // v1445 PART A (Phil 24 Nov 2026, Soul Eater's recording: "When you kill a boss it shouldnt say no damage").
 // A guild raid assault that KILLS the boss booked 0 damage: the fight ends 2 s after the boss falls and a fallen enemy has
 // left `units` by then, so the damage meter (raidDamageDone - read by the page AND by the server's replay) found no boss.

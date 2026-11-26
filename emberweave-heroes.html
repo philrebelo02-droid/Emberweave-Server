@@ -13036,7 +13036,7 @@ function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
   REPLAY_IN=keep; _riIdx=0;
   for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
   const dmg=raidDamageDone();
-  window._p2raidDmg=dmg; RAID_BOSS_U=svBossU;
+  window._p2raidDmg=dmg; window._p2raidT=battleTime; RAID_BOSS_U=svBossU;   /* v1457: how long the fight lasts - the server refuses a result that came back faster than it can be watched */
   /* put the live battle back exactly as it was found */
   units=sv.units; state=sv.state; ended=sv.ended; CUR=sv.CUR; battleTime=sv.battleTime; gameSpeed=sv.gameSpeed;
   waveXfer=sv.waveXfer; chapterWaves=sv.chapterWaves; waveIdx=sv.waveIdx; autoUlt=svAuto;
@@ -37731,7 +37731,7 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
   const _isReplay = !!(CUR && CUR.mode==='replay');
   const lv=document.getElementById('leaveBtn');
   if(lv) lv.style.display=_isReplay?'':'none';
-  if(kb) kb.style.display=(forced && !_isReplay && !(CUR&&CUR.mode==='emberdraft') && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   /* v645 (Phil: Skip "should only be for deterministic fights like world map and arena"): never in Emberdraft */   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
+  if(kb) kb.style.display=(forced && !_isReplay && !(CUR&&CUR.mode==='emberdraft') && !(CUR&&CUR.mode==='graid') && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   /* v1457 (Phil 26 Nov 2026: "no skip button allowed for guild raid"): never in a guild raid ('raid' is the city raid) */   /* v645 (Phil: Skip "should only be for deterministic fights like world map and arena"): never in Emberdraft */   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
   if(forced) autoPendingTarget=null;
   const switching=!forced && autoPendingTarget!==null;
   ab.innerHTML=switching?autoSwLabel(autoPendingTarget?t('bhud.auto_sw_on'):t('bhud.auto_sw_off')):((!forced&&!autoOpen()&&!autoUlt)?(t('bhud.auto')+' '+hudIcon('lock')):((autoUlt?t('bhud.auto_on'):t('bhud.auto_off'))+(forced?' '+hudIcon('lock'):'')));
@@ -38753,7 +38753,7 @@ document.getElementById('speedBtn').onclick=()=>{const S=spdChoices();
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
 // ⏭ Skip: fast-forward presentation only when the fight is already deterministic (Arena, World raid, Elite, replay).
-document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle()||(CUR&&CUR.mode==='replay')||(CUR&&CUR.mode==='emberdraft')||(typeof GSPLIT!=='undefined'&&GSPLIT.active))return;
+document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle()||(CUR&&CUR.mode==='replay')||(CUR&&CUR.mode==='emberdraft')||(CUR&&CUR.mode==='graid')||(typeof GSPLIT!=='undefined'&&GSPLIT.active))return;   /* v1457: never in a guild raid */
   for(let i=0, _cap=simTickCap(chapterWaves);i<_cap && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run the rest of the fight instantly (v1399: every wave's 180 s fits - simTickCap); endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 /* v760 - LEAVE. It puts the watched fight down where it stands: it does not run the sim on, does

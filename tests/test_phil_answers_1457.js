@@ -186,6 +186,35 @@ section('4. City Wall tap mode: allowed land green, other regions red (blueprint
   ok(cv.dataset.veiled === '4' && cv.dataset.open === '6', 'the layer counts red ' + cv.dataset.veiled + ' / green ' + cv.dataset.open + ' cells (teleVeil keeps its id for the map tests)');
 });
 
+section('5. guild raid: no Skip on the page, a skipped result refused by the server', async () => {
+  delete process.env.RAID_MIN_WATCH_MUL;   // the real rule (older raid tests set 0 to resolve at machine speed)
+  ok(J(`(function(){ const c=CUR; CUR={mode:'graid'}; const r=isAutoBattle(); CUR=c; return r; })()`) === false, 'a guild raid is not an auto fight, so Skip is never offered');
+  ok(/if\(kb\) kb\.style\.display=\(forced && !_isReplay && !\(CUR&&CUR\.mode==='emberdraft'\) && !\(CUR&&CUR\.mode==='graid'\)/.test(html), 'the Skip button is hidden in a guild raid (by name, too)');
+  ok(/document\.getElementById\('skipBtn'\)\.onclick=\(\)=>\{ if\([^{]*\(CUR&&CUR\.mode==='graid'\)[^{]*\)return;/.test(html), 'and a Skip tap does nothing there');
+  ok(J(`spdChoices()`) !== null && !/x3|gameSpeed=3/.test(html.slice(html.indexOf('function spdChoices'), html.indexOf('function spdChoices') + 200)), 'the fastest speed the page offers is x2 (the server\'s RAID_MAX_SPEED)');
+  ok(S.RAID_MAX_SPEED === 2 && S.raidMinWatchMs(60) === 21000 && S.raidMinWatchMs(4) === 0 && S.raidMinWatchMs(NaN) === 0 && S.raidSkipped(60, 20000) === true && S.raidSkipped(60, 31000) === false,
+    'the shortest watch of a 60 s raid fight is 21 s (x2 speed, 80%, less 3 s); a 4 s fight has no floor');
+  // the real route
+  const g = await guest('raid'), u = S.DB.users[g.id], SQUAD = ['vael', 'sylthaine', 'vireo', 'vex', 'gruel'];
+  u.led.px = S.D_TROOP_CUM[39] + 10; for (const k of SQUAD) { u.led.unlocked[k] = true; u.led.hero[k] = { xp: 900000, stars: 3, pips: 0 }; }
+  const gc = (await call('/api/guild/create', { name: 'Raid Watch ' + Date.now().toString(36) }, g.T)).data;
+  ok(gc && !gc.error, 'fixture: a guild (' + JSON.stringify(gc && gc.error || 'ok') + ')');
+  const AUTO = [[1, 'auto', -1, 1, null, null]];
+  const s1 = (await call('/api/guild/raid/start', { heroIds: SQUAD, requestId: 'p1457-rs1' }, g.T)).data;
+  ok(s1 && s1.ok && s1.attemptId, 'a raid fight starts (' + (s1 && (s1.error || 'ok')) + ')');
+  if (!(s1 && s1.ok)) return;
+  const hp0 = s1.boss && s1.boss.hp;
+  const r1 = (await call('/api/guild/raid/resolve', { attemptId: s1.attemptId, inputLog: AUTO, requestId: 'p1457-rr1' }, g.T)).data;
+  const gg = Object.values(S.DB.guilds).find(x => x && x.members && (x.members[g.id] || (Array.isArray(x.members) && x.members.some(m => (m.id || m) === g.id)))) || Object.values(S.DB.guilds).find(x => x && x.raid && x.raid.att && x.raid.att[g.id]);
+  ok(r1 && r1.ok === false && r1.skipped === true && gg && gg.raid.att[g.id] && gg.raid.att[g.id].id === s1.attemptId && gg.raid.hp === hp0,
+    'a result sent the moment the fight began is refused - no damage booked, the attempt kept (' + JSON.stringify({ ok: r1 && r1.ok, skipped: r1 && r1.skipped, err: r1 && r1.error }) + ')');
+  if (!(gg && gg.raid.att[g.id])) return;
+  gg.raid.att[g.id].startedAt -= 120000;   // two minutes later: the fight could have been watched
+  const r2 = (await call('/api/guild/raid/resolve', { attemptId: s1.attemptId, inputLog: AUTO, requestId: 'p1457-rr2' }, g.T)).data;
+  ok(r2 && r2.ok === true && r2.dmg > 0, 'the same fight, sent after it could be watched, books its ' + (r2 && r2.dmg) + ' damage');
+  ok(/if\(raidSkipped\(fightSec, Date\.now\(\)-\(a\.startedAt\|\|0\)\)\)\{/.test(SRC) && SRC.indexOf('if(raidSkipped(') < SRC.indexOf("const out=durableCommit(me,rkey,"), 'the check runs before anything is booked');
+});
+
 (async () => {
   for (const [n, f] of SECTIONS) { console.log('== ' + n + ' =='); await f(); }
 })().then(() => { console.log((SOFT ? 'SOFT ' : '') + 'test_phil_answers_1457.js: ' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0); },

@@ -1,3 +1,4 @@
+process.env.RAID_MIN_WATCH_MUL = process.env.RAID_MIN_WATCH_MUL || '0';   // v1457: this test resolves guild raid fights at machine speed; the skipped-raid refusal is proven in tests/test_phil_answers_1457.js
 // v1446 (independent review of v1445, 24 Nov 2026): a guild raid fight that ended AFTER another member felled its boss booked
 // its damage against the NEXT boss's fresh pool and his contribution board. Now it leaves the current boss alone: the player is
 // paid guild coins for the damage dealt to their own boss (capped at what he had when the fight began), with no kill package.

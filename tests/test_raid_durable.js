@@ -1,3 +1,4 @@
+process.env.RAID_MIN_WATCH_MUL = process.env.RAID_MIN_WATCH_MUL || '0';   // v1457: this test resolves guild raid fights at machine speed; the skipped-raid refusal is proven in tests/test_phil_answers_1457.js
 // 3 Oct 2026 Guild audit #2 (v978): the guild raid result is one durable commit of the player's reward AND the guild's shared
 // state. With the disk refusing the save (a preload hook fails the DB rename while a flag file exists) the resolve must answer
 // 503 with the boss, the guild coins and the open attempt exactly as before; with the disk back the SAME requestId books once,
