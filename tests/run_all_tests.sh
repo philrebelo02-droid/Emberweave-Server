@@ -677,6 +677,8 @@ note "screen_lockdown_watchtower.js (lockdown 25 Nov round 2, needs playwright: 
 node tests/screen_lockdown_watchtower.js || FAILED=1
 note "screen_lockdown_guild.js (lockdown 25 Nov round 2, needs playwright: Guild Hall title art + one gold frame, raid team screen, live Skyfall board, fallen/burning towers, 16-guild bracket, banner picture import crop)"
 node tests/screen_lockdown_guild.js || FAILED=1
+note "screen_lockdown_citywall.js (lockdown 25 Nov round 2, needs playwright: City Wall gatehouse art beside the panels at every size, painted realm zoomed out, smooth zoom on a slow network, z0 detail tiles, a worked mine stays until empty)"
+node tests/screen_lockdown_citywall.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
