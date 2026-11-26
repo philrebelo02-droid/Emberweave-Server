@@ -11080,6 +11080,8 @@ function gsplitHeroCardId(u){
   if(!u._bonusCardId)u._bonusCardId='b'+(GSPLIT._cardSeq=(GSPLIT._cardSeq||0)+1);
   return u._bonusCardId;
 }
+/* v1455 lockdown (campaign-20-bonus "Gold ring on selected hero"): is this field unit the hero picked up on the firebreak tray? (display only - the battle overlay draws its gold feet ring) */
+function gsplitPickedOnField(u){ const W=GSPLIT.window; return !!(u&&W&&W.phase!=='closed'&&W.selectedHero&&u.team==='ally'&&u.alive&&!u._summon&&u._bonusCardId===W.selectedHero); }   // reads the tray's id, never assigns one
 function gsplitFindHero(id){
   for(const L of GSPLIT.lanes)for(const u of L.units)
     if(u.team==='ally'&&u.alive&&!u._summon&&gsplitHeroCardId(u)===id)return {u,L};
@@ -11468,6 +11470,7 @@ function gsplitPresets(){
   return [0,1,2].map(i=>{ const p=a[i]; return (p && Array.isArray(p.picked) && p.picked.length) ? p : null; });
 }
 function gsplitPresetRow(E){
+  if(E&&E.stageInfo&&E.stageInfo.coachBonus13) return '';   /* v1455 lockdown (campaign-20-bonus "Easy tutorial waves"; blueprint 20: "Presets are hidden on the Bonus 1-3 teaching run"): the only hiding code sat in the old rails wrapper, which never runs now */
   const ps=gsplitPresets(), saving=!!E._saving, place=E.mode==='place';
   if(!place && !ps.some(Boolean)) return '';        // nothing to load yet - saving happens on the road screen
   return '<div class="gsplitPresets">'+[0,1,2].map(i=>{ const p=ps[i];
@@ -19560,7 +19563,8 @@ function endBattle(won){
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result');
       /* v1349 (Phil 10 Nov: "When I clear a stage there shouldnt be 2 rewards screens, instead just put the stage star amount on this victory reward screen. Then when you click collect it sends you to campaign map.") */
-      if(sWon && r && r.reward){ let _pop=null; try{ _pop=stageRewardPop(stageRewardItems(r.reward), ewT('result.victory'), {stars:Math.max(1,Math.min(3,r.stars||1)), note:r.reward.dailyCapped?ewT('result.daily_limit'):'', onGo:()=>{ document.getElementById('result').classList.remove('srUnder'); document.getElementById('resultBtn').click(); }}); }catch(e){}
+      if(sWon && r && r.reward){ let _pop=null; try{ _pop=stageRewardPop(stageRewardItems(r.reward), ewT('result.victory'), {stars:Math.max(1,Math.min(3,r.stars||1)), first:!!r.reward.first, note:r.reward.dailyCapped?ewT('result.daily_limit'):'',   /* v1455 lockdown (campaign-01 "First clear label"): the pop that covers the result screen says "First clear!" too */
+        onGo:()=>{ document.getElementById('result').classList.remove('srUnder'); document.getElementById('resultBtn').click(); }}); }catch(e){}
         if(_pop) document.getElementById('result').classList.add('srUnder'); }
     },800); return; }
   resultLater(()=>{
@@ -20588,7 +20592,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='ba
       const nm=(u.t&&u.t.name)?String(u.t.name).toUpperCase():'BOSS';
       octx.font='900 12px sans-serif'; octx.lineWidth=3.5; octx.strokeStyle='rgba(0,0,0,.9)';
       octx.strokeText('👑 '+nm,p.x,y-13); octx.fillStyle='#ffd45e'; octx.fillText('👑 '+nm,p.x,y-13); }
-    if(u===selected){ if(_bn){   /* v1364 (tester B 2.4: a square box over the hero in the three-roads run): the campaign's 11 px frame round the bar is taller than a bonus
+    if(u===selected||(_bn&&gsplitPickedOnField(u))){ if(_bn){   /* v1455 lockdown (campaign-20-bonus "Gold ring on selected hero"): the hero picked at a firebreak (W.selectedHero) wears the ring - nothing ever set `selected` in a bonus run. v1364 (tester B 2.4: a square box over the hero in the three-roads run): the campaign's 11 px frame round the bar is taller than a bonus
         hero's whole head, so it read as a box on the hero. A bonus hero gets a clean gold ring at its feet instead (display only). */
         const _f=project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,0.01); if(_f.vis){ const _rr=Math.max(6,_ebw*0.62); octx.save(); octx.strokeStyle='#ffd45e'; octx.lineWidth=1.5; octx.shadowColor='rgba(255,212,94,.8)'; octx.shadowBlur=4;
           octx.beginPath(); octx.ellipse(_f.x,_f.y,_rr,_rr*0.42,0,0,Math.PI*2); octx.stroke(); octx.restore(); } }
@@ -26164,7 +26168,7 @@ function stageDetailHTML(stg,node,mode){ mode=mode||PORTAL||'normal';   /* v1211
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">${t('stage.star_rules',{s3:uiIcon('star-filled').repeat(3),s2:uiIcon('star-filled').repeat(2),s1:uiIcon('star-filled')})}</div>
   </div>${(typeof preBattleLineHTML==='function')?preBattleLineHTML('campaign'):''}`;
 }
-function openStageModal(i,mode){
+function openStageModal(i,mode,_srvRedraw){   /* _srvRedraw: v1455 lockdown - the redraw after the server's run count (no second fetch) */
   mode=mode||PORTAL||'normal';
   { const lock=portalChapterLockMsg(mode,chapterOf(i)); if(lock){ bannerMsg(hudIcon('lock')+' '+lock); return; } }
   if(i>portalCleared(mode)+1) return;   // locked
@@ -26173,13 +26177,16 @@ function openStageModal(i,mode){
   const _stg=STAGE_CACHE[mode+':'+i];
   // v257: always refresh — the stage data is static but YOUR power changes every time you level,
   // ascend a glyph or temper gear, and the panel must never show a stale reading.
-  if(ACC.token){ api('/api/campaign/stage?mode='+mode+'&node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[mode+':'+i]=r.stage;
+  if(ACC.token&&!_srvRedraw){ api('/api/campaign/stage?mode='+mode+'&node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[mode+':'+i]=r.stage;
     STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
     if(r.runsLeft!=null){ try{ const sd=stageDaily(); sd.n[mode+':'+i]=Math.max(0,ELITE_BOSS_DAILY-(r.runsLeft|0)); }catch(e){} }   /* v1015 (re-audit Arena N7): the server's count of today's rewarded runs wins */
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
-    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i,mode); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=(window._smReceipt&&window._smReceipt.key===_smKey)?window._smReceipt.html:stageDropsHTML(r.stage,i,mode); }
+    /* v1455 lockdown (campaign-01 "CHANCES n/3"): when the server's count of today's runs differs from what the phone drew (another device, a fresh
+       login), the WHOLE panel is redrawn - the CHANCES n/3 box and the Fight / Sweep / Reset buttons - not only the lines below. The sweep receipt stays. */
+    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')&&window._smLeft&&window._smLeft.key===_smKey&&stageRunsLeft(i,mode)!==window._smLeft.left){ openStageModal(i,mode,true); const dr=document.getElementById('smFragTarget'); if(dr&&window._smReceipt&&window._smReceipt.key===_smKey) dr.innerHTML=window._smReceipt.html; }
+    else if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i,mode); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=(window._smReceipt&&window._smReceipt.key===_smKey)?window._smReceipt.html:stageDropsHTML(r.stage,i,mode); }
     preloadStageArt(r.stage); }
     else if(window.SM_KEY===_smKey&&!STAGE_CACHE[mode+':'+i]){ const de=document.getElementById('smDetails');   /* v1200: a failed or timed-out stage request says so, with Try again */
       if(de){ de.innerHTML='<div style="font-size:11px;color:#ff9a9a">'+t('stage.details_failed')+' <button class="btn xs" id="smDetRetry">'+t('stage.try_again')+'</button></div>'; const b=document.getElementById('smDetRetry'); if(b) b.onclick=()=>openStageModal(i,mode); } } }).catch(()=>{}); }
@@ -26190,6 +26197,7 @@ function openStageModal(i,mode){
   regenStamina();
   const canPay=G.stamina>=stageStamCost(i,mode);
   const _eb=portalHardMode(mode)||isEliteStage(i)||isBossStage(i), _left=stageRunsLeft(i,mode), _farmable=!_eb||_left>0;
+  window._smLeft={key:_smKey,left:_left};   /* v1455 lockdown (campaign-01 "CHANCES n/3"): the count this panel was drawn with */
   // Blueprint v1: normal stages may be attempted early; a chapter boss is a hard player-level gate.
   const _gate=0;   /* v825 (Phil 25 Sep): "if they are strong enough to kill the boss, they can send it" */
   const _gateOK=!_gate||playerLevel()>=_gate;
@@ -26256,7 +26264,7 @@ function stageRewardItems(rw){ rw=rw||{}; const out=[];
   return out; }
 function stageRewardPop(items,title,opt){ opt=opt||{}; if(!items||!items.length) return null; const old=document.getElementById('stageRewPop'); if(old) old.remove();
   const ov=document.createElement('div'); ov.id='stageRewPop';
-  ov.innerHTML=`<div class="srCard"><div class="srTitle">${escapeHTML(title||'')}</div>${opt.stars?`<div class="srStars">${uiIcon('star-filled').repeat(opt.stars)+uiIcon('star-empty').repeat(Math.max(0,3-opt.stars))}</div>`:''}${opt.note?`<div class="srNote">${escapeHTML(opt.note)}</div>`:''}<div class="srGrid">${items.map(x=>`<div class="srItem"><div class="srArt">${x.art}</div><b>x${(+x.qty||0).toLocaleString(LANG.cur==='en'?'en-US':LANG.cur)}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div><button class="srGo" type="button">${t('wish.collect_all')}</button></div>`;
+  ov.innerHTML=`<div class="srCard"><div class="srTitle">${escapeHTML(title||'')}</div>${opt.stars?`<div class="srStars">${uiIcon('star-filled').repeat(opt.stars)+uiIcon('star-empty').repeat(Math.max(0,3-opt.stars))}</div>`:''}${opt.first?`<div class="srNote srFirst" style="color:#ffd45e;font-weight:800">${escapeHTML(ewT('result.first_clear'))}</div>`:''}${opt.note?`<div class="srNote">${escapeHTML(opt.note)}</div>`:''}<div class="srGrid">${items.map(x=>`<div class="srItem"><div class="srArt">${x.art}</div><b>x${(+x.qty||0).toLocaleString(LANG.cur==='en'?'en-US':LANG.cur)}</b><span>${escapeHTML(x.name)}</span></div>`).join('')}</div><button class="srGo" type="button">${t('wish.collect_all')}</button></div>`;
   document.body.appendChild(ov); requestAnimationFrame(()=>ov.classList.add('on'));
   [...ov.querySelectorAll('.srItem')].forEach((c,i)=>setTimeout(()=>c.classList.add('on'),260+i*180));   // dominoes, like the Wishing Pool x10
   ov.querySelector('.srGo').onclick=()=>{ ov.remove(); if(typeof opt.onGo==='function') try{ opt.onGo(); }catch(e){} };
