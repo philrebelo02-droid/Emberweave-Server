@@ -137,14 +137,15 @@ async function mine(pg,S,s,node){ await openWorld(pg,S);
       return {mine:!!el&&SL.vis(el),mining:!!el&&el.classList.contains('mining'),at:R,inView:!!el&&SL.inView(el,4),timers:t.map(x=>x.txt),miningTimer:mt?mt.txt:null,
         timerAbove:!!(mt&&R&&mt.R.b<=R.y+R.h*0.6&&Math.abs((mt.R.x+mt.R.w/2)-(R.x+R.w/2))<Math.max(30,R.w)),march:(activeMarches()||[]).filter(m=>m.ctype==='mine'&&m.mineId===id).map(m=>({arrive:m.arrive-Date.now(),home:m.home-Date.now(),resolved:!!m.resolved}))}; },[nodeSel,node.id]); };
   const send=async n=>{ await centre(); await H.wait(800); await pg.evaluate(sel=>{ const e=document.querySelector(sel); if(e) e.scrollIntoView({block:'center',inline:'center'}); },nodeSel);
-    await press(pg,S,nodeSel); await pg.waitForSelector('.citymenu [data-a="mine"]',{timeout:10000}); await press(pg,S,'.citymenu [data-a="mine"]');
+    let how='tap'; try{ await press(pg,S,nodeSel); }catch(e){ how='js click (the tap was intercepted: '+String(e.message||e).split(String.fromCharCode(10)).find(l=>/intercept/.test(l))+')'; await pg.evaluate(sel=>document.querySelector(sel).click(),nodeSel); }
+    await pg.waitForSelector('.citymenu [data-a="mine"]',{timeout:10000}); await press(pg,S,'.citymenu [data-a="mine"]');
     await pg.waitForSelector('#mcGo',{timeout:10000}); const pre=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length); let picked=0;
     const skip=[];
     for(let i=0;i<16;i++){ const sel=await pg.evaluate(skip=>{ if(document.querySelectorAll('.mc-hero.selected').length>=5) return null; const h=[...document.querySelectorAll('.mc-hero')].filter(x=>!x.classList.contains('selected')&&!skip.includes(x.dataset.k))[0]; if(!h) return null; h.id='slMc'; h.scrollIntoView({block:'center'}); return {sel:'#slMc',k:h.dataset.k}; },skip); if(!sel) break;
       const before=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length); await press(pg,S,sel.sel); await H.wait(200);
       const after=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length); if(after>before) picked++; else skip.push(sel.k); }
     picked+=pre;
-    const ok=await pg.evaluate(()=>!document.getElementById('mcGo').disabled); if(ok) await press(pg,S,'#mcGo'); await H.wait(2500); return {picked,sent:ok}; };
+    const ok=await pg.evaluate(()=>!document.getElementById('mcGo').disabled); if(ok) await press(pg,S,'#mcGo'); await H.wait(2500); return {picked,sent:ok,opened:how}; };
   const v0=await view('before'); const s0=await shot(pg,S.tag+' Mine stays while mined before');
   C.ok(v0.mine&&v0.inView&&!v0.mining,S.tag+' Mine stays while mined: the Lv '+node.level+' mine is on the map before any miners (stock '+node.left+' of '+node.total+')',{...v0,shot:s0});
   const t0=Date.now(); const a=await send(1); const srv1=(await s.api('/api/world/mines')).body; const marches1=s.disk().worldMineMarches||[];

@@ -174,12 +174,14 @@ async function bracket(pg,S){
     const svg=b.querySelector('svg.skyBrkSvg'), S0=svg.getBoundingClientRect(), paths=[...svg.querySelectorAll('path')];
     const pt=(x,y)=>({x:S0.left+x/100*S0.width,y:S0.top+y/100*S0.height});
     const segs=paths.map(p=>{ const n=(p.getAttribute('d').match(/-?[\d.]+/g)||[]).map(Number); const pts=[]; for(let i=0;i<n.length;i+=2) pts.push(pt(n[i],n[i+1])); return pts; });
-    /* walk the tree: every crest's path must chain (end -> start of the next) until it reaches the cup */
-    const near=(a,b)=>Math.abs(a.x-b.x)<1.5&&Math.abs(a.y-b.y)<1.5;
-    const reach=nodes.map(n=>{ const r=n.getBoundingClientRect(); let at={x:r.left+r.width/2,y:r.top+r.height/2}; for(let step=0;step<6;step++){ const s=segs.find(s=>near(s[0],at)); if(!s) return {ok:false,at}; at=s[s.length-1];
-        if(Math.abs(at.x-cx)<C0.width/2&&Math.abs(at.y-cy)<C0.height*1.2) return {ok:true,steps:step+1}; } return {ok:false,at}; });
+    /* walk the tree in the panel's own % space: from each crest, follow the path that starts where the last one ended, until it reaches the cup */
+    const segsP=paths.map(p=>{ const n=(p.getAttribute('d').match(/-?[\d.]+/g)||[]).map(Number); const pts=[]; for(let i=0;i<n.length;i+=2) pts.push({x:n[i],y:n[i+1]}); return pts; });
+    const nearP=(a,b)=>Math.abs(a.x-b.x)<0.05&&Math.abs(a.y-b.y)<0.05, cupX=parseFloat(cup.style.left), cupY=parseFloat(cup.style.top);
+    const reach=nodes.map(n=>{ let at={x:parseFloat(n.style.left),y:parseFloat(n.style.top)}; for(let step=0;step<6;step++){ const s=segsP.find(s=>nearP(s[0],at)); if(!s) return {ok:false,at}; at=s[s.length-1];
+        if(Math.abs(at.x-cupX)<0.05&&Math.abs(at.y-cupY)<=10) return {ok:true,steps:step+1}; } return {ok:false,at}; });
+    const cupBox=SL.R(cup), cupMid={x:cupBox.x+cupBox.w/2,y:cupBox.y+cupBox.h/2}, svgMid=pt(cupX,cupY), cupOnMid=Math.abs(cupMid.x-svgMid.x)<3&&Math.abs(cupMid.y-svgMid.y)<3;
     const ys=[...new Set(nodes.map(n=>Math.round(n.getBoundingClientRect().top)))];
-    return {nodes:nodes.length,names,crests,cup:SL.vis(cup)&&SL.inView(cup),allReach:reach.every(x=>x.ok),reach:reach.map(x=>x.ok?x.steps:'X'),rows:ys.length,
+    return {nodes:nodes.length,names,crests,cup:SL.vis(cup)&&SL.inView(cup)&&cupOnMid,cupMid,svgMid,allReach:reach.every(x=>x.ok),reach:reach.map(x=>x.ok?x.steps:'X'),rows:ys.length,
       inView:nodes.every(n=>SL.inView(n,2)),cupAt:Math.round((cx-B.left)/B.width*100)+'%,'+Math.round((cy-B.top)/B.height*100)+'%'}; });
   const s=await shot(pg,S.tag+' Bracket panel');
   const want=new Set(GNAMES);
@@ -219,8 +221,9 @@ async function raid(pg,S,s){ await openGuild(pg,S,'raid');
   await pg.evaluate(()=>document.getElementById('gbAssault').scrollIntoView({block:'center'}));
   await press(pg,S,'#gbAssault');
   await pg.waitForFunction(()=>document.getElementById('menu').classList.contains('active')&&document.querySelectorAll('#roster .hero-card').length>0,null,{timeout:20000}).catch(()=>{}); await H.wait(800);
-  const pick=async()=>{ for(let i=0;i<10;i++){ const sel=await pg.evaluate(i=>{ const c=[...document.querySelectorAll('#roster .hero-card')][i]; if(!c) return null; c.id='slPick'+i; c.scrollIntoView({block:'center'}); return '#slPick'+i; },i);
-      if(sel) await press(pg,S,sel); await H.wait(150); } };
+  const pick=async()=>{ for(let i=0;i<14;i++){ const sel=await pg.evaluate(()=>{ const all=[...document.querySelectorAll('#roster .hero-card')]; if(all.filter(c=>c.classList.contains('selected')).length>=10) return null;
+      const c=all.find(c=>!c.classList.contains('selected')&&!c.dataset.slTried); if(!c) return null; c.dataset.slTried='1'; document.querySelectorAll('#slPick').forEach(e=>e.removeAttribute('id')); c.id='slPick'; c.scrollIntoView({block:'center'}); return '#slPick'; });
+      if(!sel) break; await press(pg,S,sel); await H.wait(200); } };
   const before=await pg.evaluate(()=>{ const cards=[...document.querySelectorAll('#roster .hero-card')].filter(SL.vis), xs=[...new Set(cards.slice(0,10).map(c=>Math.round(c.getBoundingClientRect().left)))];
     const cls=[...document.querySelectorAll('#rosterClass [data-rs-class]')];
     return {mode:CUR.mode,title:SL.txt(document.getElementById('menuTitle')),cards:cards.length,cols:getComputedStyle(document.getElementById('roster')).gridTemplateColumns.split(' ').length,firstRowX:xs.length,
