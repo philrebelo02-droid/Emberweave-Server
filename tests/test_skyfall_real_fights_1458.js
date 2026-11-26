@@ -70,6 +70,14 @@ ok(/async function skySimReplay\(r, opts\)/.test(H)&&/if\(REAL && !skyRealUnseen
   ok(!X.skyRealUnseen(log[9]) && X.skyRealUnseen(log[11]),'what was played is remembered on this device (reopening the war)');
   ok(X.skyRealPrime(Object.assign({},r,{log:[]}))===false && X.SKYREAL.on===false,'a war with no fights yet plays nothing'); }
 
+/* ---- 2c. Phil 26 Nov: "10-180 seconds, some fights might be really quick, some might take time" ---- */
+{ const g=n=>{ const m=new RegExp('const '+n+'[ ]*=[ ]*([0-9.]+)').exec(H); return m?+m[1]:NaN; };
+  ok(g('SKY_FIGHT_MIN_S')===10 && g('SKY_FIGHT_CAP_S')===180,'a fight shows on the board for 10-180 s (SKY_FIGHT_MIN_S 10, SKY_FIGHT_CAP_S 180)');
+  const i=H.indexOf('function skyFightMs('); let d=0,j=H.indexOf('{',i),src=''; for(let k=j;k<H.length;k++){ if(H[k]==='{') d++; else if(H[k]==='}'){ d--; if(!d){ src=H.slice(i,k+1); break; } } }
+  const ctx={Math}; vm.createContext(ctx); vm.runInContext('const SKY_FIGHT_CAP_S=180, SKY_FIGHT_MIN_S=10, SKY_ROUNDS_LO=2, SKY_ROUNDS_HI=300;\n'+src+'\nthis.F=skyFightMs;',ctx);
+  const lo=ctx.F({rounds:1}), hi=ctx.F({rounds:300}), mid=ctx.F({rounds:12});
+  ok(lo===10000 && hi===180000 && mid>lo && mid<hi,'the quickest fight shows 10 s, a 300-round grind 180 s, a 12-round fight in between ('+lo+' / '+mid+' / '+hi+' ms)'); }
+
 /* ---- 3. live: a real war on a fixture server ---- */
 async function port(){ const s=net.createServer(); await new Promise(r=>s.listen(0,'127.0.0.1',r)); const n=s.address().port; await new Promise(r=>s.close(r)); return n; }
 async function run(){

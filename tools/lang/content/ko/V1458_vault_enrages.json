@@ -30,7 +30,7 @@
   "Withering Bloom - below {0}% health Nymira halves all healing your heroes receive.": "시드는 꽃 - 체력 {0}% 미만에서 니미라가 영웅들이 받는 모든 치유를 절반으로 줄인다.",
   "Drowned Crown - from {0}% health, every {1} s Nerissa drains {2} energy from every hero.": "익사한 왕관 - 체력 {0}%부터 {1}초마다 네리사가 모든 영웅의 기력을 {2}씩 빼앗는다.",
   "Heartwood - below {0}% health Thorneveil cannot be stunned, frozen, silenced, feared, slowed or moved.": "심재 - 체력 {0}% 미만에서 쏜베일은 기절, 빙결, 침묵, 공포, 둔화, 이동에 면역이 된다.",
-  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero.": "마지막 찬가 - 체력 {0}%부터 {1}초마다 세이블 베스퍼가 모든 영웅을 침묵시킨다.",
+  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero for {2} s.": "마지막 찬가 - 체력 {0}%부터 {1}초마다 세이블 베스퍼가 모든 영웅을 {2}초 동안 침묵시킨다.",
   "Kiln-Heart Overheat - below {0}% health Vharok burns every hero within {1} m of him for {2}% of their max health each second.": "가마심장 과열 - 체력 {0}% 미만에서 바록이 {1}m 안의 모든 영웅을 매초 최대 체력의 {2}%만큼 태운다.",
   "Devour the Weak - below {0}% health Barrowmaw deals {1}% more damage to heroes under {2}% health.": "약자 포식 - 체력 {0}% 미만에서 배로모가 체력 {2}% 미만인 영웅에게 {1}% 더 많은 피해를 준다.",
   "Stormcall - from {0}% health, every {1} s lightning strikes {2} heroes for {3}% of their max health.": "폭풍의 부름 - 체력 {0}%부터 {1}초마다 번개가 영웅 {2}명을 내리쳐 최대 체력의 {3}% 피해를 준다.",

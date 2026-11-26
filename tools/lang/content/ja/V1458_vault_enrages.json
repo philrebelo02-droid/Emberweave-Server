@@ -30,7 +30,7 @@
   "Withering Bloom - below {0}% health Nymira halves all healing your heroes receive.": "枯れゆく花 - HPが{0}%未満のとき、ニミラはヒーローが受けるすべての回復を半減させる。",
   "Drowned Crown - from {0}% health, every {1} s Nerissa drains {2} energy from every hero.": "溺れし王冠 - HP{0}%以下から、{1}秒ごとにネリッサが全ヒーローからエネルギーを{2}吸い取る。",
   "Heartwood - below {0}% health Thorneveil cannot be stunned, frozen, silenced, feared, slowed or moved.": "心材 - HPが{0}%未満のとき、ソーンヴェイルはスタン・凍結・沈黙・恐怖・スロウ・移動の影響を受けない。",
-  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero.": "終わりの聖歌 - HP{0}%以下から、{1}秒ごとにセーブル・ヴェスパーが全ヒーローを沈黙させる。",
+  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero for {2} s.": "終わりの聖歌 - HP{0}%以下から、{1}秒ごとにセーブル・ヴェスパーが全ヒーローを{2}秒間沈黙させる。",
   "Kiln-Heart Overheat - below {0}% health Vharok burns every hero within {1} m of him for {2}% of their max health each second.": "炉心の過熱 - HPが{0}%未満のとき、ヴァロックは{1}m以内の全ヒーローを毎秒最大HPの{2}%焼く。",
   "Devour the Weak - below {0}% health Barrowmaw deals {1}% more damage to heroes under {2}% health.": "弱者喰らい - HPが{0}%未満のとき、バロウモウはHP{2}%未満のヒーローへのダメージが{1}%増加する。",
   "Stormcall - from {0}% health, every {1} s lightning strikes {2} heroes for {3}% of their max health.": "嵐の呼び声 - HP{0}%以下から、{1}秒ごとに雷が{2}体のヒーローに落ち、最大HPの{3}%のダメージを与える。",

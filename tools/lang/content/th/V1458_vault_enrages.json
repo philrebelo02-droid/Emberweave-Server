@@ -30,7 +30,7 @@
   "Withering Bloom - below {0}% health Nymira halves all healing your heroes receive.": "บุปผาเหี่ยวเฉา - เมื่อพลังชีวิตต่ำกว่า {0}% ไนมิราลดการรักษาทั้งหมดที่ฮีโร่ของคุณได้รับลงครึ่งหนึ่ง",
   "Drowned Crown - from {0}% health, every {1} s Nerissa drains {2} energy from every hero.": "มงกุฎจมน้ำ - ตั้งแต่พลังชีวิต {0}% ทุก {1} วินาที เนริสซาดูดพลังงาน {2} หน่วยจากฮีโร่ทุกคน",
   "Heartwood - below {0}% health Thorneveil cannot be stunned, frozen, silenced, feared, slowed or moved.": "แก่นไม้ - เมื่อพลังชีวิตต่ำกว่า {0}% ธอร์นเวลไม่สามารถถูกสตัน แช่แข็ง ใบ้ ทำให้หวาดกลัว ทำให้ช้าลง หรือเคลื่อนย้ายได้",
-  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero.": "บทสวดสุดท้าย - ตั้งแต่พลังชีวิต {0}% ทุก {1} วินาที เซเบิล เวสเปอร์ทำให้ฮีโร่ทุกคนเป็นใบ้",
+  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero for {2} s.": "บทสวดสุดท้าย - ตั้งแต่พลังชีวิต {0}% ทุก {1} วินาที เซเบิล เวสเปอร์ทำให้ฮีโร่ทุกคนเป็นใบ้ {2} วินาที",
   "Kiln-Heart Overheat - below {0}% health Vharok burns every hero within {1} m of him for {2}% of their max health each second.": "หัวใจเตาหลอมร้อนจัด - เมื่อพลังชีวิตต่ำกว่า {0}% วาร็อกเผาฮีโร่ทุกคนในระยะ {1} ม. ทุกวินาที {2}% ของพลังชีวิตสูงสุด",
   "Devour the Weak - below {0}% health Barrowmaw deals {1}% more damage to heroes under {2}% health.": "กลืนกินผู้อ่อนแอ - เมื่อพลังชีวิตต่ำกว่า {0}% แบร์โรว์มอว์สร้างความเสียหายเพิ่มขึ้น {1}% ต่อฮีโร่ที่มีพลังชีวิตต่ำกว่า {2}%",
   "Stormcall - from {0}% health, every {1} s lightning strikes {2} heroes for {3}% of their max health.": "เสียงเรียกพายุ - ตั้งแต่พลังชีวิต {0}% ทุก {1} วินาที สายฟ้าฟาดฮีโร่ {2} คน {3}% ของพลังชีวิตสูงสุด",

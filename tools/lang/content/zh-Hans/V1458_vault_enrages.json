@@ -30,7 +30,7 @@
   "Withering Bloom - below {0}% health Nymira halves all healing your heroes receive.": "凋零之花 - 生命值低于{0}%时，妮米拉使你的英雄受到的所有治疗减半。",
   "Drowned Crown - from {0}% health, every {1} s Nerissa drains {2} energy from every hero.": "溺亡王冠 - 从生命值{0}%起，每{1}秒涅瑞莎吸取每名英雄{2}点能量。",
   "Heartwood - below {0}% health Thorneveil cannot be stunned, frozen, silenced, feared, slowed or moved.": "心材 - 生命值低于{0}%时，索恩维尔无法被眩晕、冻结、沉默、恐惧、减速或移动。",
-  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero.": "终焉圣歌 - 从生命值{0}%起，每{1}秒塞布尔·维斯珀沉默所有英雄。",
+  "Final Hymn - from {0}% health, every {1} s Sable Vesper silences every hero for {2} s.": "终焉圣歌 - 从生命值{0}%起，每{1}秒塞布尔·维斯珀沉默所有英雄{2}秒。",
   "Kiln-Heart Overheat - below {0}% health Vharok burns every hero within {1} m of him for {2}% of their max health each second.": "炉心过热 - 生命值低于{0}%时，瓦洛克每秒灼烧{1}米内的所有英雄，造成其最大生命值{2}%的伤害。",
   "Devour the Weak - below {0}% health Barrowmaw deals {1}% more damage to heroes under {2}% health.": "吞噬弱者 - 生命值低于{0}%时，巴罗莫对生命值低于{2}%的英雄造成的伤害提高{1}%。",
   "Stormcall - from {0}% health, every {1} s lightning strikes {2} heroes for {3}% of their max health.": "风暴召唤 - 从生命值{0}%起，每{1}秒闪电劈中{2}名英雄，造成其最大生命值{3}%的伤害。",

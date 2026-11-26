@@ -351,7 +351,7 @@
     "wr85": 0.325,
     "wr100": 0.375,
     "wrPlus5": 0.8,
-    "avgSec": 71.0,
+    "avgSec": 71,
     "d": 2.6241
    },
    "recommendedPowerGate": 24130
@@ -443,7 +443,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.3,
     "wr100": 0.975,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 66.9,
     "d": 2.4149
    },
@@ -530,7 +530,7 @@
     "wr85": 0.338,
     "wr100": 0.425,
     "wrPlus5": 0.725,
-    "avgSec": 78.0,
+    "avgSec": 78,
     "d": 3.0139
    },
    "recommendedPowerGate": 23424
@@ -788,7 +788,7 @@
     "wr85": 0.25,
     "wr100": 0.7,
     "wrPlus5": 0.925,
-    "avgSec": 76.0,
+    "avgSec": 76,
     "d": 1.6387
    },
    "recommendedPowerGate": 28591
@@ -801,58 +801,58 @@
      {
       "key": "cindertusk",
       "lvl": 8,
-      "hpMul": 2.8544,
-      "dmgMul": 2.5564
+      "hpMul": 3.0257,
+      "dmgMul": 2.6628
      },
      {
       "key": "skulk",
       "lvl": 8,
-      "hpMul": 2.8544,
-      "dmgMul": 2.5564
+      "hpMul": 3.0257,
+      "dmgMul": 2.6628
      },
      {
       "key": "grushak",
       "lvl": 8,
-      "hpMul": 2.8544,
-      "dmgMul": 2.5564
+      "hpMul": 3.0257,
+      "dmgMul": 2.6628
      },
      {
       "key": "sootwing imp",
       "lvl": 8,
-      "hpMul": 2.8544,
-      "dmgMul": 2.5564
+      "hpMul": 3.0257,
+      "dmgMul": 2.6628
      }
     ],
     [
      {
       "key": "shellwark",
       "lvl": 8,
-      "hpMul": 4.2822,
-      "dmgMul": 3.1955
+      "hpMul": 4.5391,
+      "dmgMul": 3.3285
      },
      {
       "key": "ooznik",
       "lvl": 8,
-      "hpMul": 4.2822,
-      "dmgMul": 3.1955
+      "hpMul": 4.5391,
+      "dmgMul": 3.3285
      },
      {
       "key": "grushak",
       "lvl": 8,
-      "hpMul": 4.2822,
-      "dmgMul": 3.1955
+      "hpMul": 4.5391,
+      "dmgMul": 3.3285
      },
      {
       "key": "cindertusk",
       "lvl": 8,
-      "hpMul": 4.2822,
-      "dmgMul": 3.1955
+      "hpMul": 4.5391,
+      "dmgMul": 3.3285
      },
      {
       "key": "voraxis",
       "lvl": 11,
-      "hpMul": 27.7089,
-      "dmgMul": 13.7817,
+      "hpMul": 29.3714,
+      "dmgMul": 14.3555,
       "boss": true
      }
     ]
@@ -863,7 +863,7 @@
     "ascended": false,
     "gatekeeper": true
    },
-   "recommendedPower": 37484,
+   "recommendedPower": 39387,
    "dust": 52,
    "glyphFragments": [
     "Grey Veilward",
@@ -880,12 +880,18 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.313,
     "wr100": 0.8,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 75,
     "d": 2.404,
-    "refit": "N=8 re-confirm 0.150 -> re-fit x0.891 on committed waves (Kimi 25 Nov)"
+    "refit": "N=8 re-confirm 0.150 -> re-fit x0.891 on committed waves (Kimi 25 Nov)",
+    "v1458": {
+     "floorScale": 1.06,
+     "hp": "x1.06",
+     "dmg": "x1.0416",
+     "note": "v1458 boss enrages: floor re-fit in Vault mode with its enrage on (85% squad, n=80) - Claude 26 Nov"
+    }
    },
-   "recommendedPowerGate": 29296
+   "recommendedPowerGate": 30784
   },
   {
    "floor": 11,
@@ -967,7 +973,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.3,
     "wr100": 0.825,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 52.5,
     "d": 1.2423
    },
@@ -1928,7 +1934,7 @@
     "wr85": 0.313,
     "wr100": 0.575,
     "wrPlus5": 0.8,
-    "avgSec": 71.0,
+    "avgSec": 71,
     "d": 0.8667
    },
    "recommendedPowerGate": 36412
@@ -2645,7 +2651,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.287,
     "wr100": 0.7,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 80.7,
     "d": 1.2084
    },
@@ -3893,58 +3899,58 @@
      {
       "key": "whisp",
       "lvl": 29,
-      "hpMul": 2.6283,
-      "dmgMul": 2.8454
+      "hpMul": 2.3655,
+      "dmgMul": 2.6431
      },
      {
       "key": "trapjaw",
       "lvl": 29,
-      "hpMul": 2.6283,
-      "dmgMul": 2.8454
+      "hpMul": 2.3655,
+      "dmgMul": 2.6431
      },
      {
       "key": "wispweaver shade",
       "lvl": 29,
-      "hpMul": 2.6283,
-      "dmgMul": 2.8454
+      "hpMul": 2.3655,
+      "dmgMul": 2.6431
      },
      {
       "key": "riftling spider",
       "lvl": 29,
-      "hpMul": 2.6283,
-      "dmgMul": 2.8454
+      "hpMul": 2.3655,
+      "dmgMul": 2.6431
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 29,
-      "hpMul": 3.9429,
-      "dmgMul": 3.5569
+      "hpMul": 3.5486,
+      "dmgMul": 3.304
      },
      {
       "key": "nightgloom",
       "lvl": 29,
-      "hpMul": 3.9429,
-      "dmgMul": 3.5569
+      "hpMul": 3.5486,
+      "dmgMul": 3.304
      },
      {
       "key": "skyroot dryad",
       "lvl": 29,
-      "hpMul": 3.9429,
-      "dmgMul": 3.5569
+      "hpMul": 3.5486,
+      "dmgMul": 3.304
      },
      {
       "key": "trapjaw",
       "lvl": 29,
-      "hpMul": 3.9429,
-      "dmgMul": 3.5569
+      "hpMul": 3.5486,
+      "dmgMul": 3.304
      },
      {
       "key": "nymira",
       "lvl": 32,
-      "hpMul": 25.5103,
-      "dmgMul": 15.3372,
+      "hpMul": 22.9593,
+      "dmgMul": 14.2468,
       "boss": true
      }
     ]
@@ -3955,7 +3961,7 @@
     "ascended": false,
     "gatekeeper": false
    },
-   "recommendedPower": 116445,
+   "recommendedPower": 106470,
    "dust": 479,
    "glyphFragments": [
     "Purple Starfire",
@@ -3973,10 +3979,16 @@
     "wr85": 0.237,
     "wr100": 0.75,
     "wrPlus5": 0.95,
-    "avgSec": 94.0,
-    "d": 0.7976
+    "avgSec": 94,
+    "d": 0.7976,
+    "v1458": {
+     "floorScale": 0.9,
+     "hp": "x0.9",
+     "dmg": "x0.9289",
+     "note": "v1458 boss enrages: floor re-fit in Vault mode with its enrage on (85% squad, n=80) - Claude 26 Nov"
+    }
    },
-   "recommendedPowerGate": 76723
+   "recommendedPowerGate": 70151
   },
   {
    "floor": 46,
@@ -4761,7 +4773,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.25,
     "wr100": 0.55,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 62.1,
     "d": 0.891
    },
@@ -4854,7 +4866,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.338,
     "wr100": 0.65,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 105.1,
     "d": 0.9682
    },
@@ -4940,7 +4952,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.25,
     "wr100": 0.6,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 67.8,
     "d": 1.0521
    },
@@ -5026,8 +5038,8 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.263,
     "wr100": 0.625,
-    "wrPlus5": 1.0,
-    "avgSec": 67.0,
+    "wrPlus5": 1,
+    "avgSec": 67,
     "d": 1.2084
    },
    "recommendedPowerGate": 93956
@@ -5112,7 +5124,7 @@
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.325,
     "wr100": 0.7,
-    "wrPlus5": 1.0,
+    "wrPlus5": 1,
     "avgSec": 72.6,
     "d": 0.843
    },
@@ -5199,7 +5211,7 @@
     "wr85": 0.325,
     "wr100": 0.8,
     "wrPlus5": 0.775,
-    "avgSec": 88.0,
+    "avgSec": 88,
     "d": 1.5081
    },
    "recommendedPowerGate": 139798
@@ -5290,8 +5302,8 @@
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.388,
-    "wr100": 1.0,
-    "wrPlus5": 1.0,
+    "wr100": 1,
+    "wrPlus5": 1,
     "avgSec": 110.9,
     "d": 3.7614
    },
@@ -5727,8 +5739,8 @@
     "target": 0.3,
     "model": "kimi-vault-ladder-24NOV2026",
     "wr85": 0.287,
-    "wr100": 1.0,
-    "wrPlus5": 1.0,
+    "wr100": 1,
+    "wrPlus5": 1,
     "avgSec": 125.9,
     "d": 0.7976,
     "shapeFix": {
@@ -5736,8 +5748,8 @@
      "bossTrim": 0.5,
      "d": 0.7976,
      "wr85": 0.287,
-     "wr100": 1.0,
-     "wrPlus5": 1.0,
+     "wr100": 1,
+     "wrPlus5": 1,
      "avgSec": 125.9
     }
    },
@@ -6095,58 +6107,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 20.198,
-      "dmgMul": 19.7253
+      "hpMul": 24.6416,
+      "dmgMul": 22.6713
      },
      {
       "key": "granith",
       "lvl": 44,
-      "hpMul": 20.198,
-      "dmgMul": 19.7253
+      "hpMul": 24.6416,
+      "dmgMul": 22.6713
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 20.198,
-      "dmgMul": 19.7253
+      "hpMul": 24.6416,
+      "dmgMul": 22.6713
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 20.198,
-      "dmgMul": 19.7253
+      "hpMul": 24.6416,
+      "dmgMul": 22.6713
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 30.2984,
-      "dmgMul": 24.6561
+      "hpMul": 36.964,
+      "dmgMul": 28.3385
      },
      {
       "key": "storm eel",
       "lvl": 44,
-      "hpMul": 30.2984,
-      "dmgMul": 24.6561
+      "hpMul": 36.964,
+      "dmgMul": 28.3385
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 30.2984,
-      "dmgMul": 24.6561
+      "hpMul": 36.964,
+      "dmgMul": 28.3385
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 30.2984,
-      "dmgMul": 24.6561
+      "hpMul": 36.964,
+      "dmgMul": 28.3385
      },
      {
       "key": "barrowmaw",
       "lvl": 47,
-      "hpMul": 196.0513,
-      "dmgMul": 39.6564,
+      "hpMul": 239.1826,
+      "dmgMul": 45.579,
       "boss": true
      }
     ]
@@ -6157,7 +6169,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 254019,
+   "recommendedPower": 300796,
    "dust": 2313,
    "glyphFragments": [
     "Gold Dawnshield",
@@ -6176,9 +6188,15 @@
     "wr100": 0.7,
     "wrPlus5": 0.775,
     "avgSec": 95.4,
-    "d": 0.4103
+    "d": 0.4103,
+    "v1458": {
+     "floorScale": 1.22,
+     "hp": "x1.22",
+     "dmg": "x1.1493",
+     "note": "v1458 boss enrages: floor re-fit in Vault mode with its enrage on (85% squad, n=80) - Claude 26 Nov"
+    }
    },
-   "recommendedPowerGate": 177522
+   "recommendedPowerGate": 210212
   },
   {
    "floor": 71,
@@ -6969,58 +6987,58 @@
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 29.9688,
-      "dmgMul": 19.388
+      "hpMul": 40.4579,
+      "dmgMul": 23.9203
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 29.9688,
-      "dmgMul": 19.388
+      "hpMul": 40.4579,
+      "dmgMul": 23.9203
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 29.9688,
-      "dmgMul": 19.388
+      "hpMul": 40.4579,
+      "dmgMul": 23.9203
      },
      {
       "key": "rustclank",
       "lvl": 50,
-      "hpMul": 29.9688,
-      "dmgMul": 19.388
+      "hpMul": 40.4579,
+      "dmgMul": 23.9203
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 44.9538,
-      "dmgMul": 24.2365
+      "hpMul": 60.6876,
+      "dmgMul": 29.9022
      },
      {
       "key": "bitwraith",
       "lvl": 50,
-      "hpMul": 44.9538,
-      "dmgMul": 24.2365
+      "hpMul": 60.6876,
+      "dmgMul": 29.9022
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 44.9538,
-      "dmgMul": 24.2365
+      "hpMul": 60.6876,
+      "dmgMul": 29.9022
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 44.9538,
-      "dmgMul": 24.2365
+      "hpMul": 60.6876,
+      "dmgMul": 29.9022
      },
      {
       "key": "orryx",
       "lvl": 53,
-      "hpMul": 290.8801,
-      "dmgMul": 19.2424,
+      "hpMul": 392.6881,
+      "dmgMul": 23.7407,
       "boss": true
      }
     ]
@@ -7031,7 +7049,7 @@
     "ascended": true,
     "gatekeeper": true
    },
-   "recommendedPower": 282666,
+   "recommendedPower": 364802,
    "dust": 4342,
    "glyphFragments": [
     "Gold +3 Dawnshield",
@@ -7053,15 +7071,21 @@
     "d": 1.112,
     "shapeFix": {
      "hpTrim": 0.85,
-     "bossTrim": 1.0,
+     "bossTrim": 1,
      "d": 1.112,
      "wr85": 0.325,
      "wr100": 0.675,
      "wrPlus5": 0.725,
      "avgSec": 124.3
+    },
+    "v1458": {
+     "floorScale": 1.35,
+     "hp": "x1.35",
+     "dmg": "x1.2338",
+     "note": "v1458 boss enrages: floor re-fit in Vault mode with its enrage on (85% squad, n=80) - Claude 26 Nov"
     }
    },
-   "recommendedPowerGate": 193698
+   "recommendedPowerGate": 249982
   },
   {
    "floor": 81,
@@ -8212,7 +8236,7 @@
     "d": 1.0816,
     "shapeFix": {
      "hpTrim": 0.85,
-     "bossTrim": 1.0,
+     "bossTrim": 1,
      "d": 1.0816,
      "wr85": 0.275,
      "wr100": 0.55,
@@ -8316,58 +8340,58 @@
      {
       "key": "vineback boar",
       "lvl": 59,
-      "hpMul": 96.5993,
-      "dmgMul": 56.7663
+      "hpMul": 117.8511,
+      "dmgMul": 65.2443
      },
      {
       "key": "ironjaw raider",
       "lvl": 59,
-      "hpMul": 96.5993,
-      "dmgMul": 56.7663
+      "hpMul": 117.8511,
+      "dmgMul": 65.2443
      },
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 96.5993,
-      "dmgMul": 56.7663
+      "hpMul": 117.8511,
+      "dmgMul": 65.2443
      },
      {
       "key": "luminant orb",
       "lvl": 59,
-      "hpMul": 96.5993,
-      "dmgMul": 56.7663
+      "hpMul": 117.8511,
+      "dmgMul": 65.2443
      }
     ],
     [
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 144.9062,
-      "dmgMul": 70.9594
+      "hpMul": 176.7856,
+      "dmgMul": 81.5571
      },
      {
       "key": "runic automaton",
       "lvl": 59,
-      "hpMul": 144.9062,
-      "dmgMul": 70.9594
+      "hpMul": 176.7856,
+      "dmgMul": 81.5571
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 59,
-      "hpMul": 144.9062,
-      "dmgMul": 70.9594
+      "hpMul": 176.7856,
+      "dmgMul": 81.5571
      },
      {
       "key": "basalt mauler",
       "lvl": 59,
-      "hpMul": 144.9062,
-      "dmgMul": 70.9594
+      "hpMul": 176.7856,
+      "dmgMul": 81.5571
      },
      {
       "key": "asterion",
       "lvl": 60,
-      "hpMul": 328.159,
-      "dmgMul": 32.0905,
+      "hpMul": 400.354,
+      "dmgMul": 36.8832,
       "boss": true
      }
     ]
@@ -8378,7 +8402,7 @@
     "ascended": true,
     "gatekeeper": false
    },
-   "recommendedPower": 393279,
+   "recommendedPower": 465700,
    "dust": 11168,
    "glyphFragments": [
     "Orange Voidbind",
@@ -8406,9 +8430,15 @@
      "wr100": 0.625,
      "wrPlus5": 0.65,
      "avgSec": 130.4
+    },
+    "v1458": {
+     "floorScale": 1.22,
+     "hp": "x1.22",
+     "dmg": "x1.1493",
+     "note": "v1458 boss enrages: floor re-fit in Vault mode with its enrage on (85% squad, n=80) - Claude 26 Nov"
     }
    },
-   "recommendedPowerGate": 269266
+   "recommendedPowerGate": 318851
   },
   {
    "floor": 96,
