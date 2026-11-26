@@ -237,7 +237,7 @@ module.exports={
       const hit=(u.dmg||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1)*sm*E.rage()*3.4*(1+0.03*(T.r.fc_3_2||0))*(1+0.04*(T.r.bt_4_3||0));
       for(const x of E.units().slice()){ if(!x.alive||x.team===u.team||x._dropHidden||E.dist(u,x)-E.bodyR(x)>6.5*M) continue;
         A.hurt(T,u,x,hit*E.defMul(u,x,'phys'),'#ffa657'); if(!x.alive) continue;
-        E.pushDot(x,(u.dmg||0)*0.3,4,1,BLEED,u); const d=x.dots[x.dots.length-1]; if(d){ d._talO=u.uid; d._talK='reap'; A.run(T,u,'reapDot',Object.assign({},c,{tgt:x,dot:d})); }
+        E.pushDot(x,(u.dmg||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1)*0.3,4,1,BLEED,u);   /* v1456 (Phil 26 Nov: "yes all dots should scale with buffs"): the bleed takes the damage buff, as the page's Crimson Reap bleed */ const d=x.dots[x.dots.length-1]; if(d){ d._talO=u.uid; d._talK='reap'; A.run(T,u,'reapDot',Object.assign({},c,{tgt:x,dot:d})); }
         A.acts(T,u,[{pull:'target',to:'self',secs:0.3},{mark:'rcx',on:'target',dur:5,longest:true},{mark:'xbl',on:'target',dur:5,longest:true}],Object.assign({},c,{tgt:x})); } },
     /* ---- Pace ---- */
     swung(A,T){ T.s.lastAtk=now(A); },

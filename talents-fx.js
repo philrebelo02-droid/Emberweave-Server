@@ -2767,7 +2767,7 @@ module.exports={
       const hit=(u.dmg||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1)*sm*E.rage()*3.4*(1+0.03*(T.r.fc_3_2||0))*(1+0.04*(T.r.bt_4_3||0));
       for(const x of E.units().slice()){ if(!x.alive||x.team===u.team||x._dropHidden||E.dist(u,x)-E.bodyR(x)>6.5*M) continue;
         A.hurt(T,u,x,hit*E.defMul(u,x,'phys'),'#ffa657'); if(!x.alive) continue;
-        E.pushDot(x,(u.dmg||0)*0.3,4,1,BLEED,u); const d=x.dots[x.dots.length-1]; if(d){ d._talO=u.uid; d._talK='reap'; A.run(T,u,'reapDot',Object.assign({},c,{tgt:x,dot:d})); }
+        E.pushDot(x,(u.dmg||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1)*0.3,4,1,BLEED,u);   /* v1456 (Phil 26 Nov: "yes all dots should scale with buffs"): the bleed takes the damage buff, as the page's Crimson Reap bleed */ const d=x.dots[x.dots.length-1]; if(d){ d._talO=u.uid; d._talK='reap'; A.run(T,u,'reapDot',Object.assign({},c,{tgt:x,dot:d})); }
         A.acts(T,u,[{pull:'target',to:'self',secs:0.3},{mark:'rcx',on:'target',dur:5,longest:true},{mark:'xbl',on:'target',dur:5,longest:true}],Object.assign({},c,{tgt:x})); } },
     /* ---- Pace ---- */
     swung(A,T){ T.s.lastAtk=now(A); },
@@ -18680,7 +18680,7 @@ module.exports={
       if(P.hburst&&th>=TH_MAX&&um.thOn) for(const y of foes(E,u)){ if(y===x||gapM(E,x,y)>=3) continue; const q=recMk(T,y); q.th=Math.min(TH_MAX,q.th+5); }   // Hollow Burst
       if(um.corOn){ const C=um.cor; if(C.m===x&&C.t>0){ if(P.bof) u.energy=Math.min(100,(u.energy||0)+P.bof);       // Bright Ones Fall
           if(P.elc){ const b=T.fn.bright(A,T,u,[x]); if(b){ C.m=b; um.corN++; T.fn.corOn(A,T,u,b); } else C.m=null; } } }   // Every Light Checked: it moves at once, with its time left
-      for(const p of um.pr){ if(p.a!==x&&p.b!==x) continue; const o=p.a===x?p.b:p.a; if(P.pa&&o.alive){ T.fn.mag(A,T,u,o,P.pa*(u.apow||0),'umPa'); um.paN=(um.paN||0)+1; } p.t=0; }   // Pulled Apart
+      for(const p of um.pr){ if(p.a!==x&&p.b!==x) continue; const o=p.a===x?p.b:p.a; if(P.pa&&o.alive){ T.fn.mag(A,T,u,o,P.pa*(u.apow||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1),'umPa'); um.paN=(um.paN||0)+1; } p.t=0; }   // Pulled Apart
       if(P.wand){ const D=x.dots||[]; for(const d of D){ if(d._talO!==u.uid||!CRT[d._talK]||!(d.remaining>0)) continue; let b=null, bd=Infinity; for(const y of foes(E,u)){ if(y===x) continue; const g=E.dist(x,y); if(g<bd){ bd=g; b=y; } }
           if(b){ E.pushDot(b,d.dps,dotLeft(d),d.interval||1,d.color||'#8a5cff',u,d.kind||'magic'); const nd=b.dots[b.dots.length-1]; nd._talO=u.uid; nd._talK=d._talK; nd._umN0=d._umN0; b._contagion=true; b._plagueDps=d.dps; b._plagueColor=d.color||'#8a5cff'; b._plagueHex=0x7a3fb0; um.crT=b; um.wandN=(um.wandN||0)+1; } break; } }   // Wandering Eye
       /* the zone: the signature widens it; Lingering Dark from it (Swallowed by the Gap: sprR). Field of Rot and the signature spread when the page would not */
