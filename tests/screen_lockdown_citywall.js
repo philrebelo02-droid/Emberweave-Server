@@ -156,7 +156,10 @@ async function mine(pg,S,s,node){ await openWorld(pg,S);
     await pg.waitForSelector('#mcGo',{timeout:10000}); const pre=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length); let picked=0;
     const skip=[];
     for(let i=0;i<16;i++){ const sel=await pg.evaluate(skip=>{ if(document.querySelectorAll('.mc-hero.selected').length>=5) return null; const h=[...document.querySelectorAll('.mc-hero')].filter(x=>!x.classList.contains('selected')&&!skip.includes(x.dataset.k))[0]; if(!h) return null; h.id='slMc'; h.scrollIntoView({block:'center'}); return {sel:'#slMc',k:h.dataset.k}; },skip); if(!sel) break;
-      const before=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length); await press(pg,S,sel.sel); await H.wait(200);
+      const before=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length);
+      /* the picker list can redraw between the read and the tap (run 3: #slMc gone): tap the card by its hero key */
+      const ks='.mc-hero[data-k="'+sel.k+'"]'; await pg.evaluate(ks=>{ const e=document.querySelector(ks); if(e) e.scrollIntoView({block:'center'}); },ks);
+      try{ await press(pg,S,ks); }catch(e){ await H.wait(500); await press(pg,S,ks).catch(()=>{}); } await H.wait(200);
       const after=await pg.evaluate(()=>document.querySelectorAll('.mc-hero.selected').length); if(after>before) picked++; else skip.push(sel.k); }
     picked+=pre;
     const ok=await pg.evaluate(()=>!document.getElementById('mcGo').disabled); if(ok) await press(pg,S,'#mcGo'); await H.wait(2500); return {picked,sent:ok,opened:how}; };

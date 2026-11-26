@@ -139,8 +139,8 @@ async function match(pg,S){
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:p.x,y:p.y,id:1},{x:shopP.x,y:shopP.y,id:2}]});
         for(let i=1;i<=8;i++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:p.x,y:p.y,id:1},{x:shopP.x+(other.x-shopP.x)*i/8,y:shopP.y+(other.y-shopP.y)*i/8,id:2}]}); await H.wait(40); }
         const g2=await pg.evaluate(()=>{ const d=document.getElementById('edDrag'); if(!d) return null; const r=d.getBoundingClientRect(); return {k:d.dataset.k,box:{x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)},n:document.querySelectorAll('#edDrag').length}; });
+        await H.wait(300); const s1=await pg.evaluate(()=>EDT.snap());   /* before the fingers lift: lifting the first one drops the carried hero (the drag's own drop) */
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[{x:p.x,y:p.y,id:1}]}); await H.wait(300);
-        const s1=await pg.evaluate(()=>EDT.snap());
         second={before:s0,after:s1,ghost:g2,secondFinger:{from:shopP,to:other}}; }
       return {finger:p,ghost:g}; });
     await H.wait(600);
@@ -225,7 +225,8 @@ async function match(pg,S){
     const zs=[]; for(const x of r){ if(x.screen) zs.push(await shot(pg,S.tag+' insignia '+x.rank+' star zoom',{clip:{x:Math.max(0,x.screen.x-45),y:Math.max(0,x.screen.y-110),width:90,height:150}})); }
     const sAll=await shot(pg,S.tag+' insignia 1-4 star board');
     const wantRuns=[1,2,3,1];
-    r.forEach((x,i)=>{ const shape=i<3?(x.runs===wantRuns[i]&&x.maxLenPx<8*x.k*x.scale):(x.runs===1&&x.maxLenPx>=8*x.k*x.scale);
+    r.forEach((x,i)=>{ const segs=String(x.prof||'').split(/[^#]+/).filter(Boolean).map(z=>z.length).sort((a,b)=>b-a);   /* a star's thin tip can read as a 1-2 px second mark (seen 26 Nov run 3) */
+      const shape=i<3?(x.runs===wantRuns[i]&&x.maxLenPx<8*x.k*x.scale):((x.runs===1||(x.runs===2&&segs.length===2&&segs[1]<=2))&&x.maxLenPx>=8*x.k*x.scale);
       C.ok(!x.missing&&!x.noDraw&&shape&&x.barBottom!=null&&x.barBottom<=x.top+0.5,S.tag+' Rank insignia: the '+(i+1)+' star '+setup.key+' shows '+(i<3?(i+1)+' chevron'+(i?'s':''):'a star')+' ('+x.runs+' marks read on the overlay, tallest '+x.maxLenPx+' px) and the health bar above it (bar bottom '+x.barBottom+' <= insignia top '+x.top+')',{...x,shot:[zs[i],sAll]}); });
   }
   /* ---- Rival avatar: a monster round first (none), then a PvP round ---- */
