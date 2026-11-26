@@ -96,7 +96,7 @@ async function idlePlates(pg,S,mode,want,label,name){
   await chapter(pg,mode,1);
   const r=await pg.evaluate(async([want,label])=>{ const out=[];
     for(const [stage,key] of want){ const n=document.querySelector('#cmap .cnode[data-stage-plate="'+stage+'"]'), cv=n&&n.querySelector('canvas.cIdle'), lb=n&&n.querySelector('.ewcmLbl');
-      if(n) n.scrollIntoView({block:'nearest',inline:'center'});
+      if(n){ const sc=document.getElementById('cmapScroll'), nb=n.getBoundingClientRect(), sb=sc.getBoundingClientRect(); sc.scrollLeft+=(nb.left+nb.width/2)-(sb.left+sb.width/2); }   /* only the map scrolls (scrollIntoView also shifted the game frame) */
       const grab=()=>{ try{ const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data; let h=0,ink=0; for(let i=0;i<d.length;i+=4){ if(d[i+3]>8) ink++; h=(h*31+d[i]*3+d[i+1]*5+d[i+2]*7+d[i+3])>>>0; } return {h,ink}; }catch(e){ return {err:String(e)}; } };
       let a=null; for(let i=0;i<40&&cv;i++){ a=grab(); if(a.ink>0) break; await new Promise(r=>setTimeout(r,100)); }
       const frames=new Set(); for(let i=0;i<12&&cv;i++){ await new Promise(r=>setTimeout(r,100)); const g=grab(); if(g.ink>0) frames.add(g.h); }
@@ -129,7 +129,7 @@ async function actionRows(pg,S){
 async function playQuit(pg,S,s){
   await chapter(pg,'normal',16);   /* the player is looking at chapter 16 */
   await pg.evaluate(()=>{ campViewCh=2; campViewUser=true; renderRoadmap(); }); await settle(pg,900);   /* the chapter arrows to chapter 2 */
-  await pg.evaluate(()=>document.querySelector('#cmap .cnode[data-stage-plate="14"]').scrollIntoView({block:'nearest',inline:'center'}));
+  await pg.evaluate(()=>(()=>{ const n=document.querySelector('#cmap .cnode[data-stage-plate="14"]'), sc=document.getElementById('cmapScroll'), nb=n.getBoundingClientRect(), sb=sc.getBoundingClientRect(); sc.scrollLeft+=(nb.left+nb.width/2)-(sb.left+sb.width/2); })());
   await press(pg,S.touch,'#cmap .cnode[data-stage-plate="14"]');
   await pg.waitForFunction(()=>document.getElementById('stageModal').classList.contains('active')&&window.SM_KEY==='normal:14',null,{timeout:20000});
   await H.wait(700); await press(pg,S.touch,'#smBattle');

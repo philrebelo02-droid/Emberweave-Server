@@ -89,7 +89,10 @@ async function match(pg,S){
       const o=await pg.evaluate(()=>({min:ED.sideMin,rows:[...document.querySelectorAll('#edRoot .sidep .prow')].map(x=>SL.txt(x)),on:SL.inView('#edRoot .sidep .panel'),tab:!!document.querySelector('#edRoot .sideTab')}));
       const s2=await shot(pg,S.tag+' players panel opened by its tab');
       C.ok(o.min===false&&o.rows.length===8&&o.on&&!o.tab,S.tag+' Players panel: a tap on the side tab opens the list of all 8 players',{...o,shot:s2});
-      await press(pg,S.touch,'#edRoot .sideFold'); await H.wait(600);
+      const fb=await pg.evaluate(()=>{ const b=document.querySelector('#edRoot .sideFold'); return b?{box:SL.R(b),on:SL.inView(b),front:SL.front(b),who:SL.whoAt(b),view:SL.V()}:null; });
+      let folded='tap'; try{ await press(pg,S.touch,'#edRoot .sideFold'); }catch(e){ folded='js click (the tap did not land: '+String(e.message||e).split(String.fromCharCode(10))[0].slice(0,80)+')'; await pg.evaluate(()=>{ const b=document.querySelector('#edRoot .sideFold'); if(b) b.click(); }); }
+      await H.wait(600); const fm=await pg.evaluate(()=>ED.sideMin);
+      C.ok(!!fb&&fb.on&&fb.front&&folded==='tap'&&fm===true,S.tag+' Players panel: its fold button is on screen and a tap folds the list away again',{button:fb,how:folded,sideMin:fm});
     } else {
       C.ok(r.min===false&&!r.tab&&r.panel&&r.rows===8&&r.panelOn,S.tag+' Players panel: on a '+r.h+' px tall screen the players list starts open (8 players, no side tab)',{...r,shot:s1});
     }
@@ -175,7 +178,8 @@ async function match(pg,S){
   { await pg.evaluate(()=>{ window._edTags=[]; if(!window._edTagW){ window._edTagW=1; const o=edAvTag; edAvTag=function(a,txt,col){ try{ window._edTags.push({txt,col,x:a&&a.x,y:a&&a.y,t:performance.now()}); if(window._edTags.length>400) window._edTags.splice(0,200); }catch(e){} return o.apply(this,arguments); }; } });
     const a0=await pg.evaluate(()=>{ const a=edAvEnsure(); return {x:a.x,y:a.y}; });
     /* empty ground: the middle of the field, between the two sides, nothing standing there */
-    const tgt=await pg.evaluate(()=>{ const x=FW*0.5, y=FD*0.47; const s=edScreen(x,y); const el=document.elementFromPoint(s.x,s.y); return {fx:x,fy:y,x:s.x,y:s.y,hit:el&&(el.dataset.field?'field':el.className),unit:!!edUnitAtScreen(s.x,s.y),orb:!!edOrbAtScreen(s.x,s.y)}; });
+    const tgt=await pg.evaluate(()=>{ let best=null; for(const fy of [0.47,0.42,0.52,0.37,0.57]) for(const fx of [0.5,0.4,0.6,0.3,0.7]){ const x=FW*fx, y=FD*fy, s=edScreen(x,y), el=document.elementFromPoint(s.x,s.y);   /* the first point of the middle ground with nothing standing on it */
+      const c={fx:x,fy:y,x:s.x,y:s.y,hit:el&&(el.dataset.field?'field':el.className),unit:!!edUnitAtScreen(s.x,s.y),orb:!!edOrbAtScreen(s.x,s.y)}; if(!best) best=c; if(c.hit==='field'&&!c.unit&&!c.orb) return c; } return best; });
     if(S.touch) await pg.touchscreen.tap(tgt.x,tgt.y); else await pg.mouse.click(tgt.x,tgt.y);
     await pg.waitForFunction(()=>ED.av&&ED.av.tx==null&&!ED.av.moving,null,{timeout:15000}).catch(()=>{}); await H.wait(600);
     const a1=await pg.evaluate(()=>{ const a=ED.av, f=edScreenToField; const G=ED._avG, r=G&&G.cv?G.cv.getBoundingClientRect():null; return {x:a.x,y:a.y,cv:r?{x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),disp:G.cv.style.display}:null,model:!!(G&&G.ok)}; });
@@ -229,8 +233,14 @@ async function match(pg,S){
     const s10=await shot(pg,S.tag+' monster round fight');
     C.ok(m.pve&&m.round===2&&m.phase==='fight'&&!m.foe&&m.tags.length>0&&m.tags.every(t=>!t.endsWith('#ff9a8a')),S.tag+' Rival avatar: in a monster round (round '+m.round+') no rival avatar and no rival name tag (tags drawn: '+m.tags.join(', ')+')',{...m,shot:s10});
     /* let the monster round finish (the board is far stronger than round 2's wave) */
-    let ok=await pg.waitForFunction(()=>ED.phase==='plan'&&ED.round===3,null,{timeout:200000}).then(()=>true,()=>false);
-    if(!ok){ await pg.evaluate(()=>{ for(const u of units) if(u.team==='enemy'&&u.alive) u.hp=0; }); ok=await pg.waitForFunction(()=>ED.phase==='plan'&&ED.round===3,null,{timeout:90000}).then(()=>true,()=>false); }
+    /* v1388: a solo round ends on the Damage Done panel and the next round opens on its Continue (a player taps it) */
+    let ok=false, t0=Date.now(), killed=false, cont=0;
+    while(Date.now()-t0<290000){ const st=await pg.evaluate(()=>({plan:ED.phase==='plan'&&ED.round===3,go:(()=>{ const b=document.querySelector('#ddPop .ddGo'); return !!b&&SL.vis(b); })()}));
+      if(st.plan){ ok=true; break; }
+      if(st.go){ await press(pg,S.touch,'#ddPop .ddGo').catch(()=>pg.evaluate(()=>document.querySelector('#ddPop .ddGo').click())); cont++; }
+      if(!killed&&Date.now()-t0>200000){ killed=true; await pg.evaluate(()=>{ for(const u of units) if(u.team==='enemy'&&u.alive) u.hp=0; }); }
+      await H.wait(1000); }
+    console.log('  INFO   '+S.tag+' monster round: Continue on the Damage Done panel tapped '+cont+'x, enemies cut down by the test: '+killed);
     if(!ok){ const st=await pg.evaluate(()=>({phase:ED.phase,round:ED.round,state})); C.ok(false,S.tag+' Rival avatar: the match reaches round 3 planning after the monster round',st); }
     else {
       await H.wait(1200); await pg.evaluate(()=>edNextRound());

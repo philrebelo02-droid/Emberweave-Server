@@ -86,6 +86,9 @@ async function store(pg,S){
       let scrolled=null;
       if(r.over){ /* sideways: the mouse wheel on a PC (the page turns it sideways), a finger swipe on a phone */
         const b=await pg.evaluate(()=>{ const r=document.querySelector('#hudShop .st2-body').getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width}; });
+        let swipeDiag=null;
+        if(S.touch){ swipeDiag=await pg.evaluate(([x,y])=>({at:SL.whoAt?(()=>{ const t=document.elementFromPoint(x,y); return t?(t.tagName+'.'+String(t.className).slice(0,40)):null; })():null,inBody:!!document.elementFromPoint(x,y)&&document.querySelector('#hudShop .st2-body').contains(document.elementFromPoint(x,y))}),[Math.round(b.x+b.w*0.35),Math.round(b.y)]);
+          console.log('  INFO   '+S.tag+' store swipe starts at '+Math.round(b.x+b.w*0.35)+','+Math.round(b.y)+' on '+JSON.stringify(swipeDiag)); }
         if(S.touch){ const cdp=await pg._ctx.newCDPSession(pg); for(let k=0;k<4;k++){ const x0=Math.round(b.x+b.w*0.35), y=Math.round(b.y);
           await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x0,y}]});
           for(let j=1;j<=12;j++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x0-Math.round(b.w*0.6*j/12),y}]}); await H.wait(16); }
@@ -95,7 +98,7 @@ async function store(pg,S){
         scrolled=await pg.evaluate(()=>{ const body=document.querySelector('#hudShop .st2-body'), brr=SL.R(body), last=[...body.querySelectorAll('.st2-card')].pop(), lr=SL.R(last); let ta=[]; for(let e=body;e&&e!==document.documentElement;e=e.parentElement){ const v=getComputedStyle(e).touchAction; if(v!=='auto') ta.push((e.id||e.className||e.tagName).toString().slice(0,30)+':'+v); }
           return {scrollLeft:Math.round(body.scrollLeft),max:body.scrollWidth-body.clientWidth,lastIn:lr.x>=brr.x-1&&lr.r<=brr.r+1,overflowX:getComputedStyle(body).overflowX,touchAction:ta}; });
         const s2=await shot(pg,S.tag+' store '+id+' scrolled');
-        C.ok(scrolled.scrollLeft>0&&scrolled.lastIn,S.tag+' Painted store window, '+id+' tab: the cards do not all fit, and '+(S.touch?'a sideways swipe':'the mouse wheel')+' scrolls them sideways until the last card is in the window',{...scrolled,width:r.sw+'/'+r.cw,shot:s2});
+        C.ok(scrolled.scrollLeft>0&&scrolled.lastIn,S.tag+' Painted store window, '+id+' tab: the cards do not all fit, and '+(S.touch?'a sideways swipe':'the mouse wheel')+' scrolls them sideways until the last card is in the window',{...scrolled,swipeStart:swipeDiag,width:r.sw+'/'+r.cw,shot:s2});
       } else C.ok(r.visible===r.n,S.tag+' Painted store window, '+id+' tab: all '+r.n+' cards fit inside the window (no sideways scroll needed)',{body:r.body,shot:s1});
     } else C.ok(!!r.soon&&r.soonIn,S.tag+' Painted store window, '+id+' tab: no offers yet - the "coming soon" note sits inside the window',{soon:r.soon,shot:s1});
   }

@@ -24,7 +24,7 @@ async function title(pg,S,how){
   const r=await pg.evaluate(async()=>{ const h=document.querySelector('#arena h1'), b=document.querySelector('#arena .backbtn'), cs=getComputedStyle(h), bg=await SL.bgLoaded(h);
     const hr=SL.R(h), br=SL.R(b), cy=x=>x.y+x.h/2;
     return {art:bg.map(x=>x.url.replace(location.origin,'')+(x.ok?' '+x.w+'x'+x.h:' NOT LOADED')),ok:bg.length>0&&bg.every(x=>x.ok)&&bg.some(x=>/arena-title/.test(x.url)),font:cs.fontSize,
-      title:hr,base:br,on:SL.inView(h),front:SL.front(h,.5,.5),who:SL.whoAt(h,.5,.5),baseOn:SL.inView(b)&&SL.front(b),gap:Math.round(hr.x-br.r),dy:Math.round(Math.abs(cy(hr)-cy(br))),overlap:SL.overlap(hr,br)}; });
+      title:hr,base:br,on:SL.inView(h),front:SL.front(h,.5,.5)||(()=>{ /* a see-through layout box (no fill, no picture) over the title hides nothing */ const t=document.elementFromPoint(hr.x+hr.w/2,hr.y+hr.h/2), c=t&&getComputedStyle(t); return !!c&&c.backgroundImage==='none'&&/rgba\(0, 0, 0, 0\)|transparent/.test(c.backgroundColor)&&!(t.childNodes&&[...t.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())); })(),who:SL.whoAt(h,.5,.5),baseOn:SL.inView(b)&&SL.front(b),gap:Math.round(hr.x-br.r),dy:Math.round(Math.abs(cy(hr)-cy(br))),overlap:SL.overlap(hr,br)}; });
   const s=await shot(pg,S.tag+' Title art');
   C.ok(r.ok&&parseFloat(r.font)===0&&r.on&&r.front&&r.baseOn&&!r.overlap&&r.gap>=-2&&r.gap<=60&&r.dy<=Math.max(r.base.h,20)&&r.title.w>=40,
     S.tag+' Title art: the painted ARENA title (arena-title.webp, loaded) sits beside the Base button (same row, '+r.gap+' px to its right, centres '+r.dy+' px apart), no text title [opened by '+how+']',
@@ -34,10 +34,10 @@ async function title(pg,S,how){
 async function board(pg,S,how){
   await pg.waitForFunction(()=>document.querySelectorAll('#arenaOpps .arOpp').length>0,null,{timeout:30000}).catch(()=>{}); await H.wait(400);
   const r=await pg.evaluate(()=>{ const q=s=>[...document.querySelectorAll('#arena '+s)];
-    const parts={medal:q('.arMedal'),dayRail:q('.arDay'),defenders:q('.arDef'),defenderSlots:q('.arDefRow>.arHero'),tabs:q('.arTabs>button'),opponents:q('#arenaOpps .arOpp'),challenge:q('#arenaOpps .arOpp .btn')};
+    const parts={medal:q('.arMedal'),dayRail:q('.arDay'),defenders:q('.arDefRow'),   /* the framed defenders panel (the .arDef layout box around it is wider than the frame and paints nothing) */defenderSlots:q('.arDefRow>.arHero'),tabs:q('.arTabs>button'),opponents:q('#arenaOpps .arOpp'),challenge:q('#arenaOpps .arOpp .btn')};
     const out={}, bad=[];
     for(const [k,els] of Object.entries(parts)){ out[k]=els.length; if(!els.length) bad.push(k+' missing');
-      els.forEach((el,i)=>{ const on=SL.inView(el), fr=SL.front(el); if(!SL.vis(el)||!on||!fr) bad.push(k+'['+i+']'+(on?'':' off-screen '+JSON.stringify(SL.R(el)))+(fr?'':' covered by '+SL.whoAt(el))); }); }
+      els.forEach((el,i)=>{ const on=k==='defenders'?(()=>{ const b=SL.R(el), v=SL.V(); return b.x>=-12&&b.y>=-12&&b.r<=v.width+12&&b.b<=v.height+12; })():SL.inView(el), fr=SL.front(el); if(!SL.vis(el)||!on||!fr) bad.push(k+'['+i+']'+(on?'':' off-screen '+JSON.stringify(SL.R(el)))+(fr?'':' covered by '+SL.whoAt(el))); }); }
     const scr=SL.scrolls(document.getElementById('arena')), body=SL.scrolls(document.getElementById('arenaBody')), doc=SL.scrolls(document.scrollingElement);
     return {counts:out,bad,scroll:scr,body,doc,view:SL.V(),boxes:{medal:SL.R('#arena .arMedal'),def:SL.R('#arena .arDef'),tabs:SL.R('#arena .arTabs'),opps:SL.R('#arenaOpps')}}; });
   const s=await shot(pg,S.tag+' One-screen board');

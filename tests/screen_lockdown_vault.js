@@ -51,7 +51,7 @@ async function enemyCards(pg,S,s){
     const sel='#vtInfoPop .smEnemy[data-sl-idx="'+c.i+'"]';
     await pg.evaluate(s=>document.querySelector(s).scrollIntoView({block:'center'}),sel); await H.wait(200);
     const cp=await pg.evaluate(s=>{ const b=document.querySelector(s).getBoundingClientRect(); return [b.left+b.width/2,b.top+b.height/2]; },sel);
-    if(S.touch){ await pg.touchscreen.tap(cp[0],cp[1]); await H.wait(90); await pg.touchscreen.tap(cp[0],cp[1]); } else { await pg.mouse.move(2,2); await H.wait(250); await pg.mouse.move(cp[0],cp[1],{steps:4}); }
+    if(S.touch){ await pg.touchscreen.tap(cp[0],cp[1]); await H.wait(90); await pg.touchscreen.tap(cp[0],cp[1]); } else { await pg.mouse.move(2,2); await H.wait(250); await pg.evaluate(()=>{ try{ mcardClose(); }catch(e){} }); await pg.mouse.move(cp[0],cp[1],{steps:1}); }   /* straight onto the chip: a 4-step glide crossed the Frostjaw chip, whose card then sat over Sylphice */
     await H.wait(600);
     const r=await pg.evaluate(c=>{ const card=document.querySelector('#mcLayer .mcCard'); if(!card) return {shown:false};
       const st=mcardStats(c.spec,c.mode), num=sel=>{ const e=card.querySelector('[data-st="'+sel+'"] b'); return e?parseInt(e.textContent.replace(/[^0-9]/g,''),10):null; };
@@ -68,7 +68,7 @@ async function enemyCards(pg,S,s){
 
 async function layout(pg,S,how){
   const r=await pg.evaluate(()=>{ const q=s=>document.querySelector('#dungeon '+s);
-    const pk=q('.vtPick'), chips=[...pk.querySelectorAll('[style*="width:58px"]')], pbtn=[...pk.querySelectorAll('.btn')];
+    const pk=q('.vtPick'), chips0=[...pk.querySelectorAll('[style*="width:58px"]')], chips=chips0.filter(c=>!chips0.some(o=>o!==c&&o.contains(c))),   /* a slot's picture is 58 px too: count the slots, not their insides */ pbtn=[...pk.querySelectorAll('.btn')];
     const parts={title:q('.vtTitle'),floorDesc:q('.vtInfo'),floorBanner:q('.vtFloor'),fighters:pk,drops:q('.vtDrops'),sweep:q('.vtRow .btn:nth-child(1)'),salvage:q('.vtRow .btn:nth-child(2)')};
     chips.forEach((c,i)=>parts['heroSlot'+i]=c); pbtn.forEach((c,i)=>parts['fightersButton'+i]=c);
     const out={}; for(const [k,el] of Object.entries(parts)) out[k]=el?{box:SL.R(el),vis:SL.vis(el),on:SL.inView(el),front:SL.front(el),who:SL.whoAt(el)}:null;
@@ -83,7 +83,7 @@ async function layout(pg,S,how){
   C.ok(!bad.length&&nSlots===10,
     S.tag+' Landscape layout: title, banners (Floor Description + Floor N / 100), fighters panel (its 10 hero slots and 2 buttons), drops, Sweep and Salvage all on screen and not covered [opened by '+how+']',
     {problems:bad,slots:nSlots,zoom:r.zoom,view:r.view,boxes:Object.fromEntries(Object.entries(r.parts).filter(([k])=>!/^(heroSlot|fightersButton)/.test(k)).map(([k,v])=>[k,v&&v.box])),shot:s});
-  C.ok(!r.scroll.y&&!r.scroll.x&&!r.screen.y&&!r.screen.x&&!r.doc.y&&!r.doc.x,S.tag+' Landscape layout: no scroll (the Vault page cannot be scrolled up/down or sideways)',
+  C.ok(!r.scroll.canY&&!r.scroll.canX&&!r.screen.canY&&!r.screen.canX&&!r.doc.canY&&!r.doc.canX,S.tag+' Landscape layout: no scroll (the Vault page cannot be scrolled up/down or sideways: no box that holds it scrolls; content past a box that clips it is listed)',
     {page:r.scroll,screen:r.screen,doc:r.doc,overflowRight:Math.round(r.scroll.sw-r.scroll.cw)+' px',fightersFrameRight:r.parts.fighters&&r.parts.fighters.box.r,view:r.view.width,shot:s});
 }
 

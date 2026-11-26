@@ -30,7 +30,7 @@ async function labels(pg,S){
   for(const ch of [1,2,10]){ await chapter(pg,ch);
     const plates=await pg.evaluate(()=>[...document.querySelectorAll('#cmap .cbonus')].map(b=>{ const s=b.querySelector('span'), sb=s.getBoundingClientRect(), bb=b.getBoundingClientRect(), cs=getComputedStyle(s);
       const rx=bb.left+bb.width/2, ry=bb.top+bb.height*0.3, at=document.elementFromPoint(rx,ry);
-      return {code:b.dataset.bonusStage,label:SL.txt(s),opacity:+cs.opacity,vis:SL.vis(s),on:SL.inView(s),labelFront:(()=>{ const t=document.elementFromPoint(sb.left+sb.width/2,sb.top+sb.height/2); return !!t&&(t===s||b.contains(t)); })(),
+      return {code:b.dataset.bonusStage,label:SL.txt(s),opacity:+cs.opacity,vis:SL.vis(s),on:SL.inView(s),labelFront:(()=>{ const pe=s.style.pointerEvents; s.style.pointerEvents='auto'; s.querySelectorAll('*').forEach(c=>c.style.pointerEvents='auto'); const t=document.elementFromPoint(sb.left+sb.width/2,sb.top+sb.height/2); s.style.pointerEvents=pe; s.querySelectorAll('*').forEach(c=>c.style.pointerEvents=''); return !!t&&(t===s||b.contains(t)); })(),
         roof:{x:rx,y:ry},roofIsBuilding:!!at&&b.contains(at),roofWho:SL.whoAt(b,0.5,0.3),labelBox:SL.R(s)}; }));
     const s=await shot(pg,S.tag+' chapter '+ch+' bonus labels');
     C.ok(plates.length===6&&plates.every(p=>p.vis&&p.opacity===1&&p.on&&p.labelFront&&p.label.startsWith('BONUS '+p.code)),S.tag+' BONUS X-X labels: chapter '+ch+' - all '+plates.length+' BONUS labels visible, on screen, not covered',
@@ -87,7 +87,7 @@ const HOOKS=()=>{ if(window.__SLB) return; const W=window.__SLB={bars:[],texts:[
   P.fillText=function(s,x,y){ if(W.rec&&this.canvas&&this.canvas.id==='overlay'&&W.curF){ const f=W.curF; W.curF=null; if(!f.label) W.texts.push({t:performance.now(),f,s:String(s),x,y}); } return ftx.apply(this,arguments); };
   const sg=window.spawnGroundFx; window.spawnGroundFx=function(key,cx,cy,radius,life){ const o=sg.apply(this,arguments);
     if(W.rec) W.fx.push({t:performance.now(),bt:GSPLIT&&GSPLIT.lanes?Math.max(...GSPLIT.lanes.map(L=>L.battleTime||0)):0,key,cx,cy,radius,life,o,caster:window._fxCaster&&window._fxCaster.key,casterU:window._fxCaster,slot:window._fxCaster&&window._fxCaster._castSlot,
-      above:!!window._fxAboveBar,feet:!!window._fxBelowFeet,tgt:window._fxTgtU||null,lane:(typeof GSPLIT!=='undefined'&&GSPLIT.curLane!=null)?GSPLIT.curLane:null}); return o; }; };
+      above:!!window._fxAboveBar,feet:!!window._fxBelowFeet,tgt:window._fxTgtU||null,tgtLane:(window._fxTgtU&&typeof GSPLIT!=='undefined'&&GSPLIT.lanes)?GSPLIT.lanes.findIndex(l=>l.units.includes(window._fxTgtU)):-1,lane:(typeof GSPLIT!=='undefined'&&GSPLIT.curLane!=null)?GSPLIT.curLane:null}); return o; }; };
 
 async function battle(pg,S){
   await pg.evaluate(HOOKS);
@@ -115,7 +115,7 @@ async function battle(pg,S){
     const blz=W.fx.filter(f=>f.caster==='sylthaine'&&f.slot==='ult'&&!f.above&&!f.feet).map(f=>{ const i=laneOfU(f.casterU); return {key:f.key,d:+(2*f.radius).toFixed(1),depth:+depth(i).toFixed(1),road:i,ratio:+(2*f.radius/depth(i)).toFixed(2)}; });
     const ultsFx=['askel','nox'].map(k=>{ const fs=W.fx.filter(f=>f.caster===k&&f.slot==='ult'), i=fs.length?laneOfU(fs[0].casterU):-1;
       return {k,calls:fs.length,keys:[...new Set(fs.map(f=>f.key))],plates:fs.filter(f=>!f.above&&!f.feet).map(f=>f.key+'@'+Math.round(f.cx)+','+Math.round(f.cy)),badges:fs.filter(f=>f.above||f.feet).length,
-        road:i,otherRoad:fs.filter(f=>f.tgt&&laneOfU(f.tgt)!==i).map(f=>f.tgt.key+' road '+laneOfU(f.tgt)),castsSeen:fs.length?new Set(fs.map(f=>Math.round(f.bt))).size:0}; });
+        road:i,otherRoad:fs.filter(f=>f.tgt&&(f.tgtLane>=0?f.tgtLane:laneOfU(f.tgt))!==i).map(f=>f.tgt.key+' road '+(f.tgtLane>=0?f.tgtLane:laneOfU(f.tgt))),castsSeen:fs.length?new Set(fs.map(f=>Math.round(f.bt))).size:0}; });
     return {cut,reg,bands:B,barsN:nb.n,barsOut:barsOut.slice(0,20),barsOutN:barsOut.length,textsN:nt.n,textsUnknown:nt.unknown,textsOut:textsOut.slice(0,20),textsOutN:textsOut.length,blz,ultsFx,
       lanesState:L.map(l=>l.state),allies:L.map(l=>l.units.filter(u=>u.team==='ally'&&!u._summon).map(u=>u.key))}; });
   C.ok(an.barsN>50&&an.barsOutN===0,S.tag+' Small-scale battle: '+an.barsN+' hero bar draws over 9.6 s, every one inside its own road\'s strip of the screen (strips split half way between the painted roads at y '+an.cut.map(v=>v.toFixed(0)).join(' / ')+')',
@@ -125,11 +125,20 @@ async function battle(pg,S){
   for(const u of an.ultsFx) C.ok(u.calls>0&&u.plates.length===0&&u.badges>0&&u.badges<=15*Math.max(1,u.castsSeen)&&u.otherRoad.length===0,S.tag+' Big effects as icons: '+u.k+'\'s ultimate on road '+u.road+' drew '+u.badges+' badges ('+u.keys.join(',')+'), no ground plate, none on another road',{...u,shots:samples});
   return an; }
 
+/* the run stops at each FIREBREAK station for a boon per road (then a hero move and Start): pass it the way a player does, by tapping
+   the first boon of every road, CONFIRM BOONS, then Start */
+const passWindow=pg=>pg.evaluate(()=>{ const W=typeof GSPLIT!=='undefined'&&GSPLIT.window; if(!W) return null; const did=[];
+  if(W.phase==='boon'){ for(const L of GSPLIT.lanes){ if(L.state!=='walking'||W.picked[L.i]) continue; const b=document.querySelector('[data-gw="boon"][data-lane="'+L.i+'"]'); if(b){ b.click(); did.push('boon road '+L.i); } }
+    const c=document.getElementById('gwConfirm'); if(c&&!c.disabled){ c.click(); did.push('confirm'); } }
+  const st=document.getElementById('gwStart'); if(st&&!st.disabled&&GSPLIT.window&&GSPLIT.window.phase!=='boon'){ st.click(); did.push('start'); }
+  return did.join(', ')||('window '+W.phase); });
 async function burn(pg,S){
+  for(let i=0;i<6;i++){ const w=await passWindow(pg); if(!w) break; console.log('  INFO   '+S.tag+' FIREBREAK station passed: '+w); await H.wait(800); }
   const before=await pg.evaluate(()=>{ const L=GSPLIT.lanes[1]; window.__SLB.fx.length=0; window.__SLB.fireT0=performance.now();
     for(const u of L.units) if(u.team==='ally'&&u.alive) u.hp=0;   /* the engine kills them on its next tick (the hp<=0 path) */
     return {allies:L.units.filter(u=>u.team==='ally').map(u=>u.key),state:L.state}; });
-  await pg.waitForFunction(()=>GSPLIT.lanes[1].state==='lost'&&GSPLIT.lanes[1]._fire,null,{timeout:20000});
+  for(let i=0;i<80;i++){ if(await pg.evaluate(()=>GSPLIT.lanes[1].state==='lost'&&!!GSPLIT.lanes[1]._fire)) break; const w=await passWindow(pg); if(w) console.log('  INFO   '+S.tag+' FIREBREAK station passed: '+w); await H.wait(500); }
+  await pg.waitForFunction(()=>GSPLIT.lanes[1].state==='lost'&&GSPLIT.lanes[1]._fire,null,{timeout:5000});
   const t0=await pg.evaluate(()=>performance.now());
   const shots=[]; const marks=[];
   for(const ms of [300,700,1100,1600,2400]){ await pg.waitForFunction(([a,b])=>performance.now()-a>=b,[t0,ms]);

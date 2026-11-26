@@ -44,7 +44,8 @@ const PAGE_HELPERS=()=>{ if(window.SL) return true;
   const bgLoaded=async el=>{ const us=bgUrls(el); return Promise.all(us.map(loadImg)); };
   const imgOk=async el=>{ if(typeof el==='string') el=document.querySelector(el); if(!el) return {ok:false,why:'missing'}; for(let i=0;i<100&&!el.complete;i++) await new Promise(r=>setTimeout(r,100)); return {ok:el.complete&&el.naturalWidth>0,src:(el.currentSrc||el.src||'').replace(location.origin,''),w:el.naturalWidth,h:el.naturalHeight}; };
   /* any scrollbar on a box (the content does not fit) */
-  const scrolls=el=>{ if(typeof el==='string') el=document.querySelector(el); if(!el) return null; return {sh:el.scrollHeight,ch:el.clientHeight,sw:el.scrollWidth,cw:el.clientWidth,y:el.scrollHeight>el.clientHeight+1,x:el.scrollWidth>el.clientWidth+1}; };
+  const scrolls=el=>{ if(typeof el==='string') el=document.querySelector(el); if(!el) return null; const cs=getComputedStyle(el), root=el===document.scrollingElement||el===document.documentElement||el===document.body, can=o=>root?!/hidden|clip/.test(o):/auto|scroll|overlay/.test(o);
+    return {sh:el.scrollHeight,ch:el.clientHeight,sw:el.scrollWidth,cw:el.clientWidth,y:el.scrollHeight>el.clientHeight+1,x:el.scrollWidth>el.clientWidth+1,ox:cs.overflowX,oy:cs.overflowY,canY:el.scrollHeight>el.clientHeight+1&&can(cs.overflowY),canX:el.scrollWidth>el.clientWidth+1&&can(cs.overflowX)}; };
   const txt=el=>{ if(typeof el==='string') el=document.querySelector(el); return el?(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim():''; };
   window.SL={V,R,vis,inView,front,whoAt,overlap,bgUrls,bgLoaded,imgOk,loadImg,scrolls,txt}; return true; };
 
@@ -55,10 +56,16 @@ async function prep(pg){ await pg.evaluate(PAGE_HELPERS); }
 async function openBuilding(pg,nav,touch){ await prep(pg);
   await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} try{ show('home'); }catch(e){} }); await H.wait(900); await H.clean(pg);
   const sel='#townHots .townlbl[data-nav="'+nav+'"]';
-  const r=await pg.evaluate(s=>{ const el=document.querySelector(s); if(!el) return null; el.scrollIntoView({block:'center',inline:'center'}); const b=el.getBoundingClientRect(); return {x:b.left+b.width/2,y:b.top+b.height/2,on:b.width>0&&b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight}; },sel);
+  /* scrollIntoView also scrolls ancestors a player can never scroll (overflow hidden / clip, e.g. the game frame): remember them and put them
+     back after the tap, or every building opened afterwards sits shifted (seen 26 Nov: the Campaign 30 px off to the left) */
+  const r=await pg.evaluate(s=>{ const el=document.querySelector(s); if(!el) return null;
+    const anc=[]; for(let a=el.parentElement;a;a=a.parentElement){ const cs=getComputedStyle(a); if(/hidden|clip/.test(cs.overflowX+' '+cs.overflowY)||a===document.documentElement||a===document.body) anc.push([a,a.scrollLeft,a.scrollTop]); }
+    window._slAnc=anc; el.scrollIntoView({block:'center',inline:'center'}); const b=el.getBoundingClientRect(); return {x:b.left+b.width/2,y:b.top+b.height/2,on:b.width>0&&b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight}; },sel);
   let how='plate';
   if(r&&r.on){ try{ if(touch) await pg.tap(sel,{timeout:5000}); else await pg.click(sel,{timeout:5000}); }catch(e){ how='plate-js'; await pg.evaluate(s=>document.querySelector(s).click(),sel); } }
   else { how='show()'; await pg.evaluate(n=>{ if(n==='well') openWell(); else if(n==='cauldron'){ WALL_TAB='cauldron'; show('wall'); } else { if(n==='wall') WALL_TAB='wall'; show(n); } },nav); }
+  const back=await pg.evaluate(()=>{ const out=[]; for(const [a,l,t] of (window._slAnc||[])){ if(a.scrollLeft!==l||a.scrollTop!==t){ out.push((a.id||a.tagName)+' '+a.scrollLeft+','+a.scrollTop+' -> '+l+','+t); a.scrollLeft=l; a.scrollTop=t; } } window._slAnc=null; return out; });
+  if(back.length) console.log('  INFO   openBuilding('+nav+'): put back the frame scroll the plate scrollIntoView moved: '+back.join('; '));
   await H.wait(1500); await H.clean(pg); await prep(pg); return how; }
 
 /* every image under a root (img tags) loaded? */

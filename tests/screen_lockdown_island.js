@@ -44,14 +44,14 @@ async function province(pg,S){
   await press(pg,S.touch,'#skyIslandBody .islespot[data-if="training"]>div');
   await pg.waitForFunction(()=>document.querySelectorAll('.provScene .isleCardP .provRow').length===2,null,{timeout:30000}).catch(()=>{});
   await H.wait(1500); await H.clean(pg); await H.prep(pg);
-  const r=await pg.evaluate(async()=>{ const card=document.querySelector('.provScene .isleCardP'); if(!card) return {card:false};
+  const r=await pg.evaluate(async()=>{ const all=[...document.querySelectorAll('.provScene .isleCardP')], card=all.find(c=>{ const b=c.getBoundingClientRect(); return b.width>0&&b.height>0; })||all[0]; if(!card) return {card:false};   /* the one drawn (a hidden copy can sit first) */
     const hero=card.querySelector('.provHero'), hb=await SL.bgLoaded(hero), rows=[...card.querySelectorAll('.provRow')];
     const rr=[]; for(const row of rows){ const im=row.querySelector('img.provIc'); rr.push({t:row.dataset.prov,name:SL.txt(row.querySelector('.provNm')),img:await SL.imgOk(im),box:SL.R(row),on:SL.inView(row),front:SL.front(row,0.5,0.5),locked:row.classList.contains('locked')}); }
-    return {card:true,rotated:!!(window.EWViewport&&EWViewport.state.rotated),view:SL.V(),hero:hb.map(x=>x.url.replace(location.origin,'')+(x.ok?' ok':' NOT LOADED')),heroOk:hb.some(x=>x.ok&&/training-province/.test(x.url)),
+    return {card:true,copies:all.length,rotated:!!(window.EWViewport&&EWViewport.state.rotated),view:SL.V(),hero:hb.map(x=>x.url.replace(location.origin,'')+(x.ok?' ok':' NOT LOADED')),heroOk:hb.some(x=>x.ok&&/training-province/.test(x.url)),
       heroBox:SL.R(hero),heroOn:SL.inView(hero),ttl:SL.txt(hero.querySelector('.provTtl')),rows:rr,scroll:SL.scrolls(card),cardBox:SL.R(card)}; });
   const s=await shot(pg,S.tag+' training province');
   C.ok(r.card&&r.heroOk&&r.heroOn&&r.rows.length===2&&r.rows.every(x=>x.on&&x.front&&x.img.ok&&!x.locked)&&r.rows.some(x=>/mi-prov-gold/.test(x.img.src))&&r.rows.some(x=>/mi-prov-drill/.test(x.img.src)),
-    S.tag+' Training Province art: the painted training-ground header and both ground cards (gold + drill medallions) are on screen',{rotated:r.rotated,view:r.view,hero:r.hero,heroBox:r.heroBox,title:r.ttl,rows:r.rows,shot:s});
+    S.tag+' Training Province art: the painted training-ground header and both ground cards (gold + drill medallions) are on screen',{rotated:r.rotated,copies:r.copies,view:r.view,hero:r.hero,heroBox:r.heroBox,title:r.ttl,rows:r.rows,shot:s});
   C.ok(r.card&&r.scroll&&!r.scroll.y,S.tag+' Training Province art: no scrollbar on the card (scrollHeight '+(r.scroll&&r.scroll.sh)+' <= clientHeight '+(r.scroll&&r.scroll.ch)+')',{scroll:r.scroll,card:r.cardBox,shot:s});
   await pg.evaluate(()=>document.querySelectorAll('.provScene').forEach(n=>n.remove()));
 }
