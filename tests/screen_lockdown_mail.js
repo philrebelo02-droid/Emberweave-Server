@@ -115,7 +115,7 @@ async function heroGlow(pg,S){
     const next=await pg.evaluate(()=>tutNextStep());
     const list=await glowing(pg); const vaelCard=await glowProbe(pg,'#heroesPanel .hero-card[data-hero-key="vael"]');
     const s1=await shot(pg,S.tag+' Hero-specific glow '+lesson+' Heroes list');
-    const hA=await openHero(pg,S,'aureth'); const other=await glowing(pg); const dh1=await pg.evaluate(()=>detailHero);
+    const hA=await openHero(pg,S,'aureth'); const other=await pg.evaluate(()=>[...document.querySelectorAll('#heroDetail .tut-target-glow,#heroDetail .tut-town-glow')].filter(e=>e.getClientRects().length).map(e=>(e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.dataset.tab?'[tab='+e.dataset.tab+']':'')).slice(0,70))); const otherAll=await glowing(pg);   /* inside Aureth's window (Vael's card in the list behind it may keep its glow) */ const dh1=await pg.evaluate(()=>detailHero);
     const s2=await shot(pg,S.tag+' Hero-specific glow '+lesson+' Aureth window');
     await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} }); await settle(pg,900);
     let reopened=null; if(await pg.evaluate(()=>state!=='heroesPanel'||!document.querySelector('#heroesPanel .hero-card[data-hero-key="vael"]')||!document.querySelector('#heroesPanel .hero-card[data-hero-key="vael"]').getClientRects().length)) reopened=await goLesson(pg,S,lesson,'heroesPanel');
@@ -125,7 +125,7 @@ async function heroGlow(pg,S){
     const listOk=list.some(x=>/hero=vael/.test(x))&&!list.some(x=>/hero=/.test(x)&&!/hero=vael/.test(x));
     C.ok(go.state==='heroesPanel'&&!!next&&next.id===lesson&&listOk&&dh1==='aureth'&&other.length===0&&dh2==='vael'&&mine.some(x=>want.test(x))&&!!vt&&vt.on,
       S.tag+' '+N.hero+': '+lesson+' lesson (Start Here > Go, '+go.how+') - in the Heroes list only Vael\'s card glows; Aureth\'s window ('+hA+') glows nothing; Vael\'s window ('+hV+') glows its '+(lesson==='skill'?'skill upgrade':'glyph')+' control',
-      {go,reopened,viaMenu:{state:viaMenuState,glowing:viaMenu},next,list,vaelCard:{cls:vaelCard.cls,fx:vaelCard.fx,haloOn:vaelCard.haloOn},aureth:{detail:dh1,glowing:other},vael:{detail:dh2,glowing:mine,target:vt},shot:[s1,s2,s3]});
+      {go,reopened,viaMenu:{state:viaMenuState,glowing:viaMenu},next,list,vaelCard:{cls:vaelCard.cls,fx:vaelCard.fx,haloOn:vaelCard.haloOn},aureth:{detail:dh1,glowing:other,anywhere:otherAll},vael:{detail:dh2,glowing:mine,target:vt},shot:[s1,s2,s3]});
     await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} show('home'); }); await settle(pg,700);
   }
 }
@@ -197,7 +197,7 @@ const ringProbe=pg=>pg.evaluate(async()=>{ if(!window.__slRingWrap){ window.__sl
   try{ for(let i=0;i<24;i++){ const a=i/24*Math.PI*2; let hit=null, top=null;
       for(let R=22;R<=48;R+=1){ const px=Math.round((c.x+Math.cos(a)*R)*sx), py=Math.round((c.y+Math.sin(a)*R)*sy); const d=ctx.getImageData(px,py,1,1).data;
         const sc=d[3]*(d[0]+d[1]-d[2]); if(!top||sc>top.sc) top={R,px,py,rgba:[d[0],d[1],d[2],d[3]],sc};
-        if(!hit&&d[0]>200&&d[1]>150&&d[2]<160&&d[3]>120) hit={R,rgba:[d[0],d[1],d[2],d[3]]}; }
+        if(!hit&&d[3]>120&&d[0]>=130&&d[0]>=d[1]&&d[1]>=d[2]+50&&d[0]-d[2]>=90) hit={R,rgba:[d[0],d[1],d[2],d[3]]}; }
       if(hit) rays++; if(i%6===0) cols.push({ray:i,hit,top}); } }catch(e){ err=String(e.message||e).slice(0,120); }
   const ctr=(()=>{ try{ return [...ctx.getImageData(Math.round(c.x*sx),Math.round(c.y*sy),1,1).data]; }catch(e){ return null; } })();
   return {ring:{x:Math.round(c.x),y:Math.round(c.y)},client:{x:r.left+c.x*z*k,y:r.top+c.y*z*k},canvas:{id:overlay.id,w:overlay.width,h:overlay.height,css:[Math.round(r.width),Math.round(r.height)],CW,CH,PR:+sx.toFixed(3),dpr:devicePixelRatio,left:Math.round(r.left),top:Math.round(r.top),zoom:z,transform:getComputedStyle(overlay).transform},
