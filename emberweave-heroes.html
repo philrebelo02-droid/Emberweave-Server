@@ -30249,6 +30249,7 @@ function teleSquareFree(x,y,occ){ occ=occ||occupiedCells();
   return REALM_MAP.GEO.footprint(x,y).every(([cx,cy])=>REALM_MAP.isOpen(cx,cy)&&!occ.has(cx+','+cy)); }
 // draw a faded green level-1 castle in each VISIBLE teleportable cell that isn't already occupied
 let _teleGhostRaf=0;
+const TELE_TINT_OK='rgba(70,220,120,.22)', TELE_TINT_NO='rgba(230,60,60,.30)';   /* v1457: blueprint 04 tap-mode tint - green = you may teleport here, red = another region */
 function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(!inner||!zone)return;
   let layer=inner.querySelector('#teleGhostLayer');
   const s=mapVisibleSquares();
@@ -30521,10 +30522,13 @@ function renderWorldMap(keepView){
     pane.innerHTML=`<div class="worldZoneLabel" style="position:absolute;top:0;left:0;transform:translate(-50%,${onTree?'-100%':'-50%'});font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${escapeHTML(worldZoneDisplayName(key))}${_teleMode?(accessible?' '+uiIcon('check'):' '+uiIcon('blocked')):(key===myRegion()?' '+uiIcon('map-pin'):locked?' '+hudIcon('lock'):'')}</div>`;
     // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
-  if(_teleMode){ /* v1226: closed regions keep the soft dark veil in teleport mode - drawn per land cell of the realm, smoothed by the browser */
-    const cv=document.createElement('canvas'); cv.id='teleVeil'; cv.width=GRID_COLS; cv.height=GRID_ROWS; const g=cv.getContext('2d'); g.fillStyle='rgba(0,0,0,.35)'; let veiled=0;
-    for(let cy=0;cy<GRID_ROWS;cy++) for(let cx=0;cx<GRID_COLS;cx++){ const z=REALM_MAP.landZone(cx,cy); if(z&&!zoneAccessible(z)){ g.fillRect(cx,cy,1,1); veiled++; } }
-    cv.dataset.veiled=String(veiled); cv.style.cssText=`position:absolute;left:0;top:${REALM_MAP.GEO.Y0}%;width:100%;height:${GRID_ROWS*GRID_CELL}%;z-index:1;pointer-events:none`; inner.appendChild(cv); }
+  if(_teleMode){ /* v1457 (Phil 26 Nov 2026, lockdown answer 4: "use what the blueprint says" - blueprint 04: "In tap mode accessible zones are tinted
+       green, other regions red"): every land cell of the realm is tinted in teleport mode - green where you may teleport, red in the regions you may
+       not (was: a dark veil on closed regions only). Drawn per land cell, smoothed by the browser; the sea stays clear. */
+    const cv=document.createElement('canvas'); cv.id='teleVeil'; cv.width=GRID_COLS; cv.height=GRID_ROWS; const g=cv.getContext('2d'); let veiled=0, open=0;
+    for(let cy=0;cy<GRID_ROWS;cy++) for(let cx=0;cx<GRID_COLS;cx++){ const z=REALM_MAP.landZone(cx,cy); if(!z) continue;
+      if(zoneAccessible(z)){ g.fillStyle=TELE_TINT_OK; g.fillRect(cx,cy,1,1); open++; } else { g.fillStyle=TELE_TINT_NO; g.fillRect(cx,cy,1,1); veiled++; } }
+    cv.dataset.veiled=String(veiled); cv.dataset.open=String(open); cv.style.cssText=`position:absolute;left:0;top:${REALM_MAP.GEO.Y0}%;width:100%;height:${GRID_ROWS*GRID_CELL}%;z-index:1;pointer-events:none`; inner.appendChild(cv); }
   // optional grid overlay across the whole world
   if(G.showGrid!==false){ const go=document.createElement('div'); go.className='wmGridOverlay';   // v1227: over the grid's own band (GRID_COLS x GRID_ROWS)
     go.style.cssText=`inset:auto;left:0;width:100%;top:${REALM_MAP.GEO.Y0}%;height:${GRID_ROWS*GRID_CELL}%;background-size:${100/GRID_COLS}% ${100/GRID_ROWS}%`;

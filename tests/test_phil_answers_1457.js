@@ -165,6 +165,27 @@ section('3. the Starless Well tent: 3 buffed loans, often a quality up, a hero y
   ok(J(`wellListPower('${own}',{loanInfo:{'${own}':{power:12345}}})`) === 12345, 'the Heroes window shows a loan\'s own power');
 });
 
+section('4. City Wall tap mode: allowed land green, other regions red (blueprint 04)', async () => {
+  const bp = (() => { try { return fs.readFileSync(path.join(root, '..', '..', '..', '1 Rulebook', 'Mechanics blueprints', '04 - City Wall.md'), 'utf8'); } catch (e) { return ''; } })();
+  if (bp) ok(/In tap mode accessible zones are tinted green, other regions red/.test(bp), 'blueprint 04 says: "In tap mode accessible zones are tinted green, other regions red"');
+  const m = html.match(/\n  if\(_teleMode\)\{ \/\* v1457[\s\S]*?inner\.appendChild\(cv\); \}\r?\n/), k = html.match(/\nconst TELE_TINT_OK='([^']+)', TELE_TINT_NO='([^']+)';/);
+  ok(!!m && !!k && !/rgba\(0,0,0,\.35\)/.test(m ? m[0] : 'rgba(0,0,0,.35)'), 'the teleport-mode layer is the green / red tint (the dark veil is gone)');
+  if (!m || !k) return;
+  ok(/^rgba\((\d+),(\d+),(\d+)/.test(k[1]) && +RegExp.$2 > +RegExp.$1 && +RegExp.$2 > +RegExp.$3, 'TELE_TINT_OK ' + k[1] + ' is green');
+  ok(/^rgba\((\d+),(\d+),(\d+)/.test(k[2]) && +RegExp.$1 > +RegExp.$2 && +RegExp.$1 > +RegExp.$3, 'TELE_TINT_NO ' + k[2] + ' is red');
+  // run the block on a 6 x 2 strip: 2 cells of your region, 1 wild, 2 of another region, 1 sea
+  const fills = [], ZONE = ['mine', 'mine', 'wild', 'other', 'other', null];
+  const g = { fillStyle: '', fillRect(x, y) { fills.push([x, y, this.fillStyle]); } };
+  const cv = { dataset: {}, style: {}, getContext: () => g };
+  const ctx = vm.createContext({ document: { createElement: () => cv }, GRID_COLS: 6, GRID_ROWS: 2, GRID_CELL: 1, REALM_MAP: { landZone: (x) => ZONE[x], GEO: { Y0: 0 } },
+    zoneAccessible: z => z === 'mine' || z === 'wild', inner: { appendChild() {} }, _teleMode: true, TELE_TINT_OK: k[1], TELE_TINT_NO: k[2] });
+  vm.runInContext(m[0], ctx);
+  const col = x => fills.filter(f => f[0] === x).map(f => f[2]);
+  ok(fills.length === 10 && [0, 1, 2].every(x => col(x).every(c => c === k[1]) && col(x).length === 2) && [3, 4].every(x => col(x).every(c => c === k[2]) && col(x).length === 2) && col(5).length === 0,
+    'your region and the wild are green, the other region red, the sea untinted (' + fills.length + ' cells)');
+  ok(cv.dataset.veiled === '4' && cv.dataset.open === '6', 'the layer counts red ' + cv.dataset.veiled + ' / green ' + cv.dataset.open + ' cells (teleVeil keeps its id for the map tests)');
+});
+
 (async () => {
   for (const [n, f] of SECTIONS) { console.log('== ' + n + ' =='); await f(); }
 })().then(() => { console.log((SOFT ? 'SOFT ' : '') + 'test_phil_answers_1457.js: ' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0); },
