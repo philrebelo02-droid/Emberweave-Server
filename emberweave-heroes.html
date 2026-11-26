@@ -38571,7 +38571,16 @@ function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); buyGemOffer(+el.dataset.i); } }); });
   body.querySelectorAll('.st2-tab').forEach(t=>t.onclick=(e)=>{ e.stopPropagation(); if(st2Tab!==t.dataset.tab){ st2Tab=t.dataset.tab; renderGemShop(); } });
   const sb=body.querySelector('.st2-body'); if(sb) sb.addEventListener('wheel',e=>{ if(sb.scrollWidth>sb.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){ sb.scrollLeft+=e.deltaY; e.preventDefault(); } },{passive:false});
-  const x=body.querySelector('#sfClose'); if(x) x.onclick=(e)=>{ e.stopPropagation(); closeHudShop(); }; }
+  const x=body.querySelector('#sfClose'); if(x) x.onclick=(e)=>{ e.stopPropagation(); closeHudShop(); };
+  st2FitNames(body); requestAnimationFrame(()=>st2FitNames(body)); setTimeout(()=>st2FitNames(body),350); }
+/* v1461 (lockdown screens 26 Nov): "TEST PACK (REAL PURCHASE DONT CLICK)" ran off its name plate (one line, cut by the plate's overflow:hidden) on desktop,
+   tablet and phone. A name that does not fit on one line wraps onto two and its type shrinks step by step until it is whole inside the plate; names
+   that fit (every other card, any language) are left exactly as they were. The font is in cqh, so a fit holds at every screen size. */
+function st2FitNames(root){ try{ (root||document).querySelectorAll('.st2-name').forEach(el=>{ if(!el.clientWidth) return;
+    el.style.whiteSpace=''; el.style.fontSize=''; el.style.lineHeight='';
+    const over=()=>el.scrollWidth>el.clientWidth+1||el.scrollHeight>el.clientHeight+1; if(!over()) return;
+    el.style.whiteSpace='normal'; el.style.lineHeight='1.05';
+    for(let f=5.0;f>=1.6&&over();f-=0.2) el.style.fontSize=f.toFixed(1)+'cqh'; }); }catch(e){} }
 document.getElementById('staminaPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('food'); };
 document.getElementById('goldPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gold'); };
 document.getElementById('gemPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gem'); };
