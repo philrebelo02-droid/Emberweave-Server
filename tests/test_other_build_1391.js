@@ -66,7 +66,7 @@ const WON = JSON.stringify({ t: 60, won: true, stars: 3, wave: 2, u: SQUAD.map(k
 
     await R.sleep(600); await S.stop();
     const w = WS.readWorld(S.db), inc = id => (w.users[id].led.battleIncidents || []), rc = id => (w.users[id].led.battleReceipts || []);
-    const cheats = id => (w.feedback || []).filter(f => f && f.kind === 'cheat' && f.userId === id && /replay/.test(f.signal || ''));
+    const cheats = id => (w.feedback || []).filter(f => f && (f.kind === 'cheat' || f.kind === 'desync') &&   /* v1455: replay disagreements are kind 'desync' */ f.userId === id && /replay/.test(f.signal || ''));
     for (const [p, tag] of [[pOld, 'old build'], [pNone, 'no build']]) {
       ok(inc(p.id).length === 0 && cheats(p.id).length === 0, 'campaign, ' + tag + ': nothing is filed (0 incidents, 0 cheat flags)');
       const r = rc(p.id).slice(-1)[0];
@@ -104,7 +104,7 @@ const WON = JSON.stringify({ t: 60, won: true, stars: 3, wave: 2, u: SQUAD.map(k
       'CONTROL grace over, province, current engine + no build: the mismatch is a replay incident');
     await R.sleep(600); await S.stop();
     { const w3 = WS.readWorld(S.db), inc3 = id => (w3.users[id].led.battleIncidents || []);
-      const cheats3 = id => (w3.feedback || []).filter(f => f && f.kind === 'cheat' && f.userId === id && /replay/.test(f.signal || ''));
+      const cheats3 = id => (w3.feedback || []).filter(f => f && (f.kind === 'cheat' || f.kind === 'desync') && f.userId === id && /replay/.test(f.signal || ''));
       ok(w3.meta.engineSeen[BUILD] === AGO49, 'grace over: the boot kept the recorded first-seen time (49 h ago)');
       for (const [p, tag] of [[pNoneLate, 'no build'], [pFakeLate, 'a made-up build']])
         ok(inc3(p.id).length === 1 && inc3(p.id)[0].why === 'digest-mismatch' && cheats3(p.id).length === 1 && cheats3(p.id)[0].signal === 'campaign-replay',

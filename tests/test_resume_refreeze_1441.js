@@ -36,7 +36,7 @@ async function play(dir, tag) {
     const res = (await S.req('POST', '/api/campaign/resolve', { attemptId: b.body.attemptId, requestId: tag + 'r', inputLog: LOG, digest: WON, won: true, stars: 3, build: BUILD }, p.token, p.ip)).body;
     const fresh = await S.req('POST', '/api/campaign/start', { mode: 'normal', node: 13, heroIds: SQ, requestId: tag + 'f' }, p.token, p.ip);   // a new attempt: the account as it is now
     await R.sleep(600); await S.stop();
-    const w = WS.readWorld(S.db), inc = (w.users[p.id].led.battleIncidents || []), cheats = (w.feedback || []).filter(f => f && f.kind === 'cheat' && f.userId === p.id && f.signal === 'campaign-replay');
+    const w = WS.readWorld(S.db), inc = (w.users[p.id].led.battleIncidents || []), cheats = (w.feedback || []).filter(f => f && (f.kind === 'cheat' || f.kind === 'desync') && f.userId === p.id && f.signal === 'campaign-replay')   /* v1455: filed as kind 'desync' */;
     return { a, b, c, res, fresh, sum, inc, cheats };
   } finally { await S.kill(); }
 }

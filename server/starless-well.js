@@ -288,8 +288,8 @@ async function handle(p, method, ctx) {
            why: rep ? 'digest-mismatch' : 'replay-unavailable', source: 'submitted-log', playerTruth: true, engine: a.engine, seed: a.seed >>> 0, inputs: inputLog.length,
           server: srv ? ctx.sha256hex(srv) : null, client: ctx.sha256hex(clientEnd), serverWon: rep ? !!rep.won : null, witnessedWon: witnessed.won,
            witnessedStars: witnessed.stars, transcript: inputLog }]).slice(-20); console.warn('well replay incident - map ' + R.map + ' col ' + a.col);
-         if (rep && srv) ctx.feedbackCheatSignal(ctx.me, 'well-replay:' + a.id,
-           'Well replay mismatch at map ' + R.map + ' column ' + a.col + ': serverWon ' + !!rep.won +
+         if (rep && srv) (ctx.feedbackDesyncSignal || ctx.feedbackCheatSignal)(ctx.me, 'well-replay:' + a.id,   // v1455 lockdown: a desync diagnostic, not a cheat
+           'Well replay disagreement (desync diagnostic, not cheating) at map ' + R.map + ' column ' + a.col + ': serverWon ' + !!rep.won +
              ', serverStars ' + (rep.stars | 0) + ', witnessedWon ' + witnessed.won +
              ', witnessedStars ' + witnessed.stars + ', seed ' + (a.seed >>> 0) +
              ', serverDigest ' + ctx.sha256hex(srv) + ', clientDigest ' + ctx.sha256hex(clientEnd) + '.',

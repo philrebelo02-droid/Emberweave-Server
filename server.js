@@ -653,6 +653,19 @@ function linkSecretOk(req){
   if(!ACCOUNT_LINK_SECRET || ACCOUNT_AUTHORITY || req.headers['cf-connecting-ip']) return false;
   const a=crypto.createHash('sha256').update(String(req.headers['x-link-secret']||'')).digest(), b=crypto.createHash('sha256').update(ACCOUNT_LINK_SECRET).digest();
   return crypto.timingSafeEqual(a,b); }
+/* v1455 lockdown (mail-quests-tutorial-feedback "Every server reaches Ember"): THE REPORT OUTBOX. On Servers 2-5 every player report and
+   every chat report is marked relay:'pending' on the stored item itself (so it rides the normal save of DB.feedback / DB.reports and
+   survives a restart) and is sent to Server 1 until Server 1 answers 200; then it is marked 'sent'. A boot pass and a 60 s timer retry.
+   Server 1 files it under the same 'S<n>-<id>' id every time, so a retry after a lost reply never files it twice. */
+let _relayBusy=false;
+async function feedbackRelayKick(){ if(!ACCOUNT_AUTHORITY||_relayBusy) return 0; _relayBusy=true; let sent=0;
+  try{ const sv=SERVER_ID||String(process.env.SERVER_NAME||'');
+    const q=[].concat((Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.relay==='pending').map(item=>['feedback',item]),
+      (Array.isArray(DB.reports)?DB.reports:[]).filter(x=>x&&x.relay==='pending').map(item=>['reports',item])).slice(0,50);
+    for(const [store,item] of q){ const {relay,...plain}=item; const r=await authorityCall('/api/internal/account/feedback',{server:sv,store,item:plain});
+      if(r&&r.status===200&&r.body&&r.body.ok){ item.relay='sent'; item.relayAt=Date.now(); _dp(store); writeDB([],[store]); sent++; } else break; }   // Server 1 down or slow: try again later
+  }catch(e){} finally{ _relayBusy=false; } return sent; }
+if(process.env.ACCOUNT_AUTHORITY){ setTimeout(()=>{ feedbackRelayKick(); setInterval(()=>feedbackRelayKick(),60000).unref(); },15000).unref(); }
 async function authorityCall(path, payload){
   if(!ACCOUNT_AUTHORITY || !ACCOUNT_LINK_SECRET) return null;
   try{ const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(), 6000);
@@ -959,8 +972,18 @@ function backupTokenValid(tok){
 const _hits={};
 function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-suppliable (spoofs the rate
   // limiter). The LAST entry is the one appended by the trusted platform proxy (Railway) — use that.
+  /* v1455 lockdown (mail-quests-tutorial-feedback "Report limits"): X-Forwarded-For is read ONLY when the connection itself comes from our
+     own proxy (the Cloudflare tunnel on loopback, the front door / CTs on the private network, or TRUSTED_PROXY_IPS); a client talking to the
+     server directly could set the header and get a fresh per-network limit, so then the socket address is the network. */
+  const sock=(req.socket&&req.socket.remoteAddress)||'';
+  if(!clientIPTrustedProxy(sock)) return sock||'unknown';
   const xff=(req.headers['x-forwarded-for']||'').split(',').map(s=>s.trim()).filter(Boolean);
-  return xff[xff.length-1] || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
+  return xff[xff.length-1] || sock || 'unknown'; }
+const TRUSTED_PROXY_IPS=new Set(String(process.env.TRUSTED_PROXY_IPS||'').split(',').map(s=>s.trim()).filter(Boolean));
+function clientIPTrustedProxy(a){ a=String(a||'').replace(/^::ffff:/,''); if(!a) return false; if(TRUSTED_PROXY_IPS.has(a)) return true;
+  if(a==='127.0.0.1'||a==='::1') return true;
+  if(/^10\./.test(a)||/^192\.168\./.test(a)||/^172\.(1[6-9]|2\d|3[01])\./.test(a)) return true;   // our own LAN (front door, cluster CTs)
+  return false; }
 const _hitWin={};   /* v1007 (re-audit Account N2): each key keeps its own window - the 10-minute sweeper used to wipe 24 h windows */
 function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now(); if(!(_hitWin[k]>=windowMs)) _hitWin[k]=windowMs;
   const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); if(arr.length>max){ _hits[k]=arr; return true; } arr.push(now); _hits[k]=arr; return arr.length>max; }   /* v1083 (scan 5 #4): a refused hit is not stored - a flood used to grow the list (and the filter) without bound */
@@ -2095,7 +2118,7 @@ function arenaAttView(led){ const a=arenaAtt(led);
            freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY }; }   /* v1093: fixed again - the chart's Arena row is reset purchases */
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
-  q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
+  q_name:   { reward:{gems:20},  cond:u=>(u.renames|0)>0||(!!u.login&&!!u.name&&u.name!==u.login) },   /* v1455 lockdown (mail-quests-tutorial-feedback "Make a Name"): a real rename (here, or on Server 1: the name differs from the username) - it was ()=>true, paid to everyone */
   q_collect:{ reward:{randFrags:5}, cond:(u,led)=>Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)).length>=5 },
   q_vex:    { reward:{hero:'vex'}, cond:(u,led)=>(led.camp.cleared|0)>=6 },
   q_wish:   { reward:{gems:20},  cond:(u,led)=>((u.qc&&u.qc.wish)|0)>=3 }
@@ -3860,14 +3883,22 @@ function devReport(u, kind, amount, detail){
   return r;
 }
 
+/* v1455 lockdown: items the server files by itself (cheat signals, replay/desync diagnostics) - never a player's own report */
+function feedbackIsAuto(f){ return !!f&&(f.kind==='cheat'||f.kind==='desync'); }
+/* v1455 lockdown (mail-quests-tutorial-feedback "No lost reports"): undelivered war reports kept per player until the game collects them
+   (was 20 - 23 declarations on a player who was away lost the first 3). Display only: no reward rides on a report. */
+const PVP_MAIL_KEEP=200;
 const FEEDBACK_KEEP=5000;   /* v1010 (re-audit Account N9): the inbox was unbounded (only received items older than 30 days were pruned) */
 function feedbackAppend(item){
   const DB=worldPlanningDB();
   DB.feedback=Array.isArray(DB.feedback)?DB.feedback:[];
   DB.feedback.push(item); typeof _dp==='function'&&_dp('feedback');
-  if(DB.feedback.length>FEEDBACK_KEEP){   // over the cap: the oldest RECEIVED items go first, then the oldest of the rest
+  if(DB.feedback.length>FEEDBACK_KEEP){   // over the cap: the oldest RECEIVED items go first, then the oldest AUTOMATIC flags, then the oldest of the rest
     let over=DB.feedback.length-FEEDBACK_KEEP; const drop=new Set();
     for(const f of DB.feedback){ if(over<=0) break; if(f&&f.received){ drop.add(f); over--; } }
+    /* v1455 lockdown (mail-quests-tutorial-feedback "Feedback inbox"): a flood of automatic cheat / desync flags never pushes out a player's
+       bug report or suggestion - the flags go before any player item */
+    for(const f of DB.feedback){ if(over<=0) break; if(f&&!drop.has(f)&&feedbackIsAuto(f)){ drop.add(f); over--; } }
     DB.feedback=DB.feedback.filter(f=>!drop.has(f)); if(DB.feedback.length>FEEDBACK_KEEP) DB.feedback=DB.feedback.slice(-FEEDBACK_KEEP); }
 }
 function feedbackSweep(){
@@ -3877,6 +3908,13 @@ function feedbackSweep(){
   DB.feedback=DB.feedback.filter(f=>!f.received||!f.receivedAt||f.receivedAt>cutoff);
   if(DB.feedback.length!==before){ typeof _dp==='function'&&_dp('feedback'); writeDB(); }
 }
+/* v1455 lockdown (mail-quests-tutorial-feedback "Replay disagreement is not cheating"; Phil: "no one is cheating"): a replay that ended
+   differently from the fight the player saw is an engine / desync diagnostic - filed as kind 'desync', never in the cheat queue */
+function feedbackDesyncSignal(u,signal,detail,meta){
+  const DB=worldPlanningDB(), now=Date.now(); DB.feedback=Array.isArray(DB.feedback)?DB.feedback:[];
+  if(DB.feedback.some(f=>f.userId===u.id&&f.kind==='desync'&&f.signal===signal&&now-f.t<60000)) return;
+  feedbackAppend({id:uid(),t:now,userId:u.id,name:u.name||u.id,kind:'desync',signal,text:String(detail||signal).slice(0,500),meta:String(meta||'').slice(0,120),received:false});
+  writeDB(); }
 function feedbackCheatSignal(u,signal,detail,meta,amount,extra){
   const DB=worldPlanningDB();
   const now=Date.now();
@@ -4083,11 +4121,11 @@ function adminPlayerInfo(u){
     out.integrity={ battleIncidents:inc.length, lastIncident:inc.length?{ t:inc[inc.length-1].t||0, why:String(inc[inc.length-1].why||''), stage:String(inc[inc.length-1].stage||'') }:null };
   } else out.integrity={ battleIncidents:0, lastIncident:null };
   const fb=Array.isArray(DB.feedback)?DB.feedback:[], rp=Array.isArray(DB.reports)?DB.reports:[];
-  const sent=fb.filter(x=>x&&x.userId===u.id&&x.kind!=='cheat').concat(rp.filter(x=>x&&x.kind==='moderation'&&x.reporterId===u.id));
+  const sent=fb.filter(x=>x&&x.userId===u.id&&!feedbackIsAuto(x)).concat(rp.filter(x=>x&&x.kind==='moderation'&&x.reporterId===u.id));
   out.reports={ sent:sent.length, lastAt:sent.reduce((m,x)=>Math.max(m,+x.t||0),0) };
   const cheat=fb.filter(x=>x&&x.kind==='cheat'&&x.userId===u.id), irep=rp.filter(x=>x&&x.kind!=='moderation'&&x.userId===u.id), lc=cheat[cheat.length-1], lr=irep[irep.length-1];
   Object.assign(out.integrity,{ flag:u.flag?{ reason:String(u.flag.reason||''), t:u.flag.t||0 }:null,
-    cheatSignals:cheat.length, replaySignals:cheat.filter(x=>/^(campaign|province|well|siege)-replay(:|$)/.test(String(x.signal||''))).length,   /* v1441: how many of them are replay disagreements (a record, not a cheat finding) - the card says so */
+    cheatSignals:cheat.length, replaySignals:cheat.filter(x=>/^(campaign|province|well|siege)-replay(:|$)/.test(String(x.signal||''))).length+fb.filter(x=>x&&x.kind==='desync'&&x.userId===u.id).length,   /* v1455: new ones are kind 'desync' */   /* v1441: how many of them are replay disagreements (a record, not a cheat finding) - the card says so */
     lastCheat:lc?{ t:lc.t||0, signal:String(lc.signal||''), text:String(lc.text||'').slice(0,200) }:null,
     reportsAgainst:irep.length, openReportsAgainst:irep.filter(x=>!x.resolved).length, lastReport:lr?{ t:lr.t||0, kind:String(lr.kind||''), detail:String(lr.detail||'').slice(0,200) }:null });
   return out;
@@ -4314,7 +4352,7 @@ function campIncident(u,led,x){   // the flagged-fight record (shared by the res
     serverStars:x.rep?(x.rep.stars|0):null,witnessedWon:x.witnessed.won,
     witnessedStars:x.witnessed.stars,transcript:x.inputLog}]).slice(-20);
   console.warn('battle replay incident ('+x.why+') — stage '+x.st.id+' — player-witnessed result recorded');
-  if(x.rep&&x.serverEndDigest) feedbackCheatSignal(u,'campaign-replay',
+  if(x.rep&&x.serverEndDigest) feedbackDesyncSignal(u,'campaign-replay',
     'Replay disagreement at '+x.mode+' stage '+x.st.id+': the replay on the server ended differently from the fight the player played. The result the player saw stands. A record for engine review - not proof of cheating.',   /* v1441: was "Campaign replay digest mismatch" */
     'battle integrity'); }
 /* v1124 THE CHECK BACKLOG (Phil 11 Oct 2026: "skipped checks must never be lost"). A fight answered before its check keeps what the
@@ -6600,8 +6638,19 @@ async function api(req,res,url){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req), it=(b&&b.item)||{}, sv=String(b.server||'?').slice(0,8);
     const id='S'+sv+'-'+String(it.id||uid()).slice(0,40);
+    /* v1455 lockdown (mail-quests-tutorial-feedback "Every server reaches Ember"): a satellite's racism / harassment chat report joins Server 1's
+       moderation list (store 'reports'), tagged with its server; ids are kept so a retry never files it twice */
+    if(b.store==='reports'){ DB.reports=Array.isArray(DB.reports)?DB.reports:[];
+      if(!DB.reports.some(r=>r&&r.id===id)){ const pre=x=>x?'S'+sv+':'+String(x).slice(0,40):null;
+        DB.reports.push({id,t:+it.t||Date.now(),kind:'moderation',priority:'high',reason:String(it.reason||'').slice(0,20),reasonLabel:String(it.reasonLabel||'').slice(0,40),
+          userId:pre(it.userId),name:String(it.name||'?').slice(0,40),reporterId:pre(it.reporterId),reporterName:String(it.reporterName||'?').slice(0,40),
+          detail:('[Server '+sv+'] '+String(it.detail||'')).slice(0,300),text:('[Server '+sv+'] '+String(it.text||'')).slice(0,2000),
+          chat:(it.chat&&typeof it.chat==='object')?it.chat:null,context:Array.isArray(it.context)?it.context.slice(0,20):[],resolved:false,action:null,server:sv});
+        if(DB.reports.length>1000) DB.reports=DB.reports.slice(-1000); _dp('reports'); writeDB([],['reports']); }
+      return send(res,200,{ok:true,id}); }
     if(!(Array.isArray(DB.feedback)&&DB.feedback.some(f=>f&&f.id===id))){
-      feedbackAppend({id,userId:'S'+sv+':'+String(it.userId||'').slice(0,40),name:String(it.name||'?').slice(0,40),kind:it.kind==='suggestion'?'suggestion':'bug',
+      feedbackAppend({id,userId:'S'+sv+':'+String(it.userId||'').slice(0,40),name:String(it.name||'?').slice(0,40),kind:it.kind==='suggestion'?'suggestion':it.kind==='chat'?'chat':'bug',
+        ...(it.kind==='chat'?{chat:(it.chat&&typeof it.chat==='object')?it.chat:null,context:Array.isArray(it.context)?it.context.slice(0,20):[]}:{}),
         text:'[Server '+sv+'] '+String(it.text||'').slice(0,2000),meta:String(it.meta||'').slice(0,400),t:+it.t||Date.now(),received:false,
         build:String(it.build||'').slice(0,40),level:it.level|0,screen:String(it.screen||'').slice(0,60),device:String(it.device||'').slice(0,120),server:sv});
       writeDB([],['feedback']); }
@@ -6954,10 +7003,10 @@ async function api(req,res,url){
         uptimeS:Math.round(process.uptime()), now, accounts:us.length, online:us.filter(u=>(u.lastSeen||0)>=now-5*60000).length,
         guests:us.filter(u=>u.guest).length, testers:us.filter(testerTagged).length, banned:us.filter(u=>banInfo(u)).length,
         backups:{ count:n, last, pinned:pin?{ real:pin.real|0, at:pin.at||0 }:null }, notice:DB.notice||null, prebeta:PREBETA,
-        openReports:(Array.isArray(DB.reports)?DB.reports:[]).filter(r=>r&&!r.resolved&&r.kind!=='balance'&&r.meta!=='test-bots').length+(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.kind!=='cheat'&&!x.adminDone).length,
+        openReports:(Array.isArray(DB.reports)?DB.reports:[]).filter(r=>r&&!r.resolved&&r.kind!=='balance'&&r.meta!=='test-bots').length+(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&!feedbackIsAuto(x)&&!x.adminDone).length,
         errors:ERR_RING.slice(-25).reverse(), saveFails:ERR_RING.filter(x=>/save|write|storage|journal|fsync/i.test(x.m)).length }); }
     if(p==='/api/admin/feedback' && req.method==='GET'){ const all=url.searchParams.get('all')==='1';
-      const L=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.kind!=='cheat'&&(all||!x.adminDone)).slice(-200).reverse()
+      const L=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&!feedbackIsAuto(x)&&(all||!x.adminDone)).slice(-200).reverse()
         .map(x=>({ id:x.id, userId:x.userId, name:x.name, kind:x.kind, text:String(x.text||''), meta:String(x.meta||''), t:x.t||0, build:x.build||'', level:x.level|0, screen:x.screen||'', done:!!x.adminDone, tester:testerTagged(DB.users[x.userId]) }));
       return send(res,200,{ ok:true, items:L }); }
     /* v1379 Economy > Purchase support: find a purchase by order number (the store's reference), pack id or player name - read-only */
@@ -7195,15 +7244,19 @@ async function api(req,res,url){
         detail:(CHAT_REPORT_REASONS[reason]+' report ('+f.channel+'): '+(f.text||'')).slice(0,300),
         text:(CHAT_REPORT_REASONS[reason]+' report by '+me.name+' ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
         chat,context:f.context||[],resolved:false,action:null};
+      if(ACCOUNT_AUTHORITY) item.relay='pending';   // v1455 lockdown: chat reports reach Server 1 too
       DB.reports=Array.isArray(DB.reports)?DB.reports:[]; DB.reports.push(item); if(DB.reports.length>1000) DB.reports=DB.reports.slice(-1000); _dp('reports');
       if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      if(ACCOUNT_AUTHORITY) setImmediate(()=>feedbackRelayKick());
       return send(res,200,{ok:true,id:item.id,queue:'moderation'}); }
     const item={id:'FB-'+uid(),userId:me.id,name:me.name,kind:'chat',
       text:('Chat report ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
       chat,context:f.context||[],reporterId:me.id,reporterName:me.name,meta:'other',t:Date.now(),received:false,   /* v1127: the lines around it too - the chat itself keeps only 100 */
       build:localBuildId(),level:ledPlayerLevel(ensureLedger(me)),screen:'chat',device:String(req.headers['user-agent']||'').slice(0,120)};
+    if(ACCOUNT_AUTHORITY) item.relay='pending';   // v1455 lockdown: chat reports reach Server 1 too
     feedbackAppend(item);
     if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    if(ACCOUNT_AUTHORITY) setImmediate(()=>feedbackRelayKick());
     return send(res,200,{ok:true,id:item.id,queue:'feedback'}); }
   // Player feedback has its own durable inbox; balance-bot reports stay in the admin report list.
   /* v1254 (Phil 2 Nov 2026: "Not a single one of the testers made it to 1 exp"): the first-session funnel - where new players stop.
@@ -7231,15 +7284,16 @@ async function api(req,res,url){
       item.screen=String(b.screen||'').slice(0,60);
       item.device=String(req.headers['user-agent']||'').slice(0,120);
       me.feedbackDay={k:dk,n:feedbackDay.n+1};
+      if(ACCOUNT_AUTHORITY) item.relay='pending';   /* v1249: Servers 2-5 send it on to Ember's inbox on Server 1; v1455: through the retrying outbox */
       feedbackAppend(item);
-      if(ACCOUNT_AUTHORITY) authorityCall('/api/internal/account/feedback',{server:SERVER_ID||String(process.env.SERVER_NAME||''),item}).catch(()=>{});   /* v1249: Servers 2-5 send it on to Ember's inbox on Server 1 */
+      if(ACCOUNT_AUTHORITY) setImmediate(()=>feedbackRelayKick());
     }
     writeDB([me.id]); return send(res,200,{ok:true,id:item.id}); }
   if(p==='/api/ember/feedback' && req.method==='GET'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     feedbackSweep();
     const items=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>!x.received)
-      .sort((a,b)=>((a.kind==='cheat')-(b.kind==='cheat'))||((a.t||0)-(b.t||0))).slice(0,100);   /* v1251 (1 Nov: SoMalice's suggestion sat behind ~1,100 sim-bot cheat flags and never reached Ember): players' bugs and suggestions first, cheat flags after */
+      .sort((a,b)=>(feedbackIsAuto(a)-feedbackIsAuto(b))||((a.t||0)-(b.t||0))).slice(0,100);   /* v1251 (1 Nov: SoMalice's suggestion sat behind ~1,100 sim-bot cheat flags and never reached Ember): players' bugs and suggestions first, cheat flags after */
     /* v1383 (Phil 12 Nov: "yes link resolve to embers app" / "the report reader should be able to see my reports resolved"): the ids Phil resolved
        in the dev panel (adminDone, last 30 days) ride along, so Ember closes her filed copy and says so in Reports */
     const _cut=Date.now()-30*86400000, done=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>x&&x.adminDone&&x.adminDone>_cut&&x.doneAcked!==x.adminDone).map(x=>x.id).slice(-500);   /* v1384 (Grok, Claude 12 Nov 21:49): a resolve Ember has acked is not sent again (was: every pull, forever) */
@@ -9605,7 +9659,7 @@ async function api(req,res,url){
     const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await WELL2.handle(p, req.method, { me, led, heroUsageNote, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
-      feedbackCheatSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev,
+      feedbackCheatSignal, feedbackDesyncSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev,
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
     if(out&&out.storageFailed) return send(res, 503, out);   /* 3 Oct audit: durable idem refused a failed save */
     if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
@@ -10155,8 +10209,8 @@ async function api(req,res,url){
             server:serverEndDigest?sha256hex(serverEndDigest):null, client:sha256hex(clientEnd), serverWon:rep?!!rep.won:null,
             witnessedWon:witnessed.won, witnessedStars:witnessed.stars, transcript:inputLog }]).slice(-20);
           console.warn('province replay incident ('+why+') — '+t+' stage '+a.stage);
-          if(rep&&serverEndDigest) feedbackCheatSignal(me,'province-replay:'+a.id,
-            'Province replay mismatch at '+t+' stage '+a.stage+': serverWon '+!!rep.won+
+          if(rep&&serverEndDigest) feedbackDesyncSignal(me,'province-replay:'+a.id,   // v1455 lockdown: a desync diagnostic, not a cheat
+            'Province replay disagreement (desync diagnostic, not cheating) at '+t+' stage '+a.stage+': serverWon '+!!rep.won+
               ', serverStars '+(rep.stars|0)+', witnessedWon '+witnessed.won+
               ', witnessedStars '+witnessed.stars+', seed '+(a.seed>>>0)+
               ', serverDigest '+sha256hex(serverEndDigest)+', clientDigest '+sha256hex(clientEnd)+'.',
@@ -10478,8 +10532,8 @@ async function api(req,res,url){
         /* v1097 (sweep 9 Oct #11): a shield raised while the march travelled (or beginner peace) stops it ON ARRIVAL - shields were only checked at
            the declaration and at the start. Settled like the capped receipt: no fight, no attack counted, no loot; both sides get a war mail line. */
         if(castleShieldedUntil(d)>Date.now()){ const t=Date.now(), receipt={ok:true,won:false,shielded:true,rounds:0,loot:{gold:0},note:d.name+' raised a protection shield before your army arrived. It came home with nothing.'};
-          d.pvpMail=d.pvpMail||[]; d.pvpMail.push({id:uid(),kind:'shield-blocked',from:me.name,t,marchId:march.id}); if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
-          me.pvpMail=me.pvpMail||[]; me.pvpMail.push({id:uid(),kind:'attack-report',to:d.name,won:false,shielded:true,t,marchId:march.id,loot:{gold:0}}); if(me.pvpMail.length>20) me.pvpMail=me.pvpMail.slice(-20);
+          d.pvpMail=d.pvpMail||[]; d.pvpMail.push({id:uid(),kind:'shield-blocked',from:me.name,t,marchId:march.id}); if(d.pvpMail.length>PVP_MAIL_KEEP) d.pvpMail=d.pvpMail.slice(-PVP_MAIL_KEEP);
+          me.pvpMail=me.pvpMail||[]; me.pvpMail.push({id:uid(),kind:'attack-report',to:d.name,won:false,shielded:true,t,marchId:march.id,loot:{gold:0}}); if(me.pvpMail.length>PVP_MAIL_KEEP) me.pvpMail=me.pvpMail.slice(-PVP_MAIL_KEEP);
           march.resolved=true; march.resolvedAt=t; march.receipt=receipt; writeDB(); return receipt; }
         pvpDayOf(me);   /* v1092: keeps today's bought attacks (extra) */
         /* v1016 (re-audit Guild #6): a march that arrives after today's 20 attacks are used is SETTLED with no fight and no loot - a refusal
@@ -10583,12 +10637,12 @@ async function api(req,res,url){
            defender's wall, same seed) - the receipt that used to hold it lasts an hour now. Delivered by /api/pvp/reports + ack. */
         const mailBattle=replay?{v:2,seed:replay.seed,mineSnap:replay.snaps,foe:replay.foe,won:!!won,oppName:me.name,attacker:me.name,defender:d.name,engine:replay.engine||null}:undefined;   /* v1391: the viewer compares the engine with its own */
         d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds, marchId:march.id, battle:mailBattle, wallPct, wallFell:!!wallFell, newLoc:wallFell?{x:wallFell.x,y:wallFell.y}:undefined});
-        if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
-        for(const o of new Set(garrison.map(g=>g.o))){ o.pvpMail=o.pvpMail||[]; o.pvpMail.push({id:uid(),kind:'defend-report',from:me.name,to:d.name,won,t:Date.now(),marchId:march.id}); if(o.pvpMail.length>20) o.pvpMail=o.pvpMail.slice(-20); }   /* v1097 */
+        if(d.pvpMail.length>PVP_MAIL_KEEP) d.pvpMail=d.pvpMail.slice(-PVP_MAIL_KEEP);
+        for(const o of new Set(garrison.map(g=>g.o))){ o.pvpMail=o.pvpMail||[]; o.pvpMail.push({id:uid(),kind:'defend-report',from:me.name,to:d.name,won,t:Date.now(),marchId:march.id}); if(o.pvpMail.length>PVP_MAIL_KEEP) o.pvpMail=o.pvpMail.slice(-PVP_MAIL_KEEP); }   /* v1097 */
         me.pvpMail=me.pvpMail||[];
         me.pvpMail.push({id:uid(), kind:'attack-report', to:d.name, won, t:Date.now(), marchId:march.id, loot,
           battle:mailBattle?Object.assign({},mailBattle,{oppName:d.name}):undefined});
-        if(me.pvpMail.length>20) me.pvpMail=me.pvpMail.slice(-20);
+        if(me.pvpMail.length>PVP_MAIL_KEEP) me.pvpMail=me.pvpMail.slice(-PVP_MAIL_KEEP);
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w; _dpk('watch',me.id);
         const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:Math.max(0,attackCap(me)-me.pvpDay.n), allyDefenders:garrison.length, wallPct, wallFell:!!wallFell};
@@ -10608,7 +10662,7 @@ async function api(req,res,url){
     if(!d||d.isNpc||d.id===me.id) return send(res,200,{ok:false});
     d.pvpMail=d.pvpMail||[]; const rec={from:me.name,won:!!b.won,t:Date.now(),social:true,unverified:true};   // DEPRECATED (v249): /api/pvp/attack is the verified route; this remains a social note only
     try{ if(b.battle&&typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) rec.battle=JSON.parse(s); } }catch(e){}
-    d.pvpMail.push(rec); if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
+    d.pvpMail.push(rec); if(d.pvpMail.length>PVP_MAIL_KEEP)d.pvpMail=d.pvpMail.slice(-PVP_MAIL_KEEP);
     writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/pvp/reports'){ if(!me)return send(res,401,{error:'auth'});
     // RE-AUDIT: reads are non-destructive — a dropped response no longer loses mail. Reports carry ids
@@ -10658,7 +10712,7 @@ async function api(req,res,url){
       if(d){
         d.pvpMail=d.pvpMail||[];
         d.pvpMail.push({id:uid(),from:me.name,kind:'war-declared',t:now,readyAt:war.readyAt,expireAt:war.expireAt});
-        if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
+        if(d.pvpMail.length>PVP_MAIL_KEEP)d.pvpMail=d.pvpMail.slice(-PVP_MAIL_KEEP);
       }
       if(d)related.push(d);
       breakOwnShield(me);   /* v1081: declaring war breaks your own protection shield and beginner peace */
@@ -10910,7 +10964,7 @@ async function api(req,res,url){
         led.battleIncidents=(led.battleIncidents||[]).concat([{t:now,stage:'siege-'+site.id,mode:'siege',why,source:'auto',playerTruth:true,
           engine:march.engine||null,seed:march.seed>>>0,server:serverEnd?sha256hex(serverEnd):null,client:sha256hex(clientEnd),
           serverWon:rep?!!rep.won:null,witnessedWon:won}]).slice(-20);
-        if(rep&&serverEnd) flag={signal:'siege-replay:'+march.id,detail:'Siege replay mismatch at '+site.name+': serverWon '+!!rep.won+', witnessedWon '+won+', seed '+(march.seed>>>0)+'.'}; }
+        if(rep&&serverEnd) flag={signal:'siege-replay:'+march.id,detail:'Siege replay disagreement (desync diagnostic, not cheating) at '+site.name+': serverWon '+!!rep.won+', witnessedWon '+won+', seed '+(march.seed>>>0)+'.'}; }
       heroUsageNote(me,'siege',march.heroIds,won);   // v1427: World Map; v1428: after the battle call - simRun runs this planner twice when it fetches the battle
       // wounds from the fight the player saw (each hero at most its entry HP)
       const outcomes=march.snaps.map(s=>{ const row=d.u.find(u=>Array.isArray(u)&&u[0]===s.key&&u[1]==='ally');
@@ -10937,12 +10991,12 @@ async function api(req,res,url){
           for(const l of (holder&&Array.isArray(holder.garrison)?holder.garrison:[])){ const owner=l.uid===me.id?me:other(l.uid); if(!owner) continue;
             const m=worldCityMarches(owner,now).find(x=>x&&x.id===l.marchId); if(!m||m.recall) continue;
             Object.assign(m,siegeLineHome(m,now,'displaced')); sentHome++;
-            if(owner!==me){ owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:false,t:now,marchId:m.id}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
+            if(owner!==me){ owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:false,t:now,marchId:m.id}); if(owner.pvpMail.length>PVP_MAIL_KEEP) owner.pvpMail=owner.pvpMail.slice(-PVP_MAIL_KEEP); } }
           sieges.sites[site.id]={type:'guild',id:String(me.guildId),name:String(g.name||'Guild').slice(0,40),since:now,protectedUntil:now+WORLD_SIEGE.PROTECT_MS,by:me.id,byName:me.name,marchId:march.id,garrison:[]};
           sieges.rev=(sieges.rev|0)+1; seized=true; station(); }
       } else if(march.defenders==='garrison'&&holder&&Array.isArray(holder.garrison)){   // v1237: the garrison held - its owners get a war mail line
         for(const uidOf of new Set(holder.garrison.map(l=>l.uid))){ const owner=other(uidOf); if(!owner) continue;
-          owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:true,t:now}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
+          owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:true,t:now}); if(owner.pvpMail.length>PVP_MAIL_KEEP) owner.pvpMail=owner.pvpMail.slice(-PVP_MAIL_KEEP); } }
       march.resolved=true; march.resolvedAt=now;
       const hr=sieges.sites[site.id];
       march.receipt={ok:true,won,seized,garrisoned,sentHome,note,noteReasons,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),
@@ -10951,7 +11005,7 @@ async function api(req,res,url){
       delete march.snaps;
       return march.receipt;
     }),'live');
-    if(out&&out.ok&&flag) feedbackCheatSignal(me,flag.signal,flag.detail,'battle integrity');
+    if(out&&out.ok&&flag) feedbackDesyncSignal(me,flag.signal,flag.detail,'battle integrity');   // v1455 lockdown: a desync diagnostic, not a cheat
     return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
   if(p==='/api/world/sieges' && req.method==='GET'){
