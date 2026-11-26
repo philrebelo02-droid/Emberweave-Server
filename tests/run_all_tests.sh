@@ -659,6 +659,8 @@ note "test_heroes_fixes_1455_screen.js (v1455: prev / next hero arrows show and 
 node tests/test_heroes_fixes_1455_screen.js || FAILED=1
 note "test_lockdown_campaign_1455.js (v1455 lockdown audit Campaign + Bonus fixes: the server run count redraws the CHANCES box, First clear! on the reward pop, gold feet ring on the firebreak pick, no presets on the Bonus 1-3 teaching run)"
 node tests/test_lockdown_campaign_1455.js || FAILED=1
+note "test_lockdown_guild_1455.js (v1455 lockdown audit Guild fixes: Skyfall result summary from the whole war, missed-lock line, reward claim capped + ledger row, unclaimed line says arena coins in 16 languages)"
+node tests/test_lockdown_guild_1455.js || FAILED=1
 note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Irix +20% health and damage in that fight only; City Wall art in view; Cauldron \"Full in\")"
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"

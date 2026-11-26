@@ -3753,6 +3753,10 @@ function chatFindMsg(mid, me){ mid=String(mid||''); if(!mid) return null;
   if(gi>=0){ const e=gl[gi]; return {channel:'guild',senderId:e.id||null,sender:e.name,text:e.tx,t:e.t,
     context:_chatContext(gl,gi,x=>({who:x.sys?'(guild notice)':x.name,senderId:x.id||null,text:x.tx,t:x.t}))}; }
   return null; }
+/* v1455 lockdown (guild-06 "Results summary"): the result summary counts citadels and assaults from the WHOLE war, not from the last 30
+   events the view carries (lock-time STANDING_LANE / LATE_LINE rows and every ASSAULT filled those 30). Every fall row (at most 10 citadels) + the two counts. */
+function warSummaryOf(m){ const L=(m&&m.eventLog)||[], fell=L.filter(e=>e&&(e.e==='CITADEL_FELL'||e.e==='CITADEL_CAPTURED')), as=L.filter(e=>e&&e.e==='ASSAULT');
+  return { fell, assaults:as.length, assaultsWon:as.filter(e=>e.won).length }; }
 function warMatchView(t,m,meGid,meId){
   const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (v728: Tue+ 02:00 ET)
   const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
@@ -3763,7 +3767,7 @@ function warMatchView(t,m,meGid,meId){
     resultsUntil:((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
     nextPrepOpensAt:((t.schedule[(m.roundIndex|0)+1]||{}).planningOpensAt)||((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
     you:warSideView(m,meGid,false,meId), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
-    lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
+    lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30), summary:warSummaryOf(m) };
   /* v770 (Phil: "still cannot place my lines in a tower") - YOUR OWN LINES, wherever they are.
      Built from the ENTRANT - the registered lines the lock will hydrate - rather than from what
      happens to be on the board, because a line that has never been placed is on no citadel at all;
@@ -7841,14 +7845,17 @@ async function api(req,res,url){
       const claimedHere=!!(t.rewards&&Object.keys(t.rewards).some(k=>k.endsWith(':'+me.id)));   /* v1009: a second claim said "You did not take part" to a player who had */
       if(!pend.length) return send(res,400,{error:claimedHere?'Already claimed.':t.state==='finished'?'You did not take part in this tournament.':'Nothing to claim.'});
       const total=pend.reduce((s,x)=>s+(x.amt|0),0), last=pend[pend.length-1];
-      me.coins=(me.coins||0)+total; me.pendingWarRewards=[];
+      /* v1455 lockdown (guild-06 "Claim reward"): the claim pays ARENA coins, so it stops at their cap (ECON_CAP.arenaCoins, as the Arena daily
+         claim does) and leaves a ledger transaction; `amount` is what was really added. */
+      const _before=Math.max(0,me.coins|0); me.coins=Math.min(ECON_CAP.arenaCoins,_before+total); const paid=me.coins-_before; me.pendingWarRewards=[];
+      try{ ensureLedger(me); ledTx(me,'skyfall:reward:'+(last.tid||'-'),{arenaCoins:paid},true); }catch(e){}
       /* v799 - the player was paid on the line above, from their own pendingWarRewards. This is
          bookkeeping onto the tournament itself, and since finished tournaments are no longer kept
          it only finds one while the CURRENT week is the one being claimed. A claim carried over
          from a previous week simply has nothing to write to, and the player is paid either way. */
       const tt=(last.tid===t.id)?t:null;
       if(tt&&tt.id===last.tid){ tt.rewards=tt.rewards||{}; tt.rewards[(last.gid||'-')+':'+me.id]={t:warNow(),amt:total,tid:last.tid}; if(tt===t) t.version++; }
-      const cresp={ok:true, coins:me.coins, amount:total, tier:last.tier}; if(crid) me.lastWarClaim={rid:crid,resp:cresp};
+      const cresp={ok:true, coins:me.coins, amount:paid, tier:last.tier}; if(crid) me.lastWarClaim={rid:crid,resp:cresp};
       if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
       return send(res,200,cresp);
     }
