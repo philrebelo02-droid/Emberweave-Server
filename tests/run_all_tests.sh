@@ -707,6 +707,10 @@ note "screen_lockdown_guild.js (lockdown 25 Nov round 2, needs playwright: Guild
 node tests/screen_lockdown_guild.js || FAILED=1
 note "screen_lockdown_citywall.js (lockdown 25 Nov round 2, needs playwright: City Wall gatehouse art beside the panels at every size, painted realm zoomed out, smooth zoom on a slow network, z0 detail tiles, a worked mine stays until empty)"
 node tests/screen_lockdown_citywall.js || FAILED=1
+note "screen_lockdown_island.js (lockdown 25 Nov round 2, needs playwright: Island of Trials title + gold-framed labels, Training Province art at 844x390 / 390x844, Drill 1 reward text, Swarm Spire hero select lobby)"
+node tests/screen_lockdown_island.js || FAILED=1
+note "screen_lockdown_island_emberdraft.js (lockdown 25 Nov round 2, needs playwright: Emberdraft title screen, players panel, drag to buy, drag a hero + second finger, hero info panel, your avatar, rank insignia, rival avatar)"
+node tests/screen_lockdown_island_emberdraft.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
