@@ -734,6 +734,8 @@ note "screen_lockdown_egp.js (lockdown 25 Nov round 2, needs playwright: EGP: al
 node tests/screen_lockdown_egp.js || FAILED=1
 note "screen_lockdown_vault.js (lockdown 25 Nov round 2, needs playwright: Vault painted title in the title spot, enemy cards on hover / double tap with the floor numbers, one-screen landscape layout at every size, power on the Select Heroes cards)"
 node tests/screen_lockdown_vault.js || FAILED=1
+note "screen_lockdown_heroes_1463.js (lockdown 25 Nov Heroes Panel fixes on screen, needs playwright: caster numbers = the fight's Ability Power with its icon, no emoji skill lines, crit row with the class base crit, SUMMON NOW stars = the server grant, first Quick Slot / ASCEND tap after a real Campaign fight, Morvayne's lore title; phone and desktop)"
+node tests/screen_lockdown_heroes_1463.js || FAILED=1
 note "screen_lockdown_arena.js (lockdown 25 Nov round 2, needs playwright: Arena painted title beside Base, one-screen board at every size, Arena Shop painted title / framed items / price buttons / coin balance)"
 node tests/screen_lockdown_arena.js || FAILED=1
 note "screen_lockdown_well.js (lockdown 25 Nov round 2, needs playwright: Starless Well plaque title, painted back button, gold buttons; phone and Fold: every next square on screen and tappable, the title bar does nothing)"
