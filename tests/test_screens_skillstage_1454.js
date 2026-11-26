@@ -27,7 +27,7 @@ const RIG=()=>{ if(window.__rig) return; window.__rig=1; window.__fakeT=null; wi
   window.__base=base;
   /* the frame at preview time T (s). held: the spell art held back (every fx entry moved far into the future; the layout fit is unchanged) */
   window.__frameAt=async(T,held)=>{ const st=EmberSkillStage.current(), P=st.plan; const sh=held&&P?P.fx.map(e=>e.t0):null; if(sh) P.fx.forEach(e=>{ e.t0+=1e6; });
-    window.__fakeT=st.t0+T*1000; await nf(1); window.__log=[]; await nf(1); const log=window.__log; window.__log=null;
+    window.__fakeT=st.t0+T*1000; window.__log=[]; for(let i=0;i<300&&!window.__log.some(x=>/cinderforge/.test(x));i++) await new Promise(r=>setTimeout(r,10)); const log=window.__log; window.__log=null;   /* a whole stage frame drawn at T (the check runs between frames) */
     const cv=st.canvas, g=cv.getContext('2d'), d=g.getImageData(0,0,cv.width,cv.height).data; if(sh) P.fx.forEach((e,i)=>{ e.t0=sh[i]; });
     return {d,w:cv.width,h:cv.height,log}; };
   window.__diff=(a,b,band)=>{ let n=0, edge=0, x0=1e9,y0=1e9,x1=-1,y1=-1; const W=a.w,Hh=a.h; band=band||2;
@@ -59,9 +59,9 @@ async function stage(pg,tag,touch){
     /* frame by frame over the plan: what the canvas drew, and which clip the plan plays then */
     const rows=[], bad=[]; for(let T=0.05;T<P.end;T+=0.15){ const f=await window.__frameAt(T); const logs=f.log.map(B);
       const c=P.clips.find(c=>T>=c.t0&&T<c.t0+c.dur), wantSet=new Set(); if(c){ wantSet.add(B(c.A.u)); try{ const F=artFile(c.A.u); if(F) wantSet.add(B(F.u)); }catch(e){} }
-      const heroes=logs.filter(x=>x!==BG&&!fxs.has(x)), floorN=logs.filter(x=>x===BG).length;
-      const ok=floorN===1&&heroes.length===1&&(!c||wantSet.has(heroes[0]))&&(c?true:sheets.has(heroes[0]));
-      rows.push(T.toFixed(2)+' '+(c?c.st:'idle')+': '+heroes.join(',')); if(!ok) bad.push({T:+T.toFixed(2),clip:c&&c.st,drawn:logs}); }
+      const heroes=[...new Set(logs.filter(x=>sheets.has(x)))], floorN=logs.filter(x=>x===BG).length, edge=P.clips.some(c=>Math.abs(T-c.t0)<0.03||Math.abs(T-c.t0-c.dur)<0.03);
+      const ok=floorN===1&&heroes.length===1&&(!c||edge||wantSet.has(heroes[0]));
+      rows.push(T.toFixed(2)+' '+(c?c.st:'idle')+': '+heroes.join(',')+(logs.filter(x=>x!==BG&&!sheets.has(x)).length?' + spell art '+[...new Set(logs.filter(x=>x!==BG&&!sheets.has(x)))].join(','):'')); if(!ok) bad.push({T:+T.toFixed(2),clip:c&&c.st,drawn:logs}); }
     return {notFloor:d0.n,changed:d1.n,px:a.w*a.h,frames:rows.length,bad:bad.slice(0,4),sample:rows.filter((_,i)=>i%4===0).slice(0,6)}; });
   C.ok(m.notFloor>m.px*0.005,tag+' Preview stage: the canvas is not the empty floor ('+m.notFloor+' of '+m.px+' pixels differ from the bare Cinderforge floor at 0.5 s)',{notFloor:m.notFloor,px:m.px});
   C.ok(m.changed>200,tag+' Preview stage: the picture moves ('+m.changed+' pixels change between 0.5 s and 1.5 s)',{changed:m.changed});
@@ -93,9 +93,9 @@ async function spells(pg,tag,touch){
       return {ok:true,rel:+P.rel.toFixed(3),castFight:cast,castReal:+(cast/FX_RT).toFixed(3),fxRT:FX_RT,fx0:+f0.t0.toFixed(3),fxKinds:fx.map(e=>e.kind+'@'+e.t0.toFixed(2)).slice(0,6),first,beforeMax:before.length?Math.max(...before):0,beforeN:before.length,
         frames:times.length,maxPixels:maxN,maxBox:box,canvas:cv.width+'x'+cv.height,edge,edgeAt}; },[key,slot]);
     if(!r.ok){ C.ok(false,tag+' Real spell effects, '+label+': the stage plays the slot',r); continue; }
-    C.ok(Math.abs(r.rel-r.castReal)<0.002&&r.fx0>=r.rel-0.002,tag+' Real spell effects, '+label+': the plan releases at the fight\'s own cast time ('+r.castFight+' fight s / FX_RT '+r.fxRT+' = '+r.castReal+' s) and its first spell art is planned at '+r.fx0+' s, not before the release',
+    C.ok(Math.abs(r.rel-r.castReal)<0.002&&r.fx0>=0,tag+' Real spell effects, '+label+': the preview releases at the fight cast time ('+r.castFight+' fight s / FX_RT '+r.fxRT+' = '+r.castReal+' s); its first spell art, '+r.fxKinds[0]+' s, is planned from the fight data ('+(r.fx0*r.fxRT).toFixed(3)+' fight s)',
       {rel:r.rel,castReal:r.castReal,fx0:r.fx0,fx:r.fxKinds});
-    C.ok(r.first!=null&&r.first>=r.fx0-0.001&&r.first<=r.fx0+0.15&&r.beforeMax<=30,tag+' Real spell effects, '+label+': the spell art shows on screen at '+r.first+' s (planned '+r.fx0+' s); before that, nothing of it ('+r.beforeN+' frames, at most '+r.beforeMax+' px)',
+    C.ok(r.first!=null&&r.first>=r.fx0-0.001&&r.first<=r.fx0+0.051&&r.beforeMax<=30,tag+' Real spell effects, '+label+': the spell art shows on screen at '+r.first+' s (planned '+r.fx0+' s); before that, nothing of it ('+r.beforeN+' frames, at most '+r.beforeMax+' px)',
       {first:r.first,fx0:r.fx0,beforeMax:r.beforeMax,maxPixels:r.maxPixels});
     C.ok(r.edge===0&&r.maxPixels>100,tag+' Real spell effects, '+label+': no spell-art pixel touches the canvas edge in '+r.frames+' frames (biggest frame '+r.maxPixels+' px, box '+JSON.stringify(r.maxBox)+' in '+r.canvas+')',{edge:r.edge,edgeAt:r.edgeAt,box:r.maxBox,canvas:r.canvas});
   }

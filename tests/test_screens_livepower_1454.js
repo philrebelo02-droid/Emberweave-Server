@@ -19,13 +19,14 @@ const SCREENS=[
   ['campaign squad picker (picked slot)',null,`()=>{ const s=[...document.querySelectorAll('#rosterSlots .rsSlot.full')].find(x=>x.querySelector('.rsName')&&x.querySelector('.rsName').textContent===HERO_TYPES[K].name); return s?N(s.querySelector('.rsPow').textContent):null; }`],
   ['Arena defence',`()=>{ closePopout(); teamCtx='arena'; menuReturn='arena'; show('menu'); }`,`()=>N((document.querySelector('#roster .rsCard[data-hero-key="'+K+'"] .rsPow')||{}).textContent)`],
   ['Vault picker',`()=>{ closePopout(); vaultSelectHeroes(); }`,`()=>N((document.querySelector('#roster .rsCard[data-hero-key="'+K+'"] .rsPow')||{}).textContent)`],
-  ['world map march picker',`()=>{ closePopout(); show('home'); document.querySelectorAll('.mc-hero').forEach(e=>{ const o=e.closest('div[style*="position:fixed"]'); if(o) o.remove(); }); openMarchSelect('defend',{x:5,y:5,name:'Test Keep'}); }`,`()=>N((document.querySelector('.mc-hero[data-k="'+K+'"] .rsPow')||{}).textContent)`],
-  ['world map attack panel (line power)',`()=>{ document.querySelectorAll('.mc-hero').forEach(e=>{ const o=e.closest('div[style*="position:fixed"]'); if(o) o.remove(); }); openAttackPrep('attack',{x:5,y:5,name:'Test Keep'},[K]); }`,`()=>{ const p=document.querySelector('#atkPrep .apPow'); const r=N(p&&p.textContent); document.getElementById('atkPrep')&&document.getElementById('atkPrep').remove(); return r; }`],
+  ['world map march picker',`()=>{ closePopout(); show('home'); MC_CLEAR(); openMarchSelect('defend',{x:5,y:5,name:'Test Keep'}); }`,`()=>N((document.querySelector('.mc-hero[data-k="'+K+'"] .rsPow')||{}).textContent)`],
+  ['world map attack panel (line power)',`()=>{ MC_CLEAR(); openAttackPrep('attack',{x:5,y:5,name:'Test Keep'},[K]); }`,`()=>{ const p=document.querySelector('#atkPrep .apPow'); const r=N(p&&p.textContent); document.getElementById('atkPrep')&&document.getElementById('atkPrep').remove(); return r; }`],
   ['Skyfall Edit Team line',`async()=>{ closePopout(); show('skyfall'); for(let i=0;i<100&&!document.getElementById('skyStage');i++) await new Promise(r=>setTimeout(r,100)); const was=document.querySelector('#skyStage .skyBrk'); if(was) was.remove(); skyEditTeamOpen(); for(let i=0;i<100&&(SKYTEAM.loading||!document.querySelector('#skyStage .skyBrk[data-kind="team"] [data-k]'));i++) await new Promise(r=>setTimeout(r,100)); }`,
     `()=>{ const c=document.querySelector('#skyStage .skyBrk[data-kind="team"] [data-k="'+K+'"] .skyTPw'); return c?N(c.textContent):null; }`],
 ];
 
-async function readAll(pg,key){ const out={};
+const CLEAR=`window.MC_CLEAR=()=>{ document.querySelectorAll('.mc-hero').forEach(e=>{ let o=e; while(o.parentElement&&o.parentElement!==document.body) o=o.parentElement; if(o.parentElement) o.remove(); }); const a=document.getElementById('atkPrep'); if(a) a.remove(); };`;
+async function readAll(pg,key){ const out={}; await pg.evaluate(CLEAR);
   for(const [name,open,read] of SCREENS){
     if(open){ await pg.evaluate(`(async()=>{ const K=${JSON.stringify(key)}; document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); await (${open})(); })()`).catch(e=>{ out[name+' (open error)']=String(e.message).slice(0,160); }); await H.wait(name.startsWith('Skyfall')?400:800); await H.clean(pg); }
     out[name]=await pg.evaluate(`(()=>{ const K=${JSON.stringify(key)}, N=${NUM}; return (${read})(); })()`).catch(e=>'error '+String(e.message).slice(0,120));
@@ -37,6 +38,7 @@ async function run(pg,tag,touch,key,s){
   const before=await readAll(pg,key);
   const cardBefore=await pg.evaluate(k=>heroPower(k),key);
   /* the upgrade: the Skills tab, the first lit "+" button, a real press */
+  await pg.evaluate(()=>{ MC_CLEAR(); closePopout(); show('home'); }); await H.wait(800);
   await pg.evaluate(k=>{ closePopout(); popoutScreen('heroesPanel'); detailHero=k; heroTab='stats'; popoutScreen('heroDetail'); renderHeroDetail(); },key); await H.wait(600); await H.clean(pg);
   await press(pg,touch,'#heroDetailBody .hd-tab[data-tab="skills"]'); await H.wait(700);
   const btn=await pg.evaluate(()=>{ const b=[...document.querySelectorAll('#heroDetailBody [data-skillup]')].find(x=>!x.disabled); if(!b) return null; b.scrollIntoView({block:'center'}); return b.dataset.skillup; });
@@ -50,6 +52,7 @@ async function run(pg,tag,touch,key,s){
   const srv=s.disk().led.hero[key];
   C.ok(now.lv===lvBefore+1&&now.card!==cardBefore&&now.win===now.card,tag+' '+key+': the skill upgrade (skill '+btn+' Lv '+lvBefore+' -> '+now.lv+', server '+JSON.stringify(srv.sk||srv.skills||null)+') changes the card power '+cardBefore.toLocaleString()+' -> '+now.card.toLocaleString()+' on the hero window '+ms+' ms after the press, no reload',
     {before:cardBefore,after:now.card,window:now.win,ms});
+  await pg.evaluate(()=>{ MC_CLEAR(); closePopout(); show('home'); }); await H.wait(600);
   const after=await readAll(pg,key);
   const rows=SCREENS.map(([n])=>n);
   for(const n of rows){ const b=before[n], a=after[n];

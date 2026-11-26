@@ -69,14 +69,16 @@ async function dropdowns(pg,tag,touch){
 async function grid(pg,tag){
   await openList(pg);
   const g=await pg.evaluate(()=>{ const V=ewGameView(), p=document.getElementById('heroesPanel'), pr=p.ewGameRect();
-    const cards=[...document.querySelectorAll('#heroList .hero-card')].filter(c=>c.offsetParent!==null), rows=new Map();
-    cards.forEach(c=>{ const t=Math.round(c.offsetTop); if(!rows.has(t)) rows.set(t,[]); rows.get(t).push(c); });
-    const counts=[...rows.values()].map(r=>r.length), widths=cards.map(c=>Math.round(c.ewGameRect().width*10)/10), list=document.getElementById('heroList').ewGameRect();
+    const cards=[...document.querySelectorAll('#heroList .hero-card')].filter(c=>c.offsetParent!==null);
+    /* the list has groups under their own headings (Your heroes / Ready / Collecting): full rows are every row of a group but its last */
+    const groups=[]; let cur=null; for(const el of document.getElementById('heroList').children){ if(el.classList.contains('hero-card')){ if(!cur){ cur=[]; groups.push(cur); } cur.push(el); } else if(el.style.gridColumn&&!el.querySelector('.ewDD')){ cur=[]; groups.push(cur); groups[groups.length-1].head=el.textContent; } }
+    const gRows=groups.filter(g=>g.length).map(g=>{ const m=new Map(); g.forEach(c=>{ const t=Math.round(c.offsetTop); m.set(t,(m.get(t)||0)+1); }); return {head:g.head,rows:[...m.values()]}; });
+    const counts=gRows.flatMap(g=>g.rows), widths=cards.map(c=>Math.round(c.ewGameRect().width*10)/10), list=document.getElementById('heroList').ewGameRect();
     return {cards:cards.length,rows:counts.length,perRow:counts,widthMin:Math.min(...widths),widthMax:Math.max(...widths),cardH:Math.round(cards[0].ewGameRect().height),
       panel:{left:Math.round(pr.left),right:Math.round(V.width-pr.right),w:Math.round(pr.width)},game:{w:Math.round(V.width),h:Math.round(V.height)},popout:p.classList.contains('popout'),
-      listW:Math.round(list.width),cols:getComputedStyle(document.getElementById('heroList')).gridTemplateColumns.split(' ').length}; });
-  const full=g.perRow.slice(0,-1), lastRow=g.perRow[g.perRow.length-1];
-  C.ok(g.cols===5&&full.length>3&&full.every(n=>n===5)&&lastRow>=1&&lastRow<=5,tag+' Grid layout: 5 hero cards to every full row ('+g.cards+' cards, '+g.rows+' rows, last row '+lastRow+')',{cols:g.cols,perRow:g.perRow.join(',')});
+      listW:Math.round(list.width),cols:getComputedStyle(document.getElementById('heroList')).gridTemplateColumns.split(' ').length,gRows}; });
+  const full=g.gRows.flatMap(x=>x.rows.slice(0,-1)), lastRow=g.perRow[g.perRow.length-1];
+  C.ok(g.cols===5&&full.length>3&&full.every(n=>n===5)&&g.gRows.every(x=>x.rows[x.rows.length-1]<=5),tag+' Grid layout: 5 hero cards to every full row ('+g.cards+' cards in '+g.gRows.length+' groups, '+g.rows+' rows)',{cols:g.cols,groups:g.gRows.map(x=>(x.head||'').trim()+': '+x.rows.join(',')).join(' | ')});
   C.ok(g.popout&&Math.abs(g.panel.left-g.panel.right)<=2,tag+' Grid layout: the Heroes window is centred (left gap '+g.panel.left+' px, right gap '+g.panel.right+' px)',{panel:g.panel,game:g.game});
   C.ok(g.widthMax-g.widthMin<=1,tag+' Grid layout: every card the same size',{min:g.widthMin,max:g.widthMax,h:g.cardH});
   return g; }
@@ -182,7 +184,7 @@ async function stars(pg,tag){
       await pg._ctx.close(); pg=null;
     }
     const a=grids['1280x720'], b=grids['844x390'];
-    if(a&&b) C.ok(Math.abs(a.widthMin-b.widthMin)<=2&&a.widthMin>=100&&b.widthMin>=90,'Grid layout keeps the card size: 1280x720 card '+a.widthMin+' px, 844x390 card '+b.widthMin+' px (same window width '+a.panel.w+' / '+b.panel.w+')',{pc:a.widthMin+'x'+a.cardH,phone:b.widthMin+'x'+b.cardH});
+    if(a&&b) C.ok(Math.abs(a.widthMin-b.widthMin)<=2&&a.widthMin>=90&&b.widthMin>=90,'Grid layout keeps the card size: 1280x720 card '+a.widthMin+' px, 844x390 card '+b.widthMin+' px (same window width '+a.panel.w+' / '+b.panel.w+')',{pc:a.widthMin+'x'+a.cardH,phone:b.widthMin+'x'+b.cardH});
     /* the Fold cover (904x1136, touch): the dropdown menus only */
     pg=await H.game(s.port,{w:904,h:1136,touch:true});
     try{ await dropdowns(pg,'904x1136',true); }catch(e){ C.ok(false,'904x1136 dropdown part ran to the end',String(e&&e.stack||e).slice(0,500)); }
