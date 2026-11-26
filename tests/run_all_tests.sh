@@ -687,6 +687,8 @@ note "screen_lockdown_shady.js (lockdown 25 Nov round 2, needs playwright: Shady
 node tests/screen_lockdown_shady.js || FAILED=1
 note "screen_lockdown_hut.js (lockdown 25 Nov round 2, needs playwright: Witches Hut: march / mine / attack pickers grey a 0% hero (HP 0%) and show Lv + HP % for a wounded one)"
 node tests/screen_lockdown_hut.js || FAILED=1
+note "screen_lockdown_egp.js (lockdown 25 Nov round 2, needs playwright: EGP: all 31 patron levels same card size, sticky header; gold phoenix on EGP, diamond phoenix on EDP)"
+node tests/screen_lockdown_egp.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
