@@ -70,11 +70,6 @@ async function chapters(pg,S){
     const s=await shot(pg,S.tag+' chapter '+ch);
     rows.push('ch'+ch+': art '+(r.bgOk?'ok':'MISSING')+', area '+(r.ib&&[r.ib.x,r.ib.y,r.ib.w,r.ib.h].join(','))+' vs '+(r.sb&&[r.sb.x,r.sb.y,r.sb.w,r.sb.h].join(','))+', plates on '+r.plates.filter(p=>p.on).length+'/'+r.plates.length+' ('+s+')');
     if(!(covers&&r.bgOk&&!r.bars&&ten)) bad.push({ch,covers,art:r.bg,want:r.wideArt,bars:r.bars,off:r.plates.filter(p=>!p.on).map(p=>p.code),n:r.plates.length,shot:s});
-    if(r.plates.some(p=>p.miss)) console.log('  DIAG1465 '+S.tag+' ch'+ch+' '+JSON.stringify(await pg.evaluate(()=>{ /*DIAG1465*/ const inner=document.getElementById('cmap').firstElementChild, nodes=[...inner.querySelectorAll('.cnode')];
-      const dump=()=>nodes.map(n=>{ const b=n.getBoundingClientRect(); return n.dataset.code+(n.classList.contains('elite')?'E':'')+' nx='+n.dataset.nx+' ny='+n.dataset.ny+' L='+n.style.left+' T='+n.style.top+' c='+Math.round(b.left+b.width/2)+','+Math.round(b.top+b.height/2)+' '+Math.round(b.width)+'x'+Math.round(b.height)+' op='+(n.offsetParent===inner); });
-      const miss=()=>nodes.reduce((k,n)=>{ const b=n.getBoundingClientRect(), cx=b.left+b.width/2, cy=b.top+b.height/2; return k+[[-21.5,-21.5],[21.5,-21.5],[-21.5,21.5],[21.5,21.5],[0,-21.5],[0,21.5],[-21.5,0],[21.5,0]].filter(([x,y])=>{ const t=document.elementFromPoint(cx+x,cy+y); return !(t&&(t===n||n.contains(t))); }).length; },0);
-      const ir=inner.getBoundingClientRect(), before=dump(), m0=miss(); cnodeSpreadPlates(inner); const m1=miss();
-      return {wh:inner.offsetWidth+'x'+inner.offsetHeight, rect:Math.round(ir.width)+'x'+Math.round(ir.height), spreadWh:inner.dataset.spreadWh, m0, m1, before, after:m1!==m0?dump():null}; })));
     for(const p of r.plates) if(!p.centre||p.bonusAtCentre||p.miss) tapBad.push(p.code+' box '+p.box+(p.centre?'':' CENTRE-NOT-PLATE')+(p.bonusAtCentre?' BONUS-AT-CENTRE '+p.who:'')+(p.miss?' '+p.miss+'/8 edge probes miss (hit: '+p.missWho.join('; ')+')':''));
     if(ch===1||ch===16) C.ok(true,S.tag+' (sample) tap boxes ch'+ch,r.plates.map(p=>p.code+' '+p.box).join(' | '));
   }

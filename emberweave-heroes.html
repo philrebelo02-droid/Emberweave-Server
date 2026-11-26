@@ -26081,15 +26081,17 @@ function startCampaignIdleNodes(){
 function cnodeSpreadPlates(root){
   const nodes=[...root.querySelectorAll('.cnode')]; if(nodes.length<2) return;
   const W=root.offsetWidth, H=root.offsetHeight; if(!(W>0&&H>0)) return;
-  root.dataset.spreadWh=W+'x'+H;   /*DIAG1465 temp*/
   const P=nodes.map(n=>{ if(n.dataset.nx==null){ n.dataset.nx=n.style.left; n.dataset.ny=n.style.top; }
     n.style.left=n.dataset.nx; n.style.top=n.dataset.ny;
     const e=n.classList.contains('elite'), hw=Math.max(e?24:22,(n.offsetWidth||0)/2), hh=Math.max(e?32:22,(n.offsetHeight||0)/2), ay=parseFloat(n.dataset.ny)/100*H;   /* v1465: the plate's own box when it is bigger than the 44 px tap minimum (screen run 1126-165957: x-2's box still took x-1's corner on chapters 10-15) */
     return {n,e,hw,hh,x:parseFloat(n.dataset.nx)/100*W,y:e?ay-32:ay,moved:false}; });
   if(P.some(p=>!isFinite(p.x)||!isFinite(p.y))) return;
+  /* v1465 (screen run 1126-183529, phone chapters 10-15): the plates were spread to exactly 44 px apart (10-1 / 10-2: 44.1 px), and the browser's
+     sub-pixel hit test then still gave the last half pixel of x-1's corner to x-2. Two px of clear space between tap boxes. */
+  const SPREAD_GAP=2;
   for(let it=0;it<40;it++){ let any=false;
     for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j], dx=b.x-a.x, dy=b.y-a.y;
-      const ox=a.hw+b.hw-Math.abs(dx), oy=a.hh+b.hh-Math.abs(dy); if(ox<=0.01||oy<=0.01) continue;
+      const ox=a.hw+b.hw+SPREAD_GAP-Math.abs(dx), oy=a.hh+b.hh+SPREAD_GAP-Math.abs(dy); if(ox<=0.01||oy<=0.01) continue;
       any=true; a.moved=b.moved=true;
       if(ox<=oy){ const s=(dx<0?-1:1)*(ox/2+0.05); a.x-=s; b.x+=s; } else { const s=(dy<0?-1:1)*(oy/2+0.05); a.y-=s; b.y+=s; } }
     P.forEach(p=>{ p.x=Math.max(p.hw,Math.min(W-p.hw,p.x)); p.y=Math.max(p.hh,Math.min(H-p.hh,p.y)); });

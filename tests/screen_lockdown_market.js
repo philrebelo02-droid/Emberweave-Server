@@ -89,19 +89,12 @@ async function store(pg,S){
         let swipeDiag=null;
         if(S.touch){ swipeDiag=await pg.evaluate(([x,y])=>({at:SL.whoAt?(()=>{ const t=document.elementFromPoint(x,y); return t?(t.tagName+'.'+String(t.className).slice(0,40)):null; })():null,inBody:!!document.elementFromPoint(x,y)&&document.querySelector('#hudShop .st2-body').contains(document.elementFromPoint(x,y))}),[Math.round(b.x+b.w*0.35),Math.round(b.y)]);
           console.log('  INFO   '+S.tag+' store swipe starts at '+Math.round(b.x+b.w*0.35)+','+Math.round(b.y)+' on '+JSON.stringify(swipeDiag)); }
-        if(S.touch) await pg.evaluate(()=>{ /*DIAG1465*/ const L=window._dg=[]; const body=document.querySelector('#hudShop .st2-body'); const nm=e=>e===document?'document':e===window?'window':((e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.split(' ')[0]:'')||e.tagName);
-          for(const ev of ['touchstart','touchmove','touchend','touchcancel','pointerdown','pointercancel','pointerup']) window.addEventListener(ev,e=>{ if(L.length<80) L.push(ev+(e.defaultPrevented?'!PD':'')+(e.cancelable?'':'(nc)')+' '+nm(e.target)+' sl='+Math.round(body.scrollLeft)); },{passive:true});
-          document.addEventListener('scroll',e=>{ if(L.length<120) L.push('scroll '+nm(e.target)+' sl='+Math.round(e.target.scrollLeft||0)); },{capture:true,passive:true});
-          const vv=visualViewport; L.push('vv scale='+vv.scale+' w='+vv.width+' h='+vv.height+' ox='+vv.offsetLeft+' inner='+innerWidth+'x'+innerHeight+' de='+document.documentElement.clientWidth+' sw='+document.documentElement.scrollWidth+' html.ta='+getComputedStyle(document.documentElement).touchAction+' app='+document.getElementById('app').style.width+'x'+document.getElementById('app').style.height);
-          const b0=body.scrollLeft; body.scrollLeft=20; L.push('prog scroll test '+b0+'->'+body.scrollLeft); body.scrollLeft=0;
-          const r=body.getBoundingClientRect(); L.push('stack '+document.elementsFromPoint(r.left+r.width*0.35,r.top+r.height/2).slice(0,8).map(nm).join(' > ')); });
         if(S.touch){ const cdp=await pg._ctx.newCDPSession(pg); for(let k=0;k<4;k++){ const x0=Math.round(b.x+b.w*0.35), y=Math.round(b.y);
           await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x0,y}]});
           for(let j=1;j<=12;j++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x0-Math.round(b.w*0.6*j/12),y}]}); await H.wait(16); }
           await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await H.wait(250); } }
         else { await pg.mouse.move(b.x,b.y); for(let k=0;k<12;k++){ await pg.mouse.wheel(0,400); await H.wait(60); } }
         await H.wait(600);
-        if(S.touch) console.log('  DIAG1465 '+S.tag+' '+id+' '+JSON.stringify(await pg.evaluate(()=>window._dg)));
         scrolled=await pg.evaluate(()=>{ const body=document.querySelector('#hudShop .st2-body'), brr=SL.R(body), last=[...body.querySelectorAll('.st2-card')].pop(), lr=SL.R(last); let ta=[]; for(let e=body;e&&e!==document.documentElement;e=e.parentElement){ const v=getComputedStyle(e).touchAction; if(v!=='auto') ta.push((e.id||e.className||e.tagName).toString().slice(0,30)+':'+v); }
           return {scrollLeft:Math.round(body.scrollLeft),max:body.scrollWidth-body.clientWidth,lastIn:lr.x>=brr.x-1&&lr.r<=brr.r+1,overflowX:getComputedStyle(body).overflowX,touchAction:ta}; });
         const s2=await shot(pg,S.tag+' store '+id+' scrolled');
