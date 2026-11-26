@@ -93,7 +93,7 @@ async function summon(pg,S,s,key){
   const sh2=await shot(pg,S.tag+' Summoned '+key+' in the Heroes list');
   C.ok(after.owned&&srvStars===grant&&after.pageStars===grant&&after.card&&after.cardOwned,S.tag+' SUMMON NOW: '+key+' is summoned at '+srvStars+' stars on the server ('+after.pageStars+' on the page), as the line said ('+said+'), and sits in YOUR HEROES',{after,shot:sh2}); }
 
-async function campaignFight(pg){
+async function campaignFight(pg,S){
   const resp=pg.waitForResponse(r=>/\/api\/campaign\/resolve/.test(r.url())&&r.request().method()==='POST',{timeout:300000});
   const f=await pg.evaluate(async()=>{ const sl=ms=>new Promise(r=>setTimeout(r,ms));
     try{ closePopout(); }catch(e){} try{ show('home'); }catch(e){}
@@ -115,6 +115,14 @@ async function campaignFight(pg){
   if(f.error) return f;
   let body=null; try{ body=await (await resp).json(); }catch(e){ return Object.assign(f,{error:'no campaign resolve reply: '+String(e.message||e).slice(0,160)}); }
   await H.wait(2500);   // the page's after-fight glyph re-read (glyphAfterFight) runs on the reply
+  /* v1388 Damage Done: the game opens its damage panel (#ddPop) over the result after every fight, and a player closes it with Continue.
+     Run 1126-184949 left it open and it took the taps meant for the hero window - close it as a player does. */
+  await pg.waitForSelector('#ddPop .ddGo',{timeout:15000}).catch(()=>{});
+  let dd='not shown';
+  if(await pg.$('#ddPop .ddGo')){ await press(pg,S.touch,'#ddPop .ddGo'); await pg.waitForFunction(()=>!document.getElementById('ddPop'),null,{timeout:10000}).catch(()=>{}); dd=(await pg.$('#ddPop'))?'still open after Continue':'closed with its Continue button'; }
+  console.log('  INFO   after the fight: the Damage Done panel (#ddPop) '+dd);
+  if(dd==='still open after Continue') return Object.assign(f,{error:'the Damage Done panel stayed open after Continue'});
+  await H.wait(600); await H.clean(pg);
   return Object.assign(f,{won:!!(body&&body.won),glyphFragments:(body&&body.reward&&body.reward.glyphFragments)||(body&&body.glyphFragments)||null}); }
 
 async function glyphs(pg,S,s,q,a){
@@ -122,7 +130,7 @@ async function glyphs(pg,S,s,q,a){
   /* the page holds glyph state from before the fight (as a player who looked at Glyphs first) */
   await pg.evaluate(async()=>{ await glyphV2Sync(); }); const pageRevBefore=await pg.evaluate(()=>RUNE2.st&&RUNE2.st.revision);
   const before=await srvRev();
-  const fight=await campaignFight(pg);
+  const fight=await campaignFight(pg,S);
   const mid=await srvRev();
   C.ok(!fight.error&&fight.won,S.tag+' Glyphs: a real Campaign 1-1 fight ran through the page (start, battle with auto, resolve) and was won',{fight,serverRevision:before.revision+' -> '+mid.revision,pageRevisionBeforeFight:pageRevBefore});
   if(!(mid.revision>pageRevBefore)) C.look(S.tag+' Glyphs: this fight did not move the glyph revision past the page\'s copy (no glyph fragments paid?), so the first-tap checks below did not meet a stale state',{pageBefore:pageRevBefore,server:mid.revision});
