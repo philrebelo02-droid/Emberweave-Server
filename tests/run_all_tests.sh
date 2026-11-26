@@ -675,6 +675,8 @@ note "test_screens_livepower_1454.js (lockdown 25 Nov, needs playwright: a skill
 node tests/test_screens_livepower_1454.js || FAILED=1
 note "screen_lockdown_watchtower.js (lockdown 25 Nov round 2, needs playwright: Watch Tower painted title art and gold frame at every size)"
 node tests/screen_lockdown_watchtower.js || FAILED=1
+note "screen_lockdown_vault.js (lockdown 25 Nov round 2, needs playwright: Vault painted title in the title spot, enemy cards on hover / double tap with the floor numbers, one-screen landscape layout at every size, power on the Select Heroes cards)"
+node tests/screen_lockdown_vault.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
