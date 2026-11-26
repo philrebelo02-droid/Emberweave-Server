@@ -25,11 +25,12 @@ const { S, call, guest } = loadServer(module);
 
 (async () => {
   console.log('== 1. SECURITY: look-alike staff names are reserved ==');
-  { const BAD = ['Adm1n', 'D3v', 'DEV Team', 'DEV Phil', 'Ph1l', 'M0derator', 'Supp0rt', 'Systеm', 'Deleted p1ayer', 'Emberweave Team', 'Official Support', 'Admin 1', 'The Dev Team', 'GM', 'Owner', 'ADMIN', 'A d m i n', 'Ｍｏｄｅｒａｔｏｒ', '$upport', 'Moder@tor'];
-    const OKN = ['Marigold', 'Devon', 'Supporter', 'Ember Fox', 'Philip', 'Admiral', 'Owen', 'Model', 'dev1', 'Soul Eater', 'SoMalice', 'Gemma', 'Moddy', 'Support Squad', 'Adminton', 'Philosopher', 'Dev Smith', 'Mod Squad', 'System Shock'];
+  { const BAD = ['Adm1n', 'D3v', 'DEV Team', 'DEV Phil', 'Ph1l', 'M0derator', 'Supp0rt', 'Systеm', 'Deleted p1ayer', 'Emberweave Team', 'Official Support', 'Admin 1', 'The Dev Team', 'Admin1', 'Mod7', 'Dev2', 'Support99', 'Adm1n2', 'GM', 'Owner', 'ADMIN', 'A d m i n', 'Ｍｏｄｅｒａｔｏｒ', '$upport', 'Moder@tor'];
+    const OKN = ['Marigold', 'Devon', 'Supporter', 'Ember Fox', 'Philip', 'Admiral', 'Owen', 'Model', 'dev1', 'DEV1', 'Soul Eater', 'SoMalice', 'Gemma', 'Moddy', 'Support Squad', 'Adminton', 'Philosopher', 'Dev Smith', 'Mod Squad', 'System Shock'];
     const bad = BAD.filter(n => !/reserved/.test(S.badNewName(n) || '')), good = OKN.filter(n => S.badNewName(n));
     ok(bad.length === 0, BAD.length + ' look-alike staff names refused (let through: ' + (bad.join(', ') || 'none') + ')');
-    ok(good.length === 0, OKN.length + ' ordinary names still free, incl. "dev1" (the dev account) (refused: ' + (good.join(', ') || 'none') + ')');
+    ok(/const STAFF_NAME_ALLOW=new Set\(\['dev1'\]\);/.test(SRC), 'the allowlist holds exactly the dev account name the code and tests use (dev1)');
+  ok(good.length === 0, OKN.length + ' ordinary names still free, incl. "dev1" (the dev account, the only allowlisted staff-like name) (refused: ' + (good.join(', ') || 'none') + ')');
     const r = await call('/api/register', { name: 'Adm1n', pass: 'password1' });
     ok(r.status === 400 && /reserved/.test(String(r.data && r.data.error)), 'sign-up as "Adm1n": 400 ' + JSON.stringify(r.data && r.data.error));
     const r2 = await call('/api/register', { name: 'Systеm', pass: 'password1' });

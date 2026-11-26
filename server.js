@@ -480,11 +480,13 @@ function reservedFold(s){ return nameSkeleton(String(s||'').normalize('NFKC').re
 const RESERVED_FOLD=new Set([...RESERVED_NAMES,'gm','owner','gamemaster','deleted','deleteduser'].map(reservedFold));
 const STAFF_WORDS_FOLD=new Set(['admin','administrator','dev','developer','devs','mod','mods','moderator','gm','staff','system','support','owner','gamemaster','emberweave','xanthyr'].map(reservedFold));
 const STAFF_TAGS_FOLD=new Set(['team','official','staff','the','emberweave','heroes','xanthyr','game','games'].map(reservedFold));
-function reservedLookAlike(n){ const s=String(n||'').normalize('NFKC');
-  { const f=reservedFold(s); if(f&&RESERVED_FOLD.has(f)) return true; }   // a plain digit suffix stays allowed ('dev1' is the dev account and every test's)
+/* follow-up 2: the exact dev / test account names the code and tests sign up with (grep: only 'dev1'); every other staff word with digits attached is refused */
+const STAFF_NAME_ALLOW=new Set(['dev1']);
+function reservedLookAlike(n){ const s=String(n||'').normalize('NFKC'); if(STAFF_NAME_ALLOW.has(s.trim().toLowerCase())) return false;
+  { const f=reservedFold(s); if(f&&RESERVED_FOLD.has(f)) return true; }   // the whole name (Ph1l, Deleted p1ayer, GM)
   /* follow-up: a staff word only counts when everything else in the name is a tag ('DEV Team', 'Official Support', 'Admin 1') - 'Support Squad' stays free */
   const words=s.split(/[^\p{L}\p{N}@$]+/u).filter(Boolean); let staff=0;
-  for(const w of words){ const f=reservedFold(w); if(STAFF_WORDS_FOLD.has(f)) staff++; else if(!(STAFF_TAGS_FOLD.has(f)||RESERVED_FOLD.has(f)||/^[0-9]+$/.test(w))) return false; }   // another reserved name beside a staff word counts too ('DEV Phil')
+  for(const w of words){ const f=reservedFold(w), fd=reservedFold(w.replace(/[0-9]+$/,'')); if(STAFF_WORDS_FOLD.has(f)||(fd!==f&&STAFF_WORDS_FOLD.has(fd))) staff++;   /* 'Admin1', 'Mod7', 'Dev2' (digits attached) */ else if(!(STAFF_TAGS_FOLD.has(f)||RESERVED_FOLD.has(f)||/^[0-9]+$/.test(w))) return false; }   // another reserved name beside a staff word counts too ('DEV Phil')
   return staff>0; }
 function badNewName(n){ const s=String(n||'');
   if(/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff]/.test(s)) return 'That name uses hidden characters — please use normal letters.';
