@@ -12932,7 +12932,7 @@ function _snapUnitResolved0(u){ return { key:u.key, level:u.level, rank:u.rank, 
   armorRating:u.armorRating||0, mrRating:u.mrRating||0, armorPen:u.armorPen||0, magicPen:u.magicPen||0,
   critDmg:u.critDmg||0.6, defenseStat:u.defenseStat||0, healPowMul:u.healPowMul||1, lifestealStat:u.lifestealStat||0, evaStat:u.evaStat||0, accStat:u.accStat||0, blockStat:u.blockStat||0,
   dmgBonusMul2:u.dmgBonusMul2||1, shieldStrMul:u.shieldStrMul||1, ctrlHitF:u.ctrlHitF||0, hasteEnergyMul:u.hasteEnergyMul||1,
-  glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
+  glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0, _talCrit0:u._talCrit0||0,   /* v1466: the talent crit already inside glyphCrit travels with it, so the in-fight talent crit (S_ADD, capped at 5% minus _talCrit0) cannot add a second 5% on a snapshot-built hero */
   critRes:u.critRes||0, energyReg:u.energyReg||0, templeDamageEnergy:u.templeDamageEnergy||0, energy:u.energy, ctrlRes:u.ctrlRes||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
     immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null,
     gearSkill:u.gearSkill?JSON.parse(JSON.stringify(u.gearSkill)):null }; }
@@ -12970,7 +12970,7 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.critDmg=s.critDmg||0.6; u.defenseStat=s.defenseStat||0; u.healPowMul=s.healPowMul||1; u.lifestealStat=s.lifestealStat||0;   /* Academy v2 (11 Oct): Defense and healing power travel with the snapshot (healing power was dropped before) */
   u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
   u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
-  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; u.templeDamageEnergy=s.templeDamageEnergy||0; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(worldHealCap(u),s.hp)); u.ctrlRes=s.ctrlRes||0;
+  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u._talCrit0=s._talCrit0||0; u.critRes=s.critRes; u.energyReg=s.energyReg; u.templeDamageEnergy=s.templeDamageEnergy||0; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(worldHealCap(u),s.hp)); u.ctrlRes=s.ctrlRes||0;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune;
   /* v269: DEEP-COPY the passive block. It used to be shared by reference with the snapshot, so the first
      fight mutated the snapshot and the SECOND fight off the same snapshot ran differently — the exact
