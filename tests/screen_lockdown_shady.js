@@ -54,14 +54,14 @@ async function frames(pg,S){
       if(name&&name.scrollWidth>name.clientWidth+1) bad.push('name overflows'); if(btn.scrollWidth>btn.clientWidth+1) bad.push('price overflows');
       if(o.scrollWidth>o.clientWidth+1||o.scrollHeight>o.clientHeight+1) bad.push('card content overflows');
       offers.push({i,name:name?SL.txt(name).slice(0,30):'',price:SL.txt(btn),card:or,bad}); }
-    const w=panel.querySelector('.merc-wallet'), wr=SL.R(w);
-    return {holder:hu?hu.replace(location.origin,''):null,holderOk:!!(holder&&holder.ok)&&/market-holder-frame/.test(hu||''),panel:pr,holderInScreen:pr.x>=-1&&pr.r<=v.width+1,screenX:SL.scrolls(scr),wallet:wr,walletIn:ins(wr,pr)&&w.scrollWidth<=w.clientWidth+1,offers}; });
+    const w=panel.querySelector('.merc-wallet'), wr=SL.R(w), spans=[...w.children].map(e=>SL.R(e));
+    return {holder:hu?hu.replace(location.origin,''):null,holderOk:!!(holder&&holder.ok)&&/market-holder-frame/.test(hu||''),panel:pr,holderInScreen:pr.x>=-1&&pr.r<=v.width+1,screenX:SL.scrolls(scr),wallet:wr,walletIn:spans.length>0&&spans.every(s=>ins(s,pr))&&w.scrollWidth<=w.clientWidth+1,wallet:wr,walletRuns:spans,offers}; });
   const s=await shot(pg,S.tag+' shady frames (top)');
   await pg.evaluate(()=>{ const c=[...document.querySelectorAll('#shadyBody .merc-offer')].pop(); if(c) c.scrollIntoView({block:'end'}); }); await H.wait(300);
   const s2=await shot(pg,S.tag+' shady frames (bottom)');
   const bad=r.offers.filter(o=>o.bad.length);
   C.ok(r.offers.length===4&&bad.length===0&&r.holderOk&&r.walletIn&&r.holderInScreen&&!r.screenX.x,S.tag+' Framed cards: the 4 item cards (painted frames), their prices and the wallet bar sit inside the painted holder, the holder inside the screen, no overflow',
-    {bad:bad.map(o=>o.i+' '+o.name+': '+o.bad.join(', ')+' '+JSON.stringify(o.card)),holder:r.holder,panel:r.panel,screenScrollX:r.screenX.x,cards:r.offers.map(o=>o.i+' '+o.price+' '+o.card.w+'x'+o.card.h),shots:[s,s2]});
+    {bad:bad.map(o=>o.i+' '+o.name+': '+o.bad.join(', ')+' '+JSON.stringify(o.card)),holder:r.holder,panel:r.panel,screenScrollX:r.screenX.x,walletIn:r.walletIn,walletRuns:r.walletRuns,cards:r.offers.map(o=>o.i+' '+o.price+' '+o.card.w+'x'+o.card.h),shots:[s,s2]});
 }
 
 (async()=>{
