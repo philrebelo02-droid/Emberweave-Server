@@ -204,7 +204,11 @@ async function replayFall(pg,S){ /* a replayed war (the war simulator's real ser
     body:JSON.stringify({seed:'sl2-'+S.tag,players:3,linesPer:1,botLevel:60,botSkill:10,botStars:5,stage:'march'})});
   const r=await res.json().catch(()=>null);
   if(!r||r.error||!Array.isArray(r.log)){ C.ok(false,S.tag+' Falling and burning towers: the war replay could be built (server simulator)',{status:res.status,body:JSON.stringify(r).slice(0,300)}); return; }
-  await pg.evaluate(rr=>{ SKYSIM.speed=8; SKYSIM.p.stage='march'; skySimOpen(); window._slRep=skySimReplay(rr).then(()=>'done',e=>'err '+e); },r);
+  await pg.evaluate(rr=>{ SKYSIM.speed=8; SKYSIM.p.stage='prep'; skySimOpen(); window._slRep=skySimReplay(rr).then(()=>'done',e=>'err '+e); },r);
+  /* the war starts the way a player starts it: PREP, then Begin the march (a replay started straight in MARCH never sets the board marching,
+     so its lines and swords stay hidden - seen 26 Nov run 2) */
+  await pg.waitForSelector('#skyStage .skyBegin',{timeout:20000}).catch(()=>{}); await H.wait(500);
+  await press(pg,S,'#skyStage .skyBegin').catch(()=>pg.evaluate(()=>{ const b=document.querySelector('#skyStage .skyBegin'); if(b) b.click(); }));
   /* sample the board until the first tower falls and lands, and until every lane is finished */
   const seen=await pg.evaluate(async()=>{ const t0=performance.now(), out={fall:null,land:null,spent:[],laneEnds:{},clash:null}; let shotT=null;
     while(performance.now()-t0<150000){ const st=document.getElementById('skyStage'); if(st){

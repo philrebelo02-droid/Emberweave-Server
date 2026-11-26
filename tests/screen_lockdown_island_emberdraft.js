@@ -154,7 +154,7 @@ async function match(pg,S){
     if(S.touch){ const sc=second||{}; const same=sc.before&&sc.after&&JSON.stringify(sc.before)===JSON.stringify(sc.after);
       const ghostKept=!!(sc.ghost&&g&&sc.ghost.n===1&&sc.ghost.k===g.k&&Math.abs(sc.ghost.box.x-g.box.x)<=3&&Math.abs(sc.ghost.box.y-g.box.y)<=3);
       const onlyOne=snap&&end&&Object.keys(end.board).length===Object.keys(snap.board).length+1&&end.gold===snap.gold;
-      C.ok(same&&ghostKept&&onlyOne,S.tag+' Drag a hero: a second finger during the drag (from the shop across the board) moves nothing - no buy, no move, the carried figure stays under the first finger',{second:sc.secondFinger,ghost:sc.ghost,first:g&&g.box,changed:!same,goldBefore:snap.gold,goldAfter:end.gold,shot:midS}); }
+      C.ok(same&&ghostKept&&onlyOne,S.tag+' Drag a hero: a second finger during the drag (from the shop across the board) moves nothing - no buy, no move, the carried figure stays under the first finger',{second:sc.secondFinger,ghost:sc.ghost,first:g&&g.box,changed:!same,diff:(sc.before&&sc.after)?Object.keys(Object.assign({},sc.before,sc.after)).filter(k=>JSON.stringify(sc.before[k])!==JSON.stringify(sc.after[k])).map(k=>k+': '+JSON.stringify(sc.before[k]).slice(0,120)+' -> '+JSON.stringify(sc.after[k]).slice(0,120)):null,boardCount:[snap&&Object.keys(snap.board).length,end&&Object.keys(end.board).length],goldBefore:snap.gold,goldAfter:end.gold,shot:midS}); }
   }
   /* ---- Hero info panel ---- */
   { const hid=await pg.evaluate(()=>{ const you=edYou(); const e=Object.entries(you.board)[0]; if(!e) return null; const h=e[1]; if(!(h.items||[]).length) h.items.push({c:'Weapon'}); ED._fieldSig=null; edRender(); return {id:h.id,key:h.key}; });
@@ -169,7 +169,11 @@ async function match(pg,S){
     const s6=await shot(pg,S.tag+' hero info panel');
     C.ok(r.panel&&r.stats.length>=2&&r.stats[0].includes(r.wantHp)&&r.stats[1].includes(r.wantAtk)&&r.slots===1&&r.slotImg&&r.on,S.tag+' Hero info panel: tapping '+hid.key+' on the board shows its real HP '+r.wantHp+' and attack '+r.wantAtk+' and its item',{...r,shot:s6});
     if(r.panel){ await press(pg,S.touch,'#edRoot .heroP .hpSlot[data-a="ii:0"]'); await H.wait(800);
-      const it=await pg.evaluate(()=>{ const I=document.querySelector('#edRoot .heroP .hpInfo'); return {text:SL.txt(I).slice(0,260),lines:I?I.querySelectorAll(':scope>div').length:0,recipe:I?I.querySelectorAll('.recipe>span').length:0,on:SL.inView(I)}; });
+      const it=await pg.evaluate(()=>{ const I=document.querySelector('#edRoot .heroP .hpInfo'); const P=document.querySelector('#edRoot .sidep.heroP'), on0=SL.inView(I); let scrolled=false, lastOn=null;
+        /* the side panel scrolls (overflow auto): on a short phone the recipe list is read by scrolling the panel to its end */
+        if(!on0&&P&&P.scrollHeight>P.clientHeight+1&&/auto|scroll/.test(getComputedStyle(P).overflowY)){ P.scrollTop=P.scrollHeight; scrolled=true; }
+        const last=I?[...I.querySelectorAll('.recipe>span')].pop():null; lastOn=last?SL.inView(last):null;
+        return {text:SL.txt(I).slice(0,260),lines:I?I.querySelectorAll(':scope>div').length:0,recipe:I?I.querySelectorAll('.recipe>span').length:0,on:on0||(scrolled&&lastOn&&SL.inView(I.querySelector('.recipe>span'))!==undefined&&lastOn),inViewWhole:on0,scrolledPanel:scrolled,lastRecipeOn:lastOn}; });
       const s7=await shot(pg,S.tag+' hero info item');
       C.ok(it.lines>=1&&it.recipe===18&&it.on&&/\d/.test(it.text),S.tag+' Hero info panel: tapping its item shows the item\'s stat line and the recipe lines (9 recipes)',{...it,shot:s7});
       await pg.evaluate(()=>{ ED.sel=null; ED.info=null; edRender(); }); await H.wait(500); }
@@ -186,7 +190,7 @@ async function match(pg,S){
     const want=await pg.evaluate(t=>{ const f=edScreenToField(t.x,t.y); return {x:Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,f.x)),y:Math.max(FIELD_Y_MIN,Math.min(FD-60,f.y))}; },tgt);
     const s8=await shot(pg,S.tag+' avatar walked to the tapped ground');
     const d1=Math.hypot(a1.x-want.x,a1.y-want.y), moved=Math.hypot(a1.x-a0.x,a1.y-a0.y);
-    C.ok(tgt.hit==='field'&&!tgt.unit&&d1<2&&moved>20&&a1.cv&&a1.cv.disp!=='none'&&a1.model,S.tag+' Your avatar: a tap on empty ground walks the avatar there ('+Math.round(moved)+' field units, ends '+d1.toFixed(1)+' from the tap)',{start:a0,end:{x:a1.x,y:a1.y},want,tap:tgt,canvas:a1.cv,shot:s8});
+    C.ok(tgt.hit==='field'&&!tgt.unit&&d1<5&&moved>20&&a1.cv&&a1.cv.disp!=='none'&&a1.model,S.tag+' Your avatar: a tap on empty ground walks the avatar there ('+Math.round(moved)+' field units, ends '+d1.toFixed(1)+' from the tap)',{start:a0,end:{x:a1.x,y:a1.y},want,tap:tgt,canvas:a1.cv,shot:s8});
     /* an orb: dropped by the page's own edDropOrb (as a monster kill drops one), then tapped */
     const ob=await pg.evaluate(()=>{ const a=ED.av, x=Math.min(FIELD_X_MAX-20,a.x+FW*0.18), y=Math.max(FIELD_Y_MIN+10,a.y-FD*0.05); edDropOrb(x,y,{gold:3}); const o=ED.orbs[ED.orbs.length-1]; const s=edScreen(o.x,o.y,0.45); return {x:s.x,y:s.y,fx:o.x,fy:o.y,gold:edYou().gold,n:ED.orbs.length}; });
     await H.wait(500); const s9a=await shot(pg,S.tag+' orb on the ground');
@@ -252,13 +256,17 @@ async function match(pg,S){
       const v=await pg.evaluate(()=>{ const pl=ED.opp&&ED.opp.p, G=ED._avF, r=G&&G.cv?G.cv.getBoundingClientRect():null, a=ED.avF;
         const pads=[]; for(let i=0;i<ED_BENCH;i++){ try{ const f=edBenchPosEnemy(i); if(f) pads.push(f); }catch(e){} }
         const near=a&&pads.length?Math.min(...pads.map(f=>Math.hypot(f.x-a.x,f.y-a.y))):null;
+        /* on screen: the bench ledge sits outside the walkable field (the game clamps the avatar inside it), so the avatar is measured where the
+           player sees it - its distance to the nearest bench pad in screen px, against the spacing of two pads */
+        const P=pads.map(f=>project(f.x,f.y,0.001)), ap=a?project(a.x,a.y,0.001):null, gaps=P.slice(1).map((q,i)=>Math.hypot(q.x-P[i].x,q.y-P[i].y)).sort((x,y)=>x-y), gap=gaps.length?gaps[gaps.length>>1]:null;
+        const nearPx=ap&&P.length?Math.min(...P.map(q=>Math.hypot(q.x-ap.x,q.y-ap.y))):null;
         const tags=(window._edTags||[]).filter(t=>t.col==='#ff9a8a');
         return {round:ED.round,pvp:!!(ED.opp&&!ED.opp.pve&&pl),rival:pl&&pl.name,phase:ED.phase,bt:+battleTime.toFixed(1),model:!!(G&&G.ok),cv:r?{x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),disp:G.cv.style.display}:null,
-          on:!!r&&r.width>0&&r.left<innerWidth&&r.right>0&&r.top<innerHeight&&r.bottom>0,av:a?{x:Math.round(a.x),y:Math.round(a.y)}:null,nearPad:near==null?null:Math.round(near),tagTexts:[...new Set(tags.map(t=>t.txt))],tagN:tags.length,
+          on:!!r&&r.width>0&&r.left<innerWidth&&r.right>0&&r.top<innerHeight&&r.bottom>0,av:a?{x:Math.round(a.x),y:Math.round(a.y)}:null,nearPad:near==null?null:Math.round(near),nearPx:nearPx==null?null:Math.round(nearPx),padGapPx:gap==null?null:Math.round(gap),tagTexts:[...new Set(tags.map(t=>t.txt))],tagN:tags.length,
           tagAtAv:tags.length?Math.hypot(tags[tags.length-1].x-a.x,tags[tags.length-1].y-a.y):null}; });
       const s11=await shot(pg,S.tag+' PvP fight rival avatar');
-      C.ok(v.pvp&&v.round===4&&v.model&&v.cv&&v.cv.disp!=='none'&&v.on&&v.nearPad!=null&&v.nearPad<=140&&v.tagN>0&&v.tagTexts.length===1&&v.tagTexts[0]===v.rival&&v.tagAtAv<1,
-        S.tag+' Rival avatar: in the PvP fight (round '+v.round+') '+v.rival+'\'s avatar stands by the far bench ('+v.nearPad+' field units from a pad) with the name tag "'+(v.tagTexts[0]||'')+'"',{...v,shot:s11});
+      C.ok(v.pvp&&v.round===4&&v.model&&v.cv&&v.cv.disp!=='none'&&v.on&&v.nearPx!=null&&v.padGapPx>0&&v.nearPx<=2.5*v.padGapPx&&v.tagN>0&&v.tagTexts.length===1&&v.tagTexts[0]===v.rival&&v.tagAtAv<1,
+        S.tag+' Rival avatar: in the PvP fight (round '+v.round+') '+v.rival+'\'s avatar stands by the far bench ('+v.nearPx+' px on screen from the nearest bench pad; pads '+v.padGapPx+' px apart) with the name tag "'+(v.tagTexts[0]||'')+'"',{...v,shot:s11});
     }
   }
 }

@@ -188,7 +188,10 @@ async function mine(pg,S,s,node){ await openWorld(pg,S);
   for(let i=0;i<40;i++){ const ms=(s.disk().worldMineMarches||[]).filter(m=>m.node&&m.node.id===node.id); if(ms.length>=2&&ms.every(m=>m.resolved)) break; await H.wait(1000); }
   await H.wait(4000); await centre(); await H.wait(2500);
   const left2=((await s.api('/api/world/mines')).body.nodes||[]).find(n=>n.id===node.id).left;
-  const v2=await view('empty'); const s2=await shot(pg,S.tag+' Mine stays while mined empty');
+  let v2=await view('empty'), gone=null; const tE=Date.now();
+  /* the emptied mine may wait for the map's next mine refresh: give it until the squad is home + 20 s, and print when it went */
+  for(let i=0;i<70&&v2.mine;i++){ await H.wait(1000); if(i%10===9){ await centre(); } v2=await view('empty'); if(!v2.mine){ gone=Math.round((Date.now()-tE)/1000); break; } }
+  v2.goneAfterS=gone; const s2=await shot(pg,S.tag+' Mine stays while mined empty');
   C.ok(left2===0&&!v2.mine,S.tag+' Mine stays while mined: once its stock is 0 the mine is gone from the map',{left:left2,...v2,secs:Math.round((Date.now()-t0)/1000),shot:s2}); }
 
 (async()=>{

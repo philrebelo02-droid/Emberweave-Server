@@ -58,11 +58,11 @@ async function chapters(pg,S){
       const nodes=[...document.querySelectorAll('#cmap .cnode')];
       const plates=nodes.map(n=>{ const b=n.getBoundingClientRect(), cx=b.left+b.width/2, cy=b.top+b.height/2, hit=(x,y)=>{ const t=document.elementFromPoint(x,y); return !!t&&(t===n||n.contains(t)); };
         const c=document.elementFromPoint(cx,cy), cb=!!(c&&c.closest&&c.closest('.cbonus'));
-        const pts=[[-21.5,-21.5],[21.5,-21.5],[-21.5,21.5],[21.5,21.5],[0,-21.5],[0,21.5],[-21.5,0],[21.5,0]], miss=pts.filter(([dx,dy])=>!hit(cx+dx,cy+dy));
+        const pts=[[-21.5,-21.5],[21.5,-21.5],[-21.5,21.5],[21.5,21.5],[0,-21.5],[0,21.5],[-21.5,0],[21.5,0]], miss=pts.filter(([dx,dy])=>!hit(cx+dx,cy+dy)), missWho=miss.map(([dx,dy])=>{ const t=document.elementFromPoint(cx+dx,cy+dy); return (dx>0?'+':'')+dx+','+(dy>0?'+':'')+dy+' '+(t?(t.tagName.toLowerCase()+'.'+String(t.className).trim().split(/\s+/).join('.')+(t.dataset&&t.dataset.code?'['+t.dataset.code+']':'')+(t.dataset&&t.dataset.bonusStage?'[bonus '+t.dataset.bonusStage+']':'')).slice(0,60):'nothing'); });
         /* the real box: walk out from the centre until the tap no longer reaches the plate */
         let l=0,rr=0,u=0,d=0; while(l<60&&hit(cx-l-1,cy)) l++; while(rr<60&&hit(cx+rr+1,cy)) rr++; while(u<60&&hit(cx,cy-u-1)) u++; while(d<60&&hit(cx,cy+d+1)) d++;
         return {code:n.dataset.code,elite:n.classList.contains('elite'),boss:n.classList.contains('boss'),on:b.left>=-1&&b.right<=V.width+1&&b.top>=-1&&b.bottom<=V.height+1,
-          centre:hit(cx,cy),bonusAtCentre:cb,miss:miss.length,box:(l+rr+1)+'x'+(u+d+1),who:cb?SL.whoAt(n):null}; });
+          centre:hit(cx,cy),bonusAtCentre:cb,miss:miss.length,missWho,box:(l+rr+1)+'x'+(u+d+1),who:cb?SL.whoAt(n):null}; });
       return {ib,sb,bg:bg.map(x=>x.url.split('/').pop().split('?')[0]+(x.ok?'':' NOT LOADED')),bgOk:bg.some(x=>x.ok&&x.url.split('?')[0].endsWith(wide.replace(/^.*\//,''))),wideArt:wide.split('/').pop(),
         bars:!!document.querySelector('#cmap .cmapBars'),plates}; },ch);
     const covers=r.ib&&r.sb&&r.ib.x<=r.sb.x+1&&r.ib.r>=r.sb.r-1&&r.ib.y<=r.sb.y+1&&r.ib.b>=r.sb.b-1;
@@ -70,7 +70,7 @@ async function chapters(pg,S){
     const s=await shot(pg,S.tag+' chapter '+ch);
     rows.push('ch'+ch+': art '+(r.bgOk?'ok':'MISSING')+', area '+(r.ib&&[r.ib.x,r.ib.y,r.ib.w,r.ib.h].join(','))+' vs '+(r.sb&&[r.sb.x,r.sb.y,r.sb.w,r.sb.h].join(','))+', plates on '+r.plates.filter(p=>p.on).length+'/'+r.plates.length+' ('+s+')');
     if(!(covers&&r.bgOk&&!r.bars&&ten)) bad.push({ch,covers,art:r.bg,want:r.wideArt,bars:r.bars,off:r.plates.filter(p=>!p.on).map(p=>p.code),n:r.plates.length,shot:s});
-    for(const p of r.plates) if(!p.centre||p.bonusAtCentre||p.miss) tapBad.push(p.code+' box '+p.box+(p.centre?'':' CENTRE-NOT-PLATE')+(p.bonusAtCentre?' BONUS-AT-CENTRE '+p.who:'')+(p.miss?' '+p.miss+'/8 edge probes miss':''));
+    for(const p of r.plates) if(!p.centre||p.bonusAtCentre||p.miss) tapBad.push(p.code+' box '+p.box+(p.centre?'':' CENTRE-NOT-PLATE')+(p.bonusAtCentre?' BONUS-AT-CENTRE '+p.who:'')+(p.miss?' '+p.miss+'/8 edge probes miss (hit: '+p.missWho.join('; ')+')':''));
     if(ch===1||ch===16) C.ok(true,S.tag+' (sample) tap boxes ch'+ch,r.plates.map(p=>p.code+' '+p.box).join(' | '));
   }
   C.ok(!bad.length,S.tag+' Full-screen painted map: all 16 chapters - the wide map art is loaded and covers the whole map area (no black bars), all 10 stage plates inside the screen',{bad,chapters:rows});
@@ -87,8 +87,8 @@ async function noWide(pg,S){
       return {V,inner:ib,img:mb,scr:sb,bars:!!bars,barsVis:bars?SL.vis(bars):false,filter:cs&&cs.filter,barsBg:cs&&cs.backgroundImage.slice(0,90),sideL,sideR,
         leftWho:ib?SL.whoAt(document.getElementById('cmap'),0.02,0.5):null}; });
     const s=await shot(pg,S.tag+' chapter 3 without wide art');
-    const ok=r.bars&&r.barsVis&&/blur/.test(r.filter||'')&&Math.abs(r.img.h-r.V.height)<=2&&Math.abs(r.inner.h-r.V.height)<=2&&r.sideL>20&&r.sideR>20;
-    C.ok(ok,S.tag+' Chapters without wide art: chapter 3 with its wide art removed in the test page - the map is the screen height ('+(r.img&&r.img.h)+' of '+r.V.height+' px) and the blurred dark copy shows at both sides ('+Math.round(r.sideL)+' / '+Math.round(r.sideR)+' px)',{...r,shot:s});
+    const ok=r.bars&&r.barsVis&&/blur/.test(r.filter||'')&&Math.abs(r.img.h-r.scr.h)<=2&&Math.abs(r.inner.h-r.scr.h)<=2&&r.sideL>20&&r.sideR>20;   /* the map area's height (the game draws every screen 715 px tall on a 720 desktop) */
+    C.ok(ok,S.tag+' Chapters without wide art: chapter 3 with its wide art removed in the test page - the map is the screen height ('+(r.img&&r.img.h)+' of the '+(r.scr&&r.scr.h)+' px map area, window '+r.V.height+') and the blurred dark copy shows at both sides ('+Math.round(r.sideL)+' / '+Math.round(r.sideR)+' px)',{...r,shot:s});
   } finally { await pg.evaluate(v=>{ CH_WIDE_MAPS[3]=v; },saved); }
 }
 

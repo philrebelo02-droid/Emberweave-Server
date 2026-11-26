@@ -41,9 +41,9 @@ async function board(pg,S,how){
     const scr=SL.scrolls(document.getElementById('arena')), body=SL.scrolls(document.getElementById('arenaBody')), doc=SL.scrolls(document.scrollingElement);
     return {counts:out,bad,scroll:scr,body,doc,view:SL.V(),boxes:{medal:SL.R('#arena .arMedal'),def:SL.R('#arena .arDef'),tabs:SL.R('#arena .arTabs'),opps:SL.R('#arenaOpps')}}; });
   const s=await shot(pg,S.tag+' One-screen board');
-  C.ok(!r.bad.length&&r.counts.defenderSlots===5&&r.counts.tabs===4&&r.counts.opponents>=1&&!r.scroll.y&&!r.scroll.x&&!r.doc.y&&!r.doc.x,
+  C.ok(!r.bad.length&&r.counts.defenderSlots===5&&r.counts.tabs===4&&r.counts.opponents>=1&&!r.scroll.canY&&!r.scroll.canX&&!r.body.canY&&!r.body.canX&&!r.doc.canY&&!r.doc.canX,   /* a box a player can scroll (overflow auto/scroll), not content clipped by an overflow:hidden box */
     S.tag+' One-screen board: medal rail, defenders (5), the 4 tabs and '+r.counts.opponents+' opponents with Challenge all on one screen, not covered, no scroll [opened by '+how+']',
-    {problems:r.bad.slice(0,8),counts:r.counts,scroll:r.scroll,doc:r.doc,view:r.view,boxes:r.boxes,shot:s});
+    {problems:r.bad.slice(0,8),counts:r.counts,scroll:r.scroll,body:r.body,doc:r.doc,view:r.view,boxes:r.boxes,shot:s});
 }
 
 async function shop(pg,S){
