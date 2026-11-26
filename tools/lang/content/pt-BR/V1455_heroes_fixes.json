@@ -1,0 +1,7 @@
+{
+ "{i:s:energy} +{0}% atk spd · {i:s:crit-burst} +{1}% crit · {i:t:lifesteal} {2}% lifesteal": "{i:s:energy} +{0}% vel. atq. · {i:s:crit-burst} +{1}% crít. · {i:t:lifesteal} {2}% roubo de vida",
+ "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} vida da equipe de {0}s atrás + revive com {1}%",
+ "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} a cada {0}º ataque, tira um naipe",
+ "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {0}s de silêncio em {1}m, cantado de novo a cada {2}s por {3}s · {i:s:heal} cada inimigo silenciado cura o aliado mais próximo dele em {4} por segundo · sem dano",
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} impossível de mirar {0}s → {i:s:attack} {1}"
+}

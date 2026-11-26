@@ -1,0 +1,7 @@
+{
+ "{i:s:energy} +{0}% atk spd · {i:s:crit-burst} +{1}% crit · {i:t:lifesteal} {2}% lifesteal": "{i:s:energy} 攻撃速度+{0}% · {i:s:crit-burst} 会心+{1}% · {i:t:lifesteal} HP吸収{2}%",
+ "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} チームのHPを{0}秒前に戻す + HP{1}%で復活",
+ "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} {0}回目の攻撃ごとにスートを引く",
+ "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {1}m内に{0}秒沈黙、{2}秒ごとに{3}秒間歌い直す · {i:s:heal} 沈黙した敵1体ごとに最も近い味方を毎秒{4}回復 · ダメージなし",
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0}秒ターゲット不可 → {i:s:attack} {1}"
+}

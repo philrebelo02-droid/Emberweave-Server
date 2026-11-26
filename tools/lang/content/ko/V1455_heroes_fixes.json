@@ -1,0 +1,7 @@
+{
+ "{i:s:energy} +{0}% atk spd · {i:s:crit-burst} +{1}% crit · {i:t:lifesteal} {2}% lifesteal": "{i:s:energy} 공격 속도 +{0}% · {i:s:crit-burst} 치명타 +{1}% · {i:t:lifesteal} 생명력 흡수 {2}%",
+ "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} 팀 체력을 {0}초 전으로 되돌림 + 체력 {1}%로 부활",
+ "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} {0}번째 공격마다 문양을 뽑음",
+ "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} {1}m 안에 {0}초 침묵, {3}초 동안 {2}초마다 다시 노래 · {i:s:heal} 침묵한 적 하나당 가장 가까운 아군을 초당 {4} 치유 · 피해 없음",
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} {0}초 대상 지정 불가 → {i:s:attack} {1}"
+}

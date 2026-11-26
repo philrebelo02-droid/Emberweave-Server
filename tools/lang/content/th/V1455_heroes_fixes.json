@@ -1,0 +1,7 @@
+{
+ "{i:s:energy} +{0}% atk spd · {i:s:crit-burst} +{1}% crit · {i:t:lifesteal} {2}% lifesteal": "{i:s:energy} ความเร็วโจมตี +{0}% · {i:s:crit-burst} คริติคอล +{1}% · {i:t:lifesteal} ดูดเลือด {2}%",
+ "{i:s:heal} team health from {0}s ago + revive at {1}%": "{i:s:heal} ย้อนพลังชีวิตทีมไปเมื่อ {0} วิก่อน + ฟื้นคืนชีพที่ {1}%",
+ "{i:s:attack} every {0}th attack draws a suit": "{i:s:attack} ทุกการโจมตีครั้งที่ {0} จะจั่วชุดไพ่",
+ "{i:s:silence} {0}s silence in {1}m, re-sung every {2}s for {3}s · {i:s:heal} each silenced enemy heals the ally nearest it for {4} per second · no damage": "{i:s:silence} ใบ้ {0} วิ ในระยะ {1} ม. ร้องซ้ำทุก {2} วิ เป็นเวลา {3} วิ · {i:s:heal} ศัตรูที่ติดใบ้แต่ละตัวรักษาพันธมิตรที่ใกล้มันที่สุด {4} ต่อวินาที · ไม่สร้างความเสียหาย",
+ "{i:s:untargetable} untargetable {0}s → {i:s:attack} {1}": "{i:s:untargetable} ไม่สามารถถูกเล็ง {0} วิ → {i:s:attack} {1}"
+}
