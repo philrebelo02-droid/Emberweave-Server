@@ -725,6 +725,12 @@ note "screen_lockdown_hut.js (lockdown 25 Nov round 2, needs playwright: Witches
 node tests/screen_lockdown_hut.js || FAILED=1
 note "screen_lockdown_egp.js (lockdown 25 Nov round 2, needs playwright: EGP: all 31 patron levels same card size, sticky header; gold phoenix on EGP, diamond phoenix on EDP)"
 node tests/screen_lockdown_egp.js || FAILED=1
+note "screen_lockdown_vault.js (lockdown 25 Nov round 2, needs playwright: Vault painted title in the title spot, enemy cards on hover / double tap with the floor numbers, one-screen landscape layout at every size, power on the Select Heroes cards)"
+node tests/screen_lockdown_vault.js || FAILED=1
+note "screen_lockdown_arena.js (lockdown 25 Nov round 2, needs playwright: Arena painted title beside Base, one-screen board at every size, Arena Shop painted title / framed items / price buttons / coin balance)"
+node tests/screen_lockdown_arena.js || FAILED=1
+note "screen_lockdown_well.js (lockdown 25 Nov round 2, needs playwright: Starless Well plaque title, painted back button, gold buttons; phone and Fold: every next square on screen and tappable, the title bar does nothing)"
+node tests/screen_lockdown_well.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
