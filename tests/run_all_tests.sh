@@ -731,6 +731,14 @@ note "screen_lockdown_arena.js (lockdown 25 Nov round 2, needs playwright: Arena
 node tests/screen_lockdown_arena.js || FAILED=1
 note "screen_lockdown_well.js (lockdown 25 Nov round 2, needs playwright: Starless Well plaque title, painted back button, gold buttons; phone and Fold: every next square on screen and tappable, the title bar does nothing)"
 node tests/screen_lockdown_well.js || FAILED=1
+note "screen_lockdown_hud.js (lockdown 26 Nov round 4, needs playwright: Hub HUD - Commander group top-left, currency row left of MENU, 17 building tap boxes probed + tapped, chat bar snug bottom-left, MENU fits short phones, Heroes / hero pop-outs centred with a 4-side frame, Floating Isle fills the screen, hero loading cards (campaign + versus), Fold / tablet fit of town, map, pop-out and battle)"
+node tests/screen_lockdown_hud.js || FAILED=1
+note "screen_lockdown_account_hud.js (lockdown 26 Nov round 4, needs playwright: painted theme + header boxes on every menu screen, pop-out and building, framed hero/quest/mail/diamond/sign-in cards, quest/mail/sign-in state glows, building main screens + Temple stage, sign-in gate + Terms centred and gold-framed at 5 sizes, Settings Account Google/Facebook panels, Glossary all creatures face crop + card backgrounds)"
+node tests/screen_lockdown_account_hud.js || FAILED=1
+note "screen_lockdown_mail.js (lockdown 26 Nov round 4, needs playwright: Start Here tutorial - gold glow + halo + bobbing arrow in town and Campaign, MENU then entry glows, Vael-only hero glow, Base during the tutorial, reopens at top + scrolls to the step, framed list at 3 sizes; real 1-1 first clear - coach holds per hero, gold ring drag / re-prompt, Tap to continue, Vael ready at ~90% HP)"
+node tests/screen_lockdown_mail.js || FAILED=1
+note "screen_lockdown_sound.js (lockdown 26 Nov round 4, needs playwright: Sound - real-page fights on a silent real audio context: every sound peak within 33 ms of its blow/release/arrival frame and the right file per hero/spell at 1x, 2x and across a Pause mid-cast; all 10 battle songs loop twice on their seam within 50 ms of loopEnd with no heal; every sfx file within 2 LU of -16 LUFS-M + offset)"
+node tests/screen_lockdown_sound.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
