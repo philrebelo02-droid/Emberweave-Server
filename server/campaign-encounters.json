@@ -4675,7 +4675,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "blue-bastion",
+          "key": "Blue Bastion",
+          "displayName": "Blue Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -5534,7 +5543,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "blue-plus-1-bastion",
+          "key": "Blue +1 Bastion",
+          "displayName": "Blue +1 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -7519,7 +7537,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "blue-plus-2-bastion",
+          "key": "Blue +2 Bastion",
+          "displayName": "Blue +2 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -8722,7 +8749,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "purple-bastion",
+          "key": "Purple Bastion",
+          "displayName": "Purple Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -10067,7 +10103,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "purple-plus-1-bastion",
+          "key": "Purple +1 Bastion",
+          "displayName": "Purple +1 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -11992,7 +12037,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "purple-plus-2-bastion",
+          "key": "Purple +2 Bastion",
+          "displayName": "Purple +2 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -13539,7 +13593,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "purple-plus-3-bastion",
+          "key": "Purple +3 Bastion",
+          "displayName": "Purple +3 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -14772,7 +14835,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-dawnshield",
+          "key": "Gold Dawnshield",
+          "displayName": "Gold Dawnshield Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -15074,7 +15146,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-bastion",
+          "key": "Gold Bastion",
+          "displayName": "Gold Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -16325,7 +16406,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-1-dawnshield",
+          "key": "Gold +1 Dawnshield",
+          "displayName": "Gold +1 Dawnshield Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -16633,7 +16723,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-1-bastion",
+          "key": "Gold +1 Bastion",
+          "displayName": "Gold +1 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -17890,7 +17989,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-2-dawnshield",
+          "key": "Gold +2 Dawnshield",
+          "displayName": "Gold +2 Dawnshield Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -18210,7 +18318,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-2-bastion",
+          "key": "Gold +2 Bastion",
+          "displayName": "Gold +2 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -19455,7 +19572,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-3-dawnshield",
+          "key": "Gold +3 Dawnshield",
+          "displayName": "Gold +3 Dawnshield Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -19763,7 +19889,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-3-bastion",
+          "key": "Gold +3 Bastion",
+          "displayName": "Gold +3 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -21008,7 +21143,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-4-dawnshield",
+          "key": "Gold +4 Dawnshield",
+          "displayName": "Gold +4 Dawnshield Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -21310,7 +21454,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "gold-plus-4-bastion",
+          "key": "Gold +4 Bastion",
+          "displayName": "Gold +4 Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [

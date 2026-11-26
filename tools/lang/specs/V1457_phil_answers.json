@@ -1,0 +1,7 @@
+{
+ "keys": {
+  "stage.one_of": "ONE OF {m}",
+  "stage.split_frags": "One of these {m} fragments drops, {p} chance each:"
+ },
+ "edits": []
+}

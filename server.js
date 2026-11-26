@@ -1916,10 +1916,20 @@ function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.l
   for(const it of list){ const q=Math.max(1,it.quantity|0); g.fragments[it.key]=(g.fragments[it.key]||0)+q;
     receipt.push({ fragmentId:glyphFragSlug(it.key), key:it.key, displayName:glyphFragName(it.key), quantity:q }); }   /* v1141: key rides along so the result art uses the real quality, not the display name */
   g.revision++; return receipt; }
+/* v1457 (Phil 26 Nov 2026, lockdown answer 1: "add them to existing stages and add a chance they drop, cutting the other fragments chances,
+   if 2 are on the same stage is 50% if 3 are on one is 33%"). A stage's fragment drop is split EVENLY between the kinds on it:
+   - an ordinary Normal stage (fragmentRolls 2) pays 2 distinct kinds of its 4 or 5, so each kind drops 2/4 = 50% or 2/5 = 40% of runs;
+   - any other stage pays its whole drop (the same quantity as before) as ONE of its kinds, each kind 1/k of runs (2 kinds 50%, 3 kinds 33%).
+   The total amount a run pays never changes. campaignFragChance is the one number the stage panel shows. */
+function campaignFragChance(st){ const list=(st&&st.rewards&&st.rewards.glyphFragments)||[]; if(!list.length) return 0;
+  return ((st.rewards.fragmentRolls|0)===2&&list.length>=2)?2/list.length:1/list.length; }
 function campaignGlyphDrops(st,runs,seed){
   const list=(st&&st.rewards&&st.rewards.glyphFragments)||[], n=Math.max(1,runs|0);
-  if(!st||!st.rewards||(st.rewards.fragmentRolls|0)!==2||list.length<2) return list.map(f=>({key:f.key,quantity:(f.quantity|0||1)*n}));
   let x=(seed>>>0)||0x9e3779b9; const next=()=>{ x^=x<<13; x^=x>>>17; x^=x<<5; return x>>>0; };
+  if(!st||!st.rewards||list.length<2) return list.map(f=>({key:f.key,quantity:(f.quantity|0||1)*n}));
+  if((st.rewards.fragmentRolls|0)!==2){ const qty={};   /* v1457: one kind per run, even split */
+    for(let r=0;r<n;r++){ const f=list[next()%list.length]; qty[f.key]=(qty[f.key]||0)+(f.quantity|0||1); }
+    return Object.keys(qty).map(key=>({key,quantity:qty[key]})); }
   const qty={};
   for(let r=0;r<n;r++){ const a=next()%list.length; let b=next()%(list.length-1); if(b>=a)b++;
     qty[list[a].key]=(qty[list[a].key]||0)+1; qty[list[b].key]=(qty[list[b].key]||0)+1; }
@@ -6032,10 +6042,22 @@ function portalCompile(){
     for(const e of raw){
       if(!e.id||!(e.node>=1)) throw new Error(mode+' portal: stage record missing id/node');
       if(!Array.isArray(e.waves)||!e.waves.length) throw new Error(mode+' '+e.id+': no waves');
-      const gf=e.rewards&&e.rewards.glyphFragments;
+      let gf=e.rewards&&e.rewards.glyphFragments;
       const ordinaryNormal=mode==='normal'&&!isHeroRewardStageSrv(e.node), expected=ordinaryNormal?4:1;
       if(!Array.isArray(gf)||gf.length!==expected) throw new Error(mode+' '+e.id+': expected '+expected+' glyph fragment possibilities');
       if(ordinaryNormal&&((e.rewards.fragmentRolls|0)!==2||new Set(gf.map(f=>f.key)).size!==4)) throw new Error(mode+' '+e.id+': ordinary stage must roll 2 from 4 distinct fragments');
+      /* v1457 (Phil 26 Nov 2026, lockdown answer 1: "add them to existing stages and add a chance they drop, cutting the other fragments chances,
+         if 2 are on the same stage is 50% if 3 are on one is 33%"). The 17 kinds that dropped nowhere are authored as rewards.addedFragments
+         (a field of its own, so the authored four / one above and every older build's boot check stay as they were) and join the stage's
+         list HERE: an ordinary stage then offers 5 kinds and still pays 2 (40% each); any other stage offers 2-3 kinds of one quantity and
+         pays that quantity as one of them (campaignGlyphDrops - an even split). Every route, sweep and screen reads the joined list. */
+      const added=e.rewards.addedFragments;
+      if(added!=null){
+        if(!Array.isArray(added)||!added.length||added.length>(ordinaryNormal?1:2)) throw new Error(mode+' '+e.id+': addedFragments must name 1-'+(ordinaryNormal?1:2)+' kinds');
+        const all=gf.concat(added), q0=gf[0].key.slice(0,gf[0].key.lastIndexOf(' '));
+        if(new Set(all.map(f=>f&&f.key)).size!==all.length) throw new Error(mode+' '+e.id+': fragment kinds must be distinct');
+        if(added.some(f=>!f||!f.key||f.quantity!==gf[0].quantity||f.key.slice(0,f.key.lastIndexOf(' '))!==q0)) throw new Error(mode+' '+e.id+': an added kind shares the stage quality and quantity');
+        gf=e.rewards.glyphFragments=all; delete e.rewards.addedFragments; }
       if(mode==='elite'){
         const final=e.waves[e.waves.length-1]||[];
         if(gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Elite stage must pay two Glyph Fragments');
@@ -6052,9 +6074,20 @@ function portalCompile(){
     }
     PORTALS[mode]={ byNode, list:raw };
   }
+  /* v1457 (lockdown audit campaign-01 "Every fragment farmable"; Phil 26 Nov): this line used to SAY "every type has an ordinary Normal
+     source" without checking it. It is a real check now: every fragment kind a glyph recipe names must drop from some campaign stage, or
+     the server does not start. (Four Orange kinds - Bastion, Cataclysm, Dawnshield, Voidbind - drop only from Veteran; counted below.) */
+  const need=fragKindsNeeded(), missing=need.filter(k=>!FRAG_SOURCES[glyphFragSlug(k)]);
+  if(missing.length) throw new Error('glyph fragments with no campaign source ('+missing.length+'): '+missing.join(', '));
+  const noNormal=need.filter(k=>!(FRAG_SOURCES[glyphFragSlug(k)]||[]).some(s=>s.mode==='normal'));
   console.log('Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
-    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; every type has an ordinary Normal source.');
+    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; all '+need.length+' recipe fragment kinds drop somewhere'
+    +(noNormal.length?' ('+noNormal.length+' only outside Normal: '+noNormal.join(', ')+')':'; every one from a Normal stage')+'.');
 }
+/* v1457: every fragment kind a glyph recipe names (the 218 '<Quality> <Family>' keys) */
+function fragKindsNeeded(){ const s=new Set(); if(!GLYPHS||!Array.isArray(GLYPHS.raw)) return [];
+  for(const d of GLYPHS.raw) for(const g of (d.ing||[])) if(g.kind==='frag') s.add(g.key);
+  return [...s].sort(); }
 /* the one visible source of a fragment, as the ancestry tree and inventory show it:
    "Farm: Normal Portal 1-9" — and enough data to deep-link straight to that stage. */
 function portalSourcesFor(key){ const id=glyphFragSlug(key);

@@ -38,7 +38,7 @@ const unretire = (o, s) => { const c = JSON.parse(JSON.stringify(o)), gl = (c.re
 const unswap = s => { if (!s.companionSwap) return s; const c = JSON.parse(JSON.stringify(s)), sw = c.companionSwap; delete c.companionSwap;
   c.waves = c.waves.map(w => w.map(u => (u.isHero && u.key === sw.in && !u.rewardHero) ? { key: sw.out, lvl: u.lvl, hpMul: u.hpMul, dmgMul: u.dmgMul, isHero: true, rewardHero: true, rank: u.rank } : u)); return c; };
 ck('waves, monsters, bosses and rewards unchanged - only hpMul / dmgMul / difficultyTune moved',
-  N.every(s => { const o = on[s.id]; const strip = x => JSON.stringify(x, (k, v) => (k === 'hpMul' || k === 'dmgMul' || k === 'difficultyTune' || k === 'tuneHp' || k === 'tuneDmg') ? undefined : v); return strip(unswap(s)) === strip(unretire(o, s)); }));
+  N.every(s => { const o = on[s.id]; const strip = x => JSON.stringify(x, (k, v) => (k === 'hpMul' || k === 'dmgMul' || k === 'difficultyTune' || k === 'tuneHp' || k === 'tuneDmg' || k === 'addedFragments') ? undefined : v);   /* v1457: addedFragments = Phil's 26 Nov extra, evenly split kinds (tests/test_phil_answers_1457.js) */ return strip(unswap(s)) === strip(unretire(o, s)); }));
 for (const f of ['veteran-campaign-encounters.json', 'elite-campaign-encounters.json']) {
   const V = cur(f), OV = Object.fromEntries(old(f).map(s => [s.id, s])), b = [];
   for (const v of V) { const o = OV[v.id], n = nn[v.id], q = on[v.id];

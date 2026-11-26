@@ -2927,6 +2927,14 @@
      "displayName": "Blue Ironwall Fragment",
      "quantity": 2
     }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "blue-bastion",
+     "key": "Blue Bastion",
+     "displayName": "Blue Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -4536,6 +4544,14 @@
      "displayName": "Blue +1 Ironwall Fragment",
      "quantity": 2
     }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "blue-plus-1-bastion",
+     "key": "Blue +1 Bastion",
+     "displayName": "Blue +1 Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -5061,6 +5077,14 @@
      "fragmentId": "blue-plus-2-ironwall",
      "key": "Blue +2 Ironwall",
      "displayName": "Blue +2 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "blue-plus-2-bastion",
+     "key": "Blue +2 Bastion",
+     "displayName": "Blue +2 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -6799,6 +6823,14 @@
      "displayName": "Purple Ironwall Fragment",
      "quantity": 2
     }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "purple-bastion",
+     "key": "Purple Bastion",
+     "displayName": "Purple Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -7727,6 +7759,14 @@
      "fragmentId": "purple-plus-1-ironwall",
      "key": "Purple +1 Ironwall",
      "displayName": "Purple +1 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "purple-plus-1-bastion",
+     "key": "Purple +1 Bastion",
+     "displayName": "Purple +1 Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -9683,6 +9723,14 @@
      "displayName": "Purple +2 Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "purple-plus-2-bastion",
+     "key": "Purple +2 Bastion",
+     "displayName": "Purple +2 Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -11165,6 +11213,14 @@
      "displayName": "Purple +3 Veilward Fragment",
      "quantity": 2
     }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "purple-plus-3-bastion",
+     "key": "Purple +3 Bastion",
+     "displayName": "Purple +3 Bastion Fragment",
+     "quantity": 2
+    }
    ]
   },
   "waves": [
@@ -11583,6 +11639,20 @@
      "fragmentId": "gold-ironwall",
      "key": "Gold Ironwall",
      "displayName": "Gold Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "gold-bastion",
+     "key": "Gold Bastion",
+     "displayName": "Gold Bastion Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-dawnshield",
+     "key": "Gold Dawnshield",
+     "displayName": "Gold Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -13077,6 +13147,20 @@
      "fragmentId": "gold-plus-1-ironwall",
      "key": "Gold +1 Ironwall",
      "displayName": "Gold +1 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "gold-plus-1-bastion",
+     "key": "Gold +1 Bastion",
+     "displayName": "Gold +1 Bastion Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-1-dawnshield",
+     "key": "Gold +1 Dawnshield",
+     "displayName": "Gold +1 Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -14867,6 +14951,20 @@
      "fragmentId": "gold-plus-2-ironwall",
      "key": "Gold +2 Ironwall",
      "displayName": "Gold +2 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "gold-plus-2-bastion",
+     "key": "Gold +2 Bastion",
+     "displayName": "Gold +2 Bastion Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-2-dawnshield",
+     "key": "Gold +2 Dawnshield",
+     "displayName": "Gold +2 Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -16663,6 +16761,20 @@
      "fragmentId": "gold-plus-3-ironwall",
      "key": "Gold +3 Ironwall",
      "displayName": "Gold +3 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "gold-plus-3-bastion",
+     "key": "Gold +3 Bastion",
+     "displayName": "Gold +3 Bastion Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-3-dawnshield",
+     "key": "Gold +3 Dawnshield",
+     "displayName": "Gold +3 Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -18855,6 +18967,20 @@
      "fragmentId": "gold-plus-4-ironwall",
      "key": "Gold +4 Ironwall",
      "displayName": "Gold +4 Ironwall Fragment",
+     "quantity": 2
+    }
+   ],
+   "addedFragments": [
+    {
+     "fragmentId": "gold-plus-4-bastion",
+     "key": "Gold +4 Bastion",
+     "displayName": "Gold +4 Bastion Fragment",
+     "quantity": 2
+    },
+    {
+     "fragmentId": "gold-plus-4-dawnshield",
+     "key": "Gold +4 Dawnshield",
+     "displayName": "Gold +4 Dawnshield Fragment",
      "quantity": 2
     }
    ]
