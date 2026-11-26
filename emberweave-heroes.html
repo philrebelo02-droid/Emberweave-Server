@@ -15198,6 +15198,10 @@ function _doEffectSfx(u,type,o){ if(typeof SFX==='undefined'||!SFX.loop||!u||!u.
   const p=SFX.cx, n0=groundHazards.length, s0=sfxSnap(u); SFX.cx=c; try{ return _doEffectCore.apply(this,arguments); } finally{ SFX.cx=p; sfxAdopt(c,n0,s0); } }
 function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
   o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
+  /* v1461 (lockdown screens 26 Nov): on a bonus road Sylthaine's / Vaelora's Blizzard circle was 145 field units across on a 110-unit road, so its
+     painted disc ran onto the next road while it could only ever hurt its own road. On a bonus road the circle is capped at the road's own depth,
+     and the 0.5 s tick uses that same circle (it used the campaign 8 m, ignoring the bonus scale), so the drawn disc IS the damage area. */
+  if(type==='blizzard'&&o.radius>0&&typeof GSPLIT!=='undefined'&&GSPLIT.active&&GSPLIT.curLane!=null&&typeof gsplitLaneBand==='function'){ const _b=gsplitLaneBand(GSPLIT.curLane), _half=(_b.hi-_b.lo)/2; if(_half>0&&o.radius>_half) o=Object.assign({},o,{radius:_half}); }
   o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1); if(u._tal&&u._tal.on.kit) o=TalentFx.kit(u,type,o);   /* TALENT HOOK kit: skill options */   /* v786/v789 */ const _kLv=(u._castLv|0)||1;   /* v1112: the level of the slot that fired, for skLvNum */
   if(u._talW&&u._castSlot) TalentFx.teamCast(u,type,o);   /* TALENT HOOK teamCast: a Green, Blue or ultimate of a unit a talented hero watches resolves (Lysara's Wing Dust flares on an enemy's cast; only a talented hero's watch sets _talW) */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
@@ -16201,7 +16205,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
       dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,tgt);   /* TALENT HOOK chill */ } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
-    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm; u._blizzLv=(u._castLv|0)||0;   /* v1452: the freeze rolls at the ult's level */   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
+    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm; u._blizzLv=(u._castLv|0)||0; u._blizzR=o.radius||8*METER;   /* v1461: the tick hits the same circle that is drawn (bonus-scaled, capped to its road) */   /* v1452: the freeze rolls at the ult's level */   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
@@ -18513,7 +18517,7 @@ function think(u,dt){
     if(u._danceT<=0) u._danceT=0;
     return; }
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
-    if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=(u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzR',8*METER):8*METER   /* TALENT HOOK num: Blizzard's radius (and its tick) */, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._blizzSM||1);
+    if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=(u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzR',u._blizzR||8*METER):(u._blizzR||8*METER)   /* TALENT HOOK num: Blizzard's radius (and its tick) */, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._blizzSM||1);
       enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,e);   /* TALENT HOOK chill */ if(brnd()<((u._tal&&u._tal.on.num)?TalentFx.num(u,'blizzFreeze',0.10,e):0.10)   /* TALENT HOOK num: the freeze chance (the draw itself is unchanged); e: the enemy it is rolled for (Vaelora's Winter Hunt and her stun limits) */&&ccLand(u,e,'stunned',ccDur(CC_SECONDS.freeze.aoe),u._blizzLv||0)){ if(u._tal&&(u._tal.on.ccHit||u._tal.on.ccOut)) TalentFx.ccHit(u,e,'stunned',ccDur(CC_SECONDS.freeze.aoe),true)   /* v1455 (lockdown audit 25 Nov): a Blizzard freeze is Phil's area freeze (v793 "Freeze ... 1.5 seconds multiple", blueprint 18) = 1.05 s, as the card says - it was a hand-written 1.2 (0.84 s) */;   /* TALENT HOOK ccHit: a freeze written without ccApply */ if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
