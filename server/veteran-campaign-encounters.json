@@ -17092,7 +17092,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "veteran",
-  "farmFragment": "orange-starfire",
+  "farmFragment": "orange-voidbind",
   "rewards": {
    "firstGold": 20186,
    "repeatGold": 19550,
@@ -17102,9 +17102,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-starfire",
-     "key": "Orange Starfire",
-     "displayName": "Orange Starfire Fragment",
+     "fragmentId": "orange-voidbind",
+     "key": "Orange Voidbind",
+     "displayName": "Orange Voidbind Fragment",
      "quantity": 2
     }
    ]
@@ -17223,7 +17223,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "veteran",
-  "farmFragment": "orange-veilward",
+  "farmFragment": "orange-bastion",
   "rewards": {
    "firstGold": 20421,
    "repeatGold": 19789,
@@ -17233,9 +17233,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-veilward",
-     "key": "Orange Veilward",
-     "displayName": "Orange Veilward Fragment",
+     "fragmentId": "orange-bastion",
+     "key": "Orange Bastion",
+     "displayName": "Orange Bastion Fragment",
      "quantity": 2
     }
    ]
@@ -17725,7 +17725,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "veteran",
-  "farmFragment": "orange-ironwall",
+  "farmFragment": "orange-dawnshield",
   "rewards": {
    "firstGold": 21371,
    "repeatGold": 20739,
@@ -17735,9 +17735,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-ironwall",
-     "key": "Orange Ironwall",
-     "displayName": "Orange Ironwall Fragment",
+     "fragmentId": "orange-dawnshield",
+     "key": "Orange Dawnshield",
+     "displayName": "Orange Dawnshield Fragment",
      "quantity": 2
     }
    ]
@@ -17973,7 +17973,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "veteran",
-  "farmFragment": "orange-sunder",
+  "farmFragment": "orange-cataclysm",
   "rewards": {
    "firstGold": 21846,
    "repeatGold": 21214,
@@ -17983,9 +17983,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-sunder",
-     "key": "Orange Sunder",
-     "displayName": "Orange Sunder Fragment",
+     "fragmentId": "orange-cataclysm",
+     "key": "Orange Cataclysm",
+     "displayName": "Orange Cataclysm Fragment",
      "quantity": 2
     }
    ]
@@ -19339,7 +19339,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 0,
   "portalMode": "veteran",
-  "farmFragment": "orange-starfire",
+  "farmFragment": "orange-voidbind",
   "rewards": {
    "firstGold": 24458,
    "repeatGold": 23826,
@@ -19349,9 +19349,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-starfire",
-     "key": "Orange Starfire",
-     "displayName": "Orange Starfire Fragment",
+     "fragmentId": "orange-voidbind",
+     "key": "Orange Voidbind",
+     "displayName": "Orange Voidbind Fragment",
      "quantity": 2
     }
    ]
@@ -19456,7 +19456,7 @@
   "qualityMinHeroLevel": 100,
   "bossLevelGate": 100,
   "portalMode": "veteran",
-  "farmFragment": "orange-veilward",
+  "farmFragment": "orange-bastion",
   "rewards": {
    "firstGold": 24696,
    "repeatGold": 24064,
@@ -19466,9 +19466,9 @@
    "heroXpRepeat": 12,
    "glyphFragments": [
     {
-     "fragmentId": "orange-veilward",
-     "key": "Orange Veilward",
-     "displayName": "Orange Veilward Fragment",
+     "fragmentId": "orange-bastion",
+     "key": "Orange Bastion",
+     "displayName": "Orange Bastion Fragment",
      "quantity": 2
     }
    ]

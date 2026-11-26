@@ -410,7 +410,10 @@ console.log('== 30. every stage pays a fragment kind some board needs ==');
   const st = f => JSON.parse(fs.readFileSync(path.join(root, 'server', f), 'utf8'));
   const tabs = ['campaign-encounters.json', 'elite-campaign-encounters.json', 'veteran-campaign-encounters.json'].map(st).flat();
   ok(R30.retired.length === 21, '21 kinds no board uses (all Bastion, Gold to Orange Dawnshield, Orange Cataclysm, Orange Voidbind) are retired from the drop tables');
-  ok(!tabs.some(s => (s.rewards.glyphFragments || []).some(g => RET.has(g.fragmentId)) || RET.has(s.farmFragment)), 'no Normal, Elite or Veteran stage pays one any more (16 Elite and 17 Veteran stages paid only such a kind)');
+  ok(!tabs.slice(0, tabs.length - 160).some(s => (s.rewards.glyphFragments || []).some(g => RET.has(g.fragmentId)) || RET.has(s.farmFragment)), 'no Normal or Elite stage pays one any more (16 Elite stages paid only such a kind)');
+  const vet = tabs.slice(tabs.length - 160), vr = vet.filter(s => s.rewards.glyphFragments.some(g => RET.has(g.fragmentId)));
+  ok(vr.length === 6 && vr.every(s => s.rewards.glyphFragments.every(g => /^orange-/.test(g.fragmentId))) && new Set(vet.map(s => s.rewards.glyphFragments[0].key).filter(k => /^Orange /.test(k))).size === 18,
+    'Veteran pays retired kinds only on its 6 Orange-family sources, so every one of the 18 Orange families keeps its Veteran source (v1148 rule; 11 other Veteran stages were changed)');
   const only = tabs.filter(s => (s.rewards.glyphFragments || []).length === 4);
   ok(only.every(s => new Set(s.rewards.glyphFragments.map(g => g.key)).size === 4), 'every Normal 4-pool still offers four different kinds'); }
 

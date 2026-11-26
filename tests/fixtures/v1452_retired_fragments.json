@@ -1,5 +1,5 @@
 {
- "note": "v1452 (lockdown audit, glyphs line 21): fragment kinds no hero board ever uses. They no longer drop from any stage; each was replaced in the three encounter tables by a needed kind of the same quality (the nearest family of the same board slot group, else the least-supplied needed kind of that quality). Fragments players already hold are left as they are.",
+ "note": "v1452 (lockdown audit, glyphs line 21): fragment kinds no hero board ever uses. They no longer drop from any Normal or Elite stage (Veteran keeps its one source of each of the 18 Orange families, the v1148 rule, so its 6 Orange Bastion / Dawnshield / Cataclysm / Voidbind stages stay); each was replaced in the three encounter tables by a needed kind of the same quality (the nearest family of the same board slot group, else the least-supplied needed kind of that quality). Fragments players already hold are left as they are.",
  "usedKinds": 197,
  "retired": [
   "blue-plus-1-bastion",

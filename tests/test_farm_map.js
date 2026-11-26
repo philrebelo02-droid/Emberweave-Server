@@ -35,15 +35,17 @@ ck('1-star rewards run through 2-1 and 2-star rewards begin at 2-4',
 ck('every Veteran stage names exactly ONE glyph fragment', veteranStages.every(s=>s.rewards.glyphFragments.length===1));
 /* v1452 (lockdown audit, glyphs line 21): the 21 fragment kinds no hero's board ever uses (all Bastion, Gold to Orange Dawnshield, Orange Cataclysm,
    Orange Voidbind) no longer drop: each was replaced by a needed kind of the same quality (tests/fixtures/v1452_retired_fragments.json lists them all).
-   The pools now cover the 197 kinds a board uses, and Elite stages that paid a retired kind pay a needed one some other stage also pays. */
+   The pools now cover the 197 kinds a board uses, and Elite stages that paid a retired kind pay a needed one some other stage also pays.
+   Veteran keeps its one source of every Orange family (v1148's rule, test_veteran_1148): its 6 Orange Bastion / Dawnshield / Cataclysm / Voidbind stages stay. */
 const RETIRED=new Set(require('./fixtures/v1452_retired_fragments.json').retired);
 ck('ordinary Normal pools cover all 197 fragment types a board uses (218 less the 21 retired)', uniq(normalFragmentIds).size===197, String(uniq(normalFragmentIds).size));
-ck('no stage of any table pays a retired fragment kind', ![...normalStages,...eliteStages,...veteranStages].some(s=>s.rewards.glyphFragments.some(f=>RETIRED.has(f.fragmentId))||RETIRED.has(s.farmFragment)));
+ck('no Normal or Elite stage pays a retired fragment kind, and Veteran only its Orange-family sources', ![...normalStages,...eliteStages].some(s=>s.rewards.glyphFragments.some(f=>RETIRED.has(f.fragmentId))||RETIRED.has(s.farmFragment))
+  && veteranStages.every(s=>s.rewards.glyphFragments.every(f=>!RETIRED.has(f.fragmentId)||f.fragmentId.startsWith('orange-'))));
 ck('unique(eliteFragmentIds).size === 148 (160 less the 12 that paid a retired kind)', uniq(eliteFragmentIds).size===148, String(uniq(eliteFragmentIds).size));
 ck('every Elite fragment also has an ordinary Normal home', eliteFragmentIds.every(x=>normalFragmentIds.includes(x)));
 ck('veteranStages.length === 160 (16 chapters, v1148)', veteranStages.length===160, String(veteranStages.length));
 ck('every Veteran stage awards two of one named Glyph Fragment (v1148, like Elite)', veteranStages.every(s=>s.rewards.glyphFragments[0].quantity===2));
-ck('Veteran carries all 14 Orange families a board uses (v1148 cycled 18; v1452 retired Orange Bastion, Dawnshield, Cataclysm, Voidbind)', uniq(vetIds.filter(x=>x.startsWith('orange-'))).size===14,
+ck('Veteran carries all 18 Orange families (v1148: its Orange stages cycle them)', uniq(vetIds.filter(x=>x.startsWith('orange-'))).size===18,
   String(uniq(vetIds.filter(x=>x.startsWith('orange-'))).size));
 
 // the catalog is fully covered by ordinary Normal stages; Elite/Veteran remain alternate sources
@@ -52,7 +54,7 @@ const catalog=new Set();
 for(const d of raw){ if(d.family) catalog.add(slug(d.quality+' '+(d.fragmentFamily||d.family))); }
 const all=[...normalFragmentIds,...eliteFragmentIds,...vetIds];
 ck('the catalog uses 218 raw fragment types (personal glyphs reuse named ingredients)', catalog.size===218, String(catalog.size));
-ck('allGlyphFragmentIds.size === 197 (the 218 less the 21 retired)', uniq(all).size===197, String(uniq(all).size));
+ck('allGlyphFragmentIds.size === 201 (the 218 less the 21 retired, plus the 4 retired Orange families Veteran still pays)', uniq(all).size===201, String(uniq(all).size));
 ck('every fragment a board uses has at least one source', [...catalog].filter(c=>!RETIRED.has(c)).every(c=>all.includes(c)),
   [...catalog].filter(c=>!RETIRED.has(c)&&!all.includes(c)).slice(0,5).join(', '));
 ck('all 96 ordinary Normal stages are used (16 chapters x 6)', ordinaryNormal.length===96, String(ordinaryNormal.length));
