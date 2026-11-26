@@ -48,15 +48,25 @@ async function fit(pg,S){
   const s=await shot(pg,S.tag+' Phone and Fold fit squares');
   const bad=r.squares.filter(q=>!(q.on&&q.front&&q.enabled&&q.big));
   C.ok(r.squares.length===r.want&&r.want>0&&!bad.length,S.tag+' Phone and Fold fit: all '+r.squares.length+' next-column squares are on screen, at least 28 px, enabled and the element a tap hits',{from:r.pos,squares:r.squares,bad,shot:s});
-  /* tapping the title bar (the title and an empty spot of the bar) does nothing */
-  const before=await pg.evaluate(()=>({state,pos:JSON.stringify(WELL.state.pos),html:document.getElementById('wlMap').innerHTML.length,card:!!document.getElementById('wlCard'),menu:document.getElementById('menu').classList.contains('active')}));
+  /* tapping the title bar does nothing: on the title, on an empty part of the bar, and on the bar right above the top square */
   const tb=await pg.evaluate(()=>{ const t=SL.R('#wlMap .wlTtl'), bar=SL.R('#wlMap .wlTop'), back=SL.R('#wlMap .wlBackB'), clk=SL.R('#wlMap .wlClock');
-    const gapX=back&&t?Math.round((back.r+t.x)/2):Math.round(bar.x+bar.w*0.3); return {title:[t.x+t.w/2,t.y+t.h/2],empty:[gapX,bar.y+bar.h/2],emptyHit:(document.elementFromPoint(gapX,bar.y+bar.h/2)||{}).className||null}; });
-  for(const [x,y] of [tb.title,tb.empty]){ if(S.touch) await pg.touchscreen.tap(x,y); else await pg.mouse.click(x,y); await H.wait(600); }
-  const after=await pg.evaluate(()=>({state,pos:JSON.stringify(WELL.state.pos),html:document.getElementById('wlMap')?document.getElementById('wlMap').innerHTML.length:-1,card:!!document.getElementById('wlCard'),menu:document.getElementById('menu').classList.contains('active'),map:!!document.getElementById('wlMap')}));
-  const s2=await shot(pg,S.tag+' Phone and Fold fit title tap');
-  C.ok(after.map&&after.state===before.state&&after.pos===before.pos&&!after.card&&!after.menu&&after.html===before.html,S.tag+' Phone and Fold fit: tapping the title bar (on the title and on an empty part of the bar) does nothing (map open, same tile, no card, no squad screen)',
-    {taps:tb,before,after,shot:s2});
+    const sqs=[...document.querySelectorAll('#wlMap .wlSq')].map(e=>SL.R(e)), my=bar.y+bar.h/2;
+    const free=x=>!sqs.some(q=>x>=q.x-30&&x<=q.r+30);
+    let ex=null; for(let x=Math.round(back.r+12);x<t.x-12;x+=4) if(free(x)){ ex=x; break; } if(ex==null) for(let x=Math.round(t.r+12);x<clk.x-12;x+=4) if(free(x)){ ex=x; break; }
+    const top=sqs.filter(q=>q.y<bar.b+40).sort((a,b)=>a.y-b.y)[0];
+    const pts={title:[t.x+t.w/2,t.y+t.h/2]}; if(ex!=null) pts.emptyBar=[ex,my]; if(top) pts.barAboveTopSquare=[top.x+top.w/2,Math.max(bar.y+2,Math.min(my,top.y-2))];
+    const hit={}; for(const [k,[x,y]] of Object.entries(pts)){ const e=document.elementFromPoint(x,y); hit[k]=e?(e.tagName.toLowerCase()+'.'+String(e.className).split(' ').join('.')):null; }
+    return {pts,bar,topSquare:top||null,hit}; });
+  const snap=()=>pg.evaluate(()=>({state,pos:JSON.stringify(WELL.state&&WELL.state.pos),html:document.getElementById('wlMap')?document.getElementById('wlMap').innerHTML.length:-1,card:!!document.getElementById('wlCard'),menu:document.getElementById('menu').classList.contains('active'),map:!!document.getElementById('wlMap')}));
+  for(const [name,[x,y]] of Object.entries(tb.pts)){
+    const b0=await snap();
+    if(S.touch) await pg.touchscreen.tap(x,y); else await pg.mouse.click(x,y); await H.wait(700);
+    const after=await snap(); const sh=await shot(pg,S.tag+' Phone and Fold fit title bar tap '+name);
+    C.ok(after.map&&after.state===b0.state&&after.pos===b0.pos&&!after.card&&!after.menu&&after.html===b0.html,
+      S.tag+' Phone and Fold fit: a tap on the title bar ('+name+' at '+Math.round(x)+','+Math.round(y)+') does nothing (map open, same tile, no card, no squad screen)',
+      {at:[Math.round(x),Math.round(y)],hit:tb.hit[name],bar:tb.bar,topSquare:tb.topSquare,before:b0,after,shot:sh});
+    if(!after.map||after.menu||after.card){ await pg.evaluate(()=>{ const c=document.getElementById('wlCard'); if(c) c.remove(); try{ show('home'); }catch(e){} }); await H.wait(500); await openWell(pg,S); }
+  }
   /* and a tap on a reachable square does act (the squad screen for a fight, a card for a chest / tent / spring) */
   const q=r.squares.find(x=>x.on&&x.front); if(q){
     const x=q.box.x+q.box.w/2, y=q.box.y+q.box.h/2; if(S.touch) await pg.touchscreen.tap(x,y); else await pg.mouse.click(x,y); await H.wait(900);
@@ -77,7 +87,7 @@ async function fit(pg,S){
         if(do_.fit) await fit(pg,S);
       }catch(e){ C.ok(false,S.tag+' ran to the end',String(e&&e.stack||e).slice(0,500)); }
       C.ok(pg._errs.length===0,S.tag+' no page errors',pg._errs.slice(0,3));
-      await pg._ctx.close(); pg=null; }
+      await pg._ctx.close(); pg=null; await H.closeBrowser(); }
   }catch(e){ C.ok(false,'the test ran to the end',String(e&&e.stack||e).slice(0,600)); }
   finally{ if(pg) try{ await pg._ctx.close(); }catch(_){} await H.closeBrowser(); await s.stop(); }
   C.done();
