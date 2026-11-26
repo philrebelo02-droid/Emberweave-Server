@@ -665,6 +665,14 @@ note "test_screens_glyphs_1450.js (lockdown 25 Nov, needs playwright: six-slot g
 node tests/test_screens_glyphs_1450.js || FAILED=1
 note "test_screens_energy_1450.js (lockdown 25 Nov, needs playwright: portrait energy bars = real energy every few ticks of a real 1-1 fight, Vireo and Sylthaine joining mid-fight)"
 node tests/test_screens_energy_1450.js || FAILED=1
+note "test_screens_herolist_1454.js (lockdown 25 Nov, needs playwright: Heroes list dropdowns fit and sit above the cards, 5-a-row centred grid, tabs keep their place, phone short Talents layout hides when closed, star track colours from the screen pixels)"
+node tests/test_screens_herolist_1454.js || FAILED=1
+note "test_screens_heroboards_1454.js (lockdown 25 Nov, needs playwright: six-slot glyph board + current rank, painted talent board select / Learn / tooltip at 1280x720 and 844x390)"
+node tests/test_screens_heroboards_1454.js || FAILED=1
+note "test_screens_skillstage_1454.js (lockdown 25 Nov, needs playwright: skill preview stage pixels - one hero, the fight clip; spell art at the fight cast time, never touching the edge)"
+node tests/test_screens_skillstage_1454.js || FAILED=1
+note "test_screens_livepower_1454.js (lockdown 25 Nov, needs playwright: a skill upgrade changes the hero power on every screen without a reload, Skyfall included)"
+node tests/test_screens_livepower_1454.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
