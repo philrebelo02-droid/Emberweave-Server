@@ -18680,7 +18680,7 @@ module.exports={
       if(P.hburst&&th>=TH_MAX&&um.thOn) for(const y of foes(E,u)){ if(y===x||gapM(E,x,y)>=3) continue; const q=recMk(T,y); q.th=Math.min(TH_MAX,q.th+5); }   // Hollow Burst
       if(um.corOn){ const C=um.cor; if(C.m===x&&C.t>0){ if(P.bof) u.energy=Math.min(100,(u.energy||0)+P.bof);       // Bright Ones Fall
           if(P.elc){ const b=T.fn.bright(A,T,u,[x]); if(b){ C.m=b; um.corN++; T.fn.corOn(A,T,u,b); } else C.m=null; } } }   // Every Light Checked: it moves at once, with its time left
-      for(const p of um.pr){ if(p.a!==x&&p.b!==x) continue; const o=p.a===x?p.b:p.a; if(P.pa&&o.alive){ T.fn.mag(A,T,u,o,P.pa*(u.apow||0),'umPa'); um.paN=(um.paN||0)+1; } p.t=0; }   // Pulled Apart
+      for(const p of um.pr){ if(p.a!==x&&p.b!==x) continue; const o=p.a===x?p.b:p.a; if(P.pa&&o.alive){ T.fn.mag(A,T,u,o,P.pa*(u.apow||0)*((u.dmgBuffT>0)?(u.dmgBuffMul||1):1),'umPa'); um.paN=(um.paN||0)+1; } p.t=0; }   // Pulled Apart
       if(P.wand){ const D=x.dots||[]; for(const d of D){ if(d._talO!==u.uid||!CRT[d._talK]||!(d.remaining>0)) continue; let b=null, bd=Infinity; for(const y of foes(E,u)){ if(y===x) continue; const g=E.dist(x,y); if(g<bd){ bd=g; b=y; } }
           if(b){ E.pushDot(b,d.dps,dotLeft(d),d.interval||1,d.color||'#8a5cff',u,d.kind||'magic'); const nd=b.dots[b.dots.length-1]; nd._talO=u.uid; nd._talK=d._talK; nd._umN0=d._umN0; b._contagion=true; b._plagueDps=d.dps; b._plagueColor=d.color||'#8a5cff'; b._plagueHex=0x7a3fb0; um.crT=b; um.wandN=(um.wandN||0)+1; } break; } }   // Wandering Eye
       /* the zone: the signature widens it; Lingering Dark from it (Swallowed by the Gap: sprR). Field of Rot and the signature spread when the page would not */
