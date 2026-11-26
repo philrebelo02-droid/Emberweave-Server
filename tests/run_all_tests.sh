@@ -669,6 +669,10 @@ note "test_lockdown_mail_feedback_1455.js (v1455 lockdown audit Mail / Quests / 
 node tests/test_lockdown_mail_feedback_1455.js || FAILED=1
 note "test_lockdown_account_hud_1455.js (v1455 lockdown audit Account / HUD fixes: look-alike staff names reserved, undelivered whispers answered, patch note times in ET, 51 creature names in every pack, Kharos lore, no panel blur, 44x40 back buttons)"
 node tests/test_lockdown_account_hud_1455.js || FAILED=1
+note "test_patchnotes_translated.js (v1413 / v1455: every title and item of the latest 10 patch notes is in all 15 content packs; control: an untranslated line is caught)"
+node tests/test_patchnotes_translated.js || FAILED=1
+note "test_whats_new_1295.js (v1295 What's New: newest unseen notes once, never in the tutorial; no note names an AI or another game)"
+node tests/test_whats_new_1295.js || FAILED=1
 note "test_umbris_scaling_1456.js (v1456, Phil 26 Nov: \"make sure all of umbris's abilities scale properly\": every Umbris damage number vs Ability Power / skill level / hero level / stars / gear / damage buff, card = fight; Creeping Rot's rot takes the damage buff)"
 node tests/test_umbris_scaling_1456.js || FAILED=1
 note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Irix +20% health and damage in that fight only; City Wall art in view; Cauldron \"Full in\")"

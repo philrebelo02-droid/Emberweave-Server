@@ -61,7 +61,8 @@ const { S, call, guest } = loadServer(module);
     const iv = notes.findIndex(n => n.ver === '1.9.5'), newest = notes.slice(0, iv + 1);
     ok(iv >= 16 && newest.every(n => /^[0-2]\d:[0-5]\d ET$/.test(n.time || '')), 'every note 1.9.5 .. ' + notes[0].ver + ' has a time (' + newest.filter(n => !n.time).map(n => n.ver).join(', ') + ' missing)');
     ok(!notes.some(n => / EST$/.test(n.time || '')), 'no note says EST');
-    ok(notes[0].ver === '1.9.21' && notes[0].time === '20:06 ET', '1.9.21: ' + notes[0].time + ' (build 1795655184656 = 25 Nov 20:06 ET)');
+    { const n21 = notes.find(n => n.ver === '1.9.21');   /* v1455: 1.9.22 sits above it now - the 1.9.21 note must keep its time, not be first */
+      ok(!!n21 && n21.time === '20:06 ET', '1.9.21: ' + (n21 && n21.time) + ' (build 1795655184656 = 25 Nov 20:06 ET)'); }
     const de = J(`(function(){ const k=LANG.cur; LANG.cur='de'; try{ return [patchNoteTime('17:00 ET'), patchNoteTime('17:00 EST')]; } finally { LANG.cur=k; } })()`) || [];
     ok(/ ET$/.test(de[0] || '') && / ET$/.test(de[1] || '') && /17/.test(de[0] || ''), 'translated clock keeps the zone as ET (' + de.join(' / ') + ')'); }
 
