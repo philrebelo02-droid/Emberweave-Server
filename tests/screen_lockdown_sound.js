@@ -79,7 +79,7 @@ async function fight(pg,F,S){
     autoUlt=true; gameSpeed=sp; paused=false; try{ refreshCtrlBtns(); }catch(e){} return {state,speed:gameSpeed,units:units.length,ctx:SND.ctx.state,live:SFX.loop}; },F.speed);
   const shots=[]; let pauseWin=null; const t0=Date.now(); let shotAt=4000;
   for(;;){ await wait(100);
-    const st=await pg.evaluate(()=>({ended,bt:battleTime,casting:units.filter(u=>u.alive&&u._castSlot).map(u=>u.key+':'+u._castSlot)}));
+    const st=await pg.evaluate(()=>({ended,bt:battleTime,casting:units.filter(u=>u.alive&&(((u._castT||0)>0)||u._pend)).map(u=>u.key+':'+(u._pend?'pending cast':'cast clock '+(+u._castT).toFixed(2)))}));
     if(Date.now()-t0>=shotAt&&shots.length<2){ shots.push(await shot(pg,S.tag+' Sound matches the animation '+F.tag+' at '+st.bt.toFixed(1)+' s')); shotAt+=8000; }
     if(F.pause&&!pauseWin&&st.bt>3&&(st.casting.length||st.bt>15)){
       pauseWin=await pg.evaluate(async c=>{ document.getElementById('pauseBtn').click(); const p0=SND.ctx.currentTime, b0=battleTime; await new Promise(r=>setTimeout(r,2000));
