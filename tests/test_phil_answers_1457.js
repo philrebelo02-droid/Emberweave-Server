@@ -30,60 +30,64 @@ const ORPHANS = ['Blue Bastion', 'Blue +1 Bastion', 'Blue +2 Bastion', 'Purple B
 const SECTIONS = [];
 const section = (n, f) => SECTIONS.push([n, f]);
 
-section('1. every glyph fragment drops somewhere; a stage splits its drop evenly', async () => {
-  const N = load('campaign-encounters.json'), E = load('elite-campaign-encounters.json');
-  const addedOn = k => [...N.map(s => ['normal', s]), ...E.map(s => ['elite', s])].filter(([, s]) => (s.rewards.addedFragments || []).some(f => f.key === k));
-  for (const k of ORPHANS) { const at = addedOn(k);
-    ok(at.some(([m, s]) => m === 'normal' && s.rewards.fragmentRolls === 2) && at.some(([m]) => m === 'elite')
-      && at.every(([, s]) => s.rewards.glyphFragments.every(f => qOf(f.key) === qOf(k))),
-      k + ': on ' + at.map(([m, s]) => (m === 'normal' ? 'Normal ' : 'Elite ') + s.id).join(' + ') + ' (same quality band as the stage)'); }
-  // the server joins the authored list with the added kinds - every route reads the joined list
-  const P = S.PORTALS, FS = S.FRAG_SOURCES, slug = S.glyphFragSlug;
-  const need = S.fragKindsNeeded();
-  ok(need.length === 218 && need.every(k => (FS[slug(k)] || []).length > 0), 'all ' + need.length + ' recipe fragment kinds have a campaign source');
-  ok(ORPHANS.every(k => (FS[slug(k)] || []).some(s => s.mode === 'normal') && (FS[slug(k)] || []).some(s => s.mode === 'elite')), 'each of the 17 now drops from a Normal AND an Elite stage');
-  const n35 = P.normal.byNode[35], e26 = P.elite.byNode[26], e92 = P.elite.byNode[92], e25 = P.elite.byNode[25];
-  ok(n35.rewards.glyphFragments.length === 5 && n35.rewards.fragmentRolls === 2 && n35.rewards.glyphFragments[4].key === 'Blue Bastion', 'Normal 4-5 offers 5 kinds (+ Blue Bastion), still pays 2');
-  ok(e26.rewards.glyphFragments.map(f => f.key).join() === 'Blue Ironwall,Blue Bastion', 'Elite 3-6: Blue Ironwall or Blue Bastion');
-  ok(e92.rewards.glyphFragments.map(f => f.key).join() === 'Gold Ironwall,Gold Bastion,Gold Dawnshield' && e92.rewards.glyphFragments.every(f => f.quantity === 2), 'Elite 10-2: Gold Ironwall, Gold Bastion or Gold Dawnshield, x2');
-  const chance = S.campaignFragChance;
-  ok(chance(n35) === 2 / 5 && chance(P.normal.byNode[34]) === 2 / 4 && chance(e26) === 1 / 2 && Math.abs(chance(e92) - 1 / 3) < 1e-12 && chance(e25) === 1,
-    'chances: 2 of 5 = 40%, 2 of 4 = 50%, 2 kinds 50%, 3 kinds 33%, one kind 100%');
-  const drops = S.campaignGlyphDrops, tally = (st, runs) => { const c = {}; let tot = 0, perRunOk = true;
-    for (let i = 1; i <= runs; i++) { const d = drops(st, 1, (i * 2654435761) >>> 0); const q = d.reduce((a, f) => a + f.quantity, 0); tot += q;
-      if (q !== (st.rewards.fragmentRolls === 2 ? 2 : st.rewards.glyphFragments[0].quantity)) perRunOk = false; d.forEach(f => { c[f.key] = (c[f.key] || 0) + 1; }); }
-    return { c, tot, perRunOk }; };
-  { const t = tally(e92, 30000), p = Object.values(t.c).map(v => v / 30000);
-    ok(t.perRunOk && Object.keys(t.c).length === 3 && p.every(x => Math.abs(x - 1 / 3) < 0.02), 'Elite 10-2 over 30,000 runs: every run pays 2 fragments, each kind ' + p.map(x => (x * 100).toFixed(1) + '%').join(' / ')); }
-  { const t = tally(e26, 30000), p = Object.values(t.c).map(v => v / 30000);
-    ok(t.perRunOk && p.length === 2 && p.every(x => Math.abs(x - 0.5) < 0.02), 'Elite 3-6: every run pays 2, each kind ' + p.map(x => (x * 100).toFixed(1) + '%').join(' / ')); }
-  { const t = tally(n35, 30000), p = Object.values(t.c).map(v => v / 30000);
-    ok(t.perRunOk && p.length === 5 && p.every(x => Math.abs(x - 0.4) < 0.02), 'Normal 4-5: every run pays 2 distinct, each kind ' + p.map(x => (x * 100).toFixed(1) + '%').join(' / ')); }
-  { const d = drops(e92, 10, 12345); ok(d.reduce((a, f) => a + f.quantity, 0) === 20, 'a 10x sweep of Elite 10-2 pays 20 fragments in all, split between the kinds (' + JSON.stringify(d) + ')'); }
-  ok(JSON.stringify(drops(e25, 3, 1)) === JSON.stringify([{ key: e25.rewards.glyphFragments[0].key, quantity: 6 }]), 'a one-kind stage pays exactly what it did');
+section('1. every glyph fragment kind drops from 1-2 stages in each of Normal, Elite and Veteran; a stage splits its drop evenly', async () => {
+  // Phil 26 Nov 2026: "add them to existing stages ... if 2 are on the same stage is 50% if 3 are on one is 33%", "yes give orange normal stages
+  // too", then "each glyph should have 1-2 stages per normal, elite, and veteran"
+  const cp = require('child_process'), P = S.PORTALS, FS = S.FRAG_SOURCES, slug = S.glyphFragSlug, chance = S.campaignFragChance, drops = S.campaignGlyphDrops;
+  const need = S.fragKindsNeeded(), MODES = ['normal', 'elite', 'veteran'], FILE = { normal: 'campaign-encounters.json', elite: 'elite-campaign-encounters.json', veteran: 'veteran-campaign-encounters.json' };
+  const ord = (m, e) => m === 'normal' && e.rewards.fragmentRolls === 2;
+  ok(need.length === 218, 'the 218 fragment kinds glyph recipes name');
+  const band = m => new Set(P[m].list.map(e => qOf(e.rewards.glyphFragments[0].key)));
+  for (const m of MODES) { const B = band(m), inBand = need.filter(k => B.has(qOf(k))), cnt = k => (FS[slug(k)] || []).filter(s => s.mode === m).length;
+    ok(inBand.every(k => cnt(k) >= 1 && cnt(k) <= 2) && need.filter(k => !B.has(qOf(k))).every(k => cnt(k) === 0),
+      m + ': every one of the ' + inBand.length + ' kinds of its quality bands drops from 1-2 stages (' + [1, 2].map(n => inBand.filter(k => cnt(k) === n).length + ' on ' + n).join(', ') + ')'
+      + (inBand.length < 218 ? '; ' + (218 - inBand.length) + ' kinds have no ' + m + ' stage of their quality (' + [...new Set(need.filter(k => !B.has(qOf(k))).map(qOf))].join(', ') + ')' : '')); }
+  { const ordN = new Set(P.normal.list.filter(e => e.rewards.fragmentRolls === 2).map(e => e.id));
+    ok(need.every(k => (FS[slug(k)] || []).some(s => s.mode === 'normal' && ordN.has(s.stageId))), 'every kind drops from an ordinary Normal stage (the unlimited farm)'); }
+  ok(S.fragSourceCheck().problems.length === 0, 'the boot check finds nothing wrong');
+  ok(ORPHANS.concat(['Orange Bastion', 'Orange Cataclysm', 'Orange Dawnshield', 'Orange Voidbind']).every(k => MODES.every(m => (FS[slug(k)] || []).some(s => s.mode === m))),
+    'the 17 Bastion / Dawnshield kinds and the 4 Orange kinds drop in all three portals');
+  // per stage: same band, sizes in the rule, even split, the same total per run as v1455
+  let old = {}; try { for (const m of MODES) old[m] = Object.fromEntries(JSON.parse(cp.execFileSync('git', ['show', '780cbe0ca:server/' + FILE[m]], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 28 })).map(e => [e.id, e])); } catch (e) { old = null; }
+  ok(!!old, 'the v1455 stage tables to compare with');
+  if (old) { const bad = [], sizes = {};
+    for (const m of MODES) for (const e of P[m].list) { const o = old[m][e.id], L = e.rewards.glyphFragments, o0 = o.rewards.glyphFragments[0];
+      const k = (ord(m, e) ? 'ordinary ' : 'single ') + L.length; sizes[m + ' ' + k] = (sizes[m + ' ' + k] || 0) + 1;
+      if ((e.rewards.fragmentRolls | 0) !== (o.rewards.fragmentRolls | 0)) bad.push(m + ' ' + e.id + ' rolls');
+      if (L.some(f => qOf(f.key) !== qOf(o0.key) || f.quantity !== o0.quantity)) bad.push(m + ' ' + e.id + ' band/quantity');
+      if (new Set(L.map(f => f.key)).size !== L.length || L.length < (ord(m, e) ? 2 : 1) || L.length > (ord(m, e) ? 5 : 3)) bad.push(m + ' ' + e.id + ' size ' + L.length);
+      const want = ord(m, e) ? 2 / L.length : 1 / L.length; if (Math.abs(chance(e) - want) > 1e-12) bad.push(m + ' ' + e.id + ' chance');
+      const per = ord(m, e) ? 2 : o0.quantity; for (const sd of [11, 12, 13]) { const d = drops(e, 1, sd * 7919 + e.node); if (d.reduce((a, f) => a + f.quantity, 0) !== per) bad.push(m + ' ' + e.id + ' total'); } }
+    ok(bad.length === 0, 'all 480 stages: kinds of the stage\'s own quality and quantity, 2-5 kinds on an ordinary stage and 1-3 elsewhere, an even chance, and the v1455 amount every run ' + (bad.length ? bad.slice(0, 6).join('; ') : ''));
+    console.log('  info stage sizes: ' + JSON.stringify(sizes)); }
+  // the split, measured
+  const tally = (st, runs) => { const c = {}; for (let i = 1; i <= runs; i++) drops(st, 1, (i * 2654435761) >>> 0).forEach(f => { c[f.key] = (c[f.key] || 0) + 1; }); return Object.values(c).map(v => v / runs); };
+  const pick = (m, f) => P[m].list.find(f);
+  const e2 = pick('elite', e => e.rewards.glyphFragments.length === 2), n5 = pick('normal', e => ord('normal', e) && e.rewards.glyphFragments.length === 5),
+    n3 = pick('normal', e => ord('normal', e) && e.rewards.glyphFragments.length === 3), n2 = pick('normal', e => ord('normal', e) && e.rewards.glyphFragments.length === 2 && e.node !== 2), e1 = pick('elite', e => e.rewards.glyphFragments.length === 1 && !e.rewardHero);
+  { const p = tally(e2, 20000); ok(p.length === 2 && p.every(x => Math.abs(x - 0.5) < 0.02), 'Elite ' + e2.id + ' (2 kinds): each ' + p.map(x => (100 * x).toFixed(1) + '%').join(' / ')); }
+  { const p = tally(n5, 20000); ok(p.length === 5 && p.every(x => Math.abs(x - 0.4) < 0.02), 'Normal ' + n5.id + ' (2 of 5): each ' + p.map(x => (100 * x).toFixed(1) + '%').join(' / ')); }
+  { const p = tally(n3, 20000); ok(p.length === 3 && p.every(x => Math.abs(x - 2 / 3) < 0.02), 'Normal ' + n3.id + ' (2 of 3): each ' + p.map(x => (100 * x).toFixed(1) + '%').join(' / ')); }
+  ok(!!n2 && JSON.stringify(drops(n2, 1, 5).map(f => f.key).sort()) === JSON.stringify(n2.rewards.glyphFragments.map(f => f.key).sort()), 'Normal ' + (n2 && n2.id) + ' (2 kinds): pays both, every run');
+  ok(JSON.stringify(drops(e1, 3, 1)) === JSON.stringify([{ key: e1.rewards.glyphFragments[0].key, quantity: 6 }]), 'a one-kind stage pays exactly what it did');
   // the boot check is a real check
   { const raw = S.GLYPHS.raw, fake = { id: 'v1457-fake', ing: [{ kind: 'frag', key: 'Blue Nothingness', qty: 1 }] }; raw.push(fake); let err = '';
     try { S.portalCompile(); } catch (e) { err = String(e.message); } raw.pop(); S.portalCompile();
-    ok(/no ordinary Normal source \(1\): Blue Nothingness/.test(err), 'CONTROL: a recipe kind with no stage stops the boot ("' + err + '")');
-    ok(Object.keys(S.FRAG_SOURCES).length === 218, 'and the real data compiles again (218 kinds)'); }
+    ok(/Blue Nothingness: no ordinary Normal stage; Blue Nothingness: 0 normal stages; Blue Nothingness: 0 elite stages; Blue Nothingness: 0 veteran stages/.test(err), 'CONTROL: a recipe kind with no stage stops the boot ("' + err.slice(0, 200) + '")');
+    ok(Object.keys(S.FRAG_SOURCES).length === 218 && S.fragSourceCheck().problems.length === 0, 'and the real tables compile again (218 kinds)'); }
   ok(!/every type has an ordinary Normal source/.test(SRC), 'the boot line no longer claims what it never checked');
-  /* Phil 26 Nov: "yes give orange normal stages too" - the 4 Orange kinds only Veteran paid now drop on chapter 16 ordinary stages as well */
-  { const ordN = new Set(P.normal.list.filter(e => ![3, 6, 9, 0].includes(e.node % 10)).map(e => e.id));
-    ok(need.every(k => (FS[slug(k)] || []).some(s => s.mode === 'normal' && ordN.has(s.stageId))), 'EVERY one of the 218 kinds drops from an ordinary Normal stage (the boot refuses otherwise)');
-    const OR = { 'Orange Bastion': '16-2', 'Orange Dawnshield': '16-1', 'Orange Cataclysm': '16-8', 'Orange Voidbind': '16-4' };
-    for (const [k, sid] of Object.entries(OR)) { const st = P.normal.list.find(e => e.id === sid), src = (FS[slug(k)] || []).map(s => s.mode + ' ' + s.stageId);
-      ok(st.rewards.glyphFragments.length === 5 && st.rewards.fragmentRolls === 2 && st.rewards.glyphFragments.every(f => f.key.startsWith('Orange ')) && chance(st) === 0.4
-        && src.includes('normal ' + sid) && src.some(s => s.startsWith('veteran ')), k + ': Normal ' + sid + ' (2 of 5 Orange kinds, 40% each) and its Veteran source kept - ' + src.join(', ')); } }
-  // routes: the stage card and the farm map serve the joined list
+  // routes and the stage panel
   const g = await guest('frag');
-  const card = (await call('/api/campaign/stage?mode=elite&node=92', null, g.T)).data;
-  ok(card && card.stage && card.stage.rewards.glyphFragments.length === 3, 'the Elite 10-2 stage card lists its 3 kinds');
-  const map = (await call('/api/portals', null, g.T)).data;
-  ok(map && map.fragmentSources && (map.fragmentSources['gold-plus-4-dawnshield'] || []).map(s => s.mode + ' ' + s.stageId).join(', ') === 'normal 15-2, elite 15-5', 'the farm map names Gold +4 Dawnshield\'s sources: ' + JSON.stringify(map && map.fragmentSources && map.fragmentSources['gold-plus-4-dawnshield']));
-  // the stage panel shows the split
-  const chipsE = J(`stageDropsHTML(${JSON.stringify(card.stage)},92,'elite')`), chipsN = J(`stageDropsHTML(${JSON.stringify(P.normal.byNode[35])},35,'normal')`), chips1 = J(`stageDropsHTML(${JSON.stringify(e25)},25,'elite')`);
-  ok(typeof chipsE === 'string' && (chipsE.match(/×2 · 33%/g) || []).length === 3 && chipsE.includes('ONE OF 3'), 'drop list on Elite 10-2: "ONE OF 3", each chip "×2 · 33%"');
-  ok(typeof chipsN === 'string' && (chipsN.match(/>40%</g) || []).length === 5 && chipsN.includes('2 RANDOM'), 'drop list on Normal 4-5: "2 RANDOM", each of the 5 chips "40%"');
+  const e3 = pick('elite', e => e.rewards.glyphFragments.length === 2);
+  const card = (await call('/api/campaign/stage?mode=elite&node=' + e3.node, null, g.T)).data;
+  ok(card && card.stage && card.stage.rewards.glyphFragments.length === 2, 'the Elite ' + e3.id + ' stage card lists its 2 kinds');
+  const map = (await call('/api/portals', null, g.T)).data, gb = map && map.fragmentSources && map.fragmentSources['gold-bastion'];
+  ok(Array.isArray(gb) && MODES.every(m => gb.some(s => s.mode === m)), 'the farm map names Gold Bastion\'s sources in all three portals: ' + JSON.stringify((gb || []).map(s => s.mode + ' ' + s.stageId)));
+  const chipsE = J(`stageDropsHTML(${JSON.stringify(card.stage)},${e3.node},'elite')`), chipsN = J(`stageDropsHTML(${JSON.stringify(n5)},${n5.node},'normal')`),
+    chips2 = J(`stageDropsHTML(${JSON.stringify(n2)},${n2.node},'normal')`), chips1 = J(`stageDropsHTML(${JSON.stringify(e1)},${e1.node},'elite')`);
+  ok(typeof chipsE === 'string' && (chipsE.match(/×2 · 50%/g) || []).length === 2 && chipsE.includes('ONE OF 2'), 'drop list on a 2-kind Elite stage: "ONE OF 2", each chip "×2 · 50%"');
+  ok(typeof chipsN === 'string' && (chipsN.match(/>40%</g) || []).length === 5 && chipsN.includes('2 RANDOM'), 'drop list on a 2-of-5 Normal stage: "2 RANDOM", each of the 5 chips "40%"');
+  ok(typeof chips2 === 'string' && !/%|RANDOM|ONE OF/.test(chips2) && (chips2.match(/×1/g) || []).length === 2, 'a 2-kind ordinary stage lists both "×1" (it pays both)');
   ok(typeof chips1 === 'string' && !/%/.test(chips1) && chips1.includes('×2'), 'a one-kind stage still reads "×2" with no chance');
   ok(J(`ewT('stage.split_frags',{m:3,p:stageFragPct(1/3)})`) === 'One of these 3 fragments drops, 33% chance each:', 'CHANCES box line: "' + J(`ewT('stage.split_frags',{m:3,p:stageFragPct(1/3)})`) + '"');
   ok(/_random\?t\('stage\.random_frags',\{n:2,m:_gf\.length\}\):_split\?t\('stage\.split_frags',\{m:_gf\.length,p:_pct\}\):t\('stage\.guaranteed'\)/.test(html)

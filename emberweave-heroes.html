@@ -26061,10 +26061,10 @@ function stageDropsHTML(stg,node,mode){
   // 27 Aug (Phil): as small as it can honestly be — ONE wrapping row of drop chips and the
   // stamina/run counter on the same line. The top of the sheet stays the stage name alone.
   const gf=(stg&&stg.rewards&&stg.rewards.glyphFragments)||[];
-  const randomized=!!(stg&&stg.rewards&&(stg.rewards.fragmentRolls|0)===2&&gf.length>=4);
+  const randomized=!!(stg&&stg.rewards&&(stg.rewards.fragmentRolls|0)===2&&gf.length>2), rolled2=!!(stg&&stg.rewards&&(stg.rewards.fragmentRolls|0)===2);   /* v1457: an ordinary stage may offer 2-5 kinds; with 2 it pays both */
   /* v1457 (Phil 26 Nov: "if 2 are on the same stage is 50% if 3 are on one is 33%"): a stage's drop is split evenly between its kinds -
      2 of the 4-5 on an ordinary stage (50% / 40% each), one of the 2-3 on any other stage (50% / 33% each); each chip shows its chance */
-  const split=!randomized&&gf.length>1, fragPct=randomized?2/gf.length:split?1/gf.length:1, pct=stageFragPct(fragPct);
+  const split=!randomized&&!rolled2&&gf.length>1, fragPct=randomized?2/gf.length:split?1/gf.length:1, pct=stageFragPct(fragPct);
   const vaelFirst=(mode==='normal'&&node===2&&portalCleared(mode)<2);
   const art=k=>(typeof g2artKey==='function')?g2artKey('fragment',k,13):'◆';
   const chip=(icon,name,qty,col)=>`<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
@@ -26184,7 +26184,7 @@ function stageDetailHTML(stg,node,mode){ mode=mode||PORTAL||'normal';   /* v1211
   const cueLine=(stg.checkpoint==='boss'||guardian)
     ?`<div style="font-size:10.5px;color:#ffb37a;margin-top:4px">${stg.checkpoint==='boss'?uiIcon('crown'):uiIcon('star-filled')} ${escapeHTML(cue||(guardian?t('stage.guardian_cue',{n:3}):t('stage.boss_cue')))}</div>`:'';
   const _gf=((stg.rewards&&stg.rewards.glyphFragments)||[]);
-  const _random=!!(stg.rewards&&(stg.rewards.fragmentRolls|0)===2&&_gf.length>=4), _split=!_random&&_gf.length>1;   /* v1457: the even split, as the server pays it (campaignGlyphDrops) */
+  const _random=!!(stg.rewards&&(stg.rewards.fragmentRolls|0)===2&&_gf.length>2), _split=!_random&&!(stg.rewards&&(stg.rewards.fragmentRolls|0)===2)&&_gf.length>1;   /* v1457: the even split, as the server pays it (campaignGlyphDrops); a 2-kind ordinary stage pays both */
   const _pct=stageFragPct(_random?2/_gf.length:_split?1/_gf.length:1);
   const _line=f=>`${(typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆'} <b style="color:#8fe3ff">${escapeHTML(langDesc(f.displayName))} ×${f.quantity}</b>${(_random||_split)?` <span style="color:#8b98a9">${_pct}</span>`:''}`;
   const frag=((_random||_split)?_gf:_gf.filter(f=>f.guaranteed!==false)).map(_line).join('<br>') || _gf.slice(0,1).map(_line).join('');

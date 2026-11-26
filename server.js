@@ -6054,18 +6054,19 @@ function portalCompile(){
       const ordinaryNormal=mode==='normal'&&!isHeroRewardStageSrv(e.node), expected=ordinaryNormal?4:1;
       if(!Array.isArray(gf)||gf.length!==expected) throw new Error(mode+' '+e.id+': expected '+expected+' glyph fragment possibilities');
       if(ordinaryNormal&&((e.rewards.fragmentRolls|0)!==2||new Set(gf.map(f=>f.key)).size!==4)) throw new Error(mode+' '+e.id+': ordinary stage must roll 2 from 4 distinct fragments');
-      /* v1457 (Phil 26 Nov 2026, lockdown answer 1: "add them to existing stages and add a chance they drop, cutting the other fragments chances,
-         if 2 are on the same stage is 50% if 3 are on one is 33%"). The 17 kinds that dropped nowhere are authored as rewards.addedFragments
-         (a field of its own, so the authored four / one above and every older build's boot check stay as they were) and join the stage's
-         list HERE: an ordinary stage then offers 5 kinds and still pays 2 (40% each); any other stage offers 2-3 kinds of one quantity and
-         pays that quantity as one of them (campaignGlyphDrops - an even split). Every route, sweep and screen reads the joined list. */
-      const added=e.rewards.addedFragments;
-      if(added!=null){
-        if(!Array.isArray(added)||!added.length||added.length>(ordinaryNormal?1:2)) throw new Error(mode+' '+e.id+': addedFragments must name 1-'+(ordinaryNormal?1:2)+' kinds');
-        const all=gf.concat(added), q0=gf[0].key.slice(0,gf[0].key.lastIndexOf(' '));
-        if(new Set(all.map(f=>f&&f.key)).size!==all.length) throw new Error(mode+' '+e.id+': fragment kinds must be distinct');
-        if(added.some(f=>!f||!f.key||f.quantity!==gf[0].quantity||f.key.slice(0,f.key.lastIndexOf(' '))!==q0)) throw new Error(mode+' '+e.id+': an added kind shares the stage quality and quantity');
-        gf=e.rewards.glyphFragments=all; delete e.rewards.addedFragments; }
+      /* v1457 (Phil 26 Nov 2026: "add them to existing stages and add a chance they drop, cutting the other fragments chances, if 2 are on the
+         same stage is 50% if 3 are on one is 33%", then "each glyph should have 1-2 stages per normal, elite, and veteran"). A stage's v1457 list
+         is rewards.fragmentKinds - a field of its own, so glyphFragments above (and every older build's boot check that reads it) stays as it
+         was - and it replaces the stage's list HERE: an ordinary Normal stage offers 2-5 kinds of its band and still pays 2 distinct a run (both
+         of 2, 67% of 3, 50% of 4, 40% of 5); any other stage offers 1-3 kinds of one quantity and pays that quantity as one of them
+         (campaignGlyphDrops - an even split, 50% / 33%). Every route, sweep and screen reads the replaced list. */
+      const fk=e.rewards.fragmentKinds;
+      if(fk!=null){
+        const lo=ordinaryNormal?2:1, hi=ordinaryNormal?5:3, q0=gf[0].key.slice(0,gf[0].key.lastIndexOf(' '));
+        if(!Array.isArray(fk)||fk.length<lo||fk.length>hi) throw new Error(mode+' '+e.id+': fragmentKinds must name '+lo+'-'+hi+' kinds');
+        if(new Set(fk.map(f=>f&&f.key)).size!==fk.length) throw new Error(mode+' '+e.id+': fragment kinds must be distinct');
+        if(fk.some(f=>!f||!f.key||f.quantity!==gf[0].quantity||f.key.slice(0,f.key.lastIndexOf(' '))!==q0)) throw new Error(mode+' '+e.id+': every kind shares the stage quality and quantity');
+        gf=e.rewards.glyphFragments=fk.map(f=>Object.assign({},f)); delete e.rewards.fragmentKinds; }
       if(mode==='elite'){
         const final=e.waves[e.waves.length-1]||[];
         if(gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Elite stage must pay two Glyph Fragments');
@@ -6082,15 +6083,26 @@ function portalCompile(){
     }
     PORTALS[mode]={ byNode, list:raw };
   }
-  /* v1457 (lockdown audit campaign-01 "Every fragment farmable"; Phil 26 Nov: "yes give orange normal stages too"): this line used to SAY
-     that every type had an ordinary Normal source, without checking it. It is a real check now: every fragment kind a glyph recipe names must
-     drop from an ORDINARY Normal stage (the unlimited 2-from-4/5 farm, not a Guardian or boss stage), or the server does not start. */
-  const need=fragKindsNeeded(), ordN=new Set(PORTALS.normal.list.filter(e=>!isHeroRewardStageSrv(e.node)).map(e=>e.id));
-  const missing=need.filter(k=>!(FRAG_SOURCES[glyphFragSlug(k)]||[]).some(s=>s.mode==='normal'&&ordN.has(s.stageId)));
-  if(missing.length) throw new Error('glyph fragments with no ordinary Normal source ('+missing.length+'): '+missing.join(', '));
+  /* v1457 (lockdown audit campaign-01 "Every fragment farmable"; Phil 26 Nov: "yes give orange normal stages too" / "each glyph should have
+     1-2 stages per normal, elite, and veteran"): this line used to SAY that every type had an ordinary Normal source, without checking it.
+     It is a real check now, and the server does not start unless: every fragment kind a glyph recipe names drops from an ORDINARY Normal stage
+     (the unlimited farm), and from 1-2 stages in each of Normal, Elite and Veteran - wherever that mode has a stage of the kind's quality
+     (Elite starts at Green and Veteran at Green +1, so their Grey / Green kinds have no band there). */
+  const r=fragSourceCheck(); if(r.problems.length) throw new Error('glyph fragment sources ('+r.problems.length+'): '+r.problems.slice(0,12).join('; '));
   console.log('Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
-    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; all '+need.length+' recipe fragment kinds drop from an ordinary Normal stage.');
+    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; all '+r.need+' recipe fragment kinds drop from an ordinary Normal stage and from 1-2 stages per portal'
+    +' ('+r.noBand.length+' kind-portal pairs have no stage of their quality: '+r.noBandSummary+').');
 }
+function fragSourceCheck(){ const need=fragKindsNeeded(), problems=[], noBand=[], qOf=k=>k.slice(0,k.lastIndexOf(' '));
+  const ordN=new Set(PORTALS.normal.list.filter(e=>!isHeroRewardStageSrv(e.node)).map(e=>e.id));
+  const bands={}; for(const m of PORTAL_MODES) bands[m]=new Set(PORTALS[m].list.map(e=>qOf(e.rewards.glyphFragments[0].key)));
+  for(const k of need){ const src=FRAG_SOURCES[glyphFragSlug(k)]||[];
+    if(!src.some(s=>s.mode==='normal'&&ordN.has(s.stageId))) problems.push(k+': no ordinary Normal stage');
+    for(const m of PORTAL_MODES){ const n=src.filter(s=>s.mode===m).length;
+      if(!bands[m].has(qOf(k))){ if(n) problems.push(k+': '+m+' has no '+qOf(k)+' band'); else noBand.push(m+' '+k); continue; }
+      if(n<1||n>2) problems.push(k+': '+n+' '+m+' stages'); } }
+  const sum={}; for(const x of noBand){ const [m,...r]=x.split(' '), key=m+' '+qOf(r.join(' ')); sum[key]=(sum[key]||0)+1; }
+  return { need:need.length, problems, noBand, noBandSummary:Object.entries(sum).map(([k,v])=>k+' x'+v).join(', ') }; }
 /* v1457: every fragment kind a glyph recipe names (the 218 '<Quality> <Family>' keys) */
 function fragKindsNeeded(){ const s=new Set(); if(!GLYPHS||!Array.isArray(GLYPHS.raw)) return [];
   for(const d of GLYPHS.raw) for(const g of (d.ing||[])) if(g.kind==='frag') s.add(g.key);
