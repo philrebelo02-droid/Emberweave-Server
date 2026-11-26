@@ -271,7 +271,7 @@
   .screen.hub{background:linear-gradient(170deg,#0f1524 0%,#1a1330 60%,#241826 100%);}
   /* POP-OUT: a menu screen shown as a centered modal over home (instead of a full-page swap) */
   .screen.popout{position:fixed;top:0;right:0;bottom:0;left:auto;transform:none;width:min(440px,calc(var(--ew-game-width,100vw) * 0.94));height:calc(var(--ew-game-height,100vh) * 1);max-height:calc(var(--ew-game-height,100vh) * 1);border-radius:16px 0 0 16px;border:1px solid #3a4a6e;border-right:none;box-shadow:-18px 0 55px rgba(0,0,0,.6);z-index:9000;padding:18px 12px 14px;overflow-y:auto;}
-  .screen.popout .hero-nav{display:none;}
+  .screen.popout:not(#heroDetail) .hero-nav{display:none;}   /* v1455 (lockdown audit 25 Nov, Heroes Panel "Prev / next arrows"): since v1403 the hero window is always a pop-out, so hiding the arrows in every pop-out hid them for good - the hero window keeps them */
   .screen.popout:not(#heroDetail) .backbtn{display:none;}   /* heroDetail keeps its ◀ Heroes back button */
   #heroDetail.popout .backbtn{top:10px;left:12px;z-index:4;}
   .screen.popout .popoutClose{position:absolute;top:10px;right:12px;background:#1a2233;border:1px solid #33405e;color:#c3ccd8;font-size:15px;font-weight:800;width:30px;height:30px;border-radius:8px;cursor:pointer;z-index:3;}
@@ -1635,6 +1635,11 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 #heroDetail:not(.popout):not(.tl-short) .hd-left{flex-basis:100%}
 #heroDetail.tl-short:not(.popout) > #heroPrev{left:auto;right:50px}
 #heroDetail.tl-short:not(.popout) .hd-left{top:5px}
+/* v1455: the short Talents layout in the pop-out - the arrows sit in the pinned top row, left of the X (the name plate keeps the middle) */
+#heroDetail.tl-short.popout > .hero-nav{top:10px;transform:none;width:32px;height:32px;font-size:20px;z-index:42}
+#heroDetail.tl-short.popout > .hero-nav:active{transform:scale(.93)}
+#heroDetail.tl-short.popout > #heroNext{right:54px}
+#heroDetail.tl-short.popout > #heroPrev{left:auto;right:92px}
 #heroDetail.tl-short #heroDetailBody{margin-top:0!important;max-width:none!important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 #heroDetail.tl-short .hd-wrap{flex:1 1 auto;min-height:0;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:4px}
 #heroDetail.tl-short .hd-left{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:41;display:flex;align-items:center;gap:8px;flex:none;min-width:0;max-width:calc(100% - 250px);height:36px;padding:0;border:0;background:none;white-space:nowrap;pointer-events:none}
