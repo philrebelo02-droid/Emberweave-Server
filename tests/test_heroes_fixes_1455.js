@@ -10,7 +10,7 @@ const root = path.join(__dirname, '..');
 const HTML = process.env.HF_HTML || path.join(root, 'emberweave-heroes.html');
 const html = fs.readFileSync(HTML, 'utf8');
 const SOFT = !!process.env.HF_SOFT; let pass = 0, fail = 0;
-const ok = (c, m) => { if (!c && SOFT) { fail++; console.log('  FAIL ' + m); return; } if (!c) process.exitCode = 1; assert(c, m); pass++; console.log('  ok   ' + m); };   // exitCode: the in-process server's uncaughtException handler would swallow a failed check
+const ok = (c, m) => { if (!c && SOFT) { fail++; console.log('  FAIL ' + m); return; } if (!c) { console.log('  FAIL ' + m); console.log('test_heroes_fixes_1455.js: FAILED after ' + pass + ' passed'); process.exit(1); } pass++; console.log('  ok   ' + m); };   // exit at once: the in-process server's uncaughtException handler would swallow a thrown check and keep the process alive
 const host = require(path.join(root, 'server', 'sim-host.js')).load(HTML);
 const R = s => vm.runInContext(s, host.ctx, { timeout: 60000 });
 const J = s => { try { const r = R('JSON.stringify(' + s + ')'); return r === undefined ? null : JSON.parse(r); } catch (e) { if (SOFT) return null; throw e; } };
