@@ -13554,8 +13554,8 @@ const DR_FLOOR=0.05;
 let _drPre=-1, _bnSrc=null;   /* v1443 _bnSrc: who dealt the blow damage() is about to take (dealDamage, a DoT tick) - read once there, for the bonus-stage boons that act on a kill */
 function drPreOf(t,amt,f){ let a=amt; const ir=t._talIr; if(ir){ t._talIr=null; a=Math.max(amt,ir[0]*ir[1]); } return f>0?a/f:a; }   /* the talents' incoming rows: _talIr = [the hit before them, the share not moved away] (talents-mech/_engine.js inc) */
 function damage(u,a,c,noEnergy,crit){ const _drRef=_drPre>=0?_drPre:a; _drPre=-1; const _bnK=_bnSrc; _bnSrc=null;
-  if(u&&u._enrTaken) a*=u._enrTaken;   /* v1458 Vault enrage: Kiln Plating / Shatterpoint */
   if(u&&(u._riseT||0)>0&&a>0) return;   /* v1452 BUG FIX (core rule 38): a summon is untouchable while it rises - no hit, ground pool or damage over time reaches it (rising summons took 3 to 6 hits a fight) */
+  if(u&&u._enrTaken) a*=u._enrTaken;   /* v1458 Vault enrage: Kiln Plating / Shatterpoint - after the rise guard: a factor > 0 never changes a>0 */
   if(HERO61.immune(u,battleTime))return;
   if(DEV.god && u.team==='ally'){ return; }   // dev god-mode: your team takes no damage
   if(u.drT>0)a*=u.drMul;                 // active damage-reduction cooldown (Shield Wall etc.)
@@ -14584,10 +14584,9 @@ function _dealDamageCore(src,tgt,amt,color,kind,silent){ if(tgt&&(tgt._riseT||0)
     else if(_edge==='Mage'&&kind!=='phys'&&!_isAuto){ tgt._hexUntil=battleTime+EDGE.hexDur; }   /* v1376 (Phil 12 Nov: "Change the movement speed to 20%"): Hex slows movement 20% (EDGE.hexMove) on its own timer, not the generic 45% slow */   /* through ccApply: CC_NERF / CC_DUR_MAX like every other control */
     else if(_edge==='Assassin'){ tgt._healCutUntil=battleTime+EDGE.healCutDur; }
   }catch(_e){} }
- const _hpLost=Math.max(0,_hpBefore-tgt.hp); const _hpLs=Math.max(0,Math.max(0,_hpBefore)-Math.max(0,tgt.hp));
+ const _hpLost=Math.max(0,_hpBefore-tgt.hp); const _hpLs=Math.max(0,Math.max(0,_hpBefore)-Math.max(0,tgt.hp));   /* v1452 BUG FIX (lockdown audit): lifesteal heals off the health actually removed - a killing blow counts only the health the target had left (1000 on a 300 HP enemy at 20% healed 200, now 60) */ if(_isAuto&&(tgt._digHealT||0)>0&&tgt.alive&&src&&src.team!==tgt.team) healUnit(tgt,tgt.maxHp*(tgt._digHealPct||0));   /* v1308 Dig In: 1% max HP per enemy basic attack that lands */ 
   if(src&&src._enrBleed&&_hpLost>0&&tgt.alive&&tgt.team!==src.team) pushDot(tgt,tgt.maxHp*src._enrBleed.pct,src._enrBleed.dur,1,'#b98bff',src,'true');   /* v1458 Vault enrage: Shatterpoint (a hit that lands) */
   if(tgt._enrThorns&&_hpLost>0&&src&&src.alive&&src!==tgt&&src.team!==tgt.team){ const _tr=Math.min(_hpLost*tgt._enrThorns.pct,(src.maxHp||0)*tgt._enrThorns.cap); if(_tr>0) damage(src,_tr,'#9ad07a',true); }   /* v1458 Vault enrage: Briar Crown */
-   /* v1452 BUG FIX (lockdown audit): lifesteal heals off the health actually removed - a killing blow counts only the health the target had left (1000 on a 300 HP enemy at 20% healed 200, now 60) */ if(_isAuto&&(tgt._digHealT||0)>0&&tgt.alive&&src&&src.team!==tgt.team) healUnit(tgt,tgt.maxHp*(tgt._digHealPct||0));   /* v1308 Dig In: 1% max HP per enemy basic attack that lands */ 
   /* v1367 Riposte - after this hit's HP loss is counted (safety sweep 11 Nov) */
   if(AFFINITIES_LIVE&&src&&tgt&&src.team!==tgt.team&&tgt.alive&&src.alive&&unitClass(src)==='Assassin'&&unitClass(tgt)==='Bruiser'&&(tgt._ripReady||0)<=battleTime&&!tgt.stunned){   /* v1367 Riposte */
     tgt._ripReady=battleTime+EDGE.riposteCd; try{ floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'RIPOSTE',t:.7,color:'#ffb347',vy:1,sz:12}); }catch(_e){}
@@ -16224,7 +16223,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
       dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); if(u._tal&&u._tal.on.chill) TalentFx.chill(u,tgt);   /* TALENT HOOK chill */ } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
-    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm; u._blizzLv=(u._castLv|0)||0; u._blizzR=o.radius||8*METER;   /* v1461: the tick hits the same circle that is drawn (bonus-scaled, capped to its road) */   /* v1452: the freeze rolls at the ult's level */   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
+    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm; u._blizzLv=(u._castLv|0)||0;   /* v1452: the freeze rolls at the ult's level */ u._blizzR=o.radius||8*METER;   /* v1461: the tick hits the same circle that is drawn (bonus-scaled, capped to its road) */   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
@@ -17180,7 +17179,7 @@ const FX2_DEF={
   vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=25',n:48,fw:204,fh:243,cols:6,rows:8,dur:2.0,upright:true,upSize:3,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   /* v1459 (Phil 26 Nov: "vulmar ult should be a circle of compressed gravity" / "rising up, them slamming down" / "good use that"): Hailuo MiniMax H3 take 1, slam retimed to 2.0 s = the lift; frame width = 2.2 x the 8 m radius so the shockwave reaches the circle's edge */
-  vulmar_gravity:{u:'/assets/anim/fx/vulmar_gravity.webp?v=1',n:30,fw:384,fh:280,cols:6,rows:5,dur:3.53,upright:true,upMetric:true,upExtent:0.91,upAnchor:[0.5,0.16],ro:1},
+  vulmar_gravity:{u:'/assets/anim/fx/vulmar_gravity.webp?v=2',n:30,fw:384,fh:280,cols:5,rows:6,dur:3.53,upright:true,upMetric:true,upExtent:0.91,upAnchor:[0.5,0.16],ro:1},
   ceraline_blue:{u:'/assets/anim/fx/ceraline_blue.webp?v=21',n:48,fw:299,fh:300,cols:6,rows:8,dur:2.0,disc:{cy:0.5,dh:0.95,dw:0.95}},
   ceraline_green:{u:'/assets/anim/fx/ceraline_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   ceraline_ult:{u:'/assets/anim/fx/ceraline_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.5,disc:{cy:0.498,dh:0.622,dw:0.919}},

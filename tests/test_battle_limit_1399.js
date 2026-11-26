@@ -26,13 +26,13 @@ ok(/if\(battleTime>=ED_FIGHT_LIMIT\) return endBattle\('draw'\);/.test(html), 'E
 ok(/if\(!ended && CUR\.mode!=='online' && CUR\.mode!=='emberdraft' && battleTime>=battleLimit\(\)\)\{ endBattle\(false\); return; \}/.test(html),
   'one time-out check for every mode but Emberdraft (its own) and live PvP rooms (none, as before)');
 ok(!/battleTime\s*(>=|>|<|<=)\s*(90|45)\b/.test(html), 'no fight in the page compares battleTime to a hard-coded 90 or 45');
-/* the Skyfall board maps the server's rounds onto 20 s .. SKY_FIGHT_CAP_S */
+/* the Skyfall board maps the server's rounds onto 10 s (v1458; was 20 s) .. SKY_FIGHT_CAP_S */
 { const grab=re=>{ const m=html.match(re); assert(m,'not found: '+re); return m[0]; };
   const c={Math}; vm.createContext(c);
   vm.runInContext([grab(/const SKY_FIGHT_CAP_S\s*=[^;]*;/),grab(/const SKY_FIGHT_MIN_S = [^;]*;/),grab(/const SKY_ROUNDS_LO = [^;]*;/),
     grab(/function skyFightMs\(e\)\{[\s\S]*?\n\}/)].join('\n'),c);
   ok(c.skyFightMs({rounds:300})===LIMIT*1000 && c.skyFightMs({rounds:9999})===LIMIT*1000, 'Skyfall: the longest lane fight is shown for 180 s');
-  ok(c.skyFightMs({rounds:2})===20000, 'Skyfall: the shortest still 20 s'); }
+  ok(c.skyFightMs({rounds:2})===10000, 'Skyfall: the shortest is 10 s (v1458, Phil 26 Nov: "10-180 seconds, some fights might be really quick")'); }
 
 /* 2. the engine the server runs - a fight nobody can win ends at 180 s in every headless mode */
 const host=require(path.join(root,'server/sim-host.js')).load(path.join(root,'emberweave-heroes.html'));
