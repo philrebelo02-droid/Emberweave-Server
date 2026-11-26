@@ -8924,7 +8924,8 @@ function eliteHeroFor(g){ if(!isHeroRewardStage(g)) return null;
 const FRAG_UNLOCK=10, ELITE_FRAG_MIN=2, ELITE_FRAG_MAX=4;
 function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
 // grant fragments; auto-unlock a locked hero once enough are gathered. returns a status message.
-function giveHeroFrag(key,amt){ if(!G.heroFrag)G.heroFrag={}; G.heroFrag[key]=(G.heroFrag[key]||0)+amt; return ''; }   // fragments only accumulate — summon is a MANUAL action (no auto-summon)
+function giveHeroFrag(key,amt){ if(!G.heroFrag)G.heroFrag={}; const b=G.heroFrag[key]||0; G.heroFrag[key]=b+Math.min(amt,Math.max(0,9999-b)); return ''; }   // fragments only accumulate — summon is a MANUAL action (no auto-summon)
+/* v1463 (lockdown audit 25 Nov, Heroes Panel "Fragment cap"): the page's mirror keeps the server's 9,999 cap (server.js creditFrags: the part over the cap is not credited), so a Wishing Pool, quest or offline grant never shows a hero above 9,999 */
 function canSummon(key){ const t=HERO_TYPES[key]; return !!(t && t.locked && !G.unlocked[key] && heroFrag(key)>=summonCost(key)); }
 let summonBusy=false;
 async function doSummon(key){ if(!canSummon(key)||summonBusy) return false;

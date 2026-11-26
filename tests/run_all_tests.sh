@@ -660,6 +660,8 @@ note "test_heroes_fixes_1455.js (v1455 lockdown audit Heroes Panel fixes: caster
 node tests/test_heroes_fixes_1455.js || FAILED=1
 note "test_heroes_fixes_1455_screen.js (v1455: prev / next hero arrows show and work in the hero window pop-out, phone / tablet / desktop and the short Talents layout - browser)"
 node tests/test_heroes_fixes_1455_screen.js || FAILED=1
+note "test_heroes_panel_1463.js (v1463 lockdown audit Heroes Panel: the page's fragment mirror keeps the 9,999 cap)"
+node tests/test_heroes_panel_1463.js || FAILED=1
 note "test_lockdown_campaign_1455.js (v1455 lockdown audit Campaign + Bonus fixes: the server run count redraws the CHANCES box, First clear! on the reward pop, gold feet ring on the firebreak pick, no presets on the Bonus 1-3 teaching run)"
 node tests/test_lockdown_campaign_1455.js || FAILED=1
 note "test_lockdown_guild_1455.js (v1455 lockdown audit Guild fixes: Skyfall result summary from the whole war, missed-lock line, reward claim capped + ledger row, unclaimed line says arena coins in 16 languages)"
