@@ -11532,7 +11532,13 @@ async function api(req,res,url){
     const RAID_SPELL_MUL={'wintercrag':36,'magmourn':12,'voraxis':50,'grommash':54,'leviath':16,'vharok':47,'nerissa':30,'barrowmaw':31,'asterion':38,'maelvara':14,'brukk':26,'nymira':28,'irix':23,'hourglass sentinel':50,'sylphice':120,'miregor':30,'sable vesper':10,'orryx':19,'thorneveil':58,'nameless admiral':38};
     /* v1453 (Phil 25 Nov: "yes fix those then ship it" - the tiers a right-level guild took 4-7 days on): a per-TIER factor on
        his spells, measured so the guild 15 levels above the boss clears that tier's health in about 3 days (1 = unchanged). */
-    const RAID_SPELL_TIER=[1,1,0.8,1,1,0.8,0.8,0.5,0.4,1,1,1,1,0.8,1,0.5,1,0.4,1,0.65,0.65,0.65,0.65,1,1,1,1,0.4,0.3,0.65,0.5,0.65,1,1,1,0.3,0.5,0.3,0.4,0.2];
+    /* v1456 (Phil 26 Nov: "yes all dots should scale with buffs"): a magic monster's damage-over-time now takes what its hit takes (the Mage /
+       magic-Tank +30% and its magic multiplier), so two bosses whose spells are mostly over-time moved off their v1453 measurement: Magmourn
+       (tiers 2, 22: +44% damage to the squad) and Nymira (tiers 12, 32: the squad, dying sooner, dealt 55% less). Their four tier factors are
+       re-measured back onto the v1453 numbers (4 squads x 2 seeds, scratchpad audit raid_dot1456.js): tier 2 1 -> 0.65 and tier 22 0.65 -> 0.35
+       (Magmourn's damage per assault 54,385 / 213,411), tier 12 1 -> 0.45 and tier 32 0.65 -> 0.35 (the squad's damage to Nymira 42,912 /
+       113,127). Per tier, not per boss: one boss-wide value could not land both of his tiers, and every other boss and tier is untouched. */
+    const RAID_SPELL_TIER=[1,0.65,0.8,1,1,0.8,0.8,0.5,0.4,1,1,0.45,1,0.8,1,0.5,1,0.4,1,0.65,0.65,0.35,0.65,1,1,1,1,0.4,0.3,0.65,0.5,0.35,1,1,1,0.3,0.5,0.3,0.4,0.2];
     const raidSpellMul=(key,tier)=>Math.round((RAID_SPELL_MUL[key]||36)*(RAID_SPELL_TIER[Math.max(1,tier|0)-1]||1)*100)/100;
     /* v1456 (Phil 25 Nov: "this is magic damage bosses only, attack damage [ones] should do higher attack damage and also his abilities scale off AD"):
        the 8 ATTACK-damage raid bosses get RAID_ATK_MUL on their attack damage (hits and abilities); the 12 MAGIC bosses keep the spell boost.
