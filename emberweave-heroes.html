@@ -15262,8 +15262,8 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         ccApply(u,prime,'stunned',0.4*pm);
         ccApply(u,prime,'slow',1.5*pm);
         pushDot(prime,_sD*0.18*pm*_dotF,3,1,'#c0392b',u);
-        enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm,'#ffa657'); });
-        dealDamage(u,prime,_sD*0.40*pm,'#ffe08a'); },type,prime);
+        enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm*_dotF*rm,'#ffa657'); });
+        dealDamage(u,prime,_sD*0.40*pm*_dotF*rm,'#ffe08a'); },type,prime);   /* v1456 (Phil 26 Nov: every hit takes the damage buff): the arsenal's splash and rider hits take what the volley's hits take beyond the stat - the damage buff (_dotF) and rage (rm); they scale off the passive (pm), not the skill level, as before */
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
       if(o.evadeEva){ const _add=Math.max(0,Math.min(o.evadeEva,0.75-(u.evaStat||0))); u.evaStat=(u.evaStat||0)+_add; u._miragEva=(u._miragEva||0)+_add;

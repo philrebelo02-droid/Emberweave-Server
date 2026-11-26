@@ -174,5 +174,12 @@ console.log('== 16. the buff is applied once: a spread rot / a contagion copy ca
   F[0].hp = 1; F[0].shield = 0; V.hit(v, F[0], 100, { kind: 'true' }); secs(0.6); const sp = F[1].dots.find(d => d.src === v);
   ok(sp && near(sp.dps, c.dot) && near(sp.dps, 100 * 0.6 * SM(10) * 1.5), 'spread ' + f(sp && sp.dps) + '/s = the source rot (x1.5 once, not x2.25)'); }
 
+console.log('== 17. Rivet\'s Full Arsenal: every hit takes the damage buff - the volley, the splash and the rider hit on the primary (the last two did not) ==');
+{ const ars = buff => { const P = lab('rivet', null, { foes: 3, big: true }), { v, F } = P; v.dmg = 100; v.apow = 100; v.skillLv = [10, 10, 10, 10]; if (buff) { v.dmgBuffT = 99; v.dmgBuffMul = buff; }
+    F.forEach((e, i) => { e.x = v.x + (6 + i * 0.5) * V.METER; e.y = v.y; }); R(`__who='rivet'; __hits.length=0;`); V.cast(v, 'ult', F[0]); return hits(); };
+  ok(R("HERO_TYPES.rivet.ability") === 'multiShot' && R("!!(KITS.rivet.purple&&KITS.rivet.purple.pass==='arsenal')"), 'Rivet: ult multiShot with the Full Arsenal passive');
+  const a = ars(), b = ars(1.5);
+  ok(a.length >= 5 && a.length === b.length && a.every((x, i) => near(b[i], 1.5 * x)), a.length + ' hits, every one x1.5 under +50% (' + a.map(f).join(', ') + ' -> ' + b.map(f).join(', ') + ')'); }
+
 console.log('test_umbris_scaling_1456.js: all ' + pass + ' checks passed');
 process.exit(0);
