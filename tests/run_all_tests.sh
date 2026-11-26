@@ -681,6 +681,66 @@ note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Ir
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"
 node tests/test_irix_final_boss_1430.js || FAILED=1
+note "test_screens_affinities_1450.js (lockdown 25 Nov, needs playwright: class + element icons on the Heroes card and the campaign/Vault enemy cards, Affinities button left of Glossary, the art chart, rule cards with their numbers on hover and tap, the chart in de/ja/th)"
+node tests/test_screens_affinities_1450.js || FAILED=1
+note "test_screens_talents_1450.js (lockdown 25 Nov, needs playwright: Talents board one size for every hero, tree colours, fixed header, tap selects / Learn learns, tooltips, red dot, refit on resize, Reset 1000 diamonds / free after a data correction / refused reset shows cost and balance)"
+node tests/test_screens_talents_1450.js || FAILED=1
+note "test_screens_glyphs_1450.js (lockdown 25 Nov, needs playwright: six-slot glyph board per hero on phone and desktop, recipe tree have/need + sources + an inner node, Quick Build, ASCEND shows the next bonus; known glyph bugs reported)"
+node tests/test_screens_glyphs_1450.js || FAILED=1
+note "test_screens_energy_1450.js (lockdown 25 Nov, needs playwright: portrait energy bars = real energy every few ticks of a real 1-1 fight, Vireo and Sylthaine joining mid-fight)"
+node tests/test_screens_energy_1450.js || FAILED=1
+note "test_screens_herolist_1454.js (lockdown 25 Nov, needs playwright: Heroes list dropdowns fit and sit above the cards, 5-a-row centred grid, tabs keep their place, phone short Talents layout hides when closed, star track colours from the screen pixels)"
+node tests/test_screens_herolist_1454.js || FAILED=1
+note "test_screens_heroboards_1454.js (lockdown 25 Nov, needs playwright: six-slot glyph board + current rank, painted talent board select / Learn / tooltip at 1280x720 and 844x390)"
+node tests/test_screens_heroboards_1454.js || FAILED=1
+note "test_screens_skillstage_1454.js (lockdown 25 Nov, needs playwright: skill preview stage pixels - one hero, the fight clip; spell art at the fight cast time, never touching the edge)"
+node tests/test_screens_skillstage_1454.js || FAILED=1
+note "test_screens_livepower_1454.js (lockdown 25 Nov, needs playwright: a skill upgrade changes the hero power on every screen without a reload, Skyfall included)"
+node tests/test_screens_livepower_1454.js || FAILED=1
+note "screen_lockdown_watchtower.js (lockdown 25 Nov round 2, needs playwright: Watch Tower painted title art and gold frame at every size)"
+node tests/screen_lockdown_watchtower.js || FAILED=1
+note "screen_lockdown_campaign.js (lockdown 25 Nov round 2, needs playwright: Campaign footer tabs, top bar, painted map on all 16 chapters, no-wide-art fallback, opens on your stage, Guardian and boss plates, 44 px tap boxes, stage panel buttons, Restart screenshot)"
+node tests/screen_lockdown_campaign.js || FAILED=1
+note "test_restart_teardown_1165.js (v1165, needs playwright: Pause > Restart Stage stops the old fight at once - no tick, unit, FX or sound of it while the new one loads)"
+node tests/test_restart_teardown_1165.js || FAILED=1
+note "screen_lockdown_bonus.js (lockdown 25 Nov round 2, needs playwright: Bonus stages labels + roof taps, plates never cover stages, phone place screen, small-scale battle bars/numbers/Blizzard, big ults as badges, fallen road burns)"
+node tests/screen_lockdown_bonus.js || FAILED=1
+note "screen_lockdown_guild.js (lockdown 25 Nov round 2, needs playwright: Guild Hall title art + one gold frame, raid team screen, live Skyfall board, fallen/burning towers, 16-guild bracket, banner picture import crop)"
+node tests/screen_lockdown_guild.js || FAILED=1
+note "screen_lockdown_citywall.js (lockdown 25 Nov round 2, needs playwright: City Wall gatehouse art beside the panels at every size, painted realm zoomed out, smooth zoom on a slow network, z0 detail tiles, a worked mine stays until empty)"
+node tests/screen_lockdown_citywall.js || FAILED=1
+note "screen_lockdown_island.js (lockdown 25 Nov round 2, needs playwright: Island of Trials title + gold-framed labels, Training Province art at 844x390 / 390x844, Drill 1 reward text, Swarm Spire hero select lobby)"
+node tests/screen_lockdown_island.js || FAILED=1
+note "screen_lockdown_island_emberdraft.js (lockdown 25 Nov round 2, needs playwright: Emberdraft title screen, players panel, drag to buy, drag a hero + second finger, hero info panel, your avatar, rank insignia, rival avatar)"
+node tests/screen_lockdown_island_emberdraft.js || FAILED=1
+note "screen_lockdown_forge.js (lockdown 25 Nov round 2, needs playwright: Forge painted hall, title art, Dust + Resonance banner at 5 sizes)"
+node tests/screen_lockdown_forge.js || FAILED=1
+note "screen_lockdown_academy.js (lockdown 25 Nov round 2, needs playwright: Academy hall, title, 8 labelled cards + centre, nothing overlapping; compact layout on short screens)"
+node tests/screen_lockdown_academy.js || FAILED=1
+note "screen_lockdown_pool.js (lockdown 25 Nov round 2, needs playwright: Wishing Pool stage fits, painted title, framed cards, floating orbs; cards, buttons, single and x10 results fit small screens)"
+node tests/screen_lockdown_pool.js || FAILED=1
+note "screen_lockdown_market.js (lockdown 25 Nov round 2, needs playwright: Market painted hall, title, subtitle, framed offers, wallet across the holder; cards inside frames at 6 sizes; painted store window tabs + cards + sideways scroll)"
+node tests/screen_lockdown_market.js || FAILED=1
+note "screen_lockdown_shady.js (lockdown 25 Nov round 2, needs playwright: Shady Market hall, title, subtitle, Base; Teleport card art; framed cards at 6 sizes)"
+node tests/screen_lockdown_shady.js || FAILED=1
+note "screen_lockdown_hut.js (lockdown 25 Nov round 2, needs playwright: Witches Hut: march / mine / attack pickers grey a 0% hero (HP 0%) and show Lv + HP % for a wounded one)"
+node tests/screen_lockdown_hut.js || FAILED=1
+note "screen_lockdown_egp.js (lockdown 25 Nov round 2, needs playwright: EGP: all 31 patron levels same card size, sticky header; gold phoenix on EGP, diamond phoenix on EDP)"
+node tests/screen_lockdown_egp.js || FAILED=1
+note "screen_lockdown_vault.js (lockdown 25 Nov round 2, needs playwright: Vault painted title in the title spot, enemy cards on hover / double tap with the floor numbers, one-screen landscape layout at every size, power on the Select Heroes cards)"
+node tests/screen_lockdown_vault.js || FAILED=1
+note "screen_lockdown_arena.js (lockdown 25 Nov round 2, needs playwright: Arena painted title beside Base, one-screen board at every size, Arena Shop painted title / framed items / price buttons / coin balance)"
+node tests/screen_lockdown_arena.js || FAILED=1
+note "screen_lockdown_well.js (lockdown 25 Nov round 2, needs playwright: Starless Well plaque title, painted back button, gold buttons; phone and Fold: every next square on screen and tappable, the title bar does nothing)"
+node tests/screen_lockdown_well.js || FAILED=1
+note "screen_lockdown_hud.js (lockdown 26 Nov round 4, needs playwright: Hub HUD - Commander group top-left, currency row left of MENU, 17 building tap boxes probed + tapped, chat bar snug bottom-left, MENU fits short phones, Heroes / hero pop-outs centred with a 4-side frame, Floating Isle fills the screen, hero loading cards (campaign + versus), Fold / tablet fit of town, map, pop-out and battle)"
+node tests/screen_lockdown_hud.js || FAILED=1
+note "screen_lockdown_account_hud.js (lockdown 26 Nov round 4, needs playwright: painted theme + header boxes on every menu screen, pop-out and building, framed hero/quest/mail/diamond/sign-in cards, quest/mail/sign-in state glows, building main screens + Temple stage, sign-in gate + Terms centred and gold-framed at 5 sizes, Settings Account Google/Facebook panels, Glossary all creatures face crop + card backgrounds)"
+node tests/screen_lockdown_account_hud.js || FAILED=1
+note "screen_lockdown_mail.js (lockdown 26 Nov round 4, needs playwright: Start Here tutorial - gold glow + halo + bobbing arrow in town and Campaign, MENU then entry glows, Vael-only hero glow, Base during the tutorial, reopens at top + scrolls to the step, framed list at 3 sizes; real 1-1 first clear - coach holds per hero, gold ring drag / re-prompt, Tap to continue, Vael ready at ~90% HP)"
+node tests/screen_lockdown_mail.js || FAILED=1
+note "screen_lockdown_sound.js (lockdown 26 Nov round 4, needs playwright: Sound - real-page fights on a silent real audio context: every sound peak within 33 ms of its blow/release/arrival frame and the right file per hero/spell at 1x, 2x and across a Pause mid-cast; all 10 battle songs loop twice on their seam within 50 ms of loopEnd with no heal; every sfx file within 2 LU of -16 LUFS-M + offset)"
+node tests/screen_lockdown_sound.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
