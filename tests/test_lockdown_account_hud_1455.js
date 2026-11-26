@@ -25,8 +25,8 @@ const { S, call, guest } = loadServer(module);
 
 (async () => {
   console.log('== 1. SECURITY: look-alike staff names are reserved ==');
-  { const BAD = ['Adm1n', 'D3v', 'DEV Team', 'DEV Phil', 'Ph1l', 'M0derator', 'Supp0rt', 'Systеm', 'Deleted p1ayer', 'Emberweave Team', 'GM', 'Owner', 'ADMIN', 'A d m i n', 'Ｍｏｄｅｒａｔｏｒ', '$upport', 'Moder@tor'];
-    const OKN = ['Marigold', 'Devon', 'Supporter', 'Ember Fox', 'Philip', 'Admiral', 'Owen', 'Model', 'dev1', 'Soul Eater', 'SoMalice', 'Gemma', 'Moddy'];
+  { const BAD = ['Adm1n', 'D3v', 'DEV Team', 'DEV Phil', 'Ph1l', 'M0derator', 'Supp0rt', 'Systеm', 'Deleted p1ayer', 'Emberweave Team', 'Official Support', 'Admin 1', 'The Dev Team', 'GM', 'Owner', 'ADMIN', 'A d m i n', 'Ｍｏｄｅｒａｔｏｒ', '$upport', 'Moder@tor'];
+    const OKN = ['Marigold', 'Devon', 'Supporter', 'Ember Fox', 'Philip', 'Admiral', 'Owen', 'Model', 'dev1', 'Soul Eater', 'SoMalice', 'Gemma', 'Moddy', 'Support Squad', 'Adminton', 'Philosopher', 'Dev Smith', 'Mod Squad', 'System Shock'];
     const bad = BAD.filter(n => !/reserved/.test(S.badNewName(n) || '')), good = OKN.filter(n => S.badNewName(n));
     ok(bad.length === 0, BAD.length + ' look-alike staff names refused (let through: ' + (bad.join(', ') || 'none') + ')');
     ok(good.length === 0, OKN.length + ' ordinary names still free, incl. "dev1" (the dev account) (refused: ' + (good.join(', ') || 'none') + ')');
@@ -40,6 +40,10 @@ const { S, call, guest } = loadServer(module);
     ok(rn.data && rn.data.ok !== true && /reserved/.test(String(rn.data.error)), 'rename to "M0derator": refused (' + JSON.stringify(rn.data && rn.data.error) + ')');
     const rn2 = tok ? await call('/api/account/rename', { name: 'Marigolden', requestId: 'lf-rn2' }, tok) : { data: {} };
     ok(rn2.data && rn2.data.ok === true, 'CONTROL: an ordinary rename works (' + JSON.stringify(rn2.data && (rn2.data.error || rn2.data.ok)) + ')'); }
+
+  console.log('== 1b. arena coins: capped + ledger row ==');
+  { ok(/me\.coins=Math\.min\(ECON_CAP\.arenaCoins,_acB\+reward\);/.test(SRC) && /ledTx\(me,'arena:coins',\{arenaCoins:_paid\},true\)/.test(SRC) && !/me\.coins\+=reward;/.test(SRC), 'the arena result adds coins up to the cap and writes an arena:coins ledger row (was me.coins+=reward)');
+    ok(/const reward=won\?Math\.max\(5,20\+Math\.floor\(\(5000-me\.rank\)\/50\)\):5;/.test(SRC), 'the amounts are unchanged (win 20 + (5000 - rank)/50, at least 5; loss 5)'); }
 
   console.log('== 2. undelivered whispers are answered ==');
   { const w = SRC.slice(SRC.indexOf("else if(m.t==='whisper'){"), SRC.indexOf("}catch(e){ console.error('ws frame refused"));

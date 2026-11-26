@@ -474,15 +474,18 @@ function breakOwnShield(u){ if(!u) return; u.shieldUntil=0; u.beginnerBroken=tru
 /* v1455 lockdown (account-hud-sound-servers "Look-alike names taken", SECURITY - impersonation): the reserved staff names were refused only
    when spelled exactly, so 'Adm1n', 'D3v', 'M0derator', 'Supp0rt', 'Systеm' (Cyrillic e), 'Ph1l', 'Deleted p1ayer' were accepted. They now go
    through the player look-alike fold (nameSkeleton: width, case, accents, Cyrillic / Greek look-alikes, l/1/| and 0) plus the common leet
-   digits (3 4 5 7 8 @ $); and a name with a staff word as one of its words ('DEV Team',
+   digits (3 4 5 7 8 @ $); and a name made only of staff words plus tags (team, official, the game name, separate digits: 'DEV Team',
    'Emberweave Team') is refused too. Sign-up, rename and guild names (all through badNewName). Existing accounts are not touched. */
 function reservedFold(s){ return nameSkeleton(String(s||'').normalize('NFKC').replace(/3/g,'e').replace(/[4@]/g,'a').replace(/[5$]/g,'s').replace(/7/g,'t').replace(/8/g,'b')); }
 const RESERVED_FOLD=new Set([...RESERVED_NAMES,'gm','owner','gamemaster','deleted','deleteduser'].map(reservedFold));
 const STAFF_WORDS_FOLD=new Set(['admin','administrator','dev','developer','devs','mod','mods','moderator','gm','staff','system','support','owner','gamemaster','emberweave','xanthyr'].map(reservedFold));
+const STAFF_TAGS_FOLD=new Set(['team','official','staff','the','emberweave','heroes','xanthyr','game','games'].map(reservedFold));
 function reservedLookAlike(n){ const s=String(n||'').normalize('NFKC');
   { const f=reservedFold(s); if(f&&RESERVED_FOLD.has(f)) return true; }   // a plain digit suffix stays allowed ('dev1' is the dev account and every test's)
-  for(const w of s.split(/[^\p{L}\p{N}@$]+/u).filter(Boolean)){ const f=reservedFold(w); if(f&&STAFF_WORDS_FOLD.has(f)) return true; }
-  return false; }
+  /* follow-up: a staff word only counts when everything else in the name is a tag ('DEV Team', 'Official Support', 'Admin 1') - 'Support Squad' stays free */
+  const words=s.split(/[^\p{L}\p{N}@$]+/u).filter(Boolean); let staff=0;
+  for(const w of words){ const f=reservedFold(w); if(STAFF_WORDS_FOLD.has(f)) staff++; else if(!(STAFF_TAGS_FOLD.has(f)||RESERVED_FOLD.has(f)||/^[0-9]+$/.test(w))) return false; }   // another reserved name beside a staff word counts too ('DEV Phil')
+  return staff>0; }
 function badNewName(n){ const s=String(n||'');
   if(/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff]/.test(s)) return 'That name uses hidden characters — please use normal letters.';
   if(/\p{M}{2,}/u.test(s)) return 'That name has too many accent marks stacked together.';
@@ -11296,7 +11299,7 @@ async function api(req,res,url){
     delete me._arenaPend;   // the fight is resolved (a failed save below puts it back with the rest of the account)
     /* v981 (3 Oct Arena audit #7): the result is saved before it is acknowledged. Both accounts (the rank swap writes the
        opponent, and may delete a bot) and the review stores are snapshotted; a failed save restores them and answers 503. */
-    const r=applyResult(me,opp,won); const reward=won?Math.max(5,20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;   /* v1088 (scan 9 #2): below rank 5750 a win paid less than a loss, below 6000 it took coins */
+    const r=applyResult(me,opp,won); const reward=won?Math.max(5,20+Math.floor((5000-me.rank)/50)):5; const _acB=Math.max(0,me.coins|0); me.coins=Math.min(ECON_CAP.arenaCoins,_acB+reward); { const _paid=me.coins-_acB; try{ ensureLedger(me); ledTx(me,'arena:coins',{arenaCoins:_paid},true); }catch(e){} }   /* v1455 lockdown follow-up: arena coins stop at ECON_CAP.arenaCoins and leave a ledger row, as the Skyfall claim (amounts unchanged) */   /* v1088 (scan 9 #2): below rank 5750 a win paid less than a loss, below 6000 it took coins */
     arenaAtt(ensureLedger(me)).used++;   // v582: the attempt is spent here — the fight resolved, win or lose
     let goldReward=0; if(won){ const led=ensureLedger(me);
       // per-NY-day cap on arena gold (EARN_RULES pattern): rank still moves after the cap, gold stops.
