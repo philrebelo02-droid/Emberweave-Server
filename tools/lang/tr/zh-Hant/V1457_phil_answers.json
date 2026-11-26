@@ -1,4 +1,8 @@
 {
  "stage.one_of": "{m}選1",
- "stage.split_frags": "以下{m}種碎片掉落其一,每種{p}機率:"
+ "stage.split_frags": "以下{m}種碎片掉落其一,每種{p}機率:",
+ "well.tent_pick": "選擇一名英雄,在本次探索中借用",
+ "well.loan_up": "已提升至{q}",
+ "well.loan_buff": "生命{hp},傷害{atk}",
+ "well.loan_dupe": "你的英雄的更強複製"
 }

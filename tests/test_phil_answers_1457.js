@@ -99,6 +99,72 @@ section('2. the Arena gives no hero XP', async () => {
   ok(JSON.stringify(before) === JSON.stringify(after) && !('heroXp' in (ar || {})), 'and its heroes gain no XP (' + after.join(', ') + ')');
 });
 
+section('3. the Starless Well tent: 3 buffed loans, often a quality up, a hero you own allowed', async () => {
+  const WL = require(path.join(root, 'server', 'starless-well.js'));
+  ok(WL.TENT_OPTIONS === 3 && WL.LOAN_BUFF.hp === 0.30 && WL.LOAN_BUFF.atk === 0.20 && WL.LOAN_UP_BUFF.hp === 0.45 && WL.LOAN_UP_BUFF.atk === 0.30 && WL.LOAN_UP_CHANCE === 0.6,
+    'numbers: 3 options; every loan +30% health / +20% damage; an upgraded one (60% per option, at least one per tent) +45% / +30% and one glyph quality step');
+  // the map layout never moves: every square the v1455 map had is where it was (old module from git)
+  { const Module = require('module'), cp = require('child_process');
+    let oldSrc = ''; try { oldSrc = cp.execFileSync('git', ['show', '780cbe0ca:server/starless-well.js'], { cwd: root, encoding: 'utf8', maxBuffer: 16 << 20 }); } catch (e) {}
+    if (oldSrc) { const m = new Module(path.join(root, 'server', 'starless-well-v1455.js'), module); m.filename = path.join(root, 'server', 'starless-well-v1455.js'); m.paths = Module._nodeModulePaths(path.join(root, 'server')); m._compile(oldSrc, m.filename);
+      const keys = Object.keys(S.SIM.HERO_BASE).sort(); let same = true, tents = 0, three = 0, ups = 0, opts = 0, noneUp = 0;
+      for (let sd = 1; sd <= 400; sd++) for (const [mp, pth] of [[1, null], [2, 'normal'], [3, 'hard']]) {
+        const a = m.exports.genMap(sd * 7919, mp, pth, keys), b = WL.genMap(sd * 7919, mp, pth, keys);
+        for (let c = 0; c < 7; c++) for (let r = 0; r < 3; r++) { const x = a[c][r], y = b[c][r];
+          if (!x !== !y || (x && (x.type !== y.type || JSON.stringify(x.foes || null) !== JSON.stringify(y.foes || null) || (x.type === 'tent' && x.hero !== y.hero)))) same = false;
+          if (y && y.type === 'tent') { tents++; if (y.heroes.length === 3 && new Set(y.heroes).size === 3 && y.heroes[0] === y.hero) three++; opts += y.up.length; ups += y.up.filter(Boolean).length; if (!y.up.some(Boolean)) noneUp++; } } }
+      ok(same, 'every square of 1,200 maps is where the v1455 map put it (fights, foes, chests, springs, the tent\'s first hero)');
+      ok(tents > 100 && three === tents, tents + ' tents, every one offers 3 different heroes (the first is the old pick)');
+      ok(noneUp === 0 && ups / opts > 0.62 && ups / opts < 0.75, 'every tent has an upgraded loan; ' + (100 * ups / opts).toFixed(0) + '% of options are upgraded ("often")'); }
+    else ok(false, 'git show 780cbe0ca:server/starless-well.js'); }
+  // a real run on the in-process server
+  const lv = 80, TEAM = ['vael', 'sylthaine', 'vireo', 'vex', 'gruel'];
+  let g = null, tent = null, tc = -1, tr = -1, st = null;
+  for (let tries = 0; tries < 12 && !tent; tries++) {
+    g = await guest('well' + tries); const u = S.DB.users[g.id]; u.led.px = S.D_TROOP_CUM[lv - 1] + 10;
+    for (const k of TEAM) { u.led.unlocked[k] = true; u.led.hero[k] = { xp: 9000000, stars: 4, pips: 0 }; }
+    st = (await call('/api/well/state', null, g.T)).data;
+    for (const c of [2, 4]) for (let r = 0; r < 3 && !tent; r++) { const s = st && st.grid && st.grid[c][r]; if (s && s.type === 'tent') { tent = s; tc = c; tr = r; } } }
+  ok(!!tent && st.playerLevel >= 61, 'a level-' + (st && st.playerLevel) + ' player with a tent on map 1 (column ' + tc + ')');
+  if (!tent) return;
+  ok(Array.isArray(tent.options) && tent.options.length === 3 && tent.options.every(o => o.key && o.quality >= 0 && o.power > 0 && o.level === st.playerLevel), 'the tent shows 3 loans, each with its quality, level and power: ' + JSON.stringify(tent.options.map(o => [o.key, o.quality, o.up, o.power])));
+  // make the first option a hero the player owns: the duplicate is allowed and is the stronger copy
+  const own = tent.options[0].key, u = S.DB.users[g.id]; u.led.unlocked[own] = true; u.led.hero[own] = { xp: 9000000, stars: 3, pips: 0 };
+  st = (await call('/api/well/state', null, g.T)).data; const o0 = st.grid[tc][tr].options[0];
+  ok(o0.owned === true && o0.power > o0.ownPower && o0.ownPower > 0, 'an owned hero on offer is the stronger copy: ' + o0.power + ' power against your ' + o0.ownPower);
+  u.led.well2.run.pos = { col: tc - 1, row: tr }; u.led.well2.run.started = true;
+  const bad = (await call('/api/well/move', { col: tc, row: tr, hero: 'not-a-hero', requestId: 'p1457-w0' }, g.T)).data;
+  ok(bad && bad.ok === false && /Unknown hero/.test(bad.error) && u.led.well2.run.pos.col === tc - 1, 'a hero that is not in this tent is refused and nothing moves');
+  const mv = (await call('/api/well/move', { col: tc, row: tr, hero: own, requestId: 'p1457-w1' }, g.T)).data;
+  ok(mv && mv.ok && mv.got && mv.got.loan === own && mv.loans.indexOf(own) >= 0 && mv.loanInfo && mv.loanInfo[own] && mv.loanInfo[own].power === o0.power,
+    'borrowing your own ' + own + ' works (was: nothing, while the card said it joined) and the view carries its loan card');
+  ok(!!mv.got.up === !!st.grid[tc][tr].up[0] && (!!u.led.well2.run.loanUp[own]) === !!st.grid[tc][tr].up[0], 'its upgrade mark is the tent\'s (' + !!mv.got.up + ')');
+  // the fight snapshot is the buffed loan
+  const fc = tc + 1, fr = [0, 1, 2].find(r => st.grid[fc][r] && Math.abs(r - tr) <= 1);
+  const ids = [own, ...TEAM.filter(k => k !== own)].slice(0, 5);
+  const sa = (await call('/api/well/start', { col: fc, row: fr, heroIds: ids, requestId: 'p1457-w2' }, g.T)).data;
+  ok(sa && sa.ok && Array.isArray(sa.snaps) && sa.snaps.length === 5, 'the next fight starts with the loan in the squad (' + (sa && (sa.error || 'ok')) + ')');
+  if (!(sa && sa.ok)) return;
+  const ls = sa.snaps.find(s => s.key === own), mine = host.snapFromSpecs([S.campaignHeroSpec(u, own)])[0];
+  const lsp = WL.loanSpec({ me: u, led: u.led, SIM: S.SIM, campaignHeroSpec: S.campaignHeroSpec, playerLevel: () => st.playerLevel }, own, !!mv.got.up), plain = host.snapFromSpecs([lsp])[0];
+  const B = mv.got.up ? WL.LOAN_UP_BUFF : WL.LOAN_BUFF;
+  ok(Math.abs(ls.maxHp / plain.maxHp - (1 + B.hp)) < 0.01 && Math.abs(ls.dmg / plain.dmg - (1 + B.atk)) < 0.01, 'the fight snapshot is the loan x' + (1 + B.hp) + ' health, x' + (1 + B.atk) + ' damage (' + ls.maxHp + ' / ' + plain.maxHp + ')');
+  ok(ls.maxHp >= mine.maxHp * (1 + B.hp) - 1 && ls.dmg >= mine.dmg * (1 + B.atk) - 1 && ls.level >= mine.level, 'and clearly above your own copy: health ' + ls.maxHp + ' vs ' + mine.maxHp + ', damage ' + ls.dmg + ' vs ' + mine.dmg);
+  const other = sa.snaps.find(s => s.key !== own), otherMine = host.snapFromSpecs([S.campaignHeroSpec(u, other.key)])[0];
+  ok(other.maxHp === otherMine.maxHp, 'the rest of the squad is unbuffed (' + other.key + ' ' + other.maxHp + ')');
+  // an upgraded loan is one glyph quality step above
+  { const ctx = { me: u, led: u.led, SIM: S.SIM, campaignHeroSpec: S.campaignHeroSpec, playerLevel: () => st.playerLevel };
+    const a = WL.loanSpec(ctx, 'mirelle', false), b = WL.loanSpec(ctx, 'mirelle', true);
+    ok(b.glyphRank === Math.min(16, a.glyphRank + 1) && b.level === a.level, 'an upgraded loan: glyph quality ' + a.glyphRank + ' -> ' + b.glyphRank + ' (one step)'); }
+  ok(!u.led.hero[own].loan && u.led.hero[own].stars === 3, 'your own ' + own + ' is untouched (3 stars, no loan mark)');
+  // the page: the tent shows the 3 loans with a Borrow tap each
+  ok(/if\(s\.type==='tent'&&Array\.isArray\(s\.options\)&&s\.options\.length\)\{/.test(html) && /card\.querySelectorAll\('\[data-loan\]'\)\.forEach\(b=>\{ b\.onclick=\(\)=>\{ card\.remove\(\); go\(b\.dataset\.loan\); \}; \}\);/.test(html),
+    'the page\'s tent card lists the options and borrows the one tapped');
+  ok(J(`ewT('well.loan_buff',{hp:wellPct(0.3),atk:wellPct(0.2)})`) === '+30% health, +20% damage' && J(`ewT('well.loan_up',{q:'Purple'})`) === 'Upgraded to Purple', 'texts: "+30% health, +20% damage", "Upgraded to Purple"');
+  ok(J(`(function(){ WELL.state={loans:['${own}'],heroes:{}}; CUR={mode:'well'}; G.unlocked=G.unlocked||{}; G.unlocked['${own}']=true; const t=wellHeroTag('${own}'); return !!(t&&/${'Loan'}/.test(t.html)); })()`) === true, 'the squad list tags your own borrowed hero "Loan"');
+  ok(J(`wellListPower('${own}',{loanInfo:{'${own}':{power:12345}}})`) === 12345, 'the Heroes window shows a loan\'s own power');
+});
+
 (async () => {
   for (const [n, f] of SECTIONS) { console.log('== ' + n + ' =='); await f(); }
 })().then(() => { console.log((SOFT ? 'SOFT ' : '') + 'test_phil_answers_1457.js: ' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0); },

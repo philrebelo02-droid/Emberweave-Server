@@ -40,7 +40,7 @@ console.log('== 3. Starless Well: a tent loan is in the Heroes window before it 
 { const s = html.slice(html.indexOf('function renderWellHeroList('), html.indexOf('function renderHeroList('));
   ok(/const keys=\[\.\.\.new Set\(\[\.\.\.owned,\.\.\.Object\.keys\(run\),\.\.\.\(Array\.isArray\(S\.loans\)\?S\.loans:\[\]\)\]\)\]/.test(s), 'the list is owned heroes + heroes that fought + the run\'s loans');
   const srv = fs.readFileSync(path.join(SRVDIR, 'starless-well.js'), 'utf8');
-  ok(/R\.loans\.push\(sq\.hero\)/.test(srv), 'the server keeps the loan in run.loans (what the view sends)'); }
+  ok(/R\.loans\.push\((sq\.hero|tentPick)\)/.test(srv), 'the server keeps the loan in run.loans (what the view sends)'); }   /* v1457: the tent's chosen hero (tests/test_phil_answers_1457.js) */
 
 console.log('== 4. Arena result line: arena coins + glyph fragments ==');
 { ok(/const _ac=\(d&&\(d\.reward\|0\)>0\)\?` · \$\{uiIcon\('res-arena-coins'\)\} \+\$\{d\.reward\|0\}`:'';/.test(html), 'the arena coins the server paid (d.reward)');

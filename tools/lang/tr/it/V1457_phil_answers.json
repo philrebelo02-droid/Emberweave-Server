@@ -1,4 +1,8 @@
 {
  "stage.one_of": "UNO SU {m}",
- "stage.split_frags": "Cade uno di questi {m} frammenti, {p} di probabilità ciascuno:"
+ "stage.split_frags": "Cade uno di questi {m} frammenti, {p} di probabilità ciascuno:",
+ "well.tent_pick": "Scegli un eroe da prendere in prestito per questa spedizione",
+ "well.loan_up": "Potenziato a {q}",
+ "well.loan_buff": "{hp} salute, {atk} danni",
+ "well.loan_dupe": "una copia più forte del tuo"
 }

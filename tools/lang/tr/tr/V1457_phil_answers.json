@@ -1,4 +1,8 @@
 {
  "stage.one_of": "{m} İÇİNDEN BİRİ",
- "stage.split_frags": "Bu {m} parçadan biri düşer, her biri {p} şans:"
+ "stage.split_frags": "Bu {m} parçadan biri düşer, her biri {p} şans:",
+ "well.tent_pick": "Bu koşu için ödünç alacağın bir kahraman seç",
+ "well.loan_up": "{q} seviyesine yükseltildi",
+ "well.loan_buff": "{hp} can, {atk} hasar",
+ "well.loan_dupe": "seninkinin daha güçlü bir kopyası"
 }

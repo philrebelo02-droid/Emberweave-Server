@@ -1,4 +1,8 @@
 {
  "stage.one_of": "{m}개 중 1개",
- "stage.split_frags": "이 {m}개 조각 중 하나가 드롭됩니다 (각 {p}):"
+ "stage.split_frags": "이 {m}개 조각 중 하나가 드롭됩니다 (각 {p}):",
+ "well.tent_pick": "이번 탐험에 빌릴 영웅을 고르세요",
+ "well.loan_up": "{q}(으)로 강화됨",
+ "well.loan_buff": "체력 {hp}, 피해 {atk}",
+ "well.loan_dupe": "내 영웅의 더 강한 사본"
 }

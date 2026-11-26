@@ -9709,7 +9709,7 @@ async function api(req,res,url){
     const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await WELL2.handle(p, req.method, { me, led, heroUsageNote, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
-      feedbackCheatSignal, feedbackDesyncSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev,
+      feedbackCheatSignal, feedbackDesyncSignal, fightOtherBuild, OTHER_BUILD_STATS, D_TROOP_INC, SIM, isDev, heroCardPower,   /* v1457: a tent loan's shown power */
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
     if(out&&out.storageFailed) return send(res, 503, out);   /* 3 Oct audit: durable idem refused a failed save */
     if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
