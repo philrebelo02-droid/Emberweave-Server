@@ -6007,12 +6007,14 @@ async function playCreditSaved(){
   if(typeof _inflight!=='undefined')for(const b of _inflight)waits.add(b.promise);
   return (await Promise.all(waits)).every(ok=>ok===true);
 }
-/* v1457 (Phil 26 Nov 2026: "no skip button allowed for guild raid"): the shortest time a guild raid fight of fightSec seconds can be watched -
-   at the fastest battle speed the page offers (x2), 80% of it, less 3 s for clocks and the request. A result sooner than that was skipped. */
+/* v1457 (Phil 26 Nov 2026: "no skip button allowed for guild raid" / "guild raids should have x2 button for vips"): the shortest time a guild
+   raid fight of fightSec seconds can be watched - at the fastest speed THIS player's page offers in a raid (x2 for a VIP, EGP 1+ or prestiged,
+   read from the server's own ledger; x1 for everyone else), 80% of it, less 3 s for clocks and the request. A result sooner was skipped. */
 const RAID_MAX_SPEED=2;
-function raidMinWatchMs(fightSec){ const s=Number(fightSec), e=process.env.RAID_MIN_WATCH_MUL, mul=(e!=null&&e!==''&&Number.isFinite(+e))?Math.max(0,+e):1;   /* RAID_MIN_WATCH_MUL=0: tests that resolve a raid at machine speed */
-  return (Number.isFinite(s)&&s>0)?Math.max(0, Math.round((s*1000/RAID_MAX_SPEED*0.8-3000)*mul)):0; }
-function raidSkipped(fightSec, elapsedMs){ return Number(elapsedMs) < raidMinWatchMs(fightSec); }
+function raidVip(u){ try{ const L=patronLevels(ensureLedger(u)); return !!(L.prestiged||L.egp>=1); }catch(e){ return false; } }
+function raidMinWatchMs(fightSec, vip){ const s=Number(fightSec), e=process.env.RAID_MIN_WATCH_MUL, mul=(e!=null&&e!==''&&Number.isFinite(+e))?Math.max(0,+e):1;   /* RAID_MIN_WATCH_MUL=0: tests that resolve a raid at machine speed */
+  return (Number.isFinite(s)&&s>0)?Math.max(0, Math.round((s*1000/(vip?RAID_MAX_SPEED:1)*0.8-3000)*mul)):0; }
+function raidSkipped(fightSec, elapsedMs, vip){ return Number(elapsedMs) < raidMinWatchMs(fightSec, vip); }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"): 16 chapters x 10 fixed stages
 /* Glyph Fragment Farm Map. Ordinary Normal stages each advertise four fixed possibilities and pay
@@ -12016,8 +12018,9 @@ async function api(req,res,url){
       /* v1457 (Phil 26 Nov 2026, lockdown answer 5: "no skip button allowed for guild raid"). The page has no Skip in a raid; this is the server
          half: a result that came back sooner than the replayed fight can be WATCHED (its length at the fastest speed the page offers, with
          slack for clocks) was skipped or fast-forwarded, and is refused. Nothing moves and the attempt stays open, as for an unchecked fight. */
-      if(raidSkipped(fightSec, Date.now()-(a.startedAt||0))){
-        try{ devReport(me,'raid-skipped',0,'guild raid result after '+(Date.now()-(a.startedAt||0))+' ms for a '+(Math.round(fightSec*10)/10)+' s fight (shortest watch '+raidMinWatchMs(fightSec)+' ms), tier '+(a.tier|0)+' - refused, attempt kept'); }catch(e){}
+      const _vip=raidVip(me);
+      if(raidSkipped(fightSec, Date.now()-(a.startedAt||0), _vip)){
+        try{ devReport(me,'raid-skipped',0,'guild raid result after '+(Date.now()-(a.startedAt||0))+' ms for a '+(Math.round(fightSec*10)/10)+' s fight (shortest watch '+raidMinWatchMs(fightSec,_vip)+' ms'+(_vip?', VIP x2':', x1')+'), tier '+(a.tier|0)+' - refused, attempt kept'); }catch(e){}
         return send(res,200,{ok:false, unverified:true, skipped:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)});
       }
       const out=durableCommit(me,rkey,(du,staged)=>{

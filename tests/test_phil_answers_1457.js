@@ -6,6 +6,8 @@
 //     step up; a hero you own can be borrowed as the stronger copy.
 //  4. City Wall tap mode (citywall-watchtower "Tap mode tint"): allowed land tinted green, other regions red (blueprint 04).
 //  5. Guild raid: no Skip / fast-forward in the client, and the server refuses a raid result that came back faster than the fight can be watched.
+//     x2 speed in a guild raid is for VIPs only (EGP 1+); the server's floor is the x2 watch for a VIP, the x1 watch for everyone else.
+//  1b. The 17 kinds are spent by the Ironwall guard boards; 1 also: the 4 Orange kinds drop on chapter 16 ordinary Normal stages.
 // Server in-process (temp DB, tests/lockdown-1455-lib.js) + the page through server/sim-host.js. No browser.
 // CONTROL: LF_SERVER=<v1455 server.js> LF_HTML=<v1455 page> LF_SOFT=1 lists the checks the old code fails. Exit 0 = all passed.
 'use strict';
@@ -220,12 +222,21 @@ section('5. guild raid: no Skip on the page, a skipped result refused by the ser
   ok(J(`(function(){ const c=CUR; CUR={mode:'graid'}; const r=isAutoBattle(); CUR=c; return r; })()`) === false, 'a guild raid is not an auto fight, so Skip is never offered');
   ok(/if\(kb\) kb\.style\.display=\(forced && !_isReplay && !\(CUR&&CUR\.mode==='emberdraft'\) && !\(CUR&&CUR\.mode==='graid'\)/.test(html), 'the Skip button is hidden in a guild raid (by name, too)');
   ok(/document\.getElementById\('skipBtn'\)\.onclick=\(\)=>\{ if\([^{]*\(CUR&&CUR\.mode==='graid'\)[^{]*\)return;/.test(html), 'and a Skip tap does nothing there');
-  ok(J(`spdChoices()`) !== null && !/x3|gameSpeed=3/.test(html.slice(html.indexOf('function spdChoices'), html.indexOf('function spdChoices') + 200)), 'the fastest speed the page offers is x2 (the server\'s RAID_MAX_SPEED)');
-  ok(S.RAID_MAX_SPEED === 2 && S.raidMinWatchMs(60) === 21000 && S.raidMinWatchMs(4) === 0 && S.raidMinWatchMs(NaN) === 0 && S.raidSkipped(60, 20000) === true && S.raidSkipped(60, 31000) === false,
-    'the shortest watch of a 60 s raid fight is 21 s (x2 speed, 80%, less 3 s); a 4 s fight has no floor');
+  // x2 in a guild raid is for VIPs only (Phil 26 Nov: "guild raids should have x2 button for vips"); other modes keep their rule
+  { const sp = (mode, vip, cleared) => J(`(function(){ const c=CUR, pn=patNow, cc=G.campaignCleared; CUR={mode:'${mode}'}; patNow=()=>(${vip}?{egp:1}:{egp:0}); G.campaignCleared=${cleared};
+      const r=spdChoices(); CUR=c; patNow=pn; G.campaignCleared=cc; return r; })()`);
+    ok(JSON.stringify(sp('graid', true, 50)) === '[1,2]' && JSON.stringify(sp('graid', false, 50)) === '[1]', 'guild raid: a VIP can pick x2, a non-VIP cannot - not even with stage 1-3 cleared');
+    ok(JSON.stringify(sp('campaign', false, 50)) === '[1,2]' && JSON.stringify(sp('campaign', false, 1)) === '[1]' && JSON.stringify(sp('campaign', true, 1)) === '[1,2]' && JSON.stringify(sp('arena', false, 50)) === '[1,2]',
+      'other modes unchanged: x2 after 1-3 or at EGP 1');
+    ok(/bannerMsg\(\(CUR&&CUR\.mode==='graid'\)\?ewT\('battle\.x2_vip_raid'\)/.test(html) && J(`ewT('battle.x2_vip_raid')`) === 'x2 speed in guild raids is for VIPs (EGP 1 and up).', 'a non-VIP\'s locked x2 tap in a raid says: "' + J(`ewT('battle.x2_vip_raid')`) + '"'); }
+  ok(S.RAID_MAX_SPEED === 2 && S.raidMinWatchMs(60, true) === 21000 && S.raidMinWatchMs(60, false) === 45000 && S.raidMinWatchMs(3, false) === 0 && S.raidMinWatchMs(NaN, true) === 0
+    && S.raidSkipped(60, 20000, true) === true && S.raidSkipped(60, 31000, true) === false && S.raidSkipped(60, 31000, false) === true && S.raidSkipped(60, 46000, false) === false,
+    'shortest watch of a 60 s raid fight: 21 s for a VIP (x2), 45 s for everyone else (x1) - 80%, less 3 s; a 3 s fight has no floor');
   // the real route
   const g = await guest('raid'), u = S.DB.users[g.id], SQUAD = ['vael', 'sylthaine', 'vireo', 'vex', 'gruel'];
   u.led.px = S.D_TROOP_CUM[39] + 10; for (const k of SQUAD) { u.led.unlocked[k] = true; u.led.hero[k] = { xp: 900000, stars: 3, pips: 0 }; }
+  const setVip = on => { u.led.patron = { v: 1, base: on ? S.PATRON.egp[1] : 0, prestiged: false, edpBase: 0 }; };
+  setVip(false); ok(S.raidVip(u) === false, 'fixture: a non-VIP (server ledger EGP 0)');
   const gc = (await call('/api/guild/create', { name: 'Raid Watch ' + Date.now().toString(36) }, g.T)).data;
   ok(gc && !gc.error, 'fixture: a guild (' + JSON.stringify(gc && gc.error || 'ok') + ')');
   const AUTO = [[1, 'auto', -1, 1, null, null]];
@@ -234,14 +245,24 @@ section('5. guild raid: no Skip on the page, a skipped result refused by the ser
   if (!(s1 && s1.ok)) return;
   const hp0 = s1.boss && s1.boss.hp;
   const r1 = (await call('/api/guild/raid/resolve', { attemptId: s1.attemptId, inputLog: AUTO, requestId: 'p1457-rr1' }, g.T)).data;
-  const gg = Object.values(S.DB.guilds).find(x => x && x.members && (x.members[g.id] || (Array.isArray(x.members) && x.members.some(m => (m.id || m) === g.id)))) || Object.values(S.DB.guilds).find(x => x && x.raid && x.raid.att && x.raid.att[g.id]);
+  const gg = Object.values(S.DB.guilds).find(x => x && x.raid && x.raid.att && x.raid.att[g.id]);
   ok(r1 && r1.ok === false && r1.skipped === true && gg && gg.raid.att[g.id] && gg.raid.att[g.id].id === s1.attemptId && gg.raid.hp === hp0,
     'a result sent the moment the fight began is refused - no damage booked, the attempt kept (' + JSON.stringify({ ok: r1 && r1.ok, skipped: r1 && r1.skipped, err: r1 && r1.error }) + ')');
   if (!(gg && gg.raid.att[g.id])) return;
-  gg.raid.att[g.id].startedAt -= 120000;   // two minutes later: the fight could have been watched
+  gg.raid.att[g.id].startedAt = Date.now() - 30000;   // 30 s: an x2 watch of a ~60 s fight, too fast for x1
   const r2 = (await call('/api/guild/raid/resolve', { attemptId: s1.attemptId, inputLog: AUTO, requestId: 'p1457-rr2' }, g.T)).data;
-  ok(r2 && r2.ok === true && r2.dmg > 0, 'the same fight, sent after it could be watched, books its ' + (r2 && r2.dmg) + ' damage');
-  ok(/if\(raidSkipped\(fightSec, Date\.now\(\)-\(a\.startedAt\|\|0\)\)\)\{/.test(SRC) && SRC.indexOf('if(raidSkipped(') < SRC.indexOf("const out=durableCommit(me,rkey,"), 'the check runs before anything is booked');
+  ok(r2 && r2.ok === false && r2.skipped === true && gg.raid.hp === hp0, 'a non-VIP\'s result after 30 s (an x2 watch they do not have) is refused too');
+  setVip(true); ok(S.raidVip(u) === true, 'the same player becomes a VIP (server ledger EGP 1)');
+  const r3 = (await call('/api/guild/raid/resolve', { attemptId: s1.attemptId, inputLog: AUTO, requestId: 'p1457-rr3' }, g.T)).data;
+  ok(r3 && r3.ok === true && r3.dmg > 0, 'a VIP\'s result after 30 s (watched at x2) is accepted and books ' + (r3 && r3.dmg) + ' damage');
+  setVip(false);
+  const s2 = (await call('/api/guild/raid/start', { heroIds: SQUAD, requestId: 'p1457-rs2' }, g.T)).data;
+  if (s2 && s2.ok) { const g2 = Object.values(S.DB.guilds).find(x => x && x.raid && x.raid.att && x.raid.att[g.id]); g2.raid.att[g.id].startedAt = Date.now() - 120000;   /* the commit replaced the guild object */
+    const r4 = (await call('/api/guild/raid/resolve', { attemptId: s2.attemptId, inputLog: AUTO, requestId: 'p1457-rr4' }, g.T)).data;
+    ok(r4 && r4.ok === true && r4.dmg > 0, 'a non-VIP\'s fight watched at x1 (2 minutes) books its ' + (r4 && r4.dmg) + ' damage'); }
+  else ok(false, 'a second raid fight starts (' + (s2 && s2.error) + ')');
+  ok(/const _vip=raidVip\(me\);\s*if\(raidSkipped\(fightSec, Date\.now\(\)-\(a\.startedAt\|\|0\), _vip\)\)\{/.test(SRC) && SRC.indexOf('if(raidSkipped(') < SRC.indexOf("const out=durableCommit(me,rkey,")
+    && /function raidVip\(u\)\{ try\{ const L=patronLevels\(ensureLedger\(u\)\);/.test(SRC), 'the check reads EGP from the server ledger and runs before anything is booked');
 });
 
 (async () => {

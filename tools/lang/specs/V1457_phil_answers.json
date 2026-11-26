@@ -5,7 +5,8 @@
   "well.tent_pick": "Choose a hero to borrow for this run",
   "well.loan_up": "Upgraded to {q}",
   "well.loan_buff": "{hp} health, {atk} damage",
-  "well.loan_dupe": "a stronger copy of yours"
+  "well.loan_dupe": "a stronger copy of yours",
+  "battle.x2_vip_raid": "x2 speed in guild raids is for VIPs (EGP 1 and up)."
  },
  "edits": []
 }
