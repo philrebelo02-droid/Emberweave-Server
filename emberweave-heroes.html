@@ -2866,6 +2866,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .wlTop{background:linear-gradient(#05070dcc,#05070d00)}
 /* v1362 (button audit): the Well's transparent title bar lay over the top half of every top-row tile on a Fold cover - a tap on the tile centre did nothing. The bar takes no taps; its own controls still do. */
 .wlTop{pointer-events:none}.wlTop>*{pointer-events:auto}
+/* v1461 (lockdown screens 26 Nov, Fold cover 915x412): with the bar see-through, a tap on the bar just above the top tile (y 26, tile from y 36) was
+   carried to the tile and opened its fight. The bar now takes its own taps: a tap inside a reachable tile's box still goes to that tile (wellScreen
+   forwards it, so no tile loses its top strip as in v1362), anywhere else on the bar does nothing. */
+.wlTop{pointer-events:auto}
 .wlTtl{flex:0 1 auto;margin:0 auto;display:flex;flex-direction:column;align-items:center;border:0 solid transparent;border-width:0 16px;
   border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 16px stretch;padding:2px 14px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));text-shadow:none}
 .wlH1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:clamp(13px,2cqw,18px);letter-spacing:2px;text-transform:uppercase;line-height:1.2}
@@ -35288,6 +35292,8 @@ function wellDraw(S){ const ov=document.getElementById('wlMap'); if(!ov) return;
   { const hb=ov.querySelector('.wlHeroesB'); if(hb) hb.onclick=()=>{ WELL_HEROVIEW_NEXT=S; popoutScreen('heroesPanel'); }; }   /* Phil 12 Nov: "You literally already have it in game. Just put this in starless but instead a health and energy bar" */
   [['.wlBoonsB','.wlBoonsPop:not(.wlHeroesPop)']].forEach(([bs,ps])=>{ const bp=ov.querySelector(ps), bb=ov.querySelector(bs); if(bp&&bb){ bb.onclick=()=>{ bp.hidden=false; }; bp.querySelector('.wlBoonsX').onclick=()=>{ bp.hidden=true; }; bp.onclick=e=>{ if(e.target===bp) bp.hidden=true; }; } });   /* v1378 (Phil 12 Nov): Heroes and Boons each open a pop-out */
   ov.querySelectorAll('.wlSq.wlReach').forEach(b=>b.onclick=()=>wellTap(+b.dataset.c,+b.dataset.r));
+  { const tp=ov.querySelector('.wlTop'); if(tp) tp.onclick=e=>{ if(e.target!==tp) return;   /* v1461: the bar's own taps; one that lands inside a reachable tile's box is that tile's */
+      const q=[...ov.querySelectorAll('.wlSq.wlReach')].find(b=>{ const r=b.getBoundingClientRect(); return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom; }); if(q) q.click(); }; }
   ov.querySelectorAll('.wlRes').forEach(b=>b.onclick=()=>wellPost('/api/well/resurrect',{hero:b.dataset.k}));
   ov.querySelectorAll('.wlSweep').forEach(b=>b.onclick=()=>wellPost('/api/well/sweep',{path:b.dataset.p},r=>{ if(r.reward){ const w=r.reward; bannerMsg(ewT('reward.xp',{n:(w.xp|0).toLocaleString(LANG.cur)})+(w.gold?' · '+hudIcon('gold')+' +'+(w.gold|0).toLocaleString():'')+(w.gems?' · '+hudIcon('gem')+' +'+(w.gems|0):'')+(w.potions?' · '+uiIcon('res-xp-potion')+' +'+ewT('isle.xp_potions',{n:w.potions|0}):'')); } }));   // v1110: a sweep pays gold, diamonds and potions too
   ov.querySelectorAll('.wlPortal:not([disabled])').forEach(b=>b.onclick=()=>wellPost('/api/well/portal',{to:b.dataset.p}));
