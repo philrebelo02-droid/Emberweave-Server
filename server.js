@@ -5725,7 +5725,7 @@ function poolPickUnowned(led,a){ const un=(a||[]).filter(function(k){ return !(l
 const SUMMON_COST_T={1:10,2:30,3:80};
 function summonSpecSrv(k){ const base=SIM.HERO_BASE[k]||{}, ss=POOL_START_STARS[k]||base.stars||1; return {cost:SUMMON_COST_T[ss]||10, stars:base.stars||1}; }
 function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
-  if(ownsHeroK(led,hk)){ const f=POOL_DUPE_FRAG[st]||7; creditFrags(u,led,hk,f,'wish:duplicate',{uncapped:true});
+  if(ownsHeroK(led,hk)){ const f=creditFrags(u,led,hk,POOL_DUPE_FRAG[st]||7,'wish:duplicate');   /* v1455 (lockdown audit 25 Nov, Fragment cap): every Wishing Pool fragment grant keeps the 9,999 cap and reports what was credited */
     return {type:'dupe', hero:hk, frags:f}; }
   led.unlocked[hk]=true; if(!led.hero[hk]) led.hero[hk]={xp:0,stars:(SIM.HERO_BASE[hk]||{}).stars||st,pips:0};
   return {type:'hero', hero:hk, stars:st}; }
@@ -5756,17 +5756,17 @@ function poolFullGlyph(u,step){ const led=ensureLedger(u), g=ensureGlyphs(u), to
   return {type:'glyphFull', name:sp.def.name, hero:sp.hk, slot:sp.s, tier:GLYPH_LADDER[qi], q:GLYPH_LADDER[qi], fam:sp.def.family, pieces:list.reduce((a,x)=>a+x.quantity,0)}; }
 function poolRollMyth(u){ const led=u.led, O=MYTH_ODDS, h=Math.random(); let acc=0; const n=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   if(h<(acc+=O.mythHero)) return poolGrantHero(u, poolPick(POOL_MYTHIC));
-  if(h<(acc+=O.mythFrag)){ const hk=poolPick(POOL_MYTHIC), k=n(2,4); creditFrags(u,led,hk,k,'wish:myth',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; }
+  if(h<(acc+=O.mythFrag)){ const hk=poolPick(POOL_MYTHIC), k=n(2,4); const got=creditFrags(u,led,hk,k,'wish:myth'); return {type:'frags',hero:hk,frags:got}; }
   if(h<(acc+=O.glyphFrag)) return poolGlyphFrag(u, GLYPH_LADDER[poolTopGlyphTier(u)], n(2,4));
   if(h<(acc+=O.glyphFull)){ const r=poolFullGlyph(u); return r||poolGlyphFrag(u, GLYPH_LADDER[poolTopGlyphTier(u)], n(2,4)); }   // no empty slot at that tier: fragments instead
   if(h<(acc+=O.attackCard)){ led.cards=led.cards&&typeof led.cards==='object'?led.cards:{}; led.cards.attack=(led.cards.attack|0)+1; return {type:'attackCard'}; }
-  if(h<(acc+=O.shield)){ if((u.shields|0)<99){ u.shields=(u.shields|0)+1; return {type:'shield'}; } const hk=poolPick(POOL_MYTHIC), k=n(2,4); creditFrags(u,led,hk,k,'wish:myth',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; }   /* a full shield stock (99) pays mythical fragments */
+  if(h<(acc+=O.shield)){ if((u.shields|0)<99){ u.shields=(u.shields|0)+1; return {type:'shield'}; } const hk=poolPick(POOL_MYTHIC), k=n(2,4); const got=creditFrags(u,led,hk,k,'wish:myth'); return {type:'frags',hero:hk,frags:got}; }   /* a full shield stock (99) pays mythical fragments */
   for(const tier of ['kindled','stoked','blazing','inferno']){ if(h<(acc+=O[tier])){ const st=templeState(led), [a,b]=MYTH_PRAYERS[tier], k=n(a,b);
       st.heldPrayers=st.heldPrayers&&typeof st.heldPrayers==='object'?st.heldPrayers:{}; st.heldPrayers[tier]=(st.heldPrayers[tier]|0)+k; return {type:'prayer',tier,n:k}; } }
   const tr=worldTravelState(u); tr.teleScrolls=(tr.teleScrolls|0)+1; return {type:'teleport'}; }
 function poolRollGold(u){ const led=u.led; const h=Math.random();
   if(h<0.05) return poolGrantHero(u, poolPick(POOL_GOLD_HEROES));
-  if(h<0.20){ const hk=poolPick(POOL_GOLD_HEROES), n=2+Math.floor(Math.random()*2); creditFrags(u,led,hk,n,'wish:gold',{uncapped:true}); return {type:'frags',hero:hk,frags:n}; }
+  if(h<0.20){ const hk=poolPick(POOL_GOLD_HEROES), n=2+Math.floor(Math.random()*2); const got=creditFrags(u,led,hk,n,'wish:gold'); return {type:'frags',hero:hk,frags:got}; }
   const r=Math.random();
   /* v1142 (Phil 15 Oct: "The percent of fragments should be. Previous stage unlocked, Current stage unlocked fragments not grey and green"):
      the two glyph-fragment results follow the player's own glyph level - the tier below the highest reached, and that highest tier
@@ -5788,14 +5788,14 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   const hit=(fn)=>{ const r=fn(); if(r&&r.type==='hero') pool.pity=0; else pool.pity++; return r; };
   if(h<(acc+=O.full3)) return hit(()=>poolGrantHero(u, poolPick(POOL_P3)));
   if(h<(acc+=O.full2)) return hit(()=>poolGrantHero(u, poolPick(POOL_P2)));
-  if(h<(acc+=O.frag3)) return hit(()=>{ const hk=poolPick(POOL_P3), k=n(2,3); creditFrags(u,led,hk,k,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; });
-  if(h<(acc+=O.frag2)) return hit(()=>{ const hk=poolPick(POOL_P2), k=n(2,3); creditFrags(u,led,hk,k,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; });
+  if(h<(acc+=O.frag3)) return hit(()=>{ const hk=poolPick(POOL_P3), k=n(2,3); const got=creditFrags(u,led,hk,k,'wish:gem'); return {type:'frags',hero:hk,frags:got}; });
+  if(h<(acc+=O.frag2)) return hit(()=>{ const hk=poolPick(POOL_P2), k=n(2,3); const got=creditFrags(u,led,hk,k,'wish:gem'); return {type:'frags',hero:hk,frags:got}; });
   const glyph=(step)=>{ const r=poolFullGlyph(u,step); if(r) return Object.assign(r,{next:!!step});   // no empty slot at that tier: 2-4 fragments of it, as the Mythical Pool does
     const qi=Math.min(poolTopGlyphTier(u)+step,GLYPH_LADDER.length-1); return Object.assign(poolGlyphFrag(u, GLYPH_LADDER[qi], n(2,4)),{next:!!step}); };
   if(h<(acc+=O.glyphFull)) return hit(()=>glyph(0));
   if(h<(acc+=O.glyphNext)) return hit(()=>glyph(1));
   /* v1432: no Ember Roast any more - the odds add up to 1; a float remainder lands on 2-star fragments */
-  return hit(()=>{ const hk=poolPick(POOL_P2), k=n(2,3); creditFrags(u,led,hk,k,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; }); }
+  return hit(()=>{ const hk=poolPick(POOL_P2), k=n(2,3); const got=creditFrags(u,led,hk,k,'wish:gem'); return {type:'frags',hero:hk,frags:got}; }); }
 /* v1142 THE EMBER ROAST (Phil 15 Oct): a stamina item from the Diamond Pool, kept on the ledger (led.stamItems) and eaten later through
    /api/stamina/use-item: +120 stamina exactly as a meal gives it (creditStamina, the 999 ceiling, refused at full). */
 /* v1432 (Phil 23 Nov 2026: "remove ember roast from diamond wishing pool and add something else" -> "More hero fragments"): the Ember Roast's
@@ -10300,7 +10300,7 @@ async function api(req,res,url){
         if(rw.gems){ got.gems=creditGems(me,led,rw.gems,'quest:'+id); }
         /* 5 Nov 2026 (Phil: "Yes" - the sim bug checker found it): a hero reward the player already owns paid NOTHING (Blade in the Dark
            = Vex, while the starter chain hands out Vex fragments). Like a duplicate wish it now pays that hero's duplicate fragments. */
-        if(rw.hero){ if(ownsHeroK(led,rw.hero)){ const f=POOL_DUPE_FRAG[POOL_START_STARS[rw.hero]||1]||7; creditFrags(me,led,rw.hero,f,'quest:'+id+':duplicate',{uncapped:true}); got.heroFrags=f; got.heroDup=rw.hero; }
+        if(rw.hero){ if(ownsHeroK(led,rw.hero)){ const f=creditFrags(me,led,rw.hero,POOL_DUPE_FRAG[POOL_START_STARS[rw.hero]||1]||7,'quest:'+id+':duplicate'); got.heroFrags=f;   /* v1455: the 9,999 fragment cap holds here too */ got.heroDup=rw.hero; }
           else { led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; } }
         /* v1360 (night audit, unlocks): the pool had no not-sold filter - 10 of 12 fresh accounts were paid a single fragment of a Mythical or Arena-only hero they can never finish (80 needed). Same filter as the Market, the star track and the sign-in calendar. */
         if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)&&!heroNotSold(k)); const n=rw.randFrags; let granted=0;
