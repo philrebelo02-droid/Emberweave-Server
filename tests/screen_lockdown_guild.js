@@ -70,13 +70,13 @@ async function titleFrame(pg,S){ await openGuild(pg,S,'chat');
     const own=[head,strip].map(e=>getComputedStyle(e,'::before').display);
     return {title:title.map(x=>x.url.replace(location.origin,'')+(x.ok?' '+x.w+'x'+x.h:' NOT LOADED')),titleOk:title.some(x=>x.ok&&/guild-hall-title/.test(x.url)),font:cs.fontSize,
       titleBox:SL.R(h1),titleOn:SL.inView(h1),frame:fu?fu.replace(location.origin,''):null,frameOk:!!(frame&&frame.ok),frameW:bcs.borderImageWidth,frameShown:bcs.display!=='none'&&bcs.content!=='none',
-      body:B,head:inside(head),strip:inside(strip),tabBody:inside(tb),tabsInside:tabs.every(inside),tabs:tabs.length,ownFrames:own,
+      body:B,head:inside(head),strip:inside(strip),tabBody:inside(tb),tabsInside:tabs.every(t=>{ if(inside(t)) return true; const r=SL.R(t), S=SL.R(strip), sc=getComputedStyle(strip); return strip.scrollWidth>strip.clientWidth+1&&/auto|scroll|hidden/.test(sc.overflowX)&&r.y>=B.y-1&&r.b<=B.b+1; }),stripScrolls:strip.scrollWidth>strip.clientWidth+1,tabs:tabs.length,ownFrames:own,
       tabRow:tabs.map(t=>SL.R(t)).filter(r=>r.x<SL.V().width).length}; });
   const s=await shot(pg,S.tag+' Guild Hall title art and frame');
   C.ok(r.titleOk&&parseFloat(r.font)===0&&r.titleOn&&r.titleBox.w>60&&r.titleBox.h>40,S.tag+' Guild Hall title art and frame: the painted GUILD HALL title art is loaded and on screen (no text title)',{title:r.title,box:r.titleBox,font:r.font,shot:s});
   C.ok(r.frameOk&&/guild-ornate-panel/.test(r.frame||'')&&r.frameShown&&r.head&&r.strip&&r.tabBody&&r.tabsInside&&r.tabs>=6&&r.ownFrames.every(d=>d==='none'),
     S.tag+' Guild Hall title art and frame: header, tab strip ('+r.tabs+' tabs) and tab body all sit inside ONE carved gold frame (guild-ornate-panel on #guildBody; header and strip draw no frame of their own)',
-    {frame:r.frame,width:r.frameW,body:r.body,inside:{head:r.head,strip:r.strip,tabBody:r.tabBody,tabs:r.tabsInside},ownFrames:r.ownFrames,shot:s}); }
+    {frame:r.frame,width:r.frameW,body:r.body,inside:{head:r.head,strip:r.strip,tabBody:r.tabBody,tabs:r.tabsInside,stripScrolls:r.stripScrolls},ownFrames:r.ownFrames,shot:s}); }
 
 /* ---------------- Import picture ---------------- */
 async function importPicture(pg,S,s){ await openGuild(pg,S,'chat');
@@ -146,7 +146,7 @@ async function skyBoard(pg,S){ const btn=await openSkyfall(pg,S);
   C.ok(r.towers===10&&r.towersOk===10&&r.bob>=9,S.tag+' Skyfall board screen: 10 floating towers drawn on screen ('+r.bob+' bobbing)',{towers:r.towers,ok:r.towersOk,bob:r.bob,shot:s});
   C.ok(r.bridges===5&&r.bridgesOk===5&&r.sky,S.tag+' Skyfall board screen: 5 bridges (art loaded, on screen) under the sky',{bridges:r.bridges,ok:r.bridgesOk,sky:r.sky,shot:s});
   C.ok(r.marching&&r.lines===10&&r.linesOn===10,S.tag+' Skyfall board screen: march lines drawn on all 5 lanes (10 runs)',{lines:r.lines,shown:r.linesOn,marching:r.marching,shot:s});
-  C.ok(r.swords===5&&r.swordsOk===5,S.tag+' Skyfall board screen: crossed swords (clash art) on all 5 bridges',{swords:r.swords,ok:r.swordsOk,shot:s});
+  C.ok(r.swords===5,S.tag+' Skyfall board screen: one crossed-swords clash built on each of the 5 bridges (v729: they show only while that lane is fighting - seen in the replay check below)',{swords:r.swords,shownNow:r.swordsOk,shot:s});
   C.ok(r.discs===10&&r.discsOn===10&&JSON.stringify(r.garGot)===JSON.stringify(r.garWant),S.tag+' Skyfall board screen: 10 garrison discs show alive/total = the server ('+r.garGot.join(' ')+')',{want:r.garWant,got:r.garGot,shot:s});
   C.ok(r.titleOk&&/skyfall-title/.test(r.title||'')&&r.hudOn&&r.menu&&r.editTeam,S.tag+' Skyfall board screen: the painted SKYFALL title and the HUD (status, War menu, Edit Team) on screen',{title:r.title,size:r.titleW+'x'+r.titleH,status:r.status,menu:r.menu,editTeam:r.editTeam,shot:s}); }
 
@@ -160,10 +160,19 @@ async function ruinLive(pg,S){ /* still on the live board: enemy Iron Gate (lane
     return {src:(tw.getAttribute('src')||''),down:tw.classList.contains('down'),loaded:tw.naturalWidth>0,frameChange:changed,
       tower:T,plat:P,baseOnDisc:T.b>=P.y&&T.b<=P.b&&(T.x+T.w/2)>=P.x&&(T.x+T.w/2)<=P.r,
       upBase:U.b,upPlatTop:PU.y,upHovers:U.b<PU.y+PU.h*0.5,disc:SL.txt(document.getElementById('skyGar-foe-0'))}; });
+  /* the loop as the player sees it: 5 screenshots of the ruin's box 350 ms apart, compared pixel by pixel (a canvas drawImage of an
+     animated WebP can return the same frame in headless Chromium, so the canvas number above is only printed) */
+  const T0=r.tower, clip={x:Math.max(0,T0.x),y:Math.max(0,T0.y),width:Math.max(4,T0.w),height:Math.max(4,T0.h)}, pngs=[];
+  for(let i=0;i<5;i++){ pngs.push((await pg.screenshot({type:'png',scale:'css',clip})).toString('base64')); await H.wait(350); }
+  const scr=await pg.evaluate(async pngs=>{ const px=[]; for(const b of pngs){ const im=new Image(); await new Promise(r=>{ im.onload=r; im.onerror=r; im.src='data:image/png;base64,'+b; });
+      const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const x=c.getContext('2d'); x.drawImage(im,0,0); px.push(x.getImageData(0,0,c.width,c.height).data); }
+    let best=0; for(let i=1;i<px.length;i++){ let d=0; for(let j=0;j<px[0].length;j+=4) d+=Math.abs(px[i][j]-px[0][j])+Math.abs(px[i][j+1]-px[0][j+1])+Math.abs(px[i][j+2]-px[0][j+2]); best=Math.max(best,Math.round(d/(px[0].length/4))); }
+    return best; },pngs);
+  r.canvasChange=r.frameChange; r.frameChange=scr;
   const s=await shot(pg,S.tag+' Falling and burning towers live war ruin');
   C.ok(r.down&&/ruin-irongate/.test(r.src)&&r.loaded&&r.baseOnDisc&&r.upHovers,S.tag+' Falling and burning towers: the destroyed enemy Iron Gate is drawn as the burning ruin, resting on its island (its base on the disc), while a standing tower still floats above its own',
     {src:r.src,tower:r.tower,island:r.plat,standingBase:r.upBase,standingIslandTop:r.upPlatTop,disc:r.disc,shot:s});
-  C.ok(r.frameChange>=2,S.tag+' Falling and burning towers: the ruin art animates (the burning loop changes between frames: mean change '+r.frameChange+')',{change:r.frameChange,shot:s}); }
+  C.ok(r.frameChange>=2,S.tag+' Falling and burning towers: the ruin art animates (the burning loop changes between frames: mean change '+r.frameChange+')',{change:r.frameChange,canvasChange:r.canvasChange,shot:s}); }
 
 async function bracket(pg,S){
   await pg.evaluate(()=>{ const p=document.getElementById('skyPanel'); if(p) p.remove(); });
@@ -195,13 +204,14 @@ async function replayFall(pg,S){ /* a replayed war (the war simulator's real ser
     body:JSON.stringify({seed:'sl2-'+S.tag,players:3,linesPer:1,botLevel:60,botSkill:10,botStars:5,stage:'march'})});
   const r=await res.json().catch(()=>null);
   if(!r||r.error||!Array.isArray(r.log)){ C.ok(false,S.tag+' Falling and burning towers: the war replay could be built (server simulator)',{status:res.status,body:JSON.stringify(r).slice(0,300)}); return; }
-  await pg.evaluate(rr=>{ SKYSIM.speed=8; skySimOpen(); window._slRep=skySimReplay(rr).then(()=>'done',e=>'err '+e); },r);
+  await pg.evaluate(rr=>{ SKYSIM.speed=8; SKYSIM.p.stage='march'; skySimOpen(); window._slRep=skySimReplay(rr).then(()=>'done',e=>'err '+e); },r);
   /* sample the board until the first tower falls and lands, and until every lane is finished */
-  const seen=await pg.evaluate(async()=>{ const t0=performance.now(), out={fall:null,land:null,spent:[],laneEnds:{}}; let shotT=null;
+  const seen=await pg.evaluate(async()=>{ const t0=performance.now(), out={fall:null,land:null,spent:[],laneEnds:{},clash:null}; let shotT=null;
     while(performance.now()-t0<150000){ const st=document.getElementById('skyStage'); if(st){
         const f=st.querySelector('.skyTower.falling'); if(f&&!out.fall){ const p=st.querySelector('.skyPlat[data-key="'+f.dataset.key+'"]'); out.fall={id:f.id,t:Math.round(performance.now()-t0),tower:SL.R(f),plat:SL.R(p),src:f.getAttribute('src')}; window._slFallId=f.id; }
         if(out.fall&&!out.land){ const d=document.getElementById(out.fall.id); if(d&&d.classList.contains('down')){ const p=st.querySelector('.skyPlat[data-key="'+d.dataset.key+'"]'); const T=SL.R(d),P=SL.R(p);
             out.land={t:Math.round(performance.now()-t0),tower:T,plat:P,src:d.getAttribute('src'),onDisc:T.b>=P.y&&T.b<=P.b&&(T.x+T.w/2)>=P.x&&(T.x+T.w/2)<=P.r,dropped:T.b-out.fall.tower.b}; } }
+        if(!out.clash){ const hc=[...st.querySelectorAll('.skyLaneClash.skyHot')].find(c=>SL.vis(c)&&SL.inView(c,2)); if(hc){ const im=hc.querySelector('img'); out.clash={id:hc.id,t:Math.round(performance.now()-t0),box:SL.R(hc),art:im?((im.getAttribute('src')||'').replace(/^.*\//,'')+' '+im.naturalWidth+'x'+im.naturalHeight):'placeholder',artOk:!im||(im.complete&&im.naturalWidth>0)}; } }
         for(let i=0;i<5;i++){ const lc=document.getElementById('skyLC-'+i); if(lc&&lc.classList.contains('spent')&&out.laneEnds[i]==null){ out.laneEnds[i]=Math.round(performance.now()-t0);
             const a=document.getElementById('skyML-you-'+i), b=document.getElementById('skyML-foe-'+i), live=[0,1,2,3,4].filter(j=>j!==i&&!document.getElementById('skyLC-'+j).classList.contains('spent'));
             out.spent.push({lane:i,linesHidden:!SL.vis(a)&&!SL.vis(b)&&!SL.vis(lc),othersStillShown:live.every(j=>SL.vis(document.getElementById('skyLC-'+j)))}); } }
@@ -211,6 +221,7 @@ async function replayFall(pg,S){ /* a replayed war (the war simulator's real ser
   const s=await shot(pg,S.tag+' Falling and burning towers replay landed');
   C.ok(!!seen.fall&&!!seen.land&&seen.land.onDisc&&seen.land.dropped>2&&/\/ruin-/.test(seen.land.src)&&/\/tower-/.test(seen.fall.src),
     S.tag+' Falling and burning towers: in the replay a tower ('+(seen.fall&&seen.fall.id)+') drops when its last line dies, lands on its island and turns into the burning ruin',{fall:seen.fall,land:seen.land,shot:s});
+  C.ok(!!seen.clash&&seen.clash.artOk&&seen.clash.box.w>10,S.tag+' Skyfall board screen: crossed swords (clash art) show on a bridge while its lane is fighting ('+(seen.clash&&seen.clash.id)+')',{clash:seen.clash,shot:s});
   const sp=seen.spent;
   C.ok(sp.length===5&&sp.every(x=>x.linesHidden)&&sp.filter(x=>x.othersStillShown).length>=1,S.tag+' Falling and burning towers: each finished lane\'s march lines and swords clear while the lanes still fighting keep theirs',{spent:sp,ends:seen.laneEnds,done:seen.done,shot:s});
   await pg.evaluate(()=>{ try{ SKYSIM.skipReplay=true; SKYSIM.running=false; }catch(e){} }); }

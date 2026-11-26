@@ -19,7 +19,9 @@ const press=(pg,S,sel)=>S.touch?pg.tap(sel,{timeout:10000}):pg.click(sel,{timeou
 /* ---------------- Wall art stays in view ---------------- */
 async function wallArt(pg,S){ await H.openBuilding(pg,'wall',S.touch);
   await pg.waitForFunction(()=>document.getElementById('wall').classList.contains('active')&&document.querySelector('#wallBody [data-wall-tab]'),null,{timeout:30000}).catch(()=>{});
-  for(const tab of ['wall','cauldron','dur']){
+  /* the Witches Hut (cauldron) tab is its own building drawn on its own art: the game's CSS turns the gatehouse off for it on purpose
+     (#wall:not(:has([data-wall-tab="cauldron"]:not(.secondary)))), so the gatehouse is checked on the two City Wall tabs */
+  for(const tab of ['wall','dur']){
     await press(pg,S,'#wallBody [data-wall-tab="'+tab+'"]'); await H.wait(1800); await H.prep(pg);
     const r=await pg.evaluate(async()=>{ const scr=document.getElementById('wall'), cs=getComputedStyle(scr), urls=SL.bgUrls(scr), hall=urls.find(u=>/wall-hall/.test(u)), im=hall?await SL.loadImg(hall):null;
       const B=scr.getBoundingClientRect(), V=SL.V();
@@ -69,17 +71,29 @@ async function realm(pg,S){ await openWorld(pg,S);
     return {zoom:worldZoom,min:worldZoomBounds(zone).min,zone:{x:Z.left,y:Z.top,w:Z.width,h:Z.height},cover:{loaded:cov.complete&&cov.naturalWidth>0,w:cov.naturalWidth,h:cov.naturalHeight},
       pts,holes:holes.length,holeAt:holes.slice(0,5),level:inner.dataset.realmLevel}; });
   /* gaps in the painting: pixels of the map's bare floor colour (#0c1018) inside the map area */
-  const gap=await screenPixels(pg,(d,a)=>{ let n=0,tot=0; for(let y=Math.ceil(a.y);y<Math.floor(a.y+a.h);y+=2) for(let x=Math.ceil(a.x);x<Math.floor(a.x+a.w);x+=2){ const i=(y*d.width+x)*4; tot++;
+  const gap=await screenPixels(pg,(d,a)=>{ let n=0,tot=0; const zone=document.getElementById('wzone'); for(let y=Math.ceil(a.y);y<Math.floor(a.y+a.h);y+=2) for(let x=Math.ceil(a.x);x<Math.floor(a.x+a.w);x+=2){ const i=(y*d.width+x)*4;
+      const hit=document.elementFromPoint(x,y); if(!hit||!zone.contains(hit)) continue; tot++;   /* the HUD buttons (dark panels) over the map are not map */
       if(Math.abs(d.data[i]-12)<=2&&Math.abs(d.data[i+1]-16)<=2&&Math.abs(d.data[i+2]-24)<=2) n++; } return {n,tot}; },r.zone);
   const s=await shot(pg,S.tag+' Painted realm map zoomed out');
+  /* points off the screen at the widest zoom (a phone's screen is wider than the realm, so it fills the width and pans up/down): move the map to each */
+  for(const p of r.pts.filter(p=>!p.on)){ const q=await pg.evaluate(async key=>{ const zone=document.getElementById('wzone'), M=REALM_MAP.META, G=REALM_MAP.GEO, at=M.labels[key];
+      const top0=zone.scrollTop, left0=zone.scrollLeft, Z0=zone.getBoundingClientRect(), I0=document.getElementById('wzoneInner').getBoundingClientRect();
+      const x0=I0.left+G.xOf(at[0])/100*I0.width, y0=I0.top+G.yOf(at[1])/100*I0.height;
+      zone.scrollLeft+=x0-(Z0.left+Z0.width/2); zone.scrollTop+=y0-(Z0.top+Z0.height/2); zone.dispatchEvent(new Event('scroll'));
+      await new Promise(r=>setTimeout(r,600)); const Z=zone.getBoundingClientRect(), I=document.getElementById('wzoneInner').getBoundingClientRect();
+      const x=I.left+G.xOf(at[0])/100*I.width, y=I.top+G.yOf(at[1])/100*I.height, on=x>=Z.left&&x<=Z.right&&y>=Z.top&&y<=Z.bottom;
+      zone.scrollLeft=left0; zone.scrollTop=top0; zone.dispatchEvent(new Event('scroll')); await new Promise(r=>setTimeout(r,300)); return {x:Math.round(x),y:Math.round(y),on}; },p.key);
+    p.panned=q; p.on=q.on; }
   const want={continents:['crystor','draymon','tefron','alumron'],tree:['worldtree'],islets:['wildN','wildS','wildE','wildW']};
   const on=k=>(r.pts.find(p=>p.key===k)||{}).on;
   C.ok(Math.abs(r.zoom-r.min)<1e-6&&r.cover.loaded,S.tag+' Painted realm map: zoomed all the way out (zoom '+r.zoom.toFixed(3)+' = min), the painted realm loaded ('+r.cover.w+'x'+r.cover.h+')',{zoom:r.zoom,min:r.min,level:r.level,shot:s});
-  C.ok(want.continents.every(on)&&want.tree.every(on)&&want.islets.every(on),S.tag+' Painted realm map: the four continents, the World Tree island and the four wild islets are all on screen',{points:r.pts,shot:s});
-  C.ok(r.holes===0&&gap.n<=gap.tot*0.002,S.tag+' Painted realm map: no gaps (every one of 288 sample points has painted art under it; bare-floor pixels '+gap.n+' of '+gap.tot+')',{holes:r.holeAt,gap,shot:s}); }
+  C.ok(want.continents.every(on)&&want.tree.every(on)&&want.islets.every(on),S.tag+' Painted realm map: the four continents, the World Tree island and the four wild islets are all on the painted realm (on screen zoomed out, or after moving the map to them: '+(r.pts.filter(p=>p.panned).map(p=>p.key).join(', ')||'none needed')+')',{points:r.pts,shot:s});
+  C.ok(r.holes===0&&gap.n<=gap.tot*0.002,S.tag+' Painted realm map: no gaps (every one of 288 sample points has painted art under it; bare-floor pixels of the map, HUD buttons left out: '+gap.n+' of '+gap.tot+')',{holes:r.holeAt,gap,shot:s}); }
 
 /* ---------------- Smooth zoom ---------------- */
-async function smoothZoom(pg,S){ await openWorld(pg,S); await tilesSettled(pg); await H.wait(1000);
+async function smoothZoom(pg,S){ await openWorld(pg,S);
+  /* the map opens at its closest zoom, so start from the widest one: then the wheel really zooms in several levels and back out */
+  await zoomTo(pg,S,-1); await tilesSettled(pg); await H.wait(1500);
   await pg.route(/\/realm-v\d+\/tiles\//,async route=>{ await H.wait(1500); try{ await route.continue(); }catch(_){} });
   /* the sampler: every frame, a 8 x 5 grid over the map; each point's finest LOADED, shown picture and how many times it is magnified */
   await pg.evaluate(()=>{ window._slZ={frames:0,blank:0,blocky:0,worst:null,cover:0,maxMag:0}; const M=REALM_MAP.META, dpr=Math.max(1,devicePixelRatio||1);
@@ -151,6 +165,7 @@ async function mine(pg,S,s,node){ await openWorld(pg,S);
   const t0=Date.now(); const a=await send(1); const srv1=(await s.api('/api/world/mines')).body; const marches1=s.disk().worldMineMarches||[];
   C.ok(a.sent&&marches1.some(m=>m.node&&m.node.id===node.id&&!m.resolved),S.tag+' Mine stays while mined: miners sent from the mine\'s own menu ('+a.picked+' heroes picked, Send)',{...a,server:marches1.map(m=>({mine:m.node&&m.node.id,resolved:m.resolved}))});
   /* while the miners travel and while they work: the mine stays, a Mining timer over it once they work */
+  await centre(); await H.wait(1500);   /* same as the other phases: the view on the mine (the map builds only the mines around the view) */
   const vT=await view('travel'); const sT=await shot(pg,S.tag+' Mine stays while mined miners on the way');
   await pg.waitForFunction(()=>[...document.querySelectorAll('.marchTimer.mining')].length>0,null,{timeout:MINE_MS+30000,polling:500}).catch(()=>{}); await centre(); await H.wait(1500);
   const vM=await view('mining'); const sM=await shot(pg,S.tag+' Mine stays while mined Mining timer');
@@ -163,7 +178,8 @@ async function mine(pg,S,s,node){ await openWorld(pg,S);
   const left1=((await s.api('/api/world/mines')).body.nodes||[]).find(n=>n.id===node.id).left;
   const v1=await view('after haul 1'); const s1=await shot(pg,S.tag+' Mine stays while mined after first haul');
   C.ok(left1>0&&v1.mine,S.tag+' Mine stays while mined: after the haul the mine still has stock ('+left1+') and is still on the map',{left:left1,...v1,shot:s1});
-  /* a second squad empties it: then it is gone */
+  /* a second squad empties it: then it is gone. One squad per mine: the mine's menu offers Mine again once the first squad is home */
+  await pg.waitForFunction(id=>!(activeMarches()||[]).some(m=>m.ctype==='mine'&&m.mineId===id&&Date.now()<m.home),node.id,{timeout:MINE_MS*3+30000,polling:1000}).catch(()=>{}); await H.wait(2000);
   const b=await send(2);
   await pg.waitForFunction(()=>[...document.querySelectorAll('.marchTimer.mining')].length>0,null,{timeout:MINE_MS+30000,polling:500}).catch(()=>{}); await centre(); await H.wait(1500);
   const vM2=await view('mining 2'); const sM2=await shot(pg,S.tag+' Mine stays while mined second squad mining');
