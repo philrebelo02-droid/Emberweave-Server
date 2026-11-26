@@ -62,9 +62,16 @@ section('1. every glyph fragment drops somewhere; a stage splits its drop evenly
   // the boot check is a real check
   { const raw = S.GLYPHS.raw, fake = { id: 'v1457-fake', ing: [{ kind: 'frag', key: 'Blue Nothingness', qty: 1 }] }; raw.push(fake); let err = '';
     try { S.portalCompile(); } catch (e) { err = String(e.message); } raw.pop(); S.portalCompile();
-    ok(/no campaign source \(1\): Blue Nothingness/.test(err), 'CONTROL: a recipe kind with no stage stops the boot ("' + err + '")');
+    ok(/no ordinary Normal source \(1\): Blue Nothingness/.test(err), 'CONTROL: a recipe kind with no stage stops the boot ("' + err + '")');
     ok(Object.keys(S.FRAG_SOURCES).length === 218, 'and the real data compiles again (218 kinds)'); }
   ok(!/every type has an ordinary Normal source/.test(SRC), 'the boot line no longer claims what it never checked');
+  /* Phil 26 Nov: "yes give orange normal stages too" - the 4 Orange kinds only Veteran paid now drop on chapter 16 ordinary stages as well */
+  { const ordN = new Set(P.normal.list.filter(e => ![3, 6, 9, 0].includes(e.node % 10)).map(e => e.id));
+    ok(need.every(k => (FS[slug(k)] || []).some(s => s.mode === 'normal' && ordN.has(s.stageId))), 'EVERY one of the 218 kinds drops from an ordinary Normal stage (the boot refuses otherwise)');
+    const OR = { 'Orange Bastion': '16-2', 'Orange Dawnshield': '16-1', 'Orange Cataclysm': '16-8', 'Orange Voidbind': '16-4' };
+    for (const [k, sid] of Object.entries(OR)) { const st = P.normal.list.find(e => e.id === sid), src = (FS[slug(k)] || []).map(s => s.mode + ' ' + s.stageId);
+      ok(st.rewards.glyphFragments.length === 5 && st.rewards.fragmentRolls === 2 && st.rewards.glyphFragments.every(f => f.key.startsWith('Orange ')) && chance(st) === 0.4
+        && src.includes('normal ' + sid) && src.some(s => s.startsWith('veteran ')), k + ': Normal ' + sid + ' (2 of 5 Orange kinds, 40% each) and its Veteran source kept - ' + src.join(', ')); } }
   // routes: the stage card and the farm map serve the joined list
   const g = await guest('frag');
   const card = (await call('/api/campaign/stage?mode=elite&node=92', null, g.T)).data;

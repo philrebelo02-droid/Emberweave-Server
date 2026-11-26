@@ -22536,7 +22536,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "orange-dawnshield",
+          "key": "Orange Dawnshield",
+          "displayName": "Orange Dawnshield Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -22696,7 +22705,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "orange-bastion",
+          "key": "Orange Bastion",
+          "displayName": "Orange Bastion Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -23004,7 +23022,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "orange-voidbind",
+          "key": "Orange Voidbind",
+          "displayName": "Orange Voidbind Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [
@@ -23602,7 +23629,16 @@
           "possible": true
         }
       ],
-      "fragmentRolls": 2
+      "fragmentRolls": 2,
+      "addedFragments": [
+        {
+          "fragmentId": "orange-cataclysm",
+          "key": "Orange Cataclysm",
+          "displayName": "Orange Cataclysm Fragment",
+          "quantity": 1,
+          "possible": true
+        }
+      ]
     },
     "waves": [
       [

@@ -6080,15 +6080,14 @@ function portalCompile(){
     }
     PORTALS[mode]={ byNode, list:raw };
   }
-  /* v1457 (lockdown audit campaign-01 "Every fragment farmable"; Phil 26 Nov): this line used to SAY "every type has an ordinary Normal
-     source" without checking it. It is a real check now: every fragment kind a glyph recipe names must drop from some campaign stage, or
-     the server does not start. (Four Orange kinds - Bastion, Cataclysm, Dawnshield, Voidbind - drop only from Veteran; counted below.) */
-  const need=fragKindsNeeded(), missing=need.filter(k=>!FRAG_SOURCES[glyphFragSlug(k)]);
-  if(missing.length) throw new Error('glyph fragments with no campaign source ('+missing.length+'): '+missing.join(', '));
-  const noNormal=need.filter(k=>!(FRAG_SOURCES[glyphFragSlug(k)]||[]).some(s=>s.mode==='normal'));
+  /* v1457 (lockdown audit campaign-01 "Every fragment farmable"; Phil 26 Nov: "yes give orange normal stages too"): this line used to SAY
+     that every type had an ordinary Normal source, without checking it. It is a real check now: every fragment kind a glyph recipe names must
+     drop from an ORDINARY Normal stage (the unlimited 2-from-4/5 farm, not a Guardian or boss stage), or the server does not start. */
+  const need=fragKindsNeeded(), ordN=new Set(PORTALS.normal.list.filter(e=>!isHeroRewardStageSrv(e.node)).map(e=>e.id));
+  const missing=need.filter(k=>!(FRAG_SOURCES[glyphFragSlug(k)]||[]).some(s=>s.mode==='normal'&&ordN.has(s.stageId)));
+  if(missing.length) throw new Error('glyph fragments with no ordinary Normal source ('+missing.length+'): '+missing.join(', '));
   console.log('Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
-    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; all '+need.length+' recipe fragment kinds drop somewhere'
-    +(noNormal.length?' ('+noNormal.length+' only outside Normal: '+noNormal.join(', ')+')':'; every one from a Normal stage')+'.');
+    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; all '+need.length+' recipe fragment kinds drop from an ordinary Normal stage.');
 }
 /* v1457: every fragment kind a glyph recipe names (the 218 '<Quality> <Family>' keys) */
 function fragKindsNeeded(){ const s=new Set(); if(!GLYPHS||!Array.isArray(GLYPHS.raw)) return [];
