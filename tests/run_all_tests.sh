@@ -679,6 +679,8 @@ note "screen_lockdown_forge.js (lockdown 25 Nov round 2, needs playwright: Forge
 node tests/screen_lockdown_forge.js || FAILED=1
 note "screen_lockdown_academy.js (lockdown 25 Nov round 2, needs playwright: Academy hall, title, 8 labelled cards + centre, nothing overlapping; compact layout on short screens)"
 node tests/screen_lockdown_academy.js || FAILED=1
+note "screen_lockdown_pool.js (lockdown 25 Nov round 2, needs playwright: Wishing Pool stage fits, painted title, framed cards, floating orbs; cards, buttons, single and x10 results fit small screens)"
+node tests/screen_lockdown_pool.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
