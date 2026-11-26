@@ -681,6 +681,8 @@ note "screen_lockdown_academy.js (lockdown 25 Nov round 2, needs playwright: Aca
 node tests/screen_lockdown_academy.js || FAILED=1
 note "screen_lockdown_pool.js (lockdown 25 Nov round 2, needs playwright: Wishing Pool stage fits, painted title, framed cards, floating orbs; cards, buttons, single and x10 results fit small screens)"
 node tests/screen_lockdown_pool.js || FAILED=1
+note "screen_lockdown_market.js (lockdown 25 Nov round 2, needs playwright: Market painted hall, title, subtitle, framed offers, wallet across the holder; cards inside frames at 6 sizes; painted store window tabs + cards + sideways scroll)"
+node tests/screen_lockdown_market.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
