@@ -168,7 +168,7 @@ async function burn(pg,S){
           if(part==='battle'){ await battle(pg,S); await burn(pg,S); }
         }catch(e){ C.ok(false,S.tag+' '+part+' part ran to the end',String(e&&e.stack||e).slice(0,600)); await shot(pg,S.tag+' '+part+' error'); } }
       C.ok(pg._errs.length===0,S.tag+' no page errors',pg._errs.slice(0,3));
-      await pg._ctx.close(); pg=null; }
+      await pg._ctx.close(); pg=null; await H.closeBrowser(); }   /* a fresh browser per size: the CT memory cap */
   }catch(e){ C.ok(false,'the test ran to the end',String(e&&e.stack||e).slice(0,600)); }
   finally{ if(pg) try{ await pg._ctx.close(); }catch(_){} await H.closeBrowser(); await s.stop(); }
   C.done();
