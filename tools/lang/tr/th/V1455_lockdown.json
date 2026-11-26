@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "สมาชิก {n} คนพลาดการล็อก: {m} แถวไม่ได้ต่อสู้"
+ "skyfall.missed_lock": "สมาชิก {n} คนพลาดการล็อก: {m} แถวไม่ได้ต่อสู้",
+ "chat.not_delivered_offline": "ส่งไม่ถึง: {name} ออฟไลน์อยู่",
+ "chat.not_delivered_noplayer": "ส่งไม่ถึง: ไม่มีผู้เล่นชื่อ {name}",
+ "gloss.abil_basic": "โจมตีปกติเท่านั้น"
 }

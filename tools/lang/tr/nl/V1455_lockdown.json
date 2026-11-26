@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n} leden misten de vergrendeling: {m} linies vochten niet mee."
+ "skyfall.missed_lock": "{n} leden misten de vergrendeling: {m} linies vochten niet mee.",
+ "chat.not_delivered_offline": "Niet bezorgd: {name} is offline.",
+ "chat.not_delivered_noplayer": "Niet bezorgd: geen speler heet {name}.",
+ "gloss.abil_basic": "Alleen basisaanvallen."
 }

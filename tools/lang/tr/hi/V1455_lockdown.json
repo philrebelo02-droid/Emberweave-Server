@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n} सदस्य लॉक से चूक गए: {m} दल नहीं लड़े।"
+ "skyfall.missed_lock": "{n} सदस्य लॉक से चूक गए: {m} दल नहीं लड़े।",
+ "chat.not_delivered_offline": "नहीं पहुँचा: {name} ऑफ़लाइन है।",
+ "chat.not_delivered_noplayer": "नहीं पहुँचा: {name} नाम का कोई खिलाड़ी नहीं है।",
+ "gloss.abil_basic": "केवल सामान्य हमले।"
 }

@@ -1,6 +1,9 @@
 {
  "keys": {
-  "skyfall.missed_lock": "{n} members missed the line lock: {m} lines did not fight."
+  "skyfall.missed_lock": "{n} members missed the line lock: {m} lines did not fight.",
+  "chat.not_delivered_offline": "Not delivered: {name} is offline.",
+  "chat.not_delivered_noplayer": "Not delivered: no player is named {name}.",
+  "gloss.abil_basic": "Basic attacks only."
  },
  "edits": []
 }

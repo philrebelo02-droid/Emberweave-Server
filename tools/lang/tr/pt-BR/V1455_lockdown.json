@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n} membros perderam a trava: {m} linhas não lutaram."
+ "skyfall.missed_lock": "{n} membros perderam a trava: {m} linhas não lutaram.",
+ "chat.not_delivered_offline": "Não entregue: {name} está offline.",
+ "chat.not_delivered_noplayer": "Não entregue: nenhum jogador se chama {name}.",
+ "gloss.abil_basic": "Apenas ataques básicos."
 }

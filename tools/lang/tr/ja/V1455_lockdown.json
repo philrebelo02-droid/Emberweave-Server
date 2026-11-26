@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n}人のメンバーが確定に間に合わず、{m}隊列が戦いませんでした。"
+ "skyfall.missed_lock": "{n}人のメンバーが確定に間に合わず、{m}隊列が戦いませんでした。",
+ "chat.not_delivered_offline": "未配信：{name}はオフラインです。",
+ "chat.not_delivered_noplayer": "未配信：{name}という名前のプレイヤーはいません。",
+ "gloss.abil_basic": "通常攻撃のみ。"
 }

@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "멤버 {n}명이 고정을 놓쳐 전열 {m}개가 싸우지 못했습니다."
+ "skyfall.missed_lock": "멤버 {n}명이 고정을 놓쳐 전열 {m}개가 싸우지 못했습니다.",
+ "chat.not_delivered_offline": "전달되지 않음: {name} 님은 오프라인입니다.",
+ "chat.not_delivered_noplayer": "전달되지 않음: {name}(이)라는 플레이어가 없습니다.",
+ "gloss.abil_basic": "기본 공격만 합니다."
 }

@@ -471,11 +471,23 @@ function beginnerShieldUntil(u){ if(!u||u.isNpc||u.beginnerBroken) return 0; let
   const until=(+u.created||0)+BEGINNER_SHIELD_MS; return until>Date.now()?until:0; }
 function castleShieldedUntil(u){ if(!u||u.isNpc) return 0; const now=Date.now(); return Math.max((+u.shieldUntil||0)>now?+u.shieldUntil:0, beginnerShieldUntil(u)); }
 function breakOwnShield(u){ if(!u) return; u.shieldUntil=0; u.beginnerBroken=true; }
+/* v1455 lockdown (account-hud-sound-servers "Look-alike names taken", SECURITY - impersonation): the reserved staff names were refused only
+   when spelled exactly, so 'Adm1n', 'D3v', 'M0derator', 'Supp0rt', 'Systеm' (Cyrillic e), 'Ph1l', 'Deleted p1ayer' were accepted. They now go
+   through the player look-alike fold (nameSkeleton: width, case, accents, Cyrillic / Greek look-alikes, l/1/| and 0) plus the common leet
+   digits (3 4 5 7 8 @ $); and a name with a staff word as one of its words ('DEV Team',
+   'Emberweave Team') is refused too. Sign-up, rename and guild names (all through badNewName). Existing accounts are not touched. */
+function reservedFold(s){ return nameSkeleton(String(s||'').normalize('NFKC').replace(/3/g,'e').replace(/[4@]/g,'a').replace(/[5$]/g,'s').replace(/7/g,'t').replace(/8/g,'b')); }
+const RESERVED_FOLD=new Set([...RESERVED_NAMES,'gm','owner','gamemaster','deleted','deleteduser'].map(reservedFold));
+const STAFF_WORDS_FOLD=new Set(['admin','administrator','dev','developer','devs','mod','mods','moderator','gm','staff','system','support','owner','gamemaster','emberweave','xanthyr'].map(reservedFold));
+function reservedLookAlike(n){ const s=String(n||'').normalize('NFKC');
+  { const f=reservedFold(s); if(f&&RESERVED_FOLD.has(f)) return true; }   // a plain digit suffix stays allowed ('dev1' is the dev account and every test's)
+  for(const w of s.split(/[^\p{L}\p{N}@$]+/u).filter(Boolean)){ const f=reservedFold(w); if(f&&STAFF_WORDS_FOLD.has(f)) return true; }
+  return false; }
 function badNewName(n){ const s=String(n||'');
   if(/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff]/.test(s)) return 'That name uses hidden characters — please use normal letters.';
   if(/\p{M}{2,}/u.test(s)) return 'That name has too many accent marks stacked together.';
   const plain=s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
-  if(RESERVED_NAMES.has(plain) || /^guest[0-9a-f]{0,4}$/.test(plain)) return 'That name is reserved — please choose another.';
+  if(RESERVED_NAMES.has(plain) || /^guest[0-9a-f]{0,4}$/.test(plain) || reservedLookAlike(s)) return 'That name is reserved — please choose another.';
   if(CHATF.nameHits(s)) return 'That name is not allowed - please choose another.';   /* v1097 (sweep #18): no slurs or hate terms in player and guild names */
   return ''; }
 /* v1176 CHARACTER NAMES (Phil 16 Oct 2026: "please allow numbers in someones character name" / "dont make any special characters that
@@ -12382,7 +12394,14 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   /* v1127 (Phil 11 Oct 2026: "chat 
         _chatRecent.push({mid:wmid,sid:ws._uid||null,who:fromName,txt,to:toU,t:Date.now(),ch:'whisper'}); if(_chatRecent.length>500) _chatRecent.splice(0,_chatRecent.length-500);
         { const a=ws._uid||null, pair=_chatRecent.filter(x=>(x.sid===a&&x.to===toU)||(x.sid===toU&&x.to===a));   /* v1127 chat cap: a conversation keeps its last 100 lines here too */
           if(pair.length>CHAT_KEEP){ const drop=new Set(pair.slice(0,pair.length-CHAT_KEEP)); for(let i=_chatRecent.length-1;i>=0;i--) if(drop.has(_chatRecent[i])) _chatRecent.splice(i,1); } }
-        const targets=_chatByName.get(to); if(targets){ let j=null; for(const c of targets){ if(c!==ws && c.readyState===1 && !chatBlocked(c._uid,ws._uid)){ try{ _chatFlushOne(c); c.send(j||(j=JSON.stringify({t:'whispermsg',from:fromName,txt,mid:wmid}))); }catch(e){} } } } }   /* v1128: the sockets of that chat name, not every socket */
+        /* v1455 lockdown (account-hud-sound-servers "Whisper not delivered"): the name is matched ignoring case (the account's own spelling first,
+           then any live chat name that differs only in case), and a whisper that reaches nobody is answered with why - 'offline' (a player has
+           that name; a block is not revealed) or 'noplayer' (nobody has it). */
+        let targets=_chatByName.get(to);
+        if(!targets&&toU&&DB.users[toU]&&DB.users[toU].name) targets=_chatByName.get(DB.users[toU].name);
+        if(!targets){ const lo=to.toLowerCase(); for(const [k,v] of _chatByName) if(String(k).toLowerCase()===lo){ targets=v; break; } }
+        let sent=0; if(targets){ let j=null; for(const c of targets){ if(c!==ws && c.readyState===1 && !chatBlocked(c._uid,ws._uid)){ try{ _chatFlushOne(c); c.send(j||(j=JSON.stringify({t:'whispermsg',from:fromName,txt,mid:wmid}))); sent++; }catch(e){} } } }   /* v1128: the sockets of that chat name, not every socket */
+        if(!sent) wsend(ws,{t:'whisperfail',to,reason:(toU||targets)?'offline':'noplayer'}); }
     }catch(e){ console.error('ws frame refused (handler error): '+(e&&e.message)); } });
     ws.on('close', ()=>{ _setChatName(ws,null); _chatOut.delete(ws); const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
     ws.on('error', ()=>{});

@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n} üye kilidi kaçırdı: {m} hat savaşmadı."
+ "skyfall.missed_lock": "{n} üye kilidi kaçırdı: {m} hat savaşmadı.",
+ "chat.not_delivered_offline": "İletilmedi: {name} çevrim dışı.",
+ "chat.not_delivered_noplayer": "İletilmedi: {name} adında bir oyuncu yok.",
+ "gloss.abil_basic": "Yalnızca temel saldırılar."
 }

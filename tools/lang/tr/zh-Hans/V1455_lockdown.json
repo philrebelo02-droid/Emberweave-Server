@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n} 名成员错过了锁定：{m} 支队伍未参战。"
+ "skyfall.missed_lock": "{n} 名成员错过了锁定：{m} 支队伍未参战。",
+ "chat.not_delivered_offline": "未送达：{name} 不在线。",
+ "chat.not_delivered_noplayer": "未送达：没有名为 {name} 的玩家。",
+ "gloss.abil_basic": "仅进行普通攻击。"
 }

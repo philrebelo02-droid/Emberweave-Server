@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "{n} Mitglieder haben die Sperre verpasst: {m} Linien haben nicht gekämpft."
+ "skyfall.missed_lock": "{n} Mitglieder haben die Sperre verpasst: {m} Linien haben nicht gekämpft.",
+ "chat.not_delivered_offline": "Nicht zugestellt: {name} ist offline.",
+ "chat.not_delivered_noplayer": "Nicht zugestellt: Kein Spieler heißt {name}.",
+ "gloss.abil_basic": "Nur Standardangriffe."
 }

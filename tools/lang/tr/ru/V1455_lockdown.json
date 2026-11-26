@@ -1,3 +1,6 @@
 {
- "skyfall.missed_lock": "Участники, пропустившие фиксацию: {n}. Не сражались отрядов: {m}."
+ "skyfall.missed_lock": "Участники, пропустившие фиксацию: {n}. Не сражались отрядов: {m}.",
+ "chat.not_delivered_offline": "Не доставлено: {name} не в сети.",
+ "chat.not_delivered_noplayer": "Не доставлено: игрока с именем {name} нет.",
+ "gloss.abil_basic": "Только обычные атаки."
 }
