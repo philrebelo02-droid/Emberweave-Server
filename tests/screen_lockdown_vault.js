@@ -45,6 +45,13 @@ async function enemyCards(pg,S,s){
   const srv=(await s.api('/api/dungeon/status')).body||{};
   const srvSpecs=[].concat(...(srv.waves||[]));
   C.ok(chips.length>0&&srv.currentFloor===FLOOR,S.tag+' Enemy cards: Floor Description opens with the floor '+FLOOR+' monster chips',{chips:chips.map(c=>c.name),floor:srv.currentFloor});
+  /* v1458 enrage: the boss block in Floor Description names the boss's own enrage and says what it does (= VAULT_ENRAGES, = the server's bossRule) */
+  const en=await pg.evaluate(()=>{ const b=document.querySelector('#vtInfoPop .vfd-boss'); const bm=(VAULT.st.waves||[]).flat().find(m=>m&&m.boss), e=bm&&VAULT_ENRAGES[bm.key];
+    return {boss:bm&&bm.key,shown:!!b&&SL.vis(b),on:!!b&&SL.inView(b),name:b?(b.querySelector('.viName')||{}).textContent.trim():'',warn:b?(b.querySelector('.viWarn')||{}).textContent.trim():'',
+      wantName:e?langDesc(e.name):null,wantWarn:e?langDesc(vaultEnrageText(bm.key)):null,rule:VAULT.st.bossRule||null}; });
+  const esh=await shot(pg,S.tag+' Enrage in Floor Description');
+  C.ok(en.shown&&en.on&&en.wantName&&en.name.indexOf(en.wantName)>=0&&en.warn===en.wantWarn&&en.warn.length>10&&en.rule&&en.rule.warn,
+    S.tag+' Enrage: Floor Description shows the floor '+FLOOR+' boss ('+en.boss+') enrage "'+en.name+'" and what it does ("'+en.warn+'")',{got:{name:en.name,warn:en.warn},want:{name:en.wantName,warn:en.wantWarn},serverRule:en.rule,shot:esh});
   const pick=[chips[0],chips.find(c=>c.spec&&c.spec.boss)].filter((c,i,a)=>c&&a.indexOf(c)===i);
   for(const c of pick){
     await pg.evaluate(()=>{ try{ mcardClose(); }catch(e){} });
