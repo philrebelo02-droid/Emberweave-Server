@@ -304,7 +304,15 @@ console.log('== 20. the battle loader lists every spell sheet a fighter can use 
   for (const n of ['candlepot', 'candlepool', 'candleburst', 'candleeffigy', 'waxerupt', 'waxpool', 'bellring', 'waxshatter']) ok(r.cer.includes(n), "Ceraline's list has " + n);
   ok(r.syl.includes('blizzard'), "Sylthaine's list has her Blizzard");
   ok(['bleed', 'poison', 'firepatch'].every(n => r.any.includes(n)), 'every fighter brings the burn / bleed / poison floor marks');
-  ok(!/const FX_\w*LIST\s*=\s*\[/.test(html.slice(html.indexOf('function fxSheetKeys('), html.indexOf('function fxSheetTex('))), 'the list is derived from the data and the effect code, not a hand list'); }
+  ok(!/const FX_\w*LIST\s*=\s*\[/.test(html.slice(html.indexOf('function fxSheetKeys('), html.indexOf('function fxSheetTex('))), 'the list is derived from the data and the effect code, not a hand list');
+  /* memory budget (tests/test_memory_budget_1140.js, the phone's 2048 MB GPU / 400 MB bitmaps): only the core list is decoded and uploaded before the
+     fight; the added sheets are fetched into the cache only. The heaviest 5v5 of that test uploaded 112 MB more with all of them (2085 MB). */
+  const H10 = JSON.stringify(['rivet', 'hollow', 'aureth', 'rafe', 'tharl', 'ambrel', 'zahri', 'kharos', 'rhukk', 'grosk']);
+  const m = J(`(function(){ const c=fxSheetKeys(${H10},1), a=fxSheetKeys(${H10}); return {c:c.length, a:a.length, extra:a.filter(n=>c.indexOf(n)<0), pre:fxSheetPrefetch(${H10})}; })()`);
+  ok(m.c === 35 && m.a > m.c && m.pre === m.a - m.c, 'heaviest 5v5: ' + m.c + ' sheets uploaded before the fight (as v1451), ' + m.pre + ' more downloaded to the cache only');
+  ok(!m.extra.some(n => /^(tessit|hobb|sorrel)/.test(n)), 'a sheet the effect code names after a hero who is not in the fight is not fetched (tessithourglass, hobb_green, sorrelflare were)');
+  ok(/const list=fxSheetKeys\(keys,1\)\.map\(fxSheetTex\)/.test(html) && /fxSheetKeys\(keys,1\)\.forEach\(fxSheetTex\); \}catch\(e\)\{\}[^\n]*\n\s*try\{ fxSheetPrefetch\(keys\); \}/.test(html), 'the loader and the GPU warm-up make textures for the core list only; the rest is prefetched');
+  ok(/fetch\(u,\{credentials:'same-origin'\}\)\)\.then\(r=>\(r&&r\.ok&&r\.arrayBuffer\)\?r\.arrayBuffer\(\):null\)/.test(html.slice(html.indexOf('function fxSheetPrefetch('), html.indexOf('function fxSheetTex('))) && !/fx2Tex|TextureLoader|bitmapLoad|createImageBitmap/.test(html.slice(html.indexOf('function fxSheetPrefetch('), html.indexOf('function fxSheetTex('))), 'the prefetch reads bytes only: no texture, no decoded bitmap'); }
 
 console.log('== 21. the Damage Done lists step down until every row fits ==');
 { ok(/function ddFit\(ov\)\{[^\n]*for\(const c of \['ddD1','ddD2','ddD3'\]\)\{ if\(L\.scrollHeight<=L\.clientHeight\+1\) break; L\.classList\.add\(c\); \}/.test(html), 'ddFit adds ddD1 / ddD2 / ddD3 to a list until it no longer scrolls');

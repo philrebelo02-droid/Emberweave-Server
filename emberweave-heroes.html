@@ -6440,7 +6440,7 @@ function gpuWarmKeys(keys){
    session, so graphics memory only ever grew. Now the battle loader also loads every spell sheet the fighters can use and
    pushes it to the GPU behind the loading screen, and leaving the battlefield frees every spell sheet. A sheet the list
    misses still loads on cast, as before. */
-function fxSheetKeys(keys){ const out=new Set(), F=(typeof FX2_DEF!=='undefined')?FX2_DEF:{}, P=(typeof FX_PLATE_DEF!=='undefined')?FX_PLATE_DEF:{};
+function fxSheetKeys(keys,core){ const out=new Set(), F=(typeof FX2_DEF!=='undefined')?FX2_DEF:{}, P=(typeof FX_PLATE_DEF!=='undefined')?FX_PLATE_DEF:{};
   const walk=(o,d)=>{ if(o==null||d>3) return; if(typeof o==='string'){ if(F[o]||P[o]) out.add(o); return; } if(typeof o==='object') for(const k in o) walk(o[k],d+1); };
   (keys||[]).filter(Boolean).forEach(k=>{ walk((typeof KITS!=='undefined')&&KITS[k],0); walk((typeof MONSTER_KITS!=='undefined')&&MONSTER_KITS[k],0);
     const pre=String(k)+'_'; for(const n in F) if(n.indexOf(pre)===0) out.add(n); for(const n in P) if(n.indexOf(pre)===0) out.add(n);   // sheets named after the fighter (ults wired by name)
@@ -6454,17 +6454,22 @@ function fxSheetKeys(keys){ const out=new Set(), F=(typeof FX2_DEF!=='undefined'
      fighter - its kit, its monster kit, its ultimate's ULT_DEF and HERO_ULT_ART rows, its weapon-tip FX, its own-FX names through SKP_OWNFX, the
      sheets warmed with its figure; (2) the code: every sheet named in the effect cases of its skill types (and its own-FX branch in abilArt), and in
      the art helpers those cases call (fxCodeSheets); (3) the DoT floor marks (STATUSFX_KEY) any fighter can be carrying. */
-  if((keys||[]).some(Boolean)){ const g=(n)=>{ try{ return (0,eval)('typeof '+n+'!=="undefined"?'+n+':null'); }catch(e){ return null; } };
+  /* v1452 (memory budget, tests/test_memory_budget_1140.js): with core set, only the list above - the sheets uploaded to the GPU before the fight, as
+     before v1452. The sheets the lines below add are DOWNLOADED before the fight (fxSheetPrefetch: in the HTTP cache, never decoded or uploaded until a
+     spell first draws one), so no fight waits on the network for them and the phone's 2048 MB GPU / 400 MB bitmap budget is what it was. */
+  if(!core&&(keys||[]).some(Boolean)){ const g=(n)=>{ try{ return (0,eval)('typeof '+n+'!=="undefined"?'+n+':null'); }catch(e){ return null; } };
     const UD=g('ULT_DEF'), HA=g('HERO_ULT_ART'), TF=g('TIPFX'), OW=g('SKP_OWNFX'), W1=g('FX1115_WARM'), W2=g('FX1123_WARM'), SK=g('STATUSFX_KEY'), HT=g('HERO_TYPES'), MT=g('MONSTER_TYPES'), CI=fxCodeSheets();
+    /* a sheet the effect CODE names after another hero (a helper's per-hero table) is that hero's, not this fighter's: only fighters in this fight bring theirs */
+    const fk=(keys||[]).filter(Boolean).map(String), HK=Object.keys(HT||{}).concat(Object.keys(MT||{})).filter(h=>h.length>=3&&!fk.includes(h)), addC=n=>{ if(fk.some(k=>n.indexOf(k)===0)||!HK.some(h=>n.indexOf(h)===0)) out.add(n); };
     if(SK) for(const k in SK){ const n=SK[k]; if(F[n]||P[n]) out.add(n); }
     (keys||[]).filter(Boolean).forEach(k=>{ const t=(HT&&HT[k])||(MT&&MT[k])||{}, ab=t.ability, kit=((typeof KITS!=='undefined')&&KITS[k])||{}, mk=((typeof MONSTER_KITS!=='undefined')&&MONSTER_KITS[k])||{};
       walk(HA&&HA[k],0); walk(TF&&TF[k],0); walk(W1&&W1[k],0); walk(W2&&W2[k],0); if(ab&&UD) walk(UD[ab],0);
       const types=new Set(), own=new Set(); if(ab) types.add(ab);
       for(const K of [kit,mk]) for(const s in K){ const r=K[s]; if(r&&typeof r==='object'){ if(r.type) types.add(r.type); if(r.pass) types.add(r.pass); if(r.ownFx) own.add(r.ownFx); } }
       if(HA&&HA[k]&&HA[k].ownFx) own.add(HA[k].ownFx);
-      for(const o of own){ if(OW&&OW[o]&&(F[OW[o]]||P[OW[o]])) out.add(OW[o]); for(const n of (CI.own[o]||[])) out.add(n); }
-      for(const ty of types) for(const n of (CI.type[ty]||[])) out.add(n);
-      for(const K of [kit,mk]) for(const s in K){ const r=K[s]; if(r&&r.pass&&CI.passOf) for(const n of CI.passOf(r.pass)) out.add(n); } }); }
+      for(const o of own){ if(OW&&OW[o]&&(F[OW[o]]||P[OW[o]])) out.add(OW[o]); for(const n of (CI.own[o]||[])) addC(n); }
+      for(const ty of types) for(const n of (CI.type[ty]||[])) addC(n);
+      for(const K of [kit,mk]) for(const s in K){ const r=K[s]; if(r&&r.pass&&CI.passOf) for(const n of CI.passOf(r.pass)) addC(n); } }); }
   return [...out]; }
 /* v1452: the sheets each skill type's effect code and each own-FX branch names, read once from the code itself (the effect switch in _doEffectCore
    and abilArt's own-FX branches), with the sheets named by the art helpers those branches call (one level: functions that load sheets). */
@@ -6489,12 +6494,19 @@ function fxCodeSheets(){ if(fxCodeSheets._m) return fxCodeSheets._m; const m={ty
     const aa=(typeof abilArt==='function')?String(abilArt).split(/ownFx===?'/):[]; for(let i=1;i<aa.length;i++){ const b=aa[i], t=b.slice(0,b.indexOf("'")); if(t) m.own[t]=(m.own[t]||[]).concat(deep(b.slice(0,4000))); }
   }catch(e){}
   fxCodeSheets._m=m; return m; }
+/* v1452: the rest of a fight's spell sheets (fxSheetKeys minus its core list) are fetched into the HTTP cache with the fight's art - bytes only
+   (art is served immutable), no decode, no texture - so a spell's first cast reads them from the cache instead of the network. */
+function fxSheetPrefetch(keys){ try{ if(typeof fetch!=='function') return 0; const core=new Set(fxSheetKeys(keys,1)); let n=0;
+  for(const k of fxSheetKeys(keys)){ if(core.has(k)) continue; const d=((typeof FX2_DEF!=='undefined')&&FX2_DEF[k])||((typeof FX_PLATE_DEF!=='undefined')&&FX_PLATE_DEF[k]); if(!d||!d.u) continue;
+    let u=d.u; try{ if(typeof FX2_DEF!=='undefined'&&FX2_DEF[k]&&d.fw&&d.fh&&d.cols){ const A=artFile(d.u); if(A&&A.u) u=A.u; } }catch(e){}   /* this device's tier file, the one the spell's first draw will ask for */
+    n++; Promise.resolve(fetch(u,{credentials:'same-origin'})).then(r=>(r&&r.ok&&r.arrayBuffer)?r.arrayBuffer():null).then(()=>{},()=>{}); }
+  return n; }catch(e){ return 0; } }
 function fxSheetTex(n){ try{ return (typeof FX2_DEF!=='undefined'&&FX2_DEF[n]) ? fx2Tex(n) : _fxPlateTex(n); }catch(e){ return null; } }
 function fxWarmKeys(keys, timeoutMs){
   return new Promise(res=>{
     try{
       if(typeof renderer==='undefined' || !renderer || typeof renderer.initTexture!=='function') return res();
-      const list=fxSheetKeys(keys).map(fxSheetTex).filter(Boolean); if(!list.length) return res();
+      const list=fxSheetKeys(keys,1).map(fxSheetTex).filter(Boolean); if(!list.length) return res();   /* v1452: the core list only (the rest is prefetched, not uploaded) */
       /* v1120 (Phil 10 Oct: wait for every sheet before the fight): the cap was a fixed 8 s, so on a slow device (measured at 4x CPU
          throttle) the fight started with the enemy ults still unloaded and each one froze the fight for 0.2-0.9 s on its first cast.
          It is now a STALL cap - give up only when no new sheet has arrived for that long - with a 45 s hard ceiling so a dead sheet
@@ -6536,7 +6548,8 @@ function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
     let off=null, done=false, stall=null;
     const arm=()=>{ if(done) return; clearTimeout(stall); stall=setTimeout(finish, timeoutMs||12000); };
     const finish=()=>{ if(done) return; done=true; clearTimeout(stall); if(off) off(); battleCodeWarm(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
-    try{ fxSheetKeys(keys).forEach(fxSheetTex); }catch(e){}   // v944: spell sheets start downloading with everything else
+    try{ fxSheetKeys(keys,1).forEach(fxSheetTex); }catch(e){}   // v944: spell sheets start downloading with everything else
+    try{ fxSheetPrefetch(keys); }catch(e){}   /* v1452: the fight's other spell sheets download too (cache only - the phone memory budget holds) */
     try{
       if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
       const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
