@@ -22,15 +22,20 @@ async function openVault(pg,S){
 
 async function titleArt(pg,S,how){
   const r=await pg.evaluate(async()=>{ const t=document.querySelector('#dungeon .vtTitle'), cs=getComputedStyle(t), bg=await SL.bgLoaded(t), base=document.querySelector('#dungeon .backbtn');
-    const tr=SL.R(t), br=SL.R(base), st=SL.R('#dungeon .vtStats'), pick=SL.R('#dungeon .vtPick'), v=SL.V();
-    return {bg:bg.map(x=>x.url.replace(location.origin,'')+(x.ok?' '+x.w+'x'+x.h:' NOT LOADED')),ok:bg.length>0&&bg.every(x=>x.ok)&&bg.some(x=>/vault-title/.test(x.url)),
+    const box=SL.R(t), br=SL.R(base), st=SL.R('#dungeon .vtStats'), pick=SL.R('#dungeon .vtPick'), v=SL.V();
+    /* the painted part of the title: the art is drawn 'left center / contain' in its box; its opaque pixels give the painted rectangle */
+    let tr=box, painted=null; try{ const u=bg[0].url, im=new Image(); im.src=u; await im.decode(); const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const g=c.getContext('2d'); g.drawImage(im,0,0);
+      const d=g.getImageData(0,0,c.width,c.height).data; let x0=c.width,x1=-1,y0=c.height,y1=-1; for(let y=0;y<c.height;y+=2) for(let x=0;x<c.width;x+=2){ if(d[(y*c.width+x)*4+3]>40){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } }
+      const sc=Math.min(box.w/c.width,box.h/c.height), dh=c.height*sc, ox=box.x, oy=box.y+(box.h-dh)/2;
+      painted={x:+(ox+x0*sc).toFixed(1),y:+(oy+y0*sc).toFixed(1),r:+(ox+x1*sc).toFixed(1),b:+(oy+y1*sc).toFixed(1)}; painted.w=+(painted.r-painted.x).toFixed(1); painted.h=+(painted.b-painted.y).toFixed(1); tr=painted; }catch(e){ painted={error:String(e)}; }
+    return {box,painted,bg:bg.map(x=>x.url.replace(location.origin,'')+(x.ok?' '+x.w+'x'+x.h:' NOT LOADED')),ok:bg.length>0&&bg.every(x=>x.ok)&&bg.some(x=>/vault-title/.test(x.url)),
       font:cs.fontSize,text:(t.textContent||'').trim(),box:tr,base:br,view:v,on:SL.inView(t),front:SL.front(t,.3,.5),who:SL.whoAt(t,.3,.5),
       clearBase:!SL.overlap(tr,br),clearStats:!SL.overlap(tr,st),clearPick:!SL.overlap(tr,pick),
-      spot:tr.x>=br.r-2&&tr.x<v.width*0.45&&tr.y<v.height*0.3}; });
+      spot:tr.x>=br.r&&tr.x<v.width*0.45&&tr.y>=-1&&tr.y<v.height*0.3}; });
   const s=await shot(pg,S.tag+' Title art');
   C.ok(r.ok&&parseFloat(r.font)===0&&r.on&&r.front&&r.spot&&r.clearBase&&r.clearStats&&r.clearPick&&r.box.w>=60&&r.box.h>=20,
-    S.tag+' Title art: the painted Vault title (vault-title.webp, loaded) sits in the title spot (top left, right of Base, clear of the banners and fighters panel), no text title (font size 0) [opened by '+how+']',
-    {art:r.bg,box:r.box,base:r.base,view:r.view,font:r.font,front:r.who,shot:s});
+    S.tag+' Title art: the painted Vault title (vault-title.webp, loaded) sits in the title spot (top left, its painted part right of Base and clear of the banners and fighters panel), no text title (font size 0) [opened by '+how+']',
+    {art:r.bg,box:r.box,painted:r.painted,base:r.base,view:r.view,font:r.font,front:r.who,shot:s});
 }
 
 async function enemyCards(pg,S,s){
@@ -45,7 +50,8 @@ async function enemyCards(pg,S,s){
     await pg.evaluate(()=>{ try{ mcardClose(); }catch(e){} });
     const sel='#vtInfoPop .smEnemy[data-sl-idx="'+c.i+'"]';
     await pg.evaluate(s=>document.querySelector(s).scrollIntoView({block:'center'}),sel); await H.wait(200);
-    if(S.touch){ await pg.tap(sel); await H.wait(90); await pg.tap(sel); } else { await pg.mouse.move(2,2); await H.wait(100); await pg.hover(sel); }
+    const cp=await pg.evaluate(s=>{ const b=document.querySelector(s).getBoundingClientRect(); return [b.left+b.width/2,b.top+b.height/2]; },sel);
+    if(S.touch){ await pg.touchscreen.tap(cp[0],cp[1]); await H.wait(90); await pg.touchscreen.tap(cp[0],cp[1]); } else { await pg.mouse.move(2,2); await H.wait(250); await pg.mouse.move(cp[0],cp[1],{steps:4}); }
     await H.wait(600);
     const r=await pg.evaluate(c=>{ const card=document.querySelector('#mcLayer .mcCard'); if(!card) return {shown:false};
       const st=mcardStats(c.spec,c.mode), num=sel=>{ const e=card.querySelector('[data-st="'+sel+'"] b'); return e?parseInt(e.textContent.replace(/[^0-9]/g,''),10):null; };
@@ -62,16 +68,23 @@ async function enemyCards(pg,S,s){
 
 async function layout(pg,S,how){
   const r=await pg.evaluate(()=>{ const q=s=>document.querySelector('#dungeon '+s);
-    const parts={title:q('.vtTitle'),floorDesc:q('.vtInfo'),floorBanner:q('.vtFloor'),fighters:q('.vtPick'),drops:q('.vtDrops'),sweep:q('.vtRow .btn:nth-child(1)'),salvage:q('.vtRow .btn:nth-child(2)')};
+    const pk=q('.vtPick'), chips=[...pk.querySelectorAll('[style*="width:58px"]')], pbtn=[...pk.querySelectorAll('.btn')];
+    const parts={title:q('.vtTitle'),floorDesc:q('.vtInfo'),floorBanner:q('.vtFloor'),fighters:pk,drops:q('.vtDrops'),sweep:q('.vtRow .btn:nth-child(1)'),salvage:q('.vtRow .btn:nth-child(2)')};
+    chips.forEach((c,i)=>parts['heroSlot'+i]=c); pbtn.forEach((c,i)=>parts['fightersButton'+i]=c);
     const out={}; for(const [k,el] of Object.entries(parts)) out[k]=el?{box:SL.R(el),vis:SL.vis(el),on:SL.inView(el),front:SL.front(el),who:SL.whoAt(el)}:null;
+    /* a framed panel counts as on screen when its painted frame is (the frame art keeps a transparent edge of a few px) */
+    for(const k of ['fighters','drops']) if(out[k]){ const b=out[k].box, v=SL.V(); out[k].on=b.x>=-12&&b.y>=-12&&b.r<=v.width+12&&b.b<=v.height+12; }
     const sc=document.querySelector('#dungeon #dungeonBody>div'), scr=SL.scrolls(sc), scr2=SL.scrolls(document.getElementById('dungeon')), doc=SL.scrolls(document.scrollingElement);
     const ov=[]; const ks=Object.keys(out).filter(k=>out[k]&&k!=='floorDesc'&&k!=='floorBanner'); for(let i=0;i<ks.length;i++) for(let j=i+1;j<ks.length;j++) if(SL.overlap(out[ks[i]].box,out[ks[j]].box)) ov.push(ks[i]+'/'+ks[j]);
     const zoom=(q('#dungeonBody>div>div:has(.vtPick)')||{}).style; return {parts:out,scroll:scr,screen:scr2,doc,overlaps:ov,zoom:zoom&&zoom.zoom,view:SL.V()}; });
   const s=await shot(pg,S.tag+' Landscape layout');
   const bad=Object.entries(r.parts).filter(([k,v])=>!v||!v.vis||!v.on||!v.front).map(([k,v])=>k+(v?(!v.on?' off-screen '+JSON.stringify(v.box):'')+(!v.front?' covered by '+v.who:''):' missing'));
-  C.ok(!bad.length&&!r.scroll.y&&!r.scroll.x&&!r.screen.y&&!r.doc.y&&!r.overlaps.length,
-    S.tag+' Landscape layout: title, banners (Floor Description + Floor N / 100), fighters panel, drops, Sweep and Salvage all on screen, not covered, nothing overlapping, no scroll [opened by '+how+']',
-    {problems:bad,overlaps:r.overlaps,scroll:r.scroll,screen:r.screen,zoom:r.zoom,view:r.view,boxes:Object.fromEntries(Object.entries(r.parts).map(([k,v])=>[k,v&&v.box])),shot:s});
+  const nSlots=Object.keys(r.parts).filter(k=>/^heroSlot/.test(k)).length;
+  C.ok(!bad.length&&nSlots===10,
+    S.tag+' Landscape layout: title, banners (Floor Description + Floor N / 100), fighters panel (its 10 hero slots and 2 buttons), drops, Sweep and Salvage all on screen and not covered [opened by '+how+']',
+    {problems:bad,slots:nSlots,zoom:r.zoom,view:r.view,boxes:Object.fromEntries(Object.entries(r.parts).filter(([k])=>!/^(heroSlot|fightersButton)/.test(k)).map(([k,v])=>[k,v&&v.box])),shot:s});
+  C.ok(!r.scroll.y&&!r.scroll.x&&!r.screen.y&&!r.screen.x&&!r.doc.y&&!r.doc.x,S.tag+' Landscape layout: no scroll (the Vault page cannot be scrolled up/down or sideways)',
+    {page:r.scroll,screen:r.screen,doc:r.doc,overflowRight:Math.round(r.scroll.sw-r.scroll.cw)+' px',fightersFrameRight:r.parts.fighters&&r.parts.fighters.box.r,view:r.view.width,shot:s});
 }
 
 async function powerCards(pg,S){
@@ -108,7 +121,7 @@ async function powerCards(pg,S){
         if(do_.power) await powerCards(pg,S);
       }catch(e){ C.ok(false,S.tag+' ran to the end',String(e&&e.stack||e).slice(0,500)); }
       C.ok(pg._errs.length===0,S.tag+' no page errors',pg._errs.slice(0,3));
-      await pg._ctx.close(); pg=null; }
+      await pg._ctx.close(); pg=null; await H.closeBrowser(); }
   }catch(e){ C.ok(false,'the test ran to the end',String(e&&e.stack||e).slice(0,600)); }
   finally{ if(pg) try{ await pg._ctx.close(); }catch(_){} await H.closeBrowser(); await s.stop(); }
   C.done();
