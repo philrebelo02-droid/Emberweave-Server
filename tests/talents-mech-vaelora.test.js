@@ -51,7 +51,7 @@ test('Vaelora: every talent is accounted for - 11 plain stats, 104 with rows, no
   for(const id of ['pc_13_2','wc_13_3','tw_13_3']) assert.ok(FXN.mech(H).talents[id],id);
 });
 
-test('Vaelora: her real kit, as the talents read it - Featherfang (the line to the farthest enemy), Whiteout Pounce (evade, counter on the attacker), Winter Plumage (0.5 s ticks, 0.84 s freezes), Silent Altitude',()=>{
+test('Vaelora: her real kit, as the talents read it - Featherfang (the line to the farthest enemy), Whiteout Pounce (evade, counter on the attacker), Winter Plumage (0.5 s ticks, 1.05 s freezes), Silent Altitude',()=>{
   plain({foes:4,big:true},P=>{ const {v,F}=P; const h=F.map(f=>f.hp); castFF(P,F[0]);
     const d=F.map((f,i)=>h[i]-f.hp); assert.ok(d[0]>0&&d[1]>0&&d[2]>0,'Featherfang strikes every enemy on the line to the farthest one'); assert.equal(d[3],0,'(not one 6 m off it)');
     near(d[0],d[2],'each the same'); near(d[0],d[1],'');
@@ -60,7 +60,7 @@ test('Vaelora: her real kit, as the talents read it - Featherfang (the line to t
     const h2=F[2].hp; V.hit(F[2],v,1000,{kind:'phys'}); assert.ok(v.hp<hv,'(the next hit lands)'); assert.equal(F[2].hp,h2,'(no second counter)'); });
   plain({foes:3,big:true},P=>{ const {v,F}=P; go(P); free(P); castWS(P,F[0]); near(v._blizzT,4,'Winter Plumage: a 4 s channel');
     const h=F.map(f=>f.hp); secs(0.45); assert.equal(F[0].hp,h[0],'(no tick before 0.5 s)'); rndAt(0.05,()=>secs(0.1)); assert.ok(F[0].hp<h[0]&&F[1].hp<h[1],'a tick at 0.5 s: every enemy within 8 m of its spot');
-    assert.equal(F[2].hp,h[2],'(not one 11 m from it)'); near(F[0].stunned,0.84,'a freeze (a 10% roll each tick): 0.84 s',0.08); });
+    assert.equal(F[2].hp,h[2],'(not one 11 m from it)'); near(F[0].stunned,1.05,'a freeze (a 10% roll each tick): 1.05 s (v1455: the area freeze, was 0.84)',0.08); });
   plain({foes:2,big:true},P=>{ const {v}=P; const c0=v.critDmg||0.6; v._untouched=3; V.step(1); near(v.critDmg,c0+0.5*v.passMul,'Silent Altitude: 3 s untouched, +50% x its strength critical damage');
     V.hit(P.F[0],v,1,{kind:'true'}); V.step(1); near(v.critDmg,c0,'any enemy hit spoils it'); });
 });
@@ -207,12 +207,12 @@ test('Vaelora / Winter Plumage: Feather Storm, Rime Wings, Hunting Storm, Feathe
 
 test('Vaelora / freezes: Frozen Through (0.1 s a rank longer), Winter Hunt (the lowest-HP enemy inside, 2% a rank more often), Brittle Prey (2% a rank more critical damage on an enemy the storm froze), Owl\'s Gift, Late Winters',()=>{
   const L=lab(H,S(['wc_9_3','pc_12_2','wc_10_3','wc_1_4','wc_7_1']),{foes:3,big:true}), {v,F}=L; go(L); free(L); castWS(L,F[0]); rndAt(0.05,()=>secs(0.55));
-  near(F[0].stunned,0.84+0.5,'Frozen Through: 0.84 + 0.1 x 5 s',0.08); assert.ok(rq(L,F[0]).fz>0,'(frozen by the storm)'); assert.equal(qOn(L,F[0]),1,'Owl\'s Gift: its 1st tick on an enemy, 1 Quill');
+  near(F[0].stunned,1.05+0.5,'Frozen Through: 1.05 + 0.1 x 5 s',0.08); assert.ok(rq(L,F[0]).fz>0,'(frozen by the storm)'); assert.equal(qOn(L,F[0]),1,'Owl\'s Gift: its 1st tick on an enemy, 1 Quill');
   const cr=myHit(L,F[0],{crit:true}), cr0=plainHit(L,()=>myHit(L,F[0],{crit:true})); near(cr,cr0*1.10,'Brittle Prey: her critical hits on it 2% x 5 more'); near(myHit(L,F[2],{crit:true}),plainHit(L,()=>myHit(L,F[2],{crit:true})),'(not an enemy it did not freeze)');
   F[0].energy=10; secs(0.5); const e0=F[0].energy; F[0].energy+=20; V.step(1); near(F[0].energy,e0+20*0.90,'Late Winters: an enemy the storm hit gains energy 2% x 5 slower',1e-6);
   rndAt(0.99,()=>secs(2.5)); assert.equal(qOn(L,F[0]),3,'Owl\'s Gift: its 4th and 7th tick, 2 Quills more (3 x 1)');
   const W=lab(H,S(['tw_11_3']),{foes:3,big:true}); go(W); free(W); W.F[1].hp=W.F[1].maxHp*0.2; castWS(W,W.F[0]); rndAt(0.1095,()=>secs(0.55));
-  near(W.F[1].stunned,0.84,'Winter Hunt: the lowest-HP enemy inside freezes at a roll of 0.1095 (10% x 1.10)',0.08); near(W.F[0].stunned,0,'(the others still at 10%)');
+  near(W.F[1].stunned,1.05,'Winter Hunt: the lowest-HP enemy inside freezes at a roll of 0.1095 (10% x 1.10)',0.08); near(W.F[0].stunned,0,'(the others still at 10%)');
   const B=lab(H,S(['tw_11_3']),{foes:3,big:true}); go(B); free(B); B.F[1].hp=B.F[1].maxHp*0.2; castWS(B,B.F[0]); rndAt(0.1125,()=>secs(0.55));
   near(B.F[1].stunned,0,'(a 0.1125 roll is above the 10% x 1.10 line: no freeze)',0.08); near(B.F[0].stunned,0,'(nor the others)');
 });
