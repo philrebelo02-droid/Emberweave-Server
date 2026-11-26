@@ -10,7 +10,7 @@ const root = path.join(__dirname, '..');
 const HTML = process.env.HF_HTML || path.join(root, 'emberweave-heroes.html');
 const html = fs.readFileSync(HTML, 'utf8');
 const SOFT = !!process.env.HF_SOFT; let pass = 0, fail = 0;
-const ok = (c, m) => { if (!c && SOFT) { fail++; console.log('  FAIL ' + m); return; } assert(c, m); pass++; console.log('  ok   ' + m); };
+const ok = (c, m) => { if (!c && SOFT) { fail++; console.log('  FAIL ' + m); return; } if (!c) process.exitCode = 1; assert(c, m); pass++; console.log('  ok   ' + m); };   // exitCode: the in-process server's uncaughtException handler would swallow a failed check
 const host = require(path.join(root, 'server', 'sim-host.js')).load(HTML);
 const R = s => vm.runInContext(s, host.ctx, { timeout: 60000 });
 const J = s => { try { const r = R('JSON.stringify(' + s + ')'); return r === undefined ? null : JSON.parse(r); } catch (e) { if (SOFT) return null; throw e; } };
@@ -207,4 +207,4 @@ console.log('== 14. the Boar Shaman casts Bone Chant and Pyre Grunt ==');
 
 (module.exports.__serverPromise || Promise.resolve()).then(() => {
   console.log((SOFT ? 'SOFT ' : '') + 'test_heroes_fixes_1455.js: ' + pass + ' passed' + (SOFT ? ', ' + fail + ' failed' : ''));
-  process.exit(SOFT && fail ? 1 : 0); }, e => { console.error(e && e.stack || e); process.exit(1); });
+  process.exit((SOFT && fail) || process.exitCode ? 1 : 0); }, e => { console.error(e && e.stack || e); process.exit(1); });
