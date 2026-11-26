@@ -53,6 +53,8 @@ for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.magmourn\.blue\.
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.MONSTER_KITS\.magmourn\.(blue\.gfxR|green\.(radius|gfxR)) /.test(odd[j])) odd.splice(j, 1);
 /* v1376 (tester Soul Eater 12 Nov): Carn's Crimson Reap 2.6x -> 3.4x Attack - deliberate, not the resize (tests/test_hunt_carn_1376.js checks it) */
 for (let j = odd.length - 1; j >= 0; j--) if (/^\.ULT_DEF\.cleave\.mul /.test(odd[j])) odd.splice(j, 1);
+/* v1456 (Phil 26 Nov, Umbris Hailuo remake a1a8514a0: "Creeping Rot hero-sized on its target"): Creeping Rot's art 3 m -> 1.2 m (gfxR) - art only, deliberate, not the resize (tests/test_umbris_anim_eight.js and tests/test_umbris_scaling_1456.js check it) */
+for (let j = odd.length - 1; j >= 0; j--) if (/^\.KITS\.umbris\.blue\.gfxR /.test(odd[j])) odd.splice(j, 1);
 ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
 ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
