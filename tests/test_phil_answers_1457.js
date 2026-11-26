@@ -81,6 +81,24 @@ section('1. every glyph fragment drops somewhere; a stage splits its drop evenly
     && /\$\{\(_random\|\|_split\)\?` <span style="color:#8b98a9">\$\{_pct\}<\/span>`:''\}/.test(html), 'the CHANCES box heads the list with the split and shows the chance on each line');
 });
 
+section('2. the Arena gives no hero XP', async () => {
+  const a0 = html.indexOf("  if(CUR.mode==='arena'){ let _arepDef=null"), blk = html.slice(a0, html.indexOf("\n  if(CUR.mode===", a0 + 10));
+  ok(blk.length > 500 && !/grantTeamXP|heroXP|hero_xp/.test(blk), 'the Arena result step grants no hero XP and promises none (' + blk.length + ' chars checked)');
+  ok(!/if\(won\)grantTeamXP\(70\)/.test(html), 'the old local +70 is gone from the page');
+  const rt = SRC.slice(SRC.indexOf("if(p==='/api/arena/result' && req.method==='POST')"), SRC.indexOf("if(p==='/api/arena/top')"));
+  ok(rt.length > 1000 && !/heroXp|\.xp\b|hero\[/.test(rt), 'the server\'s /api/arena/result grants no hero XP');
+  // a real won fight on the server
+  const a = await guest('arA'), b = await guest('arB'), TEAM = ['vael', 'sylthaine', 'vireo', 'vex', 'gruel'];
+  { const u = S.DB.users[a.id]; u.led.px = 900000; for (const k of TEAM) { u.led.unlocked[k] = true; u.led.hero[k] = { xp: 9000000, stars: 5, pips: 0 }; }
+    u.team = TEAM.slice(); u._arenaOffer = [{ id: b.id, t: Date.now() }]; const o = S.DB.users[b.id]; o.team = []; o.wall = []; }
+  const before = TEAM.map(k => S.DB.users[a.id].led.hero[k].xp);
+  const st = (await call('/api/arena/start', { oppId: b.id, requestId: 'p1457-as' }, a.T)).data;
+  const ar = (await call('/api/arena/result', { oppId: b.id, won: true, requestId: 'p1457-ar' }, a.T)).data;
+  const after = TEAM.map(k => S.DB.users[a.id].led.hero[k].xp);
+  ok(st && st.ok === true && ar && ar.won === true, 'a strong squad wins an Arena fight (' + JSON.stringify({ start: st && (st.error || 'ok'), won: ar && ar.won, err: ar && ar.error }) + ')');
+  ok(JSON.stringify(before) === JSON.stringify(after) && !('heroXp' in (ar || {})), 'and its heroes gain no XP (' + after.join(', ') + ')');
+});
+
 (async () => {
   for (const [n, f] of SECTIONS) { console.log('== ' + n + ' =='); await f(); }
 })().then(() => { console.log((SOFT ? 'SOFT ' : '') + 'test_phil_answers_1457.js: ' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0); },

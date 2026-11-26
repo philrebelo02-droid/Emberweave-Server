@@ -19288,7 +19288,7 @@ function endBattle(won){
         +(CUR.replayOld?'<div id="replayOldNote" style="font-size:10.5px;color:#6f7d90;margin-top:6px">'+escapeHTML(ewT('result.replay_older_build'))+'</div>':'');   /* v1391: recorded on another build - the title above is the RECORDED result */
       document.getElementById('resultHint').textContent=ewT('result.replay_no_rewards'); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); resultLater(()=>onlineResult(won),800); return; }
-  if(CUR.mode==='arena'){ if(won)grantTeamXP(70); let _arepDef=null, _arepMine=null;
+  if(CUR.mode==='arena'){ let _arepDef=null, _arepMine=null;   /* v1457 (Phil 26 Nov 2026, lockdown answer 2: "pvp shouldnt give exp"): an Arena fight gives NO hero XP - the old local +70 (wiped by the next ledger sync anyway) is gone; the server never paid any */
     /* v1450 ONE ARENA FIGHT: the watchable report IS this fight - the squads and the seed it was played on (the server's, signed in). Arena is
        100% auto and fixed-step, so that seed replays it exactly. The seed search that used to find "a fight with the same outcome" is gone, and
        the DEFENDER's report is written by the server from the same fight (the page no longer sends one). */
