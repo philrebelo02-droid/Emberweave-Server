@@ -685,6 +685,8 @@ note "screen_lockdown_market.js (lockdown 25 Nov round 2, needs playwright: Mark
 node tests/screen_lockdown_market.js || FAILED=1
 note "screen_lockdown_shady.js (lockdown 25 Nov round 2, needs playwright: Shady Market hall, title, subtitle, Base; Teleport card art; framed cards at 6 sizes)"
 node tests/screen_lockdown_shady.js || FAILED=1
+note "screen_lockdown_hut.js (lockdown 25 Nov round 2, needs playwright: Witches Hut: march / mine / attack pickers grey a 0% hero (HP 0%) and show Lv + HP % for a wounded one)"
+node tests/screen_lockdown_hut.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
