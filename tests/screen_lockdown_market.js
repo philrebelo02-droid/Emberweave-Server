@@ -20,19 +20,19 @@ async function screen(pg,S){
     const title=await SL.bgLoaded(h1), hall=await SL.bgLoaded(scr);
     const hu=((getComputedStyle(panel,'::before').borderImageSource||'').match(/url\(["']?([^"')]+)/)||[])[1], holder=hu?await SL.loadImg(hu):null;
     const offers=[]; for(const o of panel.querySelectorAll('.merc-offer')){ const fu=((getComputedStyle(o).borderImageSource||'').match(/url\(["']?([^"')]+)/)||[])[1], f=fu?await SL.loadImg(fu):null; offers.push({frame:fu?fu.replace(location.origin,''):null,ok:!!(f&&f.ok),box:SL.R(o)}); }
-    const pr=SL.R(panel), wr=SL.R(w);
+    const pr=SL.R(panel), wr=SL.R(w), spans=[...w.children].map(e=>SL.R(e)), wpaint=getComputedStyle(w).backgroundImage+' '+getComputedStyle(w).backgroundColor;
     return {hall:hall.map(x=>x.url.replace(location.origin,'').slice(0,80)+(x.ok?' ok':' NOT LOADED')),hallOk:hall.some(x=>x.ok&&/market-hall/.test(x.url)),
       title:title.map(x=>x.url.replace(location.origin,'')+(x.ok?' '+x.w+'x'+x.h:' NOT LOADED')),titleOk:title.some(x=>x.ok&&/market-wordmark/.test(x.url))&&title.every(x=>x.ok),titleFont:getComputedStyle(h1).fontSize,titleOn:SL.inView(h1),titleFront:SL.front(h1),titleBox:SL.R(h1),
       sub:SL.txt(sub),subOn:SL.inView(sub),subFront:SL.front(sub),subBox:SL.R(sub),wantSub:t('market.screen_sub'),
-      holder:hu?hu.replace(location.origin,''):null,holderOk:!!(holder&&holder.ok),panel:pr,wallet:wr,walletTxt:SL.txt(w),walletOn:SL.inView(w),offers}; });
+      holder:hu?hu.replace(location.origin,''):null,holderOk:!!(holder&&holder.ok),panel:pr,wallet:wr,wpaint,spansIn:spans.length>0&&spans.every(s=>s.x>=pr.x-1&&s.r<=pr.r+1&&s.y>=pr.y-1&&s.b<=pr.b+1),spans,walletTxt:SL.txt(w),walletOn:SL.inView(w),offers}; });
   const s=await shot(pg,S.tag+' market');
   C.ok(r.hallOk,S.tag+' Market screen: the painted market hall is behind the screen (art loaded) [opened by '+how+']',{hall:r.hall,shot:s});
   C.ok(r.titleOk&&parseFloat(r.titleFont)===0&&r.titleOn&&r.titleFront,S.tag+' Market screen: the painted MARKET title art is loaded, on screen, not covered (no text title)',{title:r.title,box:r.titleBox,shot:s});
   C.ok(r.sub==='Hero fragments · shields'&&r.sub===r.wantSub&&r.subOn&&r.subFront,S.tag+' Market screen: the subtitle "'+r.sub+'" is on screen and not covered',{box:r.subBox,shot:s});
   C.ok(r.offers.length>0&&r.offers.every(o=>o.ok&&/market-item-frame/.test(o.frame||'')),S.tag+' Market screen: every offer card wears its painted frame ('+r.offers.length+' cards, frame art loaded)',{offers:r.offers.map(o=>o.frame+(o.ok?'':' NOT LOADED')),shot:s});
-  const across=r.wallet&&r.panel&&r.wallet.w>=r.panel.w*0.95&&r.wallet.x>=r.panel.x-1&&r.wallet.r<=r.panel.r+1;
+  const across=r.wallet&&r.panel&&r.wallet.w>=r.panel.w*0.95&&r.spansIn;
   C.ok(r.holderOk&&across&&r.walletOn&&/\d/.test(r.walletTxt),S.tag+' Market screen: the wallet bar runs across the painted holder (holder art loaded, bar '+(r.wallet&&r.wallet.w)+' of '+(r.panel&&r.panel.w)+' px)',
-    {holder:r.holder,wallet:r.wallet,panel:r.panel,text:r.walletTxt,shot:s});
+    {holder:r.holder,wallet:r.wallet,walletPaint:r.wpaint,textRuns:r.spans,panel:r.panel,text:r.walletTxt,shot:s});
 }
 
 async function frames(pg,S){
@@ -44,15 +44,15 @@ async function frames(pg,S){
       if(name&&name.scrollWidth>name.clientWidth+1) bad.push('name overflows'); if(btn.scrollWidth>btn.clientWidth+1) bad.push('price overflows');
       if(o.scrollWidth>o.clientWidth+1||o.scrollHeight>o.clientHeight+1) bad.push('card content overflows');
       return {i:i+1,name:name?SL.txt(name).slice(0,30):'',price:SL.txt(btn),card:or,bad}; });
-    const w=panel.querySelector('.merc-wallet'), wr=SL.R(w);
-    return {panel:pr,holderInScreen:pr.x>=-1&&pr.r<=v.width+1,screenX:SL.scrolls(scr),wallet:wr,walletIn:ins(wr,pr)&&w.scrollWidth<=w.clientWidth+1,offers}; });
+    const w=panel.querySelector('.merc-wallet'), wr=SL.R(w), spans=[...w.children].map(e=>SL.R(e));
+    return {panel:pr,holderInScreen:pr.x>=-1&&pr.r<=v.width+1,screenX:SL.scrolls(scr),wallet:wr,walletIn:spans.length>0&&spans.every(s=>ins(s,pr))&&w.scrollWidth<=w.clientWidth+1,wallet:wr,walletRuns:spans,offers}; });
   /* the whole holder in the picture: scroll the screen so the last card shows */
   const s=await shot(pg,S.tag+' market frames (top)');
   await pg.evaluate(()=>{ const c=[...document.querySelectorAll('#marketBody .merc-offer')].pop(); if(c) c.scrollIntoView({block:'end'}); }); await H.wait(300);
   const s2=await shot(pg,S.tag+' market frames (bottom)');
   const bad=r.offers.filter(o=>o.bad.length);
   C.ok(r.offers.length>0&&bad.length===0&&r.walletIn&&r.holderInScreen&&!r.screenX.x,S.tag+' Item cards stay inside their frame: '+r.offers.length+' offer cards, their prices and the wallet bar sit inside the painted holder, the holder inside the screen, no overflow',
-    {bad:bad.map(o=>o.i+' '+o.name+': '+o.bad.join(', ')+' '+JSON.stringify(o.card)),panel:r.panel,screenScrollX:r.screenX.x,cards:r.offers.map(o=>o.i+' '+o.price+' '+o.card.w+'x'+o.card.h),shots:[s,s2]});
+    {bad:bad.map(o=>o.i+' '+o.name+': '+o.bad.join(', ')+' '+JSON.stringify(o.card)),panel:r.panel,screenScrollX:r.screenX.x,walletIn:r.walletIn,walletRuns:r.walletRuns,cards:r.offers.map(o=>o.i+' '+o.price+' '+o.card.w+'x'+o.card.h),shots:[s,s2]});
 }
 
 async function store(pg,S){
@@ -86,10 +86,14 @@ async function store(pg,S){
       let scrolled=null;
       if(r.over){ /* sideways: the mouse wheel on a PC (the page turns it sideways), a finger swipe on a phone */
         const b=await pg.evaluate(()=>{ const r=document.querySelector('#hudShop .st2-body').getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width}; });
-        if(S.touch){ const cdp=await pg._ctx.newCDPSession(pg); for(let k=0;k<6;k++){ await cdp.send('Input.synthesizeScrollGesture',{x:Math.round(b.x),y:Math.round(b.y),xDistance:-Math.round(b.w*0.8),yDistance:0,gestureSourceType:'touch',speed:1600}); } }
+        if(S.touch){ const cdp=await pg._ctx.newCDPSession(pg); for(let k=0;k<4;k++){ const x0=Math.round(b.x+b.w*0.35), y=Math.round(b.y);
+          await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x0,y}]});
+          for(let j=1;j<=12;j++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x0-Math.round(b.w*0.6*j/12),y}]}); await H.wait(16); }
+          await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await H.wait(250); } }
         else { await pg.mouse.move(b.x,b.y); for(let k=0;k<12;k++){ await pg.mouse.wheel(0,400); await H.wait(60); } }
         await H.wait(600);
-        scrolled=await pg.evaluate(()=>{ const body=document.querySelector('#hudShop .st2-body'), brr=SL.R(body), last=[...body.querySelectorAll('.st2-card')].pop(), lr=SL.R(last); return {scrollLeft:Math.round(body.scrollLeft),max:body.scrollWidth-body.clientWidth,lastIn:lr.x>=brr.x-1&&lr.r<=brr.r+1}; });
+        scrolled=await pg.evaluate(()=>{ const body=document.querySelector('#hudShop .st2-body'), brr=SL.R(body), last=[...body.querySelectorAll('.st2-card')].pop(), lr=SL.R(last); let ta=[]; for(let e=body;e&&e!==document.documentElement;e=e.parentElement){ const v=getComputedStyle(e).touchAction; if(v!=='auto') ta.push((e.id||e.className||e.tagName).toString().slice(0,30)+':'+v); }
+          return {scrollLeft:Math.round(body.scrollLeft),max:body.scrollWidth-body.clientWidth,lastIn:lr.x>=brr.x-1&&lr.r<=brr.r+1,overflowX:getComputedStyle(body).overflowX,touchAction:ta}; });
         const s2=await shot(pg,S.tag+' store '+id+' scrolled');
         C.ok(scrolled.scrollLeft>0&&scrolled.lastIn,S.tag+' Painted store window, '+id+' tab: the cards do not all fit, and '+(S.touch?'a sideways swipe':'the mouse wheel')+' scrolls them sideways until the last card is in the window',{...scrolled,width:r.sw+'/'+r.cw,shot:s2});
       } else C.ok(r.visible===r.n,S.tag+' Painted store window, '+id+' tab: all '+r.n+' cards fit inside the window (no sideways scroll needed)',{body:r.body,shot:s1});
