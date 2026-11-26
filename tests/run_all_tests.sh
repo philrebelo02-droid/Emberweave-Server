@@ -711,6 +711,20 @@ note "screen_lockdown_island.js (lockdown 25 Nov round 2, needs playwright: Isla
 node tests/screen_lockdown_island.js || FAILED=1
 note "screen_lockdown_island_emberdraft.js (lockdown 25 Nov round 2, needs playwright: Emberdraft title screen, players panel, drag to buy, drag a hero + second finger, hero info panel, your avatar, rank insignia, rival avatar)"
 node tests/screen_lockdown_island_emberdraft.js || FAILED=1
+note "screen_lockdown_forge.js (lockdown 25 Nov round 2, needs playwright: Forge painted hall, title art, Dust + Resonance banner at 5 sizes)"
+node tests/screen_lockdown_forge.js || FAILED=1
+note "screen_lockdown_academy.js (lockdown 25 Nov round 2, needs playwright: Academy hall, title, 8 labelled cards + centre, nothing overlapping; compact layout on short screens)"
+node tests/screen_lockdown_academy.js || FAILED=1
+note "screen_lockdown_pool.js (lockdown 25 Nov round 2, needs playwright: Wishing Pool stage fits, painted title, framed cards, floating orbs; cards, buttons, single and x10 results fit small screens)"
+node tests/screen_lockdown_pool.js || FAILED=1
+note "screen_lockdown_market.js (lockdown 25 Nov round 2, needs playwright: Market painted hall, title, subtitle, framed offers, wallet across the holder; cards inside frames at 6 sizes; painted store window tabs + cards + sideways scroll)"
+node tests/screen_lockdown_market.js || FAILED=1
+note "screen_lockdown_shady.js (lockdown 25 Nov round 2, needs playwright: Shady Market hall, title, subtitle, Base; Teleport card art; framed cards at 6 sizes)"
+node tests/screen_lockdown_shady.js || FAILED=1
+note "screen_lockdown_hut.js (lockdown 25 Nov round 2, needs playwright: Witches Hut: march / mine / attack pickers grey a 0% hero (HP 0%) and show Lv + HP % for a wounded one)"
+node tests/screen_lockdown_hut.js || FAILED=1
+note "screen_lockdown_egp.js (lockdown 25 Nov round 2, needs playwright: EGP: all 31 patron levels same card size, sticky header; gold phoenix on EGP, diamond phoenix on EDP)"
+node tests/screen_lockdown_egp.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
