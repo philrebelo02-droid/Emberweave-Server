@@ -677,6 +677,8 @@ note "screen_lockdown_watchtower.js (lockdown 25 Nov round 2, needs playwright: 
 node tests/screen_lockdown_watchtower.js || FAILED=1
 note "screen_lockdown_vault.js (lockdown 25 Nov round 2, needs playwright: Vault painted title in the title spot, enemy cards on hover / double tap with the floor numbers, one-screen landscape layout at every size, power on the Select Heroes cards)"
 node tests/screen_lockdown_vault.js || FAILED=1
+note "screen_lockdown_arena.js (lockdown 25 Nov round 2, needs playwright: Arena painted title beside Base, one-screen board at every size, Arena Shop painted title / framed items / price buttons / coin balance)"
+node tests/screen_lockdown_arena.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
