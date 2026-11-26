@@ -683,6 +683,8 @@ note "screen_lockdown_pool.js (lockdown 25 Nov round 2, needs playwright: Wishin
 node tests/screen_lockdown_pool.js || FAILED=1
 note "screen_lockdown_market.js (lockdown 25 Nov round 2, needs playwright: Market painted hall, title, subtitle, framed offers, wallet across the holder; cards inside frames at 6 sizes; painted store window tabs + cards + sideways scroll)"
 node tests/screen_lockdown_market.js || FAILED=1
+note "screen_lockdown_shady.js (lockdown 25 Nov round 2, needs playwright: Shady Market hall, title, subtitle, Base; Teleport card art; framed cards at 6 sizes)"
+node tests/screen_lockdown_shady.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
