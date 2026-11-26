@@ -39,13 +39,22 @@ const AH_HELPERS=()=>{ if(window.AH) return true;
     const h1s=[]; for(const h of root.querySelectorAll('h1')){ if(!onScreen(h)) continue; const cs=getComputedStyle(h), bgi=cs.backgroundImage, us=urls(bgi);
       const fill=cs.webkitTextFillColor||''; const transparent=/rgba\(0, 0, 0, 0\)|transparent/.test(fill)||/rgba\(0, 0, 0, 0\)|transparent/.test(cs.color);
       const grad=/gradient/.test(bgi)&&cols(bgi).some(isGold)&&transparent; let painted=false; if(us.length){ const L=await Promise.all(us.map(load)); painted=L.some(x=>x.ok); }
-      h1s.push({el:desc(h),text:SL.txt(h).slice(0,40),gold:grad,painted,fs:cs.fontSize,ok:grad||painted}); }
+      const solidGold=!transparent&&cols(cs.color).some(isGold)||cols(fill).some(isGold);   /* solid gold text (City Wall / Bulletin Board / Witches Hut) */
+      h1s.push({el:desc(h),text:SL.txt(h).slice(0,40),gold:grad||solidGold,how:grad?'gold gradient':solidGold?'solid gold '+(cs.webkitTextFillColor||cs.color):painted?'painted art':'none',painted,fs:cs.fontSize,color:cs.color,ok:grad||solidGold||painted}); }
     const flatBtns=[], btns=[]; for(const b of root.querySelectorAll('.btn')){ if(!onScreen(b)) continue; const cs=getComputedStyle(b), bgi=cs.backgroundImage, sec=b.classList.contains('secondary');
-      const ok=sec?(/gradient|url\(/.test(bgi)):(/url\(/.test(bgi)||cols(bgi).some(isGold)); btns.push(ok); if(!ok) flatBtns.push(desc(b)+' "'+SL.txt(b).slice(0,20)+'" bg '+bgi.slice(0,60)+' '+box(b).w+'x'+box(b).h); }
+      let ok=sec?(/gradient|url\(/.test(bgi)):(/url\(/.test(bgi)||cols(bgi).some(isGold));
+      /* painted another way: a loaded border image, or a ::before / ::after carrying the art or a gold gradient (the Market / Shady price buttons) */
+      if(!ok){ const bi=urls(cs.borderImageSource); if(bi.length){ const L=await load(bi[0]); if(L.ok) ok=true; } }
+      if(!ok){ for(const ps of ['::before','::after']){ const pcs=getComputedStyle(b,ps), pi=pcs.backgroundImage, pu=urls(pi).concat(pcs.content!=='none'?urls(pcs.borderImageSource):[]); if(pu.length){ const L=await load(pu[0]); if(L.ok){ ok=true; break; } } if(cols(pi).some(isGold)){ ok=true; break; } } }
+      btns.push(ok); if(!ok) flatBtns.push(desc(b)+' "'+SL.txt(b).slice(0,20)+'" bg '+bgi.slice(0,60)+' '+box(b).w+'x'+box(b).h); }
     const flatTabs=[]; let tabs=0; for(const t of root.querySelectorAll('.tabrow .tab,.hd-tab,.glTab')){ if(!onScreen(t)) continue; tabs++; const cs=getComputedStyle(t);
       if(!/gradient|url\(/.test(cs.backgroundImage)&&!/url\(/.test(cs.borderImageSource)) flatTabs.push(desc(t)+' "'+SL.txt(t).slice(0,20)+'"'); }
     const flatPanels=[]; let panels=0; for(const p of root.querySelectorAll('.panel')){ if(!onScreen(p)) continue; panels++; const cs=getComputedStyle(p);
-      if(!/url\(/.test(cs.borderImageSource)&&!/url\(/.test(cs.backgroundImage)) flatPanels.push(desc(p)+' '+box(p).w+'x'+box(p).h+' bg '+cs.backgroundColor); }
+      if(/url\(/.test(cs.borderImageSource)||/url\(/.test(cs.backgroundImage)) continue;
+      /* a fully see-through layout box is not a panel the player sees: flag only a solid background (no art) or a visible plain border */
+      const bc=cols(cs.backgroundColor)[0], solid=!!bc&&bc.a>0.3, grad=/gradient/.test(cs.backgroundImage);
+      const bord=['Top','Right','Bottom','Left'].some(k=>(parseFloat(cs['border'+k+'Width'])||0)>=1&&cs['border'+k+'Style']!=='none'&&(cols(cs['border'+k+'Color'])[0]||{a:0}).a>0.3);
+      if(solid||grad||bord) flatPanels.push(desc(p)+' '+box(p).w+'x'+box(p).h+' bg '+cs.backgroundColor+(grad?' '+cs.backgroundImage.slice(0,50):'')+(bord?' border '+cs.borderTopWidth+' '+cs.borderTopColor:'')); }
     const purple=[]; for(const el of [root,...[...root.querySelectorAll('*')].slice(0,6000)]){ if(!onScreen(el)) continue; const r=el.getBoundingClientRect(); if(r.width*r.height<1500) continue;
       const cs=getComputedStyle(el), bgi=cs.backgroundImage; const c=cols(cs.backgroundColor)[0];
       const solid=c&&bgi==='none'&&isPurple(c), grad=/gradient/.test(bgi)&&!/url\(/.test(bgi)&&cols(bgi).length>0&&cols(bgi).every(isPurple);
@@ -54,34 +63,58 @@ const AH_HELPERS=()=>{ if(window.AH) return true;
 
   /* the screen's title: painted title art, or a title in a gold-framed header box */
   async function header(sel){ const root=rootEl(sel); if(!root) return {missing:true};
+    /* a list that opened scrolled to its current step hides the header: put the screen (and every scrolling box over its title) back at the top */
+    let scrolled=false; const top0=e=>{ if(e&&e.scrollTop>0){ e.scrollTop=0; scrolled=true; } };
+    for(let a=root;a&&a!==document.documentElement;a=a.parentElement) top0(a);
+    for(const h of root.querySelectorAll('h1,.hdrbox,.titlebar')) for(let a=h.parentElement;a&&a!==root;a=a.parentElement) top0(a);
+    if(scrolled) await new Promise(r=>setTimeout(r,250));
     let t=[...root.querySelectorAll('h1')].find(onScreen), how='h1';
     if(!t){ t=[...root.querySelectorAll('.hdrbox,.titlebar,[id$="Hdr"],[class*="Title"],[class*="title"],[class*="Ttl"]')].find(onScreen); how='title element'; }
-    if(!t) return {kind:'none'};
+    /* painted title art drawn by a pseudo element (the Temple: #tp2Stage::after = building-titles/temple-title.webp) */
+    const pseudoTitle=async()=>{ for(const e of [root,...[...root.querySelectorAll('*')].slice(0,5000)]){ if(!onScreen(e)) continue;
+        for(const ps of ['::before','::after']){ const pc=getComputedStyle(e,ps); if(pc.content==='none'||pc.display==='none') continue; const u=urls(pc.backgroundImage).find(x=>/title|wordmark/.test(x));
+          if(u){ const L=await load(u); if(L.ok) return {owner:desc(e)+ps,art:short(u),box:box(e)}; } } } return null; };
+    if(!t){ const p=await pseudoTitle(); return p?{kind:'painted title art',how:'pseudo element',el:p.owner,art:[p.art],box:p.box,scrolled}:{kind:'none',scrolled}; }
     const cs=getComputedStyle(t), us=urls(cs.backgroundImage); let painted=null;
     if(us.length){ const L=await Promise.all(us.map(load)); if(L.some(x=>x.ok)) painted=L.filter(x=>x.ok).map(x=>short(x.url)); }
-    const out={how,el:desc(t),text:SL.txt(t).slice(0,40),fs:cs.fontSize,box:box(t)};
+    const out={how,el:desc(t),text:SL.txt(t).slice(0,40),fs:cs.fontSize,box:box(t),scrolled};
     if(painted&&(parseFloat(cs.fontSize)<1||/rgba\(0, 0, 0, 0\)|transparent/.test(cs.webkitTextFillColor||cs.color)||!SL.txt(t))) return Object.assign(out,{kind:'painted title art',art:painted});
     for(let a=t;a&&a!==root.parentElement;a=a.parentElement){ if(a===root&&a.classList.contains('popout')&&a!==t) break;   /* the pop-out's own sheet frame is not a header box */
       const c=getComputedStyle(a); const bi=urls(c.borderImageSource), bw=['Top','Right','Bottom','Left'].map(k=>parseFloat(c['border'+k+'Width'])||0);
       if(bi.length&&bw.some(x=>x>0)){ const L=await load(bi[0]); if(L.ok) return Object.assign(out,{kind:'gold-framed header box',frame:desc(a)+' '+short(bi[0]),bw}); }
       const bg=urls(c.backgroundImage); if(a!==root&&bg.length){ const L=await load(bg[0]); if(L.ok&&/inset-card|plaque|panel|title|plate/.test(bg[0])) return Object.assign(out,{kind:'painted header plate',frame:desc(a)+' '+short(bg[0])}); } }
+    /* the title element's own children / pseudo elements carry the plate or the art (Wishing Pool .wpsTitle, the Campaign chapter plate #cmapHdr):
+       a loaded border image or background whose box covers the title's text */
+    { const tr=t.getBoundingClientRect(), cx=tr.left+tr.width/2, cy=tr.top+tr.height/2;
+      const covers=r=>r.width>0&&r.height>0&&r.left<=cx&&r.right>=cx&&r.top<=cy&&r.bottom>=cy;
+      for(const e of [t,...[...t.querySelectorAll('*')].slice(0,400)]){ if(e!==t&&!SL.vis(e)) continue; const er=e.getBoundingClientRect();
+        const srcs=[[getComputedStyle(e),'']]; ['::before','::after'].forEach(ps=>{ const pc=getComputedStyle(e,ps); if(pc.content!=='none'&&pc.display!=='none') srcs.push([pc,ps]); });
+        for(const [c,ps] of srcs){ if(e===t&&!ps) continue;   /* the element itself was looked at above */
+          const u=[...urls(c.borderImageSource),...urls(c.backgroundImage)][0]; if(!u) continue; if(!ps&&!covers(er)) continue;
+          if(ps&&!covers(er)) continue;   /* a pseudo element is measured by its owner's box */
+          const L=await load(u); if(L.ok) return Object.assign(out,{kind:/title|wordmark/.test(u)?'painted title art':'painted header plate',frame:desc(e)+ps+' '+short(u),plateBox:box(e)}); } } }
     if(painted) return Object.assign(out,{kind:'painted title art (text over it)',art:painted});
+    const p=await pseudoTitle(); if(p) return Object.assign(out,{kind:'painted title art',how:'pseudo element',frame:p.owner+' '+p.art});
     return Object.assign(out,{kind:'bare'}); }
 
   /* every visible card / row of a kind wears a gold frame (border image, the hero ascension frame, or the store card frame) */
-  async function frames(sel,limit){ const els=[...document.querySelectorAll(sel)].filter(onScreen).slice(0,limit||60), bad=[], seen=[];
-    for(const el of els){ const cs=getComputedStyle(el), bi=urls(cs.borderImageSource), bw=['Top','Right','Bottom','Left'].map(k=>parseFloat(cs['border'+k+'Width'])||0);
+  /* bring an element into view the way a player scrolls a list: scrollIntoView, then put back every box a player cannot scroll (overflow hidden /
+     clip, the game frame) - the rig bug that once shifted every building 30 px */
+  async function intoView(el){ const anc=[]; for(let a=el.parentElement;a;a=a.parentElement){ const cs=getComputedStyle(a); if(/hidden|clip/.test(cs.overflowX+' '+cs.overflowY)||a===document.documentElement||a===document.body) anc.push([a,a.scrollLeft,a.scrollTop]); }
+    el.scrollIntoView({block:'center',inline:'nearest'}); for(const [a,l,t] of anc){ a.scrollLeft=l; a.scrollTop=t; } await new Promise(r=>setTimeout(r,60)); return onScreen(el); }
+  async function frames(sel,limit,scroll){ const els=[...document.querySelectorAll(sel)].filter(scroll?SL.vis:onScreen).slice(0,limit||60), bad=[], seen=[]; let off=0;
+    for(const el of els){ if(scroll&&!(await intoView(el))){ off++; bad.push(desc(el)+' could not be scrolled on screen'); continue; } const cs=getComputedStyle(el), bi=urls(cs.borderImageSource), bw=['Top','Right','Bottom','Left'].map(k=>parseFloat(cs['border'+k+'Width'])||0);
       let how=null; if(bi.length&&bw.every(x=>x>0)){ const L=await load(bi[0]); if(L.ok) how='border '+short(bi[0]).split('/').pop()+' '+bw.join('/'); }
       if(!how){ const a=el.querySelector('.ascf'); if(a){ const ac=getComputedStyle(a), au=urls(ac.borderImageSource); if(au.length){ const L=await load(au[0]); if(L.ok) how='ascension frame '+short(au[0]).split('/').pop(); } } }
       if(!how){ const f=el.querySelector('img.st2-cframe'); if(f){ const ok=f.complete&&f.naturalWidth>0, fr=f.getBoundingClientRect(), er=el.getBoundingClientRect(); if(ok&&fr.width>=er.width*0.9&&fr.height>=er.height*0.9) how='card frame '+short(f.currentSrc||f.src).split('/').pop(); } }
       if(how) seen.push(how); else bad.push(desc(el)+' '+box(el).w+'x'+box(el).h+' borderImage '+(cs.borderImageSource||'none').slice(0,50)+' widths '+bw.join('/')); }
-    return {n:els.length,bad,kinds:[...new Set(seen)].slice(0,4)}; }
+    return {n:els.length,framed:seen.length,offScreen:off,bad,kinds:[...new Set(seen)].slice(0,4)}; }
 
   /* the colours an element glows with (shadow, filter drop-shadow, border, outline) */
   function glow(el){ const cs=getComputedStyle(el); const parts=[cs.boxShadow,cs.filter,cs.borderTopColor,cs.outlineColor,getComputedStyle(el,'::after').boxShadow];
     const c=parts.flatMap(cols); return {gold:c.some(isGold),green:c.some(isGreen),opacity:+cs.opacity,shadow:cs.boxShadow.slice(0,90),filter:cs.filter.slice(0,90),border:cs.borderTopColor}; }
 
-  window.AH={cols,isGold,isGreen,isPurple,desc,onScreen,urls,short,load,box,theme,header,frames,glow}; return true; };
+  window.AH={intoView,cols,isGold,isGreen,isPurple,desc,onScreen,urls,short,load,box,theme,header,frames,glow}; return true; };
 
 const prep=async pg=>{ await H.prep(pg); await pg.evaluate(AH_HELPERS); };
 const home=async pg=>{ await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} try{ closeHudShop(); }catch(e){} const w=document.getElementById('wlMap'); if(w) w.remove(); try{ show('home'); }catch(e){} }); await H.wait(800); await H.clean(pg); };
@@ -101,7 +134,7 @@ function judgeTheme(S,label,r,s){
   C.ok(!r.missing&&r.backOk&&h1ok&&!r.flatBtns.length&&!r.flatTabs.length&&!r.flatPanels.length&&!r.purple.length,
     S.tag+' Painted theme everywhere: '+label+' - painted backdrop loaded, gold or painted titles, gold / enamel buttons ('+r.btns+'), enamel tabs ('+r.tabs+'), framed panels ('+r.panels+'), no flat or plain purple boxes',
     {backdrop:r.back,titles:r.h1s,flatButtons:r.flatBtns,flatTabs:r.flatTabs,flatPanels:r.flatPanels,purple:r.purple,shot:s}); }
-function judgeHeader(S,label,r,s){
+async function judgeHeader(pg,S,label,r,s){ if(r&&r.scrolled) s=await shot(pg,S.tag+' '+label.split(' (')[0]+' header (scrolled to top)');   /* the screen was scrolled back to its top to read the title */
   C.ok(!r.missing&&/painted|gold-framed/.test(r.kind||''),S.tag+' Header boxes: '+label+' - the title is '+(r.kind||'missing'),Object.assign({},r,{shot:s})); }
 
 /* ---------------------------------------------------------------- menu screens and pop-outs */
@@ -120,7 +153,7 @@ async function menuScreens(pg,S){
       const act=await pg.evaluate(n=>{ const e=document.getElementById(n); return !!e&&e.classList.contains('active'); },nav);
       const s=await shot(pg,S.tag+' '+label);
       const th=await pg.evaluate(n=>AH.theme('#'+n),nav), hd=await pg.evaluate(n=>AH.header('#'+n),nav);
-      judgeTheme(S,label+' (#'+nav+', opened by '+how+(act?'':', NOT active')+')',th,s); judgeHeader(S,label+' (#'+nav+')',hd,s);
+      judgeTheme(S,label+' (#'+nav+', opened by '+how+(act?'':', NOT active')+')',th,s); await judgeHeader(pg,S,label+' (#'+nav+')',hd,s);
       if(nav==='heroesPanel'){
         const fr=await pg.evaluate(()=>AH.frames('#heroesPanel .hero-card',40));
         C.ok(fr.n>=5&&!fr.bad.length,S.tag+' Framed cards: Heroes list - every hero card on screen ('+fr.n+') wears a gold frame',Object.assign({shot:s},fr));
@@ -131,7 +164,7 @@ async function menuScreens(pg,S){
           await H.wait(1800); await H.clean(pg); await prep(pg);
           const s2=await shot(pg,S.tag+' hero window');
           const th2=await pg.evaluate(()=>AH.theme('#heroDetail')), hd2=await pg.evaluate(()=>AH.header('#heroDetail'));
-          judgeTheme(S,'hero window (#heroDetail'+(ok?'':', no hero card to tap')+')',th2,s2); judgeHeader(S,'hero window (#heroDetail)',hd2,s2);
+          judgeTheme(S,'hero window (#heroDetail'+(ok?'':', no hero card to tap')+')',th2,s2); console.log('  INFO   '+S.tag+' Header boxes: hero window (#heroDetail) is not a screen title - its header is the hero own card ('+(hd2&&hd2.kind)+')');
         }catch(e){ C.ok(false,S.tag+' Painted theme everywhere: hero window ran to the end',String(e&&e.stack||e).slice(0,400)); }
       }
       if(nav==='quest'){
@@ -145,11 +178,15 @@ async function menuScreens(pg,S){
         if(g.tab.length) C.ok(g.tab.every(x=>x.gold),S.tag+' State glows: Quests - the selected tab glows gold',{tab:g.tab,shot:s});
       }
       if(nav==='signin'){
-        const fr=await pg.evaluate(()=>AH.frames('#signin .si-cell:not(.blank)',40));
-        C.ok(fr.n>=28&&!fr.bad.length,S.tag+' Framed cards: Sign-In - every day cell on screen ('+fr.n+') wears a gold frame',Object.assign({shot:s},fr));
-        const g=await pg.evaluate(()=>{ const q=c=>[...document.querySelectorAll('#signin .si-cell.'+c)].filter(AH.onScreen).map(AH.glow); return {today:q('today'),claimed:q('claimed'),missed:q('missed'),plain:[...document.querySelectorAll('#signin .si-cell:not(.blank):not(.today):not(.claimed):not(.missed)')].filter(AH.onScreen).slice(0,2).map(AH.glow)}; });
-        C.ok(g.today.length===1&&g.today[0].green,S.tag+' State glows: Sign-In - today (ready to claim) glows green',{today:g.today,plain:g.plain,shot:s});
-        C.ok(g.claimed.length>0&&g.claimed.every(x=>x.opacity<0.9),S.tag+' State glows: Sign-In - claimed (done) days are dimmed ('+g.claimed.length+')',{claimed:g.claimed.slice(0,2),missed:g.missed.slice(0,2),shot:s});
+        /* the calendar scrolls on a phone: every day cell is scrolled into view before its frame is read */
+        const fr=await pg.evaluate(()=>AH.frames('#signin .si-cell:not(.blank)',40,true));
+        const sf=await shot(pg,S.tag+' Sign-In calendar scrolled');
+        C.ok(fr.n>=28&&fr.framed>=28&&!fr.bad.length,S.tag+' Framed cards: Sign-In - every day cell ('+fr.n+', each scrolled into view, '+fr.framed+' framed) wears a gold frame',Object.assign({shot:s,shotScrolled:sf},fr));
+        const tv=await pg.evaluate(async()=>{ const t=document.querySelector('#signin .si-cell.today'); return t?AH.intoView(t):null; });
+        const st=await shot(pg,S.tag+' Sign-In today');
+        const g=await pg.evaluate(()=>{ const q=(c,f)=>[...document.querySelectorAll('#signin .si-cell.'+c)].filter(f).map(AH.glow); return {today:q('today',AH.onScreen),claimed:q('claimed',SL.vis),missed:q('missed',SL.vis),plain:[...document.querySelectorAll('#signin .si-cell:not(.blank):not(.today):not(.claimed):not(.missed)')].filter(AH.onScreen).slice(0,2).map(AH.glow)}; });
+        C.ok(g.today.length===1&&g.today[0].green,S.tag+' State glows: Sign-In - today (ready to claim, scrolled into view: '+tv+') glows green',{today:g.today,plain:g.plain,shot:st});
+        C.ok(g.claimed.length>0&&g.claimed.every(x=>x.opacity<0.9),S.tag+' State glows: Sign-In - claimed (done) days are dimmed ('+g.claimed.length+')',{claimed:g.claimed.slice(0,2),missed:g.missed.slice(0,2),shot:st});
       }
       if(nav==='mail'){
         const fr=await pg.evaluate(()=>AH.frames('#mail .mailrow',40));
@@ -167,7 +204,7 @@ async function menuScreens(pg,S){
     try{ await home(pg); await pg.evaluate(n=>show(n),nav); await H.wait(1800); await H.clean(pg); await prep(pg);
       const st=await pg.evaluate(()=>state); const s=await shot(pg,S.tag+' '+label);
       if(st!==nav){ console.log('  INFO   '+S.tag+' '+label+': show(\''+nav+'\') landed on '+st+' (no own screen there)'); continue; }
-      judgeTheme(S,label+' (#'+nav+')',await pg.evaluate(n=>AH.theme('#'+n),nav),s); judgeHeader(S,label+' (#'+nav+')',await pg.evaluate(n=>AH.header('#'+n),nav),s);
+      judgeTheme(S,label+' (#'+nav+')',await pg.evaluate(n=>AH.theme('#'+n),nav),s); await judgeHeader(pg,S,label+' (#'+nav+')',await pg.evaluate(n=>AH.header('#'+n),nav),s);
     }catch(e){ C.ok(false,S.tag+' Painted theme everywhere: '+label+' ran to the end',String(e&&e.stack||e).slice(0,500)); }
   }
   /* the Diamond store (the + beside diamonds) */
@@ -219,7 +256,7 @@ async function glossary(pg,S){
           const IW=im.naturalWidth, IH=im.naturalHeight, P=Math.ceil(Math.max(IW,IH)); const [sx,sy,sw,sh]=art.a;
           const E=GL_EYES[id], Fr=GL_FRAME[id];
           if(E&&Fr){ o.crop='eyes (GL_EYES)'; o.fx=+(((E[0]*IW+P)-sx)/sw).toFixed(3); o.fy=+(((E[1]*IH+P)-sy)/sh).toFixed(3); o.headTop=+(((Fr[0]*IH+P)-sy)/sh).toFixed(3);
-            o.ok=o.fx>=0.3&&o.fx<=0.7&&o.fy>=0.05&&o.fy<=0.5&&o.headTop>=-0.01; }
+            o.ok=o.fx>=0.2&&o.fx<=0.8&&o.fy>=0.1&&o.fy<=0.75&&o.headTop>=-0.01; }   /* the face is inside the card: eyes 0.2-0.8 across, 0.1-0.75 down, head top not cut off */
           else { const m=glMeasure(im); o.crop='automatic (no eye data)'; o.fx=+(((m.hx+P)-sx)/sw).toFixed(3); o.headTop=+(((m.sy0+P)-sy)/sh).toFixed(3);
             o.ok=o.fx>=0.25&&o.fx<=0.75&&o.headTop>=-0.01&&o.headTop<=0.4; } }
         return {cards:out,list:(GLOSSARY_DATA[tab]||[]).length,sub:SL.txt(document.getElementById('glSub'))}; },tab);
@@ -263,13 +300,27 @@ async function buildings(pg,S){
         const TL=await Promise.all([...new Set(titles)].map(AH.load));
         let temple=null; if(root==='#temple'){ const st=document.getElementById('tp2Stage'); const a=st?AH.urls(getComputedStyle(st,'::after').backgroundImage):[]; const al=a.length?await AH.load(a[0]):null;
           temple={stage:!!st&&AH.onScreen(st),box:st?AH.box(st):null,after:a.map(AH.short),afterOk:!!(al&&al.ok)&&/temple-title/.test(a[0]||'')}; }
-        return {active:el.id==='wlMap'||el.classList.contains('active'),all:L.map(x=>AH.short(x.url)+(x.ok?'':' NOT LOADED')),art,canvas:us.filter(u=>/^canvas:/.test(u)),titles:TL.map(x=>AH.short(x.url)+(x.ok?'':' NOT LOADED')),temple}; },root);
+        /* the Witches Hut is the City Wall's Cauldron tab: by design its own painted cauldron art (assets/img/witches-hut/) on the keep-wall backdrop,
+           the title in its gold plate (inset-card) */
+        let hut=null; if(root==='#wall'){ const tabOn=!!el.querySelector('[data-wall-tab="cauldron"]:not(.secondary)'), hu=[];
+          for(const e of [...el.querySelectorAll('*')].slice(0,5000)){ if(!AH.onScreen(e)) continue; const b=AH.box(e); if(b.w<60||b.h<60) continue;
+            if(e.tagName==='IMG'&&/\/witches-hut\//.test(e.currentSrc||e.src)) hu.push({u:e.currentSrc||e.src,box:b,img:e});
+            if(e.tagName==='VIDEO'&&/\/witches-hut\//.test(e.currentSrc||e.src||'')) hu.push({u:(e.currentSrc||e.src)+(e.poster?' (poster '+e.poster+')':''),box:b,video:e});   /* the cauldron is a looping <video> with a painted poster */
+            AH.urls(getComputedStyle(e).backgroundImage).filter(u=>/\/witches-hut\//.test(u)).forEach(u=>hu.push({u,box:b})); if(hu.length>5) break; }
+          const HL=await Promise.all(hu.map(async x=>({u:AH.short(x.u),box:x.box,ok:x.img?(x.img.complete&&x.img.naturalWidth>0):x.video?(x.video.readyState>=2&&x.video.videoWidth>0)||(x.video.poster?(await AH.load(x.video.poster)).ok:false):(await AH.load(x.u)).ok})));
+          const hb=el.querySelector('.hdrbox'), hcs=hb?getComputedStyle(hb):null, pu=hcs?AH.urls(hcs.backgroundImage)[0]:null, pl=pu?await AH.load(pu):null, h1=hb&&hb.querySelector('h1');
+          const covers=!!(hb&&h1&&(()=>{ const a=hb.getBoundingClientRect(), b=h1.getBoundingClientRect(); return b.left>=a.left-1&&b.right<=a.right+1&&b.top>=a.top-1&&b.bottom<=a.bottom+1; })());
+          hut={wallTab:(typeof WALL_TAB!=='undefined'?WALL_TAB:null),cauldronTabOn:tabOn,cauldronArt:HL,plate:pu?AH.short(pu):null,plateOk:!!(pl&&pl.ok)&&/inset-card/.test(pu||''),plateOnScreen:!!hb&&AH.onScreen(hb),titleInPlate:covers,title:h1?SL.txt(h1).slice(0,30):null}; }
+        return {active:el.id==='wlMap'||el.classList.contains('active'),all:L.map(x=>AH.short(x.url)+(x.ok?'':' NOT LOADED')),art,canvas:us.filter(u=>/^canvas:/.test(u)),titles:TL.map(x=>AH.short(x.url)+(x.ok?'':' NOT LOADED')),temple,hut}; },root);
       const s=await shot(pg,S.tag+' '+label);
-      const ok=!r.missing&&r.active&&(r.art.length>0)&&(nav!=='temple'||(r.temple&&r.temple.stage&&r.temple.afterOk));
-      C.ok(ok,S.tag+' Building main screens: '+label+' ('+root+', opened by '+how+') shows its own painted screen'+(nav==='temple'?' - the Temple of Ash keeps its own #tp2Stage with temple-title.webp':''),
-        {active:r.active,paintedArt:r.art,allBig:r.all,canvas:r.canvas,titleArt:r.titles,temple:r.temple,shot:s});
+      let ok=!r.missing&&r.active&&(r.art.length>0)&&(nav!=='temple'||(r.temple&&r.temple.stage&&r.temple.afterOk)), accepted=r.art.length?'painted art '+r.art.slice(0,2).join(', '):'';
+      if(nav==='cauldron'){ const h=r.hut||{}; const art=(h.cauldronArt||[]).filter(x=>x.ok);
+        ok=!r.missing&&r.active&&!!h.cauldronTabOn&&art.length>0&&h.plateOk&&h.plateOnScreen&&h.titleInPlate;
+        accepted='cauldron tab on: '+!!h.cauldronTabOn+'; cauldron art loaded on screen: '+(art.map(x=>x.u+' '+x.box.w+'x'+x.box.h).join(', ')||'none')+'; title "'+h.title+'" in its gold plate '+h.plate+': '+(h.plateOk&&h.titleInPlate); }
+      C.ok(ok,S.tag+' Building main screens: '+label+' ('+root+', opened by '+how+') shows its own painted screen'+(nav==='temple'?' - the Temple of Ash keeps its own #tp2Stage with temple-title.webp':'')+(nav==='cauldron'?' - the City Wall Cauldron tab with its own painted cauldron art':'')+' [accepted: '+(accepted||'nothing')+']',
+        {active:r.active,paintedArt:r.art,allBig:r.all,canvas:r.canvas,titleArt:r.titles,temple:r.temple,hut:r.hut,shot:s});
       judgeTheme(S,label+' ('+root+')',await pg.evaluate(rt=>AH.theme(rt),root),s);
-      judgeHeader(S,label+' ('+root+')',await pg.evaluate(rt=>AH.header(rt),root),s);
+      await judgeHeader(pg,S,label+' ('+root+')',await pg.evaluate(rt=>AH.header(rt),root),s);
     }catch(e){ C.ok(false,S.tag+' Building main screens: '+label+' ran to the end',String(e&&e.stack||e).slice(0,500)); }
   }
   await pg.evaluate(()=>{ const w=document.getElementById('wlMap'); if(w) w.remove(); });

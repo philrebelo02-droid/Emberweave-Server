@@ -96,38 +96,49 @@ async function openHero(pg,S,key){ const sel='#heroesPanel .hero-card[data-hero-
   await pg.evaluate(s=>{ const e=document.querySelector(s); if(e) e.scrollIntoView({block:'center'}); },sel); await H.wait(300);
   const how=await press(pg,S,sel);
   await pg.waitForFunction(k=>detailHero===k&&document.querySelector('#heroDetail')&&document.querySelector('#heroDetail').getClientRects().length,key,{timeout:20000}).catch(()=>{}); await settle(pg,1500); return how; }
+/* Start Here (MENU) > Go on lesson `id`: the lesson's own path (s.go()) */
+async function goLesson(pg,S,id,want){ await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} show('home'); }); await settle(pg,900);
+  await press(pg,S,'#menuBtn'); await settle(pg,600); await press(pg,S,'#hubMenu .mitem[data-nav="tutorial"]');
+  await pg.waitForFunction(i=>document.querySelector('#tutorialBody [data-tut-go="'+i+'"]')&&document.querySelector('#tutorialBody [data-tut-go="'+i+'"]').getClientRects().length,id,{timeout:15000}).catch(()=>{}); await settle(pg,700);
+  const sel='#tutorialBody [data-tut-go="'+id+'"]'; await pg.evaluate(s=>{ const e=document.querySelector(s); if(e) e.scrollIntoView({block:'center'}); },sel); await H.wait(300);
+  const how=await press(pg,S,sel);
+  await pg.waitForFunction(w=>state===w,want,{timeout:20000}).catch(()=>{}); await settle(pg,1500);
+  return {how,state:await pg.evaluate(()=>state)}; }
 async function heroGlow(pg,S){
   for(const [lesson,rew,want] of [['skill',{win11:true,quest11:true},/skillup|tab=skills/],['rune',{win11:true,quest11:true,skill:true,win12:true,quest12:true},/glyph|tab=glyphs/]]){
-    await setTut(pg,rew,{questChainStep:0}); await openHeroes(pg,S);
+    await setTut(pg,rew,{questChainStep:0});
+    /* INFO: Heroes opened from MENU during the lesson (a pop-out over the town) */
+    await openHeroes(pg,S); const viaMenu=await glowing(pg); const viaMenuState=await pg.evaluate(()=>state);
+    console.log('  INFO   '+S.tag+' '+N.hero+' ('+lesson+' lesson): Heroes opened from MENU (state '+viaMenuState+') - glowing: '+JSON.stringify(viaMenu));
+    const go=await goLesson(pg,S,lesson,'heroesPanel');
+    await pg.waitForFunction(()=>document.querySelector('#heroesPanel .hero-card[data-hero-key="vael"]'),null,{timeout:15000}).catch(()=>{}); await settle(pg,900);
     const next=await pg.evaluate(()=>tutNextStep());
     const list=await glowing(pg); const vaelCard=await glowProbe(pg,'#heroesPanel .hero-card[data-hero-key="vael"]');
     const s1=await shot(pg,S.tag+' Hero-specific glow '+lesson+' Heroes list');
-    const hA=await openHero(pg,S,'aureth'); const other=await glowing(pg); const dh1=await pg.evaluate(()=>detailHero);
+    const hA=await openHero(pg,S,'aureth'); const other=await pg.evaluate(()=>[...document.querySelectorAll('#heroDetail .tut-target-glow,#heroDetail .tut-town-glow')].filter(e=>e.getClientRects().length).map(e=>(e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.dataset.tab?'[tab='+e.dataset.tab+']':'')).slice(0,70))); const otherAll=await glowing(pg);   /* inside Aureth's window (Vael's card in the list behind it may keep its glow) */ const dh1=await pg.evaluate(()=>detailHero);
     const s2=await shot(pg,S.tag+' Hero-specific glow '+lesson+' Aureth window');
     await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} }); await settle(pg,900);
-    if(await pg.evaluate(()=>state!=='heroesPanel')) await openHeroes(pg,S);
+    let reopened=null; if(await pg.evaluate(()=>state!=='heroesPanel'||!document.querySelector('#heroesPanel .hero-card[data-hero-key="vael"]')||!document.querySelector('#heroesPanel .hero-card[data-hero-key="vael"]').getClientRects().length)) reopened=await goLesson(pg,S,lesson,'heroesPanel');
     const hV=await openHero(pg,S,'vael'); const mine=await glowing(pg); const dh2=await pg.evaluate(()=>detailHero);
     const vt=await pg.evaluate(()=>{ const e=document.querySelector('#heroDetail .tut-target-glow'); return e?{box:SL.R(e),on:SL.inView(e,2),front:SL.front(e)}:null; });
     const s3=await shot(pg,S.tag+' Hero-specific glow '+lesson+' Vael window');
     const listOk=list.some(x=>/hero=vael/.test(x))&&!list.some(x=>/hero=/.test(x)&&!/hero=vael/.test(x));
-    C.ok(!!next&&next.id===lesson&&listOk&&dh1==='aureth'&&other.length===0&&dh2==='vael'&&mine.some(x=>want.test(x))&&!!vt&&vt.on,
-      S.tag+' '+N.hero+': '+lesson+' lesson - in the Heroes list only Vael\'s card glows; Aureth\'s window ('+hA+') glows nothing; Vael\'s window ('+hV+') glows its '+(lesson==='skill'?'skill upgrade':'glyph')+' control',
-      {next,list,vaelCard:{cls:vaelCard.cls,fx:vaelCard.fx,haloOn:vaelCard.haloOn},aureth:{detail:dh1,glowing:other},vael:{detail:dh2,glowing:mine,target:vt},shot:[s1,s2,s3]});
+    C.ok(go.state==='heroesPanel'&&!!next&&next.id===lesson&&listOk&&dh1==='aureth'&&other.length===0&&dh2==='vael'&&mine.some(x=>want.test(x))&&!!vt&&vt.on,
+      S.tag+' '+N.hero+': '+lesson+' lesson (Start Here > Go, '+go.how+') - in the Heroes list only Vael\'s card glows; Aureth\'s window ('+hA+') glows nothing; Vael\'s window ('+hV+') glows its '+(lesson==='skill'?'skill upgrade':'glyph')+' control',
+      {go,reopened,viaMenu:{state:viaMenuState,glowing:viaMenu},next,list,vaelCard:{cls:vaelCard.cls,fx:vaelCard.fx,haloOn:vaelCard.haloOn},aureth:{detail:dh1,glowing:other,anywhere:otherAll},vael:{detail:dh2,glowing:mine,target:vt},shot:[s1,s2,s3]});
     await pg.evaluate(()=>{ try{ closePopout(); }catch(e){} show('home'); }); await settle(pg,700);
   }
 }
 
 async function roam(pg,S){
-  await setTut(pg,{}); await pg.evaluate(()=>show('home')); await settle(pg,900);
-  await press(pg,S,'#menuBtn'); await settle(pg,600); await press(pg,S,'#hubMenu .mitem[data-nav="tutorial"]');
-  await pg.waitForFunction(()=>state==='tutorial',null,{timeout:15000}).catch(()=>{}); await settle(pg,900);
-  const st0=await pg.evaluate(()=>state);
-  const how=await press(pg,S,'#tutorial .backbtn'); await settle(pg,1200);
+  await setTut(pg,{});
+  const go=await goLesson(pg,S,'win11','campaign'); const st0=go.state;   /* Start Here > Go on "clear 1-1": Campaign, a full screen with Base */
+  const how=await press(pg,S,'#campaign .backbtn'); await settle(pg,1200);
   const st1=await pg.evaluate(()=>state); await H.wait(2000); const st2=await pg.evaluate(()=>({state,started:!!G.tutStarted,done:!!G.tutDone}));
   await press(pg,S,'#menuBtn'); await settle(pg,700);
   const item=await pg.evaluate(()=>{ const e=document.querySelector('#hubMenu .mitem[data-nav="tutorial"]'); return e?{vis:SL.vis(e),on:SL.inView(e,2),text:SL.txt(e)}:null; });
   const s=await shot(pg,S.tag+' Free roaming town with Start Here in MENU');
-  C.ok(st0==='tutorial'&&st1==='home'&&st2.state==='home'&&st2.started&&!st2.done&&!!item&&item.vis&&item.on,S.tag+' '+N.roam+': during the tutorial Base on Start Here ('+how+') opens the town and it stays open 2 s later; Start Here is still in the MENU',{before:st0,after:st1,later:st2,item,shot:s});
+  C.ok(st0==='campaign'&&!/js-click/.test(how)&&st1==='home'&&st2.state==='home'&&st2.started&&!st2.done&&!!item&&item.vis&&item.on,S.tag+' '+N.roam+': during the tutorial (Start Here > Go: Campaign) Base on Campaign ('+how+') opens the town and it stays open 2 s later; Start Here is still in the MENU',{before:st0,after:st1,later:st2,item,shot:s});
   await closeMenu(pg);
 }
 
@@ -175,11 +186,22 @@ const holdState=pg=>pg.evaluate(()=>{ const u=ULTCOACH.u, h=document.getElementB
     ring:ULTCOACH.ring?{x:Math.round(ULTCOACH.ring.x),y:Math.round(ULTCOACH.ring.y)}:null,hint:h?{text:SL.txt(h),coach:h.classList.contains('ult-coach'),vis:SL.vis(h)}:null,
     glow:!!(u&&u._pEl&&u._pEl.classList.contains('ult-coach-glow')),say:S?{k:S.k,uid:S.uid,read:!!S.read}:null,
     cont:b?{vis:SL.vis(b)&&!b.hidden,text:SL.txt(b),box:SL.R(b),on:SL.inView(b,1),front:SL.vis(b)?SL.front(b):false}:null,ended:!!ended,state}; });
-/* the ring in screen pixels + how many of 24 points on its circle are drawn gold on the battle overlay */
-const ringProbe=pg=>pg.evaluate(()=>{ const c=ULTCOACH.ring; if(!c) return null; const r=overlay.getBoundingClientRect(), er=overlay.ewGameRect?overlay.ewGameRect():r, z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1, k=r.width/Math.max(1,er.width);
-  let gold=0, n=0; try{ const ctx=overlay.getContext('2d'), sx=overlay.width/Math.max(1,CW), sy=overlay.height/Math.max(1,CH);
-    for(let i=0;i<24;i++){ const a=i/24*Math.PI*2; for(const R of [34,37,40]){ const d=ctx.getImageData(Math.round((c.x+Math.cos(a)*R)*sx),Math.round((c.y+Math.sin(a)*R)*sy),1,1).data; if(d[0]>200&&d[1]>150&&d[2]<150&&d[3]>100){ gold++; break; } } n++; } }catch(e){ gold=-1; }
-  return {ring:{x:Math.round(c.x),y:Math.round(c.y)},client:{x:r.left+c.x*z*k,y:r.top+c.y*z*k},gold,of:n}; });
+/* the ring is drawn by ultCoachDraw on #overlay (octx, setTransform(PR) - layout px x PR = canvas px), radius 34 +- 6 px breathing, 4 px gold stroke.
+   Count the draw calls (wrapped once) and scan its whole band (r 22-48 layout px) on 24 rays in the canvas's own pixel space. */
+const ringProbe=pg=>pg.evaluate(async()=>{ if(!window.__slRingWrap){ window.__slRingWrap=1; window.__slRingCalls=0; const o=ultCoachDraw; window.ultCoachDraw=function(){ if(ULTCOACH.ring&&ULTCOACH.u&&aiming===ULTCOACH.u) window.__slRingCalls++; return o.apply(this,arguments); }; }
+  const c0=window.__slRingCalls; await new Promise(r=>setTimeout(r,400)); const calls=window.__slRingCalls-c0;
+  const c=ULTCOACH.ring; if(!c) return {ring:null,calls};
+  const r=overlay.getBoundingClientRect(), er=overlay.ewGameRect?overlay.ewGameRect():r, z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1, k=r.width/Math.max(1,er.width);
+  const ctx=overlay.getContext('2d'), sx=overlay.width/Math.max(1,CW), sy=overlay.height/Math.max(1,CH);
+  let rays=0, best=[], err=null; const cols=[];
+  try{ for(let i=0;i<24;i++){ const a=i/24*Math.PI*2; let hit=null, top=null;
+      for(let R=22;R<=48;R+=1){ const px=Math.round((c.x+Math.cos(a)*R)*sx), py=Math.round((c.y+Math.sin(a)*R)*sy); const d=ctx.getImageData(px,py,1,1).data;
+        const sc=d[3]*(d[0]+d[1]-d[2]); if(!top||sc>top.sc) top={R,px,py,rgba:[d[0],d[1],d[2],d[3]],sc};
+        if(!hit&&d[3]>120&&d[0]>=130&&d[0]>=d[1]&&d[1]>=d[2]+50&&d[0]-d[2]>=90) hit={R,rgba:[d[0],d[1],d[2],d[3]]}; }
+      if(hit) rays++; if(i%6===0) cols.push({ray:i,hit,top}); } }catch(e){ err=String(e.message||e).slice(0,120); }
+  const ctr=(()=>{ try{ return [...ctx.getImageData(Math.round(c.x*sx),Math.round(c.y*sy),1,1).data]; }catch(e){ return null; } })();
+  return {ring:{x:Math.round(c.x),y:Math.round(c.y)},client:{x:r.left+c.x*z*k,y:r.top+c.y*z*k},canvas:{id:overlay.id,w:overlay.width,h:overlay.height,css:[Math.round(r.width),Math.round(r.height)],CW,CH,PR:+sx.toFixed(3),dpr:devicePixelRatio,left:Math.round(r.left),top:Math.round(r.top),zoom:z,transform:getComputedStyle(overlay).transform},
+    calls,gold:rays,of:24,centre:ctr,samples:cols,err}; });
 
 async function coach(pg,S){
   const cdp=S.touch?await pg._ctx.newCDPSession(pg):null;
@@ -212,10 +234,11 @@ async function coach(pg,S){
     if(ab.aimed){
       if(!negDone){ const p=await portrait(pg); await ptDown(pg,S,cdp,p); await H.wait(600); const rg=await ringProbe(pg); const as=await holdState(pg);
         let away=null; if(rg){ const V=await pg.evaluate(()=>SL.V()); for(const [dx,dy] of [[0,-130],[150,0],[-150,0],[0,120]]){ const q={x:rg.client.x+dx,y:rg.client.y+dy}; if(q.x>20&&q.x<V.width-20&&q.y>20&&q.y<V.height-20){ const oc=await pg.evaluate(q=>{ try{ return overCancel(q.x,q.y); }catch(e){ return false; } },q); if(!oc){ away=q; break; } } } }
+        await pg.evaluate(()=>{ window.__slUp=null; document.addEventListener('pointerup',e=>{ try{ const q=evXY(e); window.__slUp={x:Math.round(q.x),y:Math.round(q.y),onRing:ultCoachOnRing(q.x,q.y)}; }catch(_){} },{capture:true,once:true}); });
         await ptMove(pg,S,cdp,p,away||{x:p.x,y:p.y-130},6); await ptUp(pg,S,cdp,away||p); await H.wait(800); const af=await holdState(pg); await H.wait(800); const af2=await holdState(pg);
         const sn=await shot(pg,S.tag+' Coach aiming let go away from the ring');
-        negDone={key:a.key,whileAiming:{aiming:as.aiming,ring:rg,hint:as.hint&&as.hint.text},releasedAt:away,after:{aiming:af.aiming,hold:af.hold,key:af.key,hint:af.hint,bt:[af.bt,af2.bt]},shot:sn,
-          ok:as.aiming===a.key&&!!rg&&rg.gold>=4&&!!away&&af.aiming==null&&af.hold&&af.key===a.key&&af2.hold&&af.bt===af2.bt&&!!af.hint&&af.hint.vis&&af.hint.coach&&af.glow}; }
+        negDone={key:a.key,whileAiming:{aiming:as.aiming,ring:rg,hint:as.hint&&as.hint.text},releasedAt:away,up:await pg.evaluate(()=>window.__slUp),after:{aiming:af.aiming,hold:af.hold,key:af.key,hint:af.hint,bt:[af.bt,af2.bt]},shot:sn,
+          ok:as.aiming===a.key&&!!rg&&rg.calls>0&&rg.gold>=8&&!!away&&af.aiming==null&&af.hold&&af.key===a.key&&af2.hold&&af.bt===af2.bt&&!!af.hint&&af.hint.vis&&af.hint.coach&&af.glow}; }
       const p=await portrait(pg); await ptDown(pg,S,cdp,p); await H.wait(600); const rg=await ringProbe(pg); const as=await holdState(pg);
       const ss=await shot(pg,S.tag+' Coach aiming gold ring '+a.key);
       await pg.evaluate(()=>{ window.__slUp=null; document.addEventListener('pointerup',e=>{ try{ const q=evXY(e); window.__slUp={x:Math.round(q.x),y:Math.round(q.y),onRing:ultCoachOnRing(q.x,q.y)}; }catch(_){} },{capture:true,once:true}); });
@@ -223,7 +246,7 @@ async function coach(pg,S){
       const af=await pg.evaluate(uid=>({done:!!ULTCOACH.done[uid],hold:!!ULTCOACH.hold,cur:ULTCOACH.u&&ULTCOACH.u.uid,bt:+battleTime.toFixed(4),up:window.__slUp,energy:(units.find(x=>x.uid===uid)||{}).energy}),a.uid);
       await H.wait(1000); const bt2=await pg.evaluate(()=>+battleTime.toFixed(4));
       const sp=await shot(pg,S.tag+' Coach aiming dragged onto the ring '+a.key);
-      const pr={key:a.key,whileAiming:{aiming:as.aiming,ring:rg},to,after:af,btLater:bt2,shot:[ss,sp],ok:as.aiming===a.key&&!!rg&&rg.gold>=4&&af.done&&af.cur!==a.uid&&bt2>af.bt};
+      const pr={key:a.key,whileAiming:{aiming:as.aiming,ring:rg},to,after:af,btLater:bt2,shot:[ss,sp],ok:as.aiming===a.key&&!!rg&&rg.calls>0&&rg.gold>=8&&!!af.up&&af.up.onRing&&af.done&&af.cur!==a.uid&&bt2>af.bt};
       if(!posDone||!posDone.ok) posDone=pr; rec.cast=pr;
     } else { const p=await portrait(pg); if(S.touch) await pg.touchscreen.tap(p.x,p.y); else await pg.mouse.click(p.x,p.y); await H.wait(1000);
       rec.cast=await pg.evaluate(uid=>({tap:true,done:!!ULTCOACH.done[uid],hold:!!ULTCOACH.hold,cur:ULTCOACH.u&&ULTCOACH.u.uid}),a.uid); }
