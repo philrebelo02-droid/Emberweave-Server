@@ -681,6 +681,8 @@ note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix 
 node tests/test_irix_final_boss_1430.js || FAILED=1
 note "test_skyfall_real_fights_1458.js (v1458 Phil 26 Nov 'fix that': a real Skyfall war records every march on the match - result, seed, entry health - sends it with the match view, Watch serves the stored fight, it survives a restart, capped per war and dropped when the reports come down; the board plays it through the simulator lane player)"
 node tests/test_skyfall_real_fights_1458.js || FAILED=1
+note "test_vault_enrage_1458.js (v1458 Phil 26 Nov 'they all need their own enrage type that fits their abilities': one enrage per Vault boss, 20 ids and 20 effect types, the server's bossRule is the boss's own enrage, each effect checked on a live board, real Vault fights enrage at their line, only in the Vault, all 15 packs + en-XA re-hashed)"
+node tests/test_vault_enrage_1458.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json

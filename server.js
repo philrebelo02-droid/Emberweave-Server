@@ -2386,7 +2386,21 @@ function difficultyForDungeonFloor(f){ const n=1+(f-1)*0.085;
   return n*(isDungeonBossFloor(f)?DUNGEON_TUNE.bossPowerMultiplier:1)*(isDungeonMilestoneFloor(f)?DUNGEON_TUNE.milestonePowerMultiplier:1); }
 const DUNGEON_BOSS_RULES=['stoneguard_barrier','bloodfire_enrage','broodcall','riftblade_leap','blight_aura','storm_chain','ironwall_challenge','voidstep','cinderbrand','vault_warden'];
 const DUNGEON_BOSS_WARN=require('./server/vault-boss-warnings.json');
+/* v1458 (Phil 26 Nov: "they all need their own enrage type that fits their abilities") - A BOSS FLOOR'S RULE IS ITS BOSS'S OWN ENRAGE.
+   The table lives once, in the game file (VAULT_ENRAGES, between its JSON markers), because the fight reads it there; the server reads the
+   same block so the floor screen, the BOSS INCOMING cue and the fight can never disagree. The boss is the boss of the floor's authored
+   last wave. The 10 shared rules stay only as the fallback for a boss with no enrage (vaultCompile refuses that at boot). */
+let _VAULT_ENRAGES=null;
+function vaultEnrageTable(){ if(_VAULT_ENRAGES) return _VAULT_ENRAGES;
+  try{ const h=fs.readFileSync(GAME_FILE,'utf8'), m=/\/\*VAULT_ENRAGES_JSON\*\/([\s\S]*?)\/\*END_VAULT_ENRAGES_JSON\*\//.exec(h);
+    _VAULT_ENRAGES=m?JSON.parse(m[1]):{}; }catch(e){ _VAULT_ENRAGES={}; }
+  return _VAULT_ENRAGES; }
+function vaultEnrageFill(e){ if(!e) return ''; return String(e.text||'').replace(/\{(\w+)(\+?%)?\}/g,(m,k,p)=>{ const v=+e[k]; if(!isFinite(v)) return m;
+  return p==='+%'?String(Math.round((v-1)*100)):p==='%'?String(Math.round(v*100)):String(v); }); }   /* the page's vaultEnrageFill, line for line */
+function vaultBossKeyForFloor(f){ try{ const r=vaultFloorRecord(f), w=r.waves[r.waves.length-1]||[], b=w.find(s=>s.boss); return b?b.key:null; }catch(e){ return null; } }
 function bossRuleForFloor(f){ if(!isDungeonBossFloor(f)) return null;
+  const boss=vaultBossKeyForFloor(f), e=boss?vaultEnrageTable()[boss]:null;
+  if(e) return { id:e.id, boss, name:e.name, warn:vaultEnrageFill(e), ascended:f>=55, gatekeeper:isDungeonMilestoneFloor(f) };
   const id=DUNGEON_BOSS_RULES[(f/5-1)%DUNGEON_BOSS_RULES.length];
   return { id, warn:DUNGEON_BOSS_WARN[id]||'', ascended:f>=55, gatekeeper:isDungeonMilestoneFloor(f) }; }
 // fragment→Dust salvage rates: spec anchors, intermediate qualities interpolated. Server-only.
@@ -2538,6 +2552,11 @@ function vaultCompile(){
     if(gearFrags.size) for(const k of r.gearFragments){ if(!gearFrags.has(k)) throw new Error('vault-encounters: floor '+f+' unknown gear fragment '+k); }
     if(f%5===0 && (!Array.isArray(r.glyphFragments)||!r.glyphFragments.length)) throw new Error('vault-encounters: boss floor '+f+' missing glyph fragments'); });
   VAULT_ENC=fl;
+  /* v1458: every boss has its own enrage, and no two share one */
+  { const T=vaultEnrageTable(), seen=new Set();
+    if(Object.keys(T).length) for(let f=5;f<=DUNGEON_MAX_FLOOR;f+=5){ const k=vaultBossKeyForFloor(f), e=k&&T[k];
+      if(!e) throw new Error('vault-encounters: boss floor '+f+' ('+k+') has no enrage in VAULT_ENRAGES');
+      if(seen.has(e.id)) throw new Error('vault-encounters: enrage '+e.id+' used twice'); seen.add(e.id); } }
   console.log('Vault encounters compiled: '+fl.length+' authored floors (fixed waves, authored boss rules, targeted gear fragments).');
 }
 function vaultFloorRecord(floor){ if(!VAULT_ENC) throw new Error('vault-encounters not compiled'); return VAULT_ENC[Math.max(1,Math.min(DUNGEON_MAX_FLOOR,floor))-1]; }
