@@ -365,7 +365,7 @@
 "wish.free_in":"Permohonan gratis dalam {t}",
 "wish.first_guaranteed":"Permohonan pertama: pasti pahlawan 2{star}",
 "wish.daily_reset":"1 gratis per hari (reset 09.00 EST)",
-"wish.diamond_odds":"Pahlawan 3{star} 3% · Pahlawan 2{star} 10% · Fragmen 3{star} 17% · Fragmen 2{star} 23% · Glif lengkap 20% · Glif level berikutnya 10% · Ember Roast 17% · pahlawan dalam 40 permohonan",
+"wish.diamond_odds":"Pahlawan 3{star} {h3}% · Pahlawan 2{star} {h2}% · Fragmen 3{star} {f3}% · Fragmen 2{star} {f2}% · Glif lengkap {gf}% · Glif level berikutnya {gn}% · pahlawan dalam 40 permohonan",
 "wish.mythical_only":"Hanya pahlawan Mitis",
 "wish.opens_at":"Terbuka di EGP {n}",
 "wish.myth_odds":"Pahlawan Mitis 1% · Fragmen mitis 36% · Fragmen glif 27% · Glif lengkap 10% · Doa 11% · Kartu serangan 5% · Perisai 5% · Teleportasi 5%",

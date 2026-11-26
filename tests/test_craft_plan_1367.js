@@ -20,6 +20,7 @@ const call = async (tok, route, data) => { const r = await fetch(base + route, {
   const frags = { [grey.frag]: meta.greyFragCost * 2, [green.frag]: green.subFragCost + (grey.frag === green.frag ? meta.greyFragCost * 2 : 0) };
   await delay(300); await stop();
   const db = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+  for (const u of [A, B, C]) db.users[u.id].led.px = Math.max(db.users[u.id].led.px | 0, 3400);   // v1455: the Forge routes need player level 25
   for (const u of [A, B, C]) db.users[u.id].gear = { revision: 1, heroGearV: 1, fragments: Object.assign({}, frags), subs: {}, seq: 10, active: {}, items: {}, equipped: {} };
   db.users[C.id].gear.fragments = { [grey.frag]: meta.greyFragCost * 2 };   // C: enough for the two greys, not the sub
   fs.writeFileSync(dbFile, JSON.stringify(db)); await start();

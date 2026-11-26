@@ -5528,7 +5528,7 @@ function patronLevelTable(){ return { rows:PATRON_ROWS, edpRows:PATRON_EDP_ROWS,
      clock starts now - nothing back-paid). Star-track milestones are left to claim, never auto-claimed.
    - temper n (0-30): every owned item type's Temper = n (gearTTSet - Temper is per item type), bar progress 0. */
 const DEV_ROSTER_ACTS=['cmdlevel','herolevel','glyphs','gear','temple','journal','academy','stars','frags','stages','temper'];
-const FORGE_UNLOCK_LEVEL=25;   /* = the client's town hotspot ...lk(25) for the Forge */
+const FORGE_UNLOCK_LEVEL=25;   /* = the client's town hotspot ...lk(25) for the Forge; v1455 lockdown: the /api/gear action routes check it too */
 function devRosterApply(tgt,led,act,n){
   const owned=bbOwnedKeys(led), pl=()=>ledPlayerLevel(led), clamp=(v,a,b)=>Math.max(a,Math.min(b,Math.floor(+v||0)));
   /* v1439 (Phil 24 Nov 2026: "give all heroes X hero fragements"): X of its own fragments to EVERY hero in the game (owned or not - fragments unlock
@@ -7359,6 +7359,10 @@ async function api(req,res,url){
       fragments:g.fragments, subs:g.subs, items:gearItemsView(g), equipped:g.equipped, active:g.active, temperByType:g.tt||{},   /* v1054: every copy shows its type's Temper */
       resonance:gearResonanceRank(g) }); }
     if(req.method!=='POST') return send(res,404,{error:'gear'});
+    /* v1455 lockdown (forge-academy-pool "Unlock at level 25"): crafting, equipping, tempering and every other Forge action is refused below
+       player level 25 (the screen's lock was the only one; a level-1 account built and tempered through the routes). Same answer as the Academy's
+       level lock. Reading the catalog / state stays open (the hero card reads it). Dev accounts keep their test grants. */
+    if(p!=='/api/gear/grant'&&!isDev(me)&&ledPlayerLevel(ensureLedger(me))<FORGE_UNLOCK_LEVEL) return send(res,400,{ok:false,error:'The Forge opens at player level '+FORGE_UNLOCK_LEVEL+'.'});
     // Permission is rechecked BEFORE successful receipt replay after role revocation.
     if(p==='/api/gear/grant'&&!isDev(me))return send(res,403,{error:'forbidden'});
     const b=await body(req);
@@ -7428,6 +7432,8 @@ async function api(req,res,url){
          same slot dropped it out of g.equipped and nothing remembered its hero, so it could be equipped on a different hero. it.hero is
          written on every equip; an item bound before v1356 with no recorded hero takes the first hero it is equipped on from now. */
       if(it.bound&&it.hero&&it.hero!==hero) return bad('That item is bound to '+heroDisplayName(it.hero)+'.');
+      /* v1455 lockdown (forge-academy-pool "Hero loadouts"): a hero wears only its own nine items (server/hero-gear.json = the client's HERO_GEAR) */
+      if(!isDev(me)&&HERO_GEAR_LIST&&Array.isArray(HERO_GEAR_LIST[hero])&&HERO_GEAR_LIST[hero].indexOf(def.id)<0) return bad(heroDisplayName(hero)+' cannot wear that item.');
       g.equipped[hero]=g.equipped[hero]||{};
       { const prev=g.equipped[hero][def.slot], pit=prev&&gearItemOf(g,prev); if(pit&&!pit.hero) pit.hero=hero; }   // the item being displaced keeps its hero
       g.equipped[hero][def.slot]=iid;   // replaces the slot's occupant (which stays bound, unequipped)

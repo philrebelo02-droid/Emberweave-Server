@@ -575,6 +575,8 @@ const PATTERNS=[
   ["your_has_fallen_no_marches_from","Your {name} has fallen — no marches from it.","^Your ([\\s\\S]*?) has fallen — no marches from it\\.$",["name"]],
   ["no_sweeps_left_today_free_paid","No Sweeps left today ({vault_sweep_free} free + {extraPaid} paid).","^No Sweeps left today \\(([\\s\\S]*?) free \\+ ([\\s\\S]*?) paid\\)\\.$",["vault_sweep_free","extraPaid"]],
   ["the_academy_opens_at_player_level","The Academy opens at player level {academy_unlock_level}.","^The Academy opens at player level ([\\s\\S]*?)\\.$",["academy_unlock_level"]],
+  ["the_forge_opens_at_player_level","The Forge opens at player level {forge_unlock_level}.","^The Forge opens at player level ([\\s\\S]*?)\\.$",["forge_unlock_level"]],
+  ["hero_cannot_wear_that_item","{name} cannot wear that item.","^([\\s\\S]*?) cannot wear that item\\.$",["name"]],
   ["you_need_diamonds_for_this_rename","You need {cost} diamonds for this rename.","^You need ([\\s\\S]*?) diamonds for this rename\\.$",["cost"]],
   ["complete_10_to_unlock_chapter","Complete {portal} {ch}-10 to unlock {portal2} Chapter {ch2}.","^Complete ([\\s\\S]*?) ([\\s\\S]*?)-10 to unlock ([\\s\\S]*?) Chapter ([\\s\\S]*?)\\.$",["portal","ch","portal2","ch2"]],
   ["auto_pray_opens_at_temple_level","Auto pray opens at Temple level {auto_pray_temple}.","^Auto pray opens at Temple level ([\\s\\S]*?)\\.$",["auto_pray_temple"]],

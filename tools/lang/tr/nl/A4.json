@@ -365,7 +365,7 @@
 "wish.free_in":"Gratis wens over {t}",
 "wish.first_guaranteed":"Eerste wens: gegarandeerd 2{star}-held",
 "wish.daily_reset":"1 gratis per dag (reset 09:00 EST)",
-"wish.diamond_odds":"3{star}-held 3% · 2{star}-held 10% · 3{star}-fragmenten 17% · 2{star}-fragmenten 23% · Volledige glief 20% · Glief volgend niveau 10% · Ember Roast 17% · held binnen 40 wensen",
+"wish.diamond_odds":"3{star}-held {h3}% · 2{star}-held {h2}% · 3{star}-fragmenten {f3}% · 2{star}-fragmenten {f2}% · Volledige glief {gf}% · Glief volgend niveau {gn}% · held binnen 40 wensen",
 "wish.mythical_only":"Alleen mythische helden",
 "wish.opens_at":"Opent bij EGP {n}",
 "wish.myth_odds":"Mythische held 1% · Mythische fragmenten 36% · Gliefragmenten 27% · Volledige glief 10% · Gebeden 11% · Aanvalskaart 5% · Schild 5% · Teleport 5%",

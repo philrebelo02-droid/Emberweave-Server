@@ -366,7 +366,7 @@
 "wish.free_in":"{t} 후 무료 소원",
 "wish.first_guaranteed":"첫 소원: 2{star} 영웅 확정",
 "wish.daily_reset":"매일 무료 1회(EST 09:00 초기화)",
-"wish.diamond_odds":"3{star} 영웅 3% · 2{star} 영웅 10% · 3{star} 조각 17% · 2{star} 조각 23% · 완성 문양 20% · 다음 레벨 문양 10% · Ember Roast 17% · 40회 안에 영웅",
+"wish.diamond_odds":"3{star} 영웅 {h3}% · 2{star} 영웅 {h2}% · 3{star} 조각 {f3}% · 2{star} 조각 {f2}% · 완성 문양 {gf}% · 다음 레벨 문양 {gn}% · 40회 안에 영웅",
 "wish.mythical_only":"신화 영웅 전용",
 "wish.opens_at":"EGP {n}에 개방",
 "wish.myth_odds":"신화 영웅 1% · 신화 조각 36% · 문양 조각 27% · 완성 문양 10% · 기도 11% · 공격 카드 5% · 보호막 5% · 순간이동 5%",

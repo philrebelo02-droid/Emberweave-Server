@@ -10,7 +10,7 @@ module.exports=[
 
 'use strict';
 const catalog=require('../server/gear-catalog.json'),grey=catalog.items.find(x=>x.qi===0),green=catalog.items.find(x=>x.qi===1);
-function gearSeed(u){u.dust=1000;u.gear={revision:1,fragments:Object.fromEntries(catalog.items.map(d=>[d.frag,100])),subs:{},items:{q1:{d:grey.id,temper:0,prog:0,dustSpent:20,bound:false,createdAt:1},q2:{d:grey.id,temper:0,prog:0,dustSpent:0,bound:false,createdAt:2}},equipped:{},active:{},seq:3};}
+function gearSeed(u){if(u.led)u.led.px=Math.max(u.led.px|0,3400);/* v1455: Forge needs player level 25 */u.dust=1000;u.gear={revision:1,fragments:Object.fromEntries(catalog.items.map(d=>[d.frag,100])),subs:{},items:{q1:{d:grey.id,temper:0,prog:0,dustSpent:20,bound:false,createdAt:1},q2:{d:grey.id,temper:0,prog:0,dustSpent:0,bound:false,createdAt:2}},equipped:{},active:{},seq:3};}
 const packet=(extra)=>({expectedRevision:1,...extra}),g=(d)=>d.users['fixture-user'].gear;
 module.exports.push(
  {name:'Batch market fragment',route:'/api/market/frag',observe:'/api/ledger',seed(u){u.led.market={h:Math.floor(Date.parse('2026-10-02T10:00:00-04:00')/3600000),offers:[{i:0,hero:'vael',qty:1,pay:'gold'}],bought:[]};}/* v1097: the server's offer of the hour */,packet:{offer:0,heroKey:'vael',qty:1,pay:'gold',requestId:'batch-market'},receipt:'fixture-user:mfrag:batch-market',assertSaved(d,r,a){a.equal(r.qty,1);a.equal(r.paid.gold,550);a.equal(d.users['fixture-user'].led.frags.vael,1);}},

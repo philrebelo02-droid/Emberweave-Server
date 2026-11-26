@@ -292,7 +292,7 @@
   "wish.free_in": "Free wish in {t}",
   "wish.first_guaranteed": "First wish: guaranteed 2{star} hero",
   "wish.daily_reset": "1 free daily (09:00 EST reset)",
-  "wish.diamond_odds": "3{star} hero 3% · 2{star} hero 10% · 3{star} fragments 17% · 2{star} fragments 23% · Full glyph 20% · Next-level glyph 10% · Ember Roast 17% · hero by wish 40",
+  "wish.diamond_odds": "3{star} hero {h3}% · 2{star} hero {h2}% · 3{star} fragments {f3}% · 2{star} fragments {f2}% · Full glyph {gf}% · Next-level glyph {gn}% · hero by wish 40",
   "wish.mythical_only": "Mythical heroes only",
   "wish.opens_at": "Opens at EGP {n}",
   "wish.myth_odds": "Mythical hero 1% · Mythical fragments 36% · Glyph fragments 27% · Full glyph 10% · Prayers 11% · Attack card 5% · Shield 5% · Teleport 5%",

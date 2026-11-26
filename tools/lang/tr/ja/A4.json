@@ -366,7 +366,7 @@
 "wish.free_in":"無料の願いまで {t}",
 "wish.first_guaranteed":"初回: 2{star}ヒーロー確定",
 "wish.daily_reset":"1日1回無料（米国東部標準時09:00リセット）",
-"wish.diamond_odds":"3{star}ヒーロー 3% · 2{star}ヒーロー 10% · 3{star}の欠片 17% · 2{star}の欠片 23% · 完成グリフ 20% · 次レベルのグリフ 10% · Ember Roast 17% · 40回以内にヒーロー確定",
+"wish.diamond_odds":"3{star}ヒーロー {h3}% · 2{star}ヒーロー {h2}% · 3{star}の欠片 {f3}% · 2{star}の欠片 {f2}% · 完成グリフ {gf}% · 次レベルのグリフ {gn}% · 40回以内にヒーロー確定",
 "wish.mythical_only":"神話ヒーローのみ",
 "wish.opens_at":"EGP {n}で開放",
 "wish.myth_odds":"神話ヒーロー 1% · 神話の欠片 36% · グリフの欠片 27% · 完成グリフ 10% · 祈祷 11% · 攻撃カード 5% · シールド 5% · テレポート 5%",

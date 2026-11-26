@@ -509,6 +509,8 @@
   "err.your_has_fallen_no_marches_from": "Your {name} has fallen — no marches from it.",
   "err.no_sweeps_left_today_free_paid": "No Sweeps left today ({vault_sweep_free} free + {extraPaid} paid).",
   "err.the_academy_opens_at_player_level": "The Academy opens at player level {academy_unlock_level}.",
+  "err.the_forge_opens_at_player_level": "The Forge opens at player level {forge_unlock_level}.",
+  "err.hero_cannot_wear_that_item": "{name} cannot wear that item.",
   "err.you_need_diamonds_for_this_rename": "You need {cost} diamonds for this rename.",
   "err.complete_10_to_unlock_chapter": "Complete {portal} {ch}-10 to unlock {portal2} Chapter {ch2}.",
   "err.auto_pray_opens_at_temple_level": "Auto pray opens at Temple level {auto_pray_temple}.",

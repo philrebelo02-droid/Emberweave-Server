@@ -17,7 +17,7 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
   let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
 const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
 async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(db,db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
-const seed=u=>{ u.dust=1000; u.gear={revision:1,fragments:Object.fromEntries(catalog.items.map(d=>[d.frag,100])),subs:{},items:{},equipped:{},active:{},seq:1}; };
+const seed=u=>{ if(u.led) u.led.px=Math.max(u.led.px|0,3400);   /* v1455: the Forge routes need player level 25 (FORGE_UNLOCK_LEVEL) */ u.dust=1000; u.gear={revision:1,fragments:Object.fromEntries(catalog.items.map(d=>[d.frag,100])),subs:{},items:{},equipped:{},active:{},seq:1}; };
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'gepoch-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');

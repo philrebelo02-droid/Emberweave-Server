@@ -661,6 +661,10 @@ note "test_lockdown_campaign_1455.js (v1455 lockdown audit Campaign + Bonus fixe
 node tests/test_lockdown_campaign_1455.js || FAILED=1
 note "test_lockdown_guild_1455.js (v1455 lockdown audit Guild fixes: Skyfall result summary from the whole war, missed-lock line, reward claim capped + ledger row, unclaimed line says arena coins in 16 languages)"
 node tests/test_lockdown_guild_1455.js || FAILED=1
+note "test_lockdown_wall_watch_1455.js (v1455 lockdown audit City Wall / Watch Tower / Well / Arena fixes: RESET on the wall line editor, Voidglass not crystal, siege site names, tent loans in the Well Heroes window, arena coins + glyph fragments on the result line)"
+node tests/test_lockdown_wall_watch_1455.js || FAILED=1
+note "test_lockdown_forge_pool_market_1455.js (v1455 lockdown audit Forge / Wishing Pool / Market fixes: Forge routes need level 25, a hero wears only its own nine items, Diamond card odds from the server table in 16 languages, the Market restock countdown ticks and restocks)"
+node tests/test_lockdown_forge_pool_market_1455.js || FAILED=1
 note "test_irix_wall_cauldron_1429.js (v1429, tester Soul Eater 21 Nov: 16-10 Irix +20% health and damage in that fight only; City Wall art in view; Cauldron \"Full in\")"
 node tests/test_irix_wall_cauldron_1429.js || FAILED=1
 note "test_irix_final_boss_1430.js (v1430, tester Soul Eater 22 Nov: 16-10 Irix +50% health and damage over his original strength; the hero at his side becomes the tank Rhukk, the stage still pays its reward hero)"

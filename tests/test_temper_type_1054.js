@@ -23,6 +23,7 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   const grey=cat.filter(d=>d.quality==='Grey'); const A=grey[0], B=grey.find(d=>d.slot!==A.slot)||grey[1];
   let h1,h2; const now=Date.now();
   await editDB(u=>{ const un=Object.keys(u.led.unlocked||{}).filter(k=>u.led.unlocked[k]); h1=un[0]; h2=un[1];
+    u.led.px=Math.max(u.led.px|0,3400);   /* v1455: the Forge routes need player level 25 (FORGE_UNLOCK_LEVEL) */ 
     u.dust=100000;
     u.gear={revision:1,heroGearV:1,fragments:{},subs:{},seq:10,active:{},   /* heroGearV: this fixture is about Temper, not the v1336 gear conversion */
       items:{ q1:{d:A.id,temper:5,prog:2,dustSpent:400,bound:true,createdAt:now}, q2:{d:A.id,temper:4,prog:7,dustSpent:300,bound:true,createdAt:now},

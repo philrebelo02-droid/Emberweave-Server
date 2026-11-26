@@ -366,7 +366,7 @@
 "wish.free_in":"{t} 后免费许愿",
 "wish.first_guaranteed":"首次许愿：必得2{star}英雄",
 "wish.daily_reset":"每日1次免费（美东标准时间 09:00 重置）",
-"wish.diamond_odds":"3{star}英雄 3% · 2{star}英雄 10% · 3{star}碎片 17% · 2{star}碎片 23% · 完整符文 20% · 下一级符文 10% · Ember Roast 17% · 最多40次许愿必得英雄",
+"wish.diamond_odds":"3{star}英雄 {h3}% · 2{star}英雄 {h2}% · 3{star}碎片 {f3}% · 2{star}碎片 {f2}% · 完整符文 {gf}% · 下一级符文 {gn}% · 最多40次许愿必得英雄",
 "wish.mythical_only":"仅限神话英雄",
 "wish.opens_at":"EGP {n} 开放",
 "wish.myth_odds":"神话英雄 1% · 神话碎片 36% · 符文碎片 27% · 完整符文 10% · 祈祷 11% · 进攻卡 5% · 护盾 5% · 传送 5%",

@@ -366,7 +366,7 @@
 "wish.free_in":"Desejo grátis em {t}",
 "wish.first_guaranteed":"Primeiro desejo: herói 2{star} garantido",
 "wish.daily_reset":"1 grátis por dia (reset às 09:00 EST)",
-"wish.diamond_odds":"Herói 3{star} 3% · Herói 2{star} 10% · Fragmentos 3{star} 17% · Fragmentos 2{star} 23% · Glifo completo 20% · Glifo do próximo nível 10% · Ember Roast 17% · herói garantido em até 40 desejos",
+"wish.diamond_odds":"Herói 3{star} {h3}% · Herói 2{star} {h2}% · Fragmentos 3{star} {f3}% · Fragmentos 2{star} {f2}% · Glifo completo {gf}% · Glifo do próximo nível {gn}% · herói garantido em até 40 desejos",
 "wish.mythical_only":"Só heróis míticos",
 "wish.opens_at":"Abre com EGP {n}",
 "wish.myth_odds":"Herói mítico 1% · Fragmentos míticos 36% · Fragmentos de glifo 27% · Glifo completo 10% · Orações 11% · Carta de ataque 5% · Escudo 5% · Teleporte 5%",

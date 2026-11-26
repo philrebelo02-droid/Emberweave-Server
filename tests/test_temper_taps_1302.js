@@ -16,10 +16,12 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
     const name = 't20' + Date.now().toString(36);
     const reg = await (await fetch(base + '/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, pass: 'password1' }) })).json();
     const cat = await (await fetch(base + '/api/gear/catalog', { headers: { 'x-token': reg.token } })).json();
+    await fetch(base + '/api/ledger', { headers: { 'x-token': reg.token } });   // v1455: the ledger exists, so the seed below can set the player level
     await delay(1500); srv.kill(); await (async(c)=>{ for(let i=0;i<400&&c.exitCode===null&&c.signalCode===null;i++){ if(i===200) try{ c.kill('SIGKILL'); }catch(_){} await new Promise(r=>setTimeout(r,50)); } if(c.exitCode===null&&c.signalCode===null) throw new Error('server pid '+c.pid+' did not exit within 20 s (SIGKILL sent at 10 s) - stopping the test here, no DB edit or restart'); })(srv);   /* 11 Nov: until it has exited (the port is free); 12 Nov: throws if it never does */
     // seed: lots of dust + one built Grey item (the db file the server wrote)
     let raw = fs.readFileSync(dbFile, 'utf8'); const db = JSON.parse(raw); const u = Object.values(db.users).find(x => x.name === name || x.login === name);
     const grey = cat.items.find(d => d.quality === 'Grey');
+    if (u.led) u.led.px = Math.max(u.led.px | 0, 3400);   // v1455: the Forge routes need player level 25
     u.dust = 5000000; u.gear = Object.assign(u.gear || {}, { revision: (u.gear && u.gear.revision) || 1, items: { q1: { d: grey.id, temper: 0, prog: 0, dustSpent: 0, bound: false, createdAt: Date.now() } } });
     fs.writeFileSync(dbFile, JSON.stringify(db)); await start();
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));

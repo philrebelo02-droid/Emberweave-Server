@@ -19,8 +19,10 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   const cat=JSON.parse(fs.readFileSync(path.join(root,'server','gear-catalog.json'),'utf8')).items;
   const A=cat.filter(d=>d.quality==='Grey')[0]; let h1,h2; const now=Date.now();
   await editDB(u=>{ const un=Object.keys(u.led.unlocked||{}).filter(k=>u.led.unlocked[k]); h1=un[0]; h2=un[1];
+    u.led.px=Math.max(u.led.px|0,3400);   /* v1455: the Forge routes need player level 25 (FORGE_UNLOCK_LEVEL) */ 
+    const HG=require(path.join(root,'server','hero-gear.json')), a1=HG[h1][0], a2=HG[h2][0];   // v1455: a hero wears only its own nine items - X/Y are h1's Grey item, OLD is h2's
     u.gear={revision:1,heroGearV:1,fragments:{},subs:{},seq:10,active:{},
-      items:{ x:{d:A.id,temper:0,prog:0,dustSpent:0,createdAt:now}, y:{d:A.id,temper:0,prog:0,dustSpent:0,createdAt:now}, old:{d:A.id,temper:0,prog:0,dustSpent:0,bound:true,createdAt:now} },
+      items:{ x:{d:a1,temper:0,prog:0,dustSpent:0,createdAt:now}, y:{d:a1,temper:0,prog:0,dustSpent:0,createdAt:now}, old:{d:a2,temper:0,prog:0,dustSpent:0,bound:true,createdAt:now} },
       equipped:{} }; });
   ok(h1&&h2&&h1!==h2,'fixture: two owned heroes ('+h1+', '+h2+'), two fresh copies of '+A.name);
   const eq=async(hero,itemId)=>{ const st=(await call('/api/gear/state')).data; return call('/api/gear/equip',{heroKey:hero,itemId,expectedRevision:st.revision,requestId:'r'+Math.random().toString(36).slice(2)}); };

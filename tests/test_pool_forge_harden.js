@@ -20,7 +20,8 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   const HB=Object.keys(require(path.join(root,'server/sim.js')).HERO_BASE);
   let owned, unowned;
   await editDB(u=>{ const un=u.led.unlocked||{}; owned=HB.find(k=>un[k]); unowned=HB.find(k=>!un[k]);
-    u.gear={revision:1,fragments:{},subs:{},items:{q1:{d:cat[0].id,temper:0,prog:0,dustSpent:0,bound:false,createdAt:Date.now()},q2:{d:cat[0].id,temper:0,prog:0,dustSpent:0,bound:false,createdAt:Date.now()}},equipped:{},active:{},seq:3}; });
+    u.led.px=Math.max(u.led.px|0,3400);   /* v1455: the Forge routes need player level 25 (FORGE_UNLOCK_LEVEL) */ const own0=require(path.join(root,'server','hero-gear.json'))[owned][0];   // v1455: the owned hero's own Grey item (a hero wears only its own nine)
+    u.gear={revision:1,fragments:{},subs:{},items:{q1:{d:own0,temper:0,prog:0,dustSpent:0,bound:false,createdAt:Date.now()},q2:{d:own0,temper:0,prog:0,dustSpent:0,bound:false,createdAt:Date.now()}},equipped:{},active:{},seq:3}; });
   ok(owned&&unowned,'fixture has an owned ('+owned+') and an unowned ('+unowned+') hero');
   const e1=await call('/api/gear/equip',{heroKey:unowned,itemId:'q1',expectedRevision:1});
   ok(!e1.data.ok&&/own/.test(e1.data.error||''),'equip on an unowned hero is refused ('+(e1.data.error||JSON.stringify(e1.data).slice(0,80))+')');
