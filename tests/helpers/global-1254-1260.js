@@ -233,6 +233,10 @@ function undoText(s) {
   s = s.replace(/\n  umbris_blue:\{u:'\/assets\/anim\/fx\/umbris_shadeburst\.webp[^\n]*/, () => "\n  umbris_blue:{u:'/assets/anim/fx/umbris_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.38,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},");
   s = s.replace(/\n  umbris_green:\{u:'\/assets\/anim\/fx\/umbris_shadeburst\.webp[^\n]*/, () => "\n  umbris_green:{u:'/assets/anim/fx/umbris_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.503,dh:0.275,dw:0.9}},");
   s = s.replace(/(blue:\{name:'Creeping Rot',type:'creeprot',[^}]*?gfx:'umbris_blue',gfxR:)1\.2\*METER/, '$13*METER');
+  // v1462 (Phil 26 Nov, Vulmar's Hailuo ult remake 368878138 - "good use that"): the new FX2_DEF row vulmar_gravity and its HERO_ULT_ART wiring
+  // (render only: ult damage measured identical) are taken back out for the older FX2_DEF == BASE checks (the live sheet is checked by tests/test_memory_budget_1140.js)
+  s = s.replace(/\r?\n  vulmar_gravity:\{[^\n]*/, '');
+  s = s.replace(/,\s*vulmar:\{gfx:'vulmar_gravity',gdur:3\.53\}/, '');
   // v1370 (Phil 11 Nov "large zhari"): Zahri's Solar Impalement light-spear heroPx 641.9 -> 738.2 (x1.15), put back for the older FX2_DEF == BASE checks
   // (tests/test_zahri_solar_1070.js checks the live size)
   s = s.replace(/(zahrisolar:\{u:'\/assets\/anim\/fx\/zahri_solar\.webp\?v=1',n:96,fw:341,fh:341,cols:12,rows:8,dur:4\.0,tip:\[0\.1674,0\.5000\],heroPx:)738\.2\},   \/\* v1370 \(Phil 11 Nov: "large zhari"[^*]*\*\/   /, '$1641.9},   ');

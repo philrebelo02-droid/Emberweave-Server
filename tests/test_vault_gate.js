@@ -3,7 +3,10 @@
 const load=require('../scripts/_probe_loader.js');
 const S=load('./probe-db-vg.json');
 let pass=0,fail=0; const ck=(n,c)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n)); };
-const save={playerXP:900000,heroXP:{vael:5000,sylthaine:5000,vireo:5000,tick:5000,fritz:5000},starLevel:{},starPip:{}};
+/* v1462: Kimi's re-ramped floors (kimi-vault-ladder-24NOV2026, floor 2 tuned for a level-11 squad with its boards) are out of reach for five level-20
+   heroes at 1 star in the estimate, so the 'weak' team is an ordinary early squad: level 20, 3 stars, no gear. It still clears floor 2 and is still
+   refused at 50 / 70. (The estimate only logs a disagreement: the player's result is the truth, v410.) */
+const save={playerXP:900000,heroXP:{vael:5000,sylthaine:5000,vireo:5000,tick:5000,fritz:5000},starLevel:{vael:3,sylthaine:3,vireo:3,tick:3,fritz:3},starPip:{}};
 const u={roster:{__save:JSON.stringify(save)}};
 const snaps=['vael','sylthaine','vireo','tick','fritz'].map(k=>S.snapshotHeroFromServer(u,k,save));
 ck('snapshots build (lvl '+snaps[0].level+')', snaps.every(Boolean));
