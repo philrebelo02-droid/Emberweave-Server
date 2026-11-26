@@ -3448,7 +3448,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #arena button:disabled{background-image:url('/assets/img/ui/emberdraft-main/action-disabled.webp?v=1')!important;color:#b4aa94}
 /* Vault entrance data/team picker remains real; nothing affects battles. */
 #dungeon{background:url('/assets/img/ui/building-main/vault-hall.webp?v=1') center/cover!important}
-#dungeon #dungeonBody>div{overflow-y:auto!important}
+#dungeon #dungeonBody>div{overflow-y:auto!important;overflow-x:hidden!important}   /* v1461: the fighters frame's transparent right edge (3-10 px past the screen) let the Vault page drag sideways */
 #dungeon #dungeonBody>div>div{max-width:850px!important;width:57%;margin:65px 3% 30px auto!important;padding:0!important}
 #dungeon #dungeonBody>div>div>div:first-child{padding:0 0 12px!important;color:#f1cb85}
 #dungeon .panel{background:url('/assets/img/ui/emberdraft-main/dialog-frame.webp?v=1') center/100% 100%!important;border:0;border-radius:0;box-shadow:none;padding:25px!important}
