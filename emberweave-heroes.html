@@ -3510,7 +3510,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 /* Pool layout is responsive CSS rather than stale preview fit dimensions. All authored pool illustrations remain. */
 #wishing #wpsStage{width:100%!important;height:100%!important;position:absolute!important;inset:0!important;transform:none!important;padding:25px 3% 30px!important;overflow-y:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:20px}
 #wishing .wpsTitle{height:auto!important;min-height:65px;font-size:clamp(25px,3vw,44px)!important;padding:15px 45px!important;letter-spacing:2px!important;background:url('/assets/img/ui/building-main/inset-card.webp?v=1') center/100% 100%!important;border:0!important;border-radius:0!important;flex:none}
-#wishing .wpsHelp{width:32px!important;height:32px!important;font-size:22px!important;border-width:1px!important;margin-left:8px}
+#wishing .wpsHelp{width:44px!important;height:44px!important;font-size:22px!important;border-width:1px!important;margin-left:8px}   /* v1461: 44x40 tap minimum (was 32x32) */
 #wishing .wpsCards{width:min(100%,1020px)!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;margin:auto 0!important;flex:none!important}
 #wishing .wpsCard,#wishing .wpsStage.tall .wpsCard{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;padding:35px 15% 38px!important;min-height:390px!important;gap:5px!important;width:auto!important;flex:none!important}
 #wishing .wpsOrb,#wishing .wpsStage.tall .wpsOrb{width:110px!important;height:110px!important;flex:none!important}
@@ -4032,7 +4032,7 @@ body:has(#vtInfoPop) #mcLayer{z-index:20060}   /* the enemy card opens above the
 /* Wishing Pool */
 #wishing{--wp-title:url('/assets/img/ui/building-titles/wishing-pool-title.webp?v=1');--wp-frame:url('/assets/img/ui/guild-main/guild-ornate-panel.webp?v=1');}
 #wishing .wpsTitle{position:relative;font-size:0!important;padding:0 45px!important;width:min(350px,94%)!important;height:100px!important;min-height:100px!important;background:none!important;letter-spacing:0!important;}
-#wishing .wpsTitle::before{content:'';position:absolute;inset:0 40px 0 0;pointer-events:none;background:var(--wp-title) center/contain no-repeat;}
+#wishing .wpsTitle::before{content:'';position:absolute;inset:0 48px 0 0;pointer-events:none;background:var(--wp-title) center/contain no-repeat;}
 #wishing .wpsHelp{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:22px!important;color:#ffe7a7!important;}
 #wishing .wpsCard{background:none!important;border:0!important;border-radius:0!important;border-image:var(--wp-frame) 25% fill / 44px / 0 stretch!important;}
 @media(max-height:560px) and (min-width:701px){#wishing .wpsTitle{width:250px!important;height:70px!important;min-height:70px!important;}#wishing .wpsCard{border-image-width:32px!important;}}
