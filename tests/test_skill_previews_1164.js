@@ -54,7 +54,11 @@ function checkClips(r) {
     if (!sw.length) { bad.push(k + ' attack: no swing recorded'); continue; }
     if (!sw.every(c => p.includes(c))) bad.push(k + ' attack fight ' + sw.join('+') + ' preview ' + p.join('+'));
     if (k === 'aureth' && p.slice(0, 2).join() !== sw.slice(0, 2).join()) bad.push('aureth arm order fight ' + sw.join() + ' preview ' + p.join());
-    const an = J(`JSON.stringify(!!BATTLE_ANIM['${k}'].crit)`); if (an && !cr.includes('crit')) bad.push(k + ' forced crit did not play the crit clip: ' + cr); }
+    const an = J(`JSON.stringify(!!BATTLE_ANIM['${k}'].crit)`);
+    /* v1452 (bug 1): a magic tank's basic attack never crits (v1032), so a forced crit on one plays no crit clip; every other hero's does */
+    const mt = J(`JSON.stringify(!!(HERO_TYPES['${k}']&&HERO_TYPES['${k}'].role==='Tank'&&HERO_TYPES['${k}'].damageProfile==='Magic'))`);
+    if (an && mt && cr.includes('crit')) bad.push(k + ' is a magic tank (its basic attack never crits) but a forced crit played the crit clip: ' + cr);
+    else if (an && !mt && !cr.includes('crit')) bad.push(k + ' forced crit did not play the crit clip: ' + cr); }
   return bad;
 }
 function checkCells(r) {   // the preview's cell clock against the engine's own one-shot reading (syncMesh: acc += dt*fps; ppFrame; hold the last cell)
