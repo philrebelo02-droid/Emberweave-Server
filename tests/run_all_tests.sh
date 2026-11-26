@@ -646,6 +646,8 @@ node tests/test_hero61_art.js || FAILED=1
 node tests/test_hero61_fx.js || FAILED=1
 note "test_battle_limit_1399.js (v1399, Phil 17 Nov: \"all battles should be 3 minutes to time out now\" / \"every single battle mode\" - every mode's limit is 180 s, page and server)"
 node tests/test_battle_limit_1399.js || FAILED=1
+note "test_battle_rules_1464.js (v1464 lockdown: 12 Battle Engine checklist lines proved or disproved in real headless fights, each with a control; FAIL/WORDING findings print, BR_STRICT=1 fails on them)"
+node tests/test_battle_rules_1464.js || FAILED=1
 note "test_raid_spells_1453.js (v1453, Phil 25 Nov: \"just raise its spell power\" / \"magical beasts should do their damage with spells\" / \"2 attacks a day\" / \"lessen\" the armour)"
 node tests/test_raid_spells_1453.js || FAILED=1
 note "test_campaign_retune_1414.js (registered 25 Nov 2026 - it existed but never ran in the suite)"
