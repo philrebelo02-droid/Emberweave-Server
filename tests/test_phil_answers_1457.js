@@ -81,6 +81,28 @@ section('1. every glyph fragment drops somewhere; a stage splits its drop evenly
     && /\$\{\(_random\|\|_split\)\?` <span style="color:#8b98a9">\$\{_pct\}<\/span>`:''\}/.test(html), 'the CHANCES box heads the list with the split and shows the chance on each line');
 });
 
+section('1b. the 17 kinds are spent by the boards they belong to (Phil: "dont remove them, mix them into the heroes it belongs to")', async () => {
+  const cp = require('child_process');
+  const now = JSON.parse(fs.readFileSync(path.join(root, 'server', 'glyph-source.json'), 'utf8'));
+  let old = null; try { old = JSON.parse(cp.execFileSync('git', ['show', '780cbe0ca:server/glyph-source.json'], { cwd: root, encoding: 'utf8', maxBuffer: 64 << 20 })); } catch (e) {}
+  ok(!!old && old.length === now.length, 'the v1455 catalogue to compare with (' + (old && old.length) + ' recipes)');
+  if (old) { const FR = /^(\d+)\s*[×x]\s*(.+?)\s+Fragments$/, parts = r => r.split(' + ').map(s => s.trim());
+    const sum = r => parts(r).reduce((a, p) => { const m = FR.exec(p); return a + (m ? +m[1] : 0); }, 0), rest = r => parts(r).filter(p => !FR.test(p)).join(' + ');
+    const changed = now.filter((d, i) => d.recipeText !== old[i].recipeText);
+    ok(now.every((d, i) => d.id === old[i].id && sum(d.recipeText) === sum(old[i].recipeText) && rest(d.recipeText) === rest(old[i].recipeText)),
+      'every recipe costs the same number of fragments as in v1455, with the same sub-glyphs and glyphs (' + changed.length + ' recipes changed: ' + changed.map(d => d.id).join(' ') + ')');
+    ok(changed.length === 12 && changed.every(d => d.family === 'Ironwall'), 'the 12 changed recipes are the Blue..Gold +4 Ironwall glyphs (the armour guard board), part of their Ironwall cost moved to Bastion / Dawnshield'); }
+  let gp = null; try { gp = JSON.parse(cp.execFileSync(process.execPath, [path.join(root, 'tools', 'glyph_paths.js')], { cwd: root, encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] })); } catch (e) {}
+  ok(!!gp && gp.heroes && Object.keys(gp.heroes).length === 61, 'tools/glyph_paths.js (the engine\'s own board paths) runs: 61 heroes');
+  if (!gp) return;
+  const byId = Object.fromEntries(gp.glyphs.map(g => [g.id, g])), spend = {};
+  for (const [h, v] of Object.entries(gp.heroes)) for (const t of v.path) for (const s of t.slots) for (const f of (byId[s.id] || { frags: [] }).frags)
+    if (qOf(f.key) === t.quality) (spend[f.key] = spend[f.key] || new Set()).add(h);
+  for (const k of ORPHANS) { const who = [...(spend[k] || [])].sort(), tanks = who.filter(h => (gp.heroes[h].role === 'Tank'));
+    ok(who.length > 0 && tanks.length >= 5 && (S.FRAG_SOURCES[S.glyphFragSlug(k)] || []).length >= 2, k + ': dropped by ' + (S.FRAG_SOURCES[S.glyphFragSlug(k)] || []).map(s => s.mode + ' ' + s.stageId).join(', ')
+      + '; spent at the ' + qOf(k) + ' step by ' + who.length + ' boards (' + tanks.length + ' tanks: ' + tanks.join(' ') + ')'); }
+});
+
 section('2. the Arena gives no hero XP', async () => {
   const a0 = html.indexOf("  if(CUR.mode==='arena'){ let _arepDef=null"), blk = html.slice(a0, html.indexOf("\n  if(CUR.mode===", a0 + 10));
   ok(blk.length > 500 && !/grantTeamXP|heroXP|hero_xp/.test(blk), 'the Arena result step grants no hero XP and promises none (' + blk.length + ' chars checked)');
