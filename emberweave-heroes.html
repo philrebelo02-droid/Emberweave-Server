@@ -25865,6 +25865,27 @@ function startCampaignIdleNodes(){
 /* v1327 (Phil 9 Nov, Chapter 2 screenshot: "Check the bonus stages arent stacked under other stages, move the bonus stage plates"): the plate hangs under its
    building, and on many chapters that is right on the path - BONUS 2-4 under stage 2-5, BONUS 2-6 under the 2-9 hero. Fixed plate offsets per chapter would break on the next
    screen shape (the map is rescaled per screen), so each plate is measured against what is really drawn and moved the smallest distance that clears it. */
+/* v1461 (lockdown screens 26 Nov, 844x390 phone, chapters 10-15): the map is drawn at the screen's height, so on a short phone some stage plates sit
+   29-40 px apart and their 44 px tap boxes overlapped - a tap on the edge of 12-2 opened 12-3. Plates that are too close are moved apart by the
+   smallest amount (a few px, along the shorter way) until no two tap boxes overlap, so every plate keeps a full 44 px box and the nearest plate wins.
+   Plates with room to spare (desktop, tablet) do not move. Positions are always worked out again from the map's own % spots. */
+function cnodeSpreadPlates(root){
+  const nodes=[...root.querySelectorAll('.cnode')]; if(nodes.length<2) return;
+  const W=root.offsetWidth, H=root.offsetHeight; if(!(W>0&&H>0)) return;
+  const P=nodes.map(n=>{ if(n.dataset.nx==null){ n.dataset.nx=n.style.left; n.dataset.ny=n.style.top; }
+    n.style.left=n.dataset.nx; n.style.top=n.dataset.ny;
+    const e=n.classList.contains('elite'), hw=e?24:22, hh=e?32:22, ay=parseFloat(n.dataset.ny)/100*H;
+    return {n,e,hw,hh,x:parseFloat(n.dataset.nx)/100*W,y:e?ay-32:ay,moved:false}; });
+  if(P.some(p=>!isFinite(p.x)||!isFinite(p.y))) return;
+  for(let it=0;it<40;it++){ let any=false;
+    for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j], dx=b.x-a.x, dy=b.y-a.y;
+      const ox=a.hw+b.hw-Math.abs(dx), oy=a.hh+b.hh-Math.abs(dy); if(ox<=0.01||oy<=0.01) continue;
+      any=true; a.moved=b.moved=true;
+      if(ox<=oy){ const s=(dx<0?-1:1)*(ox/2+0.05); a.x-=s; b.x+=s; } else { const s=(dy<0?-1:1)*(oy/2+0.05); a.y-=s; b.y+=s; } }
+    P.forEach(p=>{ p.x=Math.max(p.hw,Math.min(W-p.hw,p.x)); p.y=Math.max(p.hh,Math.min(H-p.hh,p.y)); });
+    if(!any) break; }
+  P.forEach(p=>{ if(!p.moved) return; p.n.style.left=(p.x/W*100).toFixed(3)+'%'; p.n.style.top=((p.e?p.y+32:p.y)/H*100).toFixed(3)+'%'; });
+}
 function cbonusClearPlates(root){
   const plates=[...root.querySelectorAll('.cbonus>span')]; if(!plates.length) return;
   const rot=!!(typeof EWViewport!=='undefined'&&EWViewport.state&&EWViewport.state.rotated), W=window.innerWidth;
@@ -25978,7 +25999,7 @@ function renderRoadmap(){
     }
     map.appendChild(_inner);
     cbonusPlateFill();   /* v1442 (B6): stars and fragments per hour on each bonus plate */
-    cbonusClearPlates(_inner); requestAnimationFrame(()=>cbonusClearPlates(_inner)); setTimeout(()=>{ if(_inner.isConnected) cbonusClearPlates(_inner); },500);
+    cnodeSpreadPlates(_inner); cbonusClearPlates(_inner); requestAnimationFrame(()=>{ cnodeSpreadPlates(_inner); cbonusClearPlates(_inner); }); setTimeout(()=>{ if(_inner.isConnected){ cnodeSpreadPlates(_inner); cbonusClearPlates(_inner); } },500);
   } else {
   const N=STAGES_PER_CH, rowH=72, H=N*rowH+40; map.style.height=H+'px';
   const pts=[];
