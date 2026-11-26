@@ -45,7 +45,7 @@ const AH_HELPERS=()=>{ if(window.AH) return true;
       let ok=sec?(/gradient|url\(/.test(bgi)):(/url\(/.test(bgi)||cols(bgi).some(isGold));
       /* painted another way: a loaded border image, or a ::before / ::after carrying the art or a gold gradient (the Market / Shady price buttons) */
       if(!ok){ const bi=urls(cs.borderImageSource); if(bi.length){ const L=await load(bi[0]); if(L.ok) ok=true; } }
-      if(!ok){ for(const ps of ['::before','::after']){ const pi=getComputedStyle(b,ps).backgroundImage, pu=urls(pi); if(pu.length){ const L=await load(pu[0]); if(L.ok){ ok=true; break; } } if(cols(pi).some(isGold)){ ok=true; break; } } }
+      if(!ok){ for(const ps of ['::before','::after']){ const pcs=getComputedStyle(b,ps), pi=pcs.backgroundImage, pu=urls(pi).concat(pcs.content!=='none'?urls(pcs.borderImageSource):[]); if(pu.length){ const L=await load(pu[0]); if(L.ok){ ok=true; break; } } if(cols(pi).some(isGold)){ ok=true; break; } } }
       btns.push(ok); if(!ok) flatBtns.push(desc(b)+' "'+SL.txt(b).slice(0,20)+'" bg '+bgi.slice(0,60)+' '+box(b).w+'x'+box(b).h); }
     const flatTabs=[]; let tabs=0; for(const t of root.querySelectorAll('.tabrow .tab,.hd-tab,.glTab')){ if(!onScreen(t)) continue; tabs++; const cs=getComputedStyle(t);
       if(!/gradient|url\(/.test(cs.backgroundImage)&&!/url\(/.test(cs.borderImageSource)) flatTabs.push(desc(t)+' "'+SL.txt(t).slice(0,20)+'"'); }
@@ -305,8 +305,9 @@ async function buildings(pg,S){
         let hut=null; if(root==='#wall'){ const tabOn=!!el.querySelector('[data-wall-tab="cauldron"]:not(.secondary)'), hu=[];
           for(const e of [...el.querySelectorAll('*')].slice(0,5000)){ if(!AH.onScreen(e)) continue; const b=AH.box(e); if(b.w<60||b.h<60) continue;
             if(e.tagName==='IMG'&&/\/witches-hut\//.test(e.currentSrc||e.src)) hu.push({u:e.currentSrc||e.src,box:b,img:e});
+            if(e.tagName==='VIDEO'&&/\/witches-hut\//.test(e.currentSrc||e.src||'')) hu.push({u:(e.currentSrc||e.src)+(e.poster?' (poster '+e.poster+')':''),box:b,video:e});   /* the cauldron is a looping <video> with a painted poster */
             AH.urls(getComputedStyle(e).backgroundImage).filter(u=>/\/witches-hut\//.test(u)).forEach(u=>hu.push({u,box:b})); if(hu.length>5) break; }
-          const HL=await Promise.all(hu.map(async x=>({u:AH.short(x.u),box:x.box,ok:x.img?(x.img.complete&&x.img.naturalWidth>0):(await AH.load(x.u)).ok})));
+          const HL=await Promise.all(hu.map(async x=>({u:AH.short(x.u),box:x.box,ok:x.img?(x.img.complete&&x.img.naturalWidth>0):x.video?(x.video.readyState>=2&&x.video.videoWidth>0)||(x.video.poster?(await AH.load(x.video.poster)).ok:false):(await AH.load(x.u)).ok})));
           const hb=el.querySelector('.hdrbox'), hcs=hb?getComputedStyle(hb):null, pu=hcs?AH.urls(hcs.backgroundImage)[0]:null, pl=pu?await AH.load(pu):null, h1=hb&&hb.querySelector('h1');
           const covers=!!(hb&&h1&&(()=>{ const a=hb.getBoundingClientRect(), b=h1.getBoundingClientRect(); return b.left>=a.left-1&&b.right<=a.right+1&&b.top>=a.top-1&&b.bottom<=a.bottom+1; })());
           hut={wallTab:(typeof WALL_TAB!=='undefined'?WALL_TAB:null),cauldronTabOn:tabOn,cauldronArt:HL,plate:pu?AH.short(pu):null,plateOk:!!(pl&&pl.ok)&&/inset-card/.test(pu||''),plateOnScreen:!!hb&&AH.onScreen(hb),titleInPlate:covers,title:h1?SL.txt(h1).slice(0,30):null}; }
