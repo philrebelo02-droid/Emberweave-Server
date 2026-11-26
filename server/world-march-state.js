@@ -26,6 +26,7 @@ function summarize(user,now=Date.now()){
         item.resource=typeof m.node.res==='string'?m.node.res:null;
         item.level=Number.isInteger(m.node.level)?m.node.level:null;}
       if(kind==='city')item.defId=typeof m.defId==='string'?m.defId:null;
+      if(kind==='city'&&m.kind==='siege'&&typeof m.siteName==='string'&&m.siteName)item.siteName=m.siteName.slice(0,40);   // v1455 lockdown (Watch Tower "Target names"): a siege march names its site (a public map name)
       if(defend)item.defend=true;
       if(garrison){item.garrison=true;item.siteId=String(m.station||m.siteId||'');if(!m.recall)item.stationed=true;}
       marches.push(item);

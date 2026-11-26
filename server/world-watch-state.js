@@ -22,7 +22,7 @@ function snapshot(db,me,now=Date.now(),opts={}){   // v1392: opts.nameOf(id) -> 
       if(m.kind==='mine'){row.mineId=m.mineId;row.resource=m.resource;row.level=m.level;}
       // Target identifier was already shared by own-march route. Never include
       // target account data, hero IDs, combat snapshots, receipts or currency.
-      if(m.kind==='city'){row.defId=m.defId;row.defend=m.defend===true;if(m.garrison===true)row.garrison=true;}
+      if(m.kind==='city'){row.defId=m.defId;row.defend=m.defend===true;if(m.garrison===true)row.garrison=true;if(typeof m.siteName==='string')row.siteName=m.siteName;}   // v1455 lockdown: the siege site's map name
       /* v1392 (Soul Eater 16 Nov: "Neither the troops nor the enemy's name appear correctly"): the target's DISPLAY name (the map shows it to
          everyone already), and the player's OWN marches list their own heroes - guild mates still see no hero ids. */
       if(m.kind==='city'&&typeof opts.nameOf==='function'){ try{ const n=opts.nameOf(m.defId); if(typeof n==='string'&&n) row.defName=n.slice(0,40); }catch(_){} }

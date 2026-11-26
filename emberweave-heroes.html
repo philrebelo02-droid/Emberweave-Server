@@ -19327,10 +19327,13 @@ function endBattle(won){
       const _recap=(CUR.arenaSim&&CUR.arenaSim.log)?pvpRecap(CUR.arenaSim.log):'';
       const _mv=(oldRank&&G.arenaRank&&oldRank!==G.arenaRank)?`<div style="font-size:11px;color:#8fe3ff;margin-top:3px">${ewT('result.rank_move',{a:oldRank,b:'<b style="color:#ffd45e">'+G.arenaRank+'</b>',d:(oldRank-G.arenaRank>0?'+':'')+(oldRank-G.arenaRank)})}</div>`:`<div style="font-size:11px;color:#8b98a9;margin-top:3px">${ewT('result.rank_same',{n:G.arenaRank})}</div>`;
       const _rc=_recap?`<div style="font-size:11px;color:#cdd8ea;margin-top:5px">${escapeHTML(_recap)}</div>`:'';
+      /* v1455 lockdown (vault-arena-well "Result screen"): the line also shows the arena coins and glyph fragments the server paid (its receipt) */
+      const _ac=(d&&(d.reward|0)>0)?` · ${uiIcon('res-arena-coins')} +${d.reward|0}`:'';
+      const _gf=(d&&Array.isArray(d.glyphFrags)&&d.glyphFrags.length)?`<div class="arGlyphFrags" style="font-size:11px;color:#8fe3ff;margin-top:3px">${d.glyphFrags.map(f=>glyphFragChip(f.key)+' '+escapeHTML(langDesc(f.displayName||f.key))+' ×'+(f.quantity|0)).join(' · ')}</div>`:'';
       const winMsg = (swapped
         ? `${ewT('result.took_spot',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})} · ${hudIcon('gold')} +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">${hudIcon('gem')} +${gemsWon}</span>`:''}`
-        : `${ewT('result.beat',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})} · ${hudIcon('gold')} +${reward}`)+_mv+_rc;
-      document.getElementById('resultReward').innerHTML=won?winMsg:(`${ewT('result.lost_to',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})}`+_mv+_rc);
+        : `${ewT('result.beat',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})} · ${hudIcon('gold')} +${reward}`)+_ac+_gf+_mv+_rc;
+      document.getElementById('resultReward').innerHTML=won?winMsg:(`${ewT('result.lost_to',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})}`+_ac+_mv+_rc);
       document.getElementById('resultHint').textContent=''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
     resultLater(async(ep)=>{ let r=null;
@@ -25621,7 +25624,7 @@ async function renderWatchTower(){
         if((m.kind!=='city'&&m.kind!=='mine')||m.defend||m.garrison)return;   // v1097: stationed defenders are not attacks (v1237: nor city garrison lines)
         /* v1392 (Soul Eater 16 Nov: "Neither the troops nor the enemy's name appear correctly"): the server's defName (the castle's map name), and
            on your own marches the heroes you sent */
-        let target=m.kind==='mine'?t('watch.mine',{lv:m.level??'?',res:m.resource||'resource'}):t('watch.city',{id:m.defName||m.defId||'target'});
+        let target=m.kind==='mine'?t('watch.mine',{lv:m.level??'?',res:m.resource?mnResName(m.resource):'resource'}):t('watch.city',{id:m.defName||m.siteName||m.defId||'target'});   /* v1455 lockdown (citywall-watchtower "Target names"): Voidglass, not "crystal"; a siege names its site */
         if(w.you&&Array.isArray(m.heroIds)&&m.heroIds.length) target+=' · '+m.heroIds.map(k=>escapeHTML((HERO_TYPES[k]&&HERO_TYPES[k].name)||k)).join(', ');
         const status=m.resolveReady?t('watch.awaiting'):m.phase==='returning'?t('watch.returning_home',{t:fmtDur(m.homeInMs)}):t('watch.arrival',{t:fmtDur(m.arriveInMs)});
         rows.push(line(w.name||t('watch.player'),target,status,!!w.you));
@@ -28447,7 +28450,7 @@ function renderRoster(){
   if(!isWall && teamCtx==='campaign' && CUR.mode==='well' && CUR.well){ document.getElementById('menuTitle').textContent=(CUR.well.type==='boss'?t('roster.well_title_boss',{n:CUR.well.map|0}):t('roster.well_title',{n:CUR.well.map|0}));   /* v825 */
     const _f=(CUR.well.foes||[]).map(k=>HERO_TYPES[k]?HERO_TYPES[k].name:k); const _s=document.getElementById('menuSub'); if(_f.length){ _s.textContent=t('roster.vs',{names:_f.join(' · ')}); _s.style.display=''; } }
   document.getElementById('startBtn').style.display = setDef?'none':'block';
-  { const _row=document.getElementById('startRow'); if(_row) _row.style.display = setDef?'none':'flex'; }
+  { const _row=document.getElementById('startRow'); if(_row) _row.style.display = 'flex'; }   /* v1455 lockdown (citywall-watchtower "RESET COMP"): the row also holds RESET, which the wall line editor needs (its handler saves the wall); only BATTLE hides on defence screens */
   const r=document.getElementById('roster'); r.innerHTML='';
   wireRosterTaps(r);
   const marchers = setDef ? committedHeroes() : new Set();   // on defense screens, heroes away marching/mining are greyed & inactive
@@ -30731,7 +30734,7 @@ function drawServerMarchInfo(body,local){
     if(!s||!s.loaded){const line=document.createElement('div');line.textContent=s&&s.failed?ewT('march.trips_failed'):ewT('march.trips_loading');box.appendChild(line);return;}
     const known=new Set(local.map(m=>m.serverMineId||m.serverCityId).filter(Boolean));const extra=s.rows.filter(m=>!known.has(m.id));
     if(!extra.length){const line=document.createElement('div');line.textContent=ewT('march.no_extra_trips');box.appendChild(line);}
-    for(const m of extra){const line=document.createElement('div');const name=m.kind==='mine'?ewT('march.srv_mine',{n:m.level,res:m.resource}):ewT('march.city_march');
+    for(const m of extra){const line=document.createElement('div');const name=m.kind==='mine'?ewT('march.srv_mine',{n:m.level,res:m.resource?mnResName(m.resource):''}):ewT('march.city_march');   /* v1455 lockdown (citywall-watchtower "Target names") */
       const status=m.resultPending&&s.now>=m.arriveAt?ewT('march.awaiting_result'):s.now<m.arriveAt?ewT('march.ready_in',{t:fmtDur(m.arriveAt-s.now)}):ewT('march.returning_dot',{t:fmtDur(Math.max(0,m.homeAt-s.now))});
       line.textContent=name+' — '+status;line.style.padding='5px 0';box.appendChild(line);if(m.kind==='city'&&m.resultPending&&s.now<m.arriveAt){const btn=document.createElement('button');btn.textContent='↩ '+ewT('march.retreat');btn.className='btn xs secondary';btn.style.minHeight='44px';btn.onclick=async()=>{
         if(btn.disabled) return;
@@ -33148,7 +33151,8 @@ function ewDropdown(label, opts, val, onPick){   // opts: [[value, text], ...]
 /* Starless Well (Phil 12 Nov: "You literally already have it in game. Just put this in starless but instead a health and energy bar" / "The power in starless
    cards follows the boon buffs also"): the Heroes window lists the run's heroes as the usual cards; under the art: power WITH the run's boons, a health bar
    and an energy bar; a fallen hero's card carries its revive button */
-function renderWellHeroList(r,S){ const run=S.heroes||{}, owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]);   /* Phil: "This starless would show all heroes i own right?" - every owned hero (+ any loan in the run); one not used yet is at full health, 0 energy */ const keys=[...new Set([...owned,...Object.keys(run)])].sort((a,b)=>(run[a]&&run[a].dead?1:0)-(run[b]&&run[b].dead?1:0)||wellHeroPower(b,S)-wellHeroPower(a,S));
+function renderWellHeroList(r,S){ const run=S.heroes||{}, owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]);   /* Phil: "This starless would show all heroes i own right?" - every owned hero (+ any loan in the run); one not used yet is at full health, 0 energy */ const keys=[...new Set([...owned,...Object.keys(run),...(Array.isArray(S.loans)?S.loans:[])])].sort(   /* v1455 lockdown (vault-arena-well "Heroes button"; blueprint 22: every owned hero plus any loan in the run): a tent loan shows before it has fought */
+    (a,b)=>(run[a]&&run[a].dead?1:0)-(run[b]&&run[b].dead?1:0)||wellHeroPower(b,S)-wellHeroPower(a,S));
   keys.forEach(key=>{ const t=HERO_TYPES[key]; if(!t) return; const h=run[key]||{hpFrac:1,energy:0}, pct=h.dead?0:Math.round((h.hpFrac||0)*100), en=h.dead?0:Math.max(0,Math.min(100,h.energy|0));
     const card=document.createElement('div'); card.className='hero-card hc-tile wlHeroCard'+(h.dead?' wlDead':''); card.dataset.heroKey=key;
     const _cpos=(typeof HERO_CARD_POS!=='undefined'&&HERO_CARD_POS[key])||null;
