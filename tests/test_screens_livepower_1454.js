@@ -30,6 +30,8 @@ async function readAll(pg,key){ const out={}; await pg.evaluate(CLEAR);
   for(const [name,open,read] of SCREENS){
     if(open){ await pg.evaluate(`(async()=>{ const K=${JSON.stringify(key)}; document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); await (${open})(); })()`).catch(e=>{ out[name+' (open error)']=String(e.message).slice(0,160); }); await H.wait(name.startsWith('Skyfall')?400:800); await H.clean(pg); }
     out[name]=await pg.evaluate(`(()=>{ const K=${JSON.stringify(key)}, N=${NUM}; return (${read})(); })()`).catch(e=>'error '+String(e.message).slice(0,120));
+    if(name.startsWith('Skyfall')) out[name+' (seen)']=await pg.evaluate(()=>{ const st=document.getElementById('skyStage'), p=st&&st.querySelector('.skyBrk[data-kind="team"]');
+      return {state,stage:!!st,panel:!!p,text:p?p.textContent.replace(/\s+/g,' ').slice(0,200):null,lines:SKYTEAM.lines,bench:SKYTEAM.bench.length,tiles:p?[...p.querySelectorAll('[data-k]')].map(e=>e.dataset.k+':'+((e.querySelector('.skyTPw')||{}).textContent||'')):[],enabled:SKY.st&&SKY.st.enabled}; }).catch(e=>String(e.message).slice(0,200));
   }
   return out; }
 
@@ -57,7 +59,7 @@ async function run(pg,tag,touch,key,s){
   const rows=SCREENS.map(([n])=>n);
   for(const n of rows){ const b=before[n], a=after[n];
     C.ok(a===now.card&&b===cardBefore,tag+' Live power, '+n+': '+(b==null?'-':Number(b).toLocaleString())+' before, '+(a==null?'-':Number(a).toLocaleString())+' after = the new card number '+now.card.toLocaleString()+' (no reload)',
-      {before:b,after:a,card:now.card,openErr:after[n+' (open error)']}); }
+      {before:b,after:a,card:now.card,openErr:after[n+' (open error)'],seen:after[n+' (seen)']}); }
   const reloads=await pg.evaluate(()=>performance.getEntriesByType('navigation').length);
   C.ok(reloads===1,tag+' the page was never reloaded (one navigation entry)',{navigations:reloads});
 }

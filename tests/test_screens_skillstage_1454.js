@@ -57,7 +57,8 @@ async function stage(pg,tag,touch){
     const sheets=new Set(); for(const s in an){ const A=an[s]; if(A&&A.u){ sheets.add(B(A.u)); try{ const F=artFile(A.u); if(F) sheets.add(B(F.u)); }catch(e){} } }
     const fxs=new Set(); P.fx.forEach(e=>{ if(e.d&&e.d.u){ fxs.add(B(e.d.u)); try{ const F=artFile(e.d.u); if(F) fxs.add(B(F.u)); }catch(e){} } });
     /* frame by frame over the plan: what the canvas drew, and which clip the plan plays then */
-    const rows=[], bad=[]; for(let T=0.05;T<P.end;T+=0.15){ const f=await window.__frameAt(T); const logs=f.log.map(B);
+    { const ts=[]; for(let T=0.05;T<P.end+0.5;T+=0.15) ts.push(T); await window.__warm(ts); }   /* every sheet of the play loaded first (the idle clip is first needed after the cast) */
+    const rows=[], bad=[]; for(let T=0.05;T<P.end;T+=0.15){ const f=await window.__frameAt(T); const all=f.log.map(B), cut=all.indexOf(BG,1), logs=cut>0?all.slice(0,cut):all;   /* one stage frame: from its floor draw to the next */
       const c=P.clips.find(c=>T>=c.t0&&T<c.t0+c.dur), wantSet=new Set(); if(c){ wantSet.add(B(c.A.u)); try{ const F=artFile(c.A.u); if(F) wantSet.add(B(F.u)); }catch(e){} }
       const heroes=[...new Set(logs.filter(x=>sheets.has(x)))], floorN=logs.filter(x=>x===BG).length, edge=P.clips.some(c=>Math.abs(T-c.t0)<0.03||Math.abs(T-c.t0-c.dur)<0.03);
       const ok=floorN===1&&heroes.length===1&&(!c||edge||wantSet.has(heroes[0]));
