@@ -7,5 +7,7 @@
  "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "Suprema — rasga o espaço paralelo: cada inimigo congela por {0} segundos e depois sai do congelamento silenciado por {1} segundos.",
  "split over {0}-{1} hits": "dividido em {0}-{1} acertos",
  "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · dividido em {1}-{2} acertos",
- "{0}%/s of Attack": "{0}%/s do Ataque"
+ "{0}%/s of Attack": "{0}%/s do Ataque",
+ "{i:s:attack} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:s:attack} {0} + {i:s:burn} {1} a cada {2}s · {3}s",
+ "{i:t:apow} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:t:apow} {0} + {i:s:burn} {1} a cada {2}s · {3}s"
 }

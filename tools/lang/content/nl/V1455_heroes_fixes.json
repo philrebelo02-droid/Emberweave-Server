@@ -7,5 +7,7 @@
  "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "Ultiem – scheurt door de parallelle ruimte: elke vijand bevriest {0} seconden en komt daarna {1} seconden tot zwijgen gebracht uit de bevriezing.",
  "split over {0}-{1} hits": "verdeeld over {0}-{1} treffers",
  "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · verdeeld over {1}-{2} treffers",
- "{0}%/s of Attack": "{0}%/s van Aanval"
+ "{0}%/s of Attack": "{0}%/s van Aanval",
+ "{i:s:attack} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:s:attack} {0} + {i:s:burn} {1} elke {2}s · {3}s",
+ "{i:t:apow} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:t:apow} {0} + {i:s:burn} {1} elke {2}s · {3}s"
 }

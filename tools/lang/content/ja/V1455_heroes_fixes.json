@@ -7,5 +7,7 @@
  "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "必殺技 — 並行空間を引き裂く：敵全員が{0}秒間凍結し、凍結が解けると{1}秒間沈黙する。",
  "split over {0}-{1} hits": "{0}〜{1}回に分割",
  "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · {1}〜{2}回に分割",
- "{0}%/s of Attack": "毎秒攻撃力の{0}%"
+ "{0}%/s of Attack": "毎秒攻撃力の{0}%",
+ "{i:s:attack} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:s:attack} {0} + {i:s:burn} {2}秒ごとに{1} · {3}秒",
+ "{i:t:apow} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:t:apow} {0} + {i:s:burn} {2}秒ごとに{1} · {3}秒"
 }

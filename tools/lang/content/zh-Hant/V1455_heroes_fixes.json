@@ -7,5 +7,7 @@
  "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "終極技能——撕裂平行空間：所有敵人冰凍{0}秒，解凍後沉默{1}秒。",
  "split over {0}-{1} hits": "分攤到{0}-{1}次命中",
  "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · 分攤到{1}-{2}次命中",
- "{0}%/s of Attack": "{0}%/秒攻擊"
+ "{0}%/s of Attack": "{0}%/秒攻擊",
+ "{i:s:attack} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:s:attack} {0} + {i:s:burn} 每{2}秒{1} · {3}秒",
+ "{i:t:apow} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:t:apow} {0} + {i:s:burn} 每{2}秒{1} · {3}秒"
 }

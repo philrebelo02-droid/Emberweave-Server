@@ -169,7 +169,7 @@ console.log('== 11. Yenna Crescent Stampede: the card is the whole ricochet (900
   const tot = h.reduce((s, x) => s + x.a, 0) / st * 100, m = meta('yenna', 0), card = pctOf(m);
   ok(h.length >= 4 && h.length <= 8 && Math.abs(tot - card) <= 3 && /split over 4-8 hits/.test(m), 'card "' + m.slice(3, 60) + '...": ' + h.length + ' hops dealing ' + tot.toFixed(0) + '% of Attack in all (card said 180%)'); }
 
-console.log('== 12. the pools: no landing hit on the ashfall ults, and the card % a second is the 0.5 s ticks x 2 ==');
+console.log('== 12. the pools: the card % a second is the 0.5 s ticks x 2; the ashfall ults land their 140% hit once per cast (Phil 26 Nov) ==');
 for (const [k, slot, type, idx, stat] of [['korvux', 'ult', 'ashfall', 0, 'dmg'], ['tolley', 'ult', 'ashfall', 0, 'dmg'], ['orryn', 'ult', 'ashfall', 0, 'apow'], ['orryn', 'blue', 'ashfall', 2, 'apow'], ['maren', 'green', 'ashfall', 1, 'apow'], ['vesper', 'green', 'erratafield', 1, 'apow']]) {
   setup2([k], ['carn', 'rhukk'], 13); R('__freeze()'); R(`(function(){ const A=U(${JSON.stringify(k)}); A.x=500; A.y=1000; units.filter(u=>u.team==='enemy').forEach((e,i)=>{ e.x=490+i*30; e.y=800; }); })()`);
   const st = J(`U(${JSON.stringify(k)}).${stat}`);
@@ -178,7 +178,10 @@ for (const [k, slot, type, idx, stat] of [['korvux', 'ult', 'ashfall', 0, 'dmg']
     let hz=null, direct=[]; try{ direct=__hits(${JSON.stringify(k)},Math.round(2.05/SIM_STEP),function(){ ${cast(k, slot, type)}; hz=groundHazards.filter(h=>h.src===A&&h.interval).map(h=>({dmg:h.dmg,iv:h.interval}))[0]||null; }); } finally{ damage=dm; } return {hz,ticks,direct}; })()`) || {};
   const ps = r.hz ? r.hz.dmg / r.hz.iv / st * 100 : 0, card = pctOf(meta(k, idx), 'ps');
   ok(!!r.hz && r.hz.iv === 0.5 && r.ticks >= (slot === 'blue' && k === 'orryn' ? 2 : 4) && Math.abs(ps - card) <= 1, k + ' ' + slot + ' (' + type + '): the pool ticks ' + (r.hz ? (r.hz.dmg / st * 100).toFixed(0) : '?') + '% every 0.5 s (' + r.ticks + ' ticks on one enemy in 2 s) = ' + ps.toFixed(0) + '%/s; card ' + card + '%/s');
-  if (slot === 'ult') ok(!/\d+% of (Attack|Ability Power) \+/.test(meta(k, 0)) && !(r.direct || []).length, k + ': no landing hit in the fight (' + (r.direct || []).length + ' direct hits) and none on the card (' + meta(k, 0).slice(3, 40) + ')'); }
+  if (slot === 'ult') { const D = r.direct || [], m0 = meta(k, 0), lp = +((/(\d+)% of (Attack|Ability Power) \+ (\d+)%\/s/.exec(m0) || [])[1]);   /* v1455 (Phil 26 Nov: "add the 140% hit") */
+    ok(D.length === 2 && D.every(x => Math.abs(x.a / st * 100 - 140) < 1 && x.t === D[0].t) && lp === 140 && /140% of (Attack|Ability Power) \+ 160%\/s/.test(m0),
+      k + ': the landing hit lands once per cast on each of the 2 enemies in the circle (' + D.map(x => (x.a / st * 100).toFixed(1) + '% at ' + x.t + ' s').join(', ') + '), card "' + m0.slice(3, 45) + '"'); }
+  else ok(!(r.direct || []).length, k + ' ' + slot + ': a Green/Blue pool has no landing hit (' + (r.direct || []).length + ')'); }
 
 console.log('== 13. controls: Rift Puncture, Blizzard freeze, the three sleeps ==');
 { setup2(['vesper'], ['carn'], 14); R('__freeze()');

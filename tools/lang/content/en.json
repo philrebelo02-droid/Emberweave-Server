@@ -3407,5 +3407,7 @@
 "In Normal {0}-{1} the hero at Irix's side is now Rhukk, a tank who shields him. Clearing the stage still gives the same hero fragments as before.":"patch_notes",
 "split over {0}-{1} hits":"skill",
 "{i:s:attack} {0} · split over {1}-{2} hits":"skill",
-"{0}%/s of Attack":"skill"
+"{0}%/s of Attack":"skill",
+"{i:s:attack} {0} + {i:s:burn} {1} every {2}s · {3}s":"skill",
+"{i:t:apow} {0} + {i:s:burn} {1} every {2}s · {3}s":"skill"
 }

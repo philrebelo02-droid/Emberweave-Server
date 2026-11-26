@@ -7,5 +7,7 @@
  "Ultimate — tears through parallel space: every enemy freezes for {0} seconds, then comes out of the freeze silenced for {1} seconds.": "Ultimative – reißt durch den Parallelraum: Jeder Feind erstarrt {0} Sekunden und ist danach {1} Sekunden zum Schweigen gebracht.",
  "split over {0}-{1} hits": "verteilt auf {0}-{1} Treffer",
  "{i:s:attack} {0} · split over {1}-{2} hits": "{i:s:attack} {0} · verteilt auf {1}-{2} Treffer",
- "{0}%/s of Attack": "{0}%/s des Angriffs"
+ "{0}%/s of Attack": "{0}%/s des Angriffs",
+ "{i:s:attack} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:s:attack} {0} + {i:s:burn} {1} alle {2}s · {3}s",
+ "{i:t:apow} {0} + {i:s:burn} {1} every {2}s · {3}s": "{i:t:apow} {0} + {i:s:burn} {1} alle {2}s · {3}s"
 }
