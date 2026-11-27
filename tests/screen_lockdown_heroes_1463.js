@@ -122,6 +122,13 @@ async function campaignFight(pg,S){
   if(await pg.$('#ddPop .ddGo')){ await press(pg,S.touch,'#ddPop .ddGo'); await pg.waitForFunction(()=>!document.getElementById('ddPop'),null,{timeout:10000}).catch(()=>{}); dd=(await pg.$('#ddPop'))?'still open after Continue':'closed with its Continue button'; }
   console.log('  INFO   after the fight: the Damage Done panel (#ddPop) '+dd);
   if(dd==='still open after Continue') return Object.assign(f,{error:'the Damage Done panel stayed open after Continue'});
+  /* v1349: a won stage then shows the reward pop (#stageRewPop); a player takes it with Collect (.srGo). Run 1126-203305 left it open over the hero window. */
+  await pg.waitForSelector('#stageRewPop .srGo',{timeout:10000}).catch(()=>{});
+  let rp='not shown';
+  if(await pg.$('#stageRewPop .srGo')){ await press(pg,S.touch,'#stageRewPop .srGo'); await pg.waitForFunction(()=>{ const p=document.getElementById('stageRewPop'); return !p||!p.classList.contains('on'); },null,{timeout:10000}).catch(()=>{});
+    rp=await pg.evaluate(()=>{ const p=document.getElementById('stageRewPop'); return (p&&p.classList.contains('on'))?'still open after Collect':'closed with Collect'; }); }
+  console.log('  INFO   after the fight: the reward pop (#stageRewPop) '+rp);
+  if(rp==='still open after Collect') return Object.assign(f,{error:'the reward pop stayed open after Collect'});
   await H.wait(600); await H.clean(pg);
   return Object.assign(f,{won:!!(body&&body.won),glyphFragments:(body&&body.reward&&body.reward.glyphFragments)||(body&&body.glyphFragments)||null}); }
 
