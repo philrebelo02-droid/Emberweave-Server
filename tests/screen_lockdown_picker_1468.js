@@ -20,9 +20,10 @@
      . Empty slots inert: a tap on an empty squad slot changes nothing (squad, list, slots, screen).
      . Squad saved: a Campaign squad is the same squad in Elite, Veteran and Province, the Vault keeps its own, and the Campaign squad is still
        there on reopening and after a page reload.
-   - Result screen fits: a real won Campaign fight (1-1, the five strongest) and a real lost one (16-10, one level-1 hero) - the fight stepped
-     on the page's own engine with AUTO on, the server resolves it - result screen at 844x390, 740x360 and the Fold cover: the result panel
-     and the page never scroll (scrollHeight <= clientHeight), every visible button on screen and not covered.
+   - Result screen fits: a real won Campaign fight (1-1, the five strongest) and a real lost one (16-5, one level-1 hero) - the fight stepped
+     on the page's own engine with AUTO on, the server resolves it - at 844x390, 740x360 and the Fold cover every result screen in turn (Damage
+     Done, then the reward pop on a win / the result page on a loss): its panel, any box in it and the page never scroll (scrollHeight <=
+     clientHeight), every visible button on screen and not covered, and each screen's button leads on to the map.
    - Summoning: Summon cost - the server table (/api/hero/summon-table) costs 10 / 30 / 80 for 1 / 2 / 3-star heroes; the Heroes list cards
      and the summon window of one locked hero per tier show the server's cost. Fragment cap (server B): every 2-star hero owned at 9,999
      fragments, the first Diamond wish (always a 2-star hero, so a duplicate) from the Wishing Pool's own button: the hero still has 9,999 on
@@ -49,7 +50,7 @@ const POOL_START=JSON.parse(/const POOL_START_STARS=(\{[^}]*\})/.exec(SRV_SRC)[1
 const startStars=k=>POOL_START[k]||(HERO_BASE[k]||{}).stars||1;   /* the server's own rule (server.js summonSpecSrv) */
 const SUMMON_RULE={1:10,2:30,3:80};
 
-/* server A: every class twice (three Tanks), distinct levels so the power order is clear; brannus at level 1 loses 16-10 */
+/* server A: every class twice (three Tanks), distinct levels so the power order is clear; brannus at level 1 loses 16-5 */
 const HEROES={vael:100,grosk:96,aureth:92,konwu:88,sylthaine:84,umbris:80,vireo:76,lumi:72,calypsa:68,meridian:64,vex:60,nox:56,brannus:1};
 const OWNED=Object.keys(HEROES);
 const LOAN='mirelle', WALL_HERO='vex', MARCH_HERO='nox', SAVED=['sylthaine','vireo','calypsa'], WEAK='brannus';
@@ -322,28 +323,44 @@ async function stepFight(pg){ return pg.evaluate(async()=>{ const sl=ms=>new Pro
 async function squadFor5(pg,S,keys){ await setClass(pg,S,'All'); await resetSquad(pg,S); await pickKeys(pg,S,keys); return (await P(pg)).team; }
 
 async function resultFit(pg,S,kind){
-  const node=kind==='win'?1:160, how=await openStagePicker(pg,S,'normal',node);
+  const node=kind==='win'?1:155, how=await openStagePicker(pg,S,'normal',node);   /* 16-5: open, not a Guardian / boss stage (no 3-a-day limit, 6 stamina) */
   const all=await P(pg), want=kind==='win'?all.cards.filter(c=>c.k!==WEAK).slice(0,5).map(c=>c.k):[WEAK];
   const missing=want.filter(k=>!all.cards.some(c=>c.k===k));
   if(!all.active||missing.length){ const s0=await shot(pg,S.tag+' Result screen fits '+kind+' picker');
     C.ok(false,S.tag+' Result screen fits '+kind+': the Campaign picker opened with the fight squad ('+want.join(', ')+')',{opened:how,active:all.active,state:await pg.evaluate(()=>state),missing,roster:all.cards.map(c=>c.k),pop:await pg.evaluate(()=>!!document.getElementById('stageRewPop')),shot:s0}); return; }
   const team=await squadFor5(pg,S,want);
   await tap(pg,S,'#startBtn'); const f=await stepFight(pg); await H.wait(1800); await prep(pg);
-  /* v1349: a won stage shows ONE victory screen - the reward pop (#stageRewPop) over the result page, which waits hidden under it (#result.srUnder);
-     a loss shows the result page itself. The screen the player sees is measured. */
-  const r=await pg.evaluate(()=>{ const res=document.getElementById('result'), pop=document.getElementById('stageRewPop'), card=pop&&pop.querySelector('.srCard'), shown=pop||res;
-    const btns=[...shown.querySelectorAll('button,.btn,.srGo')].filter((b,i,a)=>SL.vis(b)&&a.indexOf(b)===i).map(b=>({id:b.id||b.className,t:SL.txt(b).slice(0,30),box:SL.R(b),on:SL.inView(b),front:SL.front(b),who:SL.whoAt(b)}));
-    return {state,screen:pop?'reward pop (#stageRewPop over #result.srUnder)':'#result',active:res.classList.contains('active'),under:res.classList.contains('srUnder'),title:pop?SL.txt(pop.querySelector('.srTitle')):SL.txt('#resultTitle'),
-      panel:SL.scrolls(card||res),overlay:pop?SL.scrolls(pop):null,cardBox:card?SL.R(card):null,cardOn:card?SL.inView(card,2):null,doc:SL.scrolls(document.scrollingElement),body:SL.scrolls(document.body),btns,view:SL.V()}; });
-  const s=await shot(pg,S.tag+' Result screen fits '+kind);
-  const fits=x=>!x||(x.sh<=x.ch+1&&x.sw<=x.cw+1), bad=r.btns.filter(b=>!b.on||!b.front);
-  C.ok(r.active&&f.won===(kind==='win')&&!!r.panel&&fits(r.panel)&&fits(r.overlay)&&fits(r.doc)&&fits(r.body)&&r.cardOn!==false&&r.btns.length>0&&!bad.length,
-    S.tag+' Result screen fits: a real '+(kind==='win'?'won 1-1':'lost 16-10')+' Campaign fight ('+team.join(', ')+'), '+r.screen+' "'+r.title+'" - panel '+(r.panel&&r.panel.sh)+'/'+(r.panel&&r.panel.ch)+' px, page '+(r.doc&&r.doc.sh)+'/'+(r.doc&&r.doc.ch)+' px (no scroll), '+r.btns.length+' buttons all on screen',
-    {opened:how,fight:f,panel:r.panel,overlay:r.overlay,card:r.cardBox,doc:r.doc,body:r.body,buttons:r.btns.map(b=>b.t+' '+b.box.w+'x'+b.box.h+'@'+b.box.x+','+b.box.y+(b.on?'':' OFF-SCREEN')+(b.front?'':' COVERED by '+b.who)),view:r.view,shot:s});
-  /* leave the way the player does: Collect on the pop, else CONTINUE */
-  try{ if(await pg.$('#stageRewPop .srGo')) await tap(pg,S,'#stageRewPop .srGo'); else await tap(pg,S,'#resultBtn'); }catch(e){}
-  await pg.waitForFunction(()=>state!=='result'&&!document.getElementById('stageRewPop'),null,{timeout:20000}).catch(()=>{});
-  await pg.evaluate(()=>{ const p=document.getElementById('stageRewPop'); if(p){ const g=p.querySelector('.srGo'); if(g) g.click(); else p.remove(); } }); await H.wait(1200); }
+  /* what the player sees after the fight, in order (second cluster run, screenshot): first the Damage Done pop (#ddPop, Continue), then on a win the
+     v1349 reward pop (#stageRewPop, Collect All) over the hidden result page (#result.srUnder), on a loss the result page itself (#result, CONTINUE).
+     Each screen is measured while it is the one on top, then left by its own button. */
+  const out=[];
+  for(let step=0;step<3;step++){
+    await H.wait(600); await prep(pg);
+    const r=await pg.evaluate(()=>{ const dd=document.getElementById('ddPop'), pop=document.getElementById('stageRewPop'), res=document.getElementById('result');
+      let name,top,card,title,go;
+      if(dd){ name='Damage Done (#ddPop)'; top=dd; card=dd.querySelector('.ddCard'); title=SL.txt(dd.querySelector('.ddTitle')); go='#ddPop .ddGo'; }
+      else if(pop){ name='reward pop (#stageRewPop over #result.srUnder)'; top=pop; card=pop.querySelector('.srCard'); title=SL.txt(pop.querySelector('.srTitle')); go='#stageRewPop .srGo'; }
+      else if(state==='result'&&res.classList.contains('active')){ name='result page (#result)'; top=res; card=res; title=SL.txt('#resultTitle'); go='#resultBtn'; }
+      else return null;
+      const btns=[...top.querySelectorAll('button,.btn')].filter((b,i,a)=>SL.vis(b)&&a.indexOf(b)===i).map(b=>({id:b.id||b.className,t:SL.txt(b).slice(0,30),box:SL.R(b),on:SL.inView(b),front:SL.front(b),who:SL.whoAt(b)}));
+      const inner=[...top.querySelectorAll('*')].map(e=>{ const x=SL.scrolls(e); return x&&(x.canY||x.canX)?{el:(e.id?'#'+e.id:'')+'.'+String(e.className||'').trim().split(/\s+/).join('.'),sh:x.sh,ch:x.ch,sw:x.sw,cw:x.cw}:null; }).filter(Boolean);
+      return {name,go,title,card:SL.scrolls(card),cardBox:SL.R(card),cardOn:SL.inView(card,2),overlay:top===card?null:SL.scrolls(top),inner,doc:SL.scrolls(document.scrollingElement),body:SL.scrolls(document.body),btns,view:SL.V()}; });
+    if(!r) break;
+    const fits=x=>!x||(x.sh<=x.ch+1&&x.sw<=x.cw+1), bad=r.btns.filter(b=>!b.on||!b.front);
+    const why=[]; if(!fits(r.card)) why.push('panel scrolls/clips '+r.card.sh+'/'+r.card.ch); if(!fits(r.overlay)) why.push('overlay scrolls'); if(r.inner.length) why.push(r.inner.length+' inner box(es) scroll');
+    if(!fits(r.doc)||!fits(r.body)) why.push('page scrolls'); if(!r.cardOn) why.push('panel not fully on screen'); if(!r.btns.length) why.push('no button'); if(bad.length) why.push(bad.length+' button(s) off screen or covered');
+    const s=await shot(pg,S.tag+' Result screen fits '+kind+' '+(step+1)+' '+r.name.split(' (')[0]);
+    out.push(r.name);
+    C.ok(!why.length,S.tag+' Result screen fits: '+kind+' ('+team.join(', ')+'), screen '+(step+1)+' '+r.name+' "'+r.title+'" - panel '+(r.card&&r.card.sh)+'/'+(r.card&&r.card.ch)+' px, page '+(r.doc&&r.doc.sh)+'/'+(r.doc&&r.doc.ch)+' px, '+r.btns.length+' button(s) on screen and not covered'+(why.length?' - FAILS: '+why.join('; '):''),
+      {opened:how,fight:f,panel:r.card,panelBox:r.cardBox,overlay:r.overlay,innerScroll:r.inner,doc:r.doc,body:r.body,buttons:r.btns.map(b=>b.t+' '+b.box.w+'x'+b.box.h+'@'+b.box.x+','+b.box.y+(b.on?'':' OFF-SCREEN')+(b.front?'':' COVERED by '+b.who)),view:r.view,shot:s});
+    const before=r.name; let left='';
+    try{ const p=await tap(pg,S,r.go); left=p.how; }catch(e){ left='tap failed: '+String(e.message||e).slice(0,80); }
+    await pg.waitForFunction(n=>(document.getElementById('ddPop')?'Damage Done (#ddPop)':document.getElementById('stageRewPop')?'reward pop (#stageRewPop over #result.srUnder)':(state==='result'?'result page (#result)':'none'))!==n,before,{timeout:15000}).catch(()=>{ out.push('(stayed on '+before+' after '+left+')'); });
+  }
+  C.ok(f.won===(kind==='win')&&out.length>=2&&!out.some(x=>/^\(stayed/.test(x))&&await pg.evaluate(()=>state!=='result'&&!document.getElementById('ddPop')&&!document.getElementById('stageRewPop')),
+    S.tag+' Result screen fits: the '+(kind==='win'?'won':'lost')+' fight shows '+out.filter(x=>!/^\(/.test(x)).join(' -> ')+' and each one\'s button leads on, back to the map',{fight:f,screens:out});
+  /* never leave an overlay behind for the next fight */
+  await pg.evaluate(()=>{ for(const id of ['ddPop','stageRewPop']){ const p=document.getElementById(id); if(p){ const g=p.querySelector('.ddGo,.srGo'); if(g) g.click(); else p.remove(); } } }); await H.wait(1200); }
 
 /* ---------------------------------------------------------------- loading lines (a fresh page: its first fight) */
 const FIGHT_ART=/^\/assets\/(anim|models)\/|^\/assets\/img\/(battlefields|hero-cards|hero-portraits|aim|avatars|glossary|loading)\//;
