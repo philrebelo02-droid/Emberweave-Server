@@ -40,7 +40,9 @@ async function setupWar(){
     const a=JSON.parse(JSON.stringify(me)); a.id=ADMIN_ID; a.name='Skyfall Admin'; a.role='admin'; db.users[ADMIN_ID]=a; db.byName[a.name.toLowerCase()]=ADMIN_ID;
     db.tokens[sha(ADMIN_TOKEN)]={id:ADMIN_ID,iat:now,exp:now+90*86400000}; fs.writeFileSync(file,JSON.stringify(db)); }
   step('setup: server');
-  let s=await R.server(file,{ADMIN_IDS:ADMIN_ID});
+  /* SIM_WORKERS 2: the screen harness turns the battle pool off (SIM_WORKERS 0), and a live Skyfall assault then answers busy forever (v1129: never on
+     the main thread) - run 1126-230327 got busy 11 times, then 'Slow down' */
+  let s=await R.server(file,{ADMIN_IDS:ADMIN_ID,SIM_WORKERS:'2'});
   /* every call through the server's routes, 20 s each; a 429 (the war routes allow 30 calls per 30 s per address) waits 5 s, at most 8 times */
   const req=async(method,route,data,token)=>{ for(let i=0;;i++){
     const r=await fetch(s.base+route,{method,signal:AbortSignal.timeout(20000),headers:Object.assign({'content-type':'application/json'},token===null?{}:{'x-token':token||H.TOKEN}),body:data?JSON.stringify(data):undefined});
@@ -87,7 +89,7 @@ async function setupWar(){
   step('setup: 16-guild bracket + restart');
   await H.wait(1500); await R.stop(s);
   injectBracket(file,ga.guild.id,gb.guild.id);
-  s=await R.server(file,{ADMIN_IDS:ADMIN_ID});
+  s=await R.server(file,{ADMIN_IDS:ADMIN_ID,SIM_WORKERS:'2'});
   return {s,file,gA:ga.guild.id,gB:gb.guild.id,gAName:ga.guild.name,gBName:gb.guild.name,results}; }
 
 /* 14 more guilds in round 1 (live cosmetic matches like screen_lockdown_guild.js writes): ours seed 1 vs theirs seed 16 */
