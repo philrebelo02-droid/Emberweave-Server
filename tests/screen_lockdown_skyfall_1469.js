@@ -45,7 +45,11 @@ async function setupWar(){
   const req=async(method,route,data,token)=>{ for(let i=0;;i++){
     const r=await fetch(s.base+route,{method,signal:AbortSignal.timeout(20000),headers:Object.assign({'content-type':'application/json'},token===null?{}:{'x-token':token||H.TOKEN}),body:data?JSON.stringify(data):undefined});
     let j=null; try{ j=await r.json(); }catch(_){}
-    if(r.status===429&&i<8){ console.log('  INFO   '+route+' answered 429 - waiting 5 s'); await H.wait(5000); continue; } return j||{status:r.status}; } };
+    if(r.status===429&&i<8){ console.log('  INFO   '+route+' answered 429 - waiting 5 s'); await H.wait(5000); continue; }
+    /* a live battle answers busy + retry while the battle helper warms up or is full; the game client sends the same requestId again after
+       retryAfterMs (test_live_helpers 'client (Skyfall march)'), so the setup does the same, at most 20 times (run 1126-224808: lane 0 busy at t=3.2 s) */
+    if(j&&j.busy&&j.retry&&i<20){ console.log('  INFO   '+route+' answered busy - again in '+(j.retryAfterMs||1000)+' ms'); await H.wait(j.retryAfterMs||1000); continue; }
+    return j||{status:r.status}; } };
   const need=(c,what,v)=>{ if(!c) throw new Error(what+': '+JSON.stringify(v).slice(0,300)); };
   const mk=async(name,keys,level)=>{ const u=await req('POST','/api/register',{name,pass:'password1'},null); need(u&&u.token&&u.profile,'register '+name,u);
     const g=await req('POST','/api/admin/led-grant',{userId:u.profile.id,unlock:keys,heroKeys:keys,heroXp:level>1?H.xpFor(level):0,px:900000},ADMIN_TOKEN); need(g&&g.ok,'led-grant '+name,g);
