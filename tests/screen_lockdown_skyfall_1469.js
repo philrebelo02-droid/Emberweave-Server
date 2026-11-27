@@ -391,7 +391,8 @@ async function warSize(pg,S,W){
         'setup: a LIVE real war ('+W.gAName+' vs '+W.gBName+'), 5 real fights on the server (one per lane, '+W.log.filter(e=>e.side==='B').length+' marched by them), a 16-guild round of 8 matches',
         {fights:W.log,results:W.results,missed:{members:(m.you||{}).missedMembers,lines:(m.you||{}).missedLines}});
       const longest=Math.max(...W.results.map(x=>x.ms));
-      C.ok(longest<=60000,'setup: every fight is bounded - the longest is '+(longest/1000).toFixed(1)+' s of board time (<= 60 s)',W.results);
+      /* Phil 26 Nov: "10-180 seconds, some fights might be really quick, some might take time" - the bound is 180 s (v1462), not the old 60 s */
+      C.ok(W.results.every(x=>x.ms>=10000&&x.ms<=180000),'setup: every fight is bounded - '+W.results.map(x=>(x.ms/1000).toFixed(1)).join(' / ')+' s of board time (10-180 s)',W.results);
       /* both sizes on the live war (each context kept open), then the bell, then each size's spent-tower check */
       const open=[];
       for(const S of SIZES){ step(S.tag+': game load');

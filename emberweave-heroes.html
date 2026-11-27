@@ -24708,7 +24708,7 @@ function skyHubRender(){
       +(lvl?'<span class="lv">'+escapeHTML(ewT('stage.lv',{n:lvl}))+'</span>':'')+'</div>'
       +boutTeam(team)+'</div>';
   const topLv=team=>{ let m=0; for(const h of (team||[])) if((h.l|0)>m) m=h.l|0; return m; };
-  const bout=(e)=>{
+  const bout=(e,playing)=>{
     /* v726 - YOUR SIDE IS ALWAYS ON THE LEFT, whoever marched. Side A is your guild, so on an A
        fight you are the attacker and on a B fight you are the defender; drawing them in log order
        put the enemy in the left, blue box on half the rows. The verdict reads from your side too -
@@ -24722,7 +24722,9 @@ function skyHubRender(){
     const canWatch=!e.captured && !e.overrun;
     const mid='<div class="skyBoutMid">'
       +'<span class="skyBoutNo">#'+e.n+'</span>'
-      +'<span class="skyBoutVerdict '+(youWon?'win':'loss')+'">'+(youWon?ewT('skyhub.victory'):ewT('skyhub.defeat'))+'</span>'
+      /* v1470 (lockdown 'Five lanes at once', screen run 1126-230654): the fight still playing on the board has no verdict yet */
+      +(playing?'<span class="skyBoutVerdict" style="color:#ffd45e">'+ewT('skyhub.fighting')+'</span>'
+        :'<span class="skyBoutVerdict '+(youWon?'win':'loss')+'">'+(youWon?ewT('skyhub.victory'):ewT('skyhub.defeat'))+'</span>')
       +(canWatch?'<button class="skyBoutWatch" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 '+ewT('skyhub.watch')+'</button>'
                 :'<span class="skyBoutNo">'+ewT('skyhub.undefended')+'</span>')
       +'</div>';
@@ -24756,7 +24758,6 @@ function skyHubRender(){
        bumping up the list."
        Three bands: the two guilds, the fight, then the queue waiting to step up. */
     const e=r.log[i];
-    const tal=skyLiveTally(r,i);
     /* v747/v748 - "in battle" means THIS LANE's fight is still running, not merely that the war
        is. The verdict is withheld until it finishes, because the cursor is set when a fight starts.
        Asked per lane: a war-wide cursor points at whichever lane moved last, so it answered for the
@@ -24765,6 +24766,9 @@ function skyHubRender(){
     const laneCur = (laneKey===null) ? SKYSIM.cur : ((SKYSIM.laneCur||{})[laneKey]);
     const laneDone = (laneKey===null) ? SKYSIM.curDone : ((SKYSIM.laneDone||{})[laneKey]);
     const fighting = (laneDone===false) && (i===laneCur);
+    /* v1470 (lockdown 'Live fight view', screen run 1126-230654): the tally stops before the fight still playing, so 'Lines left' and
+       the queue only drop a line when the board has finished its fight - counting fight i too gave the result away while it played */
+    const tal=skyLiveTally(r, fighting ? i-1 : i);
 
     /* YOUR SIDE IS ALWAYS LEFT (v726). Side A is your guild, so on a B fight you are the defender;
        reading the log in order would put the enemy on the left on half the rows. */
@@ -24901,7 +24905,10 @@ function skyHubRender(){
     /* v726 - Records IS the battle report now. A fight that carries its line-ups is drawn as a
        row; one from an older war, before the server recorded them, falls back to the text line so
        history stays readable. */
-    body+=past.length?past.map(e=>((e.aTeam&&e.aTeam.length)||(e.dTeam&&e.dTeam.length))?bout(e):fightRow(e,false)).join('')
+    /* v1470: the row of the fight still playing in this lane shows no verdict until the board finishes it */
+    const rk=(LANE===null)?null:LANE, rCur=(rk===null)?SKYSIM.cur:((SKYSIM.laneCur||{})[rk]), rDone=(rk===null)?SKYSIM.curDone:((SKYSIM.laneDone||{})[rk]);
+    const playingAt=(rDone===false)?rCur:-1;
+    body+=past.length?past.map(e=>((e.aTeam&&e.aTeam.length)||(e.dTeam&&e.dTeam.length))?bout(e,r.log.indexOf(e)===playingAt):fightRow(e,false)).join('')
       :'<div style="font-size:10.5px;color:#8b98a9;text-align:center;padding:14px 0">'+ewT('skyhub.no_fights')+'</div>';
   }
   /* the board carries no lane names any more, so the title is where you find out which lane you
