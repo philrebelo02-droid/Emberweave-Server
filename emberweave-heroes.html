@@ -6465,6 +6465,7 @@ function fxSheetKeys(keys,core){ const out=new Set(), F=(typeof FX2_DEF!=='undef
     /* v1120: sheets the kit walk could not see, measured uploading mid-fight in a 5v5: the auto-attack ball (CASTER_BALL - nature /
        frost / shadow), Fritz's chain bolt (BOLT_SHEET, his auto and chain), and the void zone every curse / poison DoT blooms. */
     const cb=(typeof CASTER_BALL!=='undefined')&&CASTER_BALL[k]; if(cb&&cb.fx&&(F[cb.fx]||P[cb.fx])) out.add(cb.fx);
+    { const ap=(typeof AUTO_PROJ_FX!=='undefined')&&AUTO_PROJ_FX[k]; if(ap&&(F[ap]||P[ap])) out.add(ap); }   /* v1468: hero-coded auto-attack projectiles (Umbris's orb, Rafe's bullet) */
     if(cb&&cb.bolt&&typeof BOLT_SHEET!=='undefined'){ if(!F.__fritzbolt) F.__fritzbolt=Object.assign({dur:BOLT_LIFE},BOLT_SHEET); out.add('__fritzbolt'); } });
   if((keys||[]).some(Boolean)&&F.voidzone) out.add('voidzone');
   /* v1452 BUG FIX (lockdown audit, engine-rest line 18: 59 spell sheets, Ceraline's candle and wax set, Sylthaine's Blizzard, the DoT floor marks, were
@@ -16841,11 +16842,15 @@ function castOrigin(u,tx,ty){ const sh=u.sprH||3; const ap=APEX[u.key]; if(ap){ 
 function spawnShot(from,to,color){const o=(from.sprH!=null)?castOrigin(from,to.x,to.y):{x:from.x,y:from.y,h:1}; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2*gsplitFxMul());mesh.position.set(wx(o.x),o.h,wz(o.y));scene.add(mesh);shots.push({mesh,sx:o.x,sy:o.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL,h:o.h});}   /* v589: gsplitFxMul - bonus-run size */
 // Umbris basic-attack projectile: a violet shadow orb that departs from his HAND (a forward offset toward the
 // target, not his body center) the instant the sprite's body-ball is released — so the handoff is seamless.
+/* v1468 BUG FIX (lockdown 'Full loading screen', cluster screen test screen_lockdown_picker_1468: shadowball.webp first requested ~2.9 s into a 1-1 fight):
+   the basic-attack projectiles drawn by hero-specific code (not by a kit row or CASTER_BALL) were on no preload list, so the first auto-attack downloaded its
+   sheet mid-fight. They are listed here, the code below throws from this table, and fxSheetKeys loads them with the fighter's art. */
+const AUTO_PROJ_FX={ umbris:'shadowball', rafe:'bullet' };
 function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,t));
   const ox=u.x+(t.x-u.x)/d*22, oy=u.y+(t.y-u.y)/d*22;   // ~arm's-reach forward = where his hand releases
   const tx=t.x, ty=t.y;   // lock the landing point at release
   // auto-attack = the real Shadow Ball sprite, shrunk (1/4 of ability size), flying hand->target facing its travel
-  spawnProjFx('shadowball',ox,oy,tx,ty,3.4,.26*HERO_FX_MUL,()=>{ burstAt(tx,ty,0x8a5cff,10); ringBurst(tx,ty,0x7a3fb0,10); });
+  spawnProjFx(AUTO_PROJ_FX.umbris,ox,oy,tx,ty,3.4,.26*HERO_FX_MUL,()=>{ burstAt(tx,ty,0x8a5cff,10); ringBurst(tx,ty,0x7a3fb0,10); });
   burstAt(ox,oy,0x7a3fb0,4); }
 // Umbral Cataclysm orb: a big void orb that departs his raised hand and arcs to the aimed spot (cosmetic; the
 // zone + damage are fired deterministically by the sim fuse when it lands).
@@ -18716,7 +18721,7 @@ function think(u,dt){
            hero's swing; it used to land on the press, before the clip showed it. The pre-rolled crit (v532) is the one dealDamage takes. */
         const _rClip=(RAFE_SWING.fuse&&u.anim)?u.anim[u._atkClip]:null;   /* RAFE_SWING.fuse false = the old landing on the press (a null clip fuses at once) - kept only so older tests can rebuild their BASE */
         { const _fd=fuseStrike(u,t,_rClip,()=>{ if(u._tal) TalentFx.partPre(u,t,close?'rfCut':'rfShot');   /* TALENT HOOK partPre: this swing's blow is his cutlass or his pistol to Rafe's rows */ _preCrit=_swCrit; _autoAtk=1; try{ dealDamage(u,t,dmg*(close?1.15:1),'#fff'); } finally{ _preCrit=null; _autoAtk=0; } if(u._tal) TalentFx.part(u,t,close?'rfCut':'rfShot');   /* TALENT HOOK part: the blow has landed (or missed) */
-            if(!close){ if(typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx('bullet',co.x,co.y,t.x,t.y,RAFE_BULLET_SCALE,.13*HERO_FX_MUL,null,co.h); } else spawnShot(u,t,0xffd27a); } },0,u._atkSpdMul);
+            if(!close){ if(typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx(AUTO_PROJ_FX.rafe,co.x,co.y,t.x,t.y,RAFE_BULLET_SCALE,.13*HERO_FX_MUL,null,co.h); } else spawnShot(u,t,0xffd27a); } },0,u._atkSpdMul);
           if(typeof SFX!=='undefined'&&SFX.loop) sfxAtk(u,_fd,close); }   /* v1138 sound: his cut or his shot - v1173 on the blow */
       } else {
         /* Melee lands on the contact frame. A RANGED auto lands when its ball arrives, not when it
