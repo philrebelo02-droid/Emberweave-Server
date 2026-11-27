@@ -10,7 +10,18 @@
   let E=null;                                   // the fight's own functions, handed over once by the page: TalentFx.bind({...})
   const OVER={};                                // TalentFx.define(hero, def): a definition supplied at run time (the tests' scripted talents)
   const defOf=hero=>Object.prototype.hasOwnProperty.call(OVER,hero)?OVER[hero]:MECH[hero];
-  function bind(api){ E=api; }
+  /* v1464 THE REGENERATION CAP (Phil's talent rule: talent regeneration at most 1.2% of max HP a second; lockdown line "Crit, regen, slow caps").
+     A row marked {regen:true} is regeneration: a heal on the fight's clock (an 'on:tick' row, every tick or once a second). While such a row runs,
+     every heal it makes draws on ONE allowance on the unit healed: 1.2% of that unit's max HP in each second of battle time, shared by every
+     regeneration row of every talented hero healing it. What is past the allowance is not healed. Heals on any other event (a hit, a cast, a
+     death, an 'after' put-off) are bursts: unmarked rows never touch the allowance. A hero file with its own regeneration budget (Tick's banked
+     budget, with his skill and Hour bursts outside it; Hobb, Vulmar, Sloe ...) does not mark its rows. */
+  const TAL_REGEN_CAP=0.012;
+  let RG=false;                                 // true while a {regen:true} row's actions run
+  function rgRoom(t,a){ if(!RG||!t||!(a>0)) return a; const sec=Math.floor((E.now()||0)+1e-9);
+    if(t._talRgS!==sec){ t._talRgS=sec; t._talRgU=0; }
+    const x=Math.min(a,Math.max(0,TAL_REGEN_CAP*(t.maxHp||0)-(t._talRgU||0))); t._talRgU=(t._talRgU||0)+x; return x; }
+  function bind(api){ E=api; const h=api&&api.healUnit; if(typeof h==='function') E.healUnit=(t,a)=>{ const x=rgRoom(t,a); return x>0?h(t,x):undefined; }; }
   function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot; Vael's Blood Rage; Vex's areaSkill)
   function define(hero,def){ if(def==null) delete OVER[hero]; else OVER[hero]=def; }
 
@@ -368,7 +379,7 @@
       if(row.chance!=null){ const p=typeof row.chance==='number'?row.chance:amtOf(T,u,row.chance,ctx); if(!(p>0)||!(E.rnd()<p)) return; }   // an amount: a chance the fight works out now (her dodge chance)
       L.n++; L.w=s.wave; if(row.icd) L.t=E.now()+row.icd;
       modify(T,u,row,ctx);
-      if(row.do){ L0.busy=1; s.d++; try{ acts(T,u,row.do,ctx); } finally{ s.d--; L0.busy=0; } } }
+      if(row.do){ L0.busy=1; s.d++; const rg0=RG; if(row.regen) RG=true; try{ acts(T,u,row.do,ctx); } finally{ s.d--; L0.busy=0; RG=rg0; } } }   /* v1464: a {regen:true} row heals inside the regeneration allowance (rgRoom) */
 
   /* modifiers: change the number the event carries (damage, heal, cooldown, control seconds) or the options of the skill being cast */
   function modify(T,u,row,ctx){

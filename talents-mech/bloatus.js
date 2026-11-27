@@ -27,6 +27,9 @@ const CAR=['pk_1_1','pk_2_1','pk_3_1','pk_n2','pk_7_1','pk_10_1','pk_11_1'];
 const OB=['pk_1_4','pk_5_4','pk_6_4','pk_7_4','pk_12_2','pk_12_4','pk_13_2','pk_n2'];
 const COURT=['dc_1_4','dc_2_4','dc_3_4','dc_4_4','dc_6_4','dc_8_4','dc_10_4','dc_11_3','dc_11_4','dc_12_3','dc_12_4','dc_13_3','pk_n2'];
 const WL=['dc_2_3','dc_4_3','dc_5_2','dc_5_3','dc_6_2','dc_6_3','dc_8_3'];
+/* v1464 regeneration cap: Swell, The Old King and Mud Throne are regeneration ({regen:true}: together at most 1.2% of his max HP a second, the
+   engine's allowance). Sip Slowly is NOT: it drinks Marshwater, and Marshwater is a burst by the design ruling (WIRING/16: "Marshwater, Belly Laugh,
+   Court Physician, Endemic and Sickly Sweet are bursts or small and stay as written"; "Sip Slowly: each sip of 5 is a drink") - {burst:true} says so. */
 const BLOAT=['km_1_1','km_2_1','km_3_1','km_4_1','km_6_1','km_7_1','km_8_1','km_10_1','km_11_1','km_12_1','km_13_2'];
 const REIGN=['km_1_4','km_3_4','km_5_4','km_6_4','km_7_4','km_9_4','km_10_4'];
 const MARSH=['km_2_2','km_4_2','km_5_2','km_5_3','km_6_2','km_6_3','km_7_2','km_9_2','km_11_2','km_12_2','km_13_2'];
@@ -156,7 +159,7 @@ module.exports={
     dc_9_1:[ {on:'kit',skill:SW,do:[{fn:'sovRight'}]},                                                          // Sovereign Right
              {on:'ccHit',if:Object.assign({targetHas:'cmd'},ROOT_HIT),do:[{fn:'recmd'}]} ],
     dc_6_2:[ {on:'lifted',do:[{fn:'reeds'}]} ],                                                                 // Into the Reeds
-    dc_9_4:[ {on:'tick',if:{fn:'anyRooted'},period:1,do:[{heal:{pct:R(0.001),of:'maxHp'}}]} ],                 // Mud Throne
+    dc_9_4:[ {on:'tick',regen:true,if:{fn:'anyRooted'},period:1,do:[{heal:{pct:R(0.001),of:'maxHp'}}]} ],                 // Mud Throne
     dc_10_1:[ {on:'command',do:[{cd:'blue',add:R(-0.3)}]} ],                                                    // Heralds
     dc_10_3:[ {on:'kit',skill:SW,opt:{silence:{add:R(0.1),ccRaw:true}}} ],                                      // Drowned Ear
     dc_10_4:[ {on:'teamHeal',if:{unitHas:'crt'},less:R(0.02)} ],                                                // Large Court
@@ -170,19 +173,19 @@ module.exports={
     dc_13_3:[ {on:'tick',if:{fn:'full'},do:[{window:'llk',dur:3,cd:25},{fn:'holdCourt'}]},                     // Long Live the King (SIGNATURE)
               {on:'in',if:{window:'llk'},less:0.40} ],
     /* ============================== KEPT BY THE MARSH ============================== */
-    km_1_1:[ {on:'tick',if:{stackMin:{bloat:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'bloat'}}]} ],   // Swell
+    km_1_1:[ {on:'tick',regen:true,if:{stackMin:{bloat:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'bloat'}}]} ],   // Swell
     km_2_3:[ {on:'cd',skill:'green',add:R(-0.3)} ],                                                             // Wet Lungs
     km_1_4:[ {stat:{mr:R(0.005),apow:R(0.005)},per:'reign'} ],                                                  // Long Reign
     km_2_1:[ {param:'bloat.dur',add:R(1)} ],                                                                    // Gassy
     km_2_2:[ {on:'tick',edge:true,if:{selfHpBelow:0.50},do:[{fn:'drink',all:true}]} ],                         // Marshwater: drunk when he drops below 50%
     km_3_1:[ {on:'kit',skill:BR,do:[{fn:'belch'}]} ],                                                           // Belch
     km_5_4:[ {param:'reign.rate',add:R(0.1)} ],                                                                 // Rule by Waiting (read by the Reign row: rate)
-    km_3_4:[ {on:'tick',if:{stackMin:{reign:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'reign'}}]} ],   // The Old King
+    km_3_4:[ {on:'tick',regen:true,if:{stackMin:{reign:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'reign'}}]} ],   // The Old King
     km_4_1:[ {on:'in',less:R(0.002),per:'bloat'} ],                                                             // Thick Gut
     km_4_2:[ {param:'marsh.max',add:R(5)} ],                                                                    // Deep Well
     km_4_3:[ {on:'in',if:{fn:'front'},less:R(0.02)} ],                                                          // Royal Girth
     km_5_1:[ {param:'ten.all',add:R(0.04)} ],                                                                   // Stubborn as Groll (the 'ten' always row; up to 20%)
-    km_5_2:[ {on:'tick',if:{selfHpBelow:0.50,stackMin:{marsh:1}},period:1,do:[{fn:'drink',n:5,mul:1.3}]} ],     // Sip Slowly (PICK ONE)
+    km_5_2:[ {on:'tick',burst:true,if:{selfHpBelow:0.50,stackMin:{marsh:1}},period:1,do:[{fn:'drink',n:5,mul:1.3}]} ],     // Sip Slowly (PICK ONE)
     km_5_3:[ {on:'kit',skill:BR,do:[{fn:'brine'}]}, {on:'out',if:{casting:BR,fn:'brineOn'},more:0.2},          // Spit the Brine (PICK ONE)
              {on:'poisQ',skill:BR,if:{fn:'brineOn'},more:0.2}, {on:'cast',skill:BR,do:[{fn:'brineOff'}]} ],
     km_6_1:[ {on:'hit',if:{auto:true,targetTeam:'enemy',stackMin:{bloat:5}},do:[{fn:'tpois',on:'target',amt:{pct:R(0.05),of:'hit'},dur:2,tag:'wallow',refresh:true}]} ],   // Wallow

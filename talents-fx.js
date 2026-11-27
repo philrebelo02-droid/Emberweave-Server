@@ -1464,11 +1464,11 @@ module.exports={
     tb_7_1:[ {param:'ecl.sh',add:R(0.04)} ],                                                                   // Two Rings
     tb_7_2:[ {on:'out',if:{casting:ECL},more:R(0.03)} ],                                                       // Measured Dark
     tb_6_4:[ {on:'cast',skill:SUN,do:[{heal:{pct:R(0.01),of:'maxHp',x:{units:SUN_HIT}},on:'self'}]} ],   // Same Flash
-    tb_8_3:[ {on:'tick',if:{fn:'lvl0'},do:[{fn:'hps',p:R(0.003)}]} ],                                         // Long Pause: 0.3% of his max HP a second, each tick it sits level
+    tb_8_3:[ {on:'tick',regen:true,if:{fn:'lvl0'},do:[{fn:'hps',p:R(0.003)}]} ],                                         // Long Pause: 0.3% of his max HP a second, each tick it sits level (v1464: regeneration - inside the engine's 1.2%/s allowance, with Both Fonts)
     tb_7_4:[ {on:'in',if:{srcHas:'wd'},less:R(0.01)} ],                                                        // Counterweight
     tb_8_4:[ {stat:{armor:R(0.02)},if:{fn:'isLight'}} ],                                                       // Keeper's Hide
     tb_9_1:[ {on:'cast',skill:ECL,do:[{fn:'weighAll'},{stack:'sc',set:5}]} ],                                  // Noon and Midnight
-    tb_10_3:[ {on:'tick',if:{fn:'lvl1'},do:[{fn:'fonts',k:R(0.06)}]} ],                                        // Both Fonts: the other font at 6% per rank, each tick
+    tb_10_3:[ {on:'tick',regen:true,if:{fn:'lvl1'},do:[{fn:'fonts',k:R(0.06)}]} ],                                        // Both Fonts: the other font at 6% per rank, each tick (v1464: regeneration - inside the 1.2%/s allowance; Twin Fonts' own Light regeneration is the kit's, untouched)
     tb_9_4:[ {on:'out',if:{casting:SUN,targetHas:'wd'},more:R(0.03)} ],                                        // Judged Twice
     tb_10_1:[ {on:'death',if:{unitHas:'wd'},do:[{fn:'passOn',dur:R(1)}]} ],                                    // Weigh Them All
     tb_10_4:[ {stat:{mr:R(0.02)},if:{fn:'isDark'}} ],                                                          // Calm Centre
@@ -1645,6 +1645,9 @@ const CAR=['pk_1_1','pk_2_1','pk_3_1','pk_n2','pk_7_1','pk_10_1','pk_11_1'];
 const OB=['pk_1_4','pk_5_4','pk_6_4','pk_7_4','pk_12_2','pk_12_4','pk_13_2','pk_n2'];
 const COURT=['dc_1_4','dc_2_4','dc_3_4','dc_4_4','dc_6_4','dc_8_4','dc_10_4','dc_11_3','dc_11_4','dc_12_3','dc_12_4','dc_13_3','pk_n2'];
 const WL=['dc_2_3','dc_4_3','dc_5_2','dc_5_3','dc_6_2','dc_6_3','dc_8_3'];
+/* v1464 regeneration cap: Swell, The Old King and Mud Throne are regeneration ({regen:true}: together at most 1.2% of his max HP a second, the
+   engine's allowance). Sip Slowly is NOT: it drinks Marshwater, and Marshwater is a burst by the design ruling (WIRING/16: "Marshwater, Belly Laugh,
+   Court Physician, Endemic and Sickly Sweet are bursts or small and stay as written"; "Sip Slowly: each sip of 5 is a drink") - {burst:true} says so. */
 const BLOAT=['km_1_1','km_2_1','km_3_1','km_4_1','km_6_1','km_7_1','km_8_1','km_10_1','km_11_1','km_12_1','km_13_2'];
 const REIGN=['km_1_4','km_3_4','km_5_4','km_6_4','km_7_4','km_9_4','km_10_4'];
 const MARSH=['km_2_2','km_4_2','km_5_2','km_5_3','km_6_2','km_6_3','km_7_2','km_9_2','km_11_2','km_12_2','km_13_2'];
@@ -1774,7 +1777,7 @@ module.exports={
     dc_9_1:[ {on:'kit',skill:SW,do:[{fn:'sovRight'}]},                                                          // Sovereign Right
              {on:'ccHit',if:Object.assign({targetHas:'cmd'},ROOT_HIT),do:[{fn:'recmd'}]} ],
     dc_6_2:[ {on:'lifted',do:[{fn:'reeds'}]} ],                                                                 // Into the Reeds
-    dc_9_4:[ {on:'tick',if:{fn:'anyRooted'},period:1,do:[{heal:{pct:R(0.001),of:'maxHp'}}]} ],                 // Mud Throne
+    dc_9_4:[ {on:'tick',regen:true,if:{fn:'anyRooted'},period:1,do:[{heal:{pct:R(0.001),of:'maxHp'}}]} ],                 // Mud Throne
     dc_10_1:[ {on:'command',do:[{cd:'blue',add:R(-0.3)}]} ],                                                    // Heralds
     dc_10_3:[ {on:'kit',skill:SW,opt:{silence:{add:R(0.1),ccRaw:true}}} ],                                      // Drowned Ear
     dc_10_4:[ {on:'teamHeal',if:{unitHas:'crt'},less:R(0.02)} ],                                                // Large Court
@@ -1788,19 +1791,19 @@ module.exports={
     dc_13_3:[ {on:'tick',if:{fn:'full'},do:[{window:'llk',dur:3,cd:25},{fn:'holdCourt'}]},                     // Long Live the King (SIGNATURE)
               {on:'in',if:{window:'llk'},less:0.40} ],
     /* ============================== KEPT BY THE MARSH ============================== */
-    km_1_1:[ {on:'tick',if:{stackMin:{bloat:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'bloat'}}]} ],   // Swell
+    km_1_1:[ {on:'tick',regen:true,if:{stackMin:{bloat:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'bloat'}}]} ],   // Swell
     km_2_3:[ {on:'cd',skill:'green',add:R(-0.3)} ],                                                             // Wet Lungs
     km_1_4:[ {stat:{mr:R(0.005),apow:R(0.005)},per:'reign'} ],                                                  // Long Reign
     km_2_1:[ {param:'bloat.dur',add:R(1)} ],                                                                    // Gassy
     km_2_2:[ {on:'tick',edge:true,if:{selfHpBelow:0.50},do:[{fn:'drink',all:true}]} ],                         // Marshwater: drunk when he drops below 50%
     km_3_1:[ {on:'kit',skill:BR,do:[{fn:'belch'}]} ],                                                           // Belch
     km_5_4:[ {param:'reign.rate',add:R(0.1)} ],                                                                 // Rule by Waiting (read by the Reign row: rate)
-    km_3_4:[ {on:'tick',if:{stackMin:{reign:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'reign'}}]} ],   // The Old King
+    km_3_4:[ {on:'tick',regen:true,if:{stackMin:{reign:1}},period:1,do:[{heal:{pct:R(0.0002),of:'maxHp',x:'reign'}}]} ],   // The Old King
     km_4_1:[ {on:'in',less:R(0.002),per:'bloat'} ],                                                             // Thick Gut
     km_4_2:[ {param:'marsh.max',add:R(5)} ],                                                                    // Deep Well
     km_4_3:[ {on:'in',if:{fn:'front'},less:R(0.02)} ],                                                          // Royal Girth
     km_5_1:[ {param:'ten.all',add:R(0.04)} ],                                                                   // Stubborn as Groll (the 'ten' always row; up to 20%)
-    km_5_2:[ {on:'tick',if:{selfHpBelow:0.50,stackMin:{marsh:1}},period:1,do:[{fn:'drink',n:5,mul:1.3}]} ],     // Sip Slowly (PICK ONE)
+    km_5_2:[ {on:'tick',burst:true,if:{selfHpBelow:0.50,stackMin:{marsh:1}},period:1,do:[{fn:'drink',n:5,mul:1.3}]} ],     // Sip Slowly (PICK ONE)
     km_5_3:[ {on:'kit',skill:BR,do:[{fn:'brine'}]}, {on:'out',if:{casting:BR,fn:'brineOn'},more:0.2},          // Spit the Brine (PICK ONE)
              {on:'poisQ',skill:BR,if:{fn:'brineOn'},more:0.2}, {on:'cast',skill:BR,do:[{fn:'brineOff'}]} ],
     km_6_1:[ {on:'hit',if:{auto:true,targetTeam:'enemy',stackMin:{bloat:5}},do:[{fn:'tpois',on:'target',amt:{pct:R(0.05),of:'hit'},dur:2,tag:'wallow',refresh:true}]} ],   // Wallow
@@ -22128,7 +22131,18 @@ return module.exports;})();
   let E=null;                                   // the fight's own functions, handed over once by the page: TalentFx.bind({...})
   const OVER={};                                // TalentFx.define(hero, def): a definition supplied at run time (the tests' scripted talents)
   const defOf=hero=>Object.prototype.hasOwnProperty.call(OVER,hero)?OVER[hero]:MECH[hero];
-  function bind(api){ E=api; }
+  /* v1464 THE REGENERATION CAP (Phil's talent rule: talent regeneration at most 1.2% of max HP a second; lockdown line "Crit, regen, slow caps").
+     A row marked {regen:true} is regeneration: a heal on the fight's clock (an 'on:tick' row, every tick or once a second). While such a row runs,
+     every heal it makes draws on ONE allowance on the unit healed: 1.2% of that unit's max HP in each second of battle time, shared by every
+     regeneration row of every talented hero healing it. What is past the allowance is not healed. Heals on any other event (a hit, a cast, a
+     death, an 'after' put-off) are bursts: unmarked rows never touch the allowance. A hero file with its own regeneration budget (Tick's banked
+     budget, with his skill and Hour bursts outside it; Hobb, Vulmar, Sloe ...) does not mark its rows. */
+  const TAL_REGEN_CAP=0.012;
+  let RG=false;                                 // true while a {regen:true} row's actions run
+  function rgRoom(t,a){ if(!RG||!t||!(a>0)) return a; const sec=Math.floor((E.now()||0)+1e-9);
+    if(t._talRgS!==sec){ t._talRgS=sec; t._talRgU=0; }
+    const x=Math.min(a,Math.max(0,TAL_REGEN_CAP*(t.maxHp||0)-(t._talRgU||0))); t._talRgU=(t._talRgU||0)+x; return x; }
+  function bind(api){ E=api; const h=api&&api.healUnit; if(typeof h==='function') E.healUnit=(t,a)=>{ const x=rgRoom(t,a); return x>0?h(t,x):undefined; }; }
   function bindMore(api){ if(E) Object.assign(E,api); }   // more of the fight's functions, on a separate page line after bind (Aldren: summon, unsummon, castSlot; Vael's Blood Rage; Vex's areaSkill)
   function define(hero,def){ if(def==null) delete OVER[hero]; else OVER[hero]=def; }
 
@@ -22486,7 +22500,7 @@ return module.exports;})();
       if(row.chance!=null){ const p=typeof row.chance==='number'?row.chance:amtOf(T,u,row.chance,ctx); if(!(p>0)||!(E.rnd()<p)) return; }   // an amount: a chance the fight works out now (her dodge chance)
       L.n++; L.w=s.wave; if(row.icd) L.t=E.now()+row.icd;
       modify(T,u,row,ctx);
-      if(row.do){ L0.busy=1; s.d++; try{ acts(T,u,row.do,ctx); } finally{ s.d--; L0.busy=0; } } }
+      if(row.do){ L0.busy=1; s.d++; const rg0=RG; if(row.regen) RG=true; try{ acts(T,u,row.do,ctx); } finally{ s.d--; L0.busy=0; RG=rg0; } } }   /* v1464: a {regen:true} row heals inside the regeneration allowance (rgRoom) */
 
   /* modifiers: change the number the event carries (damage, heal, cooldown, control seconds) or the options of the skill being cast */
   function modify(T,u,row,ctx){

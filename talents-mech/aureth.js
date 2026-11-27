@@ -180,11 +180,11 @@ module.exports={
     tb_7_1:[ {param:'ecl.sh',add:R(0.04)} ],                                                                   // Two Rings
     tb_7_2:[ {on:'out',if:{casting:ECL},more:R(0.03)} ],                                                       // Measured Dark
     tb_6_4:[ {on:'cast',skill:SUN,do:[{heal:{pct:R(0.01),of:'maxHp',x:{units:SUN_HIT}},on:'self'}]} ],   // Same Flash
-    tb_8_3:[ {on:'tick',if:{fn:'lvl0'},do:[{fn:'hps',p:R(0.003)}]} ],                                         // Long Pause: 0.3% of his max HP a second, each tick it sits level
+    tb_8_3:[ {on:'tick',regen:true,if:{fn:'lvl0'},do:[{fn:'hps',p:R(0.003)}]} ],                                         // Long Pause: 0.3% of his max HP a second, each tick it sits level (v1464: regeneration - inside the engine's 1.2%/s allowance, with Both Fonts)
     tb_7_4:[ {on:'in',if:{srcHas:'wd'},less:R(0.01)} ],                                                        // Counterweight
     tb_8_4:[ {stat:{armor:R(0.02)},if:{fn:'isLight'}} ],                                                       // Keeper's Hide
     tb_9_1:[ {on:'cast',skill:ECL,do:[{fn:'weighAll'},{stack:'sc',set:5}]} ],                                  // Noon and Midnight
-    tb_10_3:[ {on:'tick',if:{fn:'lvl1'},do:[{fn:'fonts',k:R(0.06)}]} ],                                        // Both Fonts: the other font at 6% per rank, each tick
+    tb_10_3:[ {on:'tick',regen:true,if:{fn:'lvl1'},do:[{fn:'fonts',k:R(0.06)}]} ],                                        // Both Fonts: the other font at 6% per rank, each tick (v1464: regeneration - inside the 1.2%/s allowance; Twin Fonts' own Light regeneration is the kit's, untouched)
     tb_9_4:[ {on:'out',if:{casting:SUN,targetHas:'wd'},more:R(0.03)} ],                                        // Judged Twice
     tb_10_1:[ {on:'death',if:{unitHas:'wd'},do:[{fn:'passOn',dur:R(1)}]} ],                                    // Weigh Them All
     tb_10_4:[ {stat:{mr:R(0.02)},if:{fn:'isDark'}} ],                                                          // Calm Centre
