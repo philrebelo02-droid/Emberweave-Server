@@ -78,9 +78,13 @@ const PICK_HELPERS=()=>{ if(window.SLP) return true;
 async function prep(pg){ await H.prep(pg); await pg.evaluate(PICK_HELPERS); }
 const P=pg=>pg.evaluate(()=>SLP.picker());
 
-/* a player's tap / click at the middle of an element (scrolled into view inside its own list first) */
+/* a player's tap / click on an element (scrolled into view inside its own list first). Playwright's own element tap, which finds the element's
+   real screen box: several screens are drawn with CSS zoom (the Arena board, the Vault), where getBoundingClientRect coordinates miss the element
+   (first cluster run: the Arena opponent's Challenge tap landed beside it). The coordinate tap is only the fallback, and says so. */
 async function tap(pg,S,sel){ await prep(pg); const p=await pg.evaluate(s=>SLP.point(s),sel); if(p.missing) throw new Error(p.why);
-  if(S.touch) await pg.touchscreen.tap(p.x,p.y); else await pg.mouse.click(p.x,p.y); return p; }
+  try{ if(S.touch) await pg.tap(sel,{timeout:8000}); else await pg.click(sel,{timeout:8000}); p.how='element tap'; }
+  catch(e){ p.how='coordinate tap ('+String(e.message||e).split('\n')[0].slice(0,90)+')'; if(S.touch) await pg.touchscreen.tap(p.x,p.y); else await pg.mouse.click(p.x,p.y); }
+  return p; }
 const cardSel=k=>'#roster .rsCard[data-hero-key="'+k+'"]';
 async function tapCard(pg,S,k){ const p=await tap(pg,S,cardSel(k)); await H.wait(300); return p; }
 async function pickKeys(pg,S,keys){ for(const k of keys) await tapCard(pg,S,k); await H.wait(300); await prep(pg); }
@@ -319,17 +323,27 @@ async function squadFor5(pg,S,keys){ await setClass(pg,S,'All'); await resetSqua
 
 async function resultFit(pg,S,kind){
   const node=kind==='win'?1:160, how=await openStagePicker(pg,S,'normal',node);
-  const all=await P(pg), team=await squadFor5(pg,S,kind==='win'?all.cards.filter(c=>c.k!==WEAK).slice(0,5).map(c=>c.k):[WEAK]);
+  const all=await P(pg), want=kind==='win'?all.cards.filter(c=>c.k!==WEAK).slice(0,5).map(c=>c.k):[WEAK];
+  const missing=want.filter(k=>!all.cards.some(c=>c.k===k));
+  if(!all.active||missing.length){ const s0=await shot(pg,S.tag+' Result screen fits '+kind+' picker');
+    C.ok(false,S.tag+' Result screen fits '+kind+': the Campaign picker opened with the fight squad ('+want.join(', ')+')',{opened:how,active:all.active,state:await pg.evaluate(()=>state),missing,roster:all.cards.map(c=>c.k),pop:await pg.evaluate(()=>!!document.getElementById('stageRewPop')),shot:s0}); return; }
+  const team=await squadFor5(pg,S,want);
   await tap(pg,S,'#startBtn'); const f=await stepFight(pg); await H.wait(1800); await prep(pg);
-  const r=await pg.evaluate(()=>{ const res=document.getElementById('result');
-    const btns=[...res.querySelectorAll('button,.btn')].filter(SL.vis).map(b=>({id:b.id||b.className,t:SL.txt(b).slice(0,30),box:SL.R(b),on:SL.inView(b),front:SL.front(b),who:SL.whoAt(b)}));
-    return {state,active:res.classList.contains('active'),title:SL.txt('#resultTitle'),panel:SL.scrolls(res),doc:SL.scrolls(document.scrollingElement),body:SL.scrolls(document.body),btns,view:SL.V()}; });
+  /* v1349: a won stage shows ONE victory screen - the reward pop (#stageRewPop) over the result page, which waits hidden under it (#result.srUnder);
+     a loss shows the result page itself. The screen the player sees is measured. */
+  const r=await pg.evaluate(()=>{ const res=document.getElementById('result'), pop=document.getElementById('stageRewPop'), card=pop&&pop.querySelector('.srCard'), shown=pop||res;
+    const btns=[...shown.querySelectorAll('button,.btn,.srGo')].filter((b,i,a)=>SL.vis(b)&&a.indexOf(b)===i).map(b=>({id:b.id||b.className,t:SL.txt(b).slice(0,30),box:SL.R(b),on:SL.inView(b),front:SL.front(b),who:SL.whoAt(b)}));
+    return {state,screen:pop?'reward pop (#stageRewPop over #result.srUnder)':'#result',active:res.classList.contains('active'),under:res.classList.contains('srUnder'),title:pop?SL.txt(pop.querySelector('.srTitle')):SL.txt('#resultTitle'),
+      panel:SL.scrolls(card||res),overlay:pop?SL.scrolls(pop):null,cardBox:card?SL.R(card):null,cardOn:card?SL.inView(card,2):null,doc:SL.scrolls(document.scrollingElement),body:SL.scrolls(document.body),btns,view:SL.V()}; });
   const s=await shot(pg,S.tag+' Result screen fits '+kind);
-  const fits=x=>!!x&&x.sh<=x.ch+1&&x.sw<=x.cw+1, bad=r.btns.filter(b=>!b.on||!b.front);
-  C.ok(r.active&&f.won===(kind==='win')&&fits(r.panel)&&fits(r.doc)&&fits(r.body)&&r.btns.length>0&&!bad.length,
-    S.tag+' Result screen fits: a real '+(kind==='win'?'won 1-1':'lost 16-10')+' Campaign fight ('+team.join(', ')+'): "'+r.title+'" - result panel '+(r.panel&&r.panel.sh)+'/'+(r.panel&&r.panel.ch)+' px, page '+(r.doc&&r.doc.sh)+'/'+(r.doc&&r.doc.ch)+' px (no scroll), '+r.btns.length+' buttons all on screen',
-    {opened:how,fight:f,panel:r.panel,doc:r.doc,body:r.body,buttons:r.btns.map(b=>b.t+' '+b.box.w+'x'+b.box.h+'@'+b.box.x+','+b.box.y+(b.on?'':' OFF-SCREEN')+(b.front?'':' COVERED by '+b.who)),view:r.view,shot:s});
-  try{ await tap(pg,S,'#resultBtn'); }catch(e){} await pg.waitForFunction(()=>state!=='result',null,{timeout:20000}).catch(()=>{}); await H.wait(1200); }
+  const fits=x=>!x||(x.sh<=x.ch+1&&x.sw<=x.cw+1), bad=r.btns.filter(b=>!b.on||!b.front);
+  C.ok(r.active&&f.won===(kind==='win')&&!!r.panel&&fits(r.panel)&&fits(r.overlay)&&fits(r.doc)&&fits(r.body)&&r.cardOn!==false&&r.btns.length>0&&!bad.length,
+    S.tag+' Result screen fits: a real '+(kind==='win'?'won 1-1':'lost 16-10')+' Campaign fight ('+team.join(', ')+'), '+r.screen+' "'+r.title+'" - panel '+(r.panel&&r.panel.sh)+'/'+(r.panel&&r.panel.ch)+' px, page '+(r.doc&&r.doc.sh)+'/'+(r.doc&&r.doc.ch)+' px (no scroll), '+r.btns.length+' buttons all on screen',
+    {opened:how,fight:f,panel:r.panel,overlay:r.overlay,card:r.cardBox,doc:r.doc,body:r.body,buttons:r.btns.map(b=>b.t+' '+b.box.w+'x'+b.box.h+'@'+b.box.x+','+b.box.y+(b.on?'':' OFF-SCREEN')+(b.front?'':' COVERED by '+b.who)),view:r.view,shot:s});
+  /* leave the way the player does: Collect on the pop, else CONTINUE */
+  try{ if(await pg.$('#stageRewPop .srGo')) await tap(pg,S,'#stageRewPop .srGo'); else await tap(pg,S,'#resultBtn'); }catch(e){}
+  await pg.waitForFunction(()=>state!=='result'&&!document.getElementById('stageRewPop'),null,{timeout:20000}).catch(()=>{});
+  await pg.evaluate(()=>{ const p=document.getElementById('stageRewPop'); if(p){ const g=p.querySelector('.srGo'); if(g) g.click(); else p.remove(); } }); await H.wait(1200); }
 
 /* ---------------------------------------------------------------- loading lines (a fresh page: its first fight) */
 const FIGHT_ART=/^\/assets\/(anim|models)\/|^\/assets\/img\/(battlefields|hero-cards|hero-portraits|aim|avatars|glossary|loading)\//;
@@ -506,8 +520,12 @@ async function summonCost(pg,S,s){
 async function fragmentCap(pg,S,s){
   const how=await H.openBuilding(pg,'wishing',S.touch);
   await pg.waitForFunction(()=>document.getElementById('wishing').classList.contains('active')&&document.getElementById('wpGem')&&!document.getElementById('wpGem').disabled,null,{timeout:40000}).catch(()=>{}); await H.wait(800);
-  await tap(pg,S,'#wpGem');
-  await pg.waitForFunction(()=>!!document.getElementById('_wishOk'),null,{timeout:40000}).catch(()=>{}); await H.wait(1500); await prep(pg);
+  const btn=await pg.evaluate(()=>{ const b=document.getElementById('wpGem'); return b?{text:SL.txt(b),dis:!!b.disabled,box:SL.R(b),on:SL.inView(b),front:SL.front(b),who:SL.whoAt(b)}:null; });
+  const tp=await tap(pg,S,'#wpGem'); let wishHow='Diamond Wish button ('+tp.how+')';
+  await pg.waitForFunction(()=>!!document.getElementById('_wishOk'),null,{timeout:30000}).catch(()=>{});
+  if(!await pg.$('#_wishOk')){ wishHow+=' -> no result after 30 s, FALLBACK button.click()'; await pg.evaluate(()=>{ const b=document.getElementById('wpGem'); if(b) b.click(); });
+    await pg.waitForFunction(()=>!!document.getElementById('_wishOk'),null,{timeout:30000}).catch(()=>{}); }
+  await H.wait(1500); await prep(pg);
   const card=await pg.evaluate(()=>{ const ok=document.getElementById('_wishOk'); return ok?SL.txt(ok.parentElement).slice(0,160):null; });
   const sw=await shot(pg,S.tag+' Fragment cap wish result');
   const hist=((await s.api('/api/pool/history')).body||{}).history||[], last=hist[0]||{}, res=String((last.results||[])[0]||''), hk=res.split(':')[1]||null;
@@ -519,15 +537,23 @@ async function fragmentCap(pg,S,s){
     shown=r.n; pageF=r.page; hh+=' > Stars panel "'+r.txt+'"'; }
   const sh=await shot(pg,S.tag+' Fragment cap Stars panel');
   C.ok(/^dupe:/.test(res)&&srv===9999&&pageF===9999&&shown===9999,
-    S.tag+' Fragment cap: '+(hk||'?')+' at 9,999 fragments, a Wishing Pool duplicate ('+res+', Diamond wish from the pool screen, '+how+'): server '+srv+', page '+pageF+', Stars panel '+shown,
-    {wish:last,resultCard:card,server:srv,page:pageF,starsPanel:shown,opened:hh,shots:[sw,sh]}); }
+    S.tag+' Fragment cap: '+(hk||'?')+' at 9,999 fragments, a Wishing Pool duplicate ('+(res||'no wish')+', '+wishHow+', '+how+'): server '+srv+', page '+pageF+', Stars panel '+shown,
+    {tap:wishHow,button:btn,wish:last,resultCard:card,server:srv,page:pageF,starsPanel:shown,opened:hh,shots:[sw,sh]}); }
 
+/* the stage panel's Fight does not open the picker without the stamina (first cluster run: no roster, "reading 'k'"), so NEED STAMINA is the
+   picker's answer when the stamina goes while it is open: server B starts with exactly one 1-1 (6), the picker is opened, that stamina is spent
+   on a 1-1 sweep (the server's own sweep route, as another tab / device would), the page syncs its ledger, and the player taps a hero */
 async function needStamina(pg,S,s){
-  const how=await openStagePicker(pg,S,'normal',1); const a=await P(pg); await resetSquad(pg,S); await tapCard(pg,S,a.cards[0].k);
+  const how=await openStagePicker(pg,S,'normal',1); const a=await P(pg);
+  if(!a.active||!a.cards.length){ const s0=await shot(pg,S.tag+' Battle button NEED STAMINA picker'); C.ok(false,S.tag+' Battle button states: the Campaign picker opened with stamina for one fight',{opened:how,active:a.active,cards:a.cards.length,stamina:await pg.evaluate(()=>G.stamina),shot:s0}); return; }
+  await resetSquad(pg,S);
+  const sw=await s.api('/api/campaign/sweep','POST',{mode:'normal',node:1,times:1,requestId:'sl1468-'+Date.now()});
+  await pg.evaluate(async()=>{ try{ await ledgerSync(); }catch(e){} }); await H.wait(600);
+  await tapCard(pg,S,a.cards[0].k);
   const r=await P(pg), c=await pg.evaluate(()=>({cost:stageStamCost(CUR.node,CUR.portal),have:G.stamina,max:maxStamina(),want:ewT('roster.need_stamina',{n:stageStamCost(CUR.node,CUR.portal),have:G.stamina,max:maxStamina()})}));
   const srv=((await s.api('/api/ledger')).body||{}).stamina||{}, sh=await shot(pg,S.tag+' Battle button NEED STAMINA');
   C.ok(r.team.length===1&&r.start&&r.start.dis&&r.start.text===c.want&&/^NEED \d+ STAMINA \(\d+\/\d+\)$/.test(r.start.text)&&c.have<c.cost,
-    S.tag+' Battle button states: with '+c.have+' stamina (server '+srv.v+') and a hero picked the Campaign button reads "'+(r.start&&r.start.text)+'" and is disabled',{opened:how,start:r.start,...c,server:srv,shot:sh});
+    S.tag+' Battle button states: with '+c.have+' stamina (server '+srv.v+') and a hero picked the Campaign button reads "'+(r.start&&r.start.text)+'" and is disabled',{opened:how,sweep:{status:sw.status,ok:sw.body&&sw.body.ok,error:sw.body&&sw.body.error},start:r.start,...c,server:srv,shot:sh});
   await resetSquad(pg,S); }
 
 /* ---------------------------------------------------------------- Download all art */
@@ -583,7 +609,7 @@ function seedA(){ const NOW=Date.now(), cyc=WELLMOD.cycleOf();
     u.led.stam={v:300,ts:NOW};
     u.led.well2={run:{cycle:cyc,level:0,map:1,path:null,pos:{col:0,row:1},heroes:{},loans:[LOAN],loanUp:{},buffs:[],offer:null,resUsed:0,done:false,att:null,prizes:[],started:true},cleared:{}}; }); }
 function seedB(){ const NOW=Date.now(), P2=Object.keys(HERO_BASE).filter(k=>(HERO_BASE[k].stars|0)===2), HB={}; P2.forEach(k=>HB[k]=30);
-  return {P2,...H.seedDB(HB,u=>{ P2.forEach(k=>u.led.frags[k]=9999); u.led.stam={v:0,ts:NOW}; })}; }
+  return {P2,...H.seedDB(HB,u=>{ P2.forEach(k=>u.led.frags[k]=9999); u.led.stam={v:6,ts:NOW}; for(let i=1;i<=20;i++) u.led.camp.stars[i]=3; })}; }
 
 (async()=>{
   /* ---- server A ---- */
@@ -602,7 +628,7 @@ function seedB(){ const NOW=Date.now(), P2=Object.keys(HERO_BASE).filter(k=>(HER
   finally{ await H.closeBrowser(); if(s) await s.stop(); s=null; }
   /* ---- server B (a fresh one per size: the first Diamond wish is a one-off) ---- */
   for(const k of ['phone','desktop']){ const S=H.SIZES[k];
-    try{ const {file,P2}=seedB(); s=await H.server(file); console.log('  INFO   server B: '+P2.length+' 2-star heroes owned at 9,999 fragments, 0 stamina');
+    try{ const {file,P2}=seedB(); s=await H.server(file); console.log('  INFO   server B: '+P2.length+' 2-star heroes owned at 9,999 fragments, 6 stamina (one 1-1)');
       await onPage(s.port,S,'0 stamina and fragment cap',async pg=>{
         try{ await needStamina(pg,S,s); }catch(e){ C.ok(false,S.tag+' NEED STAMINA ran to the end',String(e&&e.stack||e).slice(0,500)); }
         try{ await fragmentCap(pg,S,s); }catch(e){ C.ok(false,S.tag+' Fragment cap ran to the end',String(e&&e.stack||e).slice(0,500)); } }); }
