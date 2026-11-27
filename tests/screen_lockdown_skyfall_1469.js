@@ -300,7 +300,8 @@ async function realPass(pg,S,W,lanes,p1){ step(S.tag+' pass 2 (x1, a fresh devic
   rec.bouts=await pg.evaluate(BOUTS,W.aLineNames);
   const s2=await shot(pg,S.tag+' Lane report records while fighting lane '+long), laneNs=W.log.filter(e=>e.lane===long).map(e=>e.n);
   C.ok(rec.hub.tab==='records'&&rec.bouts.every(b=>laneNs.includes(b.n)),S.tag+' Lane report: the swords\' Records tab ['+how2+'] lists only lane '+long+'\'s fights (#'+rec.bouts.map(b=>b.n).join(', #')+')',{rec,laneNs,shot:s2});
-  const early=rec.bouts.filter(b=>b.n===rec.cur&&b.verdict);
+  /* v1470: the playing row says 'fighting…' (skyhub.fighting) - that is not a result; only a Victory / Defeat word is */
+  const early=rec.bouts.filter(b=>b.n===rec.cur&&b.verdict&&!/^fighting/i.test(b.verdict));
   C.ok(rec.fighting&&!early.length,S.tag+' Five lanes at once: while lane '+long+'\'s fight #'+rec.cur+' is still playing, its Records row shows no result'+(early.length?' (it shows "'+early[0].verdict+'")':''),{fighting:rec.fighting,current:rec.cur,rows:rec.bouts,shot:s2});
   await hubClose(pg);
   /* every lane has reached its clash (so every walk is over), and the short lane has finished */
