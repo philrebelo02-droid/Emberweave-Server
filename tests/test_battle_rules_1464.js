@@ -489,22 +489,31 @@ if (want(8)) { console.log('== 8. Control lengths table ==');
         crit  = the talents' crit chance on the unit (stat talents, read at the start, + the crit rows the fight applies) - on BOTH build paths:
                 the snapshot path every server-built fight uses (campaign, Province, Well, guild raid, Arena: buildUnitFromSnapshot) and the
                 device path (makeUnit, the Vault)
-        regen = the talents' own per-second healing on the hero (heals made inside TalentFx.tick), per second, of max health
-        slow  = the deepest slow the talented hero puts on an enemy, against the same hero with no talents
+        regen = the talents' REGENERATION on the hero, per second of battle time, of max health: the heals made by the hero's own talent rows on
+                the tick clock (each row is tagged as it runs) that heal in 5+ different seconds of the fight. Heals on any other event (a hit,
+                a cast, a death, an 'after' put-off - Ambrel's Atonement, Shrine Road) and one-off heals of a tick row (Meridian's Provisions,
+                Seyla's Shed Skin) are bursts, and so is a row its hero file marks {burst:true} (Bloatus's Sip Slowly: Marshwater is a
+                burst by his ruling, WIRING/16). Tick's file keeps its own budget: his heal(..., burst) calls marked burst are bursts, his
+                budget heals are regeneration, judged as his file builds it (1.2% a second, banked at most 5 s: every 5 s window <= 1.2%/s)
+        slow  = the deepest slow the talented hero puts on an enemy (reported: 40% is not a slow-strength cap)
    ====================================================================================================================================== */
 function capsRun(B, heroes) {
   const { R, J, spec, setup } = B, TB = require(path.join(root, 'tests', 'talents-power-builds.js')), T = require(path.join(root, 'talents.js'));
-  R(`Error.stackTraceLimit=80; window.__tH=null; (function(){ const h=healUnit; healUnit=function(u,a){ const W=window.__tH; if(W&&u===W.u){ const hp0=u.hp; const r=h.apply(this,arguments); const g=u.hp-hp0;
-      const st=g>0?(new Error().stack||''):''; if(st.indexOf('at tick (talents-fx.js')>=0){ const fr=st.split(String.fromCharCode(10)).find(l=>l.indexOf('talents-fx.js')>=0)||'?', id=fr.trim().split(' ')[1]||'?', S=W.src[id]||(W.src[id]={}), k=Math.floor(battleTime); S[k]=(S[k]||0)+g; } return r; } return h.apply(this,arguments); }; })(); 1`);
+  R(`window.__tH=null; window.__row=null; (function(){ const h=healUnit; healUnit=function(u,a){ const W=window.__tH; if(W&&u===W.u&&window.__row){ const hp0=u.hp; const r=h.apply(this,arguments); const g=u.hp-hp0;
+      if(g>0){ const S=W.src[window.__row]||(W.src[window.__row]={}), k=Math.floor(battleTime); S[k]=(S[k]||0)+g; } return r; } return h.apply(this,arguments); }; })();
+    window.__tagRows=function(H){ const T=H._tal; if(!T) return; const F=T.fn; if(!F.__rgMark){ F.__rgMark=function(A,T,u,c,a){ window.__row=(u===window.__tH.u)?a.k:null; }; F.__rgEnd=function(){ window.__row=null; };
+        if(typeof F.heal==='function'&&T.hero==='tick'){ const hf=F.heal; F.heal=function(A,T2,u2,x,burst){ const p=window.__row; if(burst) window.__row=null; try{ return hf.apply(this,arguments); } finally{ window.__row=p; } }; } }   /* Tick: heal(...,burst) is outside his budget by his file's own rule */
+      for(const row of (T.on.tick||[])) if(row.do&&!row.__rg&&!row.burst){ row.__rg=1; row.do=[{fn:'__rgMark',k:row.key}].concat(row.do,[{fn:'__rgEnd'}]); } }; 1`);
   const fight = (s, direct) => { setup([s], ['carn', 'vex', 'zahri'].map(k => spec(k, 100, 100)), 5);
     return J(`(function(){ let H=units.find(u=>u.team==='ally'); if(${direct}){ const d=makeUnit(${JSON.stringify(s.key)},'ally',H.x,H.y,100,{spec:${JSON.stringify(s)}}); d.homeX=H.homeX; d.homeY=H.homeY; d.laneX=H.laneX; d.anim=BATTLE_ANIM[d.key]||null; units[units.indexOf(H)]=d; H=d; }
-      const c0=H.glyphCrit||0; window.__tH={u:H,src:{}}; let row=0, slow=0;
+      const c0=H.glyphCrit||0; window.__tH={u:H,src:{}}; window.__tagRows(H); let row=0, slow=0;
       for(let i=0;i<Math.round(20/SIM_STEP);i++){ if(H.hp>0.5*H.maxHp) H.hp=0.5*H.maxHp; updateBattle(SIM_STEP); const ap=H._tal&&H._tal.s&&H._tal.s.ap; if(ap&&ap.crit>row) row=ap.crit;
         units.forEach(e=>{ if(e.team==='enemy'&&(e.slow||0)>0) slow=Math.max(slow,1-(e.slowMul==null?1:e.slowMul)); }); if(ended||!H.alive) break; }
-      /* regeneration = a talent heal that runs on the tick clock and heals in at least 5 different seconds of the fight (a steady heal); a one-off
-         heal from the same clock (a provision eaten, a shed skin) is a burst, reported apart */
-      const src=window.__tH.src, reg={}; let burst=0, bsrc=''; for(const id in src){ const secs=Object.keys(src[id]); if(secs.length>=5){ for(const k of secs) reg[k]=(reg[k]||0)+src[id][k]; } else for(const k of secs){ if(src[id][k]>burst){ burst=src[id][k]; bsrc=id; } } }
-      const sec=Object.values(reg).map(v=>v/H.maxHp); window.__tH=null; return {c0, row, regen:sec.length?Math.max(...sec):0, burst:burst/H.maxHp, bsrc, slow}; })()`); };
+      const src=window.__tH.src, reg={}, own=H.key==='tick'; let burst=0, bsrc='';
+      for(const id in src){ const secs=Object.keys(src[id]); if(own||secs.length>=5){ for(const k of secs) reg[k]=(reg[k]||0)+src[id][k]; } else for(const k of secs){ if(src[id][k]>burst){ burst=src[id][k]; bsrc=id; } } }
+      let rg=0; if(own){ for(let a=0;a<20;a++){ let t=0; for(let k=a;k<a+5;k++) t+=reg[k]||0; rg=Math.max(rg,t/5); } } else rg=Math.max(0,...Object.values(reg));
+      const rows=Object.keys(src).filter(id=>own||Object.keys(src[id]).length>=5);
+      window.__tH=null; window.__row=null; return {c0, row, regen:rg/H.maxHp, rrows:rows, burst:burst/H.maxHp, bsrc, slow}; })()`); };
   const rows = [];
   for (const h of heroes) {
     const base = J(`(function(){ CUR={mode:'replay'}; return makeUnit('${h}','ally',0,0,100,{spec:${JSON.stringify(spec(h, 100, 100))}}).glyphCrit; })()`);
@@ -512,7 +521,7 @@ function capsRun(B, heroes) {
     for (const [name, b] of TB.builds(h, 100)) {
       if (T.invalid(h, b, 100)) continue;
       const s = spec(h, 100, 100, { talents: T.learned(h, b) }), a = fight(s, false), d = fight(s, true);
-      rows.push({ h, name, snap: +(a.c0 - base + a.row).toFixed(4), dev: +(d.c0 - base + d.row).toFixed(4), regen: a.regen, burst: a.burst, bsrc: a.bsrc, slow: a.slow, slow0: none.slow }); }
+      rows.push({ h, name, snap: +(a.c0 - base + a.row).toFixed(4), dev: +(d.c0 - base + d.row).toFixed(4), regen: a.regen, rrows: a.rrows, burst: a.burst, bsrc: a.bsrc, slow: a.slow, slow0: none.slow }); }
   }
   return rows;
 }
@@ -524,23 +533,30 @@ if (want(11)) { console.log('== 11. Crit, regen, slow caps ==');
   ok(devMax <= 0.05 + 1e-9, 'crit, device-built hero (the Vault): talents add at most ' + (100 * devMax).toFixed(2) + '% crit chance on every build (cap 5%)');
   console.log('  info crit, server-built hero (snapshot path): highest ' + top('snap', 6).map(r => r.h + ' ' + r.name + ' ' + (100 * r.snap).toFixed(1) + '%').join(', ') + '; builds over 5%: ' + snapOver.length + ' (' + [...new Set(snapOver.map(r => r.h))].join(', ') + ')');
   const rgMax = Math.max(...rows.map(r => r.regen));
-  console.log('  info regen (talent heals on their own clock, per second): highest ' + top('regen', 6).map(r => r.h + ' ' + r.name + ' ' + (100 * r.regen).toFixed(3) + '%').join(', '));
-  console.log('  info one-off talent heals on the same clock (not regeneration): highest ' + top('burst', 4).map(r => r.h + ' ' + r.name + ' ' + (100 * r.burst).toFixed(1) + '% (' + r.bsrc + ')').join(', '));
+  console.log('  info regeneration (per second, of max HP): highest ' + top('regen', 6).map(r => r.h + ' ' + r.name + ' ' + (100 * r.regen).toFixed(3) + '% (' + r.rrows.join('+') + ')').join(', '));
+  console.log('  info one-off heals of a tick row (bursts, not regeneration): highest ' + top('burst', 4).map(r => r.h + ' ' + r.name + ' ' + (100 * r.burst).toFixed(1) + '% (' + r.bsrc + ')').join(', '));
   const rgBy = {}; rows.forEach(r => { if (r.regen > 0.012 + 0.0002 && !(rgBy[r.h] && rgBy[r.h].regen >= r.regen)) rgBy[r.h] = r; });
   const rgOver = Object.values(rgBy).sort((a, b) => b.regen - a.regen), rgN = rows.filter(r => r.regen > 0.012 + 0.0002).length;
   console.log('  info regen over 1.2%/s: ' + rgN + ' builds of ' + rgOver.length + ' heroes: ' + rgOver.map(r => r.h + ' ' + (100 * r.regen).toFixed(2) + '% (' + r.name + ')').join(', '));
-  ok(rows.some(r => r.regen > 0.009), 'regen is really measured: some builds regenerate close to the cap (' + rows.filter(r => r.regen > 0.009).length + ' builds above 0.9%/s)');
+  ok(rgN === 0, 'regen: on every build the talents regenerate at most 1.2% of max HP a second (highest ' + (100 * rgMax).toFixed(3) + '%)');
+  ok(rows.some(r => r.regen > 0.009), 'regen is really measured: ' + rows.filter(r => r.regen > 0.009).length + ' builds regenerate above 0.9%/s');
+  /* CONTROL: the same page with talents-fx.js's regeneration allowance switched off (a patched copy of talents-fx.js beside a patched page) */
+  { const tf = fs.readFileSync(path.join(root, 'talents-fx.js'), 'utf8'), a = 'const rg0=RG; if(row.regen) RG=true;'; assert(tf.split(a).length === 2, 'the regeneration allowance switch is found once in talents-fx.js');
+    const tfc = path.join(root, '.test-br1464-tfx-' + process.pid + '.js'); fs.writeFileSync(tfc, tf.replace(a, 'const rg0=RG;')); tmp.push(tfc);
+    const K = capsRun(boot(patchedPage('regen', [['<script src="/talents-fx.js?v=', '<script src="/' + path.basename(tfc) + '?v=']])), ['bloatus', 'aureth']);
+    const km = Math.max(...K.map(r => r.regen));
+    ok(km > 0.012 + 0.0002, 'CONTROL: with the allowance switched off, Bloatus and Aureth regenerate up to ' + (100 * km).toFixed(2) + '% a second again (fails the check)'); }
   const KIT_MAX = 1 - L.J('slowMulFor(100)'), sl40 = rows.filter(r => r.slow > 0.40 + 1e-6), slKit = rows.filter(r => r.slow > KIT_MAX + 0.002), slBy = {};
   slKit.forEach(r => { if (!(slBy[r.h] && slBy[r.h].slow >= r.slow)) slBy[r.h] = r; }); const sl = Object.values(slBy).sort((a, b) => b.slow - a.slow);
   console.log('  info slow on enemies: ' + sl40.length + ' talented builds slow an enemy by more than 40% (a skill slows 45% at skill level 1, ' + (100 * KIT_MAX).toFixed(2) + '% at 100); past the kit\'s own ' + (100 * KIT_MAX).toFixed(2) + '%: ' + sl.map(r => r.h + ' ' + (100 * r.slow).toFixed(1) + '%').join(', '));
-  /* CONTROLS: a patched page whose snapshot carries the talent crit already spent (_talCrit0) is capped on the snapshot path too; and the
-     regen check fails at a deliberately wrong cap of 0.9% */
+  /* CONTROLS: a patched page whose snapshot carries the talent crit already spent (_talCrit0) is capped on the snapshot path too */
   const ctlHeroes = [...new Set(snapOver.map(r => r.h))].slice(0, 3);
   if (ctlHeroes.length) { const K = capsRun(boot(patchedPage('crit', [['apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid,', 'apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, _talCrit0:u._talCrit0||0,'], ['u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid;', 'u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u._talCrit0=s._talCrit0||0;']])), ctlHeroes);
     ok(Math.max(...K.map(r => r.snap)) <= 0.05 + 1e-9, 'CONTROL (cause): a patched copy whose snapshot keeps the stat talents\' crit (_talCrit0) caps ' + ctlHeroes.join(', ') + ' at ' + (100 * Math.max(...K.map(r => r.snap))).toFixed(1) + '% on the snapshot path too'); }
   ok(!(devMax <= 0.04), 'CONTROL: the crit check fails at a deliberately wrong cap of 4% (device path highest ' + (100 * devMax).toFixed(2) + '%)');
-  if (snapOver.length || rgOver.length) { finding(11, 'FAIL', 'crit: the 5% talent cap holds on a device-built hero (Vault; highest ' + (100 * devMax).toFixed(1) + '%) but NOT on a server-built one: ' + snapOver.length + ' legal builds of ' + [...new Set(snapOver.map(r => r.h))].join(', ') + ' reach ' + (100 * Math.max(...snapOver.map(r => r.snap))).toFixed(1) + '% (campaign, Province, Well, guild raid, Arena spawn from snapshots). Cause: TalentFx.applyStats sets u._talCrit0 (talents-fx.js:23), the crit rows cap at 5% minus it (talents-fx.js:22717), but snapUnitResolved / buildUnitFromSnapshot (page ~12930 / ~12967) do not carry _talCrit0, so the rows add a full 5% on top of the stat talents\' 5%. Regen: talent heals on the tick clock that recur (5+ different seconds) go over 1.2% of max HP a second on ' + rgN + ' builds of ' + rgOver.length + ' heroes (' + rgOver.slice(0, 6).map(r => r.h + ' ' + (100 * r.regen).toFixed(1) + '%').join(', ') + '; Tick\'s number includes the heals his own file marks as bursts outside his 1.2% budget), so the 1.2% holds only where a hero file writes the budget (Hobb, Vulmar, Tick, Sloe and others). Slow: "slow 40%" is not a cap on slow strength - a skill slows 45-69.75% by its level before any talent, ' + sl40.length + ' talented builds slow enemies past 40% and talents take ' + sl.map(r => r.h + ' to ' + (100 * r.slow).toFixed(1) + '%').join(', ') + ' (past the kit maximum); the 40% in the hero files caps grouped talent slows or how much a talent weakens slows on the hero. Corrected once crit is fixed: "Crit, regen, slow caps - talent crit chance at most +5% in all; talent regeneration at most 1.2% max HP a second; talents that weaken slows on a hero at most 40%."'); VERDICT[11] = 'FAIL'; }
-  else VERDICT[11] = 'PASS'; }
+  finding(11, 'WORDING', 'slow: 40% is not a slow cap: skills slow 45-' + (100 * KIT_MAX).toFixed(2) + '% by skill level, talents add on top (' + sl40.length + ' talented builds slow past 40%; ' + sl.map(r => r.h + ' ' + (100 * r.slow).toFixed(1) + '%').join(', ') + ' past the kit maximum). The 40% in the hero files caps grouped talent slows or how much a talent weakens slows on the hero.');
+  if (snapOver.length || rgOver.length) { finding(11, 'FAIL', 'crit: the 5% talent cap holds on a device-built hero (Vault; highest ' + (100 * devMax).toFixed(1) + '%) but NOT on a server-built one: ' + snapOver.length + ' legal builds of ' + [...new Set(snapOver.map(r => r.h))].join(', ') + ' reach ' + (100 * Math.max(...snapOver.map(r => r.snap))).toFixed(1) + '% (campaign, Province, Well, guild raid, Arena spawn from snapshots). Cause: TalentFx.applyStats sets u._talCrit0 (talents-fx.js:23), the crit rows cap at 5% minus it (talents-fx.js:22728), but snapUnitResolved / buildUnitFromSnapshot (page ~12930 / ~12967) do not carry _talCrit0, so the rows add a full 5% on top of the stat talents\' 5%. Regen: ' + (rgN ? rgN + ' builds over 1.2%/s (' + rgOver.map(r => r.h + ' ' + (100 * r.regen).toFixed(2) + '%').join(', ') + ')' : 'PASS (highest ' + (100 * rgMax).toFixed(2) + '%/s)') + '.'); VERDICT[11] = 'FAIL (crit on server-built heroes; regen ' + (rgN ? 'FAIL' : 'PASS') + '; slow WORDING)'; }
+  else VERDICT[11] = 'PASS (slow: WORDING)'; }
 
 /* ====================================================================================================================================== */
 console.log('\n== SUMMARY (lockdown lines) ==');
