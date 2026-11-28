@@ -213,14 +213,29 @@ ck('BOOKKEEPING ONLY: the same seed gives the identical digest + result with the
         const numsIn = [...ov.querySelectorAll('.ddTrack')].every(t => { const n = t.querySelector('.ddNum'), tr = t.getBoundingClientRect(), nr = n.getBoundingClientRect(); return nr.width > 0 && (nr.left >= tr.left - 1 && nr.right <= tr.right + 1 && nr.top >= tr.top - 2 && nr.bottom <= tr.bottom + 2); });
         const cardRot = (card.ewGameRect ? card.ewGameRect() : card.getBoundingClientRect());
         return { card: inside(card), go: inside(go), hscroll: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
-          subs: [...ov.querySelectorAll('.ddSub')].map(e => ({ d: getComputedStyle(e).display, w: Math.round(e.getBoundingClientRect().width), cut: e.scrollWidth > e.clientWidth + 1, n: e.querySelectorAll('span').length, dense: (e.closest('.ddList').className.match(/ddD\d/) || ['-'])[0] })),
           lists, orderOk, numsIn, rot: document.body.classList.contains('ew-rotated'), cw: Math.round(cardRot.width), chh: Math.round(cardRot.height), L: ov.querySelectorAll('.ddL .ddRow').length, R: ov.querySelectorAll('.ddR .ddRow').length,
           cardSide: [...ov.querySelectorAll('.ddL .ddRow')].every(r => r.firstElementChild.classList.contains('ddArt')) && [...ov.querySelectorAll('.ddR .ddRow')].every(r => getComputedStyle(r).flexDirection === 'row-reverse' && r.firstElementChild.classList.contains('ddArt')) }; }, many);
       ck(nm + ': the panel and Continue are inside the screen, no sideways scroll (card ' + m.cw + 'x' + m.chh + (m.rot ? ', turned' : '') + ')', m.card && m.go && !m.hscroll);
       ck(nm + ': both columns shown (' + m.L + ' heroes | ' + m.R + ' opponents), a long column scrolls inside the panel', m.L === BIG.a.length && m.R === many.e.length && m.lists.every(l => l.ov === 'auto' && (l.sh <= l.ch + 1 || l.sh > l.ch)), JSON.stringify(m.lists));
       ck(nm + ': highest damage at the top of each column; each number sits on its bar row', m.orderOk && m.numsIn);
-      // v1471 (a player, 28 Nov: the compact phone rows had dropped them): every row keeps its heal and damage-taken numbers, shown and not cut off
-      ck(nm + ': every row shows its heal and damage taken (' + m.subs.length + ' rows, list sizes ' + [...new Set(m.subs.map(x => x.dense))].join('/') + ')', m.subs.length === m.L + m.R && m.subs.every(x => x.d !== 'none' && x.w > 0 && x.n === 2 && !x.cut), JSON.stringify(m.subs.filter(x => x.d === 'none' || !x.w || x.cut).slice(0, 3)));
+      // v1471 (Phil 28 Nov: "make tabs at the top to alternate charts - Damage done, Damage Taken, Healing Done, Healing Taken"): each tab is its own chart
+      const tabs = await p2.evaluate(async (S) => { const ov = document.getElementById('ddPop'), card = ov.querySelector('.ddCard'), out = [];
+        const cr = card.getBoundingClientRect(), fmt = n => Math.round(n || 0).toLocaleString('en-US');
+        const T = [...ov.querySelectorAll('.ddTab')];
+        for (const t of T) { t.click(); await new Promise(r => setTimeout(r, 120)); const m = t.dataset.m, r = t.getBoundingClientRect();
+          const col = c => [...ov.querySelectorAll(c + ' .ddNum')].map(e => e.textContent);
+          const want = side => S[side].map(g => g[m] || 0).sort((x, y) => y - x).map(fmt);
+          const tip = ov.querySelector('.ddTrack'); tip.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); await new Promise(r => setTimeout(r, 60));
+          const tipShown = !ov.querySelector('.ddTip').hidden; ov.querySelector('.ddTip').hidden = true;
+          out.push({ m, label: t.textContent.trim(), on: t.classList.contains('on') && ov.dataset.m === m && T.filter(x => x.classList.contains('on')).length === 1,
+            inCard: r.left >= cr.left - 0.5 && r.right <= cr.right + 0.5 && r.width > 20, L: JSON.stringify(col('.ddL')) === JSON.stringify(want('a')), R: JSON.stringify(col('.ddR')) === JSON.stringify(want('e')),
+            fits: [...ov.querySelectorAll('.ddList')].every(l => l.scrollHeight <= l.clientHeight + 1 || l.classList.contains('ddD3')), tipShown,
+            fill: getComputedStyle(ov.querySelector('.ddFill')).backgroundImage.slice(0, 60), sumHeal: S.a.concat(S.e).reduce((x, g) => x + (g.heal || 0), 0), sumRecv: S.a.concat(S.e).reduce((x, g) => x + (g.recv || 0), 0) }); }
+        T[0].click(); await new Promise(r => setTimeout(r, 120)); return out; }, many);
+      ck(nm + ': four tabs - Damage Done, Damage Taken, Healing Done, Healing Taken - inside the panel (' + tabs.map(t => t.label).join(' | ') + ')', tabs.length === 4 && tabs.map(t => t.m).join() === 'dealt,taken,heal,recv' && tabs.every(t => t.inCard && t.label), JSON.stringify(tabs));
+      ck(nm + ': each tab shows its own numbers on both sides, highest first, one tab lit at a time', tabs.every(t => t.on && t.L && t.R), JSON.stringify(tabs.filter(t => !(t.on && t.L && t.R))));
+      ck(nm + ': every tab fits the screen; each has its own bar colour; the breakdown opens only on Damage Done', tabs.every(t => t.fits) && new Set(tabs.map(t => t.fill)).size === 4 && tabs[0].tipShown && tabs.slice(1).every(t => !t.tipShown), JSON.stringify(tabs.map(t => [t.m, t.fits, t.tipShown])));
+      ck(nm + ': Healing Taken is filled in (' + Math.round(tabs[0].sumRecv) + ' received vs ' + Math.round(tabs[0].sumHeal) + ' done)', tabs[0].sumHeal === 0 || (tabs[0].sumRecv > 0 && tabs[0].sumRecv <= tabs[0].sumHeal + 1));
       ck(nm + ': cards on the outside - heroes\' card left of their bar, opponents\' card right of theirs', m.cardSide);
       await p2.screenshot({ path: path.join(SHOTS, 'dd-' + nm + '.png') });
       // the breakdown: hover on PC, double tap on a phone; it must stay inside the panel
