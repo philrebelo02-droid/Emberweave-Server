@@ -764,6 +764,8 @@ note "test_skyfall_real_fights_1458.js (v1458 Phil 26 Nov 'fix that': a real Sky
 node tests/test_skyfall_real_fights_1458.js || FAILED=1
 note "test_vault_enrage_1458.js (v1458 Phil 26 Nov 'they all need their own enrage type that fits their abilities': one enrage per Vault boss, 20 ids and 20 effect types, the server's bossRule is the boss's own enrage, each effect checked on a live board, real Vault fights enrage at their line, only in the Vault, all 15 packs + en-XA re-hashed)"
 node tests/test_vault_enrage_1458.js || FAILED=1
+note "test_damage_done_1388.js (v1388 Damage Done, needs playwright: the panel after every fight, damage = health lost, healing counted, four sizes; v1471 every row keeps heal + taken)"
+node tests/test_damage_done_1388.js || FAILED=1
 note "test_lang_coverage.js (player-facing localization browser crawler)"
 node tests/test_lang_coverage.js || FAILED=1
 rm -f probe-db-*.json
