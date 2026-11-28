@@ -210,11 +210,14 @@ ck('BOOKKEEPING ONLY: the same seed gives the identical digest + result with the
         const numsIn = [...ov.querySelectorAll('.ddTrack')].every(t => { const n = t.querySelector('.ddNum'), tr = t.getBoundingClientRect(), nr = n.getBoundingClientRect(); return nr.width > 0 && (nr.left >= tr.left - 1 && nr.right <= tr.right + 1 && nr.top >= tr.top - 2 && nr.bottom <= tr.bottom + 2); });
         const cardRot = (card.ewGameRect ? card.ewGameRect() : card.getBoundingClientRect());
         return { card: inside(card), go: inside(go), hscroll: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+          subs: [...ov.querySelectorAll('.ddSub')].map(e => ({ d: getComputedStyle(e).display, w: Math.round(e.getBoundingClientRect().width), cut: e.scrollWidth > e.clientWidth + 1, n: e.querySelectorAll('span').length, dense: (e.closest('.ddList').className.match(/ddD\d/) || ['-'])[0] })),
           lists, orderOk, numsIn, rot: document.body.classList.contains('ew-rotated'), cw: Math.round(cardRot.width), chh: Math.round(cardRot.height), L: ov.querySelectorAll('.ddL .ddRow').length, R: ov.querySelectorAll('.ddR .ddRow').length,
           cardSide: [...ov.querySelectorAll('.ddL .ddRow')].every(r => r.firstElementChild.classList.contains('ddArt')) && [...ov.querySelectorAll('.ddR .ddRow')].every(r => getComputedStyle(r).flexDirection === 'row-reverse' && r.firstElementChild.classList.contains('ddArt')) }; }, many);
       ck(nm + ': the panel and Continue are inside the screen, no sideways scroll (card ' + m.cw + 'x' + m.chh + (m.rot ? ', turned' : '') + ')', m.card && m.go && !m.hscroll);
       ck(nm + ': both columns shown (' + m.L + ' heroes | ' + m.R + ' opponents), a long column scrolls inside the panel', m.L === BIG.a.length && m.R === many.e.length && m.lists.every(l => l.ov === 'auto' && (l.sh <= l.ch + 1 || l.sh > l.ch)), JSON.stringify(m.lists));
       ck(nm + ': highest damage at the top of each column; each number sits on its bar row', m.orderOk && m.numsIn);
+      // v1471 (a player, 28 Nov: the compact phone rows had dropped them): every row keeps its heal and damage-taken numbers, shown and not cut off
+      ck(nm + ': every row shows its heal and damage taken (' + m.subs.length + ' rows, list sizes ' + [...new Set(m.subs.map(x => x.dense))].join('/') + ')', m.subs.length === m.L + m.R && m.subs.every(x => x.d !== 'none' && x.w > 0 && x.n === 2 && !x.cut), JSON.stringify(m.subs.filter(x => x.d === 'none' || !x.w || x.cut).slice(0, 3)));
       ck(nm + ': cards on the outside - heroes\' card left of their bar, opponents\' card right of theirs', m.cardSide);
       await p2.screenshot({ path: path.join(SHOTS, 'dd-' + nm + '.png') });
       // the breakdown: hover on PC, double tap on a phone; it must stay inside the panel

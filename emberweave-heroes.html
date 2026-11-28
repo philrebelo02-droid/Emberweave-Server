@@ -200,7 +200,15 @@
   #ddPop .ddList.ddD1{gap:2px}
   #ddPop .ddList.ddD1 .ddRow{padding:1px 4px;gap:4px;border-radius:6px}
   #ddPop .ddList.ddD1 .ddArt{width:24px;height:24px;border-width:1px;border-radius:5px}
-  #ddPop .ddList.ddD1 .ddSub{display:none}
+  /* v1471 (a player, 28 Nov: "now it doesn't show how much damage it takes or how much it heals"): the compact rows keep the heal / taken numbers -
+     they move up beside the name (the phone layout's name | numbers row) instead of being hidden, so no row grows taller */
+  #ddPop .ddList.ddD1 .ddBody{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'name sub' 'bar bar';column-gap:6px;align-items:center}
+  #ddPop .ddR .ddList.ddD1 .ddBody{grid-template-columns:auto minmax(0,1fr);grid-template-areas:'sub name' 'bar bar'}
+  #ddPop .ddList.ddD1 .ddName{grid-area:name}
+  #ddPop .ddList.ddD1 .ddTrack{grid-area:bar}
+  #ddPop .ddList.ddD1 .ddSub{grid-area:sub;display:flex;gap:5px;font-size:9px}
+  #ddPop .ddList.ddD1 .ddSub img{width:10px;height:10px}
+  #ddPop .ddList.ddD3 .ddSub{font-size:8px;gap:3px}
   #ddPop .ddList.ddD1 .ddName{font-size:10px}
   #ddPop .ddList.ddD1 .ddTrack{height:12px;margin:1px 0}
   #ddPop .ddList.ddD1 .ddNum{font-size:10px}
