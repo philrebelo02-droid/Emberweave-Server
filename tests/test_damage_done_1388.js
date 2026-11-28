@@ -31,8 +31,8 @@ const H = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'e
 const run = s => vm.runInContext(s, H.ctx);
 run(`globalThis.__hp0=new Map(); { const _w=(n)=>{ const f=globalThis[n]; globalThis[n]=function(){ const r=f.apply(this,arguments); try{ (units||[]).forEach(u=>{ if(!__hp0.has(u)) __hp0.set(u,u.hp); }); if(r&&typeof r==='object'&&r.key&&!__hp0.has(r)) __hp0.set(r,r.hp); }catch(e){} return r; }; };
   _w('setupMarchTeams'); _w('buildEnemyWave'); _w('spawnTeamFromSnaps'); _w('summonUnit'); _w('beginWaveEnter'); }`);
-const audit = () => JSON.parse(run(`(()=>{ const sides={ally:{dealt:0,lost:0,taken:0,unk:0,heal:0,recv:0},enemy:{dealt:0,lost:0,taken:0,unk:0,heal:0,recv:0}}; let srcBad=[], noHp0=0, kinds={};
-  DD.rows.forEach((r,u)=>{ const S=sides[u.team]; if(!S) return; S.dealt+=r.dealt; S.taken+=r.taken; S.unk+=r.unk+r.self; S.heal+=r.heal; S.recv+=r.recv;
+const audit = () => JSON.parse(run(`(()=>{ const sides={ally:{dealt:0,lost:0,taken:0,unk:0,self:0,heal:0,recv:0},enemy:{dealt:0,lost:0,taken:0,unk:0,self:0,heal:0,recv:0}}; let srcBad=[], noHp0=0, kinds={};
+  DD.rows.forEach((r,u)=>{ const S=sides[u.team]; if(!S) return; S.dealt+=r.dealt; S.taken+=r.taken; S.unk+=r.unk+r.self; S.self+=r.self; S.heal+=r.heal; S.recv+=r.recv;
     const h0=__hp0.get(u); if(u._summon||u._wasSummon) S.lost+=r.taken;   /* a summon whose time runs out is not damage: the HP it lost to hits is what it took */
     else if(h0==null){ if(r.taken>0) noHp0+=r.taken; } else S.lost+=h0-Math.max(0,u.hp)+r.recv;
     let s=0; for(const k in r.src){ s+=r.src[k]; const kk=k.indexOf('summon:')===0?'summon':k; kinds[kk]=(kinds[kk]||0)+r.src[k]; } if(Math.abs(s-r.dealt)>1e-6*Math.max(1,r.dealt)) srcBad.push(u.key+' '+s+'/'+r.dealt); });
@@ -42,7 +42,7 @@ const fight = (A, B, seed, on) => { run(`DD.force=${on ? 'true' : 'false'}; ddRe
 const ALL = JSON.parse(run(`JSON.stringify(Object.keys(HERO_TYPES).filter(k=>!HERO_TYPES[k].monster))`));
 const squads = []; for (let i = 0; i < ALL.length; i += 5) squads.push(ALL.slice(i, i + 5));
 const snaps = squads.map(k => H.snapSquad(k).map(x => Object.assign(x, { rank: 3 })));   // every slot unlocked: green, blue, passive
-let same = 0, total = 0, worst = 0, worstName = '', unkMax = 0, healTot = 0, healEq = true, srcBad = [], kindsAll = {};
+let same = 0, total = 0, worst = 0, worstName = '', unkMax = 0, selfMax = 0, selfName = '', healTot = 0, healEq = true, srcBad = [], kindsAll = {};
 const pct = (x, y) => Math.abs(x - y) / Math.max(1, y);
 for (let i = 0; i < squads.length; i++) { const j = (i + 1) % squads.length, seed = 1000 + i * 77;
   const on = fight(snaps[i], snaps[j], seed, true), off = fight(snaps[i], snaps[j], seed, false);
@@ -51,11 +51,14 @@ for (let i = 0; i < squads.length; i++) { const j = (i + 1) % squads.length, see
   for (const [side, other] of [['ally', 'enemy'], ['enemy', 'ally']]) {
     const credited = a.sides[side].dealt, lost = a.sides[other].lost, d = pct(credited + a.sides[other].unk, lost);
     if (d > worst) { worst = d; worstName = squads[i].join('+') + ' vs ' + squads[j].join('+') + ' ' + side + ': credited ' + Math.round(credited) + ' + unattributed ' + Math.round(a.sides[other].unk) + ' vs lost ' + Math.round(lost); }
-    unkMax = Math.max(unkMax, a.sides[other].unk / Math.max(1, a.sides[other].taken)); }
+    // v1471: health a hero spends on its own skill (Carn) is known, not a lost hit - judged apart from truly unattributed damage
+    unkMax = Math.max(unkMax, (a.sides[other].unk - a.sides[other].self) / Math.max(1, a.sides[other].taken));
+    { const sf = a.sides[other].self / Math.max(1, a.sides[other].taken); if (sf > selfMax) { selfMax = sf; selfName = squads[i].join('+') + ' vs ' + squads[j].join('+') + ' ' + other; } } }
   healTot += a.sides.ally.heal + a.sides.enemy.heal;
   if (pct(a.sides.ally.heal + a.sides.enemy.heal, a.sides.ally.recv + a.sides.enemy.recv) > 1e-9) healEq = false; }
 ck('every hero kit (' + ALL.length + ' heroes in ' + total + ' 5v5s): credited damage (+ the unattributed rest) = the health the other side lost, within 0.5% (worst ' + (worst * 100).toFixed(3) + '%)', worst <= 0.005, worstName);
-ck('unattributed damage (incl. health spent on own skills) is at most 1% of any side\'s damage taken (worst ' + (unkMax * 100).toFixed(2) + '%)', unkMax <= 0.01);
+ck('unattributed damage (hits with no known source) is at most 1% of any side\'s damage taken (worst ' + (unkMax * 100).toFixed(2) + '%)', unkMax <= 0.01);
+ck('health spent on a hero\'s own skills is counted as taken, apart from hits (most: ' + (selfMax * 100).toFixed(2) + '% of a side\'s damage taken' + (selfName ? ', ' + selfName : '') + ')', selfMax < 0.1);
 ck('healing is counted (' + Math.round(healTot) + ' HP across the fights) and credited healing == healing received', healTot > 0 && healEq);
 ck('every unit\'s per-source totals add up to its damage dealt', srcBad.length === 0, srcBad.slice(0, 4).join(' | '));
 ck('the sources include auto attacks, green / blue skills, ultimates and passives (' + Object.keys(kindsAll).sort().join(', ') + ')', ['auto', 'green', 'blue', 'ult', 'passive'].every(k => kindsAll[k] > 0));
