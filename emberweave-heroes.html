@@ -192,9 +192,9 @@
   #ddPop .ddTabs{flex:none;display:flex;justify-content:center;gap:6px;margin:0 0 8px;flex-wrap:nowrap}
   #ddPop .ddTab{flex:0 1 auto;min-width:0;min-height:32px;padding:4px 12px;border:1px solid #6b5a2e;border-radius:8px;background:rgba(10,15,26,.85);color:#c9b98a;font:800 13px Georgia,serif;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;touch-action:manipulation}
   #ddPop .ddTab.on{background:linear-gradient(180deg,#5a4318,#2c2010);color:#ffd45e;border-color:#ffd45e;box-shadow:0 0 8px rgba(255,212,94,.35)}
-  #ddPop[data-m=taken] .ddFill{background:linear-gradient(180deg,#ff9a8a,#c43b2e)}
-  #ddPop[data-m=heal] .ddFill{background:linear-gradient(180deg,#9ef0a0,#2f9e4a)}
-  #ddPop[data-m=recv] .ddFill{background:linear-gradient(180deg,#9fe8ff,#2a86b8)}
+  #ddPop[data-m=taken] .ddFill,#ddPop[data-m=taken] .ddR .ddFill{background:linear-gradient(180deg,#ff9a8a,#c43b2e)}
+  #ddPop[data-m=heal] .ddFill,#ddPop[data-m=heal] .ddR .ddFill{background:linear-gradient(180deg,#9ef0a0,#2f9e4a)}
+  #ddPop[data-m=recv] .ddFill,#ddPop[data-m=recv] .ddR .ddFill{background:linear-gradient(180deg,#9fe8ff,#2a86b8)}
   @media (max-height:500px){#ddPop .ddTabs{margin-bottom:4px;gap:4px}#ddPop .ddTab{min-height:26px;padding:2px 8px;font-size:11px}}
   @media (max-width:560px){#ddPop .ddTabs{gap:3px}#ddPop .ddTab{padding:3px 5px;font-size:10px;letter-spacing:0}}
   #ddPop .ddTitle{flex:none;font:900 20px Georgia,serif;color:#ffd45e;letter-spacing:1px;text-shadow:0 2px 4px #000;text-align:center;margin:0 0 6px}
