@@ -186,16 +186,18 @@
   @media (max-height:500px){#stageRewPop .srCard{width:min(680px,94vw)}#stageRewPop .srItem{width:78px;padding:6px 3px 5px}#stageRewPop .srArt{width:44px;height:44px}#stageRewPop .srArt img{max-width:44px;max-height:44px}#stageRewPop .srGrid{gap:6px;margin-bottom:8px}}
   /* v1388 Damage Done: your side left, the opponents right (mirrored), one scale for both; the bonus panel frame + claim button art */
   #ddPop{position:fixed;inset:0;z-index:9850;display:flex;align-items:center;justify-content:center;background:rgba(3,6,12,.78);padding:8px;box-sizing:border-box}
-  #ddPop .ddCard{position:relative;width:min(900px,calc(var(--ew-game-width,100vw) - 16px));max-height:calc(var(--ew-game-height,100vh) - 16px);display:flex;flex-direction:column;box-sizing:border-box;padding:80px 30px 18px;border-style:solid;border-color:transparent;border-image:url(/assets/img/ui/bonus/panel-frame.webp?v=1) 175 44 64 44 fill / 66px 17px 24px 17px stretch;filter:drop-shadow(0 14px 30px #000b);color:#e6edf3;opacity:0;transform:scale(.9);transition:opacity .2s ease-out,transform .2s ease-out}
+  /* v1471 (Phil 28 Nov: "at the top the report screen looks stretched"): this 900 px panel uses a wide cut of the bonus frame - the rails between the
+     corners and the crest are longer, the crest and corners are the original pixels - so the crest is no longer stretched to 2.4x */
+  #ddPop .ddCard{position:relative;width:min(900px,calc(var(--ew-game-width,100vw) - 16px));max-height:calc(var(--ew-game-height,100vh) - 16px);display:flex;flex-direction:column;box-sizing:border-box;padding:80px 30px 18px;border-style:solid;border-color:transparent;border-image:url(/assets/img/ui/bonus/panel-frame-wide.webp?v=1) 175 44 64 44 fill / 66px 17px 24px 17px stretch;filter:drop-shadow(0 14px 30px #000b);color:#e6edf3;opacity:0;transform:scale(.9);transition:opacity .2s ease-out,transform .2s ease-out}
   #ddPop.on .ddCard{opacity:1;transform:scale(1)}
   /* v1471 tabs (Phil 28 Nov): Damage Done / Damage Taken / Healing Done / Healing Taken - each its own chart, its own bar colour */
-  #ddPop .ddTabs{flex:none;display:flex;justify-content:center;gap:6px;margin:0 0 8px;flex-wrap:nowrap}
+  #ddPop .ddTabs{flex:none;display:flex;justify-content:center;gap:6px;margin:14px 0 8px;flex-wrap:nowrap}   /* clear of the frame's crest and gold leaves (Phil 28 Nov: "the tabs touch the borders") */
   #ddPop .ddTab{flex:0 1 auto;min-width:0;min-height:32px;padding:4px 12px;border:1px solid #6b5a2e;border-radius:8px;background:rgba(10,15,26,.85);color:#c9b98a;font:800 13px Georgia,serif;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;touch-action:manipulation}
   #ddPop .ddTab.on{background:linear-gradient(180deg,#5a4318,#2c2010);color:#ffd45e;border-color:#ffd45e;box-shadow:0 0 8px rgba(255,212,94,.35)}
   #ddPop[data-m=taken] .ddFill,#ddPop[data-m=taken] .ddR .ddFill{background:linear-gradient(180deg,#ff9a8a,#c43b2e)}
   #ddPop[data-m=heal] .ddFill,#ddPop[data-m=heal] .ddR .ddFill{background:linear-gradient(180deg,#9ef0a0,#2f9e4a)}
   #ddPop[data-m=recv] .ddFill,#ddPop[data-m=recv] .ddR .ddFill{background:linear-gradient(180deg,#9fe8ff,#2a86b8)}
-  @media (max-height:500px){#ddPop .ddTabs{margin-bottom:4px;gap:4px}#ddPop .ddTab{min-height:26px;padding:2px 8px;font-size:11px}}
+  @media (max-height:500px){#ddPop .ddTabs{margin:9px 0 4px;gap:4px}#ddPop .ddTab{min-height:26px;padding:2px 8px;font-size:11px}}
   @media (max-width:560px){#ddPop .ddTabs{gap:3px}#ddPop .ddTab{padding:3px 5px;font-size:10px;letter-spacing:0}}
   #ddPop .ddTitle{flex:none;font:900 20px Georgia,serif;color:#ffd45e;letter-spacing:1px;text-shadow:0 2px 4px #000;text-align:center;margin:0 0 6px}
   #ddPop .ddCols{flex:1 1 auto;min-height:0;display:flex;gap:14px}

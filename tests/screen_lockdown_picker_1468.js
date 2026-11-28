@@ -338,7 +338,7 @@ async function resultFit(pg,S,kind){
     await H.wait(600); await prep(pg);
     const r=await pg.evaluate(()=>{ const dd=document.getElementById('ddPop'), pop=document.getElementById('stageRewPop'), res=document.getElementById('result');
       let name,top,card,title,go;
-      if(dd){ name='Damage Done (#ddPop)'; top=dd; card=dd.querySelector('.ddCard'); title=SL.txt(dd.querySelector('.ddTitle')); go='#ddPop .ddGo'; }
+      if(dd){ name='Damage Done (#ddPop)'; top=dd; card=dd.querySelector('.ddCard'); title=SL.txt(dd.querySelector('.ddTab.on')||dd.querySelector('.ddTitle')); go='#ddPop .ddGo'; }
       else if(pop){ name='reward pop (#stageRewPop over #result.srUnder)'; top=pop; card=pop.querySelector('.srCard'); title=SL.txt(pop.querySelector('.srTitle')); go='#stageRewPop .srGo'; }
       else if(state==='result'&&res.classList.contains('active')){ name='result page (#result)'; top=res; card=res; title=SL.txt('#resultTitle'); go='#resultBtn'; }
       else return null;
